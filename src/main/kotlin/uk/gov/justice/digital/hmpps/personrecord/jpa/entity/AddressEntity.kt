@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType.STRING
+import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
@@ -10,6 +12,7 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.types.RecordType
 import java.time.LocalDate
 
 @Entity
@@ -73,11 +76,26 @@ class AddressEntity(
   @Column(name = "uprn")
   val uprn: String? = null,
 
+  @Enumerated(STRING)
+  @Column(name = "record_type")
+  var recordType: RecordType? = null,
+
   @Version
   var version: Int = 0,
 ) {
+
+  fun isPrevious() = this.recordType == RecordType.PREVIOUS
+
+  fun setToPrimary() {
+    this.recordType = RecordType.PRIMARY
+  }
+
+  fun setToPrevious() {
+    this.recordType = RecordType.PREVIOUS
+  }
+
   companion object {
-    fun from(address: Address): AddressEntity = AddressEntity(
+    fun from(address: Address, recordType: RecordType? = null): AddressEntity = AddressEntity(
       startDate = address.startDate,
       endDate = address.endDate,
       noFixedAbode = address.noFixedAbode,
@@ -92,6 +110,9 @@ class AddressEntity(
       county = address.county,
       countryCode = address.countryCode,
       uprn = address.uprn,
+      recordType = recordType,
     )
+
+    fun toPrimary(address: Address): AddressEntity = from(address, RecordType.PRIMARY)
   }
 }

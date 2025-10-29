@@ -18,9 +18,9 @@ generic-service:
     startup: '35 6 * * 1-5'
 
   autoscaling:
-    enabled: false
-    minReplicas: 8
-    maxReplicas: 8
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 1
 
 generic-prometheus-alerts:
   businessHoursOnly: true
