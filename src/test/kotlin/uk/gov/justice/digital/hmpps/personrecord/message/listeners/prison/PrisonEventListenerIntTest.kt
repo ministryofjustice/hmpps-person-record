@@ -5,11 +5,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
@@ -142,12 +142,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.addresses[0].startDate).isEqualTo(LocalDate.of(1970, 1, 1))
         assertThat(personEntity.addresses[0].noFixedAbode).isEqualTo(true)
         assertThat(personEntity.contacts.size).isEqualTo(3)
-        assertThat(personEntity.contacts[0].contactType).isEqualTo(EMAIL)
-        assertThat(personEntity.contacts[0].contactValue).isEqualTo(email)
-        assertThat(personEntity.contacts[1].contactType).isEqualTo(HOME)
-        assertThat(personEntity.contacts[1].contactValue).isEqualTo("01141234567")
-        assertThat(personEntity.contacts[2].contactType).isEqualTo(MOBILE)
-        assertThat(personEntity.contacts[2].contactValue).isEqualTo("01141234567")
+        assertThat(personEntity.contacts.getEmail()?.contactValue).isEqualTo(email)
+        assertThat(personEntity.contacts.getHome()?.contactValue).isEqualTo("01141234567")
+        assertThat(personEntity.contacts.getMobile()?.contactValue).isEqualTo("01141234567")
         assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceStartDate)
         assertThat(personEntity.nationalities.size).isEqualTo(1)
         assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromPrisonCode()?.code)
