@@ -35,7 +35,7 @@ dependencies {
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
 
   implementation("software.amazon.sns:sns-extended-client:2.1.0")
-  implementation("com.jayway.jsonpath:json-path:2.9.0")
+  implementation("com.jayway.jsonpath:json-path:2.10.0")
   implementation("io.swagger.core.v3:swagger-annotations:2.2.40")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
 
