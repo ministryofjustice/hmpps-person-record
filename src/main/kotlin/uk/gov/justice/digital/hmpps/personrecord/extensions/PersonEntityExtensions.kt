@@ -17,7 +17,7 @@ fun List<ReferenceEntity>.getType(type: IdentifierType): List<String> = this.fil
 // Contact
 fun List<ContactEntity>.getHome(): ContactEntity? = this.findByType(ContactType.HOME)
 fun List<ContactEntity>.getMobile(): ContactEntity? = this.findByType(ContactType.MOBILE)
-fun List<ContactEntity>.getEmail(): ContactEntity? = this.findByType(ContactType.MOBILE)
+fun List<ContactEntity>.getEmail(): ContactEntity? = this.findByType(ContactType.EMAIL)
 private fun List<ContactEntity>.findByType(type: ContactType): ContactEntity? = this.find { it.contactType == type }
 
 // Address
