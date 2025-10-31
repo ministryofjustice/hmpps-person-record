@@ -21,14 +21,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
@@ -464,12 +464,9 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.addresses[0].fullAddress).isEqualTo(probationCase.addresses[0].fullAddress)
         assertThat(offender.addresses[0].type).isEqualTo(null)
         assertThat(offender.contacts.size).isEqualTo(3)
-        assertThat(offender.contacts[0].contactType).isEqualTo(HOME)
-        assertThat(offender.contacts[0].contactValue).isEqualTo(probationCase.contactDetails?.telephone)
-        assertThat(offender.contacts[1].contactType).isEqualTo(MOBILE)
-        assertThat(offender.contacts[1].contactValue).isEqualTo(probationCase.contactDetails?.mobile)
-        assertThat(offender.contacts[2].contactType).isEqualTo(EMAIL)
-        assertThat(offender.contacts[2].contactValue).isEqualTo(probationCase.contactDetails?.email)
+        assertThat(offender.contacts.getHome()?.contactValue).isEqualTo(probationCase.contactDetails?.telephone)
+        assertThat(offender.contacts.getMobile()?.contactValue).isEqualTo(probationCase.contactDetails?.mobile)
+        assertThat(offender.contacts.getEmail()?.contactValue).isEqualTo(probationCase.contactDetails?.email)
         assertThat(offender.matchId).isNotNull()
         assertThat(offender.lastModified).isNotNull()
         assertThat(offender.nationalities.size).isEqualTo(1)
