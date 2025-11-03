@@ -13,28 +13,28 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.TransactionalReclusterService
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
 @RestController
 class ReclusterNeedAttention(
   private val personKeyRepository: PersonKeyRepository,
-  private val reclusterService: ReclusterService,
+  private val transactionalReclusterService: TransactionalReclusterService,
 ) {
 
   @Hidden
   @RequestMapping(method = [RequestMethod.POST], value = ["/jobs/recluster-need-attention"])
   suspend fun runJob(): String {
-    reclusterNeedAttentionClusters()
+    reclusterNeedAttentionsClusters()
     return OK
   }
 
-  suspend fun reclusterNeedAttentionClusters() {
+  suspend fun reclusterNeedAttentionsClusters() {
     CoroutineScope(Dispatchers.Default).launch {
       val executionResults = forPage { page ->
         page.content.forEach { cluster ->
-          reclusterService.recluster(cluster.personEntities.first())
+          transactionalReclusterService.recluster(cluster.personEntities.first())
         }
       }
       log.info(
