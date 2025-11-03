@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatus.MOVED_PERMANENTLY
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -57,16 +57,21 @@ class PrisonAPIController(
   fun getRecord(
     @PathVariable(name = "prisonNumber") prisonNumber: String,
   ): ResponseEntity<*> {
-    val personEntity = getMergedToPersonIfExist(personRepository.findByPrisonNumber(prisonNumber))
+    val prisoner = getPrisoner(personRepository.findByPrisonNumber(prisonNumber))
     return when {
-      personEntity == null -> throw ResourceNotFoundException(prisonNumber)
-      personEntity.prisonNumber != prisonNumber -> ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).location(URI("/person/prison/${personEntity.prisonNumber}")).build<Void>()
-      else -> ResponseEntity.ok(CanonicalRecord.from(personEntity))
+      prisoner == null -> throw ResourceNotFoundException(prisonNumber)
+      isMerged(prisoner, prisonNumber) -> ResponseEntity.status(MOVED_PERMANENTLY).location(URI("/person/prison/${prisoner.prisonNumber}")).build<Void>()
+      else -> ResponseEntity.ok(CanonicalRecord.from(prisoner))
     }
   }
 
-  fun getMergedToPersonIfExist(person: PersonEntity?): PersonEntity? = when {
-    person?.mergedTo != null -> getMergedToPersonIfExist(personRepository.findByIdOrNull(id = person.mergedTo!!))
+  fun getPrisoner(person: PersonEntity?): PersonEntity? = when {
+    person?.mergedTo != null -> getPrisoner(personRepository.findByIdOrNull(id = person.mergedTo!!))
     else -> person
   }
+
+  private fun isMerged(
+    personEntity: PersonEntity,
+    prisonNumber: String,
+  ): Boolean = personEntity.prisonNumber != prisonNumber
 }

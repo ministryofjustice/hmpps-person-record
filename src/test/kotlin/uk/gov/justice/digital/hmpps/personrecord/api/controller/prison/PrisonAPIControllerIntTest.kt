@@ -41,7 +41,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
 
-class PrisonApiIntTest : WebTestBase() {
+class PrisonAPIControllerIntTest : WebTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
@@ -176,7 +176,7 @@ class PrisonApiIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should add list of additional identifiers to the canonical record`() {
+    fun `should add list of additional identifiers to the prison record`() {
       val personOneCro = randomCro()
       val personTwoCro = randomCro()
 
@@ -306,6 +306,26 @@ class PrisonApiIntTest : WebTestBase() {
         ),
       )
     }
+
+    @Test
+    fun `should return redirect when the requested prison record has been merged`() {
+      val sourcePrisonNumber = randomPrisonNumber()
+      val targetPrisonNumber = randomPrisonNumber()
+
+      val sourcePersonEntity = createPerson(createRandomPrisonPersonDetails(sourcePrisonNumber))
+      val targetPersonEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(targetPrisonNumber))
+
+      mergeRecord(sourcePersonEntity, targetPersonEntity)
+
+      webTestClient.get()
+        .uri(prisonApiUrl(sourcePrisonNumber))
+        .authorised(listOf(API_READ_ONLY))
+        .exchange()
+        .expectStatus()
+        .is3xxRedirection
+        .expectHeader()
+        .valueEquals("Location", "/person/prison/$targetPrisonNumber")
+    }
   }
 
   @Nested
@@ -347,26 +367,6 @@ class PrisonApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isUnauthorized
-    }
-
-    @Test
-    fun `should return redirect when a requested record has been merged record`() {
-      val sourcePrisonNumber = randomPrisonNumber()
-      val targetPrisonNumber = randomPrisonNumber()
-
-      val sourcePersonEntity = createPerson(createRandomPrisonPersonDetails(sourcePrisonNumber))
-      val targetPersonEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(targetPrisonNumber))
-
-      mergeRecord(sourcePersonEntity, targetPersonEntity)
-
-      webTestClient.get()
-        .uri(prisonApiUrl(sourcePrisonNumber))
-        .authorised(listOf(API_READ_ONLY))
-        .exchange()
-        .expectStatus()
-        .is3xxRedirection
-        .expectHeader()
-        .valueEquals("Location", "/person/prison/$targetPrisonNumber")
     }
   }
 
