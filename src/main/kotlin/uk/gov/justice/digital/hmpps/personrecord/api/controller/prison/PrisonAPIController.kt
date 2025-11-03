@@ -60,10 +60,11 @@ class PrisonAPIController(
     val prisoner = getPrisoner(personRepository.findByPrisonNumber(prisonNumber))
     return when {
       prisoner == null -> throw ResourceNotFoundException(prisonNumber)
-      isMerged(prisoner, prisonNumber) -> ResponseEntity
-        .status(MOVED_PERMANENTLY)
-        .location(URI("/person/prison/${prisoner.prisonNumber}"))
-        .build<Void>()
+      isMerged(prisoner, prisonNumber) ->
+        ResponseEntity
+          .status(MOVED_PERMANENTLY)
+          .location(URI("/person/prison/${prisoner.prisonNumber}"))
+          .build<Void>()
       else -> ResponseEntity.ok(CanonicalRecord.from(prisoner))
     }
   }
