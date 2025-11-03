@@ -350,12 +350,12 @@ class PrisonApiIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should handle merged record`() {
+    fun `should return redirect when a requested record has been merged record`() {
       val sourcePrisonNumber = randomPrisonNumber()
       val targetPrisonNumber = randomPrisonNumber()
 
       val sourcePersonEntity = createPerson(createRandomPrisonPersonDetails(sourcePrisonNumber))
-      val targetPersonEntity = createPerson(createRandomPrisonPersonDetails(targetPrisonNumber))
+      val targetPersonEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(targetPrisonNumber))
 
       mergeRecord(sourcePersonEntity, targetPersonEntity)
 
@@ -364,9 +364,9 @@ class PrisonApiIntTest : WebTestBase() {
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
-        .isOk
-        .expectBody(CanonicalRecord::class.java)
-        .returnResult()
+        .is3xxRedirection
+        .expectHeader()
+        .valueEquals("Location", "/person/prison/$targetPrisonNumber")
     }
   }
 
