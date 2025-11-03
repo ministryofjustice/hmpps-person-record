@@ -38,7 +38,7 @@ generic-service:
           deny all;
           return 401;
         }
-        location /jobs/recluster-need-attention {
+        location /jobs/recluster-needs-attention {
           deny all;
           return 401;
         }

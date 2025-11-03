@@ -25,7 +25,7 @@ class ReclusterNeedsAttentionIntTest : WebTestBase() {
       stubPersonMatchScores(matchId = needsAttentionPerson.matchId)
 
       webTestClient.post()
-        .uri("/jobs/recluster-need-attention")
+        .uri("/jobs/recluster-needs-attention")
         .exchange()
         .expectStatus()
         .isOk

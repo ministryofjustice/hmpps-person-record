@@ -18,7 +18,7 @@ import kotlin.time.Duration
 import kotlin.time.measureTime
 
 @RestController
-class ReclusterNeedAttention(
+class ReclusterNeedsAttention(
   private val personKeyRepository: PersonKeyRepository,
   private val transactionalReclusterService: TransactionalReclusterService,
 ) {
@@ -74,6 +74,6 @@ class ReclusterNeedAttention(
     private const val OK = "OK"
     private const val BATCH_SIZE = 100
     private val log = LoggerFactory.getLogger(this::class.java)
-    private const val JOB_NAME = "JOB: recluster-need-attention: "
+    private const val JOB_NAME = "JOB: recluster-needs-attention: "
   }
 }
