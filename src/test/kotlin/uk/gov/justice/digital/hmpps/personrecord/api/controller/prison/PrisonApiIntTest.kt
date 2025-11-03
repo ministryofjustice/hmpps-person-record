@@ -348,6 +348,26 @@ class PrisonApiIntTest : WebTestBase() {
         .expectStatus()
         .isUnauthorized
     }
+
+    @Test
+    fun `should handle merged record`() {
+      val sourcePrisonNumber = randomPrisonNumber()
+      val targetPrisonNumber = randomPrisonNumber()
+
+      val sourcePersonEntity = createPerson(createRandomPrisonPersonDetails(sourcePrisonNumber))
+      val targetPersonEntity = createPerson(createRandomPrisonPersonDetails(targetPrisonNumber))
+
+      mergeRecord(sourcePersonEntity, targetPersonEntity)
+
+      webTestClient.get()
+        .uri(prisonApiUrl(sourcePrisonNumber))
+        .authorised(listOf(API_READ_ONLY))
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody(CanonicalRecord::class.java)
+        .returnResult()
+    }
   }
 
   private fun prisonApiUrl(prisonNumber: String?) = "/person/prison/$prisonNumber"
