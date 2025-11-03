@@ -24,13 +24,13 @@ class ReclusterNeedAttention(
 ) {
 
   @Hidden
-  @RequestMapping(method = [RequestMethod.POST], value = ["/jobs/recluster-need-attention"])
+  @RequestMapping(method = [RequestMethod.POST], value = ["/jobs/recluster-needs-attention"])
   suspend fun runJob(): String {
-    reclusterNeedAttentionsClusters()
+    reclusterNeedsAttentionClusters()
     return OK
   }
 
-  suspend fun reclusterNeedAttentionsClusters() {
+  suspend fun reclusterNeedsAttentionClusters() {
     CoroutineScope(Dispatchers.Default).launch {
       val executionResults = forPage { page ->
         page.content.forEach { cluster ->
