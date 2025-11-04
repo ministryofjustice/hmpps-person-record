@@ -120,3 +120,4 @@ generic-prometheus-alerts:
 
 cron:
   recordCountReportJob: "0 0-23 * * *"
+  reclusterNeedsAttentionJob: "0 13 * * *"

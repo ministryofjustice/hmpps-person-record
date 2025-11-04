@@ -2,10 +2,6 @@
 # Per environment values which override defaults in hmpps-person-record/values.yaml
 
 generic-service:
-  autoscaling:
-    enabled: false
-    minReplicas: 8
-    maxReplicas: 8
 
   ingress:
     host: hmpps-person-record.hmpps.service.justice.gov.uk

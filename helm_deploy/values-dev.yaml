@@ -17,11 +17,6 @@ generic-service:
     # Start at 6:35am UTC Monday-Friday - 5 minutes after hmpps-person-match
     startup: '35 6 * * 1-5'
 
-  autoscaling:
-    enabled: true
-    minReplicas: 1
-    maxReplicas: 1
-
 generic-prometheus-alerts:
   businessHoursOnly: true
   sqsNumberAlertQueueNames:
@@ -36,3 +31,4 @@ generic-prometheus-alerts:
 
 cron:
   recordCountReportJob: "0 8-17 * * 1-5"
+  reclusterNeedsAttentionJob: "0 13 * * 1-5"
