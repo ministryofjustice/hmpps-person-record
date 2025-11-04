@@ -265,7 +265,5 @@ enum class CountryCode(val description: String) {
   YU("Yugoslavia"),
   ZAF("South Africa"),
   ZMB("Zambia"),
-  ZWE("Zimbabwe")
-  ;
-
+  ZWE("Zimbabwe"),
 }
