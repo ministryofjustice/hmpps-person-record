@@ -1,7 +1,7 @@
 # hmpps-person-record
-[![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/hmpps-template-typescript/badge?style=flat)](https://github-community.service.justice.gov.uk/repository-standards/hmpps-person-record)
+[![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/hmpps-person-record/badge?style=flat)](https://github-community.service.justice.gov.uk/repository-standards/hmpps-person-record)
 
-## About
+[![API docs](https://img.shields.io/badge/API_docs_-view-85EA2D.svg?logo=swagger)](https://hmpps-person-record-dev.hmpps.service.justice.gov.uk/swagger-ui.html)
 
 HMPPS Person Record is a service for managing identity data about the people we look after in HMPPS. 
 Dealing with record updates and creation, as well detecting/preventing any duplicate person records that have been created.
