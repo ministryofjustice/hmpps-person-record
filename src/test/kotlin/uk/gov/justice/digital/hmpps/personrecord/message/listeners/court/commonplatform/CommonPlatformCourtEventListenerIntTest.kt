@@ -19,6 +19,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribu
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPrevious
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPrimary
@@ -27,8 +29,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
@@ -278,10 +278,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.addresses[0].uprn).isNull()
     assertThat(secondPerson.getPnc()).isEqualTo(secondPnc)
     assertThat(secondPerson.contacts.size).isEqualTo(3)
-    assertThat(secondPerson.contacts[0].contactType).isEqualTo(HOME)
-    assertThat(secondPerson.contacts[0].contactValue).isEqualTo("0207345678")
-    assertThat(secondPerson.contacts[1].contactType).isEqualTo(MOBILE)
-    assertThat(secondPerson.contacts[1].contactValue).isEqualTo("078590345677")
+    assertThat(secondPerson.contacts.getHome()?.contactValue).isEqualTo("0207345678")
+    assertThat(secondPerson.contacts.getMobile()?.contactValue).isEqualTo("078590345677")
     assertThat(secondPerson.masterDefendantId).isEqualTo(secondDefendantId)
     assertThat(secondPerson.getPrimaryName().sexCode).isEqualTo(secondSexCode.value)
     checkNationalities(secondPerson, secondNationality)

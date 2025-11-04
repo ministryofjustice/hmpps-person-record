@@ -1,14 +1,17 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
+import jakarta.persistence.CascadeType.ALL
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType.STRING
 import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType.EAGER
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -30,6 +33,10 @@ class AddressEntity(
     nullable = false,
   )
   var person: PersonEntity? = null,
+
+  @Column
+  @OneToMany(mappedBy = "address", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
+  var contacts: MutableList<ContactEntity> = mutableListOf(),
 
   @Column(name = "start_date")
   val startDate: LocalDate? = null,
