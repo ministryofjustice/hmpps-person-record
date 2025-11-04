@@ -1,14 +1,17 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
+import jakarta.persistence.CascadeType.ALL
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType.STRING
 import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType.EAGER
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -30,6 +33,10 @@ class AddressEntity(
     nullable = false,
   )
   var person: PersonEntity? = null,
+
+  @Column
+  @OneToMany(mappedBy = "address", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
+  var contacts: MutableList<ContactEntity> = mutableListOf(),
 
   @Column(name = "start_date")
   val startDate: LocalDate? = null,
@@ -78,13 +85,24 @@ class AddressEntity(
 
   @Enumerated(STRING)
   @Column(name = "record_type")
-  val recordType: RecordType? = null,
+  var recordType: RecordType? = null,
 
   @Version
   var version: Int = 0,
 ) {
+
+  fun isPrevious() = this.recordType == RecordType.PREVIOUS
+
+  fun setToPrimary() {
+    this.recordType = RecordType.PRIMARY
+  }
+
+  fun setToPrevious() {
+    this.recordType = RecordType.PREVIOUS
+  }
+
   companion object {
-    fun from(address: Address): AddressEntity = AddressEntity(
+    fun from(address: Address, recordType: RecordType? = null): AddressEntity = AddressEntity(
       startDate = address.startDate,
       endDate = address.endDate,
       noFixedAbode = address.noFixedAbode,
@@ -99,6 +117,9 @@ class AddressEntity(
       county = address.county,
       countryCode = address.countryCode,
       uprn = address.uprn,
+      recordType = recordType,
     )
+
+    fun toPrimary(address: Address): AddressEntity = from(address, RecordType.PRIMARY)
   }
 }

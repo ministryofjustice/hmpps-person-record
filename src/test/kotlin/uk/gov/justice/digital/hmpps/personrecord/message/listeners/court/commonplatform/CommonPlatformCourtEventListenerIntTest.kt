@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.common
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,16 +19,20 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribu
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getPrevious
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getPrimary
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.RecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -273,10 +278,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.addresses[0].uprn).isNull()
     assertThat(secondPerson.getPnc()).isEqualTo(secondPnc)
     assertThat(secondPerson.contacts.size).isEqualTo(3)
-    assertThat(secondPerson.contacts[0].contactType).isEqualTo(HOME)
-    assertThat(secondPerson.contacts[0].contactValue).isEqualTo("0207345678")
-    assertThat(secondPerson.contacts[1].contactType).isEqualTo(MOBILE)
-    assertThat(secondPerson.contacts[1].contactValue).isEqualTo("078590345677")
+    assertThat(secondPerson.contacts.getHome()?.contactValue).isEqualTo("0207345678")
+    assertThat(secondPerson.contacts.getMobile()?.contactValue).isEqualTo("078590345677")
     assertThat(secondPerson.masterDefendantId).isEqualTo(secondDefendantId)
     assertThat(secondPerson.getPrimaryName().sexCode).isEqualTo(secondSexCode.value)
     checkNationalities(secondPerson, secondNationality)
@@ -672,6 +675,225 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val actual = person.nationalities.map { Pair(it.nationalityCode?.code, it.nationalityCode?.description) }
     val expected = nationalities.map { it.getNationalityCodeEntityFromCommonPlatformCode() }.map { Pair(it?.code, it?.description) }
     assertThat(actual).containsAll(expected)
+  }
+
+  @Nested
+  inner class Address {
+
+    @BeforeEach
+    fun beforeEach() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+    }
+
+    @Test
+    fun `should add new address to current and move old to previous`() {
+      val defendantId = randomDefendantId()
+
+      val postcode1 = randomPostcode()
+
+      publishCommonPlatformMessage(
+        commonPlatformHearing(
+          listOf(
+            CommonPlatformHearingSetup(
+              defendantId = defendantId,
+              address = CommonPlatformHearingSetupAddress(
+                buildingName = randomName(),
+                buildingNumber = randomBuildingNumber(),
+                thoroughfareName = randomName(),
+                dependentLocality = randomName(),
+                postTown = "",
+                postcode = postcode1,
+              ),
+            ),
+          ),
+        ),
+      )
+
+      val person = awaitNotNull { personRepository.findByDefendantId(defendantId) }
+      assertThat(person.addresses).hasSize(1)
+      assertThat(person.addresses.getPrimary().first().recordType).isEqualTo(RecordType.PRIMARY)
+      assertThat(person.addresses.getPrimary().first().postcode).isEqualTo(postcode1)
+
+      val postcode2 = randomPostcode()
+
+      publishCommonPlatformMessage(
+        commonPlatformHearing(
+          listOf(
+            CommonPlatformHearingSetup(
+              defendantId = defendantId,
+              address = CommonPlatformHearingSetupAddress(
+                buildingName = randomName(),
+                buildingNumber = randomBuildingNumber(),
+                thoroughfareName = randomName(),
+                dependentLocality = randomName(),
+                postTown = "",
+                postcode = postcode2,
+              ),
+            ),
+          ),
+        ),
+      )
+
+      val updatedPerson = awaitNotNull {
+        personRepository.findByDefendantId(defendantId)
+      }
+      assertThat(updatedPerson.addresses).hasSize(2)
+      assertThat(updatedPerson.addresses.getPrimary().first().recordType).isEqualTo(RecordType.PRIMARY)
+      assertThat(updatedPerson.addresses.getPrimary().first().postcode).isEqualTo(postcode2)
+      assertThat(updatedPerson.addresses.getPrevious().first().recordType).isEqualTo(RecordType.PREVIOUS)
+      assertThat(updatedPerson.addresses.getPrevious().first().postcode).isEqualTo(postcode1)
+    }
+
+    @Test
+    fun `should not move primary address to previous if duplicate address on update`() {
+      val defendantId = randomDefendantId()
+
+      val address = CommonPlatformHearingSetupAddress(
+        buildingName = randomName(),
+        buildingNumber = randomBuildingNumber(),
+        thoroughfareName = randomName(),
+        dependentLocality = randomName(),
+        postTown = randomName(),
+        postcode = randomPostcode(),
+      )
+
+      publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = address))))
+
+      val person = awaitNotNull { personRepository.findByDefendantId(defendantId) }
+      assertThat(person.addresses).hasSize(1)
+      assertThat(person.addresses.getPrimary().first().recordType).isEqualTo(RecordType.PRIMARY)
+      assertThat(person.addresses.getPrimary().first().postcode).isEqualTo(address.postcode)
+
+      publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = address))))
+
+      val updatedPerson = awaitNotNull { personRepository.findByDefendantId(defendantId) }
+      assertThat(updatedPerson.addresses).hasSize(1)
+      assertThat(updatedPerson.addresses.getPrimary().first().recordType).isEqualTo(RecordType.PRIMARY)
+      assertThat(updatedPerson.addresses.getPrimary().first().postcode).isEqualTo(address.postcode)
+    }
+
+    @Test
+    fun `should move previous address to primary if update contains a previous address`() {
+      val defendantId = randomDefendantId()
+
+      val address = CommonPlatformHearingSetupAddress(
+        buildingName = randomName(),
+        buildingNumber = randomBuildingNumber(),
+        thoroughfareName = randomName(),
+        dependentLocality = randomName(),
+        postTown = randomName(),
+        postcode = randomPostcode(),
+      )
+
+      publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = address))))
+
+      val person = awaitNotNull { personRepository.findByDefendantId(defendantId) }
+      assertThat(person.addresses).hasSize(1)
+      assertThat(person.addresses.getPrimary().first().recordType).isEqualTo(RecordType.PRIMARY)
+      assertThat(person.addresses.getPrimary().first().postcode).isEqualTo(address.postcode)
+
+      val secondAddress = CommonPlatformHearingSetupAddress(
+        buildingName = randomName(),
+        buildingNumber = randomBuildingNumber(),
+        thoroughfareName = randomName(),
+        dependentLocality = randomName(),
+        postTown = randomName(),
+        postcode = randomPostcode(),
+      )
+
+      publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = secondAddress))))
+
+      val updatedPerson = awaitNotNull { personRepository.findByDefendantId(defendantId) }
+      assertThat(updatedPerson.addresses).hasSize(2)
+      assertThat(updatedPerson.addresses.getPrimary().first().recordType).isEqualTo(RecordType.PRIMARY)
+      assertThat(updatedPerson.addresses.getPrimary().first().postcode).isEqualTo(secondAddress.postcode)
+      assertThat(updatedPerson.addresses.getPrevious().first().recordType).isEqualTo(RecordType.PREVIOUS)
+      assertThat(updatedPerson.addresses.getPrevious().first().postcode).isEqualTo(address.postcode)
+
+      publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = address))))
+
+      val reUpdatedPerson = awaitNotNull { personRepository.findByDefendantId(defendantId) }
+      assertThat(reUpdatedPerson.addresses).hasSize(2)
+      assertThat(reUpdatedPerson.addresses.getPrimary().first().recordType).isEqualTo(RecordType.PRIMARY)
+      assertThat(reUpdatedPerson.addresses.getPrimary().first().postcode).isEqualTo(address.postcode)
+      assertThat(reUpdatedPerson.addresses.getPrevious().first().recordType).isEqualTo(RecordType.PREVIOUS)
+      assertThat(reUpdatedPerson.addresses.getPrevious().first().postcode).isEqualTo(secondAddress.postcode)
+    }
+
+    @Test
+    fun `should move old address with record type of null to previous`() {
+      val person = createPersonWithNewKey(createRandomCommonPlatformPersonDetails())
+      val postcode = randomPostcode()
+      person.addresses.add(
+        AddressEntity(
+          buildingNumber = randomBuildingNumber(),
+          postcode = postcode,
+          recordType = null,
+          person = person,
+        ),
+      )
+
+      val existingPerson = personRepository.save(person)
+      assertThat(existingPerson.addresses).hasSize(1)
+      assertThat(existingPerson.addresses.first().recordType).isEqualTo(null)
+      assertThat(existingPerson.addresses.first().postcode).isEqualTo(postcode)
+
+      val updatedAddress = CommonPlatformHearingSetupAddress(
+        buildingName = randomName(),
+        buildingNumber = randomBuildingNumber(),
+        thoroughfareName = randomName(),
+        dependentLocality = randomName(),
+        postTown = randomName(),
+        postcode = randomPostcode(),
+      )
+
+      publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = existingPerson.defendantId!!, address = updatedAddress))))
+
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to existingPerson.defendantId!!),
+      )
+
+      val updatedPerson = awaitNotNull { personRepository.findByDefendantId(existingPerson.defendantId!!) }
+      assertThat(updatedPerson.addresses).hasSize(2)
+      assertThat(updatedPerson.addresses.getPrimary().first().recordType).isEqualTo(RecordType.PRIMARY)
+      assertThat(updatedPerson.addresses.getPrimary().first().postcode).isEqualTo(updatedAddress.postcode)
+      assertThat(updatedPerson.addresses.getPrevious().first().recordType).isEqualTo(RecordType.PREVIOUS)
+      assertThat(updatedPerson.addresses.getPrevious().first().postcode).isEqualTo(postcode)
+    }
+
+    @Test
+    fun `should not store blank address and move primary to previous`() {
+      val defendantId = randomDefendantId()
+
+      val address = CommonPlatformHearingSetupAddress(
+        buildingName = randomName(),
+        buildingNumber = randomBuildingNumber(),
+        thoroughfareName = randomName(),
+        dependentLocality = randomName(),
+        postTown = randomName(),
+        postcode = randomPostcode(),
+      )
+
+      publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = address))))
+
+      val blankAddress = CommonPlatformHearingSetupAddress(
+        buildingName = "",
+        buildingNumber = "",
+        thoroughfareName = "",
+        dependentLocality = "",
+        postTown = "",
+        postcode = "",
+      )
+
+      publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = blankAddress))))
+
+      val updatedPerson = awaitNotNull { personRepository.findByDefendantId(defendantId) }
+      assertThat(updatedPerson.addresses).hasSize(1)
+      assertThat(updatedPerson.addresses.getPrevious().first().recordType).isEqualTo(RecordType.PREVIOUS)
+      assertThat(updatedPerson.addresses.getPrevious().first().postcode).isEqualTo(address.postcode)
+    }
   }
 
   @Nested

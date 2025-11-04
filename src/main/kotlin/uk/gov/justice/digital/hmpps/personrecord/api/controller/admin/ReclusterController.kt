@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -12,14 +13,17 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterR
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordClusterTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.TransactionalReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @RestController
 class ReclusterController(
   private val transactionalReclusterService: TransactionalReclusterService,
   private val personRepository: PersonRepository,
   private val personMatchService: PersonMatchService,
+  private val publisher: ApplicationEventPublisher,
 ) {
 
   @Hidden
@@ -43,6 +47,7 @@ class ReclusterController(
 
   fun triggerRecluster(adminReclusterRecords: List<AdminReclusterRecord>) {
     adminReclusterRecords.forEachPersonAndLog(RECLUSTER_PROCESS_NAME) {
+      it.personKey?.let { cluster -> publisher.publishEvent(RecordClusterTelemetry(TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED, cluster)) }
       transactionalReclusterService.recluster(it)
     }
   }

@@ -38,6 +38,10 @@ generic-service:
           deny all;
           return 401;
         }
+        location /jobs/recluster-needs-attention {
+          deny all;
+          return 401;
+        }
         location /admin/** {
           deny all;
           return 401;
@@ -116,3 +120,4 @@ generic-prometheus-alerts:
 
 cron:
   recordCountReportJob: "0 0-23 * * *"
+  reclusterNeedsAttentionJob: "0 13 * * *"

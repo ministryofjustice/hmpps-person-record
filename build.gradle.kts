@@ -8,12 +8,12 @@ kotlin {
 }
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.3"
-  kotlin("plugin.spring") version "2.2.20"
-  kotlin("jvm") version "2.2.20"
-  kotlin("plugin.jpa") version "2.2.20"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.4"
+  kotlin("plugin.spring") version "2.2.21"
+  kotlin("jvm") version "2.2.21"
+  kotlin("plugin.jpa") version "2.2.21"
   id("io.gitlab.arturbosch.detekt") version "1.23.8"
-  id("org.jetbrains.kotlinx.kover") version "0.9.2"
+  id("org.jetbrains.kotlinx.kover") version "0.9.3"
   id("org.owasp.dependencycheck") version "12.1.8"
 }
 
@@ -26,8 +26,8 @@ configurations {
 }
 
 dependencies {
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.7.0")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.5.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.8.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.6.1")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("jakarta.validation:jakarta.validation-api:3.1.1")
@@ -35,8 +35,8 @@ dependencies {
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
 
   implementation("software.amazon.sns:sns-extended-client:2.1.0")
-  implementation("com.jayway.jsonpath:json-path:2.9.0")
-  implementation("io.swagger.core.v3:swagger-annotations:2.2.39")
+  implementation("com.jayway.jsonpath:json-path:2.10.0")
+  implementation("io.swagger.core.v3:swagger-annotations:2.2.40")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
@@ -52,7 +52,7 @@ dependencies {
 
   testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
   testImplementation("org.jmock:jmock:2.13.1")
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.7.0")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.8.1")
 }
 
 java {

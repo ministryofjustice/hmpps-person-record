@@ -173,12 +173,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.addresses[1].fullAddress).isEqualTo("abc street")
       assertThat(personEntity.addresses[1].type).isEqualTo(null)
       assertThat(personEntity.contacts.size).isEqualTo(3)
-      assertThat(personEntity.contacts[0].contactType).isEqualTo(ContactType.HOME)
-      assertThat(personEntity.contacts[0].contactValue).isEqualTo(homePhoneNumber)
-      assertThat(personEntity.contacts[1].contactType).isEqualTo(ContactType.MOBILE)
-      assertThat(personEntity.contacts[1].contactValue).isEqualTo(mobilePhoneNumber)
-      assertThat(personEntity.contacts[2].contactType).isEqualTo(ContactType.EMAIL)
-      assertThat(personEntity.contacts[2].contactValue).isEqualTo(email)
+      assertThat(personEntity.contacts.getHome()?.contactValue).isEqualTo(homePhoneNumber)
+      assertThat(personEntity.contacts.getMobile()?.contactValue).isEqualTo(mobilePhoneNumber)
+      assertThat(personEntity.contacts.getEmail()?.contactValue).isEqualTo(email)
       assertThat(personEntity.matchId).isNotNull()
       assertThat(personEntity.lastModified).isNotNull()
       assertThat(personEntity.sexualOrientation).isEqualTo(sexualOrientation.value)
@@ -558,6 +555,21 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val updatedPostcodeFourEntity = updatedPerson.addresses.find { it.postcode == postcodeFour }
       assertThat(updatedPostcodeFourEntity?.id).isNotEqualTo(postcodeTwoEntity?.id)
+    }
+
+    @Test
+    fun `should not store empty addresses`() {
+      val crn = randomCrn()
+
+      val addresses = listOf(
+        ApiResponseSetupAddress(postcode = null, noFixedAbode = null, startDate = null, endDate = null, fullAddress = null),
+      )
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, addresses = addresses))
+
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+
+      val person = awaitNotNull { personRepository.findByCrn(crn) }
+      assertThat(person.addresses).hasSize(0)
     }
   }
 

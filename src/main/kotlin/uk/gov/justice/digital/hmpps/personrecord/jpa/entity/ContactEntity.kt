@@ -22,13 +22,21 @@ class ContactEntity(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
 
-  @ManyToOne(optional = false)
+  @ManyToOne(optional = true)
   @JoinColumn(
     name = "fk_person_id",
     referencedColumnName = "id",
-    nullable = false,
+    nullable = true,
   )
   var person: PersonEntity? = null,
+
+  @ManyToOne(optional = true)
+  @JoinColumn(
+    name = "fk_address_id",
+    referencedColumnName = "id",
+    nullable = true,
+  )
+  var address: AddressEntity? = null,
 
   @Column(name = "contact_type")
   @Enumerated(EnumType.STRING)
