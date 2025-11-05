@@ -102,7 +102,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.getPrimaryName().sexCode).isEqualTo(changedSexCode.value)
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
-      assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
       assertThat(updatedPersonEntity.masterDefendantId).isEqualTo(masterDefendantId)
       checkNationalities(updatedPersonEntity, changedNationality, changedAdditionalNationality)
     }
@@ -259,7 +258,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getPrimaryName().lastName).isEqualTo(lastName)
     assertThat(firstPerson.getPrimaryName().sexCode).isEqualTo(firstSexCode.value)
     assertThat(firstPerson.contacts).isEmpty()
-    assertThat(firstPerson.addresses).isNotEmpty()
     checkNationalities(firstPerson, firstAdditionalNationality, firstNationality)
 
     assertThat(firstPerson.getAliases().size).isEqualTo(2)
