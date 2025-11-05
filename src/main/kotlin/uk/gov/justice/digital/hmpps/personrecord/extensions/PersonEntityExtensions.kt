@@ -20,12 +20,6 @@ fun List<ContactEntity>.getMobile(): ContactEntity? = this.findByType(ContactTyp
 fun List<ContactEntity>.getEmail(): ContactEntity? = this.findByType(ContactType.EMAIL)
 private fun List<ContactEntity>.findByType(type: ContactType): ContactEntity? = this.find { it.contactType == type }
 
-// Address
-// test only?
-fun List<AddressEntity>.getPrimary(): List<AddressEntity> = this.getByType(RecordType.PRIMARY)
-fun List<AddressEntity>.getPrevious(): List<AddressEntity> = this.getByType(RecordType.PREVIOUS)
-private fun List<AddressEntity>.getByType(type: RecordType): List<AddressEntity> = this.filter { it.recordType == type }
-
 // Generic
 fun <T, E> T.existsIn(childEntities: List<E>, match: (T, E) -> Boolean, yes: (E) -> E, no: () -> E?): E? {
   val found = childEntities.find { match(this, it) }
