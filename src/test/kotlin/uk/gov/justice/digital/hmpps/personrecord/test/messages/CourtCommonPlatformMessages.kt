@@ -138,12 +138,12 @@ private fun personDefendant(commonPlatformHearingSetup: CommonPlatformHearingSet
   "personDefendant": {
     "personDetails": {
       "address": {
-        "address1": "${commonPlatformHearingSetup.address?.buildingName}",
-        "address2": "${commonPlatformHearingSetup.address?.buildingNumber}",
-        "address3": "${commonPlatformHearingSetup.address?.thoroughfareName}",
-        "address4": "${commonPlatformHearingSetup.address?.dependentLocality}",
-        "address5": "${commonPlatformHearingSetup.address?.postTown}",
-        "postcode": "${commonPlatformHearingSetup.address?.postcode}"
+        "address1": "${commonPlatformHearingSetup.address?.buildingName?:""}",
+        "address2": "${commonPlatformHearingSetup.address?.buildingNumber?:""}",
+        "address3": "${commonPlatformHearingSetup.address?.thoroughfareName?:""}",
+        "address4": "${commonPlatformHearingSetup.address?.dependentLocality?:""}",
+        "address5": "${commonPlatformHearingSetup.address?.postTown?:""}",
+        "postcode": "${commonPlatformHearingSetup.address?.postcode?:""}"
       },
       ${commonPlatformHearingSetup.contact?.let {
   """

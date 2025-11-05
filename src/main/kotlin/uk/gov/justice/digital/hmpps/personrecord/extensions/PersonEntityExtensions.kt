@@ -21,6 +21,7 @@ fun List<ContactEntity>.getEmail(): ContactEntity? = this.findByType(ContactType
 private fun List<ContactEntity>.findByType(type: ContactType): ContactEntity? = this.find { it.contactType == type }
 
 // Address
+// test only?
 fun List<AddressEntity>.getPrimary(): List<AddressEntity> = this.getByType(RecordType.PRIMARY)
 fun List<AddressEntity>.getPrevious(): List<AddressEntity> = this.getByType(RecordType.PREVIOUS)
 private fun List<AddressEntity>.getByType(type: RecordType): List<AddressEntity> = this.filter { it.recordType == type }

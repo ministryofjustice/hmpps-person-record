@@ -1,40 +1,44 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.address
 
-import uk.gov.justice.digital.hmpps.personrecord.extensions.getPrimary
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.RecordType
 
 object CommonPlatformAddressBuilder {
 
-  fun build(person: Person, personEntity: PersonEntity): List<AddressEntity> {
+  fun build(person: Person, personEntity: PersonEntity): List<Address> {
     val newPrimaryAddress = person.addresses.firstOrNull()
-    val existingAddress = newPrimaryAddress.findIn(personEntity.addresses)
+    newPrimaryAddress?.setToPrimary()
+    val existingAddress = newPrimaryAddress.findInEntities(personEntity.addresses)
     return when {
-      existingAddress != null -> personEntity.handleExistingAddress(existingAddress)
-      else -> personEntity.setNewToPrimaryAddress(newPrimaryAddress)
+      existingAddress != null -> person.handleExistingAddress(existingAddress)
+      else -> person.setNewToPrimaryAddress(newPrimaryAddress)
     }
   }
 
-  private fun PersonEntity.handleExistingAddress(address: AddressEntity): List<AddressEntity> = when {
+  private fun Person.handleExistingAddress(address: Address): List<Address> = when {
     address.isPrevious() -> this.setPreviousToPrimary(address)
     else -> this.addresses.map { it }
   }
 
-  private fun PersonEntity.setNewToPrimaryAddress(address: Address?): List<AddressEntity> {
+  private fun Person.setNewToPrimaryAddress(address: Address?): List<Address> {
     val addresses = this.addresses.map { it.apply { this.setToPrevious() } }.toMutableList()
-    address?.let { addresses.add(AddressEntity.toPrimary(address)) }
+    address?.let { addresses.add(address) }
     return addresses
   }
 
-  private fun PersonEntity.setPreviousToPrimary(existingAddressEntity: AddressEntity): List<AddressEntity> {
+  private fun Person.setPreviousToPrimary(existingAddressEntity: Address): List<Address> {
     this.addresses.getPrimary().firstOrNull()?.setToPrevious()
-    this.addresses.get(existingAddressEntity)?.setToPrimary()
+    existingAddressEntity.findIn(this.addresses)?.setToPrimary()
     return this.addresses.map { it }
   }
 
-  private fun List<AddressEntity>.get(addressEntity: AddressEntity): AddressEntity? = this.find { it.id == addressEntity.id }
+  private fun Address?.findInEntities(addresses: List<AddressEntity>) = addresses.find { address -> Address.from(address) == this }?.let { Address.from(it) }
+  private fun Address?.findIn(addresses: List<Address>) = addresses.find { address -> address == this }
 
-  private fun Address?.findIn(addresses: List<AddressEntity>) = addresses.find { address -> Address.from(address) == this }
+  fun List<Address>.getPrimary(): List<Address> = this.getByType(RecordType.PRIMARY)
+  fun List<Address>.getPrevious(): List<Address> = this.getByType(RecordType.PREVIOUS)
+  private fun List<Address>.getByType(type: RecordType): List<Address> = this.filter { it.recordType == type }
 }
