@@ -152,9 +152,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
           lastName = changedLastName,
           cro = cro,
           defendantId = defendantId,
-          ethnicity = ethnicity
-        )
-      )
+          ethnicity = ethnicity,
+        ),
+      ),
     )
     print(message)
     publishCommonPlatformMessage(

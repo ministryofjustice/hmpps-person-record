@@ -141,18 +141,19 @@ private fun personDefendant(commonPlatformHearingSetup: CommonPlatformHearingSet
         "address1": "${commonPlatformHearingSetup.address?.buildingName ?: ""}",
         "address2": "${commonPlatformHearingSetup.address?.buildingNumber ?: ""}",
         "address3": "${commonPlatformHearingSetup.address?.thoroughfareName ?: ""}",
-        ${commonPlatformHearingSetup.address?.dependentLocality?.let{ """
+        ${commonPlatformHearingSetup.address?.dependentLocality?.let{
+  """
         "address4": "$it", 
   """.trimIndent()
-}?: ""}
+} ?: ""}
         ${
   commonPlatformHearingSetup.address?.postTown?.let {
     """
         "address5": "$it", 
     """.trimIndent()
-  }?: ""
+  } ?: ""
 }
-        "postcode": "${commonPlatformHearingSetup.address?.postcode?:""}"
+        "postcode": "${commonPlatformHearingSetup.address?.postcode ?: ""}"
       },
       ${commonPlatformHearingSetup.contact?.let {
   """
