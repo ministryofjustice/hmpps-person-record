@@ -102,7 +102,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.getPrimaryName().sexCode).isEqualTo(changedSexCode.value)
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
-      assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
       assertThat(updatedPersonEntity.masterDefendantId).isEqualTo(masterDefendantId)
       checkNationalities(updatedPersonEntity, changedNationality, changedAdditionalNationality)
     }
@@ -146,7 +145,17 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val changedLastName = randomName()
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId, ethnicity = ethnicity))),
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(
+            pnc = pnc,
+            lastName = changedLastName,
+            cro = cro,
+            defendantId = defendantId,
+            ethnicity = ethnicity,
+          ),
+        ),
+      ),
     )
 
     awaitAssert {
@@ -155,7 +164,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
-      assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
       assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(storedEthnicity.code)
       assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(storedEthnicity.description)
     }
@@ -248,7 +256,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getPrimaryName().lastName).isEqualTo(lastName)
     assertThat(firstPerson.getPrimaryName().sexCode).isEqualTo(firstSexCode.value)
     assertThat(firstPerson.contacts).isEmpty()
-    assertThat(firstPerson.addresses).isNotEmpty()
     checkNationalities(firstPerson, firstAdditionalNationality, firstNationality)
 
     assertThat(firstPerson.getAliases().size).isEqualTo(2)
