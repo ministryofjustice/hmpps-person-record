@@ -144,20 +144,18 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubNoMatchesPersonMatch(matchId = personEntity.matchId)
 
     val changedLastName = randomName()
-    val message = commonPlatformHearing(
-      listOf(
-        CommonPlatformHearingSetup(
-          pnc = pnc,
-          lastName = changedLastName,
-          cro = cro,
-          defendantId = defendantId,
-          ethnicity = ethnicity,
+    publishCommonPlatformMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(
+            pnc = pnc,
+            lastName = changedLastName,
+            cro = cro,
+            defendantId = defendantId,
+            ethnicity = ethnicity,
+          ),
         ),
       ),
-    )
-    print(message)
-    publishCommonPlatformMessage(
-      message,
     )
 
     awaitAssert {
