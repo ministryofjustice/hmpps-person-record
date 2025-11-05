@@ -8,16 +8,15 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 
 object AddressBuilder {
 
-  fun buildAddresses(person: Person, personEntity: PersonEntity): List<AddressEntity> = person.addresses.build(personEntity)
-
-  private fun List<Address>.build(personEntity: PersonEntity) = this.mapNotNull { address ->
-    address.existsIn(
-      childEntities = personEntity.addresses,
-      match = { ref, entity -> ref.matches(entity) },
-      yes = { it },
-      no = { AddressEntity.from(address) },
-    )
-  }
+  fun buildAddresses(person: Person, personEntity: PersonEntity): List<AddressEntity> =
+    person.addresses.mapNotNull { address ->
+      address.existsIn(
+        childEntities = personEntity.addresses,
+        match = { ref, entity -> ref.matches(entity) },
+        yes = { it },
+        no = { AddressEntity.from(address) },
+      )
+    }
 
   private fun Address.matches(entity: AddressEntity): Boolean = this == Address.from(entity)
 }
