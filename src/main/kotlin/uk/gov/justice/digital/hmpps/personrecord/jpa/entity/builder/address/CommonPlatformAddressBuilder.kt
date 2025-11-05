@@ -4,7 +4,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.RecordType
 
 object CommonPlatformAddressBuilder {
 
@@ -14,7 +13,7 @@ object CommonPlatformAddressBuilder {
     val existingAddress = newPrimaryAddress.findInEntities(personEntity?.addresses)
     return when {
       existingAddress != null -> rebuildAddresses(existingAddress, personEntity?.addresses)
-      else -> person.setNewToPrimaryAddress(newPrimaryAddress, personEntity?.addresses)
+      else -> setNewToPrimaryAddress(newPrimaryAddress, personEntity?.addresses)
     }
   }
 
@@ -27,8 +26,8 @@ object CommonPlatformAddressBuilder {
     return newAddresses
   }
 
-  private fun Person.setNewToPrimaryAddress(address: Address?, existingAddresses: MutableList<AddressEntity>?): List<Address?> {
-    val newAddresses = mutableListOf<Address?>(address)
+  private fun setNewToPrimaryAddress(address: Address?, existingAddresses: MutableList<AddressEntity>?): List<Address?> {
+    val newAddresses = mutableListOf(address)
 
     existingAddresses?.forEach {
       val a = Address.from(it)
@@ -39,16 +38,6 @@ object CommonPlatformAddressBuilder {
     return newAddresses.toList()
   }
 
-  private fun Person.setPreviousToPrimary(existingAddressEntity: Address): List<Address> {
-    this.addresses.getPrimary().firstOrNull()?.setToPrevious()
-    existingAddressEntity.findIn(this.addresses)?.setToPrimary()
-    return this.addresses.map { it }
-  }
-
   private fun Address?.extract(addresses: List<AddressEntity>?) = addresses?.filter { address -> this?.compareAddressTo(Address.from(address)) == false }?.map { Address.from(it) }
   private fun Address?.findInEntities(addresses: List<AddressEntity>?) = addresses?.find { address -> this?.compareAddressTo(Address.from(address)) == true }?.let { Address.from(it) }
-  private fun Address?.findIn(addresses: List<Address>) = addresses.find { address -> address == this }
-
-  fun List<Address>.getPrimary(): List<Address> = this.getByType(RecordType.PRIMARY)
-  private fun List<Address>.getByType(type: RecordType): List<Address> = this.filter { it.recordType == type }
 }
