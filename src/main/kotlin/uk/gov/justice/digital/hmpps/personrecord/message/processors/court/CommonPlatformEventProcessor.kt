@@ -118,9 +118,7 @@ class CommonPlatformEventProcessor(
   }
 
   private fun retainAddress(person: Person): Person {
-    personRepository.findByDefendantId(person.defendantId!!)?.let {
-      person.addresses = CommonPlatformAddressBuilder.build(person, it)
-    }
+    person.addresses = CommonPlatformAddressBuilder.build(person, personRepository.findByDefendantId(person.defendantId!!)).mapNotNull { it }
     return person
   }
 }
