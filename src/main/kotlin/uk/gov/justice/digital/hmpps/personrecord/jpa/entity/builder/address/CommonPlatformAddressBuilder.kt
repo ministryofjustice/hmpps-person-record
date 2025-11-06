@@ -11,18 +11,18 @@ object CommonPlatformAddressBuilder {
     val primaryAddress = person.addresses.firstOrNull()
     primaryAddress?.setToPrimary()
     val newAddresses = mutableListOf(primaryAddress)
-    val otherAddresses: List<Address>? = extract(personEntity?.addresses, primaryAddress)
+    val otherAddresses: List<Address>? = removePrimaryAddress(personEntity?.addresses, primaryAddress)
     otherAddresses?.forEach { it.setToPrevious() }
     otherAddresses?.let { newAddresses.addAll(it) }
     return newAddresses.mapNotNull { it }
   }
 
-  fun extract(addresses: List<AddressEntity>?, newAddress: Address?): List<Address>? = when {
+  fun removePrimaryAddress(addresses: List<AddressEntity>?, newAddress: Address?): List<Address>? = when {
     newAddress == null -> addresses
     else -> addresses?.filter { address ->
       newAddress.compareAddressTo(Address.from(address))
     }
   }?.map { Address.from(it) }
 
-  private fun Address.compareAddressTo(anotherAddress: Address): Boolean = this.copy(recordType = null) == anotherAddress.copy(recordType = null)  == false
+  private fun Address.compareAddressTo(anotherAddress: Address): Boolean = this.copy(recordType = null) != anotherAddress.copy(recordType = null)
 }

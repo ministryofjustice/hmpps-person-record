@@ -12,7 +12,7 @@ class CommonPlatformAddressBuilderTest {
   fun `returns all addresses if null passed`() {
     val existingAddress = Address(postcode = randomPostcode())
     val addresses = listOf(AddressEntity.from(existingAddress))
-    val extract = CommonPlatformAddressBuilder.extract(addresses, newAddress = null)
+    val extract = CommonPlatformAddressBuilder.removePrimaryAddress(addresses, newAddress = null)
     assertThat(extract?.size).isEqualTo(1)
     assertThat(extract!![0]).isEqualTo(existingAddress)
   }
