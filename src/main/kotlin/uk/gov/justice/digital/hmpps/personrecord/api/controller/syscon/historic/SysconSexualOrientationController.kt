@@ -53,7 +53,7 @@ class SysconSexualOrientationController(
     prisonNumber: String,
     @RequestBody sexualOrientations: List<PrisonSexualOrientation>,
   ): String {
-    prisonSexualOrientationRepository.findAllByPrisonNumber(prisonNumber).clear()
+    prisonSexualOrientationRepository.findAllByPrisonNumber(prisonNumber).let { prisonSexualOrientationRepository.deleteAll(it) }
     prisonSexualOrientationRepository.saveAll(PrisonSexualOrientationEntity.fromList(prisonNumber, sexualOrientations))
     return OK
   }
