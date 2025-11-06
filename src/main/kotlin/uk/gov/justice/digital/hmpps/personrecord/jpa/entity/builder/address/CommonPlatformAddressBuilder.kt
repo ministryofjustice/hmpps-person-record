@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 
 object CommonPlatformAddressBuilder {
 
-  fun build(person: Person, personEntity: PersonEntity?): List<Address?> {
+  fun build(person: Person, personEntity: PersonEntity?): List<Address> {
     val newPrimaryAddress = person.addresses.firstOrNull()
     newPrimaryAddress?.setToPrimary()
     val existingAddress = newPrimaryAddress.findInEntities(personEntity?.addresses)
@@ -17,16 +17,16 @@ object CommonPlatformAddressBuilder {
     }
   }
 
-  private fun rebuildAddresses(address: Address, existingAddresses: MutableList<AddressEntity>?): List<Address?> {
+  private fun rebuildAddresses(address: Address, existingAddresses: MutableList<AddressEntity>?): List<Address> {
     address.setToPrimary()
     val newAddresses = mutableListOf<Address?>(address)
     val otherAddresses: List<Address>? = address.extract(existingAddresses)
     otherAddresses?.forEach { it.setToPrevious() }
     otherAddresses?.let { newAddresses.addAll(it) }
-    return newAddresses
+    return newAddresses.mapNotNull { it }
   }
 
-  private fun setNewToPrimaryAddress(address: Address?, existingAddresses: MutableList<AddressEntity>?): List<Address?> {
+  private fun setNewToPrimaryAddress(address: Address?, existingAddresses: MutableList<AddressEntity>?): List<Address> {
     val newAddresses = mutableListOf(address)
 
     existingAddresses?.forEach {
@@ -35,7 +35,7 @@ object CommonPlatformAddressBuilder {
       newAddresses.add(a)
     }
 
-    return newAddresses.toList()
+    return newAddresses.mapNotNull { it }.toList()
   }
 
   private fun Address?.extract(addresses: List<AddressEntity>?) = addresses?.filter { address -> this?.compareAddressTo(Address.from(address)) == false }?.map { Address.from(it) }

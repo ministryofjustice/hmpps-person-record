@@ -50,7 +50,7 @@ class CommonPlatformEventProcessor(
       .distinctBy { it.id }
       .map { populateIdentifiersFromDefendantWhenMissing(it) }
       .map { Person.from(it) }
-      .map { retainAddress(it) }
+      .map { keepFormerAddress(it) }
       .filter { it.isPerson() }
       .map {
         transactionalCommonPlatformProcessor.processCommonPlatformPerson(it)
@@ -117,8 +117,8 @@ class CommonPlatformEventProcessor(
     }
   }
 
-  private fun retainAddress(person: Person): Person {
-    person.addresses = CommonPlatformAddressBuilder.build(person, personRepository.findByDefendantId(person.defendantId!!)).mapNotNull { it }
+  private fun keepFormerAddress(person: Person): Person {
+    person.addresses = CommonPlatformAddressBuilder.build(person, personRepository.findByDefendantId(person.defendantId!!))
     return person
   }
 }
