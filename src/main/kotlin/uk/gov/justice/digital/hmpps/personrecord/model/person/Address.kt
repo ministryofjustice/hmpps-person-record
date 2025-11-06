@@ -89,11 +89,13 @@ data class Address(
     )
   }
 
-  fun setToPrimary() {
+  fun setToPrimary(): Address {
     this.recordType = RecordType.PRIMARY
+    return this
   }
 
-  fun setToPrevious() {
+  fun setToPrevious(): Address {
     this.recordType = RecordType.PREVIOUS
+    return this
   }
 }

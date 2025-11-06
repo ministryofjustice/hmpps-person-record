@@ -8,11 +8,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 object CommonPlatformAddressBuilder {
 
   fun build(person: Person, personEntity: PersonEntity?): List<Address> {
-    val primaryAddress = person.addresses.firstOrNull()
-    primaryAddress?.setToPrimary()
-    val newAddresses = mutableListOf(primaryAddress)
+    val primaryAddress = person.addresses.firstOrNull()?.setToPrimary()
     val otherAddresses: List<Address>? = removePrimaryAddress(personEntity?.addresses, primaryAddress)
-    otherAddresses?.forEach { it.setToPrevious() }
+    val newAddresses = mutableListOf(primaryAddress)
     otherAddresses?.let { newAddresses.addAll(it) }
     return newAddresses.mapNotNull { it }
   }
@@ -22,7 +20,9 @@ object CommonPlatformAddressBuilder {
     else -> addresses?.filter { address ->
       newAddress.compareAddressTo(Address.from(address))
     }
-  }?.map { Address.from(it) }
+  }?.map {
+    Address.from(it).setToPrevious()
+  }
 
   private fun Address.compareAddressTo(anotherAddress: Address): Boolean = this.copy(recordType = null) != anotherAddress.copy(recordType = null)
 }
