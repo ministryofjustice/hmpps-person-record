@@ -13,7 +13,7 @@ object CommonPlatformAddressBuilder {
     return listOf(*previousAddresses, primaryAddress).mapNotNull { it }
   }
 
-  fun setToPrevious(addresses: List<AddressEntity>?, newAddress: Address?): Array<Address> = addresses?.map { Address.from(it) }
+  private fun setToPrevious(addresses: List<AddressEntity>?, newAddress: Address?): Array<Address> = addresses?.map { Address.from(it) }
     ?.filterNot { alreadyExists(it, newAddress) }
     ?.map {
       it.setToPrevious()
