@@ -13,14 +13,11 @@ object CommonPlatformAddressBuilder {
     return listOf(*previousAddresses, primaryAddress).mapNotNull { it }
   }
 
-  fun setToPrevious(addresses: List<AddressEntity>?, newAddress: Address?): Array<Address> {
-    val previousAddresses = addresses?.map { Address.from(it) }
-    return when {
-      newAddress == null -> previousAddresses
-      else -> previousAddresses?.filter { newAddress.compareAddressTo(it) }
-    }?.map {
+  fun setToPrevious(addresses: List<AddressEntity>?, newAddress: Address?): Array<Address> = addresses?.map { Address.from(it) }
+    ?.filterNot { compareAddressTo(newAddress, it) }
+    ?.map {
       it.setToPrevious()
     }?.toTypedArray() ?: arrayOf()
-  }
-  private fun Address.compareAddressTo(anotherAddress: Address): Boolean = this.copy(recordType = null) != anotherAddress.copy(recordType = null)
+
+  private fun compareAddressTo(oneAddress: Address?, anotherAddress: Address): Boolean = anotherAddress.copy(recordType = null) == oneAddress?.copy(recordType = null)
 }

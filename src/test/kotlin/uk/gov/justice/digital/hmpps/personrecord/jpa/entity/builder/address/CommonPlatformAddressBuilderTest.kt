@@ -16,16 +16,4 @@ class CommonPlatformAddressBuilderTest {
     assertThat(extract.size).isEqualTo(1)
     assertThat(extract[0]).isEqualTo(existingAddress.setToPrevious())
   }
-
-  @Test
-  fun `returns no addresses if the only address is the same as the new one `() {
-  }
-
-  @Test
-  fun `returns all addresses except the new one`() {
-  }
-
-  @Test
-  fun `returns all addresses if none match the new one`() {
-  }
 }
