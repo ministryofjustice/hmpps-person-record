@@ -11,11 +11,11 @@ object CommonPlatformAddressBuilder {
     // if null, return previous addresses
     // if new, set to primary and return previous addresses
     val primaryAddress = person.addresses.firstOrNull()?.setToPrimary()
-    val previousAddresses = removePrimaryAddress(personEntity?.addresses, primaryAddress)
+    val previousAddresses = setToPrevious(personEntity?.addresses, primaryAddress)
     return listOf(*previousAddresses, primaryAddress).mapNotNull { it }
   }
 
-  fun removePrimaryAddress(addresses: List<AddressEntity>?, newAddress: Address?): Array<Address> = when {
+  fun setToPrevious(addresses: List<AddressEntity>?, newAddress: Address?): Array<Address> = when {
     newAddress == null -> addresses
     else -> addresses?.filter { address ->
       newAddress.compareAddressTo(Address.from(address))
