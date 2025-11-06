@@ -24,7 +24,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RestController
 @PreAuthorize("hasRole('${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 class SysconSexualOrientationController(
-  private val prisonSexualOrientationRepository: PrisonSexualOrientationRepository
+  private val prisonSexualOrientationRepository: PrisonSexualOrientationRepository,
 ) {
 
   @Operation(description = "Store a prisoner sexual orientation")

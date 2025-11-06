@@ -38,7 +38,7 @@ class PrisonSexualOrientationEntity(
   @Enumerated(STRING)
   val recordType: RecordType? = null,
 
-  ) {
+) {
   companion object {
 
     fun from(prisonNumber: String, sexualOrientation: PrisonSexualOrientation): PrisonSexualOrientationEntity = PrisonSexualOrientationEntity(
@@ -49,7 +49,7 @@ class PrisonSexualOrientationEntity(
       recordType = when (sexualOrientation.current) {
         true -> RecordType.CURRENT
         false -> RecordType.HISTORIC
-      }
+      },
     )
 
     fun fromList(prisonNumber: String, sexualOrientations: List<PrisonSexualOrientation>): List<PrisonSexualOrientationEntity> = sexualOrientations.map { from(prisonNumber, it) }

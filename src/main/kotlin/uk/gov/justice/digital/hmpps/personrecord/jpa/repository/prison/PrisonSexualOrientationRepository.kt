@@ -5,6 +5,6 @@ import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonSexualOrientationEntity
 
 @Repository
-interface PrisonSexualOrientationRepository: JpaRepository<PrisonSexualOrientationEntity, Long> {
+interface PrisonSexualOrientationRepository : JpaRepository<PrisonSexualOrientationEntity, Long> {
   fun findAllByPrisonNumber(prisonNumber: String): MutableList<PrisonSexualOrientationEntity>
 }

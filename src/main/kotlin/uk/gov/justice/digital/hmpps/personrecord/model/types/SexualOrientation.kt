@@ -15,7 +15,7 @@ enum class SexualOrientation(val description: String) {
 
   companion object {
 
-    val probationSexualOrientation: Map<String, SexualOrientation> = mapOf(
+    val probationSexualOrientationMap: Map<String, SexualOrientation> = mapOf(
       "03" to BIS,
       "02" to HOM,
       "01" to HET,
@@ -23,7 +23,7 @@ enum class SexualOrientation(val description: String) {
       "99" to OTH,
     )
 
-    val prisonSexualOrientation: Map<String, SexualOrientation> = mapOf(
+    val prisonSexualOrientationMap: Map<String, SexualOrientation> = mapOf(
       "BIS" to BIS,
       "HOM" to HOM,
       "HET" to HET,
@@ -33,10 +33,9 @@ enum class SexualOrientation(val description: String) {
     )
 
     fun from(probationCase: ProbationCase) = probationCase.sexualOrientation?.value?.let {
-      probationSexualOrientation.getOrDefault(it, UNKNOWN)
+      probationSexualOrientationMap.getOrDefault(it, UNKNOWN)
     }
 
-    fun from(prisonSexualOrientation: PrisonSexualOrientation) = probationSexualOrientation.getOrDefault(prisonSexualOrientation.sexualOrientationCode, UNKNOWN)
-
+    fun from(prisonSexualOrientation: PrisonSexualOrientation) = prisonSexualOrientationMap.getOrDefault(prisonSexualOrientation.sexualOrientationCode, UNKNOWN)
   }
 }
