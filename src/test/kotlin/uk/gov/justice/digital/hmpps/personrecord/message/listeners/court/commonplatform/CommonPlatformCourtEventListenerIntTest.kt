@@ -869,7 +869,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should not store blank address and move primary to previous`() {
+    fun `should move primary to previous and not store blank address`() {
       val defendantId = randomDefendantId()
 
       val address = CommonPlatformHearingSetupAddress(
