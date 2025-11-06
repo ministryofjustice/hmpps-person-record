@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.court.CommonPlatformAddressBuilder
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -50,6 +51,7 @@ class CommonPlatformEventProcessor(
       .map { populateIdentifiersFromDefendantWhenMissing(it) }
       .map { Person.from(it) }
       .filter { it.isPerson() }
+      .map { keepFormerAddress(it) }
       .map {
         transactionalCommonPlatformProcessor.processCommonPlatformPerson(it)
       }
@@ -113,5 +115,10 @@ class CommonPlatformEventProcessor(
         this.cro =
           CROIdentifier.from(personEntity.references.getCROs().firstOrNull())
     }
+  }
+
+  private fun keepFormerAddress(person: Person): Person {
+    person.addresses = CommonPlatformAddressBuilder.build(person, personRepository.findByDefendantId(person.defendantId!!))
+    return person
   }
 }

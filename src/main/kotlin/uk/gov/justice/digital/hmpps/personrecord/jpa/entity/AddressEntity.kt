@@ -91,18 +91,8 @@ class AddressEntity(
   var version: Int = 0,
 ) {
 
-  fun isPrevious() = this.recordType == RecordType.PREVIOUS
-
-  fun setToPrimary() {
-    this.recordType = RecordType.PRIMARY
-  }
-
-  fun setToPrevious() {
-    this.recordType = RecordType.PREVIOUS
-  }
-
   companion object {
-    fun from(address: Address, recordType: RecordType? = null): AddressEntity = AddressEntity(
+    fun from(address: Address): AddressEntity = AddressEntity(
       startDate = address.startDate,
       endDate = address.endDate,
       noFixedAbode = address.noFixedAbode,
@@ -117,9 +107,7 @@ class AddressEntity(
       county = address.county,
       countryCode = address.countryCode,
       uprn = address.uprn,
-      recordType = recordType,
+      recordType = address.recordType,
     )
-
-    fun toPrimary(address: Address): AddressEntity = from(address, RecordType.PRIMARY)
   }
 }
