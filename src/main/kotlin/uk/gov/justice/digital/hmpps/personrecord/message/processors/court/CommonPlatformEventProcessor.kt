@@ -50,8 +50,8 @@ class CommonPlatformEventProcessor(
       .distinctBy { it.id }
       .map { populateIdentifiersFromDefendantWhenMissing(it) }
       .map { Person.from(it) }
-      .map { keepFormerAddress(it) }
       .filter { it.isPerson() }
+      .map { keepFormerAddress(it) }
       .map {
         transactionalCommonPlatformProcessor.processCommonPlatformPerson(it)
       }
