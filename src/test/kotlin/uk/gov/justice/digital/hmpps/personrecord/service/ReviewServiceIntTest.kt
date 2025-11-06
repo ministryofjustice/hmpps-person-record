@@ -13,9 +13,6 @@ class ReviewServiceIntTest : IntegrationTestBase() {
   @Autowired
   lateinit var reviewService: ReviewService
 
-  @Autowired
-  lateinit var reviewRepository: ReviewRepository
-
   @Test
   fun `should raise cluster for review`() {
     val primaryPersonKey = createPersonKey()

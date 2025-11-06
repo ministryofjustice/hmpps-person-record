@@ -3,7 +3,9 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.syscon.historic
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonSexualOrientationRepository
@@ -118,5 +120,31 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
     assertThat(current?.prisonNumber).isEqualTo(prisonNumber)
     assertThat(current?.startDate).isEqualTo(toUpdatedSexualOrientations.first().startDate)
     assertThat(current?.endDate).isEqualTo(toUpdatedSexualOrientations.first().endDate)
+  }
+
+  @Test
+  fun `should return Access Denied 403 when role is wrong`() {
+    val prisonNumber = randomPrisonNumber()
+    val expectedErrorMessage = "Forbidden: Access Denied"
+    webTestClient.put()
+      .uri("/syscon-sync/sexual-orientation/$prisonNumber")
+      .bodyValue(emptyList<PrisonSexualOrientation>())
+      .authorised(listOf("UNSUPPORTED-ROLE"))
+      .exchange()
+      .expectStatus()
+      .isForbidden
+      .expectBody()
+      .jsonPath("userMessage")
+      .isEqualTo(expectedErrorMessage)
+  }
+
+  @Test
+  fun `should return UNAUTHORIZED 401 when role is not set`() {
+    val prisonNumber = randomPrisonNumber()
+    webTestClient.put()
+      .uri("/syscon-sync/sexual-orientation/$prisonNumber")
+      .exchange()
+      .expectStatus()
+      .isUnauthorized
   }
 }
