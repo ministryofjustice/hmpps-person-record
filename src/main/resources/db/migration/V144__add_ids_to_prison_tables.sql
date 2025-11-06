@@ -32,7 +32,7 @@ ALTER TABLE IF EXISTS prison_immigration_status
     ADD COLUMN modify_user_id                          TEXT        NULL,
     ADD COLUMN modify_display_name                     TEXT        NULL;
 
-CREATE INDEX idx_prison_immigration_status_cpr_immigration_id ON prison_immigration_status(prison_immigration_status);
+CREATE INDEX idx_prison_immigration_status_cpr_immigration_id ON prison_immigration_status (cpr_immigration_id);
 
 ALTER TABLE IF EXISTS prison_disability_status
     ADD COLUMN cpr_disability_id                       UUID        NOT NULL,
