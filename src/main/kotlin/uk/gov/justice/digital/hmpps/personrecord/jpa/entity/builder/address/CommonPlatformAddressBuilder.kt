@@ -8,21 +8,19 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 object CommonPlatformAddressBuilder {
 
   fun build(person: Person, personEntity: PersonEntity?): List<Address> {
-    // if null, return previous addresses
-    // if new, set to primary and return previous addresses
     val primaryAddress = person.addresses.firstOrNull()?.setToPrimary()
     val previousAddresses = setToPrevious(personEntity?.addresses, primaryAddress)
     return listOf(*previousAddresses, primaryAddress).mapNotNull { it }
   }
 
-  fun setToPrevious(addresses: List<AddressEntity>?, newAddress: Address?): Array<Address> = when {
-    newAddress == null -> addresses
-    else -> addresses?.filter { address ->
-      newAddress.compareAddressTo(Address.from(address))
-    }
-  }?.map {
-    Address.from(it).setToPrevious()
-  }?.toTypedArray() ?: arrayOf()
-
+  fun setToPrevious(addresses: List<AddressEntity>?, newAddress: Address?): Array<Address> {
+    val previousAddresses = addresses?.map { Address.from(it) }
+    return when {
+      newAddress == null -> previousAddresses
+      else -> previousAddresses?.filter { newAddress.compareAddressTo(it) }
+    }?.map {
+      it.setToPrevious()
+    }?.toTypedArray() ?: arrayOf()
+  }
   private fun Address.compareAddressTo(anotherAddress: Address): Boolean = this.copy(recordType = null) != anotherAddress.copy(recordType = null)
 }
