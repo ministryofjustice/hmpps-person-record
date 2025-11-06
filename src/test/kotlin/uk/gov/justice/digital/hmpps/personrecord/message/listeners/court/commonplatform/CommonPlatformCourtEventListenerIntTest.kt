@@ -957,6 +957,4 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   private fun List<AddressEntity>.getPrimary(): List<AddressEntity> = this.getByType(RecordType.PRIMARY)
   private fun List<AddressEntity>.getPrevious(): List<AddressEntity> = this.getByType(RecordType.PREVIOUS)
   private fun List<AddressEntity>.getByType(type: RecordType): List<AddressEntity> = this.filter { it.recordType == type }
-
-
 }
