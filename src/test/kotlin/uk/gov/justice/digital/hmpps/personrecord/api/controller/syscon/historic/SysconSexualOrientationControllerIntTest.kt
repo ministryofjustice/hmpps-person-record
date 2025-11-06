@@ -3,9 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.syscon.historic
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonSexualOrientationRepository
@@ -69,17 +67,18 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
     val prisonNumber = randomPrisonNumber()
     val sexualOrientations = listOf(
       PrisonSexualOrientation(
-      sexualOrientationCode = randomPrisonSexualOrientation().key,
-      startDate = randomDate(),
-      endDate = randomDate(),
-      current = true,
-    ),
+        sexualOrientationCode = randomPrisonSexualOrientation().key,
+        startDate = randomDate(),
+        endDate = randomDate(),
+        current = true,
+      ),
       PrisonSexualOrientation(
         sexualOrientationCode = randomPrisonSexualOrientation().key,
         startDate = randomDate(),
         endDate = randomDate(),
         current = false,
-    ))
+      ),
+    )
 
     webTestClient
       .put()
