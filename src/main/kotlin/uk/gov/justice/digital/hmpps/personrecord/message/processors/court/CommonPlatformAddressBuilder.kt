@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.address
+package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -13,7 +13,7 @@ object CommonPlatformAddressBuilder {
     return listOf(*previousAddresses, primaryAddress).mapNotNull { it }
   }
 
-  private fun setToPrevious(addresses: List<AddressEntity>?, newAddress: Address?): Array<Address> = addresses?.map { Address.from(it) }
+  private fun setToPrevious(addresses: List<AddressEntity>?, newAddress: Address?): Array<Address> = addresses?.map { Address.Companion.from(it) }
     ?.filterNot { alreadyExists(it, newAddress) }
     ?.map {
       it.setToPrevious()
