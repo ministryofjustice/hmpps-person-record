@@ -8,36 +8,25 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 object CommonPlatformAddressBuilder {
 
   fun build(person: Person, personEntity: PersonEntity?): List<Address> {
-    val newPrimaryAddress = person.addresses.firstOrNull()
-    newPrimaryAddress?.setToPrimary()
-    val existingAddress = newPrimaryAddress.findInEntities(personEntity?.addresses)
-    return when {
-      existingAddress != null -> rebuildAddresses(existingAddress, personEntity?.addresses)
-      else -> setNewToPrimaryAddress(newPrimaryAddress, personEntity?.addresses)
-    }
+    val primaryAddress = person.addresses.firstOrNull()
+    return rebuildAddresses(primaryAddress, personEntity?.addresses)
   }
 
-  private fun rebuildAddresses(address: Address, existingAddresses: MutableList<AddressEntity>?): List<Address> {
-    address.setToPrimary()
-    val newAddresses = mutableListOf<Address?>(address)
-    val otherAddresses: List<Address>? = address.extract(existingAddresses)
+  private fun rebuildAddresses(address: Address?, existingAddresses: MutableList<AddressEntity>?): List<Address> {
+    address?.setToPrimary()
+    val newAddresses = mutableListOf(address)
+    val otherAddresses: List<Address>? = extract(existingAddresses, address)
     otherAddresses?.forEach { it.setToPrevious() }
     otherAddresses?.let { newAddresses.addAll(it) }
     return newAddresses.mapNotNull { it }
   }
 
-  private fun setNewToPrimaryAddress(address: Address?, existingAddresses: MutableList<AddressEntity>?): List<Address> {
-    val newAddresses = mutableListOf(address)
-
-    existingAddresses?.forEach {
-      val a = Address.from(it)
-      a.setToPrevious()
-      newAddresses.add(a)
-    }
-
-    return newAddresses.mapNotNull { it }.toList()
+  fun extract(addresses: List<AddressEntity>?, newAddress: Address?): List<Address>? {
+    if (newAddress == null) return addresses?.map { Address.from(it) }
+    return addresses?.filter { address ->
+      newAddress.compareAddressTo(Address.from(address)) == false
+    }?.map { Address.from(it) }
   }
 
-  private fun Address?.extract(addresses: List<AddressEntity>?) = addresses?.filter { address -> this?.compareAddressTo(Address.from(address)) == false }?.map { Address.from(it) }
-  private fun Address?.findInEntities(addresses: List<AddressEntity>?) = addresses?.find { address -> this?.compareAddressTo(Address.from(address)) == true }?.let { Address.from(it) }
+  private fun Address?.compareAddressTo(anotherAddress: Address): Boolean = this?.copy(recordType = null) == anotherAddress.copy(recordType = null)
 }

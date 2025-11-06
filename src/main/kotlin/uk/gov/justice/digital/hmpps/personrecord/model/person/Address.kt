@@ -96,6 +96,4 @@ data class Address(
   fun setToPrevious() {
     this.recordType = RecordType.PREVIOUS
   }
-
-  fun Address.compareAddressTo(anotherAddress: Address?): Boolean = this.copy(recordType = null) == anotherAddress?.copy(recordType = null)
 }

@@ -882,6 +882,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
 
       publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = address))))
+      awaitNotNull { personRepository.findByDefendantId(defendantId) }
 
       val blankAddress = CommonPlatformHearingSetupAddress(
         buildingName = "",
