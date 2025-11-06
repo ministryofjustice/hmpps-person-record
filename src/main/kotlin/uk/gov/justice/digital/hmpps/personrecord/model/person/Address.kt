@@ -88,7 +88,6 @@ data class Address(
       recordType = addressEntity.recordType,
     )
   }
-  fun isPrevious() = this.recordType == RecordType.PREVIOUS
 
   fun setToPrimary() {
     this.recordType = RecordType.PRIMARY
