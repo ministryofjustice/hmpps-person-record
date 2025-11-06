@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.RecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import java.time.LocalDate
@@ -35,5 +36,22 @@ class PrisonSexualOrientationEntity(
 
   @Column(name = "record_type")
   @Enumerated(STRING)
-  val recordType: RecordType,
-)
+  val recordType: RecordType? = null,
+
+  ) {
+  companion object {
+
+    fun from(prisonNumber: String, sexualOrientation: PrisonSexualOrientation): PrisonSexualOrientationEntity = PrisonSexualOrientationEntity(
+      prisonNumber = prisonNumber,
+      sexualOrientationCode = SexualOrientation.from(sexualOrientation),
+      startDate = sexualOrientation.startDate,
+      endDate = sexualOrientation.endDate,
+      recordType = when (sexualOrientation.current) {
+        true -> RecordType.CURRENT
+        false -> RecordType.HISTORIC
+      }
+    )
+
+    fun fromList(prisonNumber: String, sexualOrientations: List<PrisonSexualOrientation>): List<PrisonSexualOrientationEntity> = sexualOrientations.map { from(prisonNumber, it) }
+  }
+}

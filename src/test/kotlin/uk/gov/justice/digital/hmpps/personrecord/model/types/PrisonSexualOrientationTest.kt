@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 
-class SexualOrientationTest {
+class PrisonSexualOrientationTest {
 
   @Test
   fun `retains null value for probation sexualOrientation`() {

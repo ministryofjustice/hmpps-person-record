@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
-import uk.gov.justice.digital.hmpps.personrecord.model.types.RecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 
 // Reference
 fun List<ReferenceEntity>.getCROs(): List<String> = this.getType(CRO)
@@ -21,9 +21,9 @@ fun List<ContactEntity>.getEmail(): ContactEntity? = this.findByType(ContactType
 private fun List<ContactEntity>.findByType(type: ContactType): ContactEntity? = this.find { it.contactType == type }
 
 // Address
-fun List<AddressEntity>.getPrimary(): List<AddressEntity> = this.getByType(RecordType.PRIMARY)
-fun List<AddressEntity>.getPrevious(): List<AddressEntity> = this.getByType(RecordType.PREVIOUS)
-private fun List<AddressEntity>.getByType(type: RecordType): List<AddressEntity> = this.filter { it.recordType == type }
+fun List<AddressEntity>.getPrimary(): List<AddressEntity> = this.getByType(AddressRecordType.PRIMARY)
+fun List<AddressEntity>.getPrevious(): List<AddressEntity> = this.getByType(AddressRecordType.PREVIOUS)
+private fun List<AddressEntity>.getByType(type: AddressRecordType): List<AddressEntity> = this.filter { it.addressRecordType == type }
 
 // Generic
 fun <T, E> T.existsIn(childEntities: List<E>, match: (T, E) -> Boolean, yes: (E) -> E, no: () -> E?): E? {
