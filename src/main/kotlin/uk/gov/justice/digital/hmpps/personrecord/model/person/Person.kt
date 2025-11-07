@@ -41,7 +41,7 @@ data class Person(
   val religion: String? = null,
   val ethnicityCode: EthnicityCode? = null,
   val contacts: List<Contact> = emptyList(),
-  val addresses: List<Address> = emptyList(),
+  var addresses: List<Address> = emptyList(),
   val references: List<Reference> = emptyList(),
   val sourceSystem: SourceSystemType,
   val sentences: List<SentenceInfo> = emptyList(),

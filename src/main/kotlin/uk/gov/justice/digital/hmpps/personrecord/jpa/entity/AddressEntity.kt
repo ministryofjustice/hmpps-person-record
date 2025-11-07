@@ -85,24 +85,14 @@ class AddressEntity(
 
   @Enumerated(STRING)
   @Column(name = "record_type")
-  var addressRecordType: AddressRecordType? = null,
+  var recordType: AddressRecordType? = null,
 
   @Version
   var version: Int = 0,
 ) {
 
-  fun isPrevious() = this.addressRecordType == AddressRecordType.PREVIOUS
-
-  fun setToPrimary() {
-    this.addressRecordType = AddressRecordType.PRIMARY
-  }
-
-  fun setToPrevious() {
-    this.addressRecordType = AddressRecordType.PREVIOUS
-  }
-
   companion object {
-    fun from(address: Address, addressRecordType: AddressRecordType? = null): AddressEntity = AddressEntity(
+    fun from(address: Address): AddressEntity = AddressEntity(
       startDate = address.startDate,
       endDate = address.endDate,
       noFixedAbode = address.noFixedAbode,
@@ -117,9 +107,7 @@ class AddressEntity(
       county = address.county,
       countryCode = address.countryCode,
       uprn = address.uprn,
-      addressRecordType = addressRecordType,
+      recordType = address.recordType,
     )
-
-    fun toPrimary(address: Address): AddressEntity = from(address, AddressRecordType.PRIMARY)
   }
 }
