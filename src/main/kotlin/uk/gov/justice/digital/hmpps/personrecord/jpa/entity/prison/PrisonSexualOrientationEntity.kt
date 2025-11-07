@@ -58,7 +58,7 @@ class PrisonSexualOrientationEntity(
   @Enumerated(STRING)
   val prisonRecordType: PrisonRecordType? = null,
 
-  ) {
+) {
   companion object {
 
     fun from(sexualOrientation: PrisonSexualOrientation): PrisonSexualOrientationEntity = PrisonSexualOrientationEntity(
