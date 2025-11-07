@@ -31,37 +31,51 @@ class PrisonSexualOrientationEntity(
 
   @Column(name = "sexual_orientation_code")
   @Enumerated(STRING)
-  val sexualOrientationCode: SexualOrientation,
+  var sexualOrientationCode: SexualOrientation,
 
   @Column(name = "start_date")
-  val startDate: LocalDate? = null,
+  var startDate: LocalDate? = null,
 
   @Column(name = "end_date")
-  val endDate: LocalDate? = null,
+  var endDate: LocalDate? = null,
 
   @Column(name = "create_user_id")
-  val createUserId: String? = null,
+  var createUserId: String? = null,
 
   @Column(name = "create_date_time")
-  val createDateTime: LocalDateTime? = null,
+  var createDateTime: LocalDateTime? = null,
 
   @Column(name = "create_display_name")
-  val createDisplayName: String? = null,
+  var createDisplayName: String? = null,
 
   @Column(name = "modify_date_time")
   val modifyDateTime: LocalDateTime? = null,
 
   @Column(name = "modify_user_id")
-  val modifyUserId: String? = null,
+  var modifyUserId: String? = null,
 
   @Column(name = "modify_display_name")
-  val modifyDisplayName: String? = null,
+  var modifyDisplayName: String? = null,
 
   @Column(name = "record_type")
   @Enumerated(STRING)
-  val prisonRecordType: PrisonRecordType? = null,
+  var prisonRecordType: PrisonRecordType? = null,
 
 ) {
+
+  fun update(sexualOrientation: PrisonSexualOrientation) {
+    this.sexualOrientationCode = SexualOrientation.from(sexualOrientation)
+    this.startDate = sexualOrientation.startDate
+    this.endDate = sexualOrientation.endDate
+    this.createUserId = sexualOrientation.createUserId
+    this.createDateTime = sexualOrientation.createDateTime
+    this.createDisplayName = sexualOrientation.createDisplayName
+    this.modifyUserId = sexualOrientation.modifyUserId
+    this.modifyDisplayName = sexualOrientation.modifyDisplayName
+    this.modifyDisplayName = sexualOrientation.modifyDisplayName
+    this.prisonRecordType = getRecordType(sexualOrientation)
+  }
+
   companion object {
 
     fun from(sexualOrientation: PrisonSexualOrientation): PrisonSexualOrientationEntity = PrisonSexualOrientationEntity(
@@ -76,10 +90,12 @@ class PrisonSexualOrientationEntity(
       modifyDateTime = sexualOrientation.modifyDateTime,
       modifyUserId = sexualOrientation.modifyUserId,
       modifyDisplayName = sexualOrientation.modifyDisplayName,
-      prisonRecordType = when (sexualOrientation.current) {
-        true -> PrisonRecordType.CURRENT
-        false -> PrisonRecordType.HISTORIC
-      },
+      prisonRecordType = getRecordType(sexualOrientation),
     )
+
+    private fun getRecordType(sexualOrientation: PrisonSexualOrientation): PrisonRecordType = when (sexualOrientation.current) {
+      true -> PrisonRecordType.CURRENT
+      false -> PrisonRecordType.HISTORIC
+    }
   }
 }
