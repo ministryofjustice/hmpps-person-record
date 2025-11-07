@@ -70,7 +70,6 @@ class SysconSexualOrientationController(
   )
   @Transactional
   fun updateSexualOrientation(
-    @NotBlank
     @PathVariable(name = "cprSexualOrientationId")
     @Parameter(description = "The identifier of the prison sexual orientation", required = true)
     cprSexualOrientationId: UUID,
