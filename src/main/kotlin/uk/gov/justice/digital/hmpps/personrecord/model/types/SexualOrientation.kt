@@ -9,7 +9,7 @@ enum class SexualOrientation(val description: String) {
   HET("Heterosexual or Straight"),
   ND("Not Answered"),
   OTH("Other"),
-  REF(" Refused"),
+  REF("Refused"),
   UNKNOWN("Unknown"),
   ;
 
