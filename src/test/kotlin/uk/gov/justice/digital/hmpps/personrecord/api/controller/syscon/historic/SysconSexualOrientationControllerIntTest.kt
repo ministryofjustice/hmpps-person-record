@@ -34,7 +34,7 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
       val historicSexualOrientation = createRandomPrisonSexualOrientation(prisonNumber, historicCode, current = false)
 
       val currentCreationResponse = webTestClient
-        .put()
+        .post()
         .uri("/syscon-sync/sexual-orientation")
         .bodyValue(currentSexualOrientation)
         .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
@@ -58,7 +58,7 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
       assertThat(current.modifyDisplayName).isEqualTo(currentSexualOrientation.modifyDisplayName)
 
       val historicCreationResponse = webTestClient
-        .put()
+        .post()
         .uri("/syscon-sync/sexual-orientation")
         .bodyValue(historicSexualOrientation)
         .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
@@ -81,7 +81,7 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
   @Test
   fun `should return Access Denied 403 when role is wrong`() {
     val expectedErrorMessage = "Forbidden: Access Denied"
-    webTestClient.put()
+    webTestClient.post()
       .uri("/syscon-sync/sexual-orientation")
       .bodyValue(createRandomPrisonSexualOrientation(randomPrisonNumber(), randomPrisonSexualOrientation(), true))
       .authorised(listOf("UNSUPPORTED-ROLE"))
@@ -96,7 +96,7 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
   @Test
   fun `should return UNAUTHORIZED 401 when role is not set`() {
     val prisonNumber = randomPrisonNumber()
-    webTestClient.put()
+    webTestClient.post()
       .uri("/syscon-sync/sexual-orientation/$prisonNumber")
       .exchange()
       .expectStatus()
