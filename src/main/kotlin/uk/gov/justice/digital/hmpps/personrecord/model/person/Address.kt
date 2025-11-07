@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.person
 
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.types.RecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import java.time.LocalDate
 import kotlin.reflect.full.memberProperties
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Address as CommonPlatformAddress
@@ -25,7 +25,7 @@ data class Address(
   val county: String? = null,
   val countryCode: String? = null,
   val uprn: String? = null,
-  var recordType: RecordType? = null,
+  var recordType: AddressRecordType? = null,
 ) {
 
   fun allPropertiesOrNull(): Address? = this.takeIf { it.allPropertiesNotNull() }
@@ -90,12 +90,12 @@ data class Address(
   }
 
   fun setToPrimary(): Address {
-    this.recordType = RecordType.PRIMARY
+    this.recordType = AddressRecordType.PRIMARY
     return this
   }
 
   fun setToPrevious(): Address {
-    this.recordType = RecordType.PREVIOUS
+    this.recordType = AddressRecordType.PREVIOUS
     return this
   }
 }

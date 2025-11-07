@@ -10,13 +10,16 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.l
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.prisonSexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.probationSexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation.Companion.probationSexualOrientation
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation.Companion.prisonSexualOrientationMap
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation.Companion.probationSexualOrientationMap
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode.Companion.titleCodeMap
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.COMMON_PLATFORM_NATIONALITY_MAPPING
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.PRISON_NATIONALITY_MAPPING
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.PROBATION_NATIONALITY_MAPPING
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.util.UUID
 
 fun randomLongPnc(): String {
@@ -40,6 +43,10 @@ fun randomEmail(): String = randomLowerCaseString(8) + "." + randomDigit(4) + "@
 
 fun randomDate(): LocalDate = LocalDate.of(randomYear(), (1..12).random(), (1..28).random())
 
+fun randomTime(): LocalTime = LocalTime.of((1..23).random(), (1..59).random(), (1..59).random())
+
+fun randomDateTime(): LocalDateTime = LocalDateTime.of(randomDate(), randomTime())
+
 fun randomCro(): String {
   val year = randomYear().toString().takeLast(2)
   val digits = randomDigit(6)
@@ -57,7 +64,9 @@ fun randomCommonPlatformSexCode(): Map.Entry<String, SexCode> = commonPlatformSe
 fun randomLibraSexCode(): Map.Entry<String, SexCode> = libraSexCode.entries.random()
 
 fun randomProbationSexCode(): Map.Entry<String, SexCode> = probationSexCode.entries.random()
-fun randomProbationSexualOrientation(): Map.Entry<String, SexualOrientation> = probationSexualOrientation.entries.random()
+fun randomProbationSexualOrientation(): Map.Entry<String, SexualOrientation> = probationSexualOrientationMap.entries.random()
+
+fun randomPrisonSexualOrientation(): Map.Entry<String, SexualOrientation> = prisonSexualOrientationMap.entries.random()
 
 fun randomPrisonSexCode(): Map.Entry<String, SexCode> = prisonSexCode.entries.random()
 

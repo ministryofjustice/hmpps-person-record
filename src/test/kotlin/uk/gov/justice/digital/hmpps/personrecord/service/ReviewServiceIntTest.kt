@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReviewRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.review.ClusterType
 import uk.gov.justice.digital.hmpps.personrecord.service.review.ReviewService
 
@@ -12,9 +11,6 @@ class ReviewServiceIntTest : IntegrationTestBase() {
 
   @Autowired
   lateinit var reviewService: ReviewService
-
-  @Autowired
-  lateinit var reviewRepository: ReviewRepository
 
   @Test
   fun `should raise cluster for review`() {

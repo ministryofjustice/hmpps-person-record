@@ -15,7 +15,7 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.model.types.RecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import java.time.LocalDate
 
 @Entity
@@ -85,7 +85,7 @@ class AddressEntity(
 
   @Enumerated(STRING)
   @Column(name = "record_type")
-  var recordType: RecordType? = null,
+  var recordType: AddressRecordType? = null,
 
   @Version
   var version: Int = 0,
