@@ -39,6 +39,9 @@ class PrisonSexualOrientationEntity(
   @Column(name = "end_date")
   val endDate: LocalDate? = null,
 
+  @Column(name = "create_user_id")
+  val createUserId: String? = null,
+
   @Column(name = "create_date_time")
   val createDateTime: LocalDateTime? = null,
 
@@ -67,6 +70,7 @@ class PrisonSexualOrientationEntity(
       sexualOrientationCode = SexualOrientation.from(sexualOrientation),
       startDate = sexualOrientation.startDate,
       endDate = sexualOrientation.endDate,
+      createUserId = sexualOrientation.createUserId,
       createDateTime = sexualOrientation.createDateTime,
       createDisplayName = sexualOrientation.createDisplayName,
       modifyDateTime = sexualOrientation.modifyDateTime,

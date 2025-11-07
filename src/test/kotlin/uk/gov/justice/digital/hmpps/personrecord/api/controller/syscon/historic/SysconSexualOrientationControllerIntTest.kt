@@ -51,6 +51,7 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
       assertThat(current.prisonNumber).isEqualTo(prisonNumber)
       assertThat(current.startDate).isEqualTo(currentSexualOrientation.startDate)
       assertThat(current.endDate).isEqualTo(currentSexualOrientation.endDate)
+      assertThat(current.createUserId).isEqualTo(currentSexualOrientation.createUserId)
       assertThat(current.createDateTime).isEqualTo(currentSexualOrientation.createDateTime)
       assertThat(current.createDisplayName).isEqualTo(currentSexualOrientation.createDisplayName)
       assertThat(current.modifyDateTime).isEqualTo(currentSexualOrientation.modifyDateTime)
@@ -75,6 +76,12 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
       assertThat(historic.prisonNumber).isEqualTo(prisonNumber)
       assertThat(historic.startDate).isEqualTo(historicSexualOrientation.startDate)
       assertThat(historic.endDate).isEqualTo(historicSexualOrientation.endDate)
+      assertThat(historic.createUserId).isEqualTo(historicSexualOrientation.createUserId)
+      assertThat(historic.createDateTime).isEqualTo(historicSexualOrientation.createDateTime)
+      assertThat(historic.createDisplayName).isEqualTo(historicSexualOrientation.createDisplayName)
+      assertThat(historic.modifyDateTime).isEqualTo(historicSexualOrientation.modifyDateTime)
+      assertThat(historic.modifyUserId).isEqualTo(historicSexualOrientation.modifyUserId)
+      assertThat(historic.modifyDisplayName).isEqualTo(historicSexualOrientation.modifyDisplayName)
     }
   }
 
@@ -108,6 +115,7 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
     sexualOrientationCode = code.key,
     startDate = randomDate(),
     endDate = randomDate(),
+    createUserId = randomName(),
     createDateTime = randomDateTime(),
     createDisplayName = randomName(),
     modifyDateTime = randomDateTime(),

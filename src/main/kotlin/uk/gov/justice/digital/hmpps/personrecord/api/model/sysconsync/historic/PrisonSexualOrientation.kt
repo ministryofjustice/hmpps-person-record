@@ -13,6 +13,8 @@ data class PrisonSexualOrientation(
   val startDate: LocalDate? = null,
   @Schema(description = "The sexual orientation end date", example = "2000-01-01")
   val endDate: LocalDate? = null,
+  @Schema(description = "The sexual orientation creation user id", example = "12345")
+  val createUserId: String? = null,
   @Schema(description = "The sexual orientation creation date and time", example = "2000-01-01 12:00:00")
   val createDateTime: LocalDateTime? = null,
   @Schema(description = "The sexual orientation creation display name", example = "Other")
