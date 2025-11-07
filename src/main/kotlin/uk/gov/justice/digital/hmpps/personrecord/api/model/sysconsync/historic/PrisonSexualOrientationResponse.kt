@@ -4,11 +4,11 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonSexualO
 import java.util.UUID
 
 data class PrisonSexualOrientationResponse(
-  val cprSexualOrientationId: UUID
+  val cprSexualOrientationId: UUID,
 ) {
   companion object {
     fun from(sexualOrientation: PrisonSexualOrientationEntity) = PrisonSexualOrientationResponse(
-      cprSexualOrientationId = sexualOrientation.cprSexualOrientationId
+      cprSexualOrientationId = sexualOrientation.cprSexualOrientationId,
     )
   }
 }

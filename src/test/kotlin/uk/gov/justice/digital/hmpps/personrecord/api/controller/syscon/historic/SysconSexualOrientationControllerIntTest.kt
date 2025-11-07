@@ -3,18 +3,18 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.syscon.historic
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.stub
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.web.reactive.server.returnResult
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientationResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonSexualOrientationRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.RecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
-import uk.gov.justice.digital.hmpps.personrecord.test.*
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
 
 class SysconSexualOrientationControllerIntTest : WebTestBase() {
 
@@ -76,7 +76,6 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
       assertThat(historic.startDate).isEqualTo(historicSexualOrientation.startDate)
       assertThat(historic.endDate).isEqualTo(historicSexualOrientation.endDate)
     }
-
   }
 
   @Nested
