@@ -18,6 +18,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.Nationa
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.PRISON_NATIONALITY_MAPPING
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.PROBATION_NATIONALITY_MAPPING
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.util.UUID
 
 fun randomLongPnc(): String {
@@ -40,6 +42,10 @@ fun randomPhoneNumber(): String = randomDigit(10)
 fun randomEmail(): String = randomLowerCaseString(8) + "." + randomDigit(4) + "@" + randomLowerCaseString(8) + ".co.uk"
 
 fun randomDate(): LocalDate = LocalDate.of(randomYear(), (1..12).random(), (1..28).random())
+
+fun randomTime(): LocalTime = LocalTime.of((1..23).random(), (1..59).random(), (1..59).random())
+
+fun randomDateTime(): LocalDateTime = LocalDateTime.of(randomDate(), randomTime())
 
 fun randomCro(): String {
   val year = randomYear().toString().takeLast(2)

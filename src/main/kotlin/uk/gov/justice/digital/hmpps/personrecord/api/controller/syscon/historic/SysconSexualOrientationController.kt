@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.constraints.NotBlank
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PathVariable
@@ -15,7 +17,9 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientation
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientationResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonSexualOrientationEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonSexualOrientationRepository
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
@@ -28,16 +32,11 @@ class SysconSexualOrientationController(
 ) {
 
   @Operation(description = "Store a prisoner sexual orientation")
-  @PutMapping("/syscon-sync/sexual-orientation/{prisonNumber}")
+  @PutMapping("/syscon-sync/sexual-orientation")
   @ApiResponses(
     ApiResponse(
-      responseCode = "200",
-      description = "Data created in CPR",
-    ),
-    ApiResponse(
-      responseCode = "404",
-      description = "Requested resource not found.",
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      responseCode = "201",
+      description = "Sexual Orientation created in CPR",
     ),
     ApiResponse(
       responseCode = "500",
@@ -47,18 +46,10 @@ class SysconSexualOrientationController(
   )
   @Transactional
   fun insertSexualOrientation(
-    @NotBlank
-    @PathVariable(name = "prisonNumber")
-    @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true)
-    prisonNumber: String,
-    @RequestBody sexualOrientations: List<PrisonSexualOrientation>,
-  ): String {
-    prisonSexualOrientationRepository.findAllByPrisonNumber(prisonNumber).let { prisonSexualOrientationRepository.deleteAll(it) }
-    prisonSexualOrientationRepository.saveAll(PrisonSexualOrientationEntity.fromList(prisonNumber, sexualOrientations))
-    return OK
+    @RequestBody sexualOrientation: PrisonSexualOrientation,
+  ): ResponseEntity<PrisonSexualOrientationResponse> {
+    val prisonSexualOrientationEntity = prisonSexualOrientationRepository.save(PrisonSexualOrientationEntity.from(sexualOrientation))
+    return ResponseEntity(PrisonSexualOrientationResponse.from(prisonSexualOrientationEntity), HttpStatus.CREATED)
   }
 
-  companion object {
-    private const val OK = "OK"
-  }
 }
