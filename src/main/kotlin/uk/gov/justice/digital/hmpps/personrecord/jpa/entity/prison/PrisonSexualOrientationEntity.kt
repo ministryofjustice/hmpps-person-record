@@ -9,7 +9,7 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientation
-import uk.gov.justice.digital.hmpps.personrecord.model.types.RecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -56,9 +56,9 @@ class PrisonSexualOrientationEntity(
 
   @Column(name = "record_type")
   @Enumerated(STRING)
-  val recordType: RecordType? = null,
+  val prisonRecordType: PrisonRecordType? = null,
 
-) {
+  ) {
   companion object {
 
     fun from(sexualOrientation: PrisonSexualOrientation): PrisonSexualOrientationEntity = PrisonSexualOrientationEntity(
@@ -72,9 +72,9 @@ class PrisonSexualOrientationEntity(
       modifyDateTime = sexualOrientation.modifyDateTime,
       modifyUserId = sexualOrientation.modifyUserId,
       modifyDisplayName = sexualOrientation.modifyDisplayName,
-      recordType = when (sexualOrientation.current) {
-        true -> RecordType.CURRENT
-        false -> RecordType.HISTORIC
+      prisonRecordType = when (sexualOrientation.current) {
+        true -> PrisonRecordType.CURRENT
+        false -> PrisonRecordType.HISTORIC
       },
     )
   }
