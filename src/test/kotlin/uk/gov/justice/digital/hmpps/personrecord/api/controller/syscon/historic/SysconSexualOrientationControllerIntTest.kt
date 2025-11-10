@@ -126,7 +126,15 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
       val updated = awaitNotNull { prisonSexualOrientationRepository.findByCprSexualOrientationId(currentCreationResponse.cprSexualOrientationId) }
 
       assertThat(updated.sexualOrientationCode).isEqualTo(updatedCode.value)
-      assertThat(updated.prisonRecordType).isEqualTo(PrisonRecordType.HISTORIC)
+      assertThat(updated.prisonNumber).isEqualTo(prisonNumber)
+      assertThat(updated.startDate).isEqualTo(updatedSexualOrientation.startDate)
+      assertThat(updated.endDate).isEqualTo(updatedSexualOrientation.endDate)
+      assertThat(updated.createUserId).isEqualTo(updatedSexualOrientation.createUserId)
+      assertThat(updated.createDateTime).isEqualTo(updatedSexualOrientation.createDateTime)
+      assertThat(updated.createDisplayName).isEqualTo(updatedSexualOrientation.createDisplayName)
+      assertThat(updated.modifyDateTime).isEqualTo(updatedSexualOrientation.modifyDateTime)
+      assertThat(updated.modifyUserId).isEqualTo(updatedSexualOrientation.modifyUserId)
+      assertThat(updated.modifyDisplayName).isEqualTo(updatedSexualOrientation.modifyDisplayName)
     }
   }
 

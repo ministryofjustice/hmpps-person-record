@@ -49,7 +49,7 @@ class PrisonSexualOrientationEntity(
   var createDisplayName: String? = null,
 
   @Column(name = "modify_date_time")
-  val modifyDateTime: LocalDateTime? = null,
+  var modifyDateTime: LocalDateTime? = null,
 
   @Column(name = "modify_user_id")
   var modifyUserId: String? = null,
@@ -72,7 +72,7 @@ class PrisonSexualOrientationEntity(
     this.createDisplayName = sexualOrientation.createDisplayName
     this.modifyUserId = sexualOrientation.modifyUserId
     this.modifyDisplayName = sexualOrientation.modifyDisplayName
-    this.modifyDisplayName = sexualOrientation.modifyDisplayName
+    this.modifyDateTime = sexualOrientation.modifyDateTime
     this.prisonRecordType = getRecordType(sexualOrientation)
   }
 
