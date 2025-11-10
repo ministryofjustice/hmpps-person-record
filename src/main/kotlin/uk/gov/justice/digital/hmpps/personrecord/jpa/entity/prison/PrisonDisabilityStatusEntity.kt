@@ -10,6 +10,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonDisabilityStatus
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
+import java.time.LocalDate
 import java.util.UUID
 
 @Entity
@@ -25,11 +26,19 @@ class PrisonDisabilityStatusEntity(
 
   @Column(name = "prison_number")
   val prisonNumber: String? = null,
+
   @Column(name = "disability")
   val disability: Boolean,
+
   @Column(name = "record_type")
   @Enumerated(STRING)
   val prisonRecordType: PrisonRecordType? = null,
+
+  @Column(name = "start_date")
+  val startDate: LocalDate? = null,
+
+  @Column(name = "end_date")
+  val endDate: LocalDate? = null,
 ) {
   companion object {
 
@@ -41,6 +50,8 @@ class PrisonDisabilityStatusEntity(
         true -> PrisonRecordType.CURRENT
         false -> PrisonRecordType.HISTORIC
       },
-    )
+      startDate = disabilityStatus.startDate,
+      endDate = disabilityStatus.endDate,
+      )
   }
 }

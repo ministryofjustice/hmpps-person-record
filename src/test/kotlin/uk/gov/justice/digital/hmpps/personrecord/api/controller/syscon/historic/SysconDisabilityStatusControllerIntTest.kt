@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonDisabilityStatusRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.CURRENT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.HISTORIC
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDisability
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
@@ -25,9 +26,11 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
     @Test
     fun `should store current disability status against a prison number`() {
       val prisonNumber = randomPrisonNumber()
+
       val currentDisability = randomDisability()
-      val historicDisability = randomDisability()
       val currentDisabilityStatus = createRandomPrisonDisabilityStatus(prisonNumber, currentDisability, true)
+
+      val historicDisability = randomDisability()
       val historicDisabilityStatus = createRandomPrisonDisabilityStatus(prisonNumber, historicDisability, false)
 
       val currentCreationResponse = webTestClient
@@ -47,6 +50,8 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
       assertThat(current.prisonNumber).isEqualTo(prisonNumber)
       assertThat(current.disability).isEqualTo(currentDisability)
       assertThat(current.prisonRecordType).isEqualTo(CURRENT)
+      assertThat(current.startDate).isEqualTo(currentDisabilityStatus.startDate)
+      assertThat(current.endDate).isEqualTo(currentDisabilityStatus.endDate)
 
       val historicCreationResponse = webTestClient
         .post()
@@ -65,6 +70,8 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
       assertThat(historic.prisonNumber).isEqualTo(prisonNumber)
       assertThat(historic.disability).isEqualTo(historicDisability)
       assertThat(historic.prisonRecordType).isEqualTo(HISTORIC)
+      assertThat(historic.startDate).isEqualTo(historicDisabilityStatus.startDate)
+      assertThat(historic.endDate).isEqualTo(historicDisabilityStatus.endDate)
     }
   }
 
@@ -72,5 +79,7 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
     prisonNumber = prisonNumber,
     disability = status,
     current = current,
-  )
+    startDate = randomDate(),
+    endDate = randomDate(),
+    )
 }
