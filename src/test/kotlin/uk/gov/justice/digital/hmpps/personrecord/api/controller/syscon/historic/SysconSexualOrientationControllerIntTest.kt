@@ -90,7 +90,7 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
   inner class Update {
 
     @Test
-    fun `should update a sexual orientation` () {
+    fun `should update a sexual orientation`() {
       val prisonNumber = randomPrisonNumber()
       val currentCode = randomPrisonSexualOrientation()
       val currentSexualOrientation = createRandomPrisonSexualOrientation(prisonNumber, currentCode, current = true)
