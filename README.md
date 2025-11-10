@@ -18,6 +18,8 @@ For any service enquiries / troubleshooting see the [runbook](./runbooks/000-Per
 ### Running tests
 ```
 $ make test
+
+$ make e2e-test
 ```
 
 ### Deployment
