@@ -15,7 +15,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @Entity
-@Table(name = "prison_sexual_orientation")
+@Table(name = "prison_immigration_status")
 class PrisonImmigrationStatusEntity(
 
   @Id

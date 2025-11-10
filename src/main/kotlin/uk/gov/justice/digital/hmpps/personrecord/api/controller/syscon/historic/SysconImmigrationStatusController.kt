@@ -41,8 +41,8 @@ class SysconImmigrationStatusController(
   fun createImmigrationStatus(
     @RequestBody immigrationStatus: PrisonImmigrationStatus,
   ): ResponseEntity<PrisonImmigrationStatusResponse> {
-    val prisonSexualOrientationEntity = prisonImmigrationStatusRepository.save(PrisonImmigrationStatusEntity.from(immigrationStatus))
-    return ResponseEntity(PrisonImmigrationStatusResponse.from(prisonSexualOrientationEntity), HttpStatus.CREATED)
+    val prisonImmigrationStatusEntity = prisonImmigrationStatusRepository.save(PrisonImmigrationStatusEntity.from(immigrationStatus))
+    return ResponseEntity(PrisonImmigrationStatusResponse.from(prisonImmigrationStatusEntity), HttpStatus.CREATED)
   }
 
   @Operation(description = "Update a prisoner immigration status")
