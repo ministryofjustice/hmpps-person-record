@@ -86,13 +86,6 @@ tasks.register<Test>("e2eTest") {
   onlyIf { gradle.startParameter.taskNames.contains("e2eTest") }
 }
 
-tasks.register<Test>("e2eSingleTest") {
-  testClassesDirs = files(test.map { it.sources.output.classesDirs })
-  classpath = files(test.map { it.sources.runtimeClasspath })
-  include("**/**E2ETest.class")
-  onlyIf { gradle.taskGraph.hasTask(":${project.name}:e2eSingleTest") }
-}
-
 tasks {
   test {
     exclude("**/InitialiseDatabase.class")
