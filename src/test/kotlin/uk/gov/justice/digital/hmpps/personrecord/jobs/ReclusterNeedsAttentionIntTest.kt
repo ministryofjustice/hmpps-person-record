@@ -14,6 +14,7 @@ class ReclusterNeedsAttentionIntTest : WebTestBase() {
 
     @BeforeEach
     fun beforeEach() {
+      reviewRepository.deleteAll()
       personKeyRepository.deleteAll()
     }
 
