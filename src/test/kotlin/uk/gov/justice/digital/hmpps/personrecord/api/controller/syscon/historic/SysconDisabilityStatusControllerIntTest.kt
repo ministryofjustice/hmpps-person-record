@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonDisabilityStatusRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.CURRENT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.HISTORIC
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDisabilityStatus
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDisability
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
 class SysconDisabilityStatusControllerIntTest : WebTestBase() {
@@ -25,8 +25,8 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
     @Test
     fun `should store current disability status against a prison number`() {
       val prisonNumber = randomPrisonNumber()
-      val currentDisability = randomDisabilityStatus()
-      val historicDisability = randomDisabilityStatus()
+      val currentDisability = randomDisability()
+      val historicDisability = randomDisability()
       val currentDisabilityStatus = createRandomPrisonDisabilityStatus(prisonNumber, currentDisability, true)
       val historicDisabilityStatus = createRandomPrisonDisabilityStatus(prisonNumber, historicDisability, false)
 
