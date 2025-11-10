@@ -11,6 +11,7 @@ import jakarta.persistence.Table
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonDisabilityStatus
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Entity
@@ -39,6 +40,24 @@ class PrisonDisabilityStatusEntity(
 
   @Column(name = "end_date")
   val endDate: LocalDate? = null,
+
+  @Column(name = "create_user_id")
+  val createUserId: String? = null,
+
+  @Column(name = "create_date_time")
+  val createDateTime: LocalDateTime? = null,
+
+  @Column(name = "create_display_name")
+  val createDisplayName: String? = null,
+
+  @Column(name = "modify_date_time")
+  val modifyDateTime: LocalDateTime? = null,
+
+  @Column(name = "modify_user_id")
+  val modifyUserId: String? = null,
+
+  @Column(name = "modify_display_name")
+  val modifyDisplayName: String? = null,
 ) {
   companion object {
 
@@ -52,6 +71,12 @@ class PrisonDisabilityStatusEntity(
       },
       startDate = disabilityStatus.startDate,
       endDate = disabilityStatus.endDate,
+      createUserId = disabilityStatus.createUserId,
+      createDateTime = disabilityStatus.createDateTime,
+      createDisplayName = disabilityStatus.createDisplayName,
+      modifyDateTime = disabilityStatus.modifyDateTime,
+      modifyUserId = disabilityStatus.modifyUserId,
+      modifyDisplayName = disabilityStatus.modifyDisplayName,
       )
   }
 }

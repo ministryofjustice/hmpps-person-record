@@ -12,7 +12,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonDis
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.CURRENT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.HISTORIC
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDisability
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
 class SysconDisabilityStatusControllerIntTest : WebTestBase() {
@@ -52,6 +54,12 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
       assertThat(current.prisonRecordType).isEqualTo(CURRENT)
       assertThat(current.startDate).isEqualTo(currentDisabilityStatus.startDate)
       assertThat(current.endDate).isEqualTo(currentDisabilityStatus.endDate)
+      assertThat(current.createUserId).isEqualTo(currentDisabilityStatus.createUserId)
+      assertThat(current.createDateTime).isEqualTo(currentDisabilityStatus.createDateTime)
+      assertThat(current.createDisplayName).isEqualTo(currentDisabilityStatus.createDisplayName)
+      assertThat(current.modifyDateTime).isEqualTo(currentDisabilityStatus.modifyDateTime)
+      assertThat(current.modifyUserId).isEqualTo(currentDisabilityStatus.modifyUserId)
+      assertThat(current.modifyDisplayName).isEqualTo(currentDisabilityStatus.modifyDisplayName)
 
       val historicCreationResponse = webTestClient
         .post()
@@ -72,6 +80,12 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
       assertThat(historic.prisonRecordType).isEqualTo(HISTORIC)
       assertThat(historic.startDate).isEqualTo(historicDisabilityStatus.startDate)
       assertThat(historic.endDate).isEqualTo(historicDisabilityStatus.endDate)
+      assertThat(historic.createUserId).isEqualTo(historicDisabilityStatus.createUserId)
+      assertThat(historic.createDateTime).isEqualTo(historicDisabilityStatus.createDateTime)
+      assertThat(historic.createDisplayName).isEqualTo(historicDisabilityStatus.createDisplayName)
+      assertThat(historic.modifyDateTime).isEqualTo(historicDisabilityStatus.modifyDateTime)
+      assertThat(historic.modifyUserId).isEqualTo(historicDisabilityStatus.modifyUserId)
+      assertThat(historic.modifyDisplayName).isEqualTo(historicDisabilityStatus.modifyDisplayName)
     }
   }
 
@@ -81,5 +95,10 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
     current = current,
     startDate = randomDate(),
     endDate = randomDate(),
-    )
+    createUserId = randomName(),
+    createDateTime = randomDateTime(),
+    createDisplayName = randomName(),
+    modifyDateTime = randomDateTime(),
+    modifyUserId = randomName(),
+    modifyDisplayName = randomName(),    )
 }
