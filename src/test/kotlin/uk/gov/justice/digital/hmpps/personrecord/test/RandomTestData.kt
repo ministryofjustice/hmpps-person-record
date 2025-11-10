@@ -68,6 +68,8 @@ fun randomProbationSexualOrientation(): Map.Entry<String, SexualOrientation> = p
 
 fun randomPrisonSexualOrientation(): Map.Entry<String, SexualOrientation> = prisonSexualOrientationMap.entries.random()
 
+fun randomDisabilityStatus(): Boolean = listOf(true, false).random()
+
 fun randomPrisonSexCode(): Map.Entry<String, SexCode> = prisonSexCode.entries.random()
 
 fun randomProbationEthnicity(): String = probationEthnicity.keys.random()
