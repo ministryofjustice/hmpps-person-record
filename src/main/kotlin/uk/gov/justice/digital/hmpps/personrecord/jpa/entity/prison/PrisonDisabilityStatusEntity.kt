@@ -65,10 +65,7 @@ class PrisonDisabilityStatusEntity(
       cprDisabilityStatusId = UUID.randomUUID(),
       prisonNumber = disabilityStatus.prisonNumber,
       disability = disabilityStatus.disability,
-      prisonRecordType = when (disabilityStatus.current) {
-        true -> PrisonRecordType.CURRENT
-        false -> PrisonRecordType.HISTORIC
-      },
+      prisonRecordType = PrisonRecordType.from(disabilityStatus.current),
       startDate = disabilityStatus.startDate,
       endDate = disabilityStatus.endDate,
       createUserId = disabilityStatus.createUserId,
