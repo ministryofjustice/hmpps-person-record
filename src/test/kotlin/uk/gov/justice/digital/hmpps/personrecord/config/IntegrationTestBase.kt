@@ -135,7 +135,7 @@ class IntegrationTestBase {
   private lateinit var overrideService: OverrideService
 
   @Autowired
-  private lateinit var reviewRepository: ReviewRepository
+  lateinit var reviewRepository: ReviewRepository
 
   fun authSetup() {
     wiremock.stubFor(
