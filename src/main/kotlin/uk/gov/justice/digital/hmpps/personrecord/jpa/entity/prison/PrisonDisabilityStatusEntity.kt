@@ -77,6 +77,6 @@ class PrisonDisabilityStatusEntity(
       modifyDateTime = disabilityStatus.modifyDateTime,
       modifyUserId = disabilityStatus.modifyUserId,
       modifyDisplayName = disabilityStatus.modifyDisplayName,
-      )
+    )
   }
 }

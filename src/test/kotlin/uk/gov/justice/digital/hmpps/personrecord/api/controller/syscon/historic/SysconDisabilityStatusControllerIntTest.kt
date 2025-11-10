@@ -100,5 +100,6 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
     createDisplayName = randomName(),
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),
-    modifyDisplayName = randomName(),    )
+    modifyDisplayName = randomName(),
+  )
 }
