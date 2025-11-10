@@ -953,7 +953,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         ),
       )
 
-      checkEventLogByUUID(cluster2.personUUID!!, CPRLogEvents.CPR_RECLUSTER_UUID_MERGED) { eventLogs ->
+      checkEventLog(personC.crn!!, CPRLogEvents.CPR_RECLUSTER_UUID_MERGED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
         assertThat(eventLog.personUUID).isEqualTo(cluster2.personUUID)
