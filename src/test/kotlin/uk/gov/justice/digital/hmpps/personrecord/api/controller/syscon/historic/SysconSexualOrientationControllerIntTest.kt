@@ -85,6 +85,58 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
     }
   }
 
+  @Nested
+  inner class Update {
+
+    @Test
+    fun `should update a sexual orientation`() {
+      val prisonNumber = randomPrisonNumber()
+      val currentCode = randomPrisonSexualOrientation()
+      val currentSexualOrientation = createRandomPrisonSexualOrientation(prisonNumber, currentCode, current = true)
+
+      val currentCreationResponse = webTestClient
+        .post()
+        .uri("/syscon-sync/sexual-orientation")
+        .bodyValue(currentSexualOrientation)
+        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isCreated
+        .expectBody(PrisonSexualOrientationResponse::class.java)
+        .returnResult()
+        .responseBody!!
+
+      val current = awaitNotNull { prisonSexualOrientationRepository.findByCprSexualOrientationId(currentCreationResponse.cprSexualOrientationId) }
+
+      assertThat(current.sexualOrientationCode).isEqualTo(currentCode.value)
+
+      val updatedCode = randomPrisonSexualOrientation()
+      val updatedSexualOrientation = createRandomPrisonSexualOrientation(prisonNumber, updatedCode, current = false)
+
+      webTestClient
+        .put()
+        .uri("/syscon-sync/sexual-orientation/${current.cprSexualOrientationId}")
+        .bodyValue(updatedSexualOrientation)
+        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      val updated = awaitNotNull { prisonSexualOrientationRepository.findByCprSexualOrientationId(currentCreationResponse.cprSexualOrientationId) }
+
+      assertThat(updated.sexualOrientationCode).isEqualTo(updatedCode.value)
+      assertThat(updated.prisonNumber).isEqualTo(prisonNumber)
+      assertThat(updated.startDate).isEqualTo(updatedSexualOrientation.startDate)
+      assertThat(updated.endDate).isEqualTo(updatedSexualOrientation.endDate)
+      assertThat(updated.createUserId).isEqualTo(updatedSexualOrientation.createUserId)
+      assertThat(updated.createDateTime).isEqualTo(updatedSexualOrientation.createDateTime)
+      assertThat(updated.createDisplayName).isEqualTo(updatedSexualOrientation.createDisplayName)
+      assertThat(updated.modifyDateTime).isEqualTo(updatedSexualOrientation.modifyDateTime)
+      assertThat(updated.modifyUserId).isEqualTo(updatedSexualOrientation.modifyUserId)
+      assertThat(updated.modifyDisplayName).isEqualTo(updatedSexualOrientation.modifyDisplayName)
+    }
+  }
+
   @Test
   fun `should return Access Denied 403 when role is wrong`() {
     val expectedErrorMessage = "Forbidden: Access Denied"
