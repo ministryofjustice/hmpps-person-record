@@ -38,7 +38,7 @@ class NationalityEntity(
   )
   var person: PersonEntity? = null,
 
-  // TODO: this should not be nullable after we finish with the migration
+  // this should not be nullable after we finish with the migration
   @Column(name = "nationality_code")
   @Enumerated(EnumType.STRING)
   val nationalityCode: NationalityCode? = null,
