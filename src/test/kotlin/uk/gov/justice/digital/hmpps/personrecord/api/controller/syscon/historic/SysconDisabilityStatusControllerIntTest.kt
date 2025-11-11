@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECO
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonDisabilityStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonDisabilityStatusResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonDisabilityStatusEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonDisabilityStatusRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -16,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDisability
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import java.util.UUID
 
 class SysconDisabilityStatusControllerIntTest : WebTestBase() {
 
@@ -26,41 +26,19 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
   inner class Create {
 
     @Test
-    fun `should store current disability status against a prison number`() {
+    fun `should store current and historic disability status against a prison number`() {
       val prisonNumber = randomPrisonNumber()
 
-      val currentDisability = randomDisability()
-      val currentDisabilityStatus = createRandomPrisonDisabilityStatus(prisonNumber, currentDisability, true)
+      val currentDisabilityStatus = createRandomPrisonDisabilityStatus(prisonNumber, randomDisability(), true)
       val currentCreationResponse = postDisabilityStatus(currentDisabilityStatus)
-      val current = awaitNotNull { prisonDisabilityStatusRepository.findByCprDisabilityStatusId(currentCreationResponse.cprDisabilityStatusId) }
 
-      assertCorrectValuesSaved(current, currentDisabilityStatus)
+      assertCorrectValuesSaved(currentDisabilityStatus, currentCreationResponse.cprDisabilityStatusId)
 
       val historicDisabilityStatus = createRandomPrisonDisabilityStatus(prisonNumber, randomDisability(), false)
-
       val historicCreationResponse = postDisabilityStatus(historicDisabilityStatus)
 
-      val historic = awaitNotNull { prisonDisabilityStatusRepository.findByCprDisabilityStatusId(historicCreationResponse.cprDisabilityStatusId) }
-
-      assertCorrectValuesSaved(historic, historicDisabilityStatus)
+      assertCorrectValuesSaved(historicDisabilityStatus, historicCreationResponse.cprDisabilityStatusId)
     }
-  }
-
-  private fun assertCorrectValuesSaved(
-    current: PrisonDisabilityStatusEntity,
-    currentDisabilityStatus: PrisonDisabilityStatus,
-  ) {
-    assertThat(current.prisonNumber).isEqualTo(currentDisabilityStatus.prisonNumber)
-    assertThat(current.disability).isEqualTo(currentDisabilityStatus.disability)
-    assertThat(current.prisonRecordType).isEqualTo(PrisonRecordType.from(currentDisabilityStatus.current))
-    assertThat(current.startDate).isEqualTo(currentDisabilityStatus.startDate)
-    assertThat(current.endDate).isEqualTo(currentDisabilityStatus.endDate)
-    assertThat(current.createUserId).isEqualTo(currentDisabilityStatus.createUserId)
-    assertThat(current.createDateTime).isEqualTo(currentDisabilityStatus.createDateTime)
-    assertThat(current.createDisplayName).isEqualTo(currentDisabilityStatus.createDisplayName)
-    assertThat(current.modifyDateTime).isEqualTo(currentDisabilityStatus.modifyDateTime)
-    assertThat(current.modifyUserId).isEqualTo(currentDisabilityStatus.modifyUserId)
-    assertThat(current.modifyDisplayName).isEqualTo(currentDisabilityStatus.modifyDisplayName)
   }
 
   @Nested
@@ -71,25 +49,22 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
 
       val currentDisabilityStatus = createRandomPrisonDisabilityStatus(prisonNumber, randomDisability(), true)
-
       val currentCreationResponse = postDisabilityStatus(currentDisabilityStatus)
-      val current = awaitNotNull { prisonDisabilityStatusRepository.findByCprDisabilityStatusId(currentCreationResponse.cprDisabilityStatusId) }
 
-      assertCorrectValuesSaved(current, currentDisabilityStatus)
+      assertCorrectValuesSaved(currentDisabilityStatus, currentCreationResponse.cprDisabilityStatusId)
 
       val updatedDisabilityStatus = createRandomPrisonDisabilityStatus(prisonNumber, randomDisability(), false)
 
       webTestClient
         .put()
-        .uri("/syscon-sync/disability-status/${current.cprDisabilityStatusId}")
+        .uri("/syscon-sync/disability-status/${currentCreationResponse.cprDisabilityStatusId}")
         .bodyValue(updatedDisabilityStatus)
         .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
         .exchange()
         .expectStatus()
         .isOk
 
-      val updated = awaitNotNull { prisonDisabilityStatusRepository.findByCprDisabilityStatusId(currentCreationResponse.cprDisabilityStatusId) }
-      assertCorrectValuesSaved(updated, updatedDisabilityStatus)
+      assertCorrectValuesSaved(updatedDisabilityStatus, currentCreationResponse.cprDisabilityStatusId)
     }
   }
 
@@ -122,4 +97,23 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
     modifyUserId = randomName(),
     modifyDisplayName = randomName(),
   )
+
+  private fun assertCorrectValuesSaved(
+    disabilityStatus: PrisonDisabilityStatus,
+    statusId: UUID,
+  ) {
+    val status = awaitNotNull { prisonDisabilityStatusRepository.findByCprDisabilityStatusId(statusId) }
+
+    assertThat(status.prisonNumber).isEqualTo(disabilityStatus.prisonNumber)
+    assertThat(status.disability).isEqualTo(disabilityStatus.disability)
+    assertThat(status.prisonRecordType).isEqualTo(PrisonRecordType.from(disabilityStatus.current))
+    assertThat(status.startDate).isEqualTo(disabilityStatus.startDate)
+    assertThat(status.endDate).isEqualTo(disabilityStatus.endDate)
+    assertThat(status.createUserId).isEqualTo(disabilityStatus.createUserId)
+    assertThat(status.createDateTime).isEqualTo(disabilityStatus.createDateTime)
+    assertThat(status.createDisplayName).isEqualTo(disabilityStatus.createDisplayName)
+    assertThat(status.modifyDateTime).isEqualTo(disabilityStatus.modifyDateTime)
+    assertThat(status.modifyUserId).isEqualTo(disabilityStatus.modifyUserId)
+    assertThat(status.modifyDisplayName).isEqualTo(disabilityStatus.modifyDisplayName)
+  }
 }
