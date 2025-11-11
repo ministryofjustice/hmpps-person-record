@@ -10,18 +10,8 @@ data class DemographicAttributes(
   val birthPlace: String?,
   @Schema(description = "The person's birth country code", example = "UK")
   val birthCountryCode: String?,
-  @Schema(description = "The person's nationality code", example = "BR")
-  val nationalityCode: String?,
-  @Schema(description = "The person's multiple nationalities")
-  val multipleNationalities: String?,
   @Schema(description = "The person's ethnicity code")
   val ethnicityCode: String?,
-  @Schema(description = "The person's sexual orientation code")
-  val sexualOrientationCode: String?,
   @Schema(description = "The person's sex code")
   val sexCode: String?,
-  @Schema(description = "The person's disability status")
-  val disability: Boolean?,
-  @Schema(description = "The person's interest to immigration status")
-  val interestToImmigration: Boolean?,
 )
