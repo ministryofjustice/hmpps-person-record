@@ -25,7 +25,7 @@ class NationalityEntity(
     name = "fk_nationality_code_id",
     referencedColumnName = "id",
   )
-  var nationalityCode: NationalityCodeEntity? = null,
+  var nationalityCodeLegacy: NationalityCodeEntity? = null,
 
   @ManyToOne(optional = false)
   @JoinColumn(
@@ -48,7 +48,7 @@ class NationalityEntity(
 
     fun from(nationality: Nationality, nationalityCode: NationalityCodeEntity?): NationalityEntity? = nationalityCode?.let {
       NationalityEntity(
-        nationalityCode = nationalityCode,
+        nationalityCodeLegacy = nationalityCode,
         startDate = nationality.startDate,
         endDate = nationality.endDate,
         notes = nationality.notes,

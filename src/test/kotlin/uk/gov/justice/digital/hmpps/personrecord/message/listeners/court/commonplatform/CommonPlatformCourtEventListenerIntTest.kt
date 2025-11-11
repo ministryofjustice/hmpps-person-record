@@ -678,7 +678,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     vararg nationalities: String,
   ) {
     assertThat(person.nationalities.size).isEqualTo(nationalities.size)
-    val actual = person.nationalities.map { NationalityCode.valueOf(it.nationalityCode?.code!!) }
+    val actual = person.nationalities.map { NationalityCode.valueOf(it.nationalityCodeLegacy?.code!!) }
     val expected = nationalities.map { NationalityCode.fromCommonPlatformMapping(it) }
     assertThat(actual).containsAll(expected)
   }

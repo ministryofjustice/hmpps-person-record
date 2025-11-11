@@ -471,8 +471,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.matchId).isNotNull()
         assertThat(offender.lastModified).isNotNull()
         assertThat(offender.nationalities.size).isEqualTo(1)
-        assertThat(offender.nationalities.first().nationalityCode?.code).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.name)
-        assertThat(offender.nationalities.first().nationalityCode?.description).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.description)
+        assertThat(offender.nationalities.first().nationalityCodeLegacy?.code).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.name)
+        assertThat(offender.nationalities.first().nationalityCodeLegacy?.description).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.description)
 
         checkTelemetry(
           CPR_RECORD_CREATED,
