@@ -73,7 +73,7 @@ class PrisonSexualOrientationEntity(
     this.modifyUserId = sexualOrientation.modifyUserId
     this.modifyDisplayName = sexualOrientation.modifyDisplayName
     this.modifyDateTime = sexualOrientation.modifyDateTime
-    this.prisonRecordType = getRecordType(sexualOrientation)
+    this.prisonRecordType = PrisonRecordType.from(sexualOrientation.current)
   }
 
   companion object {
@@ -90,12 +90,7 @@ class PrisonSexualOrientationEntity(
       modifyDateTime = sexualOrientation.modifyDateTime,
       modifyUserId = sexualOrientation.modifyUserId,
       modifyDisplayName = sexualOrientation.modifyDisplayName,
-      prisonRecordType = getRecordType(sexualOrientation),
+      prisonRecordType = PrisonRecordType.from(sexualOrientation.current),
     )
-
-    private fun getRecordType(sexualOrientation: PrisonSexualOrientation): PrisonRecordType = when (sexualOrientation.current) {
-      true -> PrisonRecordType.CURRENT
-      false -> PrisonRecordType.HISTORIC
-    }
   }
 }
