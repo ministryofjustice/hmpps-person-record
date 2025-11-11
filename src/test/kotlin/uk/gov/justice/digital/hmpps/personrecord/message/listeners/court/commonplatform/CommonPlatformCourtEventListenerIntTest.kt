@@ -33,6 +33,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -678,7 +679,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   ) {
     assertThat(person.nationalities.size).isEqualTo(nationalities.size)
     val actual = person.nationalities.map { Pair(it.nationalityCode?.code, it.nationalityCode?.description) }
-    val expected = nationalities.map { it.getNationalityCodeEntityFromCommonPlatformCode() }.map { Pair(it?.code, it?.description) }
+    val expected = nationalities.map { NationalityCode.fromCommonPlatformMapping(it) }.map { Pair(it?.name, it?.description) }
     assertThat(actual).containsAll(expected)
   }
 
