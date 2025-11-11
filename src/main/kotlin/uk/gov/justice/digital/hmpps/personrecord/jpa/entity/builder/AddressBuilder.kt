@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.address
+package uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder
 
 import uk.gov.justice.digital.hmpps.personrecord.extensions.existsIn
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity

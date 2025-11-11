@@ -20,7 +20,7 @@ import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ContactBuilder.buildContacts
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBuilder.buildReferences
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.SentenceInfoBuilder.buildSentenceInfo
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.address.AddressBuilder.buildAddresses
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.AddressBuilder.buildAddresses
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
