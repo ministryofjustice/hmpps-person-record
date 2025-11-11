@@ -681,6 +681,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val actual = person.nationalities.map { NationalityCode.valueOf(it.nationalityCodeLegacy?.code!!) }
     val expected = nationalities.map { NationalityCode.fromCommonPlatformMapping(it) }
     assertThat(actual).containsAll(expected)
+
+    val actualNationalitiesCodes = person.nationalities.map { it.nationalityCode }
+    assertThat(actualNationalitiesCodes).containsAll(expected)
   }
 
   @Nested
