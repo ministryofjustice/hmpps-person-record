@@ -38,6 +38,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -470,8 +471,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.matchId).isNotNull()
         assertThat(offender.lastModified).isNotNull()
         assertThat(offender.nationalities.size).isEqualTo(1)
-        assertThat(offender.nationalities.first().nationalityCode?.code).isEqualTo(probationCase.nationality?.value.getNationalityCodeEntityFromProbationCode()?.code)
-        assertThat(offender.nationalities.first().nationalityCode?.description).isEqualTo(probationCase.nationality?.value.getNationalityCodeEntityFromProbationCode()?.description)
+        assertThat(offender.nationalities.first().nationalityCode?.code).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.name)
+        assertThat(offender.nationalities.first().nationalityCode?.description).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.description)
 
         checkTelemetry(
           CPR_RECORD_CREATED,

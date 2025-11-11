@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIV
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
@@ -147,8 +148,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.contacts.getMobile()?.contactValue).isEqualTo("01141234567")
         assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceStartDate)
         assertThat(personEntity.nationalities.size).isEqualTo(1)
-        assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromPrisonCode()?.code)
-        assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromPrisonCode()?.description)
+        assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.name)
+        assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.description)
         val storedPrisonEthnicity = ethnicity.getPrisonEthnicity()
         assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity.code)
         assertThat(personEntity.ethnicityCode?.description).isEqualTo(storedPrisonEthnicity.description)
@@ -249,8 +250,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.ethnicityCode?.description).isEqualTo(storedPrisonEthnicity.description)
 
         assertThat(personEntity.nationalities.size).isEqualTo(1)
-        assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(updatedNationality.getNationalityCodeEntityFromPrisonCode()?.code)
-        assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(updatedNationality.getNationalityCodeEntityFromPrisonCode()?.description)
+        assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.name)
+        assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.description)
       }
     }
 
