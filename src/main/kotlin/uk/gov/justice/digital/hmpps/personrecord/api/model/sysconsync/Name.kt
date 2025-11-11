@@ -7,10 +7,8 @@ data class Name(
   val titleCode: String?,
   @Schema(description = "The first name of the person", example = "John")
   val firstName: String?,
-  @Schema(description = "The middle name of the person", example = "Jimmy")
-  val middleName1: String?,
-  @Schema(description = "The middle name of the person", example = "Doe")
-  val middleName2: String?,
+  @Schema(description = "The middle names of the person", example = "Jimmy Jane")
+  val middleNames: String?,
   @Schema(description = "The last name of the person", example = "Smith")
   val lastName: String?,
 )
