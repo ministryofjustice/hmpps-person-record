@@ -508,8 +508,6 @@ class IntegrationTestBase {
 
   internal fun NationalityCode?.getEntity(): NationalityCodeEntity? = this?.let { nationalityCodeRepository.findByCode(it.name) }
 
-  internal fun String?.getNationalityCodeEntityFromCommonPlatformCode(): NationalityCodeEntity? = NationalityCode.fromCommonPlatformMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
-
   internal fun PersonKeyEntity.getReview(): ReviewEntity = awaitNotNull {
     reviewRepository.findByClustersClusterTypeAndClustersPersonKey(
       ClusterType.PRIMARY,
