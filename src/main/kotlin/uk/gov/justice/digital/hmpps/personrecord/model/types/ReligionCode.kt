@@ -109,7 +109,8 @@ enum class ReligionCode(
   URC("United Reform Church"),
   WELS("Welsh Independent"),
   WIND("Welsh Independent"),
-  ZORO("Zoroastrian");
+  ZORO("Zoroastrian"),
+  ;
 
   fun fromPrison(code: String?) = code?.let { ReligionCode.entries.firstOrNull { it.name == code } ?: UNKN }
 }
