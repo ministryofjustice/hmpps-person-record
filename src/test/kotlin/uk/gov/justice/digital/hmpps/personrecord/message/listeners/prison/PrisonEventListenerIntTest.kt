@@ -148,8 +148,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.contacts.getMobile()?.contactValue).isEqualTo("01141234567")
         assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceStartDate)
         assertThat(personEntity.nationalities.size).isEqualTo(1)
-        assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.name)
-        assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.description)
+        assertThat(personEntity.nationalities.first().nationalityCodeLegacy?.code).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.name)
+        assertThat(personEntity.nationalities.first().nationalityCodeLegacy?.description).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.description)
         val storedPrisonEthnicity = ethnicity.getPrisonEthnicity()
         assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity.code)
         assertThat(personEntity.ethnicityCode?.description).isEqualTo(storedPrisonEthnicity.description)
@@ -250,8 +250,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.ethnicityCode?.description).isEqualTo(storedPrisonEthnicity.description)
 
         assertThat(personEntity.nationalities.size).isEqualTo(1)
-        assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.name)
-        assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.description)
+        assertThat(personEntity.nationalities.first().nationalityCodeLegacy?.code).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.name)
+        assertThat(personEntity.nationalities.first().nationalityCodeLegacy?.description).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.description)
       }
     }
 
