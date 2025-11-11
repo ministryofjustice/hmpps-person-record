@@ -29,36 +29,50 @@ class PrisonDisabilityStatusEntity(
   val prisonNumber: String? = null,
 
   @Column(name = "disability")
-  val disability: Boolean,
+  var disability: Boolean,
 
   @Column(name = "record_type")
   @Enumerated(STRING)
-  val prisonRecordType: PrisonRecordType? = null,
+  var prisonRecordType: PrisonRecordType? = null,
 
   @Column(name = "start_date")
-  val startDate: LocalDate? = null,
+  var startDate: LocalDate? = null,
 
   @Column(name = "end_date")
-  val endDate: LocalDate? = null,
+  var endDate: LocalDate? = null,
 
   @Column(name = "create_user_id")
-  val createUserId: String? = null,
+  var createUserId: String? = null,
 
   @Column(name = "create_date_time")
-  val createDateTime: LocalDateTime? = null,
+  var createDateTime: LocalDateTime? = null,
 
   @Column(name = "create_display_name")
-  val createDisplayName: String? = null,
+  var createDisplayName: String? = null,
 
   @Column(name = "modify_date_time")
-  val modifyDateTime: LocalDateTime? = null,
+  var modifyDateTime: LocalDateTime? = null,
 
   @Column(name = "modify_user_id")
-  val modifyUserId: String? = null,
+  var modifyUserId: String? = null,
 
   @Column(name = "modify_display_name")
-  val modifyDisplayName: String? = null,
+  var modifyDisplayName: String? = null,
 ) {
+
+  fun update(disabilityStatus: PrisonDisabilityStatus) {
+    this.disability = disabilityStatus.disability
+    this.startDate = disabilityStatus.startDate
+    this.endDate = disabilityStatus.endDate
+    this.createUserId = disabilityStatus.createUserId
+    this.createDateTime = disabilityStatus.createDateTime
+    this.createDisplayName = disabilityStatus.createDisplayName
+    this.modifyUserId = disabilityStatus.modifyUserId
+    this.modifyDisplayName = disabilityStatus.modifyDisplayName
+    this.modifyDateTime = disabilityStatus.modifyDateTime
+    this.prisonRecordType = PrisonRecordType.from(disabilityStatus.current)
+  }
+
   companion object {
 
     fun from(disabilityStatus: PrisonDisabilityStatus): PrisonDisabilityStatusEntity = PrisonDisabilityStatusEntity(

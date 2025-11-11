@@ -89,6 +89,59 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
     }
   }
 
+  @Nested
+  inner class Update {
+    @Test
+    fun `should update a disability status`() {
+      val prisonNumber = randomPrisonNumber()
+
+      val currentDisability = randomDisability()
+      val currentDisabilityStatus = createRandomPrisonDisabilityStatus(prisonNumber, currentDisability, true)
+
+      val currentCreationResponse = webTestClient
+        .post()
+        .uri("/syscon-sync/disability-status")
+        .bodyValue(currentDisabilityStatus)
+        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isCreated
+        .expectBody(PrisonDisabilityStatusResponse::class.java)
+        .returnResult()
+        .responseBody!!
+
+      val current = awaitNotNull { prisonDisabilityStatusRepository.findByCprDisabilityStatusId(currentCreationResponse.cprDisabilityStatusId) }
+
+      assertThat(current.prisonNumber).isEqualTo(prisonNumber)
+
+      val updateedDisability = randomDisability()
+      val updatedDisabilityStatus = createRandomPrisonDisabilityStatus(prisonNumber, updateedDisability, false)
+
+      webTestClient
+        .put()
+        .uri("/syscon-sync/disability-status/${current.cprDisabilityStatusId}")
+        .bodyValue(updatedDisabilityStatus)
+        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      val updated = awaitNotNull { prisonDisabilityStatusRepository.findByCprDisabilityStatusId(currentCreationResponse.cprDisabilityStatusId) }
+
+      assertThat(updated.prisonNumber).isEqualTo(prisonNumber)
+      assertThat(updated.disability).isEqualTo(updateedDisability)
+      assertThat(updated.prisonRecordType).isEqualTo(HISTORIC)
+      assertThat(updated.startDate).isEqualTo(updatedDisabilityStatus.startDate)
+      assertThat(updated.endDate).isEqualTo(updatedDisabilityStatus.endDate)
+      assertThat(updated.createUserId).isEqualTo(updatedDisabilityStatus.createUserId)
+      assertThat(updated.createDateTime).isEqualTo(updatedDisabilityStatus.createDateTime)
+      assertThat(updated.createDisplayName).isEqualTo(updatedDisabilityStatus.createDisplayName)
+      assertThat(updated.modifyDateTime).isEqualTo(updatedDisabilityStatus.modifyDateTime)
+      assertThat(updated.modifyUserId).isEqualTo(updatedDisabilityStatus.modifyUserId)
+      assertThat(updated.modifyDisplayName).isEqualTo(updatedDisabilityStatus.modifyDisplayName)
+    }
+  }
+
   private fun createRandomPrisonDisabilityStatus(prisonNumber: String, status: Boolean, current: Boolean): PrisonDisabilityStatus = PrisonDisabilityStatus(
     prisonNumber = prisonNumber,
     disability = status,
