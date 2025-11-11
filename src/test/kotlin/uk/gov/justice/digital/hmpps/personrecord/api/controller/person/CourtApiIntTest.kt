@@ -143,7 +143,7 @@ class CourtApiIntTest : WebTestBase() {
         title = CanonicalTitle(code = storedTitle.code, description = storedTitle.description),
         sex = CanonicalSex.from(sex.value),
       )
-      val canonicalNationality = nationality.getEntity()?.let { listOf(CanonicalNationality(it.code, it.description)) }
+      val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
       val canonicalAddress = CanonicalAddress(
         noFixedAbode = noFixedAbode,
         startDate = startDate.toString(),
