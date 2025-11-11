@@ -66,6 +66,20 @@ class PrisonNationalityEntity(
 
 ) {
 
+  fun update(prisonNationality: PrisonNationality) {
+    this.nationalityCode = NationalityCode.fromPrisonMapping(prisonNationality.nationalityCode)!!
+    this.startDate = prisonNationality.startDate
+    this.endDate = prisonNationality.endDate
+    this.createUserId = prisonNationality.createUserId
+    this.createDateTime = prisonNationality.createDateTime
+    this.createDisplayName = prisonNationality.createDisplayName
+    this.modifyUserId = prisonNationality.modifyUserId
+    this.modifyDisplayName = prisonNationality.modifyDisplayName
+    this.modifyDateTime = prisonNationality.modifyDateTime
+    this.prisonRecordType = PrisonRecordType.from(prisonNationality.current)
+    this.notes = prisonNationality.notes
+  }
+
   companion object {
 
     fun from(prisonNationality: PrisonNationality): PrisonNationalityEntity = PrisonNationalityEntity(
