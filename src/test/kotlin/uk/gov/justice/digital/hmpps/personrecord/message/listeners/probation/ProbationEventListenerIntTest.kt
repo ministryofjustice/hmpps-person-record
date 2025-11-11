@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
@@ -668,7 +669,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   ) {
     assertThat(person.nationalities.size).isEqualTo(nationalities.size)
     val actual = person.nationalities.map { Pair(it.nationalityCode?.code, it.nationalityCode?.description) }
-    val expected = nationalities.map { it.getNationalityCodeEntityFromProbationCode() }.map { Pair(it?.code, it?.description) }
+    val expected = nationalities.map { NationalityCode.fromProbationMapping(it) }.map { Pair(it?.name, it?.description) }
     assertThat(actual).containsAll(expected)
   }
 }
