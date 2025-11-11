@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.types.nationality
 import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 
-enum class NationalityCode (val description: String) {
+enum class NationalityCode(val description: String) {
   AB("Aruban"),
   AFGA("Afghan"),
   AG("Anguillan"),
@@ -244,7 +244,7 @@ enum class NationalityCode (val description: String) {
   WAL("Wallisian"),
   YEMIN("Yemeni"),
   ZAM("Zambian"),
-  ZIM("Zimbabwean")
+  ZIM("Zimbabwean"),
   ;
 
   companion object {
