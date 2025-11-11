@@ -2,8 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.syscon.historic
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
-import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -22,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.P
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientationResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonSexualOrientationEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonSexualOrientationRepository
-import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.util.UUID
 
 @Tag(name = "Syscon Sync")
@@ -39,11 +36,6 @@ class SysconSexualOrientationController(
       responseCode = "201",
       description = "Sexual Orientation created in CPR",
     ),
-    ApiResponse(
-      responseCode = "500",
-      description = "Unrecoverable error occurred whilst processing request.",
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-    ),
   )
   @Transactional
   fun createSexualOrientation(
@@ -59,16 +51,6 @@ class SysconSexualOrientationController(
     ApiResponse(
       responseCode = "200",
       description = "Sexual Orientation updated in CPR",
-    ),
-    ApiResponse(
-      responseCode = "404",
-      description = "Requested resource not found.",
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-    ),
-    ApiResponse(
-      responseCode = "500",
-      description = "Unrecoverable error occurred whilst processing request.",
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
     ),
   )
   @Transactional
