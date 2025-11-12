@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.AddressBuild
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ContactBuilder.buildContacts
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBuilder.buildReferences
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.SentenceInfoBuilder.buildSentenceInfo
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
@@ -77,6 +78,10 @@ class PersonEntity(
     inverseJoinColumns = [JoinColumn(name = "override_scope_id")],
   )
   val overrideScopes: MutableList<OverrideScopeEntity> = mutableListOf(),
+
+  @Column
+  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
+  var prisonReligions: MutableList<PrisonReligionEntity> = mutableListOf(),
 
   @Column
   var crn: String? = null,
