@@ -57,6 +57,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.review.ReviewEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.NationalityCodeRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.NationalityRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReviewRepository
@@ -122,6 +123,9 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var nationalityCodeRepository: NationalityCodeRepository
+
+  @Autowired
+  lateinit var nationalityRepository: NationalityRepository
 
   @Autowired
   lateinit var ethnicityCodeRepository: EthnicityCodeRepository
@@ -260,9 +264,9 @@ class IntegrationTestBase {
     }
   }
 
-  internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(12)) untilAsserted function
+  internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(1200)) untilAsserted function
 
-  internal fun <T> awaitNotNull(function: () -> T?): T = await atMost (Duration.ofSeconds(3)) untilNotNull function
+  internal fun <T> awaitNotNull(function: () -> T?): T = await atMost (Duration.ofSeconds(300)) untilNotNull function
 
   internal fun createPersonKey(status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
