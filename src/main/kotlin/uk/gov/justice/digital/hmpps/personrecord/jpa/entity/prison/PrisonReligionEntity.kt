@@ -2,10 +2,13 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType.STRING
+import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -58,5 +61,9 @@ class PrisonReligionEntity(
 
   @Column(name = "modify_display_name")
   var modifyDisplayName: String? = null,
+
+  @Column(name = "record_type")
+  @Enumerated(STRING)
+  var recordType: PrisonRecordType? = null,
 
 )
