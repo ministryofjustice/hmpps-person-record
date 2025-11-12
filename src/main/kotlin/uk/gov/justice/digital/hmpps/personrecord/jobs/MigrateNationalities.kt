@@ -25,11 +25,11 @@ class MigrateNationalities(
   @Hidden
   @RequestMapping(method = [RequestMethod.POST], value = ["/admin/migrate-nationalities"])
   suspend fun runJob(): String {
-    migrateNationalities()
+    migrate()
     return OK
   }
 
-  suspend fun migrateNationalities() {
+  suspend fun migrate() {
     CoroutineScope(Dispatchers.Default).launch {
       val executionResults = forPage { page ->
         page.content.forEach { nationality ->
