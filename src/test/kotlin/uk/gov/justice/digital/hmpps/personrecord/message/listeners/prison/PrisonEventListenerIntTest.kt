@@ -150,6 +150,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.nationalities.size).isEqualTo(1)
         assertThat(personEntity.nationalities.first().nationalityCodeLegacy?.code).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.name)
         assertThat(personEntity.nationalities.first().nationalityCodeLegacy?.description).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.description)
+        assertThat(personEntity.nationalities.first().nationalityCode?.name).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.name)
+        assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.description)
+
         val storedPrisonEthnicity = ethnicity.getPrisonEthnicity()
         assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity.code)
         assertThat(personEntity.ethnicityCode?.description).isEqualTo(storedPrisonEthnicity.description)

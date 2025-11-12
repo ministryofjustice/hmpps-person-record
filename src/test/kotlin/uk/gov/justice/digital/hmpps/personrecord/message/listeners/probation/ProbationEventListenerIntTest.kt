@@ -668,8 +668,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     vararg nationalities: String,
   ) {
     assertThat(person.nationalities.size).isEqualTo(nationalities.size)
-    val actual = person.nationalities.map { Pair(it.nationalityCodeLegacy?.code, it.nationalityCodeLegacy?.description) }
-    val expected = nationalities.map { NationalityCode.fromProbationMapping(it) }.map { Pair(it?.name, it?.description) }
+    val actualLegacy = person.nationalities.map { NationalityCode.fromProbationMapping(it.nationalityCodeLegacy?.code) }
+    val actual = person.nationalities.map { it.nationalityCode }
+    val expected = nationalities.map { NationalityCode.fromProbationMapping(it) }
+    assertThat(actualLegacy).containsAll(expected)
     assertThat(actual).containsAll(expected)
   }
 }
