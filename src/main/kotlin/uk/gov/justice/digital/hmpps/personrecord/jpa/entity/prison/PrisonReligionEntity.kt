@@ -5,10 +5,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -22,6 +19,9 @@ class PrisonReligionEntity(
 
   @Column(name = "religion_code", nullable = false)
   val code: String,
+
+  @Column(name = "prison_number")
+  val prisonNumber: String? = null,
 
   @Column
   val status: String? = null,
@@ -58,13 +58,5 @@ class PrisonReligionEntity(
 
   @Column(name = "modify_display_name")
   var modifyDisplayName: String? = null,
-
-  @ManyToOne(optional = false)
-  @JoinColumn(
-    name = "fk_person_id",
-    referencedColumnName = "id",
-    nullable = false,
-  )
-  var person: PersonEntity,
 
 )
