@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.NationalityRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
-import kotlin.collections.forEach
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
@@ -32,9 +31,12 @@ class MigrateNationalities(
   suspend fun migrate() {
     CoroutineScope(Dispatchers.Default).launch {
       val executionResults = forPage { page ->
-        page.content.forEach { nationality ->
-          nationality.nationalityCode = NationalityCode.valueOf(nationality.nationalityCodeLegacy?.code!!)
-          nationalityRepository.save(nationality)
+        run {
+          val nationalities = page.content.map { nationality ->
+            nationality.nationalityCode = NationalityCode.valueOf(nationality.nationalityCodeLegacy?.code!!)
+            nationality
+          }
+          nationalityRepository.saveAll(nationalities)
         }
       }
       log.info(
