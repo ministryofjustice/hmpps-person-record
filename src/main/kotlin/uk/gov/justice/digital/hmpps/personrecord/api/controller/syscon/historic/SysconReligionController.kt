@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.P
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
-import java.util.*
+import java.util.UUID
 
 @Tag(name = "Syscon Sync")
 @RestController
