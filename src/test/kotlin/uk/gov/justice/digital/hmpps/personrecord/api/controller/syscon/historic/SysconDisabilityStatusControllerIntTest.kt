@@ -10,11 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.P
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonDisabilityStatusRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDisability
-import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.*
 import java.util.UUID
 
 class SysconDisabilityStatusControllerIntTest : WebTestBase() {
@@ -66,6 +62,30 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
 
       assertCorrectValuesSaved(updatedDisabilityStatus, currentCreationResponse.cprDisabilityStatusId)
     }
+  }
+
+  @Test
+  fun `should return Access Denied 403 when role is wrong`() {
+    val expectedErrorMessage = "Forbidden: Access Denied"
+    webTestClient.post()
+      .uri("/syscon-sync/disability-status")
+      .bodyValue(createRandomPrisonDisabilityStatus(randomPrisonNumber(), randomDisability(), true))
+      .authorised(listOf("UNSUPPORTED-ROLE"))
+      .exchange()
+      .expectStatus()
+      .isForbidden
+      .expectBody()
+      .jsonPath("userMessage")
+      .isEqualTo(expectedErrorMessage)
+  }
+
+  @Test
+  fun `should return UNAUTHORIZED 401 when role is not set`() {
+    webTestClient.post()
+      .uri("/syscon-sync/disability-status")
+      .exchange()
+      .expectStatus()
+      .isUnauthorized
   }
 
   private fun postDisabilityStatus(status: PrisonDisabilityStatus): PrisonDisabilityStatusResponse {

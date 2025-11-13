@@ -55,6 +55,8 @@ fun randomCro(): String {
 }
 fun randomBuildingNumber(): String = randomDigit(3)
 
+fun randomBoolean(): Boolean = listOf(true, false).random()
+
 fun randomName(): String = randomLowerCaseString()
 
 fun randomTitle(): String = titleCodeMap.keys.random()

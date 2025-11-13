@@ -70,7 +70,7 @@ class PrisonImmigrationStatusEntity(
     this.modifyUserId = immigrationStatus.modifyUserId
     this.modifyDisplayName = immigrationStatus.modifyDisplayName
     this.modifyDateTime = immigrationStatus.modifyDateTime
-    this.prisonRecordType = getRecordType(immigrationStatus)
+    this.prisonRecordType = PrisonRecordType.from(immigrationStatus.current)
   }
 
   companion object {
@@ -86,12 +86,7 @@ class PrisonImmigrationStatusEntity(
       modifyDateTime = immigrationStatus.modifyDateTime,
       modifyUserId = immigrationStatus.modifyUserId,
       modifyDisplayName = immigrationStatus.modifyDisplayName,
-      prisonRecordType = getRecordType(immigrationStatus),
+      prisonRecordType = PrisonRecordType.from(immigrationStatus.current),
     )
-
-    private fun getRecordType(immigrationStatus: PrisonImmigrationStatus): PrisonRecordType = when (immigrationStatus.current) {
-      true -> PrisonRecordType.CURRENT
-      false -> PrisonRecordType.HISTORIC
-    }
   }
 }

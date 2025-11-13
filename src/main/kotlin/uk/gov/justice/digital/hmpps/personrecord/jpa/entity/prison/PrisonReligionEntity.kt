@@ -8,9 +8,11 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
 
 @Entity
 @Table(name = "prison_religion")
@@ -19,6 +21,9 @@ class PrisonReligionEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
+
+  @Column(name = "cpr_religion_id", nullable = false)
+  val cprReligionId: UUID,
 
   @Column(name = "religion_code", nullable = false)
   val code: String,
@@ -64,6 +69,30 @@ class PrisonReligionEntity(
 
   @Column(name = "record_type")
   @Enumerated(STRING)
-  var recordType: PrisonRecordType? = null,
+  var prisonRecordType: PrisonRecordType? = null,
 
-)
+  ) {
+
+  companion object {
+
+    fun from(prisonReligion: PrisonReligion) = PrisonReligionEntity(
+      cprReligionId = UUID.randomUUID(),
+      code = prisonReligion.religionCode,
+      prisonNumber = prisonReligion.prisonNumber,
+      status = prisonReligion.religionStatus,
+      changeReasonKnown = prisonReligion.changeReasonKnown,
+      comments = prisonReligion.comments,
+      verified = prisonReligion.verified,
+      startDate = prisonReligion.startDate,
+      endDate = prisonReligion.endDate,
+      createUserId = prisonReligion.createUserId,
+      createDateTime = prisonReligion.createDateTime,
+      createDisplayName = prisonReligion.createDisplayName,
+      modifyDateTime = prisonReligion.modifyDateTime,
+      modifyUserId = prisonReligion.modifyUserId,
+      modifyDisplayName = prisonReligion.modifyDisplayName,
+      prisonRecordType = PrisonRecordType.from(prisonReligion.current),
+    )
+
+  }
+}

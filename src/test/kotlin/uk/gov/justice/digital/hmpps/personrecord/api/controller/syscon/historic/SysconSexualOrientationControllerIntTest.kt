@@ -154,9 +154,8 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
 
   @Test
   fun `should return UNAUTHORIZED 401 when role is not set`() {
-    val prisonNumber = randomPrisonNumber()
     webTestClient.post()
-      .uri("/syscon-sync/sexual-orientation/$prisonNumber")
+      .uri("/syscon-sync/sexual-orientation")
       .exchange()
       .expectStatus()
       .isUnauthorized
