@@ -41,7 +41,7 @@ class NationalityEntity(
   // this should not be nullable after we finish with the migration
   @Column(name = "nationality_code")
   @Enumerated(EnumType.STRING)
-  val nationalityCode: NationalityCode? = null,
+  var nationalityCode: NationalityCode? = null,
 
   @Column(name = "start_date")
   val startDate: LocalDate? = null,
