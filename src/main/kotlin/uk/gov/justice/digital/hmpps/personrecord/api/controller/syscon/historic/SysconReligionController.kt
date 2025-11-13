@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.syscon.historic
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -8,14 +9,15 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionResponse
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
+import java.util.*
 
 @Tag(name = "Syscon Sync")
 @RestController
@@ -38,5 +40,30 @@ class SysconReligionController(
   ): ResponseEntity<PrisonReligionResponse> {
     val prisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(religion))
     return ResponseEntity(PrisonReligionResponse.from(prisonReligionEntity), HttpStatus.CREATED)
+  }
+
+  @Operation(description = "Update a prisoner religion")
+  @PutMapping("/syscon-sync/religion/{cprReligionId}")
+  @ApiResponses(
+    ApiResponse(
+      responseCode = "200",
+      description = "Religion updated in CPR",
+    ),
+  )
+  @Transactional
+  fun updateReligion(
+    @PathVariable(name = "cprReligionId")
+    @Parameter(description = "The identifier of the prison religion", required = true)
+    cprReligionId: UUID,
+    @RequestBody religion: PrisonReligion,
+  ): String {
+    prisonReligionRepository.findByCprReligionId(cprReligionId)
+      ?.update(religion)
+      ?: throw ResourceNotFoundException(cprReligionId.toString())
+    return OK
+  }
+
+  companion object {
+    private const val OK = "OK"
   }
 }

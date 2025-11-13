@@ -10,11 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.P
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
-import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.*
 import java.util.*
 
 class SysconReligionControllerIntTest : WebTestBase() {
@@ -59,6 +55,44 @@ class SysconReligionControllerIntTest : WebTestBase() {
         .responseBody!!
 
       assertCorrectValuesSaved(historicReligion, historicCreationResponse.cprReligionId)
+    }
+  }
+
+  @Nested
+  inner class Update {
+
+    @Test
+    fun `should update a religion`() {
+      val prisonNumber = randomPrisonNumber()
+
+      val currentReligion = createRandomReligion(prisonNumber, current = true)
+
+      val currentCreationResponse = webTestClient
+        .post()
+        .uri("/syscon-sync/religion")
+        .bodyValue(currentReligion)
+        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isCreated
+        .expectBody(PrisonReligionResponse::class.java)
+        .returnResult()
+        .responseBody!!
+
+      assertCorrectValuesSaved(currentReligion, currentCreationResponse.cprReligionId)
+
+      val updatedReligion = createRandomReligion(prisonNumber, current = false)
+
+      webTestClient
+        .put()
+        .uri("/syscon-sync/religion/${currentCreationResponse.cprReligionId}")
+        .bodyValue(updatedReligion)
+        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      assertCorrectValuesSaved(updatedReligion, currentCreationResponse.cprReligionId)
     }
   }
 
