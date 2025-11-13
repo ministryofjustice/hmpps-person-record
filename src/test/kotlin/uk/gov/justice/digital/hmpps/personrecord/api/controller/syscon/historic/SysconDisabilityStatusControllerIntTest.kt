@@ -10,7 +10,11 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.P
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonDisabilityStatusRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
-import uk.gov.justice.digital.hmpps.personrecord.test.*
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDisability
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.util.UUID
 
 class SysconDisabilityStatusControllerIntTest : WebTestBase() {

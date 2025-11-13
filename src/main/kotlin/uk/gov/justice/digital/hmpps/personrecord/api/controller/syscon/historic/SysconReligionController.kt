@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonRel
 @RestController
 @PreAuthorize("hasRole('${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 class SysconReligionController(
-  private val prisonReligionRepository: PrisonReligionRepository
+  private val prisonReligionRepository: PrisonReligionRepository,
 ) {
 
   @Operation(description = "Store a prisoner religion")

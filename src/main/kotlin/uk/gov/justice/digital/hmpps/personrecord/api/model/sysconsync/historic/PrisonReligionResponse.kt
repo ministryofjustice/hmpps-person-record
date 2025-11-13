@@ -8,7 +8,7 @@ data class PrisonReligionResponse(
 ) {
   companion object {
     fun from(religion: PrisonReligionEntity) = PrisonReligionResponse(
-      cprReligionId = religion.cprReligionId
+      cprReligionId = religion.cprReligionId,
     )
   }
 }

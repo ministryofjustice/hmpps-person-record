@@ -6,6 +6,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligio
 import java.util.*
 
 @Repository
-interface PrisonReligionRepository: JpaRepository<PrisonReligionEntity, Long> {
+interface PrisonReligionRepository : JpaRepository<PrisonReligionEntity, Long> {
   fun findByCprReligionId(cprReligionId: UUID): PrisonReligionEntity?
 }

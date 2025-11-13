@@ -71,7 +71,7 @@ class PrisonReligionEntity(
   @Enumerated(STRING)
   var prisonRecordType: PrisonRecordType? = null,
 
-  ) {
+) {
 
   companion object {
 
@@ -93,6 +93,5 @@ class PrisonReligionEntity(
       modifyDisplayName = prisonReligion.modifyDisplayName,
       prisonRecordType = PrisonRecordType.from(prisonReligion.current),
     )
-
   }
 }
