@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.P
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonImmigrationStatusRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -138,7 +139,7 @@ class SysconImmigrationStatusControllerIntTest : WebTestBase() {
 
   private fun createRandomPrisonImmigrationStatus(prisonNumber: String, current: Boolean): PrisonImmigrationStatus = PrisonImmigrationStatus(
     prisonNumber = prisonNumber,
-    interestToImmigration = randomInterestToImmigration(),
+    interestToImmigration = randomBoolean(),
     startDate = randomDate(),
     endDate = randomDate(),
     createUserId = randomName(),
@@ -149,6 +150,4 @@ class SysconImmigrationStatusControllerIntTest : WebTestBase() {
     modifyDisplayName = randomName(),
     current = current,
   )
-
-  private fun randomInterestToImmigration() = listOf(true, false).random()
 }

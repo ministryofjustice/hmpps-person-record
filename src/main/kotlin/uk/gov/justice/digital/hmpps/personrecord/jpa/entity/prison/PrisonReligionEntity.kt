@@ -8,9 +8,11 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Entity
 @Table(name = "prison_religion")
@@ -20,23 +22,26 @@ class PrisonReligionEntity(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
 
+  @Column(name = "cpr_religion_id", nullable = false)
+  val cprReligionId: UUID,
+
   @Column(name = "religion_code", nullable = false)
-  val code: String,
+  var code: String,
 
   @Column(name = "prison_number")
   val prisonNumber: String? = null,
 
   @Column
-  val status: String? = null,
+  var status: String? = null,
 
   @Column(name = "change_reason_known")
-  val changeReasonKnown: String? = null,
+  var changeReasonKnown: String? = null,
 
   @Column
-  val comments: String? = null,
+  var comments: String? = null,
 
   @Column
-  val verified: Boolean? = null,
+  var verified: Boolean? = null,
 
   @Column(name = "start_date")
   var startDate: LocalDate? = null,
@@ -64,6 +69,45 @@ class PrisonReligionEntity(
 
   @Column(name = "record_type")
   @Enumerated(STRING)
-  var recordType: PrisonRecordType? = null,
+  var prisonRecordType: PrisonRecordType? = null,
 
-)
+) {
+
+  fun update(prisonReligion: PrisonReligion) {
+    this.code = prisonReligion.religionCode
+    this.startDate = prisonReligion.startDate
+    this.endDate = prisonReligion.endDate
+    this.createUserId = prisonReligion.createUserId
+    this.createDateTime = prisonReligion.createDateTime
+    this.createDisplayName = prisonReligion.createDisplayName
+    this.modifyUserId = prisonReligion.modifyUserId
+    this.modifyDisplayName = prisonReligion.modifyDisplayName
+    this.modifyDateTime = prisonReligion.modifyDateTime
+    this.prisonRecordType = PrisonRecordType.from(prisonReligion.current)
+    this.comments = prisonReligion.comments
+    this.changeReasonKnown = prisonReligion.changeReasonKnown
+    this.verified = prisonReligion.verified
+    this.status = prisonReligion.religionStatus
+  }
+
+  companion object {
+    fun from(prisonReligion: PrisonReligion) = PrisonReligionEntity(
+      cprReligionId = UUID.randomUUID(),
+      code = prisonReligion.religionCode,
+      prisonNumber = prisonReligion.prisonNumber,
+      status = prisonReligion.religionStatus,
+      changeReasonKnown = prisonReligion.changeReasonKnown,
+      comments = prisonReligion.comments,
+      verified = prisonReligion.verified,
+      startDate = prisonReligion.startDate,
+      endDate = prisonReligion.endDate,
+      createUserId = prisonReligion.createUserId,
+      createDateTime = prisonReligion.createDateTime,
+      createDisplayName = prisonReligion.createDisplayName,
+      modifyDateTime = prisonReligion.modifyDateTime,
+      modifyUserId = prisonReligion.modifyUserId,
+      modifyDisplayName = prisonReligion.modifyDisplayName,
+      prisonRecordType = PrisonRecordType.from(prisonReligion.current),
+    )
+  }
+}

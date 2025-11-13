@@ -73,10 +73,24 @@ class SysconNationalityControllerIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should return UNAUTHORIZED 401 when role is not set`() {
-    val prisonNumber = randomPrisonNumber()
+  fun `should return Access Denied 403 when role is wrong`() {
+    val expectedErrorMessage = "Forbidden: Access Denied"
     webTestClient.post()
-      .uri("/syscon-sync/nationality/$prisonNumber")
+      .uri("/syscon-sync/nationality")
+      .bodyValue(createRandomPrisonNationality(randomPrisonNumber(), randomPrisonNationalityCode(), true))
+      .authorised(listOf("UNSUPPORTED-ROLE"))
+      .exchange()
+      .expectStatus()
+      .isForbidden
+      .expectBody()
+      .jsonPath("userMessage")
+      .isEqualTo(expectedErrorMessage)
+  }
+
+  @Test
+  fun `should return UNAUTHORIZED 401 when role is not set`() {
+    webTestClient.post()
+      .uri("/syscon-sync/nationality")
       .exchange()
       .expectStatus()
       .isUnauthorized
