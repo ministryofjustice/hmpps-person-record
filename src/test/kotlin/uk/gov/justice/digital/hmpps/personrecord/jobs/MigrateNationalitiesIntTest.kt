@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 
-class PopulateNationalityCodeIntTest : WebTestBase() {
+class MigrateNationalitiesIntTest : WebTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
