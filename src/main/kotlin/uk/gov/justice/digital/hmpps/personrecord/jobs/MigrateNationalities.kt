@@ -55,8 +55,7 @@ class MigrateNationalities(
         val pageable = PageRequest.of(pageNumber, BATCH_SIZE)
         nationalities = nationalityRepository.findAllByNationalityCodeIsNull(pageable)
         page(nationalities)
-        log.info(JOB_NAME + "${pageNumber + 1}/${nationalities.totalPages}")
-        pageNumber++
+        log.info(JOB_NAME + "${nationalities.totalPages}")
       } while (nationalities.hasNext())
     }
     return ExecutionResult(
@@ -74,7 +73,7 @@ class MigrateNationalities(
 
   companion object {
     private const val OK = "OK"
-    private const val BATCH_SIZE = 1000
+    private const val BATCH_SIZE = 500
     private val log = LoggerFactory.getLogger(this::class.java)
     private const val JOB_NAME = "JOB: migrate-nationalities: "
   }
