@@ -10,7 +10,6 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*

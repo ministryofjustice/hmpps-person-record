@@ -9,12 +9,15 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionResponse
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import java.util.*
