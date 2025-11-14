@@ -3,7 +3,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.Nationa
 import java.time.LocalDate
 
 data class Nationality(
-  var code: NationalityCode?,
+  var code: NationalityCode,
   val startDate: LocalDate? = null,
   val endDate: LocalDate? = null,
   val notes: String? = null,
