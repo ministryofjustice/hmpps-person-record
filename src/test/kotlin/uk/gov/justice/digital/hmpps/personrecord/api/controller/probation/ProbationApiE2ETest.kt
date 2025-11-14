@@ -192,8 +192,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         )
         assertThat(responseBody.aliases.first().sex.code).isEqualTo(sex.value.name)
         assertThat(responseBody.aliases.first().sex.description).isEqualTo(sex.value.description)
-        assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality?.first()?.code)
-        assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality?.first()?.description)
+        assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
+        assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
         assertThat(responseBody.sex.code).isEqualTo(sex.value.name)
         assertThat(responseBody.sex.description).isEqualTo(sex.value.description)
         assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
@@ -361,7 +361,7 @@ class ProbationApiE2ETest : E2ETestBase() {
       fun `should return Access Denied 403 when role is wrong`() {
         val expectedErrorMessage = "Forbidden: Access Denied"
         webTestClient.get()
-          .uri(probationApiUrl("accessdenied"))
+          .uri(probationApiUrl("access_denied"))
           .authorised(listOf("UNSUPPORTED-ROLE"))
           .exchange()
           .expectStatus()
@@ -471,8 +471,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.matchId).isNotNull()
         assertThat(offender.lastModified).isNotNull()
         assertThat(offender.nationalities.size).isEqualTo(1)
-        assertThat(offender.nationalities.first().nationalityCodeLegacy?.code).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.name)
-        assertThat(offender.nationalities.first().nationalityCodeLegacy?.description).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.description)
+        assertThat(offender.nationalities.first().nationalityCode?.name).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.name)
+        assertThat(offender.nationalities.first().nationalityCode?.description).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.description)
 
         checkTelemetry(
           CPR_RECORD_CREATED,

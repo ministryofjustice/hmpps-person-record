@@ -61,6 +61,8 @@ import java.nio.charset.Charset
 import java.time.LocalDateTime.now
 import java.util.UUID
 
+private const val COMMON_PLATFORM_CASE_RECEIVED = "commonplatform.case.received"
+
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Autowired
@@ -363,7 +365,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
     val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }!!
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
+    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(COMMON_PLATFORM_CASE_RECEIVED))
     assertThat(sqsMessage.message.contains("cprUUID")).isFalse()
     assertThat(sqsMessage.message.contains(youthDefendantId)).isTrue()
     assertThat(personRepository.findByDefendantId(youthDefendantId)).isNull()
@@ -401,7 +403,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
     val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }!!
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
+    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(COMMON_PLATFORM_CASE_RECEIVED))
     assertThat(sqsMessage.message.contains("cprUUID")).isFalse()
     assertThat(sqsMessage.message.contains(defendantId)).isTrue()
 
@@ -424,7 +426,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
     val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }!!
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
+    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(COMMON_PLATFORM_CASE_RECEIVED))
     assertThat(sqsMessage.message.contains("cprUUID")).isFalse()
     assertThat(sqsMessage.message.contains(defendantId)).isTrue()
 
@@ -471,7 +473,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
     val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
-    assertThat(sqsMessage?.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
+    assertThat(sqsMessage?.messageAttributes?.eventType).isEqualTo(MessageAttribute(COMMON_PLATFORM_CASE_RECEIVED))
     val commonPlatformHearing: String = sqsMessage?.message!!
 
     val commonPlatformHearingAttributes: MessageAttributes? = sqsMessage.messageAttributes
@@ -549,7 +551,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
     val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }!!
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
+    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(COMMON_PLATFORM_CASE_RECEIVED))
     assertThat(sqsMessage.message.contains("pncId")).isFalse()
   }
 
@@ -585,7 +587,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
     val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }!!
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
+    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(COMMON_PLATFORM_CASE_RECEIVED))
     assertThat(sqsMessage.message.contains("croId")).isFalse()
   }
 
@@ -678,12 +680,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     vararg nationalities: String,
   ) {
     assertThat(person.nationalities.size).isEqualTo(nationalities.size)
-    val actual = person.nationalities.map { NationalityCode.valueOf(it.nationalityCodeLegacy?.code!!) }
     val expected = nationalities.map { NationalityCode.fromCommonPlatformMapping(it) }
+    val actual = person.nationalities.map { it.nationalityCode }
     assertThat(actual).containsAll(expected)
-
-    val actualNationalitiesCodes = person.nationalities.map { it.nationalityCode }
-    assertThat(actualNationalitiesCodes).containsAll(expected)
   }
 
   @Nested
