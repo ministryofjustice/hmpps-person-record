@@ -20,7 +20,7 @@ on:
         type: string
         default: '-Xmx4096m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=true -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.workers.max=1'
         required: false
-        description: Setting up common java optioins
+        description: Setting up common java options
 permissions:
   contents: read
   packages: write
@@ -72,6 +72,12 @@ jobs:
         run: |
           make e2e-start-containers
           ./gradlew e2eTest
+      - name: Upload the test artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: e2e-test-results
+          path: |
+            build/reports/tests
   build:
     name: Build docker image from hmpps-github-actions
     if: github.ref == 'refs/heads/main'
