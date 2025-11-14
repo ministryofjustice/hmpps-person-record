@@ -14,7 +14,7 @@ plugins {
   kotlin("plugin.jpa") version "2.2.21"
   id("io.gitlab.arturbosch.detekt") version "1.23.8"
   id("org.jetbrains.kotlinx.kover") version "0.9.3"
-  id("org.owasp.dependencycheck") version "12.1.8"
+  id("org.owasp.dependencycheck") version "12.1.9"
 }
 
 dependencyCheck {
@@ -40,7 +40,7 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-  implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.11.0")
+  implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.12.0")
 
   runtimeOnly("org.postgresql:postgresql:42.7.8")
   runtimeOnly("org.flywaydb:flyway-core")
@@ -48,7 +48,7 @@ dependencies {
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-  testImplementation("org.wiremock:wiremock-standalone:3.13.1")
+  testImplementation("org.wiremock:wiremock-standalone:3.13.2")
 
   testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
   testImplementation("org.jmock:jmock:2.13.1")
