@@ -256,12 +256,12 @@ enum class NationalityCode(val description: String) {
 
     fun fromCommonPlatformMapping(code: String?): NationalityCode? = getNationalityOrUnknown(COMMON_PLATFORM_NATIONALITY_MAPPING, code, "common platform")
 
-    private fun getNationalityOrUnknown(nationalityMap: Map<String, NationalityCode>, code: String?, sourceSystem: String): NationalityCode? = code.normalize()?.let {
-      nationalityMap[it] ?: UNKNOWN.also {
-        if (!code.normalize().equals("UNKNOWN")) log.info("Unknown nationality code $sourceSystem: $code")
+    private fun getNationalityOrUnknown(nationalityMap: Map<String, NationalityCode>, code: String?, sourceSystem: String): NationalityCode? = code.normalise()?.let { normalisedCode ->
+      nationalityMap[normalisedCode] ?: UNKNOWN.also {
+        if (normalisedCode != "UNKNOWN") log.info("Unknown nationality code $sourceSystem: $code")
       }
     }
 
-    private fun String?.normalize(): String? = this?.trim().nullIfBlank()?.uppercase()
+    private fun String?.normalise(): String? = this?.trim().nullIfBlank()?.uppercase()
   }
 }
