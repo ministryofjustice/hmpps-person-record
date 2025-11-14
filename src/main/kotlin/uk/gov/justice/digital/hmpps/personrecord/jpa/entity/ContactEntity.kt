@@ -45,6 +45,9 @@ class ContactEntity(
   @Column(name = "contact_value")
   val contactValue: String? = null,
 
+  @Column(name = "extension")
+  val extension: String? = null,
+
   @Version
   var version: Int = 0,
 
