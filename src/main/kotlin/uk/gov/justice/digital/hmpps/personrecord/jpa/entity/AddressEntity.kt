@@ -87,6 +87,12 @@ class AddressEntity(
   @Column(name = "record_type")
   var recordType: AddressRecordType? = null,
 
+  @Column(name = "\"primary\"")
+  val primary: Boolean? = null,
+
+  @Column(name = "mail")
+  val mail: Boolean? = null,
+
   @Version
   var version: Int = 0,
 ) {
