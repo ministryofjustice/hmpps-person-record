@@ -17,19 +17,20 @@ import kotlin.time.Duration
 import kotlin.time.measureTime
 
 @RestController
-class CalculateStatus(
+class CalculateStatusReason(
   private val personKeyRepository: PersonKeyRepository,
   private val reclusterService: ReclusterService,
 ) {
 
   @Hidden
-  @PostMapping("/admin/calculate-status")
+  @PostMapping("/admin/calculate-status-reason")
   suspend fun postRecluster(): String {
     CoroutineScope(Dispatchers.Default).launch {
       forPage { clusters ->
         clusters.forEach {
           it.setAsActive()
-          reclusterService.recluster(it.personEntities.first())
+          val activeCluster = personKeyRepository.save(it)
+          reclusterService.recluster(activeCluster.personEntities.first())
         }
       }
     }
