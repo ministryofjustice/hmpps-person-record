@@ -26,13 +26,18 @@ class CalculateStatusReason(
   @PostMapping("/admin/calculate-status-reason")
   suspend fun postRecluster(): String {
     CoroutineScope(Dispatchers.Default).launch {
-      forPage { clusters ->
+      val executionResults = forPage { clusters ->
         clusters.forEach {
           it.setAsActive()
           val activeCluster = personKeyRepository.save(it)
           transactionalReclusterService.recluster(activeCluster.personEntities.first())
         }
       }
+      log.info(
+        JOB_NAME +
+          "total elements: ${executionResults.totalElements}, " +
+          "elapsed time: ${executionResults.elapsedTime}",
+      )
     }
     return OK
   }
@@ -64,7 +69,7 @@ class CalculateStatusReason(
 
   companion object {
     private const val OK = "OK"
-    private const val BATCH_SIZE = 500
+    private const val BATCH_SIZE = 100
     private val log = LoggerFactory.getLogger(this::class.java)
     private const val JOB_NAME = "JOB: recalculate-status-reason: "
   }
