@@ -250,22 +250,18 @@ enum class NationalityCode(val description: String) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun fromProbationMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
-      PROBATION_NATIONALITY_MAPPING,
-    ).also { if (it == UNKNOWN) log.info("Unknown nationality code probation: $code") }
+    fun fromProbationMapping(code: String?): NationalityCode? = getNationalityOrUnknown(PROBATION_NATIONALITY_MAPPING, code, "probation")
 
-    fun fromPrisonMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
-      PRISON_NATIONALITY_MAPPING,
-    ).also { if (it == UNKNOWN) log.info("Unknown nationality code prison: $code") }
+    fun fromPrisonMapping(code: String?): NationalityCode? = getNationalityOrUnknown(PRISON_NATIONALITY_MAPPING, code, "prison")
 
-    fun fromCommonPlatformMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
-      COMMON_PLATFORM_NATIONALITY_MAPPING,
-    ).also { if (it == UNKNOWN) log.info("Unknown nationality code common platform: $code") }
+    fun fromCommonPlatformMapping(code: String?): NationalityCode? = getNationalityOrUnknown(COMMON_PLATFORM_NATIONALITY_MAPPING, code, "common platform")
 
-    private fun String?.getNationalityOrUnknown(nationalityMap: Map<String, NationalityCode>): NationalityCode? = this.normalize()?.let {
-      nationalityMap[it] ?: UNKNOWN
+    private fun getNationalityOrUnknown(nationalityMap: Map<String, NationalityCode>, code: String?, sourceSystem: String): NationalityCode? = code.normalise()?.let { normalisedCode ->
+      nationalityMap[normalisedCode] ?: UNKNOWN.also {
+        if (normalisedCode != "UNKNOWN") log.info("Unknown nationality code $sourceSystem: $code")
+      }
     }
 
-    private fun String?.normalize(): String? = this?.trim().nullIfBlank()?.uppercase()
+    private fun String?.normalise(): String? = this?.trim().nullIfBlank()?.uppercase()
   }
 }
