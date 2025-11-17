@@ -66,6 +66,6 @@ class CalculateStatusReason(
     private const val OK = "OK"
     private const val BATCH_SIZE = 500
     private val log = LoggerFactory.getLogger(this::class.java)
-    private const val JOB_NAME = "JOB: migrate-nationalities: "
+    private const val JOB_NAME = "JOB: recalculate-status-reason: "
   }
 }
