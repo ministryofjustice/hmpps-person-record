@@ -12,14 +12,14 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.TransactionalReclusterService
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
 @RestController
 class CalculateStatusReason(
   private val personKeyRepository: PersonKeyRepository,
-  private val reclusterService: ReclusterService,
+  private val transactionalReclusterService: TransactionalReclusterService,
 ) {
 
   @Hidden
@@ -30,7 +30,7 @@ class CalculateStatusReason(
         clusters.forEach {
           it.setAsActive()
           val activeCluster = personKeyRepository.save(it)
-          reclusterService.recluster(activeCluster.personEntities.first())
+          transactionalReclusterService.recluster(activeCluster.personEntities.first())
         }
       }
     }
