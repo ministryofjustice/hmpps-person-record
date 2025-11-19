@@ -35,7 +35,6 @@ class ClusterController(
     return getClusterDetail(personKeyEntity)
   }
 
-
   @Hidden
   @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
   @GetMapping("/admin/cluster/probation/{crn}")
@@ -64,5 +63,4 @@ class ClusterController(
     val clusterVisualisationSpec = personMatchService.retrieveClusterVisualisationSpec(personKeyEntity).spec
     return AdminClusterDetail.from(personKeyEntity, clusterVisualisationSpec)
   }
-
 }
