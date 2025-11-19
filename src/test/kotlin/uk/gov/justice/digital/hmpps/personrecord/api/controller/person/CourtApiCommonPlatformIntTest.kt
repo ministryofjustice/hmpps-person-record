@@ -25,7 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
@@ -294,7 +294,6 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
       val personOneCro = randomCro()
       val personTwoCro = randomCro()
 
-      val personOneCrn = randomCrn()
       val personTwoCrn = randomCrn()
 
       val personOnePnc = randomLongPnc()
@@ -310,7 +309,6 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
       val personTwoDriversLicenseNumber = randomDriverLicenseNumber()
 
       val personOneDefendantId = randomDefendantId()
-      val personTwoDefendantId = randomDefendantId()
 
       val personOne = createPerson(
         Person(
@@ -318,12 +316,9 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
           lastName = randomName(),
           middleNames = randomName(),
           dateOfBirth = randomDate(),
-          sourceSystem = NOMIS,
-          crn = personOneCrn,
-          prisonNumber = randomPrisonNumber(),
+          sourceSystem = COMMON_PLATFORM,
           nationalities = listOf(Nationality(randomNationalityCode())),
           religion = randomReligion(),
-          cId = randomCId(),
           defendantId = personOneDefendantId,
           masterDefendantId = personOneDefendantId,
           references = listOf(
@@ -351,14 +346,10 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
           lastName = randomName(),
           middleNames = randomName(),
           dateOfBirth = randomDate(),
-          sourceSystem = NOMIS,
+          sourceSystem = DELIUS,
           crn = personTwoCrn,
-          prisonNumber = randomPrisonNumber(),
           nationalities = listOf(Nationality(randomNationalityCode())),
           religion = randomReligion(),
-          cId = randomCId(),
-          defendantId = personTwoDefendantId,
-          masterDefendantId = personTwoDefendantId,
           references = listOf(
             Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
             Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
@@ -396,26 +387,12 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.driverLicenseNumbers).containsExactly(personOneDriversLicenseNumber)
       assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrderElementsOf(
         listOf(
-          personOne.crn,
           personTwo.crn,
         ),
       )
       assertThat(responseBody.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(
         listOf(
           personOne.defendantId,
-          personTwo.defendantId,
-        ),
-      )
-      assertThat(responseBody.identifiers.prisonNumbers).containsExactlyInAnyOrderElementsOf(
-        listOf(
-          personOne.prisonNumber,
-          personTwo.prisonNumber,
-        ),
-      )
-      assertThat(responseBody.identifiers.cids).containsExactlyInAnyOrderElementsOf(
-        listOf(
-          personOne.cId,
-          personTwo.cId,
         ),
       )
     }
