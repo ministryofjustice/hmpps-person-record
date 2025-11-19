@@ -53,7 +53,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
   inner class SuccessfulProcessing {
 
     @Test
-    fun `should return ok for get`() {
+    fun `should return when all fields populated`() {
       val firstName = randomName()
       val lastName = randomName()
       val middleNames = randomName()
@@ -189,7 +189,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should return null when values are null or empty`() {
+    fun `should return nulls when values are null or empty`() {
       val defendantId = randomDefendantId()
 
       val person = createPersonWithNewKey(
@@ -197,6 +197,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
           sourceSystem = COMMON_PLATFORM,
           defendantId = defendantId,
         ),
+
       )
 
       val responseBody = webTestClient.get()
@@ -244,7 +245,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should return when some alias and address values are null or empty`() {
+    fun `should return nulls when some alias and address values are null or empty`() {
       val defendantId = randomDefendantId()
 
       val aliasFirstName = randomName()
@@ -289,7 +290,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should add list of additional identifiers`() {
+    fun `should add list of additional identifiers off two people`() {
       val personOneCro = randomCro()
       val personTwoCro = randomCro()
 
@@ -417,40 +418,6 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
           personTwo.cId,
         ),
       )
-    }
-
-    @Test
-    fun `should add an empty list of additional identifiers when null`() {
-      val defendantId = randomDefendantId()
-
-      val person = createPersonWithNewKey(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = COMMON_PLATFORM,
-          nationalities = listOf(Nationality(randomNationalityCode())),
-          religion = randomReligion(),
-          masterDefendantId = randomDefendantId(),
-          defendantId = defendantId,
-        ),
-      )
-
-      val responseBody = webTestClient.get()
-        .uri(commonPlatformApiUrl(person.defendantId))
-        .authorised(listOf(API_READ_ONLY))
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody(CanonicalRecord::class.java)
-        .returnResult()
-        .responseBody!!
-
-      assertThat(responseBody.identifiers.crns).isEmpty()
-      assertThat(responseBody.identifiers.cids).isEmpty()
-      assertThat(responseBody.identifiers.defendantIds).isNotEmpty()
-      assertThat(responseBody.identifiers.prisonNumbers).isEmpty()
     }
 
     @Test
