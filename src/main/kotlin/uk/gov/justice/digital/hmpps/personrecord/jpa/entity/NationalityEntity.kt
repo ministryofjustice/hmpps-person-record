@@ -25,23 +25,15 @@ class NationalityEntity(
 
   @ManyToOne(optional = false)
   @JoinColumn(
-    name = "fk_nationality_code_id",
-    referencedColumnName = "id",
-  )
-  var nationalityCodeLegacy: NationalityCodeEntity? = null,
-
-  @ManyToOne(optional = false)
-  @JoinColumn(
     name = "fk_person_id",
     referencedColumnName = "id",
     nullable = false,
   )
   var person: PersonEntity? = null,
 
-  // this should not be nullable after we finish with the migration
   @Column(name = "nationality_code")
   @Enumerated(EnumType.STRING)
-  var nationalityCode: NationalityCode? = null,
+  var nationalityCode: NationalityCode,
 
   @Column(name = "start_date")
   val startDate: LocalDate? = null,
@@ -56,11 +48,10 @@ class NationalityEntity(
 
     fun from(nationality: Nationality, nationalityCodeEntity: NationalityCodeEntity?): NationalityEntity? = nationalityCodeEntity?.let {
       NationalityEntity(
-        nationalityCodeLegacy = nationalityCodeEntity,
         startDate = nationality.startDate,
         endDate = nationality.endDate,
         notes = nationality.notes,
-        nationalityCode = nationality.code,
+        nationalityCode = nationality.code!!,
       )
     }
   }
