@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminClusterDetail
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
@@ -31,9 +32,9 @@ class ClusterController(
     val personKeyEntity = withContext(Dispatchers.IO) {
       personKeyRepository.findByPersonUUID(uuid)
     } ?: throw ResourceNotFoundException(uuid.toString())
-    val clusterVisualisationSpec = personMatchService.retrieveClusterVisualisationSpec(personKeyEntity).spec
-    return AdminClusterDetail.from(personKeyEntity, clusterVisualisationSpec)
+    return getClusterDetail(personKeyEntity)
   }
+
 
   @Hidden
   @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
@@ -44,8 +45,7 @@ class ClusterController(
     val personKeyEntity = withContext(Dispatchers.IO) {
       personRepository.findByCrn(crn)?.personKey
     } ?: throw ResourceNotFoundException(crn)
-    val clusterVisualisationSpec = personMatchService.retrieveClusterVisualisationSpec(personKeyEntity).spec
-    return AdminClusterDetail.from(personKeyEntity, clusterVisualisationSpec)
+    return getClusterDetail(personKeyEntity)
   }
 
   @Hidden
@@ -57,7 +57,12 @@ class ClusterController(
     val personKeyEntity = withContext(Dispatchers.IO) {
       personRepository.findByPrisonNumber(prisonNumber)?.personKey
     } ?: throw ResourceNotFoundException(prisonNumber)
+    return getClusterDetail(personKeyEntity)
+  }
+
+  private fun getClusterDetail(personKeyEntity: PersonKeyEntity): AdminClusterDetail {
     val clusterVisualisationSpec = personMatchService.retrieveClusterVisualisationSpec(personKeyEntity).spec
     return AdminClusterDetail.from(personKeyEntity, clusterVisualisationSpec)
   }
+
 }
