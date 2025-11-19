@@ -47,7 +47,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
 
-class CourtApiIntTest : WebTestBase() {
+class CourtApiCommonPlatformIntTest : WebTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
@@ -189,7 +189,7 @@ class CourtApiIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should return null when values are null or empty for get canonical record`() {
+    fun `should return null when values are null or empty`() {
       val defendantId = randomDefendantId()
 
       val person = createPersonWithNewKey(
@@ -244,17 +244,19 @@ class CourtApiIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should return when values are null or empty for get aliases`() {
+    fun `should return when some alias and address values are null or empty`() {
       val defendantId = randomDefendantId()
 
       val aliasFirstName = randomName()
-
+      val postcode = randomPostcode()
       val person = createPersonWithNewKey(
         Person(
           sourceSystem = COMMON_PLATFORM,
           defendantId = defendantId,
           aliases = listOf(Alias(firstName = aliasFirstName)),
+          addresses = listOf(Address(postcode = postcode)),
         ),
+
       )
 
       val responseBody = webTestClient.get()
@@ -272,32 +274,6 @@ class CourtApiIntTest : WebTestBase() {
       assertThat(responseBody.aliases.first().middleNames).isNull()
       assertThat(responseBody.aliases.first().title.code).isNull()
       assertThat(responseBody.aliases.first().title.description).isNull()
-    }
-
-    @Test
-    fun `should return when values are null or empty for get addresses`() {
-      val defendantId = randomDefendantId()
-
-      val postcode = randomPostcode()
-
-      val person = createPersonWithNewKey(
-        Person(
-          sourceSystem = COMMON_PLATFORM,
-          defendantId = defendantId,
-          addresses = listOf(Address(postcode = postcode)),
-        ),
-      )
-
-      val responseBody = webTestClient.get()
-        .uri(commonPlatformApiUrl(person.defendantId))
-        .authorised(listOf(API_READ_ONLY))
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody(CanonicalRecord::class.java)
-        .returnResult()
-        .responseBody!!
-
       assertThat(responseBody.addresses.first().postcode).isEqualTo(postcode)
       assertThat(responseBody.addresses.first().startDate).isNull()
       assertThat(responseBody.addresses.first().endDate).isNull()
@@ -313,7 +289,7 @@ class CourtApiIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should add list of additional identifiers to the canonical record`() {
+    fun `should add list of additional identifiers`() {
       val personOneCro = randomCro()
       val personTwoCro = randomCro()
 
