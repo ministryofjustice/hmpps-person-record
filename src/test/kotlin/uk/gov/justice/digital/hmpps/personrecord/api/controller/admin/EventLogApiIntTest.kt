@@ -58,7 +58,7 @@ class EventLogApiIntTest : WebTestBase() {
     assertThat(response.eventLogs[1].sourceSystem).isEqualTo("DELIUS")
     assertThat(response.eventLogs[1].sourceSystemId).isEqualTo(person.crn)
     assertThat(response.eventLogs[1].overrideMarker).isNull()
-    assertThat(response.eventLogs[1].dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
+    assertThat(response.eventLogs[1].dateOfBirth).isNull()
   }
 
   @Test
