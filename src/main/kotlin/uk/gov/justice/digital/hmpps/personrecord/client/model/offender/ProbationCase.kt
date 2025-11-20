@@ -10,6 +10,7 @@ data class ProbationCase(
   val ethnicity: Value? = null,
   val identifiers: Identifiers,
   val dateOfBirth: LocalDate? = null,
+  val dateOfDeath: LocalDate? = null,
   val aliases: List<ProbationCaseAlias>? = emptyList(),
   val contactDetails: ContactDetails? = null,
   val addresses: List<ProbationAddress> = emptyList(),

@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -113,6 +114,9 @@ class PersonEntity(
   )
   var ethnicityCode: EthnicityCodeEntity? = null,
 
+  @Column(name = "date_of_death")
+  var dateOfDeath: LocalDate? = null,
+
   @Column(name = "merged_to")
   var mergedTo: Long? = null,
 
@@ -183,6 +187,7 @@ class PersonEntity(
     this.cId = person.cId
     this.sexualOrientation = person.sexualOrientation
     this.lastModified = LocalDateTime.now()
+    this.dateOfDeath = person.dateOfDeath
     this.updateChildEntities(person)
   }
 

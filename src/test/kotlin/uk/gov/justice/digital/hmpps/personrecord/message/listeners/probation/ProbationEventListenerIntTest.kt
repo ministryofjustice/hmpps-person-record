@@ -92,8 +92,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val email = randomEmail()
 
       val dateOfBirth = randomDate()
+      val dateOfDeath = randomDate()
       val apiResponse = ApiResponseSetup(
         dateOfBirth = dateOfBirth,
+        dateOfDeath = dateOfDeath,
         crn = crn,
         pnc = pnc,
         title = title,
@@ -142,6 +144,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.crn).isEqualTo(crn)
+      assertThat(personEntity.dateOfDeath).isEqualTo(dateOfDeath)
       val ethnicityCode = ethnicity.getProbationEthnicity()
       assertThat(personEntity.ethnicityCode?.code).isEqualTo(ethnicityCode.code)
       assertThat(personEntity.ethnicityCode?.description).isEqualTo(ethnicityCode.description)
@@ -214,6 +217,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val personEntity = awaitNotNull { personRepository.findByCrn(crn) }
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
+      assertThat(personEntity.dateOfDeath).isNull()
       val originalEthnicityCode = originalEthnicity.getProbationEthnicity()
       assertThat(personEntity.ethnicityCode?.code).isEqualTo(originalEthnicityCode.code)
       assertThat(personEntity.ethnicityCode?.description).isEqualTo(originalEthnicityCode.description)
@@ -230,6 +234,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sexualOrientation = randomProbationSexualOrientation()
       val aliasGender = randomProbationSexCode()
       val updatedReligion = randomReligion()
+      val dateOfDeath = randomDate()
       probationDomainEventAndResponseSetup(
         OFFENDER_PERSONAL_DETAILS_UPDATED,
         ApiResponseSetup(
@@ -245,12 +250,14 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           aliases = listOf(
             ApiResponseSetupAlias(lastName = randomName(), gender = aliasGender.key),
           ),
+          dateOfDeath = dateOfDeath,
         ),
       )
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val updatedPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(changedPnc)
+      assertThat(updatedPersonEntity.dateOfDeath).isEqualTo(dateOfDeath)
       assertThat(updatedPersonEntity.getPrimaryName().sexCode).isEqualTo(changedSexCode.value)
 
       val updatedLastModified = updatedPersonEntity.lastModified
