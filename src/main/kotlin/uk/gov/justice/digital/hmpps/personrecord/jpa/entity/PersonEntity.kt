@@ -188,6 +188,7 @@ class PersonEntity(
     this.cId = person.cId
     this.sexualOrientation = person.sexualOrientation
     this.lastModified = LocalDateTime.now()
+    this.dateOfDeath = person.dateOfDeath
     this.updateChildEntities(person)
   }
 
@@ -234,20 +235,8 @@ class PersonEntity(
     }
 
     fun new(person: Person): PersonEntity {
-      val personEntity = PersonEntity(
-        defendantId = person.defendantId,
-        crn = person.crn,
-        prisonNumber = person.prisonNumber,
-        masterDefendantId = person.masterDefendantId,
-        sourceSystem = person.sourceSystem,
-        religion = person.religion,
-        matchId = UUID.randomUUID(),
-        cId = person.cId,
-        lastModified = LocalDateTime.now(),
-        sexualOrientation = person.sexualOrientation,
-        dateOfDeath = person.dateOfDeath,
-      )
-      personEntity.updateChildEntities(person)
+      val personEntity = PersonEntity(sourceSystem = person.sourceSystem, matchId = UUID.randomUUID())
+      personEntity.update(person)
       return personEntity
     }
   }
