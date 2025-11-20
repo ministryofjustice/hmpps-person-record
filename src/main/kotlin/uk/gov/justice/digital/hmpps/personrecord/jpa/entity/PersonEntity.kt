@@ -23,7 +23,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBui
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.SentenceInfoBuilder.buildSentenceInfo
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
@@ -220,29 +219,9 @@ class PersonEntity(
 
   companion object {
 
-    val empty = null
-
-    fun List<ContactEntity>.getType(type: ContactType): List<ContactEntity> = this.filter { it.contactType == type }
-
-    fun PersonEntity?.exists(no: () -> PersonEntity, yes: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
-      this == empty -> no()
-      else -> yes(this)
-    }
-
     fun new(person: Person): PersonEntity {
-      val personEntity = PersonEntity(
-        defendantId = person.defendantId,
-        crn = person.crn,
-        prisonNumber = person.prisonNumber,
-        masterDefendantId = person.masterDefendantId,
-        sourceSystem = person.sourceSystem,
-        religion = person.religion,
-        matchId = UUID.randomUUID(),
-        cId = person.cId,
-        lastModified = LocalDateTime.now(),
-        sexualOrientation = person.sexualOrientation,
-      )
-      personEntity.updateChildEntities(person)
+      val personEntity = PersonEntity(sourceSystem = person.sourceSystem, matchId = UUID.randomUUID())
+      personEntity.update(person)
       return personEntity
     }
   }
