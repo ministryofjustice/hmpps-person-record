@@ -19,4 +19,5 @@ data class ProbationCase(
   val secondaryNationality: Value? = null,
   val gender: Value? = null,
   val sexualOrientation: Value? = null,
+  val religion: Value? = null,
 )

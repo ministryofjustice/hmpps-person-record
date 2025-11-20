@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.commonPlatformEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.prisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.probationEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.commonPlatformSexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.libraSexCode
@@ -88,7 +89,7 @@ fun randomProbationNationalityCode(): String = PROBATION_NATIONALITY_MAPPING.ent
 
 fun randomCommonPlatformNationalityCode(): String = COMMON_PLATFORM_NATIONALITY_MAPPING.entries.random().key
 
-fun randomReligion(): String = randomLowerCaseString()
+fun randomReligion(): String = ReligionCode.entries.random().description
 
 fun randomDriverLicenseNumber(): String {
   fun randomString(length: Int, source: String) = (1..length).map { source.random() }.joinToString("")

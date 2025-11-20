@@ -95,6 +95,7 @@ data class Person(
         sentences = probationCase.sentences?.map { SentenceInfo.from(it) } ?: emptyList(),
         sexCode = SexCode.from(probationCase),
         sexualOrientation = SexualOrientation.from(probationCase),
+        religion = probationCase.religion?.value,
       )
     }
 

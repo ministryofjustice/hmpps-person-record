@@ -49,6 +49,10 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
         ${probationCase.sexualOrientation?.let { """ "code": "${probationCase.sexualOrientation}", """.trimIndent() } ?: ""}
         "description": "string"
       },
+       "religion": {
+      ${probationCase.religion?.let { """ "code": "${probationCase.religion}", """.trimIndent() } ?: ""}
+      "description": "string"
+    },
       "sentences": [${probationCase.sentences?.joinToString { sentence(it) } ?: ""}]
     }
 """.trimIndent()
