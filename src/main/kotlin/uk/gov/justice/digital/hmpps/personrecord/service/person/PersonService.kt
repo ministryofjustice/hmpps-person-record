@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonProcessingCompleted
@@ -71,5 +70,10 @@ class PersonService(
       condition(this) -> this.personEntity.personKey?.let { reclusterService.recluster(this.personEntity) }
     }
     return this
+  }
+
+  private fun PersonEntity?.exists(no: () -> PersonEntity, yes: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
+    this == null -> no()
+    else -> yes(this)
   }
 }
