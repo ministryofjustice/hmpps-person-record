@@ -43,6 +43,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexualOrientation
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
@@ -84,6 +85,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val aliasGender = randomProbationSexCode()
       val gender = randomProbationSexCode()
       val sexualOrientation = randomProbationSexualOrientation()
+      val religion = randomReligion()
 
       val homePhoneNumber = randomPhoneNumber()
       val mobilePhoneNumber = randomPhoneNumber()
@@ -130,6 +132,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
         gender = gender.key,
         sexualOrientation = sexualOrientation.key,
+        religion = religion,
       )
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
@@ -180,6 +183,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.matchId).isNotNull()
       assertThat(personEntity.lastModified).isNotNull()
       assertThat(personEntity.sexualOrientation).isEqualTo(sexualOrientation.value)
+      assertThat(personEntity.religion).isEqualTo(religion)
       checkNationalities(personEntity, nationality, secondaryNationality)
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
@@ -213,6 +217,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val originalEthnicityCode = originalEthnicity.getProbationEthnicity()
       assertThat(personEntity.ethnicityCode?.code).isEqualTo(originalEthnicityCode.code)
       assertThat(personEntity.ethnicityCode?.description).isEqualTo(originalEthnicityCode.description)
+      assertThat(personEntity.religion).isNull()
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
@@ -224,6 +229,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val changedSexCode = randomProbationSexCode()
       val sexualOrientation = randomProbationSexualOrientation()
       val aliasGender = randomProbationSexCode()
+      val updatedReligion = randomReligion()
       probationDomainEventAndResponseSetup(
         OFFENDER_PERSONAL_DETAILS_UPDATED,
         ApiResponseSetup(
@@ -235,6 +241,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           nationality = changedNationality,
           title = "MR",
           sexualOrientation = sexualOrientation.key,
+          religion = updatedReligion,
           aliases = listOf(
             ApiResponseSetupAlias(lastName = randomName(), gender = aliasGender.key),
           ),
@@ -260,6 +267,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.getPrimaryName().titleCode?.code).isEqualTo("MR")
       assertThat(updatedPersonEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
       assertThat(updatedPersonEntity.sexualOrientation).isEqualTo(sexualOrientation.value)
+      assertThat(updatedPersonEntity.religion).isEqualTo(updatedReligion)
       assertThat(updatedPersonEntity.getAliases()[0].sexCode).isEqualTo(aliasGender.value)
     }
 
