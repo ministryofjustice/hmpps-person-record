@@ -21,8 +21,8 @@ data class CanonicalNationality(
 
     fun from(personEntity: PersonEntity): List<CanonicalNationality> = personEntity.nationalities.map {
       CanonicalNationality(
-        code = it.nationalityCodeLegacy?.code,
-        description = it.nationalityCodeLegacy?.description,
+        code = it.nationalityCode.name,
+        description = it.nationalityCode.description,
         startDate = it.startDate,
         endDate = it.startDate,
         notes = it.notes,

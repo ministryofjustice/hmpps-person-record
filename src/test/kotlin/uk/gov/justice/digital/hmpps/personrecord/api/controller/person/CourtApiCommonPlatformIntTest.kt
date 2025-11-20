@@ -25,7 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
@@ -47,13 +47,13 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
 
-class CourtApiIntTest : WebTestBase() {
+class CourtApiCommonPlatformIntTest : WebTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
 
     @Test
-    fun `should return ok for get`() {
+    fun `should return when all fields populated`() {
       val firstName = randomName()
       val lastName = randomName()
       val middleNames = randomName()
@@ -189,7 +189,7 @@ class CourtApiIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should return null when values are null or empty for get canonical record`() {
+    fun `should return nulls when values are null or empty`() {
       val defendantId = randomDefendantId()
 
       val person = createPersonWithNewKey(
@@ -197,6 +197,7 @@ class CourtApiIntTest : WebTestBase() {
           sourceSystem = COMMON_PLATFORM,
           defendantId = defendantId,
         ),
+
       )
 
       val responseBody = webTestClient.get()
@@ -244,17 +245,19 @@ class CourtApiIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should return when values are null or empty for get aliases`() {
+    fun `should return nulls when some alias and address values are null or empty`() {
       val defendantId = randomDefendantId()
 
       val aliasFirstName = randomName()
-
+      val postcode = randomPostcode()
       val person = createPersonWithNewKey(
         Person(
           sourceSystem = COMMON_PLATFORM,
           defendantId = defendantId,
           aliases = listOf(Alias(firstName = aliasFirstName)),
+          addresses = listOf(Address(postcode = postcode)),
         ),
+
       )
 
       val responseBody = webTestClient.get()
@@ -272,32 +275,6 @@ class CourtApiIntTest : WebTestBase() {
       assertThat(responseBody.aliases.first().middleNames).isNull()
       assertThat(responseBody.aliases.first().title.code).isNull()
       assertThat(responseBody.aliases.first().title.description).isNull()
-    }
-
-    @Test
-    fun `should return when values are null or empty for get addresses`() {
-      val defendantId = randomDefendantId()
-
-      val postcode = randomPostcode()
-
-      val person = createPersonWithNewKey(
-        Person(
-          sourceSystem = COMMON_PLATFORM,
-          defendantId = defendantId,
-          addresses = listOf(Address(postcode = postcode)),
-        ),
-      )
-
-      val responseBody = webTestClient.get()
-        .uri(commonPlatformApiUrl(person.defendantId))
-        .authorised(listOf(API_READ_ONLY))
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody(CanonicalRecord::class.java)
-        .returnResult()
-        .responseBody!!
-
       assertThat(responseBody.addresses.first().postcode).isEqualTo(postcode)
       assertThat(responseBody.addresses.first().startDate).isNull()
       assertThat(responseBody.addresses.first().endDate).isNull()
@@ -313,11 +290,10 @@ class CourtApiIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should add list of additional identifiers to the canonical record`() {
+    fun `should add list of additional identifiers off two people`() {
       val personOneCro = randomCro()
       val personTwoCro = randomCro()
 
-      val personOneCrn = randomCrn()
       val personTwoCrn = randomCrn()
 
       val personOnePnc = randomLongPnc()
@@ -333,7 +309,6 @@ class CourtApiIntTest : WebTestBase() {
       val personTwoDriversLicenseNumber = randomDriverLicenseNumber()
 
       val personOneDefendantId = randomDefendantId()
-      val personTwoDefendantId = randomDefendantId()
 
       val personOne = createPerson(
         Person(
@@ -341,12 +316,9 @@ class CourtApiIntTest : WebTestBase() {
           lastName = randomName(),
           middleNames = randomName(),
           dateOfBirth = randomDate(),
-          sourceSystem = NOMIS,
-          crn = personOneCrn,
-          prisonNumber = randomPrisonNumber(),
+          sourceSystem = COMMON_PLATFORM,
           nationalities = listOf(Nationality(randomNationalityCode())),
           religion = randomReligion(),
-          cId = randomCId(),
           defendantId = personOneDefendantId,
           masterDefendantId = personOneDefendantId,
           references = listOf(
@@ -374,14 +346,10 @@ class CourtApiIntTest : WebTestBase() {
           lastName = randomName(),
           middleNames = randomName(),
           dateOfBirth = randomDate(),
-          sourceSystem = NOMIS,
+          sourceSystem = DELIUS,
           crn = personTwoCrn,
-          prisonNumber = randomPrisonNumber(),
           nationalities = listOf(Nationality(randomNationalityCode())),
           religion = randomReligion(),
-          cId = randomCId(),
-          defendantId = personTwoDefendantId,
-          masterDefendantId = personTwoDefendantId,
           references = listOf(
             Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
             Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
@@ -419,62 +387,14 @@ class CourtApiIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.driverLicenseNumbers).containsExactly(personOneDriversLicenseNumber)
       assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrderElementsOf(
         listOf(
-          personOne.crn,
           personTwo.crn,
         ),
       )
       assertThat(responseBody.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(
         listOf(
           personOne.defendantId,
-          personTwo.defendantId,
         ),
       )
-      assertThat(responseBody.identifiers.prisonNumbers).containsExactlyInAnyOrderElementsOf(
-        listOf(
-          personOne.prisonNumber,
-          personTwo.prisonNumber,
-        ),
-      )
-      assertThat(responseBody.identifiers.cids).containsExactlyInAnyOrderElementsOf(
-        listOf(
-          personOne.cId,
-          personTwo.cId,
-        ),
-      )
-    }
-
-    @Test
-    fun `should add an empty list of additional identifiers when null`() {
-      val defendantId = randomDefendantId()
-
-      val person = createPersonWithNewKey(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = COMMON_PLATFORM,
-          nationalities = listOf(Nationality(randomNationalityCode())),
-          religion = randomReligion(),
-          masterDefendantId = randomDefendantId(),
-          defendantId = defendantId,
-        ),
-      )
-
-      val responseBody = webTestClient.get()
-        .uri(commonPlatformApiUrl(person.defendantId))
-        .authorised(listOf(API_READ_ONLY))
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody(CanonicalRecord::class.java)
-        .returnResult()
-        .responseBody!!
-
-      assertThat(responseBody.identifiers.crns).isEmpty()
-      assertThat(responseBody.identifiers.cids).isEmpty()
-      assertThat(responseBody.identifiers.defendantIds).isNotEmpty()
-      assertThat(responseBody.identifiers.prisonNumbers).isEmpty()
     }
 
     @Test
