@@ -21,8 +21,6 @@ class SecurityConfiguration {
         "/queue-admin/retry-all-dlqs",
         "/jobs/recordcountreport",
         "/jobs/recluster-needs-attention",
-        "/admin/migrate-nationalities",
-        "/admin/calculate-status-reason",
         "/admin/recluster",
         "/admin/delete",
       )
