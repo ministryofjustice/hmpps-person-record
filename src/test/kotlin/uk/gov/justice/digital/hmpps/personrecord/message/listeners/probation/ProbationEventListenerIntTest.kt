@@ -90,8 +90,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val email = randomEmail()
 
       val dateOfBirth = randomDate()
+      val dateOfDeath = randomDate()
       val apiResponse = ApiResponseSetup(
         dateOfBirth = dateOfBirth,
+        dateOfDeath = dateOfDeath,
         crn = crn,
         pnc = pnc,
         title = title,
@@ -139,6 +141,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.crn).isEqualTo(crn)
+      assertThat(personEntity.dateOfDeath).isEqualTo(dateOfDeath)
       val ethnicityCode = ethnicity.getProbationEthnicity()
       assertThat(personEntity.ethnicityCode?.code).isEqualTo(ethnicityCode.code)
       assertThat(personEntity.ethnicityCode?.description).isEqualTo(ethnicityCode.description)

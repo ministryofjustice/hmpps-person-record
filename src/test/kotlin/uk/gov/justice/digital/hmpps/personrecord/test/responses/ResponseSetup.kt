@@ -51,6 +51,7 @@ data class ApiResponseSetup(
   val nationalInsuranceNumber: String? = null,
   val email: String? = randomEmail(),
   val dateOfBirth: LocalDate? = randomDate(),
+  val dateOfDeath: LocalDate? = null,
   val driverLicenseNumber: String? = randomDriverLicenseNumber(),
   val identifiers: List<ApiResponseSetupIdentifier> = listOf(),
   val sentences: List<ApiResponseSetupSentences>? = listOf(),

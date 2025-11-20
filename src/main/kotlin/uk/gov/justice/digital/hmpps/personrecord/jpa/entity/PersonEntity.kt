@@ -32,6 +32,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -114,6 +115,9 @@ class PersonEntity(
   )
   var ethnicityCode: EthnicityCodeEntity? = null,
 
+  @Column(name = "date_of_death")
+  var dateOfDeath: LocalDate? = null,
+
   @Column(name = "merged_to")
   var mergedTo: Long? = null,
 
@@ -133,7 +137,7 @@ class PersonEntity(
   @Version
   var version: Int = 0,
 
-) {
+  ) {
 
   fun getAliases(): List<PseudonymEntity> = this.pseudonyms.filter { it.nameType == ALIAS }.sortedBy { it.id }
 
@@ -241,6 +245,7 @@ class PersonEntity(
         cId = person.cId,
         lastModified = LocalDateTime.now(),
         sexualOrientation = person.sexualOrientation,
+        dateOfDeath = person.dateOfDeath,
       )
       personEntity.updateChildEntities(person)
       return personEntity
