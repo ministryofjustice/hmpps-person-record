@@ -122,6 +122,12 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
             postcode = "LS1 1AB",
             fullAddress = "abc street",
             buildingName = buildingName,
+            addressNumber = addressNumber,
+            streetName = streetName,
+            district = district,
+            townCity = townCity,
+            county = county,
+            uprn = uprn,
 
           ),
           ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
@@ -188,12 +194,12 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.addresses[0].fullAddress).isEqualTo("abc street")
       assertThat(personEntity.addresses[0].type).isEqualTo(null)
       assertThat(personEntity.addresses[0].buildingName).isEqualTo(buildingName)
-   /*   assertThat(personEntity.addresses[0].buildingNumber).isEqualTo(addressNumber)
+      assertThat(personEntity.addresses[0].buildingNumber).isEqualTo(addressNumber)
       assertThat(personEntity.addresses[0].thoroughfareName).isEqualTo(streetName)
       assertThat(personEntity.addresses[0].dependentLocality).isEqualTo(district)
       assertThat(personEntity.addresses[0].postTown).isEqualTo(townCity)
       assertThat(personEntity.addresses[0].county).isEqualTo(county)
-      assertThat(personEntity.addresses[0].uprn).isEqualTo(uprn)*/
+      assertThat(personEntity.addresses[0].uprn).isEqualTo(uprn)
       assertThat(personEntity.addresses[1].noFixedAbode).isNull()
       assertThat(personEntity.addresses[1].postcode).isEqualTo("M21 9LX")
       assertThat(personEntity.addresses[1].fullAddress).isEqualTo("abc street")

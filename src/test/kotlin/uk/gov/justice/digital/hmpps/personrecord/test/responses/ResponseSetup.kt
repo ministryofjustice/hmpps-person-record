@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import java.time.LocalDate
 
 data class ApiResponseSetupIdentifier(val type: String, val value: String)
@@ -27,12 +28,12 @@ data class ApiResponseSetupAddress(
   val postcode: String?,
   val fullAddress: String? = null,
   val buildingName: String? = null,
-/*  val addressNumber: String? = null,
+  val addressNumber: String? = null,
   val streetName: String? = null,
   val district: String? = null,
   val townCity: String? = null,
   val county: String? = null,
-  val uprn: String? = null,*/
+  val uprn: String? = null,
 )
 
 data class ApiResponseSetupSentences(val sentenceDate: LocalDate?)
@@ -54,7 +55,7 @@ data class ApiResponseSetup(
   val religion: String? = null,
   val prisonNumber: String? = null,
   val ethnicity: String? = null,
-  val addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress(), buildingName = randomName())),
+  val addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress(), buildingName = randomName(), streetName = randomName(), district = randomName(), townCity = randomName(), county = randomName(), uprn = randomUprn())),
   val nationalInsuranceNumber: String? = null,
   val email: String? = randomEmail(),
   val dateOfBirth: LocalDate? = randomDate(),

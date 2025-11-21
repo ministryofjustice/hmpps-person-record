@@ -48,6 +48,12 @@ data class Address(
       postcode = address.postcode.nullIfBlank(),
       fullAddress = address.fullAddress.nullIfBlank(),
       buildingName = address.buildingName.nullIfBlank(),
+      buildingNumber = address.addressNumber.nullIfBlank(),
+      thoroughfareName = address.streetName.nullIfBlank(),
+      dependentLocality = address.district.nullIfBlank(),
+      postTown = address.townCity.nullIfBlank(),
+      county = address.county.nullIfBlank(),
+      uprn = address.uprn.nullIfBlank(),
     ).allPropertiesOrNull()
 
     fun from(address: CommonPlatformAddress?): Address? = Address(
