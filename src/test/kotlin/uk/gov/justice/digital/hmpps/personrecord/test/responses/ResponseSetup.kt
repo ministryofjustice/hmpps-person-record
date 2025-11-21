@@ -26,13 +26,6 @@ data class ApiResponseSetupAddress(
   val endDate: LocalDate? = null,
   val postcode: String?,
   val fullAddress: String? = null,
-  val buildingName: String? = null,
-  val addressNumber: String? = null,
-  val streetName: String? = null,
-  val district: String? = null,
-  val townCity: String? = null,
-  val county: String? = null,
-  val uprn: String? = null,
 )
 
 data class ApiResponseSetupSentences(val sentenceDate: LocalDate?)

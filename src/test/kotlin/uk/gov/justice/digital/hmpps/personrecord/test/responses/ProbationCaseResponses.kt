@@ -81,13 +81,6 @@ private fun address(address: ApiResponseSetupAddress) =
       ${address.endDate?.let { """ "endDate": "${address.endDate}", """.trimIndent() } ?: ""}
       ${address.noFixedAbode?.let { """ "noFixedAbode": "${address.noFixedAbode}", """.trimIndent() } ?: ""}
       ${address.fullAddress?.let { """ "fullAddress": "${address.fullAddress}", """.trimIndent() } ?: ""}
-      ${address.buildingName?.let { """ "buildingName": "${address.buildingName}", """.trimIndent() } ?: ""}
-      ${address.addressNumber?.let { """ "addressNumber": "${address.addressNumber}", """.trimIndent() } ?: ""}
-      ${address.streetName?.let { """ "streetName": "${address.streetName}", """.trimIndent() } ?: ""}
-      ${address.district?.let { """ "district": "${address.district}", """.trimIndent() } ?: ""}
-      ${address.townCity?.let { """ "townCity": "${address.townCity}", """.trimIndent() } ?: ""}
-      ${address.county?.let { """ "county": "${address.county}", """.trimIndent() } ?: ""}
-      ${address.uprn?.let { """ "uprn": ${address.uprn}, """.trimIndent() } ?: ""}
       ${address.postcode?.let { """ "postcode": "${address.postcode}" """.trimIndent() } ?: ""}
     }
   """.trimIndent()
