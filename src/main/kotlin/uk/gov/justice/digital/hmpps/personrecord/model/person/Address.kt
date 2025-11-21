@@ -47,6 +47,7 @@ data class Address(
       endDate = address.endDate,
       postcode = address.postcode.nullIfBlank(),
       fullAddress = address.fullAddress.nullIfBlank(),
+      buildingName = address.buildingName.nullIfBlank(),
     ).allPropertiesOrNull()
 
     fun from(address: CommonPlatformAddress?): Address? = Address(

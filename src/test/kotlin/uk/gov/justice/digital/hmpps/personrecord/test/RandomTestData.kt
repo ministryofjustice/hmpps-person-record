@@ -60,6 +60,10 @@ fun randomBoolean(): Boolean = listOf(true, false).random()
 
 fun randomName(): String = randomLowerCaseString()
 
+fun randomAddressNumber(): String =  (1..200).random().toString()
+
+fun randomUprn(): String =  randomDigit(12)
+
 fun randomTitle(): String = titleCodeMap.keys.random()
 
 fun randomCommonPlatformSexCode(): Map.Entry<String, SexCode> = commonPlatformSexCode.entries.random()
