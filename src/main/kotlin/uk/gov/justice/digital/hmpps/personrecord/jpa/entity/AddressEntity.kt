@@ -80,6 +80,9 @@ class AddressEntity(
   @Column(name = "country_code")
   val countryCode: String? = null,
 
+  @Column(name = "comment")
+  val comment: String? = null,
+
   @Column(name = "uprn")
   val uprn: String? = null,
 
@@ -114,6 +117,7 @@ class AddressEntity(
       countryCode = address.countryCode,
       uprn = address.uprn,
       recordType = address.recordType,
+      comment = address.comment,
     )
   }
 }
