@@ -162,11 +162,11 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
       assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
       assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
       assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
-      assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().titleCode?.code)
-      assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().titleCode?.description)
-      assertThat(responseBody.aliases.first().title.code).isEqualTo(person.getAliases().first().titleCode?.code)
+      assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().titleCodeLegacy?.code)
+      assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().titleCodeLegacy?.description)
+      assertThat(responseBody.aliases.first().title.code).isEqualTo(person.getAliases().first().titleCodeLegacy?.code)
       assertThat(responseBody.aliases.first().title.description).isEqualTo(
-        person.getAliases().first().titleCode?.description,
+        person.getAliases().first().titleCodeLegacy?.description,
       )
       assertThat(responseBody.aliases.first().sex.code).isEqualTo(person.getAliases().first().sexCode?.name)
       assertThat(responseBody.aliases.first().sex.description).isEqualTo(person.getAliases().first().sexCode?.description)
