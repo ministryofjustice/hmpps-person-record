@@ -25,6 +25,7 @@ data class Address(
   val county: String? = null,
   val countryCode: String? = null,
   val uprn: String? = null,
+  val comment: String? = null,
   var recordType: AddressRecordType? = null,
 ) {
 
@@ -54,6 +55,7 @@ data class Address(
       postTown = address.townCity.nullIfBlank(),
       county = address.county.nullIfBlank(),
       uprn = address.uprn.nullIfBlank(),
+      comment = address.notes.nullIfBlank(),
     ).allPropertiesOrNull()
 
     fun from(address: CommonPlatformAddress?): Address? = Address(
@@ -92,6 +94,7 @@ data class Address(
       county = addressEntity.county,
       countryCode = addressEntity.countryCode,
       uprn = addressEntity.uprn,
+      comment = addressEntity.comment,
       recordType = addressEntity.recordType,
     )
   }

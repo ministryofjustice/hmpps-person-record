@@ -163,8 +163,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
-      assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(storedEthnicity.code)
-      assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(storedEthnicity.description)
+      assertThat(updatedPersonEntity.ethnicityCodeLegacy?.code).isEqualTo(storedEthnicity.code)
+      assertThat(updatedPersonEntity.ethnicityCodeLegacy?.description).isEqualTo(storedEthnicity.description)
     }
 
     checkTelemetry(
@@ -266,8 +266,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getAliases()[1].lastName).isEqualTo("aliasLastName2")
 
     val ethnicityCode = ethnicity.getCommonPlatformEthnicity()
-    assertThat(firstPerson.ethnicityCode?.code).isEqualTo(ethnicityCode.code)
-    assertThat(firstPerson.ethnicityCode?.description).isEqualTo(ethnicityCode.description)
+    assertThat(firstPerson.ethnicityCodeLegacy?.code).isEqualTo(ethnicityCode.code)
+    assertThat(firstPerson.ethnicityCodeLegacy?.description).isEqualTo(ethnicityCode.description)
     assertThat(firstPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(firstDefendantNINumber)
 
     assertThat(secondPerson.getAliases()).isEmpty()

@@ -112,7 +112,7 @@ class PersonEntity(
     name = "fk_ethnicity_code_id",
     referencedColumnName = "id",
   )
-  var ethnicityCode: EthnicityCodeEntity? = null,
+  var ethnicityCodeLegacy: EthnicityCodeEntity? = null,
 
   @Column(name = "date_of_death")
   var dateOfDeath: LocalDate? = null,
