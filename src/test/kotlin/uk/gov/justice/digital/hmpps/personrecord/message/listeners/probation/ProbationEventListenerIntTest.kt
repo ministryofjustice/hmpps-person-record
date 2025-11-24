@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -168,6 +169,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val ethnicityCode = ethnicity.getProbationEthnicity()
       assertThat(personEntity.ethnicityCodeLegacy?.code).isEqualTo(ethnicityCode.code)
       assertThat(personEntity.ethnicityCodeLegacy?.description).isEqualTo(ethnicityCode.description)
+
+      assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(ethnicity))
 
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)
