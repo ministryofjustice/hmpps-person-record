@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.offender
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -18,6 +19,9 @@ data class ProbationCase(
   val nationality: Value? = null,
   val secondaryNationality: Value? = null,
   val gender: Value? = null,
+  val genderIdentity: Value? = null,
+  @JsonProperty("genderIdentityDescription")
+  val selfDescribedGenderIdentity: String? = null,
   val sexualOrientation: Value? = null,
   val religion: Value? = null,
 )
