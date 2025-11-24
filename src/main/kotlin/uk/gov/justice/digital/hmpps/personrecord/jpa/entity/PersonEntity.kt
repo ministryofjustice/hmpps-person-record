@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBui
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.SentenceInfoBuilder.buildSentenceInfo
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
@@ -114,6 +115,9 @@ class PersonEntity(
   )
   var ethnicityCodeLegacy: EthnicityCodeEntity? = null,
 
+  @Column(name = "ethnicity_code")
+  var ethnicityCode: EthnicityCode? = null,
+
   @Column(name = "date_of_death")
   var dateOfDeath: LocalDate? = null,
 
@@ -188,6 +192,7 @@ class PersonEntity(
     this.sexualOrientation = person.sexualOrientation
     this.lastModified = LocalDateTime.now()
     this.dateOfDeath = person.dateOfDeath
+    this.ethnicityCode = person.ethnicityCode
     this.updateChildEntities(person)
   }
 
