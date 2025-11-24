@@ -136,7 +136,7 @@ class PersonEntity(
   @Version
   var version: Int = 0,
 
-  ) {
+) {
 
   fun getAliases(): List<PseudonymEntity> = this.pseudonyms.filter { it.nameType == ALIAS }.sortedBy { it.id }
 
