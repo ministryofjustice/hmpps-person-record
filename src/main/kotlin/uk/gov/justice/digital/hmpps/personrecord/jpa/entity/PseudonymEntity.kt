@@ -39,7 +39,7 @@ class PseudonymEntity(
     name = "fk_title_code_id",
     referencedColumnName = "id",
   )
-  var titleCode: TitleCodeEntity? = null,
+  var titleCodeLegacy: TitleCodeEntity? = null,
 
   @Column(name = "first_name")
   val firstName: String? = null,
@@ -70,7 +70,7 @@ class PseudonymEntity(
       middleNames = person.middleNames,
       lastName = person.lastName,
       nameType = NameType.PRIMARY,
-      titleCode = titleCode,
+      titleCodeLegacy = titleCode,
       dateOfBirth = person.dateOfBirth,
       sexCode = person.sexCode,
     )
@@ -83,7 +83,7 @@ class PseudonymEntity(
           lastName = alias.lastName,
           dateOfBirth = alias.dateOfBirth,
           nameType = NameType.ALIAS,
-          titleCode = titleCode,
+          titleCodeLegacy = titleCode,
           sexCode = alias.sexCode,
         )
       else -> null

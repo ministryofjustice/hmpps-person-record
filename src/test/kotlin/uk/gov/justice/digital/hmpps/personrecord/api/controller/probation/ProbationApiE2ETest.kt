@@ -184,11 +184,11 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
         assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
         assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
-        assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().titleCode?.code)
-        assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().titleCode?.description)
-        assertThat(responseBody.aliases.first().title.code).isEqualTo(person.getAliases().first().titleCode?.code)
+        assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().titleCodeLegacy?.code)
+        assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().titleCodeLegacy?.description)
+        assertThat(responseBody.aliases.first().title.code).isEqualTo(person.getAliases().first().titleCodeLegacy?.code)
         assertThat(responseBody.aliases.first().title.description).isEqualTo(
-          person.getAliases().first().titleCode?.description,
+          person.getAliases().first().titleCodeLegacy?.description,
         )
         assertThat(responseBody.aliases.first().sex.code).isEqualTo(sex.value.name)
         assertThat(responseBody.aliases.first().sex.description).isEqualTo(sex.value.description)
@@ -452,8 +452,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.getPrimaryName().middleNames).isEqualTo(probationCase.name.middleNames)
         assertThat(offender.getPrimaryName().lastName).isEqualTo(probationCase.name.lastName)
         assertThat(offender.getPrimaryName().nameType).isEqualTo(PRIMARY)
-        assertThat(offender.getPrimaryName().titleCode?.code).isEqualTo(probationCase.title?.value?.getTitle()?.code)
-        assertThat(offender.getPrimaryName().titleCode?.description).isEqualTo(probationCase.title?.value?.getTitle()?.description)
+        assertThat(offender.getPrimaryName().titleCodeLegacy?.code).isEqualTo(probationCase.title?.value?.getTitle()?.code)
+        assertThat(offender.getPrimaryName().titleCodeLegacy?.description).isEqualTo(probationCase.title?.value?.getTitle()?.description)
         assertThat(offender.getPrimaryName().dateOfBirth).isEqualTo(probationCase.dateOfBirth)
         assertThat(offender.getPrimaryName().sexCode).isEqualTo(SexCode.from(probationCase))
 
