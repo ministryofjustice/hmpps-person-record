@@ -437,8 +437,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         offender.personKey?.assertClusterIsOfSize(2)
 
         assertThat(offender.getPnc()).isEqualTo(probationCase.identifiers.pnc)
-        assertThat(offender.ethnicityCode?.code).isEqualTo(probationCase.ethnicity?.value?.getProbationEthnicity()?.code)
-        assertThat(offender.ethnicityCode?.code).isEqualTo(probationCase.ethnicity?.value?.getProbationEthnicity()?.description)
+        assertThat(offender.ethnicityCodeLegacy?.code).isEqualTo(probationCase.ethnicity?.value?.getProbationEthnicity()?.code)
+        assertThat(offender.ethnicityCodeLegacy?.code).isEqualTo(probationCase.ethnicity?.value?.getProbationEthnicity()?.description)
         assertThat(offender.getCro()).isEqualTo(probationCase.identifiers.cro)
         assertThat(offender.getAliases().size).isEqualTo(1)
         val firstOffenderAlias = offender.getAliases()[0]
