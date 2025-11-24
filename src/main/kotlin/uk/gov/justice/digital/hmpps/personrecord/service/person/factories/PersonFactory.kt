@@ -69,6 +69,6 @@ class PersonFactory(
   }
 
   private fun PersonEntity.attachEthnicity(ethnicityCodeEntity: EthnicityCodeEntity?) {
-    this.ethnicityCode = ethnicityCodeEntity
+    this.ethnicityCodeLegacy = ethnicityCodeEntity
   }
 }

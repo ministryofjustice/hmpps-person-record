@@ -164,8 +164,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.crn).isEqualTo(crn)
       assertThat(personEntity.dateOfDeath).isEqualTo(dateOfDeath)
       val ethnicityCode = ethnicity.getProbationEthnicity()
-      assertThat(personEntity.ethnicityCode?.code).isEqualTo(ethnicityCode.code)
-      assertThat(personEntity.ethnicityCode?.description).isEqualTo(ethnicityCode.description)
+      assertThat(personEntity.ethnicityCodeLegacy?.code).isEqualTo(ethnicityCode.code)
+      assertThat(personEntity.ethnicityCodeLegacy?.description).isEqualTo(ethnicityCode.description)
 
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)
@@ -244,8 +244,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
       assertThat(personEntity.dateOfDeath).isNull()
       val originalEthnicityCode = originalEthnicity.getProbationEthnicity()
-      assertThat(personEntity.ethnicityCode?.code).isEqualTo(originalEthnicityCode.code)
-      assertThat(personEntity.ethnicityCode?.description).isEqualTo(originalEthnicityCode.description)
+      assertThat(personEntity.ethnicityCodeLegacy?.code).isEqualTo(originalEthnicityCode.code)
+      assertThat(personEntity.ethnicityCodeLegacy?.description).isEqualTo(originalEthnicityCode.description)
       assertThat(personEntity.religion).isNull()
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
@@ -291,8 +291,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.getPrimaryName().dateOfBirth).isEqualTo(changedDateOfBirth)
 
       val changedEthnicityCode = changedEthnicity.getProbationEthnicity()
-      assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(changedEthnicityCode.code)
-      assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(changedEthnicityCode.description)
+      assertThat(updatedPersonEntity.ethnicityCodeLegacy?.code).isEqualTo(changedEthnicityCode.code)
+      assertThat(updatedPersonEntity.ethnicityCodeLegacy?.description).isEqualTo(changedEthnicityCode.description)
 
       checkNationalities(updatedPersonEntity, changedNationality)
 

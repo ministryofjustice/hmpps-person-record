@@ -152,8 +152,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.description)
 
         val storedPrisonEthnicity = ethnicity.getPrisonEthnicity()
-        assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity.code)
-        assertThat(personEntity.ethnicityCode?.description).isEqualTo(storedPrisonEthnicity.description)
+        assertThat(personEntity.ethnicityCodeLegacy?.code).isEqualTo(storedPrisonEthnicity.code)
+        assertThat(personEntity.ethnicityCodeLegacy?.description).isEqualTo(storedPrisonEthnicity.description)
       }
 
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
@@ -247,8 +247,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(updatedAliasGender.value)
 
         val storedPrisonEthnicity = ethnicity.getPrisonEthnicity()
-        assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity.code)
-        assertThat(personEntity.ethnicityCode?.description).isEqualTo(storedPrisonEthnicity.description)
+        assertThat(personEntity.ethnicityCodeLegacy?.code).isEqualTo(storedPrisonEthnicity.code)
+        assertThat(personEntity.ethnicityCodeLegacy?.description).isEqualTo(storedPrisonEthnicity.description)
 
         assertThat(personEntity.nationalities.size).isEqualTo(1)
         assertThat(personEntity.nationalities.first().nationalityCode?.name).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.name)
