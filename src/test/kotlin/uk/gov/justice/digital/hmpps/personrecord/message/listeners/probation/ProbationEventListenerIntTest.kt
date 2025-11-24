@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -45,6 +46,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
+import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
@@ -91,6 +93,14 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val mobilePhoneNumber = randomPhoneNumber()
       val email = randomEmail()
 
+      val buildingName = randomName()
+      val addressNumber = randomAddressNumber()
+      val streetName = randomName()
+      val district = randomName()
+      val townCity = randomName()
+      val county = randomName()
+      val uprn = randomUprn()
+
       val dateOfBirth = randomDate()
       val dateOfDeath = randomDate()
       val apiResponse = ApiResponseSetup(
@@ -111,6 +121,14 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
             addressEndDate,
             postcode = "LS1 1AB",
             fullAddress = "abc street",
+            buildingName = buildingName,
+            addressNumber = addressNumber,
+            streetName = streetName,
+            district = district,
+            townCity = townCity,
+            county = county,
+            uprn = uprn,
+
           ),
           ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
         ),
@@ -175,6 +193,13 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.addresses[0].postcode).isEqualTo("LS1 1AB")
       assertThat(personEntity.addresses[0].fullAddress).isEqualTo("abc street")
       assertThat(personEntity.addresses[0].type).isEqualTo(null)
+      assertThat(personEntity.addresses[0].buildingName).isEqualTo(buildingName)
+      assertThat(personEntity.addresses[0].buildingNumber).isEqualTo(addressNumber)
+      assertThat(personEntity.addresses[0].thoroughfareName).isEqualTo(streetName)
+      assertThat(personEntity.addresses[0].dependentLocality).isEqualTo(district)
+      assertThat(personEntity.addresses[0].postTown).isEqualTo(townCity)
+      assertThat(personEntity.addresses[0].county).isEqualTo(county)
+      assertThat(personEntity.addresses[0].uprn).isEqualTo(uprn)
       assertThat(personEntity.addresses[1].noFixedAbode).isNull()
       assertThat(personEntity.addresses[1].postcode).isEqualTo("M21 9LX")
       assertThat(personEntity.addresses[1].fullAddress).isEqualTo("abc street")
