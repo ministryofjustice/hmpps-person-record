@@ -88,6 +88,7 @@ private fun address(address: ApiResponseSetupAddress) =
       ${address.townCity?.let { """ "townCity": "${address.townCity}", """.trimIndent() } ?: ""}
       ${address.county?.let { """ "county": "${address.county}", """.trimIndent() } ?: ""}
       ${address.uprn?.let { """ "uprn": ${address.uprn}, """.trimIndent() } ?: ""}
+      ${address.notes?.let { """ "notes": "${address.notes}", """.trimIndent() } ?: ""}
       ${address.postcode?.let { """ "postcode": "${address.postcode}" """.trimIndent() } ?: ""}
     }
   """.trimIndent()
