@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
@@ -212,7 +212,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.lastModified).isNotNull()
       assertThat(personEntity.sexualOrientation).isEqualTo(sexualOrientation.value)
       assertThat(personEntity.religion).isEqualTo(religion)
-      checkNationalities(personEntity, nationality, secondaryNationality)
+      checkNationalities(personEntity.nationalities, nationality, secondaryNationality)
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
@@ -294,7 +294,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(changedEthnicityCode.code)
       assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(changedEthnicityCode.description)
 
-      checkNationalities(updatedPersonEntity, changedNationality)
+      checkNationalities(updatedPersonEntity.nationalities, changedNationality)
 
       assertThat(updatedPersonEntity.getPrimaryName().titleCode?.code).isEqualTo("MR")
       assertThat(updatedPersonEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
@@ -366,16 +366,16 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should write offender without PNC if PNC is missing`() {
+    fun `should handle missing data correctly`() {
       val crn = randomCrn()
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = null))
+      val addresses = listOf(
+        ApiResponseSetupAddress(postcode = null, noFixedAbode = null, startDate = null, endDate = null, fullAddress = null),
+      )
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = null, addresses = addresses))
       val personEntity = awaitNotNull { personRepository.findByCrn(crn) }
 
       assertThat(personEntity.references.getPNCs()).isEmpty()
-
-      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
-      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
-      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+      assertThat(personEntity.addresses).hasSize(0)
     }
 
     @Test
@@ -597,21 +597,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val updatedPostcodeFourEntity = updatedPerson.addresses.find { it.postcode == postcodeFour }
       assertThat(updatedPostcodeFourEntity?.id).isNotEqualTo(postcodeTwoEntity?.id)
     }
-
-    @Test
-    fun `should not store empty addresses`() {
-      val crn = randomCrn()
-
-      val addresses = listOf(
-        ApiResponseSetupAddress(postcode = null, noFixedAbode = null, startDate = null, endDate = null, fullAddress = null),
-      )
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, addresses = addresses))
-
-      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
-
-      val person = awaitNotNull { personRepository.findByCrn(crn) }
-      assertThat(person.addresses).hasSize(0)
-    }
   }
 
   @Test
@@ -704,11 +689,11 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   private fun checkNationalities(
-    person: PersonEntity,
+    nationalityEntities: List<NationalityEntity>,
     vararg nationalities: String,
   ) {
-    assertThat(person.nationalities.size).isEqualTo(nationalities.size)
-    val actual = person.nationalities.map { it.nationalityCode }
+    assertThat(nationalityEntities.size).isEqualTo(nationalities.size)
+    val actual = nationalityEntities.map { it.nationalityCode }
     val expected = nationalities.map { NationalityCode.fromProbationMapping(it) }
     assertThat(actual).containsAll(expected)
   }
