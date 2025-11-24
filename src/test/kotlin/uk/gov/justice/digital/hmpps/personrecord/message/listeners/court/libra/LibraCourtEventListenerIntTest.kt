@@ -84,8 +84,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val person = awaitNotNull { personRepository.findByCId(cId) }
 
     val storedTitle = title.getTitle()
-    assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(storedTitle.code)
-    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(storedTitle.description)
+    assertThat(person.getPrimaryName().titleCodeLegacy?.code).isEqualTo(storedTitle.code)
+    assertThat(person.getPrimaryName().titleCodeLegacy?.description).isEqualTo(storedTitle.description)
     assertThat(person.getPrimaryName().firstName).isEqualTo(firstName)
     assertThat(person.getPrimaryName().middleNames).isEqualTo("$forename2 $forename3")
     assertThat(person.getPrimaryName().lastName).isEqualTo(lastName)
@@ -143,8 +143,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       personRepository.findByCId(cId)
     }
     val storedTitle = title.getTitle()
-    assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(storedTitle.code)
-    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(storedTitle.description)
+    assertThat(person.getPrimaryName().titleCodeLegacy?.code).isEqualTo(storedTitle.code)
+    assertThat(person.getPrimaryName().titleCodeLegacy?.description).isEqualTo(storedTitle.description)
     assertThat(person.getPrimaryName().firstName).isEqualTo(changedFirstName)
     assertThat(person.getPrimaryName().middleNames).isEqualTo(changedForename3)
     assertThat(person.getPrimaryName().lastName).isEqualTo(lastName)
