@@ -62,7 +62,7 @@ fun randomName(): String = randomLowerCaseString()
 
 fun randomAddressNumber(): String = (1..200).random().toString()
 
-fun randomUprn(): String = randomDigit(12)
+fun randomUprn(): String = "2" + randomDigit(11)
 
 fun randomTitle(): String = titleCodeMap.keys.random()
 
