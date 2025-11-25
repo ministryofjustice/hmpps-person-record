@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -189,6 +190,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val storedTitle = title.getTitle()
       assertThat(personEntity.getPrimaryName().titleCodeLegacy?.code).isEqualTo(storedTitle.code)
       assertThat(personEntity.getPrimaryName().titleCodeLegacy?.description).isEqualTo(storedTitle.description)
+      assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(TitleCode.from(title))
       assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
 
       assertThat(personEntity.addresses.size).isEqualTo(2)
@@ -233,6 +235,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val originalEthnicity = randomProbationEthnicity()
       val nationality = randomProbationNationalityCode()
       val secondaryNationality = randomProbationNationalityCode()
+      val originalTitle = "Mrs"
       probationDomainEventAndResponseSetup(
         NEW_OFFENDER_CREATED,
         ApiResponseSetup(
@@ -240,7 +243,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           pnc = pnc,
           gender = gender.key,
           ethnicity = originalEthnicity,
-          title = "Mrs",
+          title = originalTitle,
           nationality = nationality,
           secondaryNationality = secondaryNationality,
         ),
@@ -253,6 +256,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.ethnicityCodeLegacy?.code).isEqualTo(originalEthnicityCode.code)
       assertThat(personEntity.ethnicityCodeLegacy?.description).isEqualTo(originalEthnicityCode.description)
       assertThat(personEntity.religion).isNull()
+      assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(TitleCode.from(originalTitle))
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
@@ -266,6 +270,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val aliasGender = randomProbationSexCode()
       val updatedReligion = randomReligion()
       val dateOfDeath = randomDate()
+      val updatedTitle = "MR"
       probationDomainEventAndResponseSetup(
         OFFENDER_PERSONAL_DETAILS_UPDATED,
         ApiResponseSetup(
@@ -275,7 +280,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           dateOfBirth = changedDateOfBirth,
           ethnicity = changedEthnicity,
           nationality = changedNationality,
-          title = "MR",
+          title = updatedTitle,
           sexualOrientation = sexualOrientation.key,
           religion = updatedReligion,
           aliases = listOf(
@@ -302,8 +307,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkNationalities(updatedPersonEntity.nationalities, changedNationality)
 
-      assertThat(updatedPersonEntity.getPrimaryName().titleCodeLegacy?.code).isEqualTo("MR")
-      assertThat(updatedPersonEntity.getPrimaryName().titleCodeLegacy?.description).isEqualTo("Mr")
+      val storedTitle = updatedTitle.getTitle()
+      assertThat(updatedPersonEntity.getPrimaryName().titleCodeLegacy?.code).isEqualTo(storedTitle.code)
+      assertThat(updatedPersonEntity.getPrimaryName().titleCodeLegacy?.description).isEqualTo(storedTitle.description)
+      assertThat(updatedPersonEntity.getPrimaryName().titleCode).isEqualTo(TitleCode.from(updatedTitle))
       assertThat(updatedPersonEntity.sexualOrientation).isEqualTo(sexualOrientation.value)
       assertThat(updatedPersonEntity.religion).isEqualTo(updatedReligion)
       assertThat(updatedPersonEntity.getAliases()[0].sexCode).isEqualTo(aliasGender.value)
