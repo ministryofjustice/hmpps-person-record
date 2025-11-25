@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
 import jakarta.persistence.EnumType.STRING
 import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
@@ -43,6 +44,7 @@ class PseudonymEntity(
   var titleCodeLegacy: TitleCodeEntity? = null,
 
   @Column(name = "title_code")
+  @Enumerated(EnumType.STRING)
   var titleCode: TitleCode? = null,
 
   @Column(name = "first_name")

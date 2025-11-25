@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 import jakarta.persistence.CascadeType.ALL
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
 import jakarta.persistence.EnumType.STRING
 import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType.EAGER
@@ -116,6 +117,7 @@ class PersonEntity(
   var ethnicityCodeLegacy: EthnicityCodeEntity? = null,
 
   @Column(name = "ethnicity_code")
+  @Enumerated(EnumType.STRING)
   var ethnicityCode: EthnicityCode? = null,
 
   @Column(name = "date_of_death")
