@@ -115,7 +115,7 @@ class PersonEntity(
   )
   var ethnicityCodeLegacy: EthnicityCodeEntity? = null,
 
-  @Column(name = "ethnicity_code")
+//  @Column(name = "ethnicity_code")   -- TODO -reintroduce this after we fix the titleCode mapping
   var ethnicityCode: EthnicityCode? = null,
 
   @Column(name = "date_of_death")
@@ -192,7 +192,7 @@ class PersonEntity(
     this.sexualOrientation = person.sexualOrientation
     this.lastModified = LocalDateTime.now()
     this.dateOfDeath = person.dateOfDeath
-    this.ethnicityCode = person.ethnicityCode
+//    this.ethnicityCode = person.ethnicityCode -- TODO -reintroduce this after we fix the ethnicityCode mapping
     this.updateChildEntities(person)
   }
 

@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBa
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
-import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
@@ -87,7 +86,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val storedTitle = title.getTitle()
     assertThat(person.getPrimaryName().titleCodeLegacy?.code).isEqualTo(storedTitle.code)
     assertThat(person.getPrimaryName().titleCodeLegacy?.description).isEqualTo(storedTitle.description)
-    assertThat(person.getPrimaryName().titleCode).isEqualTo(TitleCode.from(title))
+    assertThat(person.getPrimaryName().titleCode).isEqualTo(null)
     assertThat(person.getPrimaryName().firstName).isEqualTo(firstName)
     assertThat(person.getPrimaryName().middleNames).isEqualTo("$forename2 $forename3")
     assertThat(person.getPrimaryName().lastName).isEqualTo(lastName)
@@ -147,7 +146,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val storedTitle = title.getTitle()
     assertThat(person.getPrimaryName().titleCodeLegacy?.code).isEqualTo(storedTitle.code)
     assertThat(person.getPrimaryName().titleCodeLegacy?.description).isEqualTo(storedTitle.description)
-    assertThat(person.getPrimaryName().titleCode).isEqualTo(TitleCode.from(title))
+    assertThat(person.getPrimaryName().titleCode).isEqualTo(null)
     assertThat(person.getPrimaryName().firstName).isEqualTo(changedFirstName)
     assertThat(person.getPrimaryName().middleNames).isEqualTo(changedForename3)
     assertThat(person.getPrimaryName().lastName).isEqualTo(lastName)
