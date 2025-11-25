@@ -115,7 +115,7 @@ class PersonEntity(
   )
   var ethnicityCodeLegacy: EthnicityCodeEntity? = null,
 
-  @Column(name = "ethnicity_code")
+//  @Column(name = "ethnicity_code")   -- TODO -reintroduce this after we fix the titleCode mapping
   var ethnicityCode: EthnicityCode? = null,
 
   @Column(name = "date_of_death")

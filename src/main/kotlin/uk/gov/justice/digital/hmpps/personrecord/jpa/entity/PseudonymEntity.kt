@@ -42,7 +42,7 @@ class PseudonymEntity(
   )
   var titleCodeLegacy: TitleCodeEntity? = null,
 
-  @Column(name = "title_code")
+//  @Column(name = "title_code")   -- TODO -reintroduce this after we fix the titleCode mapping
   var titleCode: TitleCode? = null,
 
   @Column(name = "first_name")
