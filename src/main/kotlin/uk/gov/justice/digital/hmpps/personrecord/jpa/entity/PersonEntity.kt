@@ -192,7 +192,7 @@ class PersonEntity(
     this.sexualOrientation = person.sexualOrientation
     this.lastModified = LocalDateTime.now()
     this.dateOfDeath = person.dateOfDeath
-    this.ethnicityCode = person.ethnicityCode
+//    this.ethnicityCode = person.ethnicityCode -- TODO -reintroduce this after we fix the ethnicityCode mapping
     this.updateChildEntities(person)
   }
 
