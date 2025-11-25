@@ -66,6 +66,8 @@ data class ApiResponseSetup(
   val sentenceStartDate: LocalDate? = null,
   val primarySentence: Boolean? = null,
   val gender: String? = null,
+  val genderIdentity: String? = null,
+  val selfDescribedGenderIdentity: String? = null,
   val sexualOrientation: String? = null,
   val contacts: List<ApiResponseSetupContact> = listOf(),
 ) {
