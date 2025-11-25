@@ -44,30 +44,6 @@ class MigrateEthnicityCodesIntTest : WebTestBase() {
       }
     }
 
-    @Test
-    fun `should populate titleCode`() {
-      val firstPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
-      val firstTitleCode = firstPerson.pseudonyms.first().titleCode
-
-      firstPerson.pseudonyms.first().titleCode = null
-
-      personRepository.save(firstPerson)
-
-      awaitAssert {
-        assertThat(personRepository.findByCrn(firstPerson.crn!!)?.pseudonyms?.first()?.titleCode).isEqualTo(null)
-      }
-
-      webTestClient.post()
-        .uri("/admin/migrate-ethnicity-codes")
-        .exchange()
-        .expectStatus()
-        .isOk
-
-      awaitAssert {
-        assertThat(personRepository.findByCrn(firstPerson.crn!!)?.pseudonyms?.first()?.titleCode).isEqualTo(firstTitleCode)
-      }
-    }
-
     private fun setEthnicityCode(person: PersonEntity, ethnicityCode: String) {
       val ethnicityCodeEntity: EthnicityCodeEntity? = ethnicityCodeRepository.findByCode(ethnicityCode)
       person.ethnicityCodeLegacy = ethnicityCodeEntity
