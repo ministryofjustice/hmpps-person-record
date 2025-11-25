@@ -28,6 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
@@ -166,7 +167,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.ethnicityCodeLegacy?.code).isEqualTo(storedEthnicity.code)
       assertThat(updatedPersonEntity.ethnicityCodeLegacy?.description).isEqualTo(storedEthnicity.description)
 
-//      assertThat(updatedPersonEntity.ethnicityCode).isEqualTo(null) -- TODO -reintroduce this after we fix the titleCode mapping
+      assertThat(updatedPersonEntity.ethnicityCode).isEqualTo(EthnicityCode.fromCommonPlatform(ethnicity))
     }
 
     checkTelemetry(
