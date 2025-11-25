@@ -29,6 +29,10 @@ class MigrateEthnicityCodesIntTest : WebTestBase() {
 
       setEthnicityCode(firstPerson, firstEthnicityCode)
 
+      awaitAssert {
+        assertThat(personRepository.findByCrn(firstPerson.crn!!)?.ethnicityCode).isEqualTo(null)
+      }
+
       webTestClient.post()
         .uri("/admin/migrate-ethnicity-codes")
         .exchange()
@@ -43,7 +47,6 @@ class MigrateEthnicityCodesIntTest : WebTestBase() {
     private fun setEthnicityCode(person: PersonEntity, ethnicityCode: String) {
       val ethnicityCodeEntity: EthnicityCodeEntity? = ethnicityCodeRepository.findByCode(ethnicityCode)
       person.ethnicityCodeLegacy = ethnicityCodeEntity
-      personRepository.save(person)
       personRepository.save(person)
     }
   }
