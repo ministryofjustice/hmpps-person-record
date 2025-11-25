@@ -14,14 +14,7 @@ enum class GenderIdentityCode(val description: String) {
 
   companion object {
 
-    val probationGenderIdentityCode: Map<String, GenderIdentityCode> = mapOf(
-      "GIF" to GIF,
-      "GIM" to GIM,
-      "GINB" to GINB,
-      "GIRF" to GIRF,
-      "GISD" to GISD,
-      "UNK" to UNK,
-    )
+    val probationGenderIdentityCode: Map<String, GenderIdentityCode> = GenderIdentityCode.entries.associateBy { it.name }
 
     fun from(probationCase: ProbationCase?): GenderIdentityCode? = probationCase?.genderIdentity?.value.nullIfBlank()?.let {
       probationGenderIdentityCode.getOrDefault(it, UNK)
