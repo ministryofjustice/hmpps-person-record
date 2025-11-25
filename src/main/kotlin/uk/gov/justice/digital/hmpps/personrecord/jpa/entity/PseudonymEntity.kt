@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import java.time.LocalDate
 
 @Entity
@@ -41,9 +40,6 @@ class PseudonymEntity(
     referencedColumnName = "id",
   )
   var titleCodeLegacy: TitleCodeEntity? = null,
-
-//  @Column(name = "title_code")   -- TODO -reintroduce this after we fix the titleCode mapping
-  var titleCode: TitleCode? = null,
 
   @Column(name = "first_name")
   val firstName: String? = null,
