@@ -52,7 +52,7 @@ class MigrateEthnicityCode(
     val elapsedTime: Duration = measureTime {
       do {
         val pageable = PageRequest.of(pageNumber, BATCH_SIZE)
-        personEntities = personRepository.findAllByEthnicityCodeLegacyIsNotNull(pageable)
+        personEntities = personRepository.findAllByEthnicityCodeLegacyIsNotNullAndEthnicityCodeIsNull(pageable)
         page(personEntities)
         log.info(JOB_NAME + "${personEntities.totalPages}")
       } while (personEntities.hasNext())
