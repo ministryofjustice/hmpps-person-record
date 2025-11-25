@@ -42,7 +42,7 @@ class PseudonymEntity(
   )
   var titleCodeLegacy: TitleCodeEntity? = null,
 
-  @Column(name = "title_code")
+//  @Column(name = "title_code")   -- TODO -reintroduce this after we fix the titleCode mapping
   var titleCode: TitleCode? = null,
 
   @Column(name = "first_name")
@@ -75,7 +75,7 @@ class PseudonymEntity(
       lastName = person.lastName,
       nameType = NameType.PRIMARY,
       titleCodeLegacy = titleCode,
-      titleCode = person.titleCode,
+//      titleCode = person.titleCode,  -- TODO -reintroduce this after we fix the titleCode mapping
       dateOfBirth = person.dateOfBirth,
       sexCode = person.sexCode,
     )
@@ -89,7 +89,7 @@ class PseudonymEntity(
           dateOfBirth = alias.dateOfBirth,
           nameType = NameType.ALIAS,
           titleCodeLegacy = titleCode,
-          titleCode = alias.titleCode,
+//          titleCode = alias.titleCode,  -- TODO -reintroduce this after we fix the ethnicityCode mapping
           sexCode = alias.sexCode,
         )
       else -> null
