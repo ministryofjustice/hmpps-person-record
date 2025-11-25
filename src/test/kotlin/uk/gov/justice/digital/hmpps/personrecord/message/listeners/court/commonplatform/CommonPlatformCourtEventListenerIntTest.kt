@@ -166,7 +166,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.ethnicityCodeLegacy?.code).isEqualTo(storedEthnicity.code)
       assertThat(updatedPersonEntity.ethnicityCodeLegacy?.description).isEqualTo(storedEthnicity.description)
 
-//      assertThat(updatedPersonEntity.ethnicityCode).isEqualTo(EthnicityCode.fromCommonPlatform(ethnicity))  -- TODO -reintroduce this after we fix the ethnicityCode mapping
+      assertThat(updatedPersonEntity.ethnicityCode).isEqualTo(null)
     }
 
     checkTelemetry(
@@ -252,7 +252,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val storedTitle = title.getTitle()
     assertThat(firstPerson.getPrimaryName().titleCodeLegacy?.code).isEqualTo(storedTitle.code)
     assertThat(firstPerson.getPrimaryName().titleCodeLegacy?.description).isEqualTo(storedTitle.description)
-//    assertThat(firstPerson.getPrimaryName().titleCode).isEqualTo(TitleCode.from(title))   -- TODO -reintroduce this after we fix the ethnicityCode mapping
+    assertThat(firstPerson.getPrimaryName().titleCode).isEqualTo(null)
     assertThat(firstPerson.getPrimaryName().firstName).isEqualTo(firstName)
     assertThat(firstPerson.getPrimaryName().middleNames).isEqualTo("mName1 mName2")
     assertThat(firstPerson.getPrimaryName().lastName).isEqualTo(lastName)

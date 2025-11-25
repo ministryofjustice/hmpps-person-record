@@ -158,7 +158,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.ethnicityCodeLegacy?.code).isEqualTo(storedPrisonEthnicity.code)
         assertThat(personEntity.ethnicityCodeLegacy?.description).isEqualTo(storedPrisonEthnicity.description)
 
-//        assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))  -- TODO -reintroduce this after we fix the ethnicityCode mapping
+        assertThat(personEntity.ethnicityCode).isEqualTo(null)
       }
 
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
