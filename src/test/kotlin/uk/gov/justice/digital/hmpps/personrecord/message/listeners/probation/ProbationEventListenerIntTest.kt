@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
@@ -53,9 +54,34 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupContact
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
-import java.util.UUID
+import java.util.*
 
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
+
+  // TODO - this should be removed after we do the step to remove ethnicityCodeLegacy
+  @Test
+  fun `should map ETH04 successfully`() {
+    stubPersonMatchUpsert()
+
+    val ethnicityCodeEntity = ethnicityCodeRepository.findByCode("ETH04")
+    val crn = randomCrn()
+    val inputPersonEntity = PersonEntity(crn = crn, sourceSystem = DELIUS, matchId = UUID.randomUUID(), ethnicityCodeLegacy = ethnicityCodeEntity)
+    personRepository.saveAndFlush(inputPersonEntity)
+
+    val storedPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
+
+    assertThat(storedPersonEntity.ethnicityCodeLegacy?.code).isEqualTo("ETH04")
+
+    probationDomainEventAndResponseSetup(
+      OFFENDER_PERSONAL_DETAILS_UPDATED,
+      ApiResponseSetup(
+        crn = crn,
+        ethnicity = "ETH04",
+      ),
+    )
+    awaitAssert { assertThat(personRepository.findByCrn(crn)?.ethnicityCodeLegacy?.code).isEqualTo("UN") }
+    awaitAssert { assertThat(personRepository.findByCrn(crn)?.ethnicityCode?.name).isEqualTo("UN") }
+  }
 
   @Nested
   inner class SuccessfulProcessing {
