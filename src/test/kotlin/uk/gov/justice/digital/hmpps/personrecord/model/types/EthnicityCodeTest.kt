@@ -22,8 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.B1
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.B2
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.B9
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.ETH03
-import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.ETH04
-import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.ETH05
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.M1
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.M2
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.M3
@@ -120,8 +118,8 @@ class EthnicityCodeTest {
       Arguments.of("W5", W5),
       Arguments.of("W9", W9),
       Arguments.of("ETH03", ETH03),
-      Arguments.of("ETH04", ETH04),
-      Arguments.of("ETH05", ETH05),
+      Arguments.of("ETH04", UN),
+      Arguments.of("ETH05", UN),
       Arguments.of("O1", O1),
       Arguments.of("Z1", Z1),
       Arguments.of("Invalid", UN),
