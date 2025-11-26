@@ -25,8 +25,6 @@ enum class EthnicityCode {
   W5,
   W9,
   ETH03,
-  ETH04,
-  ETH05,
   W8,
   Z1,
   UN,
@@ -57,8 +55,6 @@ enum class EthnicityCode {
       W5,
       W9,
       ETH03,
-      ETH04,
-      ETH05,
       O1,
       Z1,
     ).associateBy { it.name }

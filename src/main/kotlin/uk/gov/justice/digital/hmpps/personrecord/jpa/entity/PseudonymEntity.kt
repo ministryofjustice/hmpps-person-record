@@ -44,7 +44,7 @@ class PseudonymEntity(
   var titleCodeLegacy: TitleCodeEntity? = null,
 
   @Column(name = "title_code")
-  @Enumerated(EnumType.STRING)
+  @Enumerated(STRING)
   var titleCode: TitleCode? = null,
 
   @Column(name = "first_name")
