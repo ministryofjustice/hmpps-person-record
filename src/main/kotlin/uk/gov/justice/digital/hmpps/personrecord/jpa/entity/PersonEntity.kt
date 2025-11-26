@@ -116,6 +116,7 @@ class PersonEntity(
   var ethnicityCodeLegacy: EthnicityCodeEntity? = null,
 
   @Column(name = "ethnicity_code")
+  @Enumerated(STRING)
   var ethnicityCode: EthnicityCode? = null,
 
   @Column(name = "date_of_death")

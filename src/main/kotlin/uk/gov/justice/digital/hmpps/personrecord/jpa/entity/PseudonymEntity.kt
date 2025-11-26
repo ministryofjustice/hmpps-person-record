@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import java.time.LocalDate
 
 @Entity
@@ -41,9 +40,6 @@ class PseudonymEntity(
     referencedColumnName = "id",
   )
   var titleCodeLegacy: TitleCodeEntity? = null,
-
-  @Column(name = "title_code")
-  var titleCode: TitleCode? = null,
 
   @Column(name = "first_name")
   val firstName: String? = null,
@@ -75,7 +71,7 @@ class PseudonymEntity(
       lastName = person.lastName,
       nameType = NameType.PRIMARY,
       titleCodeLegacy = titleCode,
-      titleCode = person.titleCode,
+//      titleCode = person.titleCode,  -- TODO -reintroduce this after we fix the titleCode mapping
       dateOfBirth = person.dateOfBirth,
       sexCode = person.sexCode,
     )
@@ -89,7 +85,7 @@ class PseudonymEntity(
           dateOfBirth = alias.dateOfBirth,
           nameType = NameType.ALIAS,
           titleCodeLegacy = titleCode,
-          titleCode = alias.titleCode,
+//          titleCode = alias.titleCode,  -- TODO -reintroduce this after we fix the ethnicityCode mapping
           sexCode = alias.sexCode,
         )
       else -> null
