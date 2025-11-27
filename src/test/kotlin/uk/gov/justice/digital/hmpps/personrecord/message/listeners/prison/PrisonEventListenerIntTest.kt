@@ -10,9 +10,11 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -119,7 +121,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         val storedTitle = title.getTitle()
         assertThat(personEntity.getPrimaryName().titleCodeLegacy?.code).isEqualTo(storedTitle.code)
         assertThat(personEntity.getPrimaryName().titleCodeLegacy?.description).isEqualTo(storedTitle.description)
-        assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(null)
+        assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(TitleCode.from(title))
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(firstName)
         assertThat(personEntity.getPrimaryName().middleNames).isEqualTo("$middleName $middleName")
         assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
@@ -133,7 +135,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getAliases().size).isEqualTo(1)
         assertThat(personEntity.getAliases()[0].titleCodeLegacy?.code).isEqualTo(storedTitle.code)
         assertThat(personEntity.getAliases()[0].titleCodeLegacy?.description).isEqualTo(storedTitle.description)
-        assertThat(personEntity.getAliases()[0].titleCode).isEqualTo(null)
+        assertThat(personEntity.getAliases()[0].titleCode).isEqualTo(TitleCode.from(title))
         assertThat(personEntity.getAliases()[0].firstName).isEqualTo(aliasFirstName)
         assertThat(personEntity.getAliases()[0].middleNames).isEqualTo(aliasMiddleName)
         assertThat(personEntity.getAliases()[0].lastName).isEqualTo(aliasLastName)
@@ -157,7 +159,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.ethnicityCodeLegacy?.code).isEqualTo(storedPrisonEthnicity.code)
         assertThat(personEntity.ethnicityCodeLegacy?.description).isEqualTo(storedPrisonEthnicity.description)
 
-        assertThat(personEntity.ethnicityCode).isEqualTo(null)
+        assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))
       }
 
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
@@ -244,7 +246,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         val storedTitle = title.getTitle()
         assertThat(personEntity.getPrimaryName().titleCodeLegacy?.code).isEqualTo(storedTitle.code)
         assertThat(personEntity.getPrimaryName().titleCodeLegacy?.description).isEqualTo(storedTitle.description)
-        assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(null)
+        assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(TitleCode.from(title))
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
         assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(updatedSexCode.value)
 
