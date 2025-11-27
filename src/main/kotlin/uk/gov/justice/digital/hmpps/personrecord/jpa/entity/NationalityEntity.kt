@@ -12,7 +12,6 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
-import java.time.LocalDate
 
 @Entity
 @Table(name = "nationalities")
@@ -33,22 +32,10 @@ class NationalityEntity(
   @Column(name = "nationality_code")
   @Enumerated(EnumType.STRING)
   var nationalityCode: NationalityCode,
-
-  @Column(name = "start_date")
-  val startDate: LocalDate? = null,
-
-  @Column(name = "end_date")
-  val endDate: LocalDate? = null,
-
-  @Column(name = "notes")
-  val notes: String? = null,
 ) {
   companion object {
 
     fun from(nationality: Nationality): NationalityEntity? = NationalityEntity(
-      startDate = nationality.startDate,
-      endDate = nationality.endDate,
-      notes = nationality.notes,
       nationalityCode = nationality.code!!,
     )
   }
