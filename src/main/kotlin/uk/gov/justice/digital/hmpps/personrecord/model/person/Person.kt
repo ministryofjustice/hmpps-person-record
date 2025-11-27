@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
@@ -48,6 +49,8 @@ data class Person(
   val sentences: List<SentenceInfo> = emptyList(),
   val cId: String? = null,
   val sexCode: SexCode? = null,
+  val genderIdentityCode: GenderIdentityCode? = null,
+  val selfDescribedGenderIdentity: String? = null,
   val sexualOrientation: SexualOrientation? = null,
   val behaviour: Behaviour = Behaviour(),
 ) {

@@ -27,6 +27,11 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
           "code": "${probationCase.gender ?: ""}",
           "description": "Male"
       },
+      "genderIdentity": {
+          "code":  "${probationCase.genderIdentity ?: ""}",
+          "description": "string"
+      },
+      "genderIdentityDescription": ${probationCase.selfDescribedGenderIdentity?.let {""" "${probationCase.selfDescribedGenderIdentity}" """}},
       "aliases": [${probationCase.aliases.joinToString { alias(it) }}],
       "addresses": [${probationCase.addresses.joinToString { address(it) }}],
       "ethnicity": {
