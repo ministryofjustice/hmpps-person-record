@@ -4,6 +4,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.commonPlatformEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.prisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.probationEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode.Companion.probationGenderIdentityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.commonPlatformSexCode
@@ -72,6 +74,8 @@ fun randomLibraSexCode(): Map.Entry<String, SexCode> = libraSexCode.entries.rand
 
 fun randomProbationSexCode(): Map.Entry<String, SexCode> = probationSexCode.entries.random()
 fun randomProbationSexualOrientation(): Map.Entry<String, SexualOrientation> = probationSexualOrientationMap.entries.random()
+
+fun randomProbationGenderIdentity(): Map.Entry<String, GenderIdentityCode> = probationGenderIdentityCode.entries.random()
 
 fun randomPrisonSexualOrientation(): Map.Entry<String, SexualOrientation> = prisonSexualOrientationMap.entries.random()
 
