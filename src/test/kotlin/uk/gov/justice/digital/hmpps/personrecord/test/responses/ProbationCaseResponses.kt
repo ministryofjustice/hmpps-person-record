@@ -41,8 +41,8 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
         ${probationCase.nationality?.let { """ "code": "${probationCase.nationality}", """.trimIndent() } ?: ""}
         "description": "string"
       },
-      "secondaryNationality": {
-        ${probationCase.secondaryNationality?.let { """ "code": "${probationCase.secondaryNationality}", """.trimIndent() } ?: ""}
+      "secondNationality": {
+        ${probationCase.secondNationality?.let { """ "code": "${probationCase.secondNationality}", """.trimIndent() } ?: ""}
         "description": "string"
       },
       "contactDetails": {

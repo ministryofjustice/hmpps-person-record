@@ -17,7 +17,7 @@ data class ProbationCase(
   val addresses: List<ProbationAddress> = emptyList(),
   val sentences: List<Sentences>? = emptyList(),
   val nationality: Value? = null,
-  val secondaryNationality: Value? = null,
+  val secondNationality: Value? = null,
   val gender: Value? = null,
   val genderIdentity: Value? = null,
   @JsonProperty("genderIdentityDescription")

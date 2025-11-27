@@ -107,7 +107,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val addressEndDate = randomDate()
       val ethnicity = randomProbationEthnicity()
       val nationality = randomProbationNationalityCode()
-      val secondaryNationality = randomProbationNationalityCode()
+      val secondNationality = randomProbationNationalityCode()
       val sentenceDate = randomDate()
       val aliasFirstName = randomName()
       val aliasMiddleName = randomName()
@@ -183,7 +183,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
         ethnicity = ethnicity,
         nationality = nationality,
-        secondaryNationality = secondaryNationality,
+        secondNationality = secondNationality,
         sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
         gender = gender.key,
         sexualOrientation = sexualOrientation.key,
@@ -253,7 +253,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.genderIdentity).isEqualTo(genderIdentity.value)
       assertThat(personEntity.selfDescribedGenderIdentity).isEqualTo(selfDescribedGenderIdentity)
       assertThat(personEntity.religion).isEqualTo(religion)
-      checkNationalities(personEntity.nationalities, nationality, secondaryNationality)
+      checkNationalities(personEntity.nationalities, nationality, secondNationality)
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
@@ -267,7 +267,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val gender = randomProbationSexCode()
       val originalEthnicity = randomProbationEthnicity()
       val nationality = randomProbationNationalityCode()
-      val secondaryNationality = randomProbationNationalityCode()
+      val secondNationality = randomProbationNationalityCode()
       val originalTitle = "Mrs"
       probationDomainEventAndResponseSetup(
         NEW_OFFENDER_CREATED,
@@ -278,7 +278,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           ethnicity = originalEthnicity,
           title = originalTitle,
           nationality = nationality,
-          secondaryNationality = secondaryNationality,
+          secondNationality = secondNationality,
         ),
       )
       val personEntity = awaitNotNull { personRepository.findByCrn(crn) }
