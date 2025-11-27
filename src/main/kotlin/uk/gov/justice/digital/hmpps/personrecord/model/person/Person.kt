@@ -49,7 +49,7 @@ data class Person(
   val sentences: List<SentenceInfo> = emptyList(),
   val cId: String? = null,
   val sexCode: SexCode? = null,
-  val genderIdentityCode: GenderIdentityCode? = null,
+  val genderIdentity: GenderIdentityCode? = null,
   val selfDescribedGenderIdentity: String? = null,
   val sexualOrientation: SexualOrientation? = null,
   val behaviour: Behaviour = Behaviour(),
@@ -99,6 +99,8 @@ data class Person(
         sexCode = SexCode.from(probationCase),
         sexualOrientation = SexualOrientation.from(probationCase),
         religion = probationCase.religion?.value,
+        genderIdentity = GenderIdentityCode.from(probationCase),
+        selfDescribedGenderIdentity = probationCase.selfDescribedGenderIdentity,
       )
     }
 

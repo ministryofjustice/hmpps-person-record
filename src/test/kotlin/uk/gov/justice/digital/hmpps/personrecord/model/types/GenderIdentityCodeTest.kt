@@ -26,7 +26,7 @@ class GenderIdentityCodeTest {
   fun `should handle null probation gender identity code`() {
     val probationCase = ProbationCase(name = ProbationCaseName(firstName = randomName()), identifiers = Identifiers(crn = randomCrn()), genderIdentity = Value(null))
     val person = Person.from(probationCase)
-    assertThat(person.genderIdentityCode).isNull()
+    assertThat(person.genderIdentity).isNull()
   }
 
   @ParameterizedTest
