@@ -76,7 +76,7 @@ data class Person(
 
       val nationalities: List<Nationality> = listOf(
         NationalityCode.fromProbationMapping(probationCase.nationality?.value),
-        NationalityCode.fromProbationMapping(probationCase.secondaryNationality?.value),
+        NationalityCode.fromProbationMapping(probationCase.secondNationality?.value),
       ).mapNotNull { it }
         .map { Nationality(it) }
 
