@@ -118,6 +118,9 @@ class AddressEntity(
       uprn = address.uprn,
       recordType = address.recordType,
       comment = address.comment,
+      contacts = address.telephoneNumber?.let {
+        mutableListOf(ContactEntity.from(it))
+      } ?: mutableListOf(),
     )
   }
 }

@@ -133,6 +133,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val county = randomName()
       val uprn = randomUprn()
       val notes = randomName()
+      val telephone = randomPhoneNumber()
 
       val dateOfBirth = randomDate()
       val dateOfDeath = randomDate()
@@ -164,6 +165,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
             county = county,
             uprn = uprn,
             notes = notes,
+            telephoneNumber = telephone,
           ),
           ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
         ),
@@ -239,6 +241,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.addresses[0].county).isEqualTo(county)
       assertThat(personEntity.addresses[0].uprn).isEqualTo(uprn)
       assertThat(personEntity.addresses[0].comment).isEqualTo(notes)
+      assertThat(personEntity.addresses[0].contacts[0].contactValue).isEqualTo(telephone)
       assertThat(personEntity.addresses[1].noFixedAbode).isNull()
       assertThat(personEntity.addresses[1].postcode).isEqualTo("M21 9LX")
       assertThat(personEntity.addresses[1].fullAddress).isEqualTo("abc street")
