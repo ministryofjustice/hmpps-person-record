@@ -281,9 +281,8 @@ class IntegrationTestBase {
   internal fun PersonKeyEntity.addPerson(person: Person): PersonKeyEntity = this.addPerson(createPerson(person))
 
   internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonEntity {
-    val personEntity = createPerson(person)
-    createPersonKey(status, reason).addPerson(personEntity)
-    return personRepository.findByMatchId(personEntity.matchId)!!
+    val personKeyEntity = createPersonKey(status, reason).addPerson(person)
+    return personKeyEntity.personEntities.first()
   }
 
   internal fun createPerson(person: Person): PersonEntity {
@@ -490,7 +489,7 @@ class IntegrationTestBase {
     nextScenarioState: String? = currentScenarioState,
   ) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
 
-  internal fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
+  internal fun stubProbationResponse(probationCase: ApiResponseSetup, scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, probationUrl(probationCase.crn!!), probationCaseResponse(probationCase))
 
   internal fun blitz(actionCount: Int, threadCount: Int, action: () -> Unit) {
     val blitzer = Blitzer(actionCount, threadCount)

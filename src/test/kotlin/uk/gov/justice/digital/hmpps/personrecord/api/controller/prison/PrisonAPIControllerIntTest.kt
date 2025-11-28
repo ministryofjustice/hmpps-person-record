@@ -159,8 +159,8 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.aliases.first().title.description).isEqualTo(
         person.getAliases().first().titleCodeLegacy?.description,
       )
-      assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality?.first()?.code)
-      assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality?.first()?.description)
+      assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
+      assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
       assertThat(responseBody.aliases.first().sex.code).isEqualTo(sex.value.name)
       assertThat(responseBody.aliases.first().sex.description).isEqualTo(sex.value.description)
       assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
@@ -198,7 +198,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       val personOneDefendantId = randomDefendantId()
       val personTwoDefendantId = randomDefendantId()
 
-      val personOne = createPerson(
+      val personOne =
         Person(
           firstName = randomName(),
           lastName = randomName(),
@@ -228,10 +228,9 @@ class PrisonAPIControllerIntTest : WebTestBase() {
               identifierValue = personOneDriversLicenseNumber,
             ),
           ),
-        ),
-      )
+        )
 
-      val personTwo = createPerson(
+      val personTwo =
         Person(
           firstName = randomName(),
           lastName = randomName(),
@@ -261,8 +260,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
               identifierValue = personTwoDriversLicenseNumber,
             ),
           ),
-        ),
-      )
+        )
 
       createPersonKey().addPerson(personOne).addPerson(personTwo)
 

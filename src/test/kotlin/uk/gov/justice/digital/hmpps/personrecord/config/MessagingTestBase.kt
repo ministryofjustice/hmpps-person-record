@@ -162,7 +162,7 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     nextScenarioState: String? = null,
     apiResponseSetup: ApiResponseSetup = ApiResponseSetup(crn = targetCrn),
   ) {
-    stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
+    stubProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
     publishDomainEvent(
       eventType,
       DomainEvent(
@@ -185,8 +185,8 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     reactivatedSetup: ApiResponseSetup = ApiResponseSetup(crn = reactivatedCrn),
     unmergedSetup: ApiResponseSetup = ApiResponseSetup(crn = unmergedCrn),
   ) {
-    stubSingleProbationResponse(reactivatedSetup, scenario, currentScenarioState, nextScenarioState)
-    stubSingleProbationResponse(unmergedSetup, scenario, currentScenarioState, nextScenarioState)
+    stubProbationResponse(reactivatedSetup, scenario, currentScenarioState, nextScenarioState)
+    stubProbationResponse(unmergedSetup, scenario, currentScenarioState, nextScenarioState)
 
     publishDomainEvent(
       eventType,
@@ -208,7 +208,7 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
   ) {
-    stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
+    stubProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
 
     publishDomainEvent(eventType, probationDomainEvent(eventType, apiResponseSetup.crn!!, additionalInformation))
   }

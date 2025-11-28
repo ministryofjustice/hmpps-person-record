@@ -128,8 +128,8 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.aliases.first().title.description).isEqualTo(person.getAliases().first().titleCodeLegacy?.description)
     assertThat(responseBody.aliases.first().sex.code).isEqualTo(sex.value.name)
     assertThat(responseBody.aliases.first().sex.description).isEqualTo(sex.value.description)
-    assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality?.first()?.code)
-    assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality?.first()?.description)
+    assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
+    assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
     assertThat(responseBody.sex.code).isEqualTo(sex.value.name)
     assertThat(responseBody.sex.description).isEqualTo(sex.value.description)
     assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
@@ -314,7 +314,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val personOneDriversLicenseNumber = randomDriverLicenseNumber()
     val personTwoDriversLicenseNumber = randomDriverLicenseNumber()
 
-    val personOne = createPerson(
+    val personOne =
       Person(
         firstName = randomName(),
         lastName = randomName(),
@@ -335,32 +335,30 @@ class CanonicalApiIntTest : WebTestBase() {
           Reference(identifierType = IdentifierType.ARREST_SUMMONS_NUMBER, identifierValue = personOneArrestSummonNumber),
           Reference(identifierType = IdentifierType.DRIVER_LICENSE_NUMBER, identifierValue = personOneDriversLicenseNumber),
         ),
+      )
+
+    val personTwo = Person(
+      firstName = randomName(),
+      lastName = randomName(),
+      middleNames = randomName(),
+      dateOfBirth = randomDate(),
+      sourceSystem = NOMIS,
+      crn = personTwoCrn,
+      prisonNumber = randomPrisonNumber(),
+      nationalities = listOf(Nationality(randomNationalityCode())),
+      religion = randomReligion(),
+      cId = randomCId(),
+      defendantId = randomDefendantId(),
+      masterDefendantId = randomDefendantId(),
+      references = listOf(
+        Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
+        Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
+        Reference(identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER, identifierValue = personTwoNationalInsuranceNumber),
+        Reference(identifierType = IdentifierType.ARREST_SUMMONS_NUMBER, identifierValue = personTwoArrestSummonNumber),
+        Reference(identifierType = IdentifierType.DRIVER_LICENSE_NUMBER, identifierValue = personTwoDriversLicenseNumber),
       ),
     )
 
-    val personTwo = createPerson(
-      Person(
-        firstName = randomName(),
-        lastName = randomName(),
-        middleNames = randomName(),
-        dateOfBirth = randomDate(),
-        sourceSystem = NOMIS,
-        crn = personTwoCrn,
-        prisonNumber = randomPrisonNumber(),
-        nationalities = listOf(Nationality(randomNationalityCode())),
-        religion = randomReligion(),
-        cId = randomCId(),
-        defendantId = randomDefendantId(),
-        masterDefendantId = randomDefendantId(),
-        references = listOf(
-          Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
-          Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
-          Reference(identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER, identifierValue = personTwoNationalInsuranceNumber),
-          Reference(identifierType = IdentifierType.ARREST_SUMMONS_NUMBER, identifierValue = personTwoArrestSummonNumber),
-          Reference(identifierType = IdentifierType.DRIVER_LICENSE_NUMBER, identifierValue = personTwoDriversLicenseNumber),
-        ),
-      ),
-    )
     val personKey = createPersonKey().addPerson(personOne).addPerson(personTwo)
 
     val responseBody = webTestClient.get()

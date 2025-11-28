@@ -170,8 +170,8 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
       )
       assertThat(responseBody.aliases.first().sex.code).isEqualTo(person.getAliases().first().sexCode?.name)
       assertThat(responseBody.aliases.first().sex.description).isEqualTo(person.getAliases().first().sexCode?.description)
-      assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality?.first()?.code)
-      assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality?.first()?.description)
+      assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
+      assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
       assertThat(responseBody.sex.code).isEqualTo(sex.value.name)
       assertThat(responseBody.sex.description).isEqualTo(sex.value.description)
       assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
@@ -310,64 +310,61 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
 
       val personOneDefendantId = randomDefendantId()
 
-      val personOne = createPerson(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = COMMON_PLATFORM,
-          nationalities = listOf(Nationality(randomNationalityCode())),
-          religion = randomReligion(),
-          defendantId = personOneDefendantId,
-          masterDefendantId = personOneDefendantId,
-          references = listOf(
-            Reference(identifierType = IdentifierType.CRO, identifierValue = personOneCro),
-            Reference(identifierType = IdentifierType.PNC, identifierValue = personOnePnc),
-            Reference(
-              identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
-              identifierValue = personOneNationalInsuranceNumber,
-            ),
-            Reference(
-              identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
-              identifierValue = personOneArrestSummonNumber,
-            ),
-            Reference(
-              identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
-              identifierValue = personOneDriversLicenseNumber,
-            ),
+      val personOne = Person(
+        firstName = randomName(),
+        lastName = randomName(),
+        middleNames = randomName(),
+        dateOfBirth = randomDate(),
+        sourceSystem = COMMON_PLATFORM,
+        nationalities = listOf(Nationality(randomNationalityCode())),
+        religion = randomReligion(),
+        defendantId = personOneDefendantId,
+        masterDefendantId = personOneDefendantId,
+        references = listOf(
+          Reference(identifierType = IdentifierType.CRO, identifierValue = personOneCro),
+          Reference(identifierType = IdentifierType.PNC, identifierValue = personOnePnc),
+          Reference(
+            identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+            identifierValue = personOneNationalInsuranceNumber,
+          ),
+          Reference(
+            identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
+            identifierValue = personOneArrestSummonNumber,
+          ),
+          Reference(
+            identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
+            identifierValue = personOneDriversLicenseNumber,
           ),
         ),
       )
 
-      val personTwo = createPerson(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = DELIUS,
-          crn = personTwoCrn,
-          nationalities = listOf(Nationality(randomNationalityCode())),
-          religion = randomReligion(),
-          references = listOf(
-            Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
-            Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
-            Reference(
-              identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
-              identifierValue = personTwoNationalInsuranceNumber,
-            ),
-            Reference(
-              identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
-              identifierValue = personTwoArrestSummonNumber,
-            ),
-            Reference(
-              identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
-              identifierValue = personTwoDriversLicenseNumber,
-            ),
+      val personTwo = Person(
+        firstName = randomName(),
+        lastName = randomName(),
+        middleNames = randomName(),
+        dateOfBirth = randomDate(),
+        sourceSystem = DELIUS,
+        crn = personTwoCrn,
+        nationalities = listOf(Nationality(randomNationalityCode())),
+        religion = randomReligion(),
+        references = listOf(
+          Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
+          Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
+          Reference(
+            identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+            identifierValue = personTwoNationalInsuranceNumber,
+          ),
+          Reference(
+            identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
+            identifierValue = personTwoArrestSummonNumber,
+          ),
+          Reference(
+            identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
+            identifierValue = personTwoDriversLicenseNumber,
           ),
         ),
       )
+
       createPersonKey().addPerson(personOne).addPerson(personTwo)
 
       val responseBody = webTestClient.get()

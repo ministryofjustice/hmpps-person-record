@@ -231,7 +231,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         val personOneDefendantId = randomDefendantId()
         val personTwoDefendantId = randomDefendantId()
 
-        val personOne = createPerson(
+        val personOne =
           Person(
             firstName = randomName(),
             lastName = randomName(),
@@ -261,10 +261,9 @@ class ProbationApiE2ETest : E2ETestBase() {
                 identifierValue = personOneDriversLicenseNumber,
               ),
             ),
-          ),
-        )
+          )
 
-        val personTwo = createPerson(
+        val personTwo =
           Person(
             firstName = randomName(),
             lastName = randomName(),
@@ -294,8 +293,7 @@ class ProbationApiE2ETest : E2ETestBase() {
                 identifierValue = personTwoDriversLicenseNumber,
               ),
             ),
-          ),
-        )
+          )
         createPersonKey().addPerson(personOne).addPerson(personTwo)
         val responseBody = webTestClient.get()
           .uri(probationApiUrl(personOneCrn))
@@ -471,8 +469,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.matchId).isNotNull()
         assertThat(offender.lastModified).isNotNull()
         assertThat(offender.nationalities.size).isEqualTo(1)
-        assertThat(offender.nationalities.first().nationalityCode?.name).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.name)
-        assertThat(offender.nationalities.first().nationalityCode?.description).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.description)
+        assertThat(offender.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.name)
+        assertThat(offender.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.description)
 
         checkTelemetry(
           CPR_RECORD_CREATED,
