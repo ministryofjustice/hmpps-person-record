@@ -52,7 +52,7 @@ class PersonFactory(
 
   private fun PersonEntity.buildChildEntities(person: Person) {
     this.attachPseudonyms(pseudonymFactory.buildPseudonyms(person))
-    this.attachNationalities(person.nationalities.mapNotNull { NationalityEntity.from(it) })
+    this.attachNationalities(person.nationalities.map { NationalityEntity.from(it) })
     this.attachEthnicity(ethnicityFactory.buildEthnicity(person))
   }
 
