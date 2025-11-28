@@ -94,6 +94,7 @@ private fun address(address: ApiResponseSetupAddress) =
       ${address.county?.let { """ "county": "${address.county}", """.trimIndent() } ?: ""}
       ${address.uprn?.let { """ "uprn": ${address.uprn}, """.trimIndent() } ?: ""}
       ${address.notes?.let { """ "notes": "${address.notes}", """.trimIndent() } ?: ""}
+      ${address.telephoneNumber?.let { """ "telephoneNumber": "${address.telephoneNumber}", """.trimIndent() } ?: ""}
       ${address.postcode?.let { """ "postcode": "${address.postcode}" """.trimIndent() } ?: ""}
     }
   """.trimIndent()
