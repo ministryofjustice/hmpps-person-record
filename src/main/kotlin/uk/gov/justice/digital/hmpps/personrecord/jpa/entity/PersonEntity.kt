@@ -228,8 +228,10 @@ class PersonEntity(
 
   private fun updatePersonAddresses(addresses: List<AddressEntity>) {
     this.addresses.clear()
-    addresses.forEach { personAddressEntity -> personAddressEntity.person = this
-    personAddressEntity.contacts.forEach { contactEntity -> contactEntity.address = personAddressEntity }}
+    addresses.forEach { personAddressEntity ->
+      personAddressEntity.person = this
+      personAddressEntity.contacts.forEach { contactEntity -> contactEntity.address = personAddressEntity }
+    }
     this.addresses.addAll(addresses)
   }
 
