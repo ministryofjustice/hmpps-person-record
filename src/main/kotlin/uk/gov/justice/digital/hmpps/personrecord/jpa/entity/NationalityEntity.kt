@@ -10,7 +10,6 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 
 @Entity
@@ -35,8 +34,8 @@ class NationalityEntity(
 ) {
   companion object {
 
-    fun from(nationality: Nationality): NationalityEntity? = NationalityEntity(
-      nationalityCode = nationality.code!!,
+    fun from(nationalityCode: NationalityCode): NationalityEntity = NationalityEntity(
+      nationalityCode = nationalityCode,
     )
   }
 }

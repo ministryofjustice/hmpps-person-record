@@ -26,7 +26,6 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
@@ -114,7 +113,7 @@ class ProbationApiE2ETest : E2ETestBase() {
             crn = crn,
             sexCode = sex.value,
             prisonNumber = prisonNumber,
-            nationalities = listOf(Nationality(nationality)),
+            nationalities = listOf(nationality),
             religion = religion,
             ethnicityCode = EthnicityCode.fromCommonPlatform(ethnicity),
             aliases = listOf(
@@ -240,7 +239,7 @@ class ProbationApiE2ETest : E2ETestBase() {
             sourceSystem = NOMIS,
             crn = personOneCrn,
             prisonNumber = randomPrisonNumber(),
-            nationalities = listOf(Nationality(randomNationalityCode())),
+            nationalities = listOf(randomNationalityCode()),
             religion = randomReligion(),
             cId = randomCId(),
             defendantId = personOneDefendantId,
@@ -273,7 +272,7 @@ class ProbationApiE2ETest : E2ETestBase() {
             sourceSystem = NOMIS,
             crn = personTwoCrn,
             prisonNumber = randomPrisonNumber(),
-            nationalities = listOf(Nationality(randomNationalityCode())),
+            nationalities = listOf(randomNationalityCode()),
             religion = randomReligion(),
             cId = randomCId(),
             defendantId = personTwoDefendantId,
@@ -471,8 +470,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.matchId).isNotNull()
         assertThat(offender.lastModified).isNotNull()
         assertThat(offender.nationalities.size).isEqualTo(1)
-        assertThat(offender.nationalities.first().nationalityCode?.name).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.name)
-        assertThat(offender.nationalities.first().nationalityCode?.description).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.description)
+        assertThat(offender.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.name)
+        assertThat(offender.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.description)
 
         checkTelemetry(
           CPR_RECORD_CREATED,

@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTi
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
@@ -83,7 +82,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
           crn = crn,
           sexCode = sex.value,
           prisonNumber = prisonNumber,
-          nationalities = listOf(Nationality(nationality)),
+          nationalities = listOf(nationality),
           religion = religion,
           ethnicityCode = EthnicityCode.fromCommonPlatform(ethnicity),
           aliases = listOf(
@@ -159,8 +158,8 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.aliases.first().title.description).isEqualTo(
         person.getAliases().first().titleCodeLegacy?.description,
       )
-      assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality?.first()?.code)
-      assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality?.first()?.description)
+      assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
+      assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
       assertThat(responseBody.aliases.first().sex.code).isEqualTo(sex.value.name)
       assertThat(responseBody.aliases.first().sex.description).isEqualTo(sex.value.description)
       assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
@@ -207,7 +206,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
           sourceSystem = NOMIS,
           crn = personOneCrn,
           prisonNumber = randomPrisonNumber(),
-          nationalities = listOf(Nationality(randomNationalityCode())),
+          nationalities = listOf(randomNationalityCode()),
           religion = randomReligion(),
           cId = randomCId(),
           defendantId = personOneDefendantId,
@@ -240,7 +239,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
           sourceSystem = NOMIS,
           crn = personTwoCrn,
           prisonNumber = randomPrisonNumber(),
-          nationalities = listOf(Nationality(randomNationalityCode())),
+          nationalities = listOf(randomNationalityCode()),
           religion = randomReligion(),
           cId = randomCId(),
           defendantId = personTwoDefendantId,
