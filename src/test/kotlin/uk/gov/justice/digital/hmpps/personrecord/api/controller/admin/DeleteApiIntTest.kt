@@ -36,9 +36,9 @@ class DeleteApiIntTest : WebTestBase() {
   @Test
   fun `should delete a single record`() {
     stubDeletePersonMatch()
+    val crn = randomCrn()
+    val (person, personKey) = createPersonAndKey(createRandomProbationPersonDetails(crn))
 
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails())
-    val crn = person.crn!!
     val request = listOf(AdminDeleteRecord(SourceSystemType.DELIUS, crn))
 
     webTestClient.post()
@@ -56,21 +56,21 @@ class DeleteApiIntTest : WebTestBase() {
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to crn, "UUID" to person.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to crn, "UUID" to personKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkEventLog(crn, CPRLogEvents.CPR_UUID_DELETED) { eventLogs ->
       assertThat(eventLogs).hasSize(1)
       val eventLog = eventLogs.first()
-      assertThat(eventLog.personUUID).isEqualTo(person.personKey?.personUUID)
+      assertThat(eventLog.personUUID).isEqualTo(personKey.personUUID)
     }
     checkEventLog(crn, CPRLogEvents.CPR_RECORD_DELETED) { eventLogs ->
       assertThat(eventLogs).hasSize(1)
       val eventLog = eventLogs.first()
-      assertThat(eventLog.personUUID).isEqualTo(person.personKey?.personUUID)
+      assertThat(eventLog.personUUID).isEqualTo(personKey.personUUID)
     }
 
     person.assertPersonDeleted()
-    person.personKey?.assertPersonKeyDeleted()
+    personKey.assertPersonKeyDeleted()
   }
 
   companion object {

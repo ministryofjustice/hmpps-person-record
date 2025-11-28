@@ -280,6 +280,11 @@ class IntegrationTestBase {
 
   internal fun PersonKeyEntity.addPerson(person: Person): PersonKeyEntity = this.addPerson(createPerson(person))
 
+  internal fun createPersonAndKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): Pair<PersonEntity, PersonKeyEntity> {
+    val personKeyEntity = createPersonKey(status, reason).addPerson(person)
+    return Pair(personKeyEntity.personEntities.first(), personKeyEntity)
+  }
+
   internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonEntity {
     val personKeyEntity = createPersonKey(status, reason).addPerson(person)
     return personKeyEntity.personEntities.first()
