@@ -34,6 +34,7 @@ data class ApiResponseSetupAddress(
   val county: String? = null,
   val uprn: String? = null,
   val notes: String? = null,
+  val telephoneNumber: String? = null,
 )
 
 data class ApiResponseSetupSentences(val sentenceDate: LocalDate?)

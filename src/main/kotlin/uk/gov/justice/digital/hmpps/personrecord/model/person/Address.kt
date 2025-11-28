@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.person
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import java.time.LocalDate
 import kotlin.reflect.full.memberProperties
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Address as CommonPlatformAddress
@@ -26,6 +27,7 @@ data class Address(
   val countryCode: String? = null,
   val uprn: String? = null,
   val comment: String? = null,
+  val telephoneNumber: Contact? = null,
   var recordType: AddressRecordType? = null,
 ) {
 
@@ -56,6 +58,7 @@ data class Address(
       county = address.county.nullIfBlank(),
       uprn = address.uprn.nullIfBlank(),
       comment = address.notes.nullIfBlank(),
+      telephoneNumber = address.telephoneNumber.nullIfBlank()?.let { Contact(ContactType.HOME, it) },
     ).allPropertiesOrNull()
 
     fun from(address: CommonPlatformAddress?): Address? = Address(
