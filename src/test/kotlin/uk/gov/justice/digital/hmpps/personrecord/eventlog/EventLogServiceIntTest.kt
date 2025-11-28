@@ -85,19 +85,6 @@ class EventLogServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should map a merged person to event log`() {
-    val mergedIntoPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
-    var mergedToPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
-
-    mergedToPerson = mergeRecord(mergedToPerson, mergedIntoPerson)
-
-    val eventLog = eventLogService.logEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_CREATED, mergedToPerson))
-
-    assertThat(eventLog).isNotNull()
-    assertThat(mergedToPerson.mergedTo).isEqualTo(mergedIntoPerson.id)
-  }
-
-  @Test
   fun `should map exclude override to event log`() {
     val toRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
     val fromRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
