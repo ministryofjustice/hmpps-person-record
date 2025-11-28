@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
@@ -84,7 +83,7 @@ class CanonicalApiIntTest : WebTestBase() {
         crn = crn, // this is not realistic - a person will only have one of crn, cid,defendantId or prison number
         sexCode = sex.value,
         prisonNumber = prisonNumber,
-        nationalities = listOf(Nationality(nationality)),
+        nationalities = listOf(nationality),
         religion = religion,
         cId = cid,
         ethnicityCode = EthnicityCode.fromCommonPlatform(ethnicity),
@@ -128,8 +127,8 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.aliases.first().title.description).isEqualTo(person.getAliases().first().titleCodeLegacy?.description)
     assertThat(responseBody.aliases.first().sex.code).isEqualTo(sex.value.name)
     assertThat(responseBody.aliases.first().sex.description).isEqualTo(sex.value.description)
-    assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality?.first()?.code)
-    assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality?.first()?.description)
+    assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
+    assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
     assertThat(responseBody.sex.code).isEqualTo(sex.value.name)
     assertThat(responseBody.sex.description).isEqualTo(sex.value.description)
     assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
@@ -323,7 +322,7 @@ class CanonicalApiIntTest : WebTestBase() {
         sourceSystem = NOMIS,
         crn = personOneCrn,
         prisonNumber = randomPrisonNumber(),
-        nationalities = listOf(Nationality(randomNationalityCode())),
+        nationalities = listOf(randomNationalityCode()),
         religion = randomReligion(),
         cId = randomCId(),
         defendantId = randomDefendantId(),
@@ -347,7 +346,7 @@ class CanonicalApiIntTest : WebTestBase() {
         sourceSystem = NOMIS,
         crn = personTwoCrn,
         prisonNumber = randomPrisonNumber(),
-        nationalities = listOf(Nationality(randomNationalityCode())),
+        nationalities = listOf(randomNationalityCode()),
         religion = randomReligion(),
         cId = randomCId(),
         defendantId = randomDefendantId(),
@@ -393,7 +392,7 @@ class CanonicalApiIntTest : WebTestBase() {
         middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
-        nationalities = listOf(Nationality(randomNationalityCode())),
+        nationalities = listOf(randomNationalityCode()),
         religion = randomReligion(),
         masterDefendantId = randomDefendantId(),
       ),

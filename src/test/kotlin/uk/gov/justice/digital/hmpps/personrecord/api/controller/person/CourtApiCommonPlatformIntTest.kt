@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
@@ -91,7 +90,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
           crn = crn,
           sexCode = sex.value,
           prisonNumber = prisonNumber,
-          nationalities = listOf(Nationality(nationality)),
+          nationalities = listOf(nationality),
           religion = religion,
           cId = cid,
           ethnicityCode = EthnicityCode.fromCommonPlatform(ethnicity),
@@ -170,8 +169,8 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
       )
       assertThat(responseBody.aliases.first().sex.code).isEqualTo(person.getAliases().first().sexCode?.name)
       assertThat(responseBody.aliases.first().sex.description).isEqualTo(person.getAliases().first().sexCode?.description)
-      assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality?.first()?.code)
-      assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality?.first()?.description)
+      assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
+      assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
       assertThat(responseBody.sex.code).isEqualTo(sex.value.name)
       assertThat(responseBody.sex.description).isEqualTo(sex.value.description)
       assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
@@ -317,7 +316,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
           middleNames = randomName(),
           dateOfBirth = randomDate(),
           sourceSystem = COMMON_PLATFORM,
-          nationalities = listOf(Nationality(randomNationalityCode())),
+          nationalities = listOf(randomNationalityCode()),
           religion = randomReligion(),
           defendantId = personOneDefendantId,
           masterDefendantId = personOneDefendantId,
@@ -348,7 +347,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
           dateOfBirth = randomDate(),
           sourceSystem = DELIUS,
           crn = personTwoCrn,
-          nationalities = listOf(Nationality(randomNationalityCode())),
+          nationalities = listOf(randomNationalityCode()),
           religion = randomReligion(),
           references = listOf(
             Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),

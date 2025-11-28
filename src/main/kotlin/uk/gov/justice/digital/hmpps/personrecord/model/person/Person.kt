@@ -39,7 +39,7 @@ data class Person(
   val titleCode: TitleCode? = null,
   val aliases: List<Alias> = emptyList(),
   var masterDefendantId: String? = null,
-  val nationalities: List<Nationality> = emptyList(),
+  val nationalities: List<NationalityCode> = emptyList(),
   val religion: String? = null,
   val ethnicityCode: EthnicityCode? = null,
   val contacts: List<Contact> = emptyList(),
@@ -74,11 +74,10 @@ data class Person(
         ),
       )
 
-      val nationalities: List<Nationality> = listOf(
+      val nationalities: List<NationalityCode> = listOf(
         NationalityCode.fromProbationMapping(probationCase.nationality?.value),
         NationalityCode.fromProbationMapping(probationCase.secondNationality?.value),
       ).mapNotNull { it }
-        .map { Nationality(it) }
 
       return Person(
         titleCode = TitleCode.from(probationCase.title?.value),
@@ -130,11 +129,10 @@ data class Person(
         Reference.from(identifierType = IdentifierType.CRO, identifierValue = defendant.cro?.croId),
       )
 
-      val nationalities: List<Nationality> = listOf(
+      val nationalities: List<NationalityCode> = listOf(
         NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.nationalityCode),
         NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.additionalNationalityCode),
       ).mapNotNull { it }
-        .map { Nationality(it) }
 
       return Person(
         titleCode = TitleCode.from(defendant.personDefendant?.personDetails?.title.nullIfBlank()),
@@ -198,7 +196,7 @@ data class Person(
           identifierValue = prisoner.identifiers.getType("DL")?.value,
         ),
       )
-      val nationalities: List<Nationality> = NationalityCode.fromPrisonMapping(prisoner.nationality)?.let { listOf(Nationality(it)) } ?: emptyList()
+      val nationalities: List<NationalityCode> = NationalityCode.fromPrisonMapping(prisoner.nationality)?.let { listOf(it) } ?: emptyList()
 
       return Person(
         prisonNumber = prisoner.prisonNumber.nullIfBlank(),
