@@ -24,7 +24,6 @@ class SecurityConfiguration {
         "/admin/recluster",
         "/admin/delete",
         "/admin/migrate-ethnicity-codes",
-        "/admin/migrate-title-codes",
       )
     }
   }
