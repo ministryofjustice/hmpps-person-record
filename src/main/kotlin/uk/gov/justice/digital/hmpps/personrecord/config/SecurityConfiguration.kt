@@ -22,7 +22,6 @@ class SecurityConfiguration {
         "/jobs/recordcountreport",
         "/jobs/recluster-needs-attention",
         "/admin/recluster",
-        "/admin/delete",
         "/admin/migrate-ethnicity-codes",
         "/admin/migrate-title-codes",
       )
