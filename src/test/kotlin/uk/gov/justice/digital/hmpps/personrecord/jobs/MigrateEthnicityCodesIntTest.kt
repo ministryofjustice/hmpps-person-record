@@ -44,6 +44,29 @@ class MigrateEthnicityCodesIntTest : WebTestBase() {
       }
     }
 
+    @Test
+    fun `should convert discontinued probation ethnicityCodes to unknown`() {
+      val firstPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+
+      val firstEthnicityCode = "ETH04"
+
+      setEthnicityCode(firstPerson, firstEthnicityCode)
+
+      awaitAssert {
+        assertThat(personRepository.findByCrn(firstPerson.crn!!)?.ethnicityCode).isEqualTo(null)
+      }
+
+      webTestClient.post()
+        .uri("/admin/migrate-ethnicity-codes")
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      awaitAssert {
+        assertThat(personRepository.findByCrn(firstPerson.crn!!)?.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(firstEthnicityCode))
+      }
+    }
+
     private fun setEthnicityCode(person: PersonEntity, ethnicityCode: String) {
       val ethnicityCodeEntity: EthnicityCodeEntity? = ethnicityCodeRepository.findByCode(ethnicityCode)
       person.ethnicityCodeLegacy = ethnicityCodeEntity

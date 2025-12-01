@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
@@ -33,7 +34,7 @@ class MigrateEthnicityCode(
       val executionResults = forPage { page ->
         run {
           page.content.forEach { person ->
-            person.ethnicityCode = EthnicityCode.valueOf(person.ethnicityCodeLegacy!!.code)
+            person.ethnicityCode = getCode(person)
             personRepository.save(person)
           }
         }
@@ -44,6 +45,13 @@ class MigrateEthnicityCode(
           "elapsed time: ${executionResults.elapsedTime}",
       )
     }
+  }
+
+  private fun getCode(person: PersonEntity): EthnicityCode {
+    if (person.sourceSystem == SourceSystemType.DELIUS) {
+      return EthnicityCode.fromProbation(person.ethnicityCodeLegacy!!.code)!!
+    }
+    return EthnicityCode.valueOf(person.ethnicityCodeLegacy!!.code)
   }
 
   private inline fun forPage(page: (Page<PersonEntity>) -> Unit): ExecutionResult {
@@ -72,7 +80,7 @@ class MigrateEthnicityCode(
 
   companion object {
     private const val OK = "OK"
-    private const val BATCH_SIZE = 500
+    private const val BATCH_SIZE = 1000
     private val log = LoggerFactory.getLogger(this::class.java)
     private const val JOB_NAME = "JOB: migrate-ethnicity-code: "
   }
