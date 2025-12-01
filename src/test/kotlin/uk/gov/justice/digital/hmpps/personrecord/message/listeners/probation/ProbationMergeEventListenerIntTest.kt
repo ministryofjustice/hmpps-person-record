@@ -92,12 +92,12 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
 
-      val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
+      val sourcePerson = createRandomProbationPersonDetails(sourceCrn)
       val sourceCluster = createPersonKey()
         .addPerson(createRandomProbationPersonDetails())
         .addPerson(sourcePerson)
 
-      val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails(targetCrn))
+      val (targetPerson, targetPersonKey) = createPersonAndKey(createRandomProbationPersonDetails(targetCrn))
 
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
 
@@ -122,11 +122,12 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       sourceCluster.assertClusterStatus(UUIDStatusType.ACTIVE)
       sourceCluster.assertClusterIsOfSize(1)
 
-      sourcePerson.assertMergedTo(targetPerson)
-      sourcePerson.assertNotLinkedToCluster()
+      val mergedPerson = personRepository.findByCrn(sourceCrn)!!
+      mergedPerson.assertMergedTo(targetPerson)
+      mergedPerson.assertNotLinkedToCluster()
 
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      targetPerson.personKey?.assertClusterIsOfSize(1)
+      targetPersonKey.assertClusterStatus(UUIDStatusType.ACTIVE)
+      targetPersonKey.assertClusterIsOfSize(1)
     }
 
     @Test
@@ -209,8 +210,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stub5xxResponse(probationUrl(targetCrn), "next request will succeed", "retry")
       stubPersonMatchUpsert()
       stubDeletePersonMatch()
-      val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
-      val targetPerson = createPerson(createRandomProbationPersonDetails(targetCrn))
+      val sourcePerson = createRandomProbationPersonDetails(sourceCrn)
+      val targetPerson = createRandomProbationPersonDetails(targetCrn)
       createPersonKey()
         .addPerson(sourcePerson)
         .addPerson(targetPerson)
@@ -218,20 +219,19 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn, scenario = "retry", currentScenarioState = "next request will succeed")
 
       expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
-      sourcePerson.assertMergedTo(targetPerson)
+      val mergedPerson = personRepository.findByCrn(sourceCrn)!!
+      val mergedTargetPerson = personRepository.findByCrn(targetCrn)!!
+      mergedPerson.assertMergedTo(mergedTargetPerson)
     }
 
     @Test
     fun `should retry on a 500 error from person match delete`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
-      val sourcePerson = createRandomProbationPersonDetails(sourceCrn)
-      val sourcePersonEntity = createPerson(sourcePerson)
       val targetPerson = createRandomProbationPersonDetails(targetCrn)
-      val targetPersonEntity = createPerson(targetPerson)
       createPersonKey()
-        .addPerson(sourcePersonEntity)
-        .addPerson(targetPersonEntity)
+        .addPerson(createRandomProbationPersonDetails(sourceCrn))
+        .addPerson(targetPerson)
 
       // stubs for failed delete
       val response = ApiResponseSetup.from(targetPerson)
@@ -241,7 +241,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       // stubs for successful delete
       stubDeletePersonMatch(currentScenarioState = "deleteWillWork")
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn, currentScenarioState = "deleteWillWork", nextScenarioState = "deleteWillWork", apiResponseSetup = response)
-
+      val sourcePersonEntity = personRepository.findByCrn(sourceCrn)!!
+      val targetPersonEntity = personRepository.findByCrn(targetCrn)!!
       sourcePersonEntity.assertMergedTo(targetPersonEntity)
     }
 
@@ -249,16 +250,16 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `should not throw error if person match returns a 404 on delete`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
-      val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
-      val targetPerson = createPerson(createRandomProbationPersonDetails(targetCrn))
       createPersonKey()
-        .addPerson(sourcePerson)
-        .addPerson(targetPerson)
+        .addPerson(createRandomProbationPersonDetails(sourceCrn))
+        .addPerson(createRandomProbationPersonDetails(targetCrn))
 
       stubDeletePersonMatch(status = 404)
       stubPersonMatchUpsert()
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
-      sourcePerson.assertMergedTo(targetPerson)
+      val sourcePersonEntity = personRepository.findByCrn(sourceCrn)!!
+      val targetPersonEntity = personRepository.findByCrn(targetCrn)!!
+      sourcePersonEntity.assertMergedTo(targetPersonEntity)
     }
   }
 

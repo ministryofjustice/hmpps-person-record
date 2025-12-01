@@ -315,7 +315,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
         middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = COMMON_PLATFORM,
-        nationalities = listOf(Nationality(randomNationalityCode())),
+        nationalities = listOf(randomNationalityCode()),
         religion = randomReligion(),
         defendantId = personOneDefendantId,
         masterDefendantId = personOneDefendantId,

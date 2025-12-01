@@ -63,7 +63,7 @@ class EventLogApiIntTest : WebTestBase() {
 
   @Test
   fun `should return override markers`() {
-    val (person,personKey) = createPersonAndKey(createRandomProbationPersonDetails())
+    val (person, personKey) = createPersonAndKey(createRandomProbationPersonDetails())
     val otherPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
     stubPersonMatchUpsert()
     excludeRecord(person, otherPerson)
