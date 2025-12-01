@@ -11,7 +11,6 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.TitleCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
@@ -34,13 +33,6 @@ class PseudonymEntity(
     nullable = false,
   )
   var person: PersonEntity? = null,
-
-  @ManyToOne
-  @JoinColumn(
-    name = "fk_title_code_id",
-    referencedColumnName = "id",
-  )
-  var titleCodeLegacy: TitleCodeEntity? = null,
 
   @Column(name = "title_code")
   @Enumerated(STRING)
@@ -70,18 +62,17 @@ class PseudonymEntity(
   var version: Int = 0,
 ) {
   companion object {
-    fun primaryNameFrom(person: Person, titleCode: TitleCodeEntity?): PseudonymEntity = PseudonymEntity(
+    fun primaryNameFrom(person: Person): PseudonymEntity = PseudonymEntity(
       firstName = person.firstName,
       middleNames = person.middleNames,
       lastName = person.lastName,
       nameType = NameType.PRIMARY,
-      titleCodeLegacy = titleCode,
       titleCode = person.titleCode,
       dateOfBirth = person.dateOfBirth,
       sexCode = person.sexCode,
     )
 
-    fun aliasFrom(alias: Alias, titleCode: TitleCodeEntity?): PseudonymEntity? = when {
+    fun aliasFrom(alias: Alias): PseudonymEntity? = when {
       isAliasPresent(alias.firstName, alias.middleNames, alias.lastName) ->
         PseudonymEntity(
           firstName = alias.firstName,
@@ -89,7 +80,6 @@ class PseudonymEntity(
           lastName = alias.lastName,
           dateOfBirth = alias.dateOfBirth,
           nameType = NameType.ALIAS,
-          titleCodeLegacy = titleCode,
           titleCode = alias.titleCode,
           sexCode = alias.sexCode,
         )

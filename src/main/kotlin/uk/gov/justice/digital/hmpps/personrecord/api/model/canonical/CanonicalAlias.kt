@@ -22,7 +22,7 @@ data class CanonicalAlias(
       firstName = pseudonymEntity.firstName,
       middleNames = pseudonymEntity.middleNames,
       lastName = pseudonymEntity.lastName,
-      title = CanonicalTitle.from(pseudonymEntity.titleCodeLegacy),
+      title = CanonicalTitle.from(pseudonymEntity.titleCode),
       sex = CanonicalSex.from(pseudonymEntity.sexCode),
     )
 
