@@ -44,7 +44,7 @@ data class Alias(
     )
 
     fun from(pseudonymEntity: PseudonymEntity): Alias = Alias(
-      titleCode = TitleCode.from(pseudonymEntity.titleCodeLegacy?.code),
+      titleCode = pseudonymEntity.titleCode,
       firstName = pseudonymEntity.firstName,
       middleNames = pseudonymEntity.middleNames,
       lastName = pseudonymEntity.lastName,

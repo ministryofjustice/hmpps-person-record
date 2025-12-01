@@ -221,9 +221,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPrimaryName().nameType).isEqualTo(NameType.PRIMARY)
       assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
       val storedTitle = title.getTitle()
-      assertThat(personEntity.getPrimaryName().titleCodeLegacy?.code).isEqualTo(storedTitle.code)
-      assertThat(personEntity.getPrimaryName().titleCodeLegacy?.description).isEqualTo(storedTitle.description)
-      assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(TitleCode.from(title))
+      assertThat(personEntity.getPrimaryName().titleCode?.name).isEqualTo(storedTitle.code)
+      assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo(storedTitle.description)
       assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
 
       assertThat(personEntity.addresses.size).isEqualTo(2)
@@ -350,9 +349,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkNationalities(updatedPersonEntity.nationalities, changedNationality)
 
       val storedTitle = updatedTitle.getTitle()
-      assertThat(updatedPersonEntity.getPrimaryName().titleCodeLegacy?.code).isEqualTo(storedTitle.code)
-      assertThat(updatedPersonEntity.getPrimaryName().titleCodeLegacy?.description).isEqualTo(storedTitle.description)
-      assertThat(updatedPersonEntity.getPrimaryName().titleCode).isEqualTo(TitleCode.from(updatedTitle))
+      assertThat(updatedPersonEntity.getPrimaryName().titleCode?.name).isEqualTo(storedTitle.code)
+      assertThat(updatedPersonEntity.getPrimaryName().titleCode?.description).isEqualTo(storedTitle.description)
       assertThat(updatedPersonEntity.sexualOrientation).isEqualTo(sexualOrientation.value)
       assertThat(updatedPersonEntity.religion).isEqualTo(updatedReligion)
       assertThat(updatedPersonEntity.genderIdentity).isEqualTo(updatedGenderIdentity.value)
