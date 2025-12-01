@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.SentenceInfo
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
@@ -119,6 +120,13 @@ class PersonEntity(
   @Enumerated(STRING)
   var ethnicityCode: EthnicityCode? = null,
 
+  @Column(name = "gender_identity")
+  @Enumerated(STRING)
+  var genderIdentity: GenderIdentityCode? = null,
+
+  @Column(name = "self_described_gender_identity")
+  var selfDescribedGenderIdentity: String? = null,
+
   @Column(name = "date_of_death")
   var dateOfDeath: LocalDate? = null,
 
@@ -194,6 +202,8 @@ class PersonEntity(
     this.lastModified = LocalDateTime.now()
     this.dateOfDeath = person.dateOfDeath
     this.ethnicityCode = person.ethnicityCode
+    this.genderIdentity = person.genderIdentity
+    this.selfDescribedGenderIdentity = person.selfDescribedGenderIdentity
     this.updateChildEntities(person)
   }
 
@@ -218,7 +228,10 @@ class PersonEntity(
 
   private fun updatePersonAddresses(addresses: List<AddressEntity>) {
     this.addresses.clear()
-    addresses.forEach { personAddressEntity -> personAddressEntity.person = this }
+    addresses.forEach { personAddressEntity ->
+      personAddressEntity.person = this
+      personAddressEntity.contacts.forEach { contactEntity -> contactEntity.address = personAddressEntity }
+    }
     this.addresses.addAll(addresses)
   }
 

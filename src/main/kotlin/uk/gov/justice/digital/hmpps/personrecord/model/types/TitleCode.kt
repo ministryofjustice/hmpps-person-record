@@ -1,24 +1,24 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 
-enum class TitleCode {
-  MR,
-  MRS,
-  MISS,
-  MS,
-  MX,
-  REV,
-  FR,
-  IMAM,
-  RABBI,
-  BR,
-  SR,
-  DME,
-  DR,
-  LDY,
-  LRD,
-  SIR,
-  UN,
+enum class TitleCode(val description: String) {
+  MR("Mr"),
+  MRS("Mrs"),
+  MISS("Miss"),
+  MS("Ms"),
+  MX("Mx"),
+  REV("Reverend"),
+  FR("Father"),
+  IMAM("Imam"),
+  RABBI("Rabbi"),
+  BR("Brother"),
+  SR("Sister"),
+  DME("Dame"),
+  DR("Dr"),
+  LDY("Lady"),
+  LRD("Lord"),
+  SIR("Sir"),
+  UN("Unknown"),
   ;
 
   companion object {

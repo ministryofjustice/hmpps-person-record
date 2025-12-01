@@ -16,4 +16,5 @@ data class ProbationAddress(
   val county: String? = null,
   val uprn: String? = null,
   val notes: String? = null,
+  val telephoneNumber: String? = null,
 )

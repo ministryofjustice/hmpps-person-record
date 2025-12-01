@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
@@ -91,7 +90,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
           crn = crn,
           sexCode = sex.value,
           prisonNumber = prisonNumber,
-          nationalities = listOf(Nationality(nationality)),
+          nationalities = listOf(nationality),
           religion = religion,
           cId = cid,
           ethnicityCode = EthnicityCode.fromCommonPlatform(ethnicity),
@@ -345,7 +344,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
         dateOfBirth = randomDate(),
         sourceSystem = DELIUS,
         crn = personTwoCrn,
-        nationalities = listOf(Nationality(randomNationalityCode())),
+        nationalities = listOf(randomNationalityCode()),
         religion = randomReligion(),
         references = listOf(
           Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
