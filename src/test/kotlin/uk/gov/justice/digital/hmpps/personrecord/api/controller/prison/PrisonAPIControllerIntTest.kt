@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -38,7 +37,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
-import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
+import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 
 class PrisonAPIControllerIntTest : WebTestBase() {
 
@@ -50,7 +49,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       val firstName = randomName()
       val lastName = randomName()
       val middleNames = randomName()
-      val title = randomTitle()
+      val title = randomTitleCode()
       val pnc = randomLongPnc()
       val noFixedAbode = true
       val startDate = randomDate()
@@ -78,7 +77,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
           middleNames = randomName(),
           dateOfBirth = randomDate(),
           sourceSystem = NOMIS,
-          titleCode = TitleCode.from(title),
+          titleCode = title.value,
           crn = crn,
           sexCode = sex.value,
           prisonNumber = prisonNumber,
@@ -91,7 +90,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
               middleNames = middleNames,
               lastName = lastName,
               dateOfBirth = randomDate(),
-              titleCode = TitleCode.from(title),
+              titleCode = title.value,
               sexCode = sex.value,
             ),
           ),
@@ -125,12 +124,11 @@ class PrisonAPIControllerIntTest : WebTestBase() {
         .returnResult()
         .responseBody!!
 
-      val storedTitle = title.getTitle()
       val canonicalAlias = CanonicalAlias(
         firstName = firstName,
         lastName = lastName,
         middleNames = middleNames,
-        title = CanonicalTitle(code = storedTitle.code, description = storedTitle.description),
+        title = CanonicalTitle.from(title.value),
         sex = CanonicalSex.from(sex.value),
       )
       val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
