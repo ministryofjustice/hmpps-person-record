@@ -23,7 +23,6 @@ class SecurityConfiguration {
         "/jobs/recluster-needs-attention",
         "/admin/recluster",
         "/admin/migrate-ethnicity-codes",
-        "/admin/migrate-title-codes",
       )
     }
   }

@@ -723,7 +723,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
       )
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
-
+      val personEntity = personRepository.findByCrn(crn)!!
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
         assertThat(eventLogs.size).isEqualTo(1)
         val createdLog = eventLogs.first()
@@ -738,8 +738,21 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.firstNameAliases).isEqualTo(arrayOf(aliasFirstName))
         assertThat(createdLog.lastNameAliases).isEqualTo(arrayOf(aliasLastName))
         assertThat(createdLog.dateOfBirthAliases).isEqualTo(arrayOf(aliasDateOfBirth))
-        assertThat(createdLog.personUUID).isNotNull()
         assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
+
+        assertThat(createdLog.sourceSystemId).isEqualTo(crn)
+        assertThat(createdLog.matchId).isEqualTo(personEntity.matchId)
+        assertThat(createdLog.personUUID).isEqualTo(personEntity.personKey?.personUUID)
+        assertThat(createdLog.dateOfBirth).isEqualTo(personEntity.getPrimaryName().dateOfBirth)
+
+        assertThat(createdLog.postcodes.size).isEqualTo(1)
+        assertThat(createdLog.postcodes.first()).isEqualTo(postcode)
+        assertThat(createdLog.recordMergedTo).isNull()
+        assertThat(createdLog.eventTimestamp).isNotNull()
+        assertThat(createdLog.overrideMarker).isNull()
+        assertThat(createdLog.overrideScopes).isEmpty()
+        assertThat(createdLog.statusReason).isNull()
+        assertThat(createdLog.masterDefendantId).isNull()
       }
       checkEventLogExist(crn, CPRLogEvents.CPR_UUID_CREATED)
     }
