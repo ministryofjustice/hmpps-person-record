@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
 
 data class ApiResponseSetupIdentifier(val type: String, val value: String)
+data class ApiResponseSetupAdditionalIdentifier(val type: String, val value: String)
 
 data class ApiResponseSetupContact(val type: ContactType, val value: String)
 
@@ -63,6 +64,7 @@ data class ApiResponseSetup(
   val dateOfDeath: LocalDate? = null,
   val driverLicenseNumber: String? = randomDriverLicenseNumber(),
   val identifiers: List<ApiResponseSetupIdentifier> = listOf(),
+  val additionalIdentifiers: List<ApiResponseSetupAdditionalIdentifier> = listOf(),
   val sentences: List<ApiResponseSetupSentences>? = listOf(),
   val sentenceStartDate: LocalDate? = null,
   val primarySentence: Boolean? = null,
