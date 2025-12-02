@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.p
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation.Companion.prisonSexualOrientationMap
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation.Companion.probationSexualOrientationMap
+import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode.Companion.titleCodeMap
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.COMMON_PLATFORM_NATIONALITY_MAPPING
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
@@ -66,7 +67,7 @@ fun randomAddressNumber(): String = (1..200).random().toString()
 
 fun randomUprn(): String = "2" + randomDigit(11)
 
-fun randomTitle(): String = titleCodeMap.keys.random()
+fun randomTitleCode(): Map.Entry<String, TitleCode> = titleCodeMap.entries.random()
 
 fun randomCommonPlatformSexCode(): Map.Entry<String, SexCode> = commonPlatformSexCode.entries.random()
 
