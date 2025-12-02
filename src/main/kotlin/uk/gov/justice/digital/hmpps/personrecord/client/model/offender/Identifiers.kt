@@ -12,4 +12,5 @@ data class Identifiers(
   val prisonNumber: String? = null,
   @JsonProperty("ni")
   val nationalInsuranceNumber: String? = null,
+  val additionalIdentifier: List<ProbationCaseAdditionalIdentifier>? = emptyList(),
 )

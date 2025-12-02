@@ -10,9 +10,17 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
           "crn": "${probationCase.crn ?: ""}",
           "cro": "${probationCase.cro ?: ""}",
           "prisonerNumber": "${probationCase.prisonNumber ?: ""}",
-          "ni": "${probationCase.nationalInsuranceNumber ?: ""}"
+          "ni": "${probationCase.nationalInsuranceNumber ?: ""}",
+          "additionalIdentifiers": [
+          {
+            "type": {
+              "code": "${probationCase.additionalIdentifiers ?: ""}",
+              "description": "string"
+            },
+            "value": "string"
+          }
+        ]
       },
-      "additionalIdentifiers": [${probationCase.additionalIdentifiers?.joinToString { additionalIdentifier(it) } ?: ""}]},
       "name": {
           "forename": "${probationCase.firstName}",
           "middleName": "${probationCase.middleName}",
@@ -97,15 +105,6 @@ private fun address(address: ApiResponseSetupAddress) =
       ${address.notes?.let { """ "notes": "${address.notes}", """.trimIndent() } ?: ""}
       ${address.telephoneNumber?.let { """ "telephoneNumber": "${address.telephoneNumber}", """.trimIndent() } ?: ""}
       ${address.postcode?.let { """ "postcode": "${address.postcode}" """.trimIndent() } ?: ""}
-    }
-  """.trimIndent()
-
-private fun additionalIdentifier(additionalIdentifier: ApiResponseSetupAdditionalIdentifier) =
-  """
-    {
-      ${additionalIdentifier.type?.let { """ "type": "${additionalIdentifier.type}", """.trimIndent() } ?: ""}
-      ${additionalIdentifier.value?.let { """ "value": "${additionalIdentifier.value}" """.trimIndent() } ?: ""}
-    
     }
   """.trimIndent()
 
