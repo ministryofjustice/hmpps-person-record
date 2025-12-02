@@ -9,12 +9,10 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityC
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.reference.EthnicityFactory
-import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.reference.PseudonymFactory
 
 @Component
 class PersonFactory(
   private val personRepository: PersonRepository,
-  private val pseudonymFactory: PseudonymFactory,
   private val ethnicityFactory: EthnicityFactory,
 ) {
 
@@ -51,7 +49,7 @@ class PersonFactory(
   }
 
   private fun PersonEntity.buildChildEntities(person: Person) {
-    this.attachPseudonyms(pseudonymFactory.buildPseudonyms(person))
+    this.attachPseudonyms(listOf(PseudonymEntity.primaryNameFrom(person)) + person.aliases.mapNotNull { PseudonymEntity.aliasFrom(it) })
     this.attachNationalities(person.nationalities.map { NationalityEntity.from(it) })
     this.attachEthnicity(ethnicityFactory.buildEthnicity(person))
   }

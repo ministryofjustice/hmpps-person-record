@@ -49,7 +49,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationality
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
-import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
+import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
@@ -96,7 +96,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `creates person when new offender created event is published`() {
       val crn = randomCrn()
-      val title = randomTitle()
+      val title = randomTitleCode()
       val prisonNumber = randomPrisonNumber()
       val firstName = randomName()
       val middleName = randomName() + " " + randomName()
@@ -142,7 +142,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         dateOfDeath = dateOfDeath,
         crn = crn,
         pnc = pnc,
-        title = title,
+        title = title.key,
         firstName = firstName,
         middleName = middleName,
         lastName = lastName,
@@ -220,9 +220,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
       assertThat(personEntity.getPrimaryName().nameType).isEqualTo(NameType.PRIMARY)
       assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
-      val storedTitle = title.getTitle()
-      assertThat(personEntity.getPrimaryName().titleCode?.name).isEqualTo(storedTitle.code)
-      assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo(storedTitle.description)
+      assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(title.value)
       assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
 
       assertThat(personEntity.addresses.size).isEqualTo(2)
@@ -349,8 +347,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkNationalities(updatedPersonEntity.nationalities, changedNationality)
 
       val storedTitle = updatedTitle.getTitle()
-      assertThat(updatedPersonEntity.getPrimaryName().titleCode?.name).isEqualTo(storedTitle.code)
-      assertThat(updatedPersonEntity.getPrimaryName().titleCode?.description).isEqualTo(storedTitle.description)
+      assertThat(updatedPersonEntity.getPrimaryName().titleCode?.name).isEqualTo(storedTitle?.name)
+      assertThat(updatedPersonEntity.getPrimaryName().titleCode?.description).isEqualTo(storedTitle?.description)
       assertThat(updatedPersonEntity.sexualOrientation).isEqualTo(sexualOrientation.value)
       assertThat(updatedPersonEntity.religion).isEqualTo(updatedReligion)
       assertThat(updatedPersonEntity.genderIdentity).isEqualTo(updatedGenderIdentity.value)

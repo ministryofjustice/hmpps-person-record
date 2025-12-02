@@ -53,14 +53,12 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.TitleCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.review.ReviewEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReviewRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.TitleCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -87,7 +85,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
+import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
@@ -123,9 +121,6 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var ethnicityCodeRepository: EthnicityCodeRepository
-
-  @Autowired
-  private lateinit var titleCodeRepository: TitleCodeRepository
 
   @Autowired
   private lateinit var overrideService: OverrideService
@@ -177,7 +172,7 @@ class IntegrationTestBase {
   internal fun createRandomProbationPersonDetails(crn: String = randomCrn()): Person = Person.from(
     ProbationCase(
       name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
-      title = Value(randomTitle()),
+      title = Value(randomTitleCode().key),
       identifiers = Identifiers(crn = crn, pnc = randomLongPnc(), cro = randomCro()),
       addresses = listOf(
         ProbationAddress(postcode = randomPostcode()),
@@ -617,7 +612,7 @@ class IntegrationTestBase {
   fun PersonEntity.getCro(): String? = this.references.getCROs().firstOrNull()
   fun Person.getPnc(): String? = this.references.getType(PNC).first().identifierValue
   fun PersonEntity.getPnc(): String? = this.references.getPNCs().firstOrNull()
-  fun String.getTitle(): TitleCodeEntity = titleCodeRepository.findByCode(TitleCode.from(this)!!.name)!!
+  fun String.getTitle(): TitleCode? = TitleCode.from(this)
   fun String.getCommonPlatformEthnicity(): EthnicityCodeEntity = EthnicityCode.fromCommonPlatform(this)?.let { ethnicityCodeRepository.findByCode(it.name) }!!
   fun String.getPrisonEthnicity(): EthnicityCodeEntity = EthnicityCode.fromPrison(this)?.let { ethnicityCodeRepository.findByCode(it.name) }!!
   fun String.getProbationEthnicity(): EthnicityCodeEntity = EthnicityCode.fromProbation(this)?.let { ethnicityCodeRepository.findByCode(it.name) }!!
