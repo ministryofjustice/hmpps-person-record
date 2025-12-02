@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonNationality
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonNationalityResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonNationalityRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
@@ -15,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import java.util.UUID
 
 class SysconNationalityControllerIntTest : WebTestBase() {
 
@@ -32,14 +30,8 @@ class SysconNationalityControllerIntTest : WebTestBase() {
       val currentCode = randomPrisonNationalityCode()
       val currentNationality = createRandomPrisonNationality(prisonNumber, currentCode, current = true)
 
-      val currentCreationResponse = postNationality(currentNationality)
-      assertCorrectValuesSaved(currentNationality, currentCreationResponse.cprNationalityId)
-
-      val historicCode = randomPrisonNationalityCode()
-      val historicNationality = createRandomPrisonNationality(prisonNumber, historicCode, current = false)
-
-      val historicCreationResponse = postNationality(historicNationality)
-      assertCorrectValuesSaved(historicNationality, historicCreationResponse.cprNationalityId)
+      postNationality(currentNationality)
+      assertCorrectValuesSaved(currentNationality)
     }
   }
 
@@ -47,28 +39,20 @@ class SysconNationalityControllerIntTest : WebTestBase() {
   inner class Update {
 
     @Test
-    fun `should update a nationality`() {
+    fun `should update an existing nationality`() {
       val prisonNumber = randomPrisonNumber()
 
       val currentCode = randomPrisonNationalityCode()
       val currentNationality = createRandomPrisonNationality(prisonNumber, currentCode, current = true)
 
-      val currentCreationResponse = postNationality(currentNationality)
-      assertCorrectValuesSaved(currentNationality, currentCreationResponse.cprNationalityId)
+      postNationality(currentNationality)
+      assertCorrectValuesSaved(currentNationality)
 
       val updatedCode = randomPrisonNationalityCode()
-      val updatedNationality = createRandomPrisonNationality(prisonNumber, updatedCode, current = false)
+      val updatedNationality = createRandomPrisonNationality(prisonNumber, updatedCode, current = true)
 
-      webTestClient
-        .put()
-        .uri("/syscon-sync/nationality/${currentCreationResponse.cprNationalityId}")
-        .bodyValue(updatedNationality)
-        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
-        .isOk
-
-      assertCorrectValuesSaved(updatedNationality, currentCreationResponse.cprNationalityId)
+      postNationality(updatedNationality)
+      assertCorrectValuesSaved(updatedNationality)
     }
   }
 
@@ -76,7 +60,7 @@ class SysconNationalityControllerIntTest : WebTestBase() {
   fun `should return Access Denied 403 when role is wrong`() {
     val expectedErrorMessage = "Forbidden: Access Denied"
     webTestClient.post()
-      .uri("/syscon-sync/nationality")
+      .uri("/syscon-sync/nationality/" + randomPrisonNumber())
       .bodyValue(createRandomPrisonNationality(randomPrisonNumber(), randomPrisonNationalityCode(), true))
       .authorised(listOf("UNSUPPORTED-ROLE"))
       .exchange()
@@ -90,33 +74,27 @@ class SysconNationalityControllerIntTest : WebTestBase() {
   @Test
   fun `should return UNAUTHORIZED 401 when role is not set`() {
     webTestClient.post()
-      .uri("/syscon-sync/nationality")
+      .uri("/syscon-sync/nationality/" + randomPrisonNumber())
       .exchange()
       .expectStatus()
       .isUnauthorized
   }
 
-  private fun postNationality(nationality: PrisonNationality): PrisonNationalityResponse {
-    val nationalityResponse = webTestClient
+  private fun postNationality(nationality: PrisonNationality) {
+    webTestClient
       .post()
-      .uri("/syscon-sync/nationality")
+      .uri("/syscon-sync/nationality/" + nationality.prisonNumber)
       .bodyValue(nationality)
       .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
       .exchange()
       .expectStatus()
-      .isCreated
-      .expectBody(PrisonNationalityResponse::class.java)
-      .returnResult()
-      .responseBody!!
-
-    return nationalityResponse
+      .isOk
   }
 
   private fun assertCorrectValuesSaved(
     nationality: PrisonNationality,
-    nationalityId: UUID,
   ) {
-    val current = awaitNotNull { prisonNationalityRepository.findByCprNationalityId(nationalityId) }
+    val current = awaitNotNull { prisonNationalityRepository.findByPrisonNumber(nationality.prisonNumber) }
 
     assertThat(current.nationalityCode).isEqualTo(NationalityCode.fromPrisonMapping(nationality.nationalityCode))
     assertThat(current.prisonNumber).isEqualTo(nationality.prisonNumber)
