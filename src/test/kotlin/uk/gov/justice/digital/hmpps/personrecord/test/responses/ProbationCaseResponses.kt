@@ -12,6 +12,16 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
           "prisonerNumber": "${probationCase.prisonNumber ?: ""}",
           "ni": "${probationCase.nationalInsuranceNumber ?: ""}"
       },
+      "additionalIdentifiers": [
+          {
+          "type": {
+            "code": ${probationCase.additionalIdentifiers ?: ""}",
+            "description": "string"
+          },
+          "value": "string"
+            }
+          ]
+      },
       "name": {
           "forename": "${probationCase.firstName}",
           "middleName": "${probationCase.middleName}",
