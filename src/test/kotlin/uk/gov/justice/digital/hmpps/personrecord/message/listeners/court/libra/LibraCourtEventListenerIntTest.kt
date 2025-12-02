@@ -28,14 +28,14 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomLibraSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
+import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import java.time.format.DateTimeFormatter
 
 class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should create new person from Libra message`() {
-    val title = randomTitle()
+    val title = randomTitleCode()
     val firstName = randomName()
     val forename2 = randomName()
     val forename3 = randomName()
@@ -58,7 +58,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     publishLibraMessage(
       libraHearing(
-        title = title,
+        title = title.key,
         firstName = firstName,
         foreName2 = forename2,
         foreName3 = forename3,
@@ -83,9 +83,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val person = awaitNotNull { personRepository.findByCId(cId) }
 
-    val storedTitle = title.getTitle()
-    assertThat(person.getPrimaryName().titleCode?.name).isEqualTo(storedTitle.code)
-    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(storedTitle.description)
+    assertThat(person.getPrimaryName().titleCode).isEqualTo(title.value)
     assertThat(person.getPrimaryName().firstName).isEqualTo(firstName)
     assertThat(person.getPrimaryName().middleNames).isEqualTo("$forename2 $forename3")
     assertThat(person.getPrimaryName().lastName).isEqualTo(lastName)
@@ -133,8 +131,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val changedFirstName = randomName()
     val changedForename2 = ""
     val changedForename3 = randomName()
-    val title = randomTitle()
-    publishLibraMessage(libraHearing(defendantSex = updatedSexCode.key, firstName = changedFirstName, foreName2 = changedForename2, foreName3 = changedForename3, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), title = title))
+    val title = randomTitleCode()
+    publishLibraMessage(libraHearing(defendantSex = updatedSexCode.key, firstName = changedFirstName, foreName2 = changedForename2, foreName3 = changedForename3, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), title = title.key))
 
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
     checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_UPDATED)
@@ -142,9 +140,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val person = awaitNotNull {
       personRepository.findByCId(cId)
     }
-    val storedTitle = title.getTitle()
-    assertThat(person.getPrimaryName().titleCode?.name).isEqualTo(storedTitle.code)
-    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(storedTitle.description)
+    assertThat(person.getPrimaryName().titleCode).isEqualTo(title.value)
     assertThat(person.getPrimaryName().firstName).isEqualTo(changedFirstName)
     assertThat(person.getPrimaryName().middleNames).isEqualTo(changedForename3)
     assertThat(person.getPrimaryName().lastName).isEqualTo(lastName)

@@ -34,7 +34,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
@@ -65,7 +64,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
-import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
+import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ProbationApiE2ETest : E2ETestBase() {
@@ -81,7 +80,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         val firstName = randomName()
         val lastName = randomName()
         val middleNames = randomName()
-        val title = randomTitle()
+        val title = randomTitleCode()
         val pnc = randomLongPnc()
         val noFixedAbode = true
         val startDate = randomDate()
@@ -109,7 +108,7 @@ class ProbationApiE2ETest : E2ETestBase() {
             middleNames = randomName(),
             dateOfBirth = randomDate(),
             sourceSystem = NOMIS,
-            titleCode = TitleCode.from(title),
+            titleCode = title.value,
             crn = crn,
             sexCode = sex.value,
             prisonNumber = prisonNumber,
@@ -122,7 +121,7 @@ class ProbationApiE2ETest : E2ETestBase() {
                 middleNames = middleNames,
                 lastName = lastName,
                 dateOfBirth = randomDate(),
-                titleCode = TitleCode.from(title),
+                titleCode = title.value,
                 sexCode = sex.value,
               ),
             ),
@@ -156,12 +155,11 @@ class ProbationApiE2ETest : E2ETestBase() {
           .returnResult()
           .responseBody!!
 
-        val storedTitle = title.getTitle()
         val canonicalAlias = CanonicalAlias(
           firstName = firstName,
           lastName = lastName,
           middleNames = middleNames,
-          title = CanonicalTitle(code = storedTitle.code, description = storedTitle.description),
+          title = CanonicalTitle.from(title.value),
           sex = CanonicalSex.from(sex.value),
         )
         val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
@@ -392,7 +390,7 @@ class ProbationApiE2ETest : E2ETestBase() {
 
         val defendant = createRandomCommonPlatformPersonDetails(defendantId)
         val probationCase = ProbationCase(
-          title = Value(randomTitle()),
+          title = Value(randomTitleCode().key),
           name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
           identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
           dateOfBirth = randomDate(),
@@ -451,7 +449,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.getPrimaryName().middleNames).isEqualTo(probationCase.name.middleNames)
         assertThat(offender.getPrimaryName().lastName).isEqualTo(probationCase.name.lastName)
         assertThat(offender.getPrimaryName().nameType).isEqualTo(PRIMARY)
-        assertThat(offender.getPrimaryName().titleCode?.name).isEqualTo(probationCase.title?.value?.getTitle()?.code)
+        assertThat(offender.getPrimaryName().titleCode?.name).isEqualTo(probationCase.title?.value?.getTitle()?.name)
         assertThat(offender.getPrimaryName().titleCode?.description).isEqualTo(probationCase.title?.value?.getTitle()?.description)
         assertThat(offender.getPrimaryName().dateOfBirth).isEqualTo(probationCase.dateOfBirth)
         assertThat(offender.getPrimaryName().sexCode).isEqualTo(SexCode.from(probationCase))

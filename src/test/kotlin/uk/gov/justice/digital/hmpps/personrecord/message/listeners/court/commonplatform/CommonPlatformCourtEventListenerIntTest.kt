@@ -57,7 +57,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
+import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import java.nio.charset.Charset
 import java.time.LocalDateTime.now
 import java.util.UUID
@@ -195,7 +195,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val dependentLocality = randomName()
     val postTown = randomName()
     val postcode = randomPostcode()
-    val title = randomTitle()
+    val title = randomTitleCode()
     val ethnicity = randomCommonPlatformEthnicity()
 
     val firstNationality = randomCommonPlatformNationalityCode()
@@ -211,7 +211,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
           CommonPlatformHearingSetup(
             gender = firstSexCode.key,
             pnc = firstPnc,
-            title = title,
+            title = title.key,
             firstName = firstName,
             middleName = "mName1 mName2",
             lastName = lastName,
@@ -250,9 +250,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getPnc()).isEqualTo(firstPnc)
     assertThat(firstPerson.personKey).isNotNull()
     assertThat(firstPerson.masterDefendantId).isEqualTo(firstDefendantId)
-    val storedTitle = title.getTitle()
-    assertThat(firstPerson.getPrimaryName().titleCode?.name).isEqualTo(storedTitle.code)
-    assertThat(firstPerson.getPrimaryName().titleCode?.description).isEqualTo(storedTitle.description)
+    assertThat(firstPerson.getPrimaryName().titleCode).isEqualTo(title.value)
     assertThat(firstPerson.getPrimaryName().firstName).isEqualTo(firstName)
     assertThat(firstPerson.getPrimaryName().middleNames).isEqualTo("mName1 mName2")
     assertThat(firstPerson.getPrimaryName().lastName).isEqualTo(lastName)
