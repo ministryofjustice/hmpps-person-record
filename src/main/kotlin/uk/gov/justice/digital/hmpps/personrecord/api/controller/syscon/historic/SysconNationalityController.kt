@@ -39,7 +39,7 @@ class SysconNationalityController(
   ): String {
     prisonNationalityRepository.findByPrisonNumber(prisonNumber)
       ?.update(nationality)
-      ?: prisonNationalityRepository.save(PrisonNationalityEntity.from(nationality))
+      ?: prisonNationalityRepository.save(PrisonNationalityEntity.from(prisonNumber, nationality))
 
     return OK
   }
