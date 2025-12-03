@@ -8,8 +8,8 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonNationality
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonNationalityRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNationalityCode
@@ -28,10 +28,10 @@ class SysconNationalityControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
 
       val currentCode = randomPrisonNationalityCode()
-      val currentNationality = createRandomPrisonNationality(prisonNumber, currentCode, current = true)
+      val currentNationality = createRandomPrisonNationality(currentCode)
 
-      postNationality(currentNationality)
-      assertCorrectValuesSaved(currentNationality)
+      postNationality(prisonNumber, currentNationality)
+      assertCorrectValuesSaved(prisonNumber, currentNationality)
     }
   }
 
@@ -43,47 +43,51 @@ class SysconNationalityControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
 
       val currentCode = randomPrisonNationalityCode()
-      val currentNationality = createRandomPrisonNationality(prisonNumber, currentCode, current = true)
+      val currentNationality = createRandomPrisonNationality(currentCode)
 
-      postNationality(currentNationality)
-      assertCorrectValuesSaved(currentNationality)
+      postNationality(prisonNumber, currentNationality)
+      assertCorrectValuesSaved(prisonNumber, currentNationality)
 
       val updatedCode = randomPrisonNationalityCode()
-      val updatedNationality = createRandomPrisonNationality(prisonNumber, updatedCode, current = true)
+      val updatedNationality = createRandomPrisonNationality(updatedCode)
 
-      postNationality(updatedNationality)
-      assertCorrectValuesSaved(updatedNationality)
+      postNationality(prisonNumber, updatedNationality)
+      assertCorrectValuesSaved(prisonNumber, updatedNationality)
     }
   }
 
-  @Test
-  fun `should return Access Denied 403 when role is wrong`() {
-    val expectedErrorMessage = "Forbidden: Access Denied"
-    webTestClient.post()
-      .uri("/syscon-sync/nationality/" + randomPrisonNumber())
-      .bodyValue(createRandomPrisonNationality(randomPrisonNumber(), randomPrisonNationalityCode(), true))
-      .authorised(listOf("UNSUPPORTED-ROLE"))
-      .exchange()
-      .expectStatus()
-      .isForbidden
-      .expectBody()
-      .jsonPath("userMessage")
-      .isEqualTo(expectedErrorMessage)
+  @Nested
+  inner class Auth {
+
+    @Test
+    fun `should return Access Denied 403 when role is wrong`() {
+      val expectedErrorMessage = "Forbidden: Access Denied"
+      webTestClient.post()
+        .uri("/syscon-sync/nationality/" + randomPrisonNumber())
+        .bodyValue(createRandomPrisonNationality(randomPrisonNationalityCode()))
+        .authorised(listOf("UNSUPPORTED-ROLE"))
+        .exchange()
+        .expectStatus()
+        .isForbidden
+        .expectBody()
+        .jsonPath("userMessage")
+        .isEqualTo(expectedErrorMessage)
+    }
+
+    @Test
+    fun `should return UNAUTHORIZED 401 when role is not set`() {
+      webTestClient.post()
+        .uri("/syscon-sync/nationality/" + randomPrisonNumber())
+        .exchange()
+        .expectStatus()
+        .isUnauthorized
+    }
   }
 
-  @Test
-  fun `should return UNAUTHORIZED 401 when role is not set`() {
-    webTestClient.post()
-      .uri("/syscon-sync/nationality/" + randomPrisonNumber())
-      .exchange()
-      .expectStatus()
-      .isUnauthorized
-  }
-
-  private fun postNationality(nationality: PrisonNationality) {
+  private fun postNationality(prisonNumber: String, nationality: PrisonNationality) {
     webTestClient
       .post()
-      .uri("/syscon-sync/nationality/" + nationality.prisonNumber)
+      .uri("/syscon-sync/nationality/$prisonNumber")
       .bodyValue(nationality)
       .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
       .exchange()
@@ -92,35 +96,25 @@ class SysconNationalityControllerIntTest : WebTestBase() {
   }
 
   private fun assertCorrectValuesSaved(
+    prisonNumber: String,
     nationality: PrisonNationality,
   ) {
-    val current = awaitNotNull { prisonNationalityRepository.findByPrisonNumber(nationality.prisonNumber) }
+    val current = awaitNotNull { prisonNationalityRepository.findByPrisonNumber(prisonNumber) }
 
+    assertThat(current.prisonNumber).isEqualTo(prisonNumber)
     assertThat(current.nationalityCode).isEqualTo(NationalityCode.fromPrisonMapping(nationality.nationalityCode))
-    assertThat(current.prisonNumber).isEqualTo(nationality.prisonNumber)
-    assertThat(current.startDate).isEqualTo(nationality.startDate)
-    assertThat(current.endDate).isEqualTo(nationality.endDate)
-    assertThat(current.createUserId).isEqualTo(nationality.createUserId)
-    assertThat(current.createDateTime).isEqualTo(nationality.createDateTime)
-    assertThat(current.createDisplayName).isEqualTo(nationality.createDisplayName)
     assertThat(current.modifyDateTime).isEqualTo(nationality.modifyDateTime)
     assertThat(current.modifyUserId).isEqualTo(nationality.modifyUserId)
     assertThat(current.modifyDisplayName).isEqualTo(nationality.modifyDisplayName)
     assertThat(current.notes).isEqualTo(nationality.notes)
+    assertThat(current.prisonRecordType).isEqualTo(PrisonRecordType.CURRENT)
   }
 
-  private fun createRandomPrisonNationality(prisonNumber: String, code: String, current: Boolean): PrisonNationality = PrisonNationality(
-    prisonNumber = prisonNumber,
+  private fun createRandomPrisonNationality(code: String): PrisonNationality = PrisonNationality(
     nationalityCode = code,
-    startDate = randomDate(),
-    endDate = randomDate(),
-    createUserId = randomName(),
-    createDateTime = randomDateTime(),
-    createDisplayName = randomName(),
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),
     modifyDisplayName = randomName(),
-    current = current,
     notes = randomName(),
   )
 }
