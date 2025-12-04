@@ -5,15 +5,12 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchR
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.reference.EthnicityFactory
 
 @Component
 class PersonFactory(
   private val personRepository: PersonRepository,
-  private val ethnicityFactory: EthnicityFactory,
 ) {
 
   fun create(person: Person): PersonChainable {
@@ -51,7 +48,6 @@ class PersonFactory(
   private fun PersonEntity.buildChildEntities(person: Person) {
     this.attachPseudonyms(listOf(PseudonymEntity.primaryNameFrom(person)) + person.aliases.mapNotNull { PseudonymEntity.aliasFrom(it) })
     this.attachNationalities(person.nationalities.map { NationalityEntity.from(it) })
-    this.attachEthnicity(ethnicityFactory.buildEthnicity(person))
   }
 
   private fun PersonEntity.attachPseudonyms(pseudonyms: List<PseudonymEntity>) {
@@ -64,9 +60,5 @@ class PersonFactory(
     this.nationalities.clear()
     nationalities.forEach { nationalityEntity -> nationalityEntity.person = this }
     this.nationalities.addAll(nationalities)
-  }
-
-  private fun PersonEntity.attachEthnicity(ethnicityCodeEntity: EthnicityCodeEntity?) {
-    this.ethnicityCodeLegacy = ethnicityCodeEntity
   }
 }
