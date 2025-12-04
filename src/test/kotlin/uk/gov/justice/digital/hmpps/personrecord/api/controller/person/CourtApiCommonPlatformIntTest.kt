@@ -153,7 +153,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
         postTown = postTown,
       )
       val canonicalReligion = CanonicalReligion(code = religion, description = religion)
-      val canonicalEthnicity = CanonicalEthnicity.from(ethnicity.getCommonPlatformEthnicity())
+      val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromCommonPlatform(ethnicity))
       assertThat(responseBody.cprUUID).isNull()
       assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
       assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
