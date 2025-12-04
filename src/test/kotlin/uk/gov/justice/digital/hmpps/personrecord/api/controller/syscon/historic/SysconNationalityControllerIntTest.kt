@@ -24,11 +24,21 @@ class SysconNationalityControllerIntTest : WebTestBase() {
   inner class Creation {
 
     @Test
-    fun `should store current nationality against a prison number`() {
+    fun `should save current nationality against a prison number`() {
       val prisonNumber = randomPrisonNumber()
 
       val currentCode = randomPrisonNationalityCode()
       val currentNationality = createRandomPrisonNationality(currentCode)
+
+      postNationality(prisonNumber, currentNationality)
+      assertCorrectValuesSaved(prisonNumber, currentNationality)
+    }
+
+    @Test
+    fun `should save current nationality against a prison number when code is null`() {
+      val prisonNumber = randomPrisonNumber()
+
+      val currentNationality = createRandomPrisonNationality(null)
 
       postNationality(prisonNumber, currentNationality)
       assertCorrectValuesSaved(prisonNumber, currentNationality)
@@ -50,6 +60,22 @@ class SysconNationalityControllerIntTest : WebTestBase() {
 
       val updatedCode = randomPrisonNationalityCode()
       val updatedNationality = createRandomPrisonNationality(updatedCode)
+
+      postNationality(prisonNumber, updatedNationality)
+      assertCorrectValuesSaved(prisonNumber, updatedNationality)
+    }
+
+    @Test
+    fun `should update an existing nationality when code is null`() {
+      val prisonNumber = randomPrisonNumber()
+
+      val currentCode = randomPrisonNationalityCode()
+      val currentNationality = createRandomPrisonNationality(currentCode)
+
+      postNationality(prisonNumber, currentNationality)
+      assertCorrectValuesSaved(prisonNumber, currentNationality)
+
+      val updatedNationality = createRandomPrisonNationality(null)
 
       postNationality(prisonNumber, updatedNationality)
       assertCorrectValuesSaved(prisonNumber, updatedNationality)
@@ -110,7 +136,7 @@ class SysconNationalityControllerIntTest : WebTestBase() {
     assertThat(current.prisonRecordType).isEqualTo(PrisonRecordType.CURRENT)
   }
 
-  private fun createRandomPrisonNationality(code: String): PrisonNationality = PrisonNationality(
+  private fun createRandomPrisonNationality(code: String?): PrisonNationality = PrisonNationality(
     nationalityCode = code,
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),
