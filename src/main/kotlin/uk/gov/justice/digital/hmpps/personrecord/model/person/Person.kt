@@ -72,6 +72,10 @@ data class Person(
           identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
           identifierValue = probationCase.identifiers.nationalInsuranceNumber,
         ),
+        Reference(
+          identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+          identifierValue = probationCase.identifiers.additionalIdentifier?.forEach { it.value }.toString(),
+        ),
       )
 
       val nationalities: List<NationalityCode> = listOf(
