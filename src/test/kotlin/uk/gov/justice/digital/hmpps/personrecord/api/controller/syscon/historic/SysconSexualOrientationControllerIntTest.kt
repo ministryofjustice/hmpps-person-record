@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientation
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientationResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonSexualOrientationRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
@@ -25,63 +24,14 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
   inner class Creation {
 
     @Test
-    fun `should store current orientations against a prison number`() {
+    fun `should save current sexual orientation against a prison number`() {
       val prisonNumber = randomPrisonNumber()
+
       val currentCode = randomPrisonSexualOrientation()
       val currentSexualOrientation = createRandomPrisonSexualOrientation(prisonNumber, currentCode, current = true)
 
-      val historicCode = randomPrisonSexualOrientation()
-      val historicSexualOrientation = createRandomPrisonSexualOrientation(prisonNumber, historicCode, current = false)
-
-      val currentCreationResponse = webTestClient
-        .post()
-        .uri("/syscon-sync/sexual-orientation")
-        .bodyValue(currentSexualOrientation)
-        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
-        .isCreated
-        .expectBody(PrisonSexualOrientationResponse::class.java)
-        .returnResult()
-        .responseBody!!
-
-      val current = awaitNotNull { prisonSexualOrientationRepository.findByCprSexualOrientationId(currentCreationResponse.cprSexualOrientationId) }
-
-      assertThat(current.sexualOrientationCode).isEqualTo(currentCode.value)
-      assertThat(current.prisonNumber).isEqualTo(prisonNumber)
-      assertThat(current.startDate).isEqualTo(currentSexualOrientation.startDate)
-      assertThat(current.endDate).isEqualTo(currentSexualOrientation.endDate)
-      assertThat(current.createUserId).isEqualTo(currentSexualOrientation.createUserId)
-      assertThat(current.createDateTime).isEqualTo(currentSexualOrientation.createDateTime)
-      assertThat(current.createDisplayName).isEqualTo(currentSexualOrientation.createDisplayName)
-      assertThat(current.modifyDateTime).isEqualTo(currentSexualOrientation.modifyDateTime)
-      assertThat(current.modifyUserId).isEqualTo(currentSexualOrientation.modifyUserId)
-      assertThat(current.modifyDisplayName).isEqualTo(currentSexualOrientation.modifyDisplayName)
-
-      val historicCreationResponse = webTestClient
-        .post()
-        .uri("/syscon-sync/sexual-orientation")
-        .bodyValue(historicSexualOrientation)
-        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
-        .isCreated
-        .expectBody(PrisonSexualOrientationResponse::class.java)
-        .returnResult()
-        .responseBody!!
-
-      val historic = awaitNotNull { prisonSexualOrientationRepository.findByCprSexualOrientationId(historicCreationResponse.cprSexualOrientationId) }
-
-      assertThat(historic.sexualOrientationCode).isEqualTo(historicCode.value)
-      assertThat(historic.prisonNumber).isEqualTo(prisonNumber)
-      assertThat(historic.startDate).isEqualTo(historicSexualOrientation.startDate)
-      assertThat(historic.endDate).isEqualTo(historicSexualOrientation.endDate)
-      assertThat(historic.createUserId).isEqualTo(historicSexualOrientation.createUserId)
-      assertThat(historic.createDateTime).isEqualTo(historicSexualOrientation.createDateTime)
-      assertThat(historic.createDisplayName).isEqualTo(historicSexualOrientation.createDisplayName)
-      assertThat(historic.modifyDateTime).isEqualTo(historicSexualOrientation.modifyDateTime)
-      assertThat(historic.modifyUserId).isEqualTo(historicSexualOrientation.modifyUserId)
-      assertThat(historic.modifyDisplayName).isEqualTo(historicSexualOrientation.modifyDisplayName)
+      postSexualOrientation(prisonNumber, currentSexualOrientation)
+      assertCorrectValuesSaved(prisonNumber, currentSexualOrientation)
     }
   }
 
@@ -89,76 +39,81 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
   inner class Update {
 
     @Test
-    fun `should update a sexual orientation`() {
+    fun `should update an existing sexual orientation`() {
       val prisonNumber = randomPrisonNumber()
+
       val currentCode = randomPrisonSexualOrientation()
       val currentSexualOrientation = createRandomPrisonSexualOrientation(prisonNumber, currentCode, current = true)
 
-      val currentCreationResponse = webTestClient
-        .post()
-        .uri("/syscon-sync/sexual-orientation")
-        .bodyValue(currentSexualOrientation)
-        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
-        .isCreated
-        .expectBody(PrisonSexualOrientationResponse::class.java)
-        .returnResult()
-        .responseBody!!
-
-      val current = awaitNotNull { prisonSexualOrientationRepository.findByCprSexualOrientationId(currentCreationResponse.cprSexualOrientationId) }
-
-      assertThat(current.sexualOrientationCode).isEqualTo(currentCode.value)
+      postSexualOrientation(prisonNumber, currentSexualOrientation)
+      assertCorrectValuesSaved(prisonNumber, currentSexualOrientation)
 
       val updatedCode = randomPrisonSexualOrientation()
-      val updatedSexualOrientation = createRandomPrisonSexualOrientation(prisonNumber, updatedCode, current = false)
+      val updatedSexualOrientation = createRandomPrisonSexualOrientation(prisonNumber, updatedCode, current = true)
 
-      webTestClient
-        .put()
-        .uri("/syscon-sync/sexual-orientation/${current.cprSexualOrientationId}")
-        .bodyValue(updatedSexualOrientation)
-        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
-        .isOk
-
-      val updated = awaitNotNull { prisonSexualOrientationRepository.findByCprSexualOrientationId(currentCreationResponse.cprSexualOrientationId) }
-
-      assertThat(updated.sexualOrientationCode).isEqualTo(updatedCode.value)
-      assertThat(updated.prisonNumber).isEqualTo(prisonNumber)
-      assertThat(updated.startDate).isEqualTo(updatedSexualOrientation.startDate)
-      assertThat(updated.endDate).isEqualTo(updatedSexualOrientation.endDate)
-      assertThat(updated.createUserId).isEqualTo(updatedSexualOrientation.createUserId)
-      assertThat(updated.createDateTime).isEqualTo(updatedSexualOrientation.createDateTime)
-      assertThat(updated.createDisplayName).isEqualTo(updatedSexualOrientation.createDisplayName)
-      assertThat(updated.modifyDateTime).isEqualTo(updatedSexualOrientation.modifyDateTime)
-      assertThat(updated.modifyUserId).isEqualTo(updatedSexualOrientation.modifyUserId)
-      assertThat(updated.modifyDisplayName).isEqualTo(updatedSexualOrientation.modifyDisplayName)
+      postSexualOrientation(prisonNumber, updatedSexualOrientation)
+      assertCorrectValuesSaved(prisonNumber, updatedSexualOrientation)
     }
   }
 
-  @Test
-  fun `should return Access Denied 403 when role is wrong`() {
-    val expectedErrorMessage = "Forbidden: Access Denied"
-    webTestClient.post()
-      .uri("/syscon-sync/sexual-orientation")
-      .bodyValue(createRandomPrisonSexualOrientation(randomPrisonNumber(), randomPrisonSexualOrientation(), true))
-      .authorised(listOf("UNSUPPORTED-ROLE"))
-      .exchange()
-      .expectStatus()
-      .isForbidden
-      .expectBody()
-      .jsonPath("userMessage")
-      .isEqualTo(expectedErrorMessage)
+  @Nested
+  inner class Auth {
+
+    @Test
+    fun `should return Access Denied 403 when role is wrong`() {
+      val expectedErrorMessage = "Forbidden: Access Denied"
+      webTestClient.post()
+        .uri("/syscon-sync/sexual-orientation/" + randomPrisonNumber())
+        .bodyValue(createRandomPrisonSexualOrientation(randomPrisonNumber(), randomPrisonSexualOrientation(), true))
+        .authorised(listOf("UNSUPPORTED-ROLE"))
+        .exchange()
+        .expectStatus()
+        .isForbidden
+        .expectBody()
+        .jsonPath("userMessage")
+        .isEqualTo(expectedErrorMessage)
+    }
+
+    @Test
+    fun `should return UNAUTHORIZED 401 when role is not set`() {
+      webTestClient.post()
+        .uri("/syscon-sync/sexual-orientation/" + randomPrisonNumber())
+        .exchange()
+        .expectStatus()
+        .isUnauthorized
+    }
   }
 
-  @Test
-  fun `should return UNAUTHORIZED 401 when role is not set`() {
-    webTestClient.post()
-      .uri("/syscon-sync/sexual-orientation")
+  private fun postSexualOrientation(
+    prisonNumber: String,
+    sexualOrientation: PrisonSexualOrientation,
+  ) {
+    webTestClient
+      .post()
+      .uri("/syscon-sync/sexual-orientation/$prisonNumber")
+      .bodyValue(sexualOrientation)
+      .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
       .exchange()
       .expectStatus()
-      .isUnauthorized
+      .isOk
+  }
+
+  private fun assertCorrectValuesSaved(
+    prisonNumber: String,
+    sexualOrientation: PrisonSexualOrientation,
+  ) {
+    val current = awaitNotNull { prisonSexualOrientationRepository.findByPrisonNumber(prisonNumber) }
+
+    assertThat(current.prisonNumber).isEqualTo(prisonNumber)
+    assertThat(current.sexualOrientationCode).isEqualTo(SexualOrientation.from(sexualOrientation))
+    assertThat(current.startDate).isEqualTo(sexualOrientation.startDate)
+    assertThat(current.endDate).isEqualTo(sexualOrientation.endDate)
+    assertThat(current.createUserId).isEqualTo(sexualOrientation.createUserId)
+    assertThat(current.createDateTime).isEqualTo(sexualOrientation.createDateTime)
+    assertThat(current.createDisplayName).isEqualTo(sexualOrientation.createDisplayName)
+    assertThat(current.modifyDateTime).isEqualTo(sexualOrientation.modifyDateTime)
+    assertThat(current.modifyUserId).isEqualTo(sexualOrientation.modifyUserId)
+    assertThat(current.modifyDisplayName).isEqualTo(sexualOrientation.modifyDisplayName)
   }
 
   private fun createRandomPrisonSexualOrientation(prisonNumber: String, code: Map.Entry<String, SexualOrientation>, current: Boolean): PrisonSexualOrientation = PrisonSexualOrientation(
