@@ -174,9 +174,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.crn).isEqualTo(crn)
       assertThat(personEntity.dateOfDeath).isEqualTo(dateOfDeath)
-      val ethnicityCode = ethnicity.getProbationEthnicity()
-      assertThat(personEntity.ethnicityCodeLegacy?.code).isEqualTo(ethnicityCode.code)
-      assertThat(personEntity.ethnicityCodeLegacy?.description).isEqualTo(ethnicityCode.description)
 
       assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(ethnicity))
 
@@ -259,9 +256,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
       assertThat(personEntity.dateOfDeath).isNull()
-      val originalEthnicityCode = originalEthnicity.getProbationEthnicity()
-      assertThat(personEntity.ethnicityCodeLegacy?.code).isEqualTo(originalEthnicityCode.code)
-      assertThat(personEntity.ethnicityCodeLegacy?.description).isEqualTo(originalEthnicityCode.description)
+      assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(originalEthnicity))
       assertThat(personEntity.religion).isNull()
       assertThat(personEntity.genderIdentity).isNull()
       assertThat(personEntity.selfDescribedGenderIdentity).isNull()
@@ -314,9 +309,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedLastModified).isAfter(createdLastModified)
       assertThat(updatedPersonEntity.getPrimaryName().dateOfBirth).isEqualTo(changedDateOfBirth)
 
-      val changedEthnicityCode = changedEthnicity.getProbationEthnicity()
-      assertThat(updatedPersonEntity.ethnicityCodeLegacy?.code).isEqualTo(changedEthnicityCode.code)
-      assertThat(updatedPersonEntity.ethnicityCodeLegacy?.description).isEqualTo(changedEthnicityCode.description)
+      assertThat(updatedPersonEntity.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(changedEthnicity))
 
       checkNationalities(updatedPersonEntity.nationalities, changedNationality)
 
