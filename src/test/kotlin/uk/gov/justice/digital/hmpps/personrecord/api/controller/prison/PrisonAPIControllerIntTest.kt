@@ -23,7 +23,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NO
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -34,6 +33,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
@@ -57,7 +57,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       val postcode = randomPostcode()
       val nationality = randomNationalityCode()
       val religion = randomReligion()
-      val ethnicity = randomCommonPlatformEthnicity()
+      val ethnicity = randomPrisonEthnicity()
       val sex = randomPrisonSexCode()
 
       val buildingName = randomName()
@@ -83,7 +83,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
           prisonNumber = prisonNumber,
           nationalities = listOf(nationality),
           religion = religion,
-          ethnicityCode = EthnicityCode.fromCommonPlatform(ethnicity),
+          ethnicityCode = EthnicityCode.fromPrison(ethnicity),
           aliases = listOf(
             Alias(
               firstName = firstName,
@@ -144,7 +144,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
         postTown = postTown,
       )
       val canonicalReligion = CanonicalReligion(code = religion, description = religion)
-      val canonicalEthnicity = CanonicalEthnicity.from(ethnicity.getCommonPlatformEthnicity())
+      val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromPrison(ethnicity))
       assertThat(responseBody.cprUUID).isNull()
       assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
       assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
