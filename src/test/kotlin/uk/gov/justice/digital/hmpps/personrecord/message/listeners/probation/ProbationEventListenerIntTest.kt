@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
@@ -59,31 +58,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.util.UUID
 
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
-
-  // TODO - this should be removed after we do the step to remove ethnicityCodeLegacy
-  @Test
-  fun `should map ETH04 successfully`() {
-    stubPersonMatchUpsert()
-
-    val ethnicityCodeEntity = ethnicityCodeRepository.findByCode("ETH04")
-    val crn = randomCrn()
-    val inputPersonEntity = PersonEntity(crn = crn, sourceSystem = DELIUS, matchId = UUID.randomUUID(), ethnicityCodeLegacy = ethnicityCodeEntity)
-    personRepository.saveAndFlush(inputPersonEntity)
-
-    val storedPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
-
-    assertThat(storedPersonEntity.ethnicityCodeLegacy?.code).isEqualTo("ETH04")
-
-    probationDomainEventAndResponseSetup(
-      OFFENDER_PERSONAL_DETAILS_UPDATED,
-      ApiResponseSetup(
-        crn = crn,
-        ethnicity = "ETH04",
-      ),
-    )
-    awaitAssert { assertThat(personRepository.findByCrn(crn)?.ethnicityCodeLegacy?.code).isEqualTo("UN") }
-    awaitAssert { assertThat(personRepository.findByCrn(crn)?.ethnicityCode?.name).isEqualTo("UN") }
-  }
 
   @Nested
   inner class SuccessfulProcessing {
@@ -200,9 +174,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.crn).isEqualTo(crn)
       assertThat(personEntity.dateOfDeath).isEqualTo(dateOfDeath)
-      val ethnicityCode = ethnicity.getProbationEthnicity()
-      assertThat(personEntity.ethnicityCodeLegacy?.code).isEqualTo(ethnicityCode.code)
-      assertThat(personEntity.ethnicityCodeLegacy?.description).isEqualTo(ethnicityCode.description)
 
       assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(ethnicity))
 
@@ -285,9 +256,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
       assertThat(personEntity.dateOfDeath).isNull()
-      val originalEthnicityCode = originalEthnicity.getProbationEthnicity()
-      assertThat(personEntity.ethnicityCodeLegacy?.code).isEqualTo(originalEthnicityCode.code)
-      assertThat(personEntity.ethnicityCodeLegacy?.description).isEqualTo(originalEthnicityCode.description)
+      assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(originalEthnicity))
       assertThat(personEntity.religion).isNull()
       assertThat(personEntity.genderIdentity).isNull()
       assertThat(personEntity.selfDescribedGenderIdentity).isNull()
@@ -340,9 +309,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedLastModified).isAfter(createdLastModified)
       assertThat(updatedPersonEntity.getPrimaryName().dateOfBirth).isEqualTo(changedDateOfBirth)
 
-      val changedEthnicityCode = changedEthnicity.getProbationEthnicity()
-      assertThat(updatedPersonEntity.ethnicityCodeLegacy?.code).isEqualTo(changedEthnicityCode.code)
-      assertThat(updatedPersonEntity.ethnicityCodeLegacy?.description).isEqualTo(changedEthnicityCode.description)
+      assertThat(updatedPersonEntity.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(changedEthnicity))
 
       checkNationalities(updatedPersonEntity.nationalities, changedNationality)
 
