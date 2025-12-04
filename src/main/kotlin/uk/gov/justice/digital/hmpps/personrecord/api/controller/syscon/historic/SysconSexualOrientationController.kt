@@ -40,7 +40,7 @@ class SysconSexualOrientationController(
   ): String {
     prisonSexualOrientationRepository.findByPrisonNumber(prisonNumber)
       ?.update(sexualOrientation)
-      ?: prisonSexualOrientationRepository.save(PrisonSexualOrientationEntity.from(sexualOrientation))
+      ?: prisonSexualOrientationRepository.save(PrisonSexualOrientationEntity.from(prisonNumber, sexualOrientation))
 
     return OK
   }

@@ -65,32 +65,22 @@ class PrisonSexualOrientationEntity(
 
   fun update(sexualOrientation: PrisonSexualOrientation) {
     this.sexualOrientationCode = SexualOrientation.from(sexualOrientation)
-    this.startDate = sexualOrientation.startDate
-    this.endDate = sexualOrientation.endDate
-    this.createUserId = sexualOrientation.createUserId
-    this.createDateTime = sexualOrientation.createDateTime
-    this.createDisplayName = sexualOrientation.createDisplayName
     this.modifyUserId = sexualOrientation.modifyUserId
     this.modifyDisplayName = sexualOrientation.modifyDisplayName
     this.modifyDateTime = sexualOrientation.modifyDateTime
-    this.prisonRecordType = PrisonRecordType.from(sexualOrientation.current)
+    this.prisonRecordType = PrisonRecordType.CURRENT
   }
 
   companion object {
 
-    fun from(sexualOrientation: PrisonSexualOrientation): PrisonSexualOrientationEntity = PrisonSexualOrientationEntity(
+    fun from(prisonNumber: String, sexualOrientation: PrisonSexualOrientation): PrisonSexualOrientationEntity = PrisonSexualOrientationEntity(
       cprSexualOrientationId = UUID.randomUUID(),
-      prisonNumber = sexualOrientation.prisonNumber,
+      prisonNumber = prisonNumber,
       sexualOrientationCode = SexualOrientation.from(sexualOrientation),
-      startDate = sexualOrientation.startDate,
-      endDate = sexualOrientation.endDate,
-      createUserId = sexualOrientation.createUserId,
-      createDateTime = sexualOrientation.createDateTime,
-      createDisplayName = sexualOrientation.createDisplayName,
       modifyDateTime = sexualOrientation.modifyDateTime,
       modifyUserId = sexualOrientation.modifyUserId,
       modifyDisplayName = sexualOrientation.modifyDisplayName,
-      prisonRecordType = PrisonRecordType.from(sexualOrientation.current),
+      prisonRecordType = PrisonRecordType.CURRENT,
     )
   }
 }

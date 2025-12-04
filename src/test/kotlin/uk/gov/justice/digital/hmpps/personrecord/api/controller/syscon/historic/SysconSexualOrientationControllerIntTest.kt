@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.P
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonSexualOrientationRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -28,7 +27,7 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
 
       val currentCode = randomPrisonSexualOrientation()
-      val currentSexualOrientation = createRandomPrisonSexualOrientation(prisonNumber, currentCode, current = true)
+      val currentSexualOrientation = createRandomPrisonSexualOrientation(currentCode)
 
       postSexualOrientation(prisonNumber, currentSexualOrientation)
       assertCorrectValuesSaved(prisonNumber, currentSexualOrientation)
@@ -43,13 +42,13 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
 
       val currentCode = randomPrisonSexualOrientation()
-      val currentSexualOrientation = createRandomPrisonSexualOrientation(prisonNumber, currentCode, current = true)
+      val currentSexualOrientation = createRandomPrisonSexualOrientation(currentCode)
 
       postSexualOrientation(prisonNumber, currentSexualOrientation)
       assertCorrectValuesSaved(prisonNumber, currentSexualOrientation)
 
       val updatedCode = randomPrisonSexualOrientation()
-      val updatedSexualOrientation = createRandomPrisonSexualOrientation(prisonNumber, updatedCode, current = true)
+      val updatedSexualOrientation = createRandomPrisonSexualOrientation(updatedCode)
 
       postSexualOrientation(prisonNumber, updatedSexualOrientation)
       assertCorrectValuesSaved(prisonNumber, updatedSexualOrientation)
@@ -64,7 +63,7 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.post()
         .uri("/syscon-sync/sexual-orientation/" + randomPrisonNumber())
-        .bodyValue(createRandomPrisonSexualOrientation(randomPrisonNumber(), randomPrisonSexualOrientation(), true))
+        .bodyValue(createRandomPrisonSexualOrientation(randomPrisonSexualOrientation()))
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
         .expectStatus()
@@ -106,27 +105,15 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
 
     assertThat(current.prisonNumber).isEqualTo(prisonNumber)
     assertThat(current.sexualOrientationCode).isEqualTo(SexualOrientation.from(sexualOrientation))
-    assertThat(current.startDate).isEqualTo(sexualOrientation.startDate)
-    assertThat(current.endDate).isEqualTo(sexualOrientation.endDate)
-    assertThat(current.createUserId).isEqualTo(sexualOrientation.createUserId)
-    assertThat(current.createDateTime).isEqualTo(sexualOrientation.createDateTime)
-    assertThat(current.createDisplayName).isEqualTo(sexualOrientation.createDisplayName)
     assertThat(current.modifyDateTime).isEqualTo(sexualOrientation.modifyDateTime)
     assertThat(current.modifyUserId).isEqualTo(sexualOrientation.modifyUserId)
     assertThat(current.modifyDisplayName).isEqualTo(sexualOrientation.modifyDisplayName)
   }
 
-  private fun createRandomPrisonSexualOrientation(prisonNumber: String, code: Map.Entry<String, SexualOrientation>, current: Boolean): PrisonSexualOrientation = PrisonSexualOrientation(
-    prisonNumber = prisonNumber,
+  private fun createRandomPrisonSexualOrientation(code: Map.Entry<String, SexualOrientation>): PrisonSexualOrientation = PrisonSexualOrientation(
     sexualOrientationCode = code.key,
-    startDate = randomDate(),
-    endDate = randomDate(),
-    createUserId = randomName(),
-    createDateTime = randomDateTime(),
-    createDisplayName = randomName(),
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),
     modifyDisplayName = randomName(),
-    current = current,
   )
 }
