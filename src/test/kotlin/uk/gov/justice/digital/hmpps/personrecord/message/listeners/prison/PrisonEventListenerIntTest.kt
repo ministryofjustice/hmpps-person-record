@@ -148,11 +148,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.nationalities.size).isEqualTo(1)
         assertThat(personEntity.nationalities.first().nationalityCode?.name).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.name)
         assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.description)
-
-        val storedPrisonEthnicity = ethnicity.getPrisonEthnicity()
-        assertThat(personEntity.ethnicityCodeLegacy?.code).isEqualTo(storedPrisonEthnicity.code)
-        assertThat(personEntity.ethnicityCodeLegacy?.description).isEqualTo(storedPrisonEthnicity.description)
-
         assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))
       }
 
@@ -244,9 +239,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getAliases()).hasSize(1)
         assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(updatedAliasGender.value)
 
-        val storedPrisonEthnicity = ethnicity.getPrisonEthnicity()
-        assertThat(personEntity.ethnicityCodeLegacy?.code).isEqualTo(storedPrisonEthnicity.code)
-        assertThat(personEntity.ethnicityCodeLegacy?.description).isEqualTo(storedPrisonEthnicity.description)
+        assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))
 
         assertThat(personEntity.nationalities.size).isEqualTo(1)
         assertThat(personEntity.nationalities.first().nationalityCode?.name).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.name)
