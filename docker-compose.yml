@@ -1,6 +1,11 @@
 services:
 
   postgres-hmpps-person-record:
+    deploy:
+      resources:
+        limits:
+          cpus: 4
+          memory: 4GB
     image: postgres:17.4
     ports:
       - "5432:5432"
