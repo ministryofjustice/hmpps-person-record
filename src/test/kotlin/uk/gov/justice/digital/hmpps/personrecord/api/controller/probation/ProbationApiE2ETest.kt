@@ -389,8 +389,9 @@ class ProbationApiE2ETest : E2ETestBase() {
         val defendantId = randomDefendantId()
 
         val defendant = createRandomCommonPlatformPersonDetails(defendantId)
+        val title = randomTitleCode()
         val probationCase = ProbationCase(
-          title = Value(randomTitleCode().key),
+          title = Value(title.key),
           name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
           identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
           dateOfBirth = randomDate(),
@@ -449,8 +450,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.getPrimaryName().middleNames).isEqualTo(probationCase.name.middleNames)
         assertThat(offender.getPrimaryName().lastName).isEqualTo(probationCase.name.lastName)
         assertThat(offender.getPrimaryName().nameType).isEqualTo(PRIMARY)
-        assertThat(offender.getPrimaryName().titleCode?.name).isEqualTo(probationCase.title?.value?.getTitle()?.name)
-        assertThat(offender.getPrimaryName().titleCode?.description).isEqualTo(probationCase.title?.value?.getTitle()?.description)
+        assertThat(offender.getPrimaryName().titleCode).isEqualTo(title.value)
         assertThat(offender.getPrimaryName().dateOfBirth).isEqualTo(probationCase.dateOfBirth)
         assertThat(offender.getPrimaryName().sexCode).isEqualTo(SexCode.from(probationCase))
 

@@ -313,9 +313,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkNationalities(updatedPersonEntity.nationalities, changedNationality)
 
-      val storedTitle = updatedTitle.getTitle()
-      assertThat(updatedPersonEntity.getPrimaryName().titleCode?.name).isEqualTo(storedTitle?.name)
-      assertThat(updatedPersonEntity.getPrimaryName().titleCode?.description).isEqualTo(storedTitle?.description)
+      assertThat(updatedPersonEntity.getPrimaryName().titleCode).isEqualTo(TitleCode.from(updatedTitle))
       assertThat(updatedPersonEntity.sexualOrientation).isEqualTo(sexualOrientation.value)
       assertThat(updatedPersonEntity.religion).isEqualTo(updatedReligion)
       assertThat(updatedPersonEntity.genderIdentity).isEqualTo(updatedGenderIdentity.value)

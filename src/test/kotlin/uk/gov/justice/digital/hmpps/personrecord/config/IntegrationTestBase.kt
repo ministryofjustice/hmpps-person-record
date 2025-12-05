@@ -52,9 +52,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.review.ReviewEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -62,10 +60,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReviewRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
-import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
@@ -118,9 +114,6 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var eventLogRepository: EventLogRepository
-
-  @Autowired
-  lateinit var ethnicityCodeRepository: EthnicityCodeRepository
 
   @Autowired
   private lateinit var overrideService: OverrideService
@@ -612,10 +605,6 @@ class IntegrationTestBase {
   fun PersonEntity.getCro(): String? = this.references.getCROs().firstOrNull()
   fun Person.getPnc(): String? = this.references.getType(PNC).first().identifierValue
   fun PersonEntity.getPnc(): String? = this.references.getPNCs().firstOrNull()
-  fun String.getTitle(): TitleCode? = TitleCode.from(this)
-  fun String.getCommonPlatformEthnicity(): EthnicityCodeEntity = EthnicityCode.fromCommonPlatform(this)?.let { ethnicityCodeRepository.findByCode(it.name) }!!
-  fun String.getPrisonEthnicity(): EthnicityCodeEntity = EthnicityCode.fromPrison(this)?.let { ethnicityCodeRepository.findByCode(it.name) }!!
-  fun String.getProbationEthnicity(): EthnicityCodeEntity = EthnicityCode.fromProbation(this)?.let { ethnicityCodeRepository.findByCode(it.name) }!!
 
   private fun PersonEntity.intersectScopes(personEntity: PersonEntity): Set<UUID> {
     val thisPersonScopes = personRepository.findByMatchId(this.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
