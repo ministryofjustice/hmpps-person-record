@@ -612,7 +612,6 @@ class IntegrationTestBase {
   fun PersonEntity.getCro(): String? = this.references.getCROs().firstOrNull()
   fun Person.getPnc(): String? = this.references.getType(PNC).first().identifierValue
   fun PersonEntity.getPnc(): String? = this.references.getPNCs().firstOrNull()
-  fun String.getTitle(): TitleCode? = TitleCode.from(this)
 
   private fun PersonEntity.intersectScopes(personEntity: PersonEntity): Set<UUID> {
     val thisPersonScopes = personRepository.findByMatchId(this.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
