@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.test
 
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.VALID_LETTERS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AdditionalIdentifierCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AdditionalIdentifierCode.Companion.probationAdditionalIdentifierCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.commonPlatformEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.prisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.probationEthnicity
@@ -68,6 +70,8 @@ fun randomAddressNumber(): String = (1..200).random().toString()
 fun randomUprn(): String = "2" + randomDigit(11)
 
 fun randomTitleCode(): Map.Entry<String, TitleCode> = titleCodeMap.entries.random()
+
+fun randomAdditionalIdentifierCode(): Map.Entry<String, AdditionalIdentifierCode> = probationAdditionalIdentifierCode.entries.random()
 
 fun randomCommonPlatformSexCode(): Map.Entry<String, SexCode> = commonPlatformSexCode.entries.random()
 
