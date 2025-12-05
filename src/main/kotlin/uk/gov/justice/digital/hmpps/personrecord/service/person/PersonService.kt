@@ -38,15 +38,15 @@ class PersonService(
   }
 
   private fun create(person: Person): PersonEntity {
-    val ctx = PersonChainable(
+    val personEntity = PersonChainable(
       personEntity = personRepository.save(PersonEntity.new(person)),
       matchingFieldsChanged = true,
       linkOnCreate = person.behaviour.linkOnCreate,
     )
       .saveToPersonMatch()
-      .linkToPersonKey()
-    publisher.publishEvent(PersonCreated(ctx.personEntity))
-    return ctx.personEntity
+      .linkToPersonKey().personEntity
+    publisher.publishEvent(PersonCreated(personEntity))
+    return personEntity
   }
 
   private fun update(person: Person, personEntity: PersonEntity): PersonEntity {
