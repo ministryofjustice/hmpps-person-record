@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 data class PrisonSexualOrientation(
   @Schema(description = "The sexual orientation code", example = "BIS")
-  val sexualOrientationCode: String,
+  val sexualOrientationCode: String? = null,
   @Schema(description = "The sexual orientation modify date and time", example = "2000-01-01 12:00:00")
   val modifyDateTime: LocalDateTime? = null,
   @Schema(description = "The sexual orientation modify user id", example = "12345")
