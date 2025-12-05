@@ -29,17 +29,17 @@ class PrisonNationalityEntity(
   var nationalityCode: NationalityCode? = null,
 
   @Column(name = "modify_date_time")
-  var modifyDateTime: LocalDateTime? = null,
+  var modifyDateTime: LocalDateTime,
 
   @Column(name = "modify_user_id")
-  var modifyUserId: String? = null,
+  var modifyUserId: String,
 
   @Column(name = "modify_display_name")
   var modifyDisplayName: String? = null,
 
   @Column(name = "record_type")
   @Enumerated(STRING)
-  var prisonRecordType: PrisonRecordType? = null,
+  var prisonRecordType: PrisonRecordType,
 
   @Column(name = "nationality_notes")
   var notes: String? = null,
