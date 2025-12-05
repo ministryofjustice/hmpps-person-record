@@ -53,7 +53,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.review.ReviewEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -115,9 +114,6 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var eventLogRepository: EventLogRepository
-
-  @Autowired
-  lateinit var ethnicityCodeRepository: EthnicityCodeRepository
 
   @Autowired
   private lateinit var overrideService: OverrideService
