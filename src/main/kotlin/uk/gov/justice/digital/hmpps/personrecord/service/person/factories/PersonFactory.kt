@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person.factories
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -47,18 +46,11 @@ class PersonFactory(
 
   private fun PersonEntity.buildChildEntities(person: Person) {
     this.attachPseudonyms(listOf(PseudonymEntity.primaryNameFrom(person)) + person.aliases.mapNotNull { PseudonymEntity.aliasFrom(it) })
-    this.attachNationalities(person.nationalities.map { NationalityEntity.from(it) })
   }
 
   private fun PersonEntity.attachPseudonyms(pseudonyms: List<PseudonymEntity>) {
     this.pseudonyms.clear()
     pseudonyms.forEach { pseudonymEntity -> pseudonymEntity.person = this }
     this.pseudonyms.addAll(pseudonyms)
-  }
-
-  private fun PersonEntity.attachNationalities(nationalities: List<NationalityEntity>) {
-    this.nationalities.clear()
-    nationalities.forEach { nationalityEntity -> nationalityEntity.person = this }
-    this.nationalities.addAll(nationalities)
   }
 }

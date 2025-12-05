@@ -204,6 +204,7 @@ class PersonEntity(
     updatePersonContacts(buildContacts(person, this))
     updatePersonReferences(buildReferences(person, this))
     updatePersonSentences(buildSentenceInfo(person, this))
+    updateNationalities(person.nationalities.map { NationalityEntity.from(it) })
   }
 
   private fun updatePersonSentences(sentences: List<SentenceInfoEntity>) {
@@ -231,6 +232,12 @@ class PersonEntity(
     this.contacts.clear()
     contacts.forEach { personContactEntity -> personContactEntity.person = this }
     this.contacts.addAll(contacts)
+  }
+
+  private fun updateNationalities(nationalities: List<NationalityEntity>) {
+    this.nationalities.clear()
+    nationalities.forEach { nationalityEntity -> nationalityEntity.person = this }
+    this.nationalities.addAll(nationalities)
   }
 
   companion object {
