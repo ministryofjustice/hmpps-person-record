@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonProcessingCompleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonChainable
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
@@ -50,28 +49,22 @@ class PersonService(
     val beforeUpdate = PersonMatchRecord.from(personEntity)
     personEntity.update(person)
     val matchingFieldsChanged = beforeUpdate.matchingFieldsAreDifferent(personEntity)
-    PersonChainable(
-      personEntity = personRepository.save(personEntity),
-      matchingFieldsChanged = matchingFieldsChanged,
-    )
-      .saveToPersonMatch()
-      .reclusterIf { ctx -> person.behaviour.reclusterOnUpdate && ctx.matchingFieldsChanged }
+    personRepository.save(personEntity)
+    if (matchingFieldsChanged) {
+      personMatchService.saveToPersonMatch(personEntity)
+      recluster(person, personEntity)
+    }
     publisher.publishEvent(PersonUpdated(personEntity, matchingFieldsChanged))
     return personEntity
   }
 
-  private fun PersonChainable.saveToPersonMatch(): PersonChainable {
-    when {
-      this.matchingFieldsChanged -> personMatchService.saveToPersonMatch(this.personEntity)
+  private fun recluster(
+    person: Person,
+    personEntity: PersonEntity,
+  ) {
+    if (person.behaviour.reclusterOnUpdate) {
+      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
     }
-    return this
-  }
-
-  private fun PersonChainable.reclusterIf(condition: (ctx: PersonChainable) -> Boolean): PersonChainable {
-    when {
-      condition(this) -> this.personEntity.personKey?.let { reclusterService.recluster(this.personEntity) }
-    }
-    return this
   }
 
   private fun PersonEntity?.exists(no: () -> PersonEntity, yes: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
