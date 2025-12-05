@@ -11,14 +11,11 @@ class PersonFactory(
   private val personRepository: PersonRepository,
 ) {
 
-  fun create(person: Person): PersonChainable {
-    val personEntity = PersonEntity.new(person)
-    return PersonChainable(
-      personEntity = personRepository.save(personEntity),
-      matchingFieldsChanged = true,
-      linkOnCreate = person.behaviour.linkOnCreate,
-    )
-  }
+  fun create(person: Person): PersonChainable = PersonChainable(
+    personEntity = personRepository.save(PersonEntity.new(person)),
+    matchingFieldsChanged = true,
+    linkOnCreate = person.behaviour.linkOnCreate,
+  )
 
   fun update(person: Person, personEntity: PersonEntity): PersonChainable {
     val beforeUpdate = PersonMatchRecord.from(personEntity)
