@@ -11,33 +11,14 @@ class PersonFactory(
   private val personRepository: PersonRepository,
 ) {
 
-  fun create(person: Person): PersonChainable {
-    val personEntity = PersonEntity.new(person)
-    return PersonChainable(
-      personEntity = personRepository.save(personEntity),
-      matchingFieldsChanged = true,
-      linkOnCreate = person.behaviour.linkOnCreate,
-    )
-  }
-
   fun update(person: Person, personEntity: PersonEntity): PersonChainable {
-    val matchingFieldsHaveChanged = personEntity.evaluateMatchingFields {
-      it.update(person)
-    }
+    val beforeUpdate = PersonMatchRecord.from(personEntity)
+    personEntity.update(person)
+    val afterUpdate = PersonMatchRecord.from(personEntity)
     return PersonChainable(
       personEntity = personRepository.save(personEntity),
-      matchingFieldsChanged = matchingFieldsHaveChanged,
+      matchingFieldsChanged = beforeUpdate.matchingFieldsAreDifferent(afterUpdate),
       linkOnCreate = person.behaviour.linkOnCreate,
-    )
-  }
-
-  private fun PersonEntity.evaluateMatchingFields(change: (PersonEntity) -> Unit): Boolean {
-    val oldMatchingDetails = PersonMatchRecord.from(this)
-    change(this)
-    return oldMatchingDetails.matchingFieldsAreDifferent(
-      PersonMatchRecord.from(
-        this,
-      ),
     )
   }
 }

@@ -274,10 +274,7 @@ class IntegrationTestBase {
     return personRepository.findByMatchId(personEntity.matchId)!!
   }
 
-  internal fun createPerson(person: Person): PersonEntity {
-    val personEntity = personFactory.create(person).personEntity
-    return personRepository.saveAndFlush(personEntity)
-  }
+  internal fun createPerson(person: Person): PersonEntity = personRepository.saveAndFlush(PersonEntity.new(person))
 
   internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity): PersonEntity {
     val source = personRepository.findByMatchId(sourcePersonEntity.matchId)!!
