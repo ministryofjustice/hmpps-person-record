@@ -64,7 +64,7 @@ class PrisonSexualOrientationEntity(
 ) {
 
   fun update(sexualOrientation: PrisonSexualOrientation) {
-    this.sexualOrientationCode = sexualOrientation.sexualOrientationCode?.let { SexualOrientation.from(sexualOrientation) }
+    this.sexualOrientationCode = sexualOrientation.sexualOrientationCode?.let { SexualOrientation.fromPrison(it) }
     this.modifyUserId = sexualOrientation.modifyUserId
     this.modifyDisplayName = sexualOrientation.modifyDisplayName
     this.modifyDateTime = sexualOrientation.modifyDateTime
@@ -76,7 +76,7 @@ class PrisonSexualOrientationEntity(
     fun from(prisonNumber: String, sexualOrientation: PrisonSexualOrientation): PrisonSexualOrientationEntity = PrisonSexualOrientationEntity(
       cprSexualOrientationId = UUID.randomUUID(),
       prisonNumber = prisonNumber,
-      sexualOrientationCode = sexualOrientation.sexualOrientationCode?.let { SexualOrientation.from(sexualOrientation) },
+      sexualOrientationCode = sexualOrientation.sexualOrientationCode?.let { SexualOrientation.fromPrison(it) },
       modifyDateTime = sexualOrientation.modifyDateTime,
       modifyUserId = sexualOrientation.modifyUserId,
       modifyDisplayName = sexualOrientation.modifyDisplayName,

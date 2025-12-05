@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 
 enum class SexualOrientation(val description: String) {
@@ -32,12 +31,10 @@ enum class SexualOrientation(val description: String) {
       "REF" to REF,
     )
 
-    fun from(probationCase: ProbationCase) = probationCase.sexualOrientation?.value?.let {
+    fun fromProbation(probationCase: ProbationCase) = probationCase.sexualOrientation?.value?.let {
       probationSexualOrientationMap.getOrDefault(it, UNKNOWN)
     }
 
-    fun from(prisonSexualOrientation: PrisonSexualOrientation) = prisonSexualOrientation.sexualOrientationCode?.let {
-      prisonSexualOrientationMap.getOrDefault(prisonSexualOrientation.sexualOrientationCode, UNKNOWN)
-    }
+    fun fromPrison(prisonSexualOrientationCode: String) = prisonSexualOrientationMap.getOrDefault(prisonSexualOrientationCode, UNKNOWN)
   }
 }
