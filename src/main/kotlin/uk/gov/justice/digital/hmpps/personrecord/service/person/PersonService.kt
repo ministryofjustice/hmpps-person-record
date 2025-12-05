@@ -49,8 +49,7 @@ class PersonService(
   private fun update(person: Person, personEntity: PersonEntity): PersonEntity {
     val beforeUpdate = PersonMatchRecord.from(personEntity)
     personEntity.update(person)
-    val afterUpdate = PersonMatchRecord.from(personEntity)
-    val matchingFieldsChanged = beforeUpdate.matchingFieldsAreDifferent(afterUpdate)
+    val matchingFieldsChanged = beforeUpdate.matchingFieldsAreDifferent(personEntity)
     PersonChainable(
       personEntity = personRepository.save(personEntity),
       matchingFieldsChanged = matchingFieldsChanged,
@@ -79,4 +78,6 @@ class PersonService(
     this == null -> no()
     else -> yes(this)
   }
+
+  private fun PersonMatchRecord.matchingFieldsAreDifferent(personEntity: PersonEntity): Boolean = this != PersonMatchRecord.from(personEntity)
 }
