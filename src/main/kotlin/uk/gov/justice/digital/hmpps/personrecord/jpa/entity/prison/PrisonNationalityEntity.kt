@@ -21,25 +21,25 @@ class PrisonNationalityEntity(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
 
-  @Column(name = "prison_number")
-  val prisonNumber: String? = null,
+  @Column(name = "prison_number", nullable = false)
+  val prisonNumber: String,
 
   @Column(name = "nationality_code")
   @Enumerated(STRING)
   var nationalityCode: NationalityCode? = null,
 
-  @Column(name = "modify_date_time")
-  var modifyDateTime: LocalDateTime? = null,
+  @Column(name = "modify_date_time", nullable = false)
+  var modifyDateTime: LocalDateTime,
 
-  @Column(name = "modify_user_id")
-  var modifyUserId: String? = null,
+  @Column(name = "modify_user_id", nullable = false)
+  var modifyUserId: String,
 
   @Column(name = "modify_display_name")
   var modifyDisplayName: String? = null,
 
-  @Column(name = "record_type")
+  @Column(name = "record_type", nullable = false)
   @Enumerated(STRING)
-  var prisonRecordType: PrisonRecordType? = null,
+  var prisonRecordType: PrisonRecordType,
 
   @Column(name = "nationality_notes")
   var notes: String? = null,
