@@ -37,13 +37,11 @@ class PersonService(
   }
 
   private fun create(person: Person): PersonEntity {
-    val personEntity = PersonChainable(
-      personEntity = personRepository.save(PersonEntity.new(person)),
-      matchingFieldsChanged = true,
-      linkOnCreate = person.behaviour.linkOnCreate,
-    )
-      .saveToPersonMatch()
-      .linkToPersonKey().personEntity
+    val personEntity = personRepository.save(PersonEntity.new(person))
+    personMatchService.saveToPersonMatch(personEntity)
+    if (person.behaviour.linkOnCreate) {
+      personKeyService.linkRecordToPersonKey(personEntity)
+    }
     publisher.publishEvent(PersonCreated(personEntity))
     return personEntity
   }
@@ -56,7 +54,6 @@ class PersonService(
     PersonChainable(
       personEntity = personRepository.save(personEntity),
       matchingFieldsChanged = matchingFieldsChanged,
-      linkOnCreate = person.behaviour.linkOnCreate,
     )
       .saveToPersonMatch()
       .reclusterIf { ctx -> person.behaviour.reclusterOnUpdate && ctx.matchingFieldsChanged }
@@ -67,13 +64,6 @@ class PersonService(
   private fun PersonChainable.saveToPersonMatch(): PersonChainable {
     when {
       this.matchingFieldsChanged -> personMatchService.saveToPersonMatch(this.personEntity)
-    }
-    return this
-  }
-
-  private fun PersonChainable.linkToPersonKey(): PersonChainable {
-    when {
-      this.linkOnCreate -> personKeyService.linkRecordToPersonKey(this.personEntity)
     }
     return this
   }
