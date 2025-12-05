@@ -32,6 +32,16 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
       postSexualOrientation(prisonNumber, currentSexualOrientation)
       assertCorrectValuesSaved(prisonNumber, currentSexualOrientation)
     }
+
+    @Test
+    fun `should save current sexual orientation against a prison number when code is null`() {
+      val prisonNumber = randomPrisonNumber()
+
+      val currentSexualOrientation = createRandomPrisonSexualOrientation(null)
+
+      postSexualOrientation(prisonNumber, currentSexualOrientation)
+      assertCorrectValuesSaved(prisonNumber, currentSexualOrientation)
+    }
   }
 
   @Nested
@@ -49,6 +59,22 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
 
       val updatedCode = randomPrisonSexualOrientation()
       val updatedSexualOrientation = createRandomPrisonSexualOrientation(updatedCode)
+
+      postSexualOrientation(prisonNumber, updatedSexualOrientation)
+      assertCorrectValuesSaved(prisonNumber, updatedSexualOrientation)
+    }
+
+    @Test
+    fun `should update an existing sexual orientation when code is null`() {
+      val prisonNumber = randomPrisonNumber()
+
+      val currentCode = randomPrisonSexualOrientation()
+      val currentSexualOrientation = createRandomPrisonSexualOrientation(currentCode)
+
+      postSexualOrientation(prisonNumber, currentSexualOrientation)
+      assertCorrectValuesSaved(prisonNumber, currentSexualOrientation)
+
+      val updatedSexualOrientation = createRandomPrisonSexualOrientation(null)
 
       postSexualOrientation(prisonNumber, updatedSexualOrientation)
       assertCorrectValuesSaved(prisonNumber, updatedSexualOrientation)
@@ -110,8 +136,8 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
     assertThat(current.modifyDisplayName).isEqualTo(sexualOrientation.modifyDisplayName)
   }
 
-  private fun createRandomPrisonSexualOrientation(code: Map.Entry<String, SexualOrientation>): PrisonSexualOrientation = PrisonSexualOrientation(
-    sexualOrientationCode = code.key,
+  private fun createRandomPrisonSexualOrientation(code: Map.Entry<String, SexualOrientation>?): PrisonSexualOrientation = PrisonSexualOrientation(
+    sexualOrientationCode = code?.key,
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),
     modifyDisplayName = randomName(),

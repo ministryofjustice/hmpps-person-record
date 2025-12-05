@@ -31,7 +31,7 @@ class PrisonSexualOrientationEntity(
 
   @Column(name = "sexual_orientation_code")
   @Enumerated(STRING)
-  var sexualOrientationCode: SexualOrientation,
+  var sexualOrientationCode: SexualOrientation? = null,
 
   @Column(name = "start_date")
   var startDate: LocalDate? = null,
@@ -64,7 +64,7 @@ class PrisonSexualOrientationEntity(
 ) {
 
   fun update(sexualOrientation: PrisonSexualOrientation) {
-    this.sexualOrientationCode = SexualOrientation.from(sexualOrientation)
+    this.sexualOrientationCode = sexualOrientation.sexualOrientationCode?.let { SexualOrientation.from(sexualOrientation) }
     this.modifyUserId = sexualOrientation.modifyUserId
     this.modifyDisplayName = sexualOrientation.modifyDisplayName
     this.modifyDateTime = sexualOrientation.modifyDateTime
@@ -76,7 +76,7 @@ class PrisonSexualOrientationEntity(
     fun from(prisonNumber: String, sexualOrientation: PrisonSexualOrientation): PrisonSexualOrientationEntity = PrisonSexualOrientationEntity(
       cprSexualOrientationId = UUID.randomUUID(),
       prisonNumber = prisonNumber,
-      sexualOrientationCode = SexualOrientation.from(sexualOrientation),
+      sexualOrientationCode = sexualOrientation.sexualOrientationCode?.let { SexualOrientation.from(sexualOrientation) },
       modifyDateTime = sexualOrientation.modifyDateTime,
       modifyUserId = sexualOrientation.modifyUserId,
       modifyDisplayName = sexualOrientation.modifyDisplayName,

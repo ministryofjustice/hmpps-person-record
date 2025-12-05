@@ -36,6 +36,8 @@ enum class SexualOrientation(val description: String) {
       probationSexualOrientationMap.getOrDefault(it, UNKNOWN)
     }
 
-    fun from(prisonSexualOrientation: PrisonSexualOrientation) = prisonSexualOrientationMap.getOrDefault(prisonSexualOrientation.sexualOrientationCode, UNKNOWN)
+    fun from(prisonSexualOrientation: PrisonSexualOrientation) = prisonSexualOrientation.sexualOrientationCode?.let {
+      prisonSexualOrientationMap.getOrDefault(prisonSexualOrientation.sexualOrientationCode, UNKNOWN)
+    }
   }
 }
