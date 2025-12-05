@@ -205,6 +205,7 @@ class PersonEntity(
     updatePersonReferences(buildReferences(person, this))
     updatePersonSentences(buildSentenceInfo(person, this))
     updateNationalities(person.nationalities.map { NationalityEntity.from(it) })
+    updatePseudonyms(listOf(PseudonymEntity.primaryNameFrom(person)) + person.aliases.mapNotNull { PseudonymEntity.aliasFrom(it) })
   }
 
   private fun updatePersonSentences(sentences: List<SentenceInfoEntity>) {
@@ -238,6 +239,12 @@ class PersonEntity(
     this.nationalities.clear()
     nationalities.forEach { nationalityEntity -> nationalityEntity.person = this }
     this.nationalities.addAll(nationalities)
+  }
+
+  private fun updatePseudonyms(pseudonyms: List<PseudonymEntity>) {
+    this.pseudonyms.clear()
+    pseudonyms.forEach { pseudonymEntity -> pseudonymEntity.person = this }
+    this.pseudonyms.addAll(pseudonyms)
   }
 
   companion object {
