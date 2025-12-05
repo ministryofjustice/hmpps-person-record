@@ -1,7 +1,7 @@
 services:
 
   postgres-hmpps-person-record:
-    image: postgres:17.4-alpine
+    image: postgres:17.4
     ports:
       - "5432:5432"
     networks:
