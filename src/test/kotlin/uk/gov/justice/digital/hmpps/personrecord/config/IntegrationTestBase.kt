@@ -69,7 +69,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERG
 import uk.gov.justice.digital.hmpps.personrecord.model.types.review.ClusterType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonChainable
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
@@ -275,14 +274,7 @@ class IntegrationTestBase {
     return personRepository.findByMatchId(personEntity.matchId)!!
   }
 
-  internal fun createPerson(person: Person): PersonEntity {
-    val personEntity = PersonChainable(
-      personEntity = personFactory.personRepository.save(PersonEntity.new(person)),
-      matchingFieldsChanged = true,
-      linkOnCreate = person.behaviour.linkOnCreate,
-    ).personEntity
-    return personRepository.saveAndFlush(personEntity)
-  }
+  internal fun createPerson(person: Person): PersonEntity = personRepository.saveAndFlush(PersonEntity.new(person))
 
   internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity): PersonEntity {
     val source = personRepository.findByMatchId(sourcePersonEntity.matchId)!!
