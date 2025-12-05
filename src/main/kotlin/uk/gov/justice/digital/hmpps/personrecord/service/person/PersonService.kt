@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -10,12 +11,10 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonChainable
-import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
 class PersonService(
-  private val personFactory: PersonFactory,
   private val personRepository: PersonRepository,
   private val personKeyService: PersonKeyService,
   private val personMatchService: PersonMatchService,
@@ -50,11 +49,19 @@ class PersonService(
   }
 
   private fun update(person: Person, personEntity: PersonEntity): PersonEntity {
-    val ctx = personFactory.update(person, personEntity)
+    val beforeUpdate = PersonMatchRecord.from(personEntity)
+    personEntity.update(person)
+    val afterUpdate = PersonMatchRecord.from(personEntity)
+    val matchingFieldsChanged = beforeUpdate.matchingFieldsAreDifferent(afterUpdate)
+    PersonChainable(
+      personEntity = personRepository.save(personEntity),
+      matchingFieldsChanged = matchingFieldsChanged,
+      linkOnCreate = person.behaviour.linkOnCreate,
+    )
       .saveToPersonMatch()
       .reclusterIf { ctx -> person.behaviour.reclusterOnUpdate && ctx.matchingFieldsChanged }
-    publisher.publishEvent(PersonUpdated(ctx.personEntity, ctx.matchingFieldsChanged))
-    return ctx.personEntity
+    publisher.publishEvent(PersonUpdated(personEntity, matchingFieldsChanged))
+    return personEntity
   }
 
   private fun PersonChainable.saveToPersonMatch(): PersonChainable {
