@@ -69,7 +69,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERG
 import uk.gov.justice.digital.hmpps.personrecord.model.types.review.ClusterType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -96,9 +95,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
 class IntegrationTestBase {
-
-  @Autowired
-  private lateinit var personFactory: PersonFactory
 
   @Autowired
   lateinit var objectMapper: ObjectMapper
