@@ -48,8 +48,8 @@ class PersonService(
   private fun update(person: Person, personEntity: PersonEntity): PersonEntity {
     val beforeUpdate = PersonMatchRecord.from(personEntity)
     personEntity.update(person)
-    val matchingFieldsChanged = beforeUpdate.matchingFieldsAreDifferent(personEntity)
     personRepository.save(personEntity)
+    val matchingFieldsChanged = beforeUpdate.matchingFieldsAreDifferent(personEntity)
     if (matchingFieldsChanged) {
       personMatchService.saveToPersonMatch(personEntity)
       recluster(person, personEntity)
