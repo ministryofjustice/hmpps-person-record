@@ -14,6 +14,42 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.AAMR
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ACC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.AI02
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.AMRL
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.APNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DNOMS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DOFF
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRL
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.IMMN
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.LBCN
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.LCRN
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.LIFN
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.MFCRN
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.MSVN
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.MTCRN
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NHS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NINO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NOMS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NPNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.OTHR
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PARN
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PCRN
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PRNOMS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PST
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.SPNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.URN
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.VISO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.XIMMN
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.XNOMS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.YCRN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -66,138 +102,43 @@ data class Person(
         Contact.from(ContactType.EMAIL, probationCase.contactDetails?.email),
       )
       val references: List<Reference> = listOf(
-        Reference(identifierType = IdentifierType.CRO, identifierValue = CROIdentifier.from(probationCase.identifiers.cro).croId),
-        Reference(identifierType = IdentifierType.PNC, identifierValue = PNCIdentifier.from(probationCase.identifiers.pnc).pncId),
+        Reference(identifierType = CRO, identifierValue = CROIdentifier.from(probationCase.identifiers.cro).croId),
+        Reference(identifierType = PNC, identifierValue = PNCIdentifier.from(probationCase.identifiers.pnc).pncId),
         Reference(
-          identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+          identifierType = NATIONAL_INSURANCE_NUMBER,
           identifierValue = probationCase.identifiers.nationalInsuranceNumber,
         ),
-        Reference(
-          identifierType = IdentifierType.AAMR,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "AAMR"),
-        ),
-        Reference(
-          identifierType = IdentifierType.ACC,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "ACC"),
-        ),
-        Reference(
-          identifierType = IdentifierType.APNC,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "APNC"),
-        ),
-        Reference(
-          identifierType = IdentifierType.AMRL,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "AMRL"),
-        ),
-        Reference(
-          identifierType = IdentifierType.ASN,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "ASN"),
-        ),
-        Reference(
-          identifierType = IdentifierType.URN,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "URN"),
-        ),
-        Reference(
-          identifierType = IdentifierType.DRL,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "DRL"),
-        ),
-        Reference(
-          identifierType = IdentifierType.DNOMS,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "DNOMS"),
-        ),
-        Reference(
-          identifierType = IdentifierType.XIMMN,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "XIMMN"),
-        ),
-
-        Reference(
-          identifierType = IdentifierType.XNOMS,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "XNOMS"),
-        ),
-        Reference(
-          identifierType = IdentifierType.IMMN,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "IMMN"),
-        ),
-        Reference(
-          identifierType = IdentifierType.DOFF,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "DOFF"),
-        ),
-        Reference(
-          identifierType = IdentifierType.LCRN,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "LCRN"),
-        ),
-        Reference(
-          identifierType = IdentifierType.LBCN,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "LBCN"),
-        ),
-        Reference(
-          identifierType = IdentifierType.LIFN,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "LIFN"),
-        ),
-        Reference(
-          identifierType = IdentifierType.MFCRN,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "MFCRN"),
-        ),
-        Reference(
-          identifierType = IdentifierType.MTCRN,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "MTCRN"),
-        ),
-        Reference(
-          identifierType = IdentifierType.MSVN,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "MSVN"),
-        ),
-        Reference(
-          identifierType = IdentifierType.NINO,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "NINO"),
-        ),
-        Reference(
-          identifierType = IdentifierType.NHS,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "NHS"),
-        ),
-        Reference(
-          identifierType = IdentifierType.NOMS,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "NOMS"),
-        ),
-
-        Reference(
-          identifierType = IdentifierType.OTHR,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "OTHR"),
-        ),
-        Reference(
-          identifierType = IdentifierType.PCRN,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "PCRN"),
-        ),
-        Reference(
-          identifierType = IdentifierType.PARN,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "PARN"),
-        ),
-        Reference(
-          identifierType = IdentifierType.PST,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "PST"),
-        ),
-        Reference(
-          identifierType = IdentifierType.AI02,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "AI02"),
-        ),
-        Reference(
-          identifierType = IdentifierType.PRNOMS,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "PRNOMS"),
-        ),
-        Reference(
-          identifierType = IdentifierType.SPNC,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "SPNC"),
-        ),
-        Reference(
-          identifierType = IdentifierType.NPNC,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "NPNC"),
-        ),
-        Reference(
-          identifierType = IdentifierType.VISO,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "VISO"),
-        ),
-        Reference(
-          identifierType = IdentifierType.YCRN,
-          identifierValue = getAdditionalIdentifierValue(probationCase, "YCRN"),
-        ),
+        createReference("AAMR", AAMR, probationCase),
+        createReference("ACC", ACC, probationCase),
+        createReference("APNC", APNC, probationCase),
+        createReference("AMRL", AMRL, probationCase),
+        createReference("ASN", ASN, probationCase),
+        createReference("URN", URN, probationCase),
+        createReference("DRL", DRL, probationCase),
+        createReference("DNOMS", DNOMS, probationCase),
+        createReference("XIMMN", XIMMN, probationCase),
+        createReference("XNOMS", XNOMS, probationCase),
+        createReference("IMMN", IMMN, probationCase),
+        createReference("DOFF", DOFF, probationCase),
+        createReference("LCRN", LCRN, probationCase),
+        createReference("LBCN", LBCN, probationCase),
+        createReference("LIFN", LIFN, probationCase),
+        createReference("MFCRN", MFCRN, probationCase),
+        createReference("MTCRN", MTCRN, probationCase),
+        createReference("MSVN", MSVN, probationCase),
+        createReference("NINO", NINO, probationCase),
+        createReference("NHS", NHS, probationCase),
+        createReference("NOMS", NOMS, probationCase),
+        createReference("OTHR", OTHR, probationCase),
+        createReference("PCRN", PCRN, probationCase),
+        createReference("PARN", PARN, probationCase),
+        createReference("PST", PST, probationCase),
+        createReference("AI02", AI02, probationCase),
+        createReference("PRNOMS", PRNOMS, probationCase),
+        createReference("SPNC", SPNC, probationCase),
+        createReference("NPNC", NPNC, probationCase),
+        createReference("VISO", VISO, probationCase),
+        createReference("YCRN", YCRN, probationCase),
       )
 
       val nationalities: List<NationalityCode> = listOf(
@@ -229,6 +170,11 @@ data class Person(
       )
     }
 
+    private fun createReference(id: String, identifier: IdentifierType, probationCase: ProbationCase) = Reference(
+      identifierType = identifier,
+      identifierValue = probationCase.identifiers.additionalIdentifiers?.filter { it.type?.value == id }?.firstNotNullOfOrNull { it.value },
+    )
+
     private fun getAdditionalIdentifierValue(probationCase: ProbationCase, value: String): String? = probationCase.identifiers.additionalIdentifiers?.filter { it.type?.value == value }
       ?.firstNotNullOfOrNull { it.value }
 
@@ -243,19 +189,19 @@ data class Person(
 
       val references: List<Reference> = listOfNotNull(
         Reference.from(
-          identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+          identifierType = NATIONAL_INSURANCE_NUMBER,
           identifierValue = defendant.personDefendant?.personDetails?.nationalInsuranceNumber,
         ),
         Reference.from(
-          identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
+          identifierType = DRIVER_LICENSE_NUMBER,
           identifierValue = defendant.personDefendant?.driverNumber,
         ),
         Reference.from(
-          identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
+          identifierType = ARREST_SUMMONS_NUMBER,
           identifierValue = defendant.personDefendant?.arrestSummonsNumber,
         ),
-        Reference.from(identifierType = IdentifierType.PNC, identifierValue = defendant.pncId?.pncId),
-        Reference.from(identifierType = IdentifierType.CRO, identifierValue = defendant.cro?.croId),
+        Reference.from(identifierType = PNC, identifierValue = defendant.pncId?.pncId),
+        Reference.from(identifierType = CRO, identifierValue = defendant.cro?.croId),
       )
 
       val nationalities: List<NationalityCode> = listOf(
@@ -287,8 +233,8 @@ data class Person(
         Address.from(libraHearingEvent.defendantAddress),
       )
       val references = listOfNotNull(
-        Reference.from(identifierType = IdentifierType.CRO, identifierValue = libraHearingEvent.cro?.toString()),
-        Reference.from(identifierType = IdentifierType.PNC, identifierValue = libraHearingEvent.pnc?.toString()),
+        Reference.from(identifierType = CRO, identifierValue = libraHearingEvent.cro?.toString()),
+        Reference.from(identifierType = PNC, identifierValue = libraHearingEvent.pnc?.toString()),
       )
 
       return Person(
@@ -314,14 +260,14 @@ data class Person(
       val contacts: List<Contact> = emails + phoneNumbers
       val addresses: List<Address> = Address.fromPrisonerAddressList(prisoner.addresses)
       val references = listOfNotNull(
-        Reference.from(identifierType = IdentifierType.CRO, identifierValue = prisoner.cro?.toString()),
-        Reference.from(identifierType = IdentifierType.PNC, identifierValue = prisoner.pnc?.toString()),
+        Reference.from(identifierType = CRO, identifierValue = prisoner.cro?.toString()),
+        Reference.from(identifierType = PNC, identifierValue = prisoner.pnc?.toString()),
         Reference.from(
-          identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+          identifierType = NATIONAL_INSURANCE_NUMBER,
           identifierValue = prisoner.identifiers.getType("NINO")?.value,
         ),
         Reference.from(
-          identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
+          identifierType = DRIVER_LICENSE_NUMBER,
           identifierValue = prisoner.identifiers.getType("DL")?.value,
         ),
       )
