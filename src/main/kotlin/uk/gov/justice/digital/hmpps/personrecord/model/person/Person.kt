@@ -101,45 +101,7 @@ data class Person(
         Contact.from(ContactType.MOBILE, probationCase.contactDetails?.mobile),
         Contact.from(ContactType.EMAIL, probationCase.contactDetails?.email),
       )
-      val references: List<Reference> = listOf(
-        Reference(identifierType = CRO, identifierValue = CROIdentifier.from(probationCase.identifiers.cro).croId),
-        Reference(identifierType = PNC, identifierValue = PNCIdentifier.from(probationCase.identifiers.pnc).pncId),
-        Reference(
-          identifierType = NATIONAL_INSURANCE_NUMBER,
-          identifierValue = probationCase.identifiers.nationalInsuranceNumber,
-        ),
-        createReference("AAMR", AAMR, probationCase),
-        createReference("ACC", ACC, probationCase),
-        createReference("APNC", APNC, probationCase),
-        createReference("AMRL", AMRL, probationCase),
-        createReference("ASN", ASN, probationCase),
-        createReference("URN", URN, probationCase),
-        createReference("DRL", DRL, probationCase),
-        createReference("DNOMS", DNOMS, probationCase),
-        createReference("XIMMN", XIMMN, probationCase),
-        createReference("XNOMS", XNOMS, probationCase),
-        createReference("IMMN", IMMN, probationCase),
-        createReference("DOFF", DOFF, probationCase),
-        createReference("LCRN", LCRN, probationCase),
-        createReference("LBCN", LBCN, probationCase),
-        createReference("LIFN", LIFN, probationCase),
-        createReference("MFCRN", MFCRN, probationCase),
-        createReference("MTCRN", MTCRN, probationCase),
-        createReference("MSVN", MSVN, probationCase),
-        createReference("NINO", NINO, probationCase),
-        createReference("NHS", NHS, probationCase),
-        createReference("NOMS", NOMS, probationCase),
-        createReference("OTHR", OTHR, probationCase),
-        createReference("PCRN", PCRN, probationCase),
-        createReference("PARN", PARN, probationCase),
-        createReference("PST", PST, probationCase),
-        createReference("AI02", AI02, probationCase),
-        createReference("PRNOMS", PRNOMS, probationCase),
-        createReference("SPNC", SPNC, probationCase),
-        createReference("NPNC", NPNC, probationCase),
-        createReference("VISO", VISO, probationCase),
-        createReference("YCRN", YCRN, probationCase),
-      )
+      val references = createReferences(probationCase)
 
       val nationalities: List<NationalityCode> = listOf(
         NationalityCode.fromProbationMapping(probationCase.nationality?.value),
@@ -170,13 +132,56 @@ data class Person(
       )
     }
 
-    private fun createReference(id: String, identifier: IdentifierType, probationCase: ProbationCase) = Reference(
-      identifierType = identifier,
-      identifierValue = probationCase.identifiers.additionalIdentifiers?.filter { it.type?.value == id }?.firstNotNullOfOrNull { it.value },
+    private fun createReferences(probationCase: ProbationCase): List<Reference> = listOf(
+      Reference(identifierType = CRO, identifierValue = CROIdentifier.from(probationCase.identifiers.cro).croId),
+      Reference(identifierType = PNC, identifierValue = PNCIdentifier.from(probationCase.identifiers.pnc).pncId),
+      Reference(
+        identifierType = NATIONAL_INSURANCE_NUMBER,
+        identifierValue = probationCase.identifiers.nationalInsuranceNumber,
+      ),
+      createReferenceForAdditionalIdentifier("AAMR", AAMR, probationCase),
+      createReferenceForAdditionalIdentifier("ACC", ACC, probationCase),
+      createReferenceForAdditionalIdentifier("APNC", APNC, probationCase),
+      createReferenceForAdditionalIdentifier("AMRL", AMRL, probationCase),
+      createReferenceForAdditionalIdentifier("ASN", ASN, probationCase),
+      createReferenceForAdditionalIdentifier("URN", URN, probationCase),
+      createReferenceForAdditionalIdentifier("DRL", DRL, probationCase),
+      createReferenceForAdditionalIdentifier("DNOMS", DNOMS, probationCase),
+      createReferenceForAdditionalIdentifier("XIMMN", XIMMN, probationCase),
+      createReferenceForAdditionalIdentifier("XNOMS", XNOMS, probationCase),
+      createReferenceForAdditionalIdentifier("IMMN", IMMN, probationCase),
+      createReferenceForAdditionalIdentifier("DOFF", DOFF, probationCase),
+      createReferenceForAdditionalIdentifier("LCRN", LCRN, probationCase),
+      createReferenceForAdditionalIdentifier("LBCN", LBCN, probationCase),
+      createReferenceForAdditionalIdentifier("LIFN", LIFN, probationCase),
+      createReferenceForAdditionalIdentifier("MFCRN", MFCRN, probationCase),
+      createReferenceForAdditionalIdentifier("MTCRN", MTCRN, probationCase),
+      createReferenceForAdditionalIdentifier("MSVN", MSVN, probationCase),
+      createReferenceForAdditionalIdentifier("NINO", NINO, probationCase),
+      createReferenceForAdditionalIdentifier("NHS", NHS, probationCase),
+      createReferenceForAdditionalIdentifier("NOMS", NOMS, probationCase),
+      createReferenceForAdditionalIdentifier("OTHR", OTHR, probationCase),
+      createReferenceForAdditionalIdentifier("PCRN", PCRN, probationCase),
+      createReferenceForAdditionalIdentifier("PARN", PARN, probationCase),
+      createReferenceForAdditionalIdentifier("PST", PST, probationCase),
+      createReferenceForAdditionalIdentifier("AI02", AI02, probationCase),
+      createReferenceForAdditionalIdentifier("PRNOMS", PRNOMS, probationCase),
+      createReferenceForAdditionalIdentifier("SPNC", SPNC, probationCase),
+      createReferenceForAdditionalIdentifier("NPNC", NPNC, probationCase),
+      createReferenceForAdditionalIdentifier("VISO", VISO, probationCase),
+      createReferenceForAdditionalIdentifier("YCRN", YCRN, probationCase),
     )
 
-    private fun getAdditionalIdentifierValue(probationCase: ProbationCase, value: String): String? = probationCase.identifiers.additionalIdentifiers?.filter { it.type?.value == value }
-      ?.firstNotNullOfOrNull { it.value }
+    private fun createReferenceForAdditionalIdentifier(
+      id: String,
+      identifier: IdentifierType,
+      probationCase: ProbationCase,
+    ): Reference = Reference(
+      identifierType = identifier,
+      identifierValue = probationCase.identifiers.additionalIdentifiers?.filter {
+        it.type?.value == id
+      }?.firstNotNullOfOrNull { it.value },
+    )
 
     fun from(defendant: Defendant): Person {
       val contacts: List<Contact> = listOfNotNull(
