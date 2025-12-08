@@ -18,8 +18,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
@@ -34,7 +35,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAdditionalIdentifierCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
@@ -129,7 +129,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val genderIdentity = randomProbationGenderIdentity()
       val selfDescribedGenderIdentity = randomName()
 
-      val additionalIdentifiersCode = randomAdditionalIdentifierCode()
+      val additionalIdentifiersCode = "NINO"
       val additionalIdentifiersValue = randomNationalInsuranceNumber()
 
       val buildingName = randomName()
@@ -149,6 +149,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         dateOfDeath = dateOfDeath,
         crn = crn,
         pnc = pnc,
+        nationalInsuranceNumber = "123456",
         title = title.key,
         firstName = firstName,
         middleName = middleName,
@@ -157,7 +158,12 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         cro = cro,
         genderIdentity = genderIdentity.key,
         selfDescribedGenderIdentity = selfDescribedGenderIdentity,
-        additionalIdentifiers = listOf(ApiResponseSetupAdditionalIdentifier(type = additionalIdentifiersCode.key, value = additionalIdentifiersValue)),
+        additionalIdentifiers = listOf(
+          ApiResponseSetupAdditionalIdentifier(
+            additionalIdentifiersCode,
+            additionalIdentifiersValue,
+          ),
+        ),
         addresses = listOf(
           ApiResponseSetupAddress(
             noFixedAbode = true,
@@ -214,7 +220,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(ethnicity))
 
-      assertThat(personEntity.references.getType(NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(additionalIdentifiersValue)
+      assertThat(personEntity.references.getType(NATIONAL_INSURANCE_NUMBER).size).isEqualTo(2)
+      assertThat(personEntity.references.getType(NATIONAL_INSURANCE_NUMBER).last()).isEqualTo(additionalIdentifiersValue)
 
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)
@@ -377,8 +384,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val existingPrisoner = Person(
         prisonNumber = prisonNumber,
         references = listOf(
-          Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
-          Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
+          Reference(identifierType = PNC, identifierValue = pnc),
+          Reference(identifierType = CRO, identifierValue = cro),
         ),
         addresses = listOf(Address(postcode = postcode)),
         sourceSystem = NOMIS,
@@ -529,8 +536,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val person = personRepository.findByCrn(crn)
-      val pncEntity = person?.references?.find { it.identifierType == IdentifierType.PNC }
-      val croEntity = person?.references?.find { it.identifierType == IdentifierType.CRO }
+      val pncEntity = person?.references?.find { it.identifierType == PNC }
+      val croEntity = person?.references?.find { it.identifierType == CRO }
 
       val updatedCro = randomCro()
       probationDomainEventAndResponseSetup(
@@ -544,12 +551,12 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(updatedPerson.references).hasSize(2)
 
-      val updatedPncEntity = updatedPerson.references.find { it.identifierType == IdentifierType.PNC }
+      val updatedPncEntity = updatedPerson.references.find { it.identifierType == PNC }
       assertThat(updatedPncEntity?.identifierValue).isEqualTo(pnc)
       assertThat(updatedPncEntity?.id).isEqualTo(pncEntity?.id)
       assertThat(updatedPncEntity?.version).isEqualTo(pncEntity?.version)
 
-      val updatedCroEntity = updatedPerson.references.find { it.identifierType == IdentifierType.CRO }
+      val updatedCroEntity = updatedPerson.references.find { it.identifierType == CRO }
       assertThat(updatedCroEntity?.identifierValue).isEqualTo(updatedCro)
       assertThat(updatedCroEntity?.id).isNotEqualTo(croEntity?.id)
     }
