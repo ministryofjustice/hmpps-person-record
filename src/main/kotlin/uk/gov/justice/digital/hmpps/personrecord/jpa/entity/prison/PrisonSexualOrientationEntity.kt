@@ -31,7 +31,7 @@ class PrisonSexualOrientationEntity(
 
   @Column(name = "sexual_orientation_code")
   @Enumerated(STRING)
-  var sexualOrientationCode: SexualOrientation,
+  var sexualOrientationCode: SexualOrientation? = null,
 
   @Column(name = "start_date")
   var startDate: LocalDate? = null,
@@ -64,33 +64,23 @@ class PrisonSexualOrientationEntity(
 ) {
 
   fun update(sexualOrientation: PrisonSexualOrientation) {
-    this.sexualOrientationCode = SexualOrientation.from(sexualOrientation)
-    this.startDate = sexualOrientation.startDate
-    this.endDate = sexualOrientation.endDate
-    this.createUserId = sexualOrientation.createUserId
-    this.createDateTime = sexualOrientation.createDateTime
-    this.createDisplayName = sexualOrientation.createDisplayName
+    this.sexualOrientationCode = sexualOrientation.sexualOrientationCode?.let { SexualOrientation.fromPrison(it) }
     this.modifyUserId = sexualOrientation.modifyUserId
     this.modifyDisplayName = sexualOrientation.modifyDisplayName
     this.modifyDateTime = sexualOrientation.modifyDateTime
-    this.prisonRecordType = PrisonRecordType.from(sexualOrientation.current)
+    this.prisonRecordType = PrisonRecordType.CURRENT
   }
 
   companion object {
 
-    fun from(sexualOrientation: PrisonSexualOrientation): PrisonSexualOrientationEntity = PrisonSexualOrientationEntity(
+    fun from(prisonNumber: String, sexualOrientation: PrisonSexualOrientation): PrisonSexualOrientationEntity = PrisonSexualOrientationEntity(
       cprSexualOrientationId = UUID.randomUUID(),
-      prisonNumber = sexualOrientation.prisonNumber,
-      sexualOrientationCode = SexualOrientation.from(sexualOrientation),
-      startDate = sexualOrientation.startDate,
-      endDate = sexualOrientation.endDate,
-      createUserId = sexualOrientation.createUserId,
-      createDateTime = sexualOrientation.createDateTime,
-      createDisplayName = sexualOrientation.createDisplayName,
+      prisonNumber = prisonNumber,
+      sexualOrientationCode = sexualOrientation.sexualOrientationCode?.let { SexualOrientation.fromPrison(it) },
       modifyDateTime = sexualOrientation.modifyDateTime,
       modifyUserId = sexualOrientation.modifyUserId,
       modifyDisplayName = sexualOrientation.modifyDisplayName,
-      prisonRecordType = PrisonRecordType.from(sexualOrientation.current),
+      prisonRecordType = PrisonRecordType.CURRENT,
     )
   }
 }

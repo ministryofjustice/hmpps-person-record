@@ -11,9 +11,7 @@ import jakarta.persistence.Table
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonNationality
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
 
 @Entity
 @Table(name = "prison_nationalities")
@@ -23,43 +21,25 @@ class PrisonNationalityEntity(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
 
-  @Column(name = "cpr_nationality_id", nullable = false)
-  val cprNationalityId: UUID,
-
-  @Column(name = "prison_number")
-  val prisonNumber: String? = null,
+  @Column(name = "prison_number", nullable = false)
+  val prisonNumber: String,
 
   @Column(name = "nationality_code")
   @Enumerated(STRING)
-  var nationalityCode: NationalityCode,
+  var nationalityCode: NationalityCode? = null,
 
-  @Column(name = "start_date")
-  var startDate: LocalDate? = null,
+  @Column(name = "modify_date_time", nullable = false)
+  var modifyDateTime: LocalDateTime,
 
-  @Column(name = "end_date")
-  var endDate: LocalDate? = null,
-
-  @Column(name = "create_user_id")
-  var createUserId: String? = null,
-
-  @Column(name = "create_date_time")
-  var createDateTime: LocalDateTime? = null,
-
-  @Column(name = "create_display_name")
-  var createDisplayName: String? = null,
-
-  @Column(name = "modify_date_time")
-  var modifyDateTime: LocalDateTime? = null,
-
-  @Column(name = "modify_user_id")
-  var modifyUserId: String? = null,
+  @Column(name = "modify_user_id", nullable = false)
+  var modifyUserId: String,
 
   @Column(name = "modify_display_name")
   var modifyDisplayName: String? = null,
 
-  @Column(name = "record_type")
+  @Column(name = "record_type", nullable = false)
   @Enumerated(STRING)
-  var prisonRecordType: PrisonRecordType? = null,
+  var prisonRecordType: PrisonRecordType,
 
   @Column(name = "nationality_notes")
   var notes: String? = null,
@@ -67,34 +47,23 @@ class PrisonNationalityEntity(
 ) {
 
   fun update(prisonNationality: PrisonNationality) {
-    this.nationalityCode = NationalityCode.fromPrisonMapping(prisonNationality.nationalityCode)!!
-    this.startDate = prisonNationality.startDate
-    this.endDate = prisonNationality.endDate
-    this.createUserId = prisonNationality.createUserId
-    this.createDateTime = prisonNationality.createDateTime
-    this.createDisplayName = prisonNationality.createDisplayName
+    this.nationalityCode = prisonNationality.nationalityCode?.let { NationalityCode.fromPrisonMapping(prisonNationality.nationalityCode) }
     this.modifyUserId = prisonNationality.modifyUserId
     this.modifyDisplayName = prisonNationality.modifyDisplayName
     this.modifyDateTime = prisonNationality.modifyDateTime
-    this.prisonRecordType = PrisonRecordType.from(prisonNationality.current)
+    this.prisonRecordType = PrisonRecordType.CURRENT
     this.notes = prisonNationality.notes
   }
 
   companion object {
 
-    fun from(prisonNationality: PrisonNationality): PrisonNationalityEntity = PrisonNationalityEntity(
-      cprNationalityId = UUID.randomUUID(),
-      prisonNumber = prisonNationality.prisonNumber,
-      nationalityCode = NationalityCode.fromPrisonMapping(prisonNationality.nationalityCode)!!,
-      startDate = prisonNationality.startDate,
-      endDate = prisonNationality.endDate,
-      createUserId = prisonNationality.createUserId,
-      createDateTime = prisonNationality.createDateTime,
-      createDisplayName = prisonNationality.createDisplayName,
+    fun from(prisonNumber: String, prisonNationality: PrisonNationality): PrisonNationalityEntity = PrisonNationalityEntity(
+      prisonNumber = prisonNumber,
+      nationalityCode = prisonNationality.nationalityCode?.let { NationalityCode.fromPrisonMapping(prisonNationality.nationalityCode) },
       modifyDateTime = prisonNationality.modifyDateTime,
       modifyUserId = prisonNationality.modifyUserId,
       modifyDisplayName = prisonNationality.modifyDisplayName,
-      prisonRecordType = PrisonRecordType.from(prisonNationality.current),
+      prisonRecordType = PrisonRecordType.CURRENT,
       notes = prisonNationality.notes,
     )
   }

@@ -21,7 +21,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.AddressBuild
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ContactBuilder.buildContacts
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBuilder.buildReferences
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.SentenceInfoBuilder.buildSentenceInfo
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
@@ -108,13 +107,6 @@ class PersonEntity(
   @Column(name = "sexual_orientation")
   @Enumerated(STRING)
   var sexualOrientation: SexualOrientation? = null,
-
-  @ManyToOne(fetch = LAZY)
-  @JoinColumn(
-    name = "fk_ethnicity_code_id",
-    referencedColumnName = "id",
-  )
-  var ethnicityCodeLegacy: EthnicityCodeEntity? = null,
 
   @Column(name = "ethnicity_code")
   @Enumerated(STRING)
@@ -212,6 +204,8 @@ class PersonEntity(
     updatePersonContacts(buildContacts(person, this))
     updatePersonReferences(buildReferences(person, this))
     updatePersonSentences(buildSentenceInfo(person, this))
+    updateNationalities(person.nationalities.map { NationalityEntity.from(it) })
+    updatePseudonyms(listOf(PseudonymEntity.primaryNameFrom(person)) + person.aliases.mapNotNull { PseudonymEntity.aliasFrom(it) })
   }
 
   private fun updatePersonSentences(sentences: List<SentenceInfoEntity>) {
@@ -239,6 +233,18 @@ class PersonEntity(
     this.contacts.clear()
     contacts.forEach { personContactEntity -> personContactEntity.person = this }
     this.contacts.addAll(contacts)
+  }
+
+  private fun updateNationalities(nationalities: List<NationalityEntity>) {
+    this.nationalities.clear()
+    nationalities.forEach { nationalityEntity -> nationalityEntity.person = this }
+    this.nationalities.addAll(nationalities)
+  }
+
+  private fun updatePseudonyms(pseudonyms: List<PseudonymEntity>) {
+    this.pseudonyms.clear()
+    pseudonyms.forEach { pseudonymEntity -> pseudonymEntity.person = this }
+    this.pseudonyms.addAll(pseudonyms)
   }
 
   companion object {

@@ -160,13 +160,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     awaitAssert {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
-      val storedEthnicity = ethnicity.getCommonPlatformEthnicity()
       assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
-      assertThat(updatedPersonEntity.ethnicityCodeLegacy?.code).isEqualTo(storedEthnicity.code)
-      assertThat(updatedPersonEntity.ethnicityCodeLegacy?.description).isEqualTo(storedEthnicity.description)
-
       assertThat(updatedPersonEntity.ethnicityCode).isEqualTo(EthnicityCode.fromCommonPlatform(ethnicity))
     }
 
@@ -266,9 +262,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getAliases()[1].firstName).isEqualTo("aliasFirstName2")
     assertThat(firstPerson.getAliases()[1].lastName).isEqualTo("aliasLastName2")
 
-    val ethnicityCode = ethnicity.getCommonPlatformEthnicity()
-    assertThat(firstPerson.ethnicityCodeLegacy?.code).isEqualTo(ethnicityCode.code)
-    assertThat(firstPerson.ethnicityCodeLegacy?.description).isEqualTo(ethnicityCode.description)
+    assertThat(firstPerson.ethnicityCode).isEqualTo(EthnicityCode.fromCommonPlatform(ethnicity))
+
     assertThat(firstPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(firstDefendantNINumber)
 
     assertThat(secondPerson.getAliases()).isEmpty()

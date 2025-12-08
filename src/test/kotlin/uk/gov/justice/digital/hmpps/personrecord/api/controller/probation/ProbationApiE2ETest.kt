@@ -175,7 +175,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           postTown = postTown,
         )
         val canonicalReligion = CanonicalReligion(code = religion, description = religion)
-        val canonicalEthnicity = CanonicalEthnicity.from(ethnicity.getCommonPlatformEthnicity())
+        val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromProbation(ethnicity))
         assertThat(responseBody.cprUUID).isNull()
         assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
         assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
@@ -389,8 +389,9 @@ class ProbationApiE2ETest : E2ETestBase() {
         val defendantId = randomDefendantId()
 
         val defendant = createRandomCommonPlatformPersonDetails(defendantId)
+        val title = randomTitleCode()
         val probationCase = ProbationCase(
-          title = Value(randomTitleCode().key),
+          title = Value(title.key),
           name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
           identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
           dateOfBirth = randomDate(),
@@ -411,6 +412,7 @@ class ProbationApiE2ETest : E2ETestBase() {
               fullAddress = randomFullAddress(),
             ),
           ),
+          ethnicity = Value(randomProbationEthnicity()),
           contactDetails = ContactDetails(
             email = randomEmail(),
             mobile = randomPhoneNumber(),
@@ -434,8 +436,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         offender.personKey?.assertClusterIsOfSize(2)
 
         assertThat(offender.getPnc()).isEqualTo(probationCase.identifiers.pnc)
-        assertThat(offender.ethnicityCodeLegacy?.code).isEqualTo(probationCase.ethnicity?.value?.getProbationEthnicity()?.code)
-        assertThat(offender.ethnicityCodeLegacy?.code).isEqualTo(probationCase.ethnicity?.value?.getProbationEthnicity()?.description)
+        assertThat(offender.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(probationCase.ethnicity?.value))
         assertThat(offender.getCro()).isEqualTo(probationCase.identifiers.cro)
         assertThat(offender.getAliases().size).isEqualTo(1)
         val firstOffenderAlias = offender.getAliases()[0]
@@ -449,8 +450,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.getPrimaryName().middleNames).isEqualTo(probationCase.name.middleNames)
         assertThat(offender.getPrimaryName().lastName).isEqualTo(probationCase.name.lastName)
         assertThat(offender.getPrimaryName().nameType).isEqualTo(PRIMARY)
-        assertThat(offender.getPrimaryName().titleCode?.name).isEqualTo(probationCase.title?.value?.getTitle()?.name)
-        assertThat(offender.getPrimaryName().titleCode?.description).isEqualTo(probationCase.title?.value?.getTitle()?.description)
+        assertThat(offender.getPrimaryName().titleCode).isEqualTo(title.value)
         assertThat(offender.getPrimaryName().dateOfBirth).isEqualTo(probationCase.dateOfBirth)
         assertThat(offender.getPrimaryName().sexCode).isEqualTo(SexCode.from(probationCase))
 

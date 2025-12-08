@@ -2,19 +2,19 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonProcessingCompleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonChainable
-import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
 class PersonService(
-  private val personFactory: PersonFactory,
+  private val personRepository: PersonRepository,
   private val personKeyService: PersonKeyService,
   private val personMatchService: PersonMatchService,
   private val reclusterService: ReclusterService,
@@ -36,44 +36,41 @@ class PersonService(
   }
 
   private fun create(person: Person): PersonEntity {
-    val ctx = personFactory.create(person)
-      .saveToPersonMatch()
-      .linkToPersonKey()
-    publisher.publishEvent(PersonCreated(ctx.personEntity))
-    return ctx.personEntity
+    val personEntity = personRepository.save(PersonEntity.new(person))
+    personMatchService.saveToPersonMatch(personEntity)
+    if (person.behaviour.linkOnCreate) {
+      personKeyService.linkRecordToPersonKey(personEntity)
+    }
+    publisher.publishEvent(PersonCreated(personEntity))
+    return personEntity
   }
 
   private fun update(person: Person, personEntity: PersonEntity): PersonEntity {
-    val ctx = personFactory.update(person, personEntity)
-      .saveToPersonMatch()
-      .reclusterIf { ctx -> person.behaviour.reclusterOnUpdate && ctx.matchingFieldsChanged }
-    publisher.publishEvent(PersonUpdated(ctx.personEntity, ctx.matchingFieldsChanged))
-    return ctx.personEntity
+    val beforeUpdate = PersonMatchRecord.from(personEntity)
+    personEntity.update(person)
+    personRepository.save(personEntity)
+    val matchingFieldsChanged = beforeUpdate.matchingFieldsAreDifferent(personEntity)
+    if (matchingFieldsChanged) {
+      personMatchService.saveToPersonMatch(personEntity)
+      recluster(person, personEntity)
+    }
+    publisher.publishEvent(PersonUpdated(personEntity, matchingFieldsChanged))
+    return personEntity
   }
 
-  private fun PersonChainable.saveToPersonMatch(): PersonChainable {
-    when {
-      this.matchingFieldsChanged -> personMatchService.saveToPersonMatch(this.personEntity)
+  private fun recluster(
+    person: Person,
+    personEntity: PersonEntity,
+  ) {
+    if (person.behaviour.reclusterOnUpdate) {
+      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
     }
-    return this
-  }
-
-  private fun PersonChainable.linkToPersonKey(): PersonChainable {
-    when {
-      this.linkOnCreate -> personKeyService.linkRecordToPersonKey(this.personEntity)
-    }
-    return this
-  }
-
-  private fun PersonChainable.reclusterIf(condition: (ctx: PersonChainable) -> Boolean): PersonChainable {
-    when {
-      condition(this) -> this.personEntity.personKey?.let { reclusterService.recluster(this.personEntity) }
-    }
-    return this
   }
 
   private fun PersonEntity?.exists(no: () -> PersonEntity, yes: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
     this == null -> no()
     else -> yes(this)
   }
+
+  private fun PersonMatchRecord.matchingFieldsAreDifferent(personEntity: PersonEntity): Boolean = this != PersonMatchRecord.from(personEntity)
 }

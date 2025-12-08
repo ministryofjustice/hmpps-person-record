@@ -11,13 +11,13 @@ class SexualOrientationTest {
 
   @Test
   fun `retains null value for probation sexualOrientation`() {
-    assertThat(SexualOrientation.from(ProbationCase(name = ProbationCaseName(), identifiers = Identifiers()))).isNull()
+    assertThat(SexualOrientation.fromProbation(ProbationCase(name = ProbationCaseName(), identifiers = Identifiers()))).isNull()
   }
 
   @Test
   fun `empty string treated as unknown value for probation sexualOrientation`() {
     assertThat(
-      SexualOrientation.from(
+      SexualOrientation.fromProbation(
         ProbationCase(
           name = ProbationCaseName(),
           identifiers = Identifiers(),
@@ -32,7 +32,7 @@ class SexualOrientationTest {
   @Test
   fun `should use default value if sexualOrientation is not recognised`() {
     assertThat(
-      SexualOrientation.from(
+      SexualOrientation.fromProbation(
         ProbationCase(
           name = ProbationCaseName(),
           sexualOrientation = Value("unsupported"),
