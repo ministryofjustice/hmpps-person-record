@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonProcessingCompleted
@@ -15,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchServi
 @Component
 class PersonService(
   private val personFactory: PersonFactory,
+  private val personRepository: PersonRepository,
   private val personKeyService: PersonKeyService,
   private val personMatchService: PersonMatchService,
   private val reclusterService: ReclusterService,
@@ -36,11 +38,15 @@ class PersonService(
   }
 
   private fun create(person: Person): PersonEntity {
-    val ctx = personFactory.create(person)
+    val personEntity = PersonChainable(
+      personEntity = personRepository.save(PersonEntity.new(person)),
+      matchingFieldsChanged = true,
+      linkOnCreate = person.behaviour.linkOnCreate,
+    )
       .saveToPersonMatch()
-      .linkToPersonKey()
-    publisher.publishEvent(PersonCreated(ctx.personEntity))
-    return ctx.personEntity
+      .linkToPersonKey().personEntity
+    publisher.publishEvent(PersonCreated(personEntity))
+    return personEntity
   }
 
   private fun update(person: Person, personEntity: PersonEntity): PersonEntity {
