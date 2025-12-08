@@ -77,6 +77,11 @@ data class Person(
           identifierValue = probationCase.identifiers.additionalIdentifiers?.filter { it.type?.value == "NINO" }
             ?.firstNotNullOfOrNull { it.value },
         ),
+        Reference(
+          identifierType = IdentifierType.AAMR,
+          identifierValue = probationCase.identifiers.additionalIdentifiers?.filter { it.type?.value == "AAMR" }
+            ?.firstNotNullOfOrNull { it.value },
+        ),
       )
 
       val nationalities: List<NationalityCode> = listOf(

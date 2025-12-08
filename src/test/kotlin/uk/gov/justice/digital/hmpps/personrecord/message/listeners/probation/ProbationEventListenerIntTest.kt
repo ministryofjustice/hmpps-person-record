@@ -18,6 +18,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.AAMR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
@@ -129,8 +131,11 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val genderIdentity = randomProbationGenderIdentity()
       val selfDescribedGenderIdentity = randomName()
 
-      val additionalIdentifiersCode = "NINO"
-      val additionalIdentifiersValue = randomNationalInsuranceNumber()
+      val additionalIdentifierNino = "NINO"
+      val additionalIdentifierNinoValue = randomNationalInsuranceNumber()
+
+      val additionalIdentifierAamr = "AAMR"
+      val additionalIdentifierAamrValue = randomName()
 
       val buildingName = randomName()
       val addressNumber = randomAddressNumber()
@@ -160,8 +165,12 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         selfDescribedGenderIdentity = selfDescribedGenderIdentity,
         additionalIdentifiers = listOf(
           ApiResponseSetupAdditionalIdentifier(
-            additionalIdentifiersCode,
-            additionalIdentifiersValue,
+            additionalIdentifierNino,
+            additionalIdentifierNinoValue,
+          ),
+          ApiResponseSetupAdditionalIdentifier(
+            additionalIdentifierAamr,
+            additionalIdentifierAamrValue,
           ),
         ),
         addresses = listOf(
@@ -221,7 +230,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(ethnicity))
 
       assertThat(personEntity.references.getType(NATIONAL_INSURANCE_NUMBER).size).isEqualTo(2)
-      assertThat(personEntity.references.getType(NATIONAL_INSURANCE_NUMBER).last()).isEqualTo(additionalIdentifiersValue)
+      assertThat(personEntity.references.getType(NATIONAL_INSURANCE_NUMBER).last()).isEqualTo(additionalIdentifierNinoValue)
+
+      assertThat(personEntity.references.getType(AAMR).first()).isEqualTo(additionalIdentifierAamrValue)
 
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)
