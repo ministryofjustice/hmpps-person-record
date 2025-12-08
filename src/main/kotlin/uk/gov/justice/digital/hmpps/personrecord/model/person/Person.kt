@@ -73,14 +73,130 @@ data class Person(
           identifierValue = probationCase.identifiers.nationalInsuranceNumber,
         ),
         Reference(
-          identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
-          identifierValue = probationCase.identifiers.additionalIdentifiers?.filter { it.type?.value == "NINO" }
-            ?.firstNotNullOfOrNull { it.value },
+          identifierType = IdentifierType.AAMR,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "AAMR"),
         ),
         Reference(
-          identifierType = IdentifierType.AAMR,
-          identifierValue = probationCase.identifiers.additionalIdentifiers?.filter { it.type?.value == "AAMR" }
-            ?.firstNotNullOfOrNull { it.value },
+          identifierType = IdentifierType.ACC,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "ACC"),
+        ),
+        Reference(
+          identifierType = IdentifierType.APNC,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "APNC"),
+        ),
+        Reference(
+          identifierType = IdentifierType.AMRL,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "AMRL"),
+        ),
+        Reference(
+          identifierType = IdentifierType.ASN,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "ASN"),
+        ),
+        Reference(
+          identifierType = IdentifierType.URN,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "URN"),
+        ),
+        Reference(
+          identifierType = IdentifierType.DRL,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "DRL"),
+        ),
+        Reference(
+          identifierType = IdentifierType.DNOMS,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "DNOMS"),
+        ),
+        Reference(
+          identifierType = IdentifierType.XIMMN,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "XIMMN"),
+        ),
+
+        Reference(
+          identifierType = IdentifierType.XNOMS,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "XNOMS"),
+        ),
+        Reference(
+          identifierType = IdentifierType.IMMN,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "IMMN"),
+        ),
+        Reference(
+          identifierType = IdentifierType.DOFF,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "DOFF"),
+        ),
+        Reference(
+          identifierType = IdentifierType.LCRN,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "LCRN"),
+        ),
+        Reference(
+          identifierType = IdentifierType.LBCN,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "LBCN"),
+        ),
+        Reference(
+          identifierType = IdentifierType.LIFN,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "LIFN"),
+        ),
+        Reference(
+          identifierType = IdentifierType.MFCRN,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "MFCRN"),
+        ),
+        Reference(
+          identifierType = IdentifierType.MTCRN,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "MTCRN"),
+        ),
+        Reference(
+          identifierType = IdentifierType.MSVN,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "MSVN"),
+        ),
+        Reference(
+          identifierType = IdentifierType.NINO,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "NINO"),
+        ),
+        Reference(
+          identifierType = IdentifierType.NHS,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "NHS"),
+        ),
+        Reference(
+          identifierType = IdentifierType.NOMS,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "NOMS"),
+        ),
+
+        Reference(
+          identifierType = IdentifierType.OTHR,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "OTHR"),
+        ),
+        Reference(
+          identifierType = IdentifierType.PCRN,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "PCRN"),
+        ),
+        Reference(
+          identifierType = IdentifierType.PARN,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "PARN"),
+        ),
+        Reference(
+          identifierType = IdentifierType.PST,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "PST"),
+        ),
+        Reference(
+          identifierType = IdentifierType.AI02,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "AI02"),
+        ),
+        Reference(
+          identifierType = IdentifierType.PRNOMS,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "PRNOMS"),
+        ),
+        Reference(
+          identifierType = IdentifierType.SPNC,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "SPNC"),
+        ),
+        Reference(
+          identifierType = IdentifierType.NPNC,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "NPNC"),
+        ),
+        Reference(
+          identifierType = IdentifierType.VISO,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "VISO"),
+        ),
+        Reference(
+          identifierType = IdentifierType.YCRN,
+          identifierValue = getAdditionalIdentifierValue(probationCase, "YCRN"),
         ),
       )
 
@@ -112,6 +228,9 @@ data class Person(
         selfDescribedGenderIdentity = probationCase.selfDescribedGenderIdentity,
       )
     }
+
+    private fun getAdditionalIdentifierValue(probationCase: ProbationCase, value: String): String? = probationCase.identifiers.additionalIdentifiers?.filter { it.type?.value == value }
+      ?.firstNotNullOfOrNull { it.value }
 
     fun from(defendant: Defendant): Person {
       val contacts: List<Contact> = listOfNotNull(
