@@ -40,15 +40,6 @@ enum class IdentifierType {
   ;
 
   companion object {
-
-    val baseIdentifiers = listOf(
-      PNC,
-      CRO,
-      NATIONAL_INSURANCE_NUMBER,
-      DRIVER_LICENSE_NUMBER,
-      ARREST_SUMMONS_NUMBER,
-    ).associateBy { it.name }
-
     val probationAdditionalIdentifiers = listOf(
       AAMR,
       ACC,
@@ -82,7 +73,5 @@ enum class IdentifierType {
       VISO,
       YCRN,
     ).associateBy { it.name }
-
-    fun from(code: String?): IdentifierType? = code?.let { baseIdentifiers.getOrDefault(code, null) }
   }
 }

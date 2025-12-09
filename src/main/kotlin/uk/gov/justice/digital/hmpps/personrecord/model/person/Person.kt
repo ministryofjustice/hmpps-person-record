@@ -65,14 +65,13 @@ data class Person(
     fun List<Reference>.toString(): String = this.joinToString { it.identifierValue.toString() }
 
     fun from(probationCase: ProbationCase): Person {
-      createReferences(probationCase)
       val contacts: List<Contact> = listOfNotNull(
         Contact.from(ContactType.HOME, probationCase.contactDetails?.telephone),
         Contact.from(ContactType.MOBILE, probationCase.contactDetails?.mobile),
         Contact.from(ContactType.EMAIL, probationCase.contactDetails?.email),
       )
 
-      val references = createReferences(probationCase)
+      val references = createCommonReferences(probationCase) + createReferences(probationCase)
 
       val nationalities: List<NationalityCode> = listOf(
         NationalityCode.fromProbationMapping(probationCase.nationality?.value),
@@ -103,24 +102,24 @@ data class Person(
       )
     }
 
+    private fun createCommonReferences(probationCase: ProbationCase): List<Reference> = listOf(
+      Reference(identifierType = CRO, identifierValue = CROIdentifier.from(probationCase.identifiers.cro).croId),
+      Reference(identifierType = PNC, identifierValue = PNCIdentifier.from(probationCase.identifiers.pnc).pncId),
+      Reference(
+        identifierType = NATIONAL_INSURANCE_NUMBER,
+        identifierValue = probationCase.identifiers.nationalInsuranceNumber,
+      ),
+    )
+
     private fun createReferences(probationCase: ProbationCase): List<Reference> {
-      val incomingTypeValues = probationCase.identifiers.additionalIdentifiers?.map { it.type?.value }
+      val incomingTypes = probationCase.identifiers.additionalIdentifiers?.map { it.type?.value }
       val incomingValues = probationCase.identifiers.additionalIdentifiers?.map { it.value }
 
       val additionalIdentifiers = IdentifierType.probationAdditionalIdentifiers.values
-        .filter { incomingTypeValues?.contains(it.name) == true }
+        .filter { incomingTypes?.contains(it.name) == true }
         .mapIndexed { index, element -> Reference(identifierType = element, identifierValue = incomingValues?.get(index)) }
 
-      val common = listOf(
-        Reference(identifierType = CRO, identifierValue = CROIdentifier.from(probationCase.identifiers.cro).croId),
-        Reference(identifierType = PNC, identifierValue = PNCIdentifier.from(probationCase.identifiers.pnc).pncId),
-        Reference(
-          identifierType = NATIONAL_INSURANCE_NUMBER,
-          identifierValue = probationCase.identifiers.nationalInsuranceNumber,
-        ),
-      )
-
-      return common + additionalIdentifiers
+      return additionalIdentifiers
     }
 
     fun from(defendant: Defendant): Person {
