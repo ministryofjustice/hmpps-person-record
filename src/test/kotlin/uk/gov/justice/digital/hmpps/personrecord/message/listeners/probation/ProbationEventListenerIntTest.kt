@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
@@ -150,6 +151,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
             additionalIdentifierCodeThree.name,
             additionalIdentifierValueThree,
           ),
+          ApiResponseSetupAdditionalIdentifier(
+            "UNKOWN_IDENTIFIER",
+            "2222",
+          ),
 
         ),
         addresses = listOf(
@@ -208,6 +213,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.references.getType(additionalIdentifierCodeOne).first()).isEqualTo(additionalIdentifierValueOne)
       assertThat(personEntity.references.getType(additionalIdentifierCodeTwo).first()).isEqualTo(additionalIdentifierValueTwo)
       assertThat(personEntity.references.getType(additionalIdentifierCodeThree).first()).isEqualTo(additionalIdentifierValueThree)
+
+      assertThat(personEntity.references.getType(IdentifierType.UNKNOWN).first()).isEqualTo("2222")
 
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)

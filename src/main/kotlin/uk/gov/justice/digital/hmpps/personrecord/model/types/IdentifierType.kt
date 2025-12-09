@@ -42,6 +42,7 @@ enum class IdentifierType {
   NPNC,
   VISO,
   YCRN,
+  UNKNOWN,
   ;
 
   companion object {
@@ -93,12 +94,18 @@ enum class IdentifierType {
 
       val additionalIdentifiers: List<Reference> = probationCase.identifiers.additionalIdentifiers?.map {
         Reference(
-          identifierType = IdentifierType.valueOf(it.type?.value!!),
+          identifierType = findOrDefault(it.type?.value!!, UNKNOWN),
           identifierValue = it.value,
         )
       } ?: emptyList()
 
       return identifiers + additionalIdentifiers
+    }
+
+    private fun findOrDefault(value: String, defaultValue: IdentifierType): IdentifierType = try {
+      IdentifierType.valueOf(value)
+    } catch (_: IllegalArgumentException) {
+      defaultValue
     }
   }
 }
