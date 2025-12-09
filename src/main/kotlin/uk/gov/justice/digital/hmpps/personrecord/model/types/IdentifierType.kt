@@ -37,4 +37,53 @@ enum class IdentifierType {
   NPNC,
   VISO,
   YCRN,
+  ;
+
+  companion object {
+
+    val baseIdentifiers = listOf(
+      PNC,
+      CRO,
+      NATIONAL_INSURANCE_NUMBER,
+      DRIVER_LICENSE_NUMBER,
+      ARREST_SUMMONS_NUMBER,
+    ).associateBy { it.name }
+
+    val probationAdditionalIdentifiers = listOf(
+      AAMR,
+      ACC,
+      APNC,
+      AMRL,
+      ASN,
+      URN,
+      DRL,
+      DNOMS,
+      XIMMN,
+      XNOMS,
+      IMMN,
+      DOFF,
+      LCRN,
+      LBCN,
+      LIFN,
+      MFCRN,
+      MTCRN,
+      MSVN,
+      NINO,
+      NHS,
+      NOMS,
+      OTHR,
+      PCRN,
+      PARN,
+      PST,
+      AI02,
+      PRNOMS,
+      SPNC,
+      NPNC,
+      VISO,
+      YCRN,
+    ).associateBy { it.name }
+
+
+    fun from(code: String?): IdentifierType? = code?.let { baseIdentifiers.getOrDefault(code, null) }
+  }
 }

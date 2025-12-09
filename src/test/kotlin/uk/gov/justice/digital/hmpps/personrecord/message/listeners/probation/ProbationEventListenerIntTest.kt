@@ -19,6 +19,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.AAMR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NHS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.OTHR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -137,6 +139,15 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
             additionalIdentifier,
             additionalIdentifierValue,
           ),
+          ApiResponseSetupAdditionalIdentifier(
+            "NHS",
+            "123456",
+          ),
+          ApiResponseSetupAdditionalIdentifier(
+            "OTHR",
+            "789900",
+          ),
+
         ),
         addresses = listOf(
           ApiResponseSetupAddress(
@@ -191,7 +202,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(ethnicity))
 
-      assertThat(personEntity.references.getType(AAMR).last()).isEqualTo(additionalIdentifierValue)
+      assertThat(personEntity.references.getType(AAMR).first()).isEqualTo(additionalIdentifierValue)
+      assertThat(personEntity.references.getType(NHS).first()).isEqualTo("123456")
+      assertThat(personEntity.references.getType(OTHR).first()).isEqualTo("789900")
 
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)
