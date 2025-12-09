@@ -5,8 +5,8 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class PrisonReligion(
-  @Schema(description = "The religion code", example = "AGNO", required = true)
-  val religionCode: String,
+  @Schema(description = "The religion code", example = "AGNO")
+  val religionCode: String? = null,
   @Schema(description = "The religion change reason known", example = "Foo Bar")
   val changeReasonKnown: String? = null,
   @Schema(description = "The religion comments", example = "Foo Bar")

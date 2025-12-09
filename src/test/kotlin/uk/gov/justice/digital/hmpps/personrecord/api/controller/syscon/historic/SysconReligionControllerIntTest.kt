@@ -26,15 +26,24 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `should save current religion against a prison number`() {
       val prisonNumber = randomPrisonNumber()
-      val currentReligion = createRandomReligion(current = true)
+      val currentReligion = createRandomReligion(randomName(), current = true)
 
       postReligion(prisonNumber, currentReligion)
       assertCorrectValuesSaved(prisonNumber, currentReligion)
 
-      val historicReligion = createRandomReligion(current = false)
+      val historicReligion = createRandomReligion(randomName(), current = false)
 
       postReligion(prisonNumber, historicReligion)
       assertCorrectValuesSaved(prisonNumber, historicReligion)
+    }
+
+    @Test
+    fun `should save current religion against a prison number when code is null`() {
+      val prisonNumber = randomPrisonNumber()
+      val currentReligion = createRandomReligion(null, current = true)
+
+      postReligion(prisonNumber, currentReligion)
+      assertCorrectValuesSaved(prisonNumber, currentReligion)
     }
   }
 
@@ -44,12 +53,26 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `should update an existing religion`() {
       val prisonNumber = randomPrisonNumber()
-      val currentReligion = createRandomReligion(current = true)
+      val currentReligion = createRandomReligion(randomName(), current = true)
 
       postReligion(prisonNumber, currentReligion)
       assertCorrectValuesSaved(prisonNumber, currentReligion)
 
-      val updatedReligion = createRandomReligion(current = false)
+      val updatedReligion = createRandomReligion(randomName(), current = false)
+
+      postReligion(prisonNumber, updatedReligion)
+      assertCorrectValuesSaved(prisonNumber, updatedReligion)
+    }
+
+    @Test
+    fun `should update an existing religion when code is null`() {
+      val prisonNumber = randomPrisonNumber()
+      val currentReligion = createRandomReligion(randomName(), current = true)
+
+      postReligion(prisonNumber, currentReligion)
+      assertCorrectValuesSaved(prisonNumber, currentReligion)
+
+      val updatedReligion = createRandomReligion(null, current = false)
 
       postReligion(prisonNumber, updatedReligion)
       assertCorrectValuesSaved(prisonNumber, updatedReligion)
@@ -63,7 +86,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.post()
         .uri("/syscon-sync/religion/" + randomPrisonNumber())
-        .bodyValue(createRandomReligion(true))
+        .bodyValue(createRandomReligion(randomName(), true))
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
         .expectStatus()
@@ -94,11 +117,11 @@ class SysconReligionControllerIntTest : WebTestBase() {
       .isOk
   }
 
-  private fun createRandomReligion(current: Boolean) = PrisonReligion(
+  private fun createRandomReligion(code: String?, current: Boolean) = PrisonReligion(
     changeReasonKnown = randomName(),
     comments = randomName(),
     verified = randomBoolean(),
-    religionCode = randomName(),
+    religionCode = code,
     startDate = randomDate(),
     endDate = randomDate(),
     modifyDateTime = randomDateTime(),
