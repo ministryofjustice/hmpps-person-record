@@ -17,10 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.AAMR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NHS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.OTHR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -36,6 +33,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAdditionalIdentifierCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
@@ -105,8 +103,13 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val genderIdentity = randomProbationGenderIdentity()
       val selfDescribedGenderIdentity = randomName()
 
-      val additionalIdentifier = "AAMR"
-      val additionalIdentifierValue = randomName()
+      val additionalIdentifierValueOne = randomName()
+      val additionalIdentifierValueTwo = randomName()
+      val additionalIdentifierValueThree = randomName()
+
+      val additionalIdentifierCodeOne = randomAdditionalIdentifierCode()
+      val additionalIdentifierCodeTwo = randomAdditionalIdentifierCode()
+      val additionalIdentifierCodeThree = randomAdditionalIdentifierCode()
 
       val buildingName = randomName()
       val addressNumber = randomAddressNumber()
@@ -136,16 +139,16 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         selfDescribedGenderIdentity = selfDescribedGenderIdentity,
         additionalIdentifiers = listOf(
           ApiResponseSetupAdditionalIdentifier(
-            additionalIdentifier,
-            additionalIdentifierValue,
+            additionalIdentifierCodeOne.name,
+            additionalIdentifierValueOne,
           ),
           ApiResponseSetupAdditionalIdentifier(
-            "NHS",
-            "123456",
+            additionalIdentifierCodeTwo.name,
+            additionalIdentifierValueTwo,
           ),
           ApiResponseSetupAdditionalIdentifier(
-            "OTHR",
-            "789900",
+            additionalIdentifierCodeThree.name,
+            additionalIdentifierValueThree,
           ),
 
         ),
@@ -202,9 +205,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(ethnicity))
 
-      assertThat(personEntity.references.getType(AAMR).first()).isEqualTo(additionalIdentifierValue)
-      assertThat(personEntity.references.getType(NHS).first()).isEqualTo("123456")
-      assertThat(personEntity.references.getType(OTHR).first()).isEqualTo("789900")
+      assertThat(personEntity.references.getType(additionalIdentifierCodeOne).first()).isEqualTo(additionalIdentifierValueOne)
+      assertThat(personEntity.references.getType(additionalIdentifierCodeTwo).first()).isEqualTo(additionalIdentifierValueTwo)
+      assertThat(personEntity.references.getType(additionalIdentifierCodeThree).first()).isEqualTo(additionalIdentifierValueThree)
 
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)
