@@ -32,7 +32,7 @@ class PrisonReligionEntity(
   val prisonNumber: String? = null,
 
   @Column(name = "change_reason_known")
-  var changeReasonKnown: String? = null,
+  var changeReasonKnown: Boolean? = null,
 
   @Column
   var comments: String? = null,

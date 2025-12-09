@@ -118,7 +118,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
   }
 
   private fun createRandomReligion(code: String?, current: Boolean) = PrisonReligion(
-    changeReasonKnown = randomName(),
+    changeReasonKnown = randomBoolean(),
     comments = randomName(),
     verified = randomBoolean(),
     religionCode = code,
