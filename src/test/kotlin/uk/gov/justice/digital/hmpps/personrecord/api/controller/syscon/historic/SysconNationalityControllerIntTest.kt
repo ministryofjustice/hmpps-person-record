@@ -131,7 +131,6 @@ class SysconNationalityControllerIntTest : WebTestBase() {
     assertThat(current.nationalityCode).isEqualTo(NationalityCode.fromPrisonMapping(nationality.nationalityCode))
     assertThat(current.modifyDateTime).isEqualTo(nationality.modifyDateTime)
     assertThat(current.modifyUserId).isEqualTo(nationality.modifyUserId)
-    assertThat(current.modifyDisplayName).isEqualTo(nationality.modifyDisplayName)
     assertThat(current.notes).isEqualTo(nationality.notes)
     assertThat(current.prisonRecordType).isEqualTo(PrisonRecordType.CURRENT)
   }
@@ -140,7 +139,6 @@ class SysconNationalityControllerIntTest : WebTestBase() {
     nationalityCode = code,
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),
-    modifyDisplayName = randomName(),
     notes = randomName(),
   )
 }

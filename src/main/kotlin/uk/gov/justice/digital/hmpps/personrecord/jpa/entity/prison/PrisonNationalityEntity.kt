@@ -34,9 +34,6 @@ class PrisonNationalityEntity(
   @Column(name = "modify_user_id", nullable = false)
   var modifyUserId: String,
 
-  @Column(name = "modify_display_name")
-  var modifyDisplayName: String? = null,
-
   @Column(name = "record_type", nullable = false)
   @Enumerated(STRING)
   var prisonRecordType: PrisonRecordType,
@@ -49,7 +46,6 @@ class PrisonNationalityEntity(
   fun update(prisonNationality: PrisonNationality) {
     this.nationalityCode = prisonNationality.nationalityCode?.let { NationalityCode.fromPrisonMapping(prisonNationality.nationalityCode) }
     this.modifyUserId = prisonNationality.modifyUserId
-    this.modifyDisplayName = prisonNationality.modifyDisplayName
     this.modifyDateTime = prisonNationality.modifyDateTime
     this.prisonRecordType = PrisonRecordType.CURRENT
     this.notes = prisonNationality.notes
@@ -62,7 +58,6 @@ class PrisonNationalityEntity(
       nationalityCode = prisonNationality.nationalityCode?.let { NationalityCode.fromPrisonMapping(prisonNationality.nationalityCode) },
       modifyDateTime = prisonNationality.modifyDateTime,
       modifyUserId = prisonNationality.modifyUserId,
-      modifyDisplayName = prisonNationality.modifyDisplayName,
       prisonRecordType = PrisonRecordType.CURRENT,
       notes = prisonNationality.notes,
     )
