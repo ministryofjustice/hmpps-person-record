@@ -38,7 +38,8 @@ class PersonEventListener(
 
   @EventListener
   fun onPersonDeleted(personDeleted: PersonDeleted) {
-    publisher.publishEvent(RecordPersonTelemetry(TelemetryEventType.CPR_RECORD_DELETED, personDeleted.personEntity, mapOf(EventKeys.UUID to personDeleted.personEntity.personKey?.personUUID?.toString())))
+    publisher.publishEvent(RecordPersonTelemetry(TelemetryEventType.CPR_RECORD_DELETED, personDeleted.personEntity, mapOf(
+      UUID to personDeleted.personEntity.personKey?.personUUID?.toString())))
     publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_DELETED, personDeleted.personEntity))
   }
 
