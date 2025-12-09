@@ -90,12 +90,13 @@ enum class IdentifierType {
 
     fun createProbationIdentifierReferences(probationCase: ProbationCase): List<Reference> {
       val identifiers = createBaseIdentifierReferences(probationCase)
-      val incomingTypes = probationCase.identifiers.additionalIdentifiers?.map { it.type?.value }
-      val incomingValues = probationCase.identifiers.additionalIdentifiers?.map { it.value }
 
-      val additionalIdentifiers = IdentifierType.probationAdditionalIdentifiers.values
-        .filter { incomingTypes?.contains(it.name) == true }
-        .mapIndexed { index, element -> Reference(identifierType = element, identifierValue = incomingValues?.get(index)) }
+      val additionalIdentifiers: List<Reference> = probationCase.identifiers.additionalIdentifiers?.map {
+        Reference(
+        identifierType = IdentifierType.valueOf(it.type?.value!!),
+        identifierValue = it.value)
+      } ?:emptyList()
+
 
       return identifiers + additionalIdentifiers
     }
