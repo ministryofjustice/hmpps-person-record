@@ -56,7 +56,7 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
       val firstCrn = randomCrn()
       val twinDetails = createRandomProbationPersonDetails(crn = firstCrn)
       val secondCrn = randomCrn()
-      val cluster = createPersonKey().addPerson(twinDetails).addPerson(twinDetails.copy(crn = secondCrn))
+      val cluster = createPersonKey().addPerson(twinDetails.copy(firstName = "Ryan")).addPerson(twinDetails.copy(crn = secondCrn, firstName = "Bryan"))
       val request = listOf(AdminTwin(cluster.personUUID!!))
 
       webTestClient.post()

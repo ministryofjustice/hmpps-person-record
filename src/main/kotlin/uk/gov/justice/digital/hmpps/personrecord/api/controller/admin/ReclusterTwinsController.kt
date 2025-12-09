@@ -11,12 +11,10 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminTwin
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.TransactionalReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @RestController
 class ReclusterTwinsController(
-  private val transactionalReclusterService: TransactionalReclusterService,
   private val personKeyRepository: PersonKeyRepository,
   private val personMatchService: PersonMatchService,
 ) {
@@ -35,7 +33,12 @@ class ReclusterTwinsController(
 
   fun triggerRecluster(adminReclusterRecords: List<AdminTwin>) {
     adminReclusterRecords.forEachPersonAndLog(RECLUSTER_TWIN_PROCESS_NAME) {
-      personMatchService.examineIsClusterValid(it)
+      val isClusterValidResponse = personMatchService.examineIsClusterValid(it)
+      if (isClusterValidResponse.isClusterValid) {
+        log.info("No twins found in ${it.personUUID}")
+      } else {
+        log.info("Splitting ${it.personUUID} into ${isClusterValidResponse.clusters.size} clusters")
+      }
     }
   }
 
