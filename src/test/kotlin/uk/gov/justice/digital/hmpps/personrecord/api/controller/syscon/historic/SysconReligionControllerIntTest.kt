@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
@@ -15,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import java.util.UUID
 
 class SysconReligionControllerIntTest : WebTestBase() {
 
@@ -26,39 +24,17 @@ class SysconReligionControllerIntTest : WebTestBase() {
   inner class Creation {
 
     @Test
-    fun `should store current religion against a prison number`() {
+    fun `should save current religion against a prison number`() {
       val prisonNumber = randomPrisonNumber()
       val currentReligion = createRandomReligion(prisonNumber, current = true)
 
+      postReligion(currentReligion)
+      assertCorrectValuesSaved(currentReligion)
+
       val historicReligion = createRandomReligion(prisonNumber, current = false)
 
-      val currentCreationResponse = webTestClient
-        .post()
-        .uri("/syscon-sync/religion")
-        .bodyValue(currentReligion)
-        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
-        .isCreated
-        .expectBody(PrisonReligionResponse::class.java)
-        .returnResult()
-        .responseBody!!
-
-      assertCorrectValuesSaved(currentReligion, currentCreationResponse.cprReligionId)
-
-      val historicCreationResponse = webTestClient
-        .post()
-        .uri("/syscon-sync/religion")
-        .bodyValue(historicReligion)
-        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
-        .isCreated
-        .expectBody(PrisonReligionResponse::class.java)
-        .returnResult()
-        .responseBody!!
-
-      assertCorrectValuesSaved(historicReligion, historicCreationResponse.cprReligionId)
+      postReligion(historicReligion)
+      assertCorrectValuesSaved(historicReligion)
     }
   }
 
@@ -66,62 +42,56 @@ class SysconReligionControllerIntTest : WebTestBase() {
   inner class Update {
 
     @Test
-    fun `should update a religion`() {
+    fun `should update an existing religion`() {
       val prisonNumber = randomPrisonNumber()
-
       val currentReligion = createRandomReligion(prisonNumber, current = true)
 
-      val currentCreationResponse = webTestClient
-        .post()
-        .uri("/syscon-sync/religion")
-        .bodyValue(currentReligion)
-        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
-        .isCreated
-        .expectBody(PrisonReligionResponse::class.java)
-        .returnResult()
-        .responseBody!!
-
-      assertCorrectValuesSaved(currentReligion, currentCreationResponse.cprReligionId)
+      postReligion(currentReligion)
+      assertCorrectValuesSaved(currentReligion)
 
       val updatedReligion = createRandomReligion(prisonNumber, current = false)
 
-      webTestClient
-        .put()
-        .uri("/syscon-sync/religion/${currentCreationResponse.cprReligionId}")
-        .bodyValue(updatedReligion)
-        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
-        .isOk
-
-      assertCorrectValuesSaved(updatedReligion, currentCreationResponse.cprReligionId)
+      postReligion(updatedReligion)
+      assertCorrectValuesSaved(updatedReligion)
     }
   }
 
-  @Test
-  fun `should return Access Denied 403 when role is wrong`() {
-    val expectedErrorMessage = "Forbidden: Access Denied"
-    webTestClient.post()
-      .uri("/syscon-sync/religion")
-      .bodyValue(createRandomReligion(randomPrisonNumber(), true))
-      .authorised(listOf("UNSUPPORTED-ROLE"))
-      .exchange()
-      .expectStatus()
-      .isForbidden
-      .expectBody()
-      .jsonPath("userMessage")
-      .isEqualTo(expectedErrorMessage)
+  @Nested
+  inner class Auth {
+    @Test
+    fun `should return Access Denied 403 when role is wrong`() {
+      val expectedErrorMessage = "Forbidden: Access Denied"
+      webTestClient.post()
+        .uri("/syscon-sync/religion/" + randomPrisonNumber())
+        .bodyValue(createRandomReligion(randomPrisonNumber(), true))
+        .authorised(listOf("UNSUPPORTED-ROLE"))
+        .exchange()
+        .expectStatus()
+        .isForbidden
+        .expectBody()
+        .jsonPath("userMessage")
+        .isEqualTo(expectedErrorMessage)
+    }
+
+    @Test
+    fun `should return UNAUTHORIZED 401 when role is not set`() {
+      webTestClient.post()
+        .uri("/syscon-sync/religion/" + randomPrisonNumber())
+        .exchange()
+        .expectStatus()
+        .isUnauthorized
+    }
   }
 
-  @Test
-  fun `should return UNAUTHORIZED 401 when role is not set`() {
-    webTestClient.post()
-      .uri("/syscon-sync/religion")
+  private fun postReligion(religion: PrisonReligion) {
+    webTestClient
+      .post()
+      .uri("/syscon-sync/religion/" + religion.prisonNumber)
+      .bodyValue(religion)
+      .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
       .exchange()
       .expectStatus()
-      .isUnauthorized
+      .isOk
   }
 
   private fun createRandomReligion(prisonNumber: String, current: Boolean) = PrisonReligion(
@@ -144,9 +114,8 @@ class SysconReligionControllerIntTest : WebTestBase() {
 
   private fun assertCorrectValuesSaved(
     religion: PrisonReligion,
-    statusId: UUID,
   ) {
-    val religionEntity = awaitNotNull { prisonReligionRepository.findByCprReligionId(statusId) }
+    val religionEntity = awaitNotNull { prisonReligionRepository.findByPrisonNumber(religion.prisonNumber) }
 
     assertThat(religionEntity.verified).isEqualTo(religion.verified)
     assertThat(religionEntity.prisonNumber).isEqualTo(religion.prisonNumber)
