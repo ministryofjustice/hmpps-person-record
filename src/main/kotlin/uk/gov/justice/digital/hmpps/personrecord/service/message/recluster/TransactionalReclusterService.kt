@@ -11,7 +11,7 @@ class TransactionalReclusterService(
 
   @Transactional
   fun recluster(person: PersonEntity) {
-    person.personKey?.let { cluster ->
+    person.personKey?.let {
       retryableReclusterService.triggerRecluster(person)
     }
   }
