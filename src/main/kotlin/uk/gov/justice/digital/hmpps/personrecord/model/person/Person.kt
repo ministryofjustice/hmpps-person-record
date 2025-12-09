@@ -14,42 +14,11 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.AAMR
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ACC
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.AI02
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.AMRL
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.APNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DNOMS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DOFF
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRL
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.IMMN
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.LBCN
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.LCRN
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.LIFN
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.MFCRN
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.MSVN
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.MTCRN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NHS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NINO
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NOMS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NPNC
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.OTHR
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PARN
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PCRN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PRNOMS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PST
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.SPNC
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.URN
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.VISO
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.XIMMN
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.XNOMS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.YCRN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -96,11 +65,13 @@ data class Person(
     fun List<Reference>.toString(): String = this.joinToString { it.identifierValue.toString() }
 
     fun from(probationCase: ProbationCase): Person {
+      createReferences(probationCase)
       val contacts: List<Contact> = listOfNotNull(
         Contact.from(ContactType.HOME, probationCase.contactDetails?.telephone),
         Contact.from(ContactType.MOBILE, probationCase.contactDetails?.mobile),
         Contact.from(ContactType.EMAIL, probationCase.contactDetails?.email),
       )
+
       val references = createReferences(probationCase)
 
       val nationalities: List<NationalityCode> = listOf(
@@ -132,55 +103,25 @@ data class Person(
       )
     }
 
-    private fun createReferences(probationCase: ProbationCase): List<Reference> = listOf(
-      Reference(identifierType = CRO, identifierValue = CROIdentifier.from(probationCase.identifiers.cro).croId),
-      Reference(identifierType = PNC, identifierValue = PNCIdentifier.from(probationCase.identifiers.pnc).pncId),
-      Reference(
-        identifierType = NATIONAL_INSURANCE_NUMBER,
-        identifierValue = probationCase.identifiers.nationalInsuranceNumber,
-      ),
-      createReferenceForAdditionalIdentifier(AAMR, probationCase),
-      createReferenceForAdditionalIdentifier(ACC, probationCase),
-      createReferenceForAdditionalIdentifier(APNC, probationCase),
-      createReferenceForAdditionalIdentifier(AMRL, probationCase),
-      createReferenceForAdditionalIdentifier(ASN, probationCase),
-      createReferenceForAdditionalIdentifier(URN, probationCase),
-      createReferenceForAdditionalIdentifier(DRL, probationCase),
-      createReferenceForAdditionalIdentifier(DNOMS, probationCase),
-      createReferenceForAdditionalIdentifier(XIMMN, probationCase),
-      createReferenceForAdditionalIdentifier(XNOMS, probationCase),
-      createReferenceForAdditionalIdentifier(IMMN, probationCase),
-      createReferenceForAdditionalIdentifier(DOFF, probationCase),
-      createReferenceForAdditionalIdentifier(LCRN, probationCase),
-      createReferenceForAdditionalIdentifier(LBCN, probationCase),
-      createReferenceForAdditionalIdentifier(LIFN, probationCase),
-      createReferenceForAdditionalIdentifier(MFCRN, probationCase),
-      createReferenceForAdditionalIdentifier(MTCRN, probationCase),
-      createReferenceForAdditionalIdentifier(MSVN, probationCase),
-      createReferenceForAdditionalIdentifier(NINO, probationCase),
-      createReferenceForAdditionalIdentifier(NHS, probationCase),
-      createReferenceForAdditionalIdentifier(NOMS, probationCase),
-      createReferenceForAdditionalIdentifier(OTHR, probationCase),
-      createReferenceForAdditionalIdentifier(PCRN, probationCase),
-      createReferenceForAdditionalIdentifier(PARN, probationCase),
-      createReferenceForAdditionalIdentifier(PST, probationCase),
-      createReferenceForAdditionalIdentifier(AI02, probationCase),
-      createReferenceForAdditionalIdentifier(PRNOMS, probationCase),
-      createReferenceForAdditionalIdentifier(SPNC, probationCase),
-      createReferenceForAdditionalIdentifier(NPNC, probationCase),
-      createReferenceForAdditionalIdentifier(VISO, probationCase),
-      createReferenceForAdditionalIdentifier(YCRN, probationCase),
-    )
+    private fun createReferences(probationCase: ProbationCase): List<Reference> {
+      val incomingTypeValues = probationCase.identifiers.additionalIdentifiers?.map { it.type?.value }
+      val incomingValues = probationCase.identifiers.additionalIdentifiers?.map { it.value }
 
-    private fun createReferenceForAdditionalIdentifier(
-      identifier: IdentifierType,
-      probationCase: ProbationCase,
-    ): Reference = Reference(
-      identifierType = identifier,
-      identifierValue = probationCase.identifiers.additionalIdentifiers?.filter {
-        it.type?.value == identifier.name
-      }?.firstNotNullOfOrNull { it.value },
-    )
+      val additionalIdentifiers = IdentifierType.probationAdditionalIdentifiers.values
+        .filter { incomingTypeValues?.contains(it.name) == true }
+        .mapIndexed { index, element -> Reference(identifierType = element, identifierValue = incomingValues?.get(index)) }
+
+      val common = listOf(
+        Reference(identifierType = CRO, identifierValue = CROIdentifier.from(probationCase.identifiers.cro).croId),
+        Reference(identifierType = PNC, identifierValue = PNCIdentifier.from(probationCase.identifiers.pnc).pncId),
+        Reference(
+          identifierType = NATIONAL_INSURANCE_NUMBER,
+          identifierValue = probationCase.identifiers.nationalInsuranceNumber,
+        ),
+      )
+
+      return common + additionalIdentifiers
+    }
 
     fun from(defendant: Defendant): Person {
       val contacts: List<Contact> = listOfNotNull(
