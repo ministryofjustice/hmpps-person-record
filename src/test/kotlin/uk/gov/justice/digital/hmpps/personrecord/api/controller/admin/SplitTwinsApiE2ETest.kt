@@ -15,6 +15,7 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
 
   @Autowired
   private lateinit var reclusterService: ReclusterService
+
   @Nested
   inner class SuccessfulProcessing {
 
@@ -73,7 +74,6 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
       }
     }
   }
-
 
   companion object {
     private const val ADMIN_RECLUSTER_TWINS_URL = "/admin/recluster-twins"

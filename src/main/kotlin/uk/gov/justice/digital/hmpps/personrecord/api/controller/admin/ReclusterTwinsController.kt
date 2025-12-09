@@ -5,21 +5,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminTwin
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordClusterTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.TransactionalReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @RestController
 class ReclusterTwinsController(
@@ -39,7 +32,6 @@ class ReclusterTwinsController(
       log.info("$RECLUSTER_TWIN_PROCESS_PREFIX Complete.")
     }
   }
-
 
   fun triggerRecluster(adminReclusterRecords: List<AdminTwin>) {
     adminReclusterRecords.forEachPersonAndLog(RECLUSTER_TWIN_PROCESS_NAME) {
