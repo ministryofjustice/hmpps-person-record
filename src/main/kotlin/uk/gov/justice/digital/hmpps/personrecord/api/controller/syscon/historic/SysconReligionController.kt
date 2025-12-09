@@ -40,7 +40,7 @@ class SysconReligionController(
   ): String {
     prisonReligionRepository.findByPrisonNumber(prisonNumber)
       ?.update(religion)
-      ?: prisonReligionRepository.save(PrisonReligionEntity.from(religion))
+      ?: prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, religion))
 
     return OK
   }

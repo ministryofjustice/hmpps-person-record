@@ -31,9 +31,6 @@ class PrisonReligionEntity(
   @Column(name = "prison_number")
   val prisonNumber: String? = null,
 
-  @Column
-  var status: String? = null,
-
   @Column(name = "change_reason_known")
   var changeReasonKnown: String? = null,
 
@@ -49,23 +46,11 @@ class PrisonReligionEntity(
   @Column(name = "end_date")
   var endDate: LocalDate? = null,
 
-  @Column(name = "create_user_id")
-  var createUserId: String? = null,
-
-  @Column(name = "create_date_time")
-  var createDateTime: LocalDateTime? = null,
-
-  @Column(name = "create_display_name")
-  var createDisplayName: String? = null,
-
   @Column(name = "modify_date_time")
   var modifyDateTime: LocalDateTime? = null,
 
   @Column(name = "modify_user_id")
   var modifyUserId: String? = null,
-
-  @Column(name = "modify_display_name")
-  var modifyDisplayName: String? = null,
 
   @Column(name = "record_type")
   @Enumerated(STRING)
@@ -77,36 +62,26 @@ class PrisonReligionEntity(
     this.code = prisonReligion.religionCode
     this.startDate = prisonReligion.startDate
     this.endDate = prisonReligion.endDate
-    this.createUserId = prisonReligion.createUserId
-    this.createDateTime = prisonReligion.createDateTime
-    this.createDisplayName = prisonReligion.createDisplayName
     this.modifyUserId = prisonReligion.modifyUserId
-    this.modifyDisplayName = prisonReligion.modifyDisplayName
     this.modifyDateTime = prisonReligion.modifyDateTime
     this.prisonRecordType = PrisonRecordType.from(prisonReligion.current)
     this.comments = prisonReligion.comments
     this.changeReasonKnown = prisonReligion.changeReasonKnown
     this.verified = prisonReligion.verified
-    this.status = prisonReligion.religionStatus
   }
 
   companion object {
-    fun from(prisonReligion: PrisonReligion) = PrisonReligionEntity(
+    fun from(prisonNumber: String, prisonReligion: PrisonReligion) = PrisonReligionEntity(
       cprReligionId = UUID.randomUUID(),
+      prisonNumber = prisonNumber,
       code = prisonReligion.religionCode,
-      prisonNumber = prisonReligion.prisonNumber,
-      status = prisonReligion.religionStatus,
       changeReasonKnown = prisonReligion.changeReasonKnown,
       comments = prisonReligion.comments,
       verified = prisonReligion.verified,
       startDate = prisonReligion.startDate,
       endDate = prisonReligion.endDate,
-      createUserId = prisonReligion.createUserId,
-      createDateTime = prisonReligion.createDateTime,
-      createDisplayName = prisonReligion.createDisplayName,
       modifyDateTime = prisonReligion.modifyDateTime,
       modifyUserId = prisonReligion.modifyUserId,
-      modifyDisplayName = prisonReligion.modifyDisplayName,
       prisonRecordType = PrisonRecordType.from(prisonReligion.current),
     )
   }
