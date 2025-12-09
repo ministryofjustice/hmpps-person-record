@@ -93,10 +93,10 @@ enum class IdentifierType {
 
       val additionalIdentifiers: List<Reference> = probationCase.identifiers.additionalIdentifiers?.map {
         Reference(
-        identifierType = IdentifierType.valueOf(it.type?.value!!),
-        identifierValue = it.value)
-      } ?:emptyList()
-
+          identifierType = IdentifierType.valueOf(it.type?.value!!),
+          identifierValue = it.value,
+        )
+      } ?: emptyList()
 
       return identifiers + additionalIdentifiers
     }
