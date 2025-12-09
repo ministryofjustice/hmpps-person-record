@@ -71,7 +71,7 @@ data class Person(
         Contact.from(ContactType.EMAIL, probationCase.contactDetails?.email),
       )
 
-      val references = createCommonReferences(probationCase) + createReferences(probationCase)
+      val references = createCommonReferences(probationCase) + IdentifierType.createAdditionalIdentifierReferences(probationCase)
 
       val nationalities: List<NationalityCode> = listOf(
         NationalityCode.fromProbationMapping(probationCase.nationality?.value),
@@ -111,16 +111,7 @@ data class Person(
       ),
     )
 
-    private fun createReferences(probationCase: ProbationCase): List<Reference> {
-      val incomingTypes = probationCase.identifiers.additionalIdentifiers?.map { it.type?.value }
-      val incomingValues = probationCase.identifiers.additionalIdentifiers?.map { it.value }
 
-      val additionalIdentifiers = IdentifierType.probationAdditionalIdentifiers.values
-        .filter { incomingTypes?.contains(it.name) == true }
-        .mapIndexed { index, element -> Reference(identifierType = element, identifierValue = incomingValues?.get(index)) }
-
-      return additionalIdentifiers
-    }
 
     fun from(defendant: Defendant): Person {
       val contacts: List<Contact> = listOfNotNull(
