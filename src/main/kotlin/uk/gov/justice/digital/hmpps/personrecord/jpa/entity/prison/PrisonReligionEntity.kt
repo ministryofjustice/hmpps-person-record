@@ -25,8 +25,8 @@ class PrisonReligionEntity(
   @Column(name = "cpr_religion_id", nullable = false)
   val cprReligionId: UUID,
 
-  @Column(name = "religion_code", nullable = false)
-  var code: String,
+  @Column(name = "religion_code")
+  var code: String? = null,
 
   @Column(name = "prison_number")
   val prisonNumber: String? = null,
