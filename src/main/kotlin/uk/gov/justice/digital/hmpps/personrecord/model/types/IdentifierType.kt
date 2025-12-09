@@ -83,7 +83,6 @@ enum class IdentifierType {
       YCRN,
     ).associateBy { it.name }
 
-
     fun from(code: String?): IdentifierType? = code?.let { baseIdentifiers.getOrDefault(code, null) }
   }
 }
