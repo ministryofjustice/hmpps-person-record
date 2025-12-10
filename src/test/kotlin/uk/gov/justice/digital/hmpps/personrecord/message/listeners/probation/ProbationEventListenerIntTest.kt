@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
@@ -523,8 +524,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val person = personRepository.findByCrn(crn)
-      val pncEntity = person?.references?.find { it.identifierType == PNC }
-      val croEntity = person?.references?.find { it.identifierType == CRO }
+      val pncEntity = person?.references?.getPncsFromReferences()?.first()
+      val croEntity = person?.references?.getCrosFromReferences()?.first()
 
       val updatedCro = randomCro()
       probationDomainEventAndResponseSetup(
@@ -538,14 +539,14 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(updatedPerson.references).hasSize(2)
 
-      val updatedPncEntity = updatedPerson.references.find { it.identifierType == PNC }
-      assertThat(updatedPncEntity?.identifierValue).isEqualTo(pnc)
-      assertThat(updatedPncEntity?.id).isEqualTo(pncEntity?.id)
-      assertThat(updatedPncEntity?.version).isEqualTo(pncEntity?.version)
+      val updatedPncEntity = updatedPerson.references.getPncsFromReferences().first()
+      assertThat(updatedPncEntity.identifierValue).isEqualTo(pnc)
+      assertThat(updatedPncEntity.id).isEqualTo(pncEntity?.id)
+      assertThat(updatedPncEntity.version).isEqualTo(pncEntity?.version)
 
-      val updatedCroEntity = updatedPerson.references.find { it.identifierType == CRO }
-      assertThat(updatedCroEntity?.identifierValue).isEqualTo(updatedCro)
-      assertThat(updatedCroEntity?.id).isNotEqualTo(croEntity?.id)
+      val updatedCroEntity = updatedPerson.references.getCrosFromReferences().first()
+      assertThat(updatedCroEntity.identifierValue).isEqualTo(updatedCro)
+      assertThat(updatedCroEntity.id).isNotEqualTo(croEntity?.id)
     }
 
     @Test
@@ -767,4 +768,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val expected = nationalities.map { NationalityCode.fromProbationMapping(it) }
     assertThat(actual).containsAll(expected)
   }
+
+  private fun List<ReferenceEntity>.getCrosFromReferences(): List<ReferenceEntity> = this.filter { it.identifierType == CRO }
+  private fun List<ReferenceEntity>.getPncsFromReferences(): List<ReferenceEntity> = this.filter { it.identifierType == PNC }
 }
