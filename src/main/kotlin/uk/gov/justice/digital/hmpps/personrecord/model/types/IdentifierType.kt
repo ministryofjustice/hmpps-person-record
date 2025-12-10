@@ -94,18 +94,12 @@ enum class IdentifierType {
 
       val additionalIdentifiers: List<Reference> = probationCase.identifiers.additionalIdentifiers?.map {
         Reference(
-          identifierType = findOrDefault(it.type?.value!!, UNKNOWN),
+          identifierType = probationAdditionalIdentifiers.getOrDefault(it.type?.value!!, UNKNOWN),
           identifierValue = it.value,
         )
       } ?: emptyList()
 
       return identifiers + additionalIdentifiers
-    }
-
-    private fun findOrDefault(value: String, defaultValue: IdentifierType): IdentifierType = try {
-      IdentifierType.valueOf(value)
-    } catch (_: IllegalArgumentException) {
-      defaultValue
     }
   }
 }
