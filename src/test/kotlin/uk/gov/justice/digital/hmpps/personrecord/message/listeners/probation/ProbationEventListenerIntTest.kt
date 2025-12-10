@@ -113,6 +113,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val additionalIdentifierCodeTwo = randomAdditionalIdentifierCode()
       val additionalIdentifierCodeThree = randomAdditionalIdentifierCode()
 
+      val identifierNinoValue = randomNationalInsuranceNumber()
+      val additionalIdentifierNinoValue = randomNationalInsuranceNumber()
+
       val buildingName = randomName()
       val addressNumber = randomAddressNumber()
       val streetName = randomName()
@@ -130,7 +133,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         dateOfDeath = dateOfDeath,
         crn = crn,
         pnc = pnc,
-        nationalInsuranceNumber = "123456",
+        nationalInsuranceNumber = identifierNinoValue,
         title = title.key,
         firstName = firstName,
         middleName = middleName,
@@ -155,6 +158,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           ApiResponseSetupAdditionalIdentifier(
             "UNKOWN_IDENTIFIER",
             "2222",
+          ),
+          ApiResponseSetupAdditionalIdentifier(
+            IdentifierType.NINO.name,
+            additionalIdentifierNinoValue,
           ),
 
         ),
@@ -216,6 +223,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.references.getType(additionalIdentifierCodeThree).first()).isEqualTo(additionalIdentifierValueThree)
 
       assertThat(personEntity.references.getType(IdentifierType.UNKNOWN).first()).isEqualTo("2222")
+
+      assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(identifierNinoValue)
+      assertThat(personEntity.references.getType(IdentifierType.NINO).first()).isEqualTo(additionalIdentifierNinoValue)
 
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)
