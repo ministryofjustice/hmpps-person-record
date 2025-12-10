@@ -92,7 +92,11 @@ enum class IdentifierType {
     fun createProbationIdentifierReferences(probationCase: ProbationCase): List<Reference> {
       val identifiers = createBaseIdentifierReferences(probationCase)
 
-      val additionalIdentifiers: List<Reference> = probationCase.identifiers.additionalIdentifiers?.map {
+      val filteredList = probationCase.identifiers.additionalIdentifiers?.filterNot {
+        it.type?.value == NINO.name && it.value == probationCase.identifiers.nationalInsuranceNumber
+      }
+
+      val additionalIdentifiers: List<Reference> = filteredList?.map {
         Reference(
           identifierType = probationAdditionalIdentifiers.getOrDefault(it.type?.value!!, UNKNOWN),
           identifierValue = it.value,

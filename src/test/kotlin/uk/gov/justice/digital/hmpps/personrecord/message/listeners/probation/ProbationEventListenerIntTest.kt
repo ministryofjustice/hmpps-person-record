@@ -282,6 +282,29 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
+    fun `should deduplicate additional identifier national insurance numbers giving precedence to identifier nationalInsuranceNumber value`() {
+      val crn = randomCrn()
+      val nino = randomNationalInsuranceNumber()
+
+      val apiResponse = ApiResponseSetup(
+        crn = crn,
+        nationalInsuranceNumber = nino,
+        additionalIdentifiers = listOf(
+          ApiResponseSetupAdditionalIdentifier(
+            IdentifierType.NINO.name,
+            nino,
+          ),
+        ),
+      )
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
+
+      val personEntity = awaitNotNull { personRepository.findByCrn(crn) }
+
+      assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(nino)
+      assertThat(personEntity.references.getType(IdentifierType.NINO)).isEmpty()
+    }
+
+    @Test
     fun `should process personal details updated events successfully`() {
       val pnc = randomLongPnc()
       val crn = randomCrn()
