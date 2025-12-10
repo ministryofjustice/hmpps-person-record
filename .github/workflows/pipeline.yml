@@ -130,7 +130,7 @@ jobs:
     needs:
       - build
       - helm_lint
-      - kotlin_validate
+      - gradle_verify
       - e2e_test
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
