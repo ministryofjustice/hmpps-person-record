@@ -10,8 +10,6 @@ data class PrisonNationality(
   val modifyDateTime: LocalDateTime,
   @Schema(description = "The nationality modify user id", example = "12345", required = true)
   val modifyUserId: String,
-  @Schema(description = "The nationality modify display name", example = "John Smith")
-  val modifyDisplayName: String? = null,
   @Schema(description = "The nationality notes", example = "Foo bar")
   val notes: String? = null,
 )
