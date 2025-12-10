@@ -101,6 +101,7 @@ jobs:
       push: ${{ inputs.push || true }}
       docker_multiplatform: false
       download_build_artifacts: true
+    needs: gradle_verify
   database_report:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
