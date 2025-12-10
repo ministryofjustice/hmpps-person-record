@@ -160,7 +160,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
             "2222",
           ),
           ApiResponseSetupAdditionalIdentifier(
-            IdentifierType.NINO.name,
+            "NINO",
             additionalIdentifierNinoValue,
           ),
 
@@ -291,7 +291,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         nationalInsuranceNumber = nino,
         additionalIdentifiers = listOf(
           ApiResponseSetupAdditionalIdentifier(
-            IdentifierType.NINO.name,
+            "NINO",
             nino,
           ),
         ),
@@ -301,7 +301,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val personEntity = awaitNotNull { personRepository.findByCrn(crn) }
 
       assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(nino)
-      assertThat(personEntity.references.getType(IdentifierType.NINO)).isEmpty()
+      assertThat(personEntity.references.size).isEqualTo(1)
     }
 
     @Test

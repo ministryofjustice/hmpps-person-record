@@ -29,7 +29,6 @@ enum class IdentifierType {
   MFCRN,
   MTCRN,
   MSVN,
-  NINO,
   NHS,
   NOMS,
   OTHR,
@@ -80,29 +79,26 @@ enum class IdentifierType {
     ).associateBy { it.name }
 
     val probationAdditionalIdentifiers: Map<String, IdentifierType> = mutableMapOf(
-      NINO.name to NATIONAL_INSURANCE_NUMBER,
+      "NINO" to NATIONAL_INSURANCE_NUMBER,
     ).plus(probationAdditionalIdentifiersWithoutNino)
 
     private fun createBaseIdentifierReferences(probationCase: ProbationCase): List<Reference> = listOf(
-      Reference(identifierType = CRO, identifierValue = CROIdentifier.from(probationCase.identifiers.cro).croId),
-      Reference(identifierType = PNC, identifierValue = PNCIdentifier.from(probationCase.identifiers.pnc).pncId),
-      Reference(
-        identifierType = NATIONAL_INSURANCE_NUMBER,
-        identifierValue = probationCase.identifiers.nationalInsuranceNumber,
-      ),
+      Reference(CRO, CROIdentifier.from(probationCase.identifiers.cro).croId),
+      Reference(PNC, PNCIdentifier.from(probationCase.identifiers.pnc).pncId),
+      Reference(NATIONAL_INSURANCE_NUMBER, probationCase.identifiers.nationalInsuranceNumber),
     )
 
     fun createProbationIdentifierReferences(probationCase: ProbationCase): List<Reference> {
       val identifiers = createBaseIdentifierReferences(probationCase)
 
       val filteredList = probationCase.identifiers.additionalIdentifiers?.filterNot {
-        it.type?.value == NINO.name && it.value == probationCase.identifiers.nationalInsuranceNumber
+        it.type?.value == "NINO" && it.value == probationCase.identifiers.nationalInsuranceNumber
       }
 
       val additionalIdentifiers: List<Reference> = filteredList?.map {
         Reference(
-          identifierType = probationAdditionalIdentifiers.getOrDefault(it.type?.value!!, UNKNOWN),
-          identifierValue = it.value,
+          probationAdditionalIdentifiers.getOrDefault(it.type?.value!!, UNKNOWN),
+          it.value,
         )
       } ?: emptyList()
 
