@@ -46,7 +46,7 @@ enum class IdentifierType {
   ;
 
   companion object {
-    val probationAdditionalIdentifiers = listOf(
+    val probationAdditionalIdentifiersWithoutNino = listOf(
       AAMR,
       ACC,
       APNC,
@@ -65,7 +65,6 @@ enum class IdentifierType {
       MFCRN,
       MTCRN,
       MSVN,
-      NINO,
       NHS,
       NOMS,
       OTHR,
@@ -79,6 +78,10 @@ enum class IdentifierType {
       VISO,
       YCRN,
     ).associateBy { it.name }
+
+    val probationAdditionalIdentifiers: Map<String, IdentifierType> = mutableMapOf(
+      NINO.name to NATIONAL_INSURANCE_NUMBER,
+    ).plus(probationAdditionalIdentifiersWithoutNino)
 
     private fun createBaseIdentifierReferences(probationCase: ProbationCase): List<Reference> = listOf(
       Reference(identifierType = CRO, identifierValue = CROIdentifier.from(probationCase.identifiers.cro).croId),
