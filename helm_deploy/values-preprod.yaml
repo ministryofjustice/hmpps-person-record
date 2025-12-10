@@ -6,6 +6,7 @@ generic-service:
     tlsSecretName: hmpps-person-record-preprod-cert-secret
 
   env:
+    APPLICATIONINSIGHTS_CONFIGURATION_FILE: "applicationinsights.dev.json"
     SPRING_PROFILES_ACTIVE: "preprod"
     PERSON_MATCH_BASE_URL: https://hmpps-person-match-preprod.hmpps.service.justice.gov.uk
     NOMIS_OAUTH_BASE_URL: https://sign-in-preprod.hmpps.service.justice.gov.uk
