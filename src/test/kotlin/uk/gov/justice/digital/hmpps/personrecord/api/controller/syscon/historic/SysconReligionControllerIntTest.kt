@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
@@ -24,26 +25,21 @@ class SysconReligionControllerIntTest : WebTestBase() {
   inner class Creation {
 
     @Test
-    fun `should save current religion against a prison number`() {
+    fun `should save religions against a new prison number`() {
       val prisonNumber = randomPrisonNumber()
-      val currentReligion = createRandomReligion(randomName(), current = true)
+      val religions = createRandomReligions()
 
-      postReligion(prisonNumber, currentReligion)
-      assertCorrectValuesSaved(prisonNumber, currentReligion)
-
-      val historicReligion = createRandomReligion(randomName(), current = false)
-
-      postReligion(prisonNumber, historicReligion)
-      assertCorrectValuesSaved(prisonNumber, historicReligion)
+      postReligions(prisonNumber, religions)
+      assertCorrectValuesSaved(prisonNumber, religions)
     }
 
     @Test
-    fun `should save current religion against a prison number when code is null`() {
+    fun `should save religions against a new prison number when an entry has a null code`() {
       val prisonNumber = randomPrisonNumber()
-      val currentReligion = createRandomReligion(null, current = true)
+      val religions = createRandomReligions() + createRandomReligion(null, false)
 
-      postReligion(prisonNumber, currentReligion)
-      assertCorrectValuesSaved(prisonNumber, currentReligion)
+      postReligions(prisonNumber, religions)
+      assertCorrectValuesSaved(prisonNumber, religions)
     }
   }
 
@@ -51,42 +47,44 @@ class SysconReligionControllerIntTest : WebTestBase() {
   inner class Update {
 
     @Test
-    fun `should update an existing religion`() {
+    fun `should replace the existing religions against a prison number`() {
       val prisonNumber = randomPrisonNumber()
-      val currentReligion = createRandomReligion(randomName(), current = true)
+      val religions = createRandomReligions()
 
-      postReligion(prisonNumber, currentReligion)
-      assertCorrectValuesSaved(prisonNumber, currentReligion)
+      postReligions(prisonNumber, religions)
+      assertCorrectValuesSaved(prisonNumber, religions)
 
-      val updatedReligion = createRandomReligion(randomName(), current = false)
+      val updatedReligions = createRandomReligions()
 
-      postReligion(prisonNumber, updatedReligion)
-      assertCorrectValuesSaved(prisonNumber, updatedReligion)
+      postReligions(prisonNumber, updatedReligions)
+      assertCorrectValuesSaved(prisonNumber, updatedReligions)
     }
+  }
+
+  @Nested
+  inner class Validation {
 
     @Test
-    fun `should update an existing religion when code is null`() {
-      val prisonNumber = randomPrisonNumber()
-      val currentReligion = createRandomReligion(randomName(), current = true)
-
-      postReligion(prisonNumber, currentReligion)
-      assertCorrectValuesSaved(prisonNumber, currentReligion)
-
-      val updatedReligion = createRandomReligion(null, current = false)
-
-      postReligion(prisonNumber, updatedReligion)
-      assertCorrectValuesSaved(prisonNumber, updatedReligion)
+    fun `should respond with bad request when no religions are posted`() {
+      webTestClient.post()
+        .uri("/syscon-sync/religion/" + randomPrisonNumber())
+        .bodyValue(PrisonReligionRequest(emptyList()))
+        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isBadRequest
     }
   }
 
   @Nested
   inner class Auth {
+
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.post()
         .uri("/syscon-sync/religion/" + randomPrisonNumber())
-        .bodyValue(createRandomReligion(randomName(), true))
+        .bodyValue(PrisonReligionRequest(createRandomReligions()))
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
         .expectStatus()
@@ -106,16 +104,18 @@ class SysconReligionControllerIntTest : WebTestBase() {
     }
   }
 
-  private fun postReligion(prisonNumber: String, religion: PrisonReligion) {
+  private fun postReligions(prisonNumber: String, religions: List<PrisonReligion>) {
     webTestClient
       .post()
       .uri("/syscon-sync/religion/$prisonNumber")
-      .bodyValue(religion)
+      .bodyValue(PrisonReligionRequest(religions))
       .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
       .exchange()
       .expectStatus()
       .isOk
   }
+
+  private fun createRandomReligions(): List<PrisonReligion> = List((4..20).random()) { createRandomReligion(randomName(), randomBoolean()) }
 
   private fun createRandomReligion(code: String?, current: Boolean) = PrisonReligion(
     changeReasonKnown = randomBoolean(),
@@ -131,19 +131,23 @@ class SysconReligionControllerIntTest : WebTestBase() {
 
   private fun assertCorrectValuesSaved(
     prisonNumber: String,
-    religion: PrisonReligion,
+    religions: List<PrisonReligion>,
   ) {
-    val religionEntity = awaitNotNull { prisonReligionRepository.findByPrisonNumber(prisonNumber) }
+    val religionEntities = awaitNotNull { prisonReligionRepository.findByPrisonNumber(prisonNumber) }
 
-    assertThat(religionEntity.prisonNumber).isEqualTo(prisonNumber)
-    assertThat(religionEntity.verified).isEqualTo(religion.verified)
-    assertThat(religionEntity.comments).isEqualTo(religion.comments)
-    assertThat(religionEntity.changeReasonKnown).isEqualTo(religion.changeReasonKnown)
-    assertThat(religionEntity.code).isEqualTo(religion.religionCode)
-    assertThat(religionEntity.startDate).isEqualTo(religion.startDate)
-    assertThat(religionEntity.endDate).isEqualTo(religion.endDate)
-    assertThat(religionEntity.modifyDateTime).isEqualTo(religion.modifyDateTime)
-    assertThat(religionEntity.modifyUserId).isEqualTo(religion.modifyUserId)
-    assertThat(religionEntity.prisonRecordType).isEqualTo(PrisonRecordType.from(religion.current))
+    assertThat(religionEntities.size).isEqualTo(religions.size)
+
+    religions.zip(religionEntities).forEachIndexed { _, (sentReligion, storedReligion) ->
+      assertThat(storedReligion.prisonNumber).isEqualTo(prisonNumber)
+      assertThat(storedReligion.verified).isEqualTo(sentReligion.verified)
+      assertThat(storedReligion.comments).isEqualTo(sentReligion.comments)
+      assertThat(storedReligion.changeReasonKnown).isEqualTo(sentReligion.changeReasonKnown)
+      assertThat(storedReligion.code).isEqualTo(sentReligion.religionCode)
+      assertThat(storedReligion.startDate).isEqualTo(sentReligion.startDate)
+      assertThat(storedReligion.endDate).isEqualTo(sentReligion.endDate)
+      assertThat(storedReligion.modifyDateTime).isEqualTo(sentReligion.modifyDateTime)
+      assertThat(storedReligion.modifyUserId).isEqualTo(sentReligion.modifyUserId)
+      assertThat(storedReligion.prisonRecordType).isEqualTo(PrisonRecordType.from(sentReligion.current))
+    }
   }
 }
