@@ -8,7 +8,8 @@ import org.springframework.http.MediaType.APPLICATION_JSON
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminTwin
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
@@ -61,10 +62,15 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
       val twinDetails = createRandomProbationPersonDetails(crn = firstCrn)
       val secondCrn = randomCrn()
       // twins have different first name, different identifiers, otherwise identical
-      val cluster = createPersonKey().addPerson(twinDetails.copy(firstName = "Ryan", references = listOf(Reference(
-        IdentifierType.CRO, randomCro()),
-        Reference(IdentifierType.PNC, randomLongPnc()))
-      )).addPerson(twinDetails.copy(crn = secondCrn, firstName = "Bryan"))
+      val cluster = createPersonKey().addPerson(
+        twinDetails.copy(
+          firstName = "Ryan",
+          references = listOf(
+            Reference(CRO, randomCro()),
+            Reference(PNC, randomLongPnc())
+          )
+        )
+      ).addPerson(twinDetails.copy(crn = secondCrn, firstName = "Bryan"))
       val request = listOf(AdminTwin(cluster.personUUID!!))
 
       webTestClient.post()
@@ -79,6 +85,39 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
         val first = personRepository.findByCrn(firstCrn)!!
         val second = personRepository.findByCrn(secondCrn)!!
         assertThat(first.personKey!!.personUUID).isNotEqualTo(second.personKey!!.personUUID)
+      }
+    }
+
+
+    @Test
+    fun `should split into three clusters when there are triplets`() {
+      val firstTripletCrn = randomCrn()
+      val secondTripletCrn = randomCrn()
+      val thirdTripletCrn = randomCrn()
+      val cluster = createPersonKey()
+        .addPerson(
+          createRandomProbationPersonDetails(crn = firstTripletCrn)
+        ).addPerson(
+          createRandomProbationPersonDetails(crn = secondTripletCrn)
+        )
+        .addPerson(createRandomProbationPersonDetails(crn = thirdTripletCrn))
+      val request = listOf(AdminTwin(cluster.personUUID!!))
+
+      webTestClient.post()
+        .uri(ADMIN_RECLUSTER_TWINS_URL)
+        .contentType(APPLICATION_JSON)
+        .bodyValue(request)
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      awaitAssert {
+        val first = personRepository.findByCrn(firstTripletCrn)!!
+        val second = personRepository.findByCrn(secondTripletCrn)!!
+        val third = personRepository.findByCrn(thirdTripletCrn)!!
+        assertThat(first.personKey!!.personUUID).isNotEqualTo(second.personKey!!.personUUID)
+        assertThat(second.personKey!!.personUUID).isNotEqualTo(third.personKey!!.personUUID)
+        assertThat(first.personKey!!.personUUID).isNotEqualTo(third.personKey!!.personUUID)
       }
     }
   }
