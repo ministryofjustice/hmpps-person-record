@@ -7,8 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType.APPLICATION_JSON
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminTwin
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 
 class SplitTwinsApiE2ETest : E2ETestBase() {
@@ -56,7 +60,11 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
       val firstCrn = randomCrn()
       val twinDetails = createRandomProbationPersonDetails(crn = firstCrn)
       val secondCrn = randomCrn()
-      val cluster = createPersonKey().addPerson(twinDetails.copy(firstName = "Ryan")).addPerson(twinDetails.copy(crn = secondCrn, firstName = "Bryan"))
+      // twins have different first name, different identifiers, otherwise identical
+      val cluster = createPersonKey().addPerson(twinDetails.copy(firstName = "Ryan", references = listOf(Reference(
+        IdentifierType.CRO, randomCro()),
+        Reference(IdentifierType.PNC, randomLongPnc()))
+      )).addPerson(twinDetails.copy(crn = secondCrn, firstName = "Bryan"))
       val request = listOf(AdminTwin(cluster.personUUID!!))
 
       webTestClient.post()
