@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminTwin
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listeners.ClusterEventListener
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @RestController
@@ -41,9 +40,9 @@ class ReclusterTwinsController(
       } else {
         log.info("Splitting ${it.personUUID} into ${isClusterValidResponse.clusters.size} clusters")
         val clustersToSplitOff = isClusterValidResponse.clusters.subList(1, isClusterValidResponse.clusters.size)
-         clustersToSplitOff.forEach { cluster ->
-           reclusterTwinsService.split(cluster)
-         }
+        clustersToSplitOff.forEach { cluster ->
+          reclusterTwinsService.split(cluster)
+        }
       }
     }
   }

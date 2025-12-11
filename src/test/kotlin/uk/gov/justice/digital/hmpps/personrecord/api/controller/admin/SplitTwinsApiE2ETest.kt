@@ -67,9 +67,9 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
           firstName = "Ryan",
           references = listOf(
             Reference(CRO, randomCro()),
-            Reference(PNC, randomLongPnc())
-          )
-        )
+            Reference(PNC, randomLongPnc()),
+          ),
+        ),
       ).addPerson(twinDetails.copy(crn = secondCrn, firstName = "Bryan"))
       val request = listOf(AdminTwin(cluster.personUUID!!))
 
@@ -88,7 +88,6 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
       }
     }
 
-
     @Test
     fun `should split into three clusters when there are triplets`() {
       val firstTripletCrn = randomCrn()
@@ -96,9 +95,9 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
       val thirdTripletCrn = randomCrn()
       val cluster = createPersonKey()
         .addPerson(
-          createRandomProbationPersonDetails(crn = firstTripletCrn)
+          createRandomProbationPersonDetails(crn = firstTripletCrn),
         ).addPerson(
-          createRandomProbationPersonDetails(crn = secondTripletCrn)
+          createRandomProbationPersonDetails(crn = secondTripletCrn),
         )
         .addPerson(createRandomProbationPersonDetails(crn = thirdTripletCrn))
       val request = listOf(AdminTwin(cluster.personUUID!!))
@@ -118,6 +117,42 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
         assertThat(first.personKey!!.personUUID).isNotEqualTo(second.personKey!!.personUUID)
         assertThat(second.personKey!!.personUUID).isNotEqualTo(third.personKey!!.personUUID)
         assertThat(first.personKey!!.personUUID).isNotEqualTo(third.personKey!!.personUUID)
+      }
+    }
+
+    @Test
+    fun `should split into two clusters of 2 records each when there are twins with one record matching each`() {
+      val firstCrn = randomCrn()
+      val firstPair = createRandomProbationPersonDetails(crn = firstCrn)
+      val secondCrn = randomCrn()
+      val thirdCrn = randomCrn()
+      val secondPair = createRandomProbationPersonDetails(crn = thirdCrn)
+      val fourthCrn = randomCrn()
+      val cluster = createPersonKey().addPerson(
+        firstPair,
+      )
+        .addPerson(firstPair.copy(crn = secondCrn))
+        .addPerson(secondPair)
+        .addPerson(secondPair.copy(crn = fourthCrn))
+
+      val request = listOf(AdminTwin(cluster.personUUID!!))
+
+      webTestClient.post()
+        .uri(ADMIN_RECLUSTER_TWINS_URL)
+        .contentType(APPLICATION_JSON)
+        .bodyValue(request)
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      awaitAssert {
+        val first = personRepository.findByCrn(firstCrn)!!
+        val second = personRepository.findByCrn(secondCrn)!!
+        val third = personRepository.findByCrn(thirdCrn)!!
+        val fourth = personRepository.findByCrn(fourthCrn)!!
+        assertThat(first.personKey!!.personUUID).isEqualTo(second.personKey!!.personUUID)
+        assertThat(second.personKey!!.personUUID).isNotEqualTo(third.personKey!!.personUUID)
+        assertThat(third.personKey!!.personUUID).isEqualTo(fourth.personKey!!.personUUID)
       }
     }
   }
