@@ -6,5 +6,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligio
 
 @Repository
 interface PrisonReligionRepository : JpaRepository<PrisonReligionEntity, Long> {
-  fun findByPrisonNumber(prisonNumber: String): PrisonReligionEntity?
+
+  fun deleteByPrisonNumber(prisonNumber: String)
+
+  fun findByPrisonNumber(prisonNumber: String): List<PrisonReligionEntity>
 }
