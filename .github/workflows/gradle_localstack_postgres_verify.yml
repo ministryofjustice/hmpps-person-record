@@ -131,13 +131,7 @@ jobs:
           name: ${{ inputs.artifact-name }}
           path: |
             ${{ inputs.build-dir }}/reports/tests
-      - name: Upload the test coverage artifacts
-        if: ${{ inputs.upload-test-artifacts && !cancelled() }}
-        uses: actions/upload-artifact@v5
-        with:
-          name: ${{ inputs.artifact-name }}-coverage
-          path: |
-            ${{ inputs.build-dir }}
+            ${{ inputs.build-dir }}/reports/kover/html
       - name: Upload the build artifacts
         if: ${{ inputs.upload-build-artifacts && !cancelled() }}
         uses: actions/upload-artifact@v5
