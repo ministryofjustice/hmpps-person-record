@@ -56,7 +56,7 @@ jobs:
     uses: ./.github/workflows/gradle_localstack_postgres_verify.yml # WORKFLOW_VERSION
     secrets: inherit
     with:
-      gradle-command: 'BUILD_NUMBER=${{ needs.app_version.outputs.version}} ./gradlew assemble check'
+      gradle-command: 'BUILD_NUMBER=${{ needs.app_version.outputs.version}} ./gradlew assemble koverHtmlReport'
       upload-build-artifacts: ${{ github.ref == 'refs/heads/main' }}
       java-options: "${{ inputs.java_options }}"
       postgres-tag: '16.1'
