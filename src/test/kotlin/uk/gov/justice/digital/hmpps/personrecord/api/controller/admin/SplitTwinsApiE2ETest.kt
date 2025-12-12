@@ -39,7 +39,7 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
       }
       cluster.addPerson(twinDetails.copy(crn = secondCrn))
 
-      val request = listOf(AdminTwin(toBeMerged.personKey!!.personUUID!!))
+      val request = listOf(AdminTwin(toBeMerged.personKey!!.personUUID!!.toString()))
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_TWINS_URL)
@@ -71,7 +71,7 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
           ),
         ),
       ).addPerson(twinDetails.copy(crn = secondCrn, firstName = "Bryan"))
-      val request = listOf(AdminTwin(cluster.personUUID!!))
+      val request = listOf(AdminTwin(cluster.personUUID!!.toString()))
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_TWINS_URL)
@@ -100,7 +100,7 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
           createRandomProbationPersonDetails(crn = secondTripletCrn),
         )
         .addPerson(createRandomProbationPersonDetails(crn = thirdTripletCrn))
-      val request = listOf(AdminTwin(cluster.personUUID!!))
+      val request = listOf(AdminTwin(cluster.personUUID!!.toString()))
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_TWINS_URL)
@@ -135,7 +135,7 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
         .addPerson(secondPair)
         .addPerson(secondPair.copy(crn = fourthCrn))
 
-      val request = listOf(AdminTwin(cluster.personUUID!!))
+      val request = listOf(AdminTwin(cluster.personUUID!!.toString()))
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_TWINS_URL)
