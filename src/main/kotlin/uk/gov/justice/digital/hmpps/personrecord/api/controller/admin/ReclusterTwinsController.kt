@@ -39,6 +39,7 @@ class ReclusterTwinsController(
         log.info("No twins found in ${it.personUUID}")
       } else {
         log.info("Splitting ${it.personUUID} into ${isClusterValidResponse.clusters.size} clusters")
+        log.info("Cluster ${it.personUUID} will keep matchIds ${isClusterValidResponse.clusters.first().map{ it }}")
         val clustersToSplitOff = isClusterValidResponse.clusters.subList(1, isClusterValidResponse.clusters.size)
         clustersToSplitOff.forEach { cluster ->
           reclusterTwinsService.split(cluster)

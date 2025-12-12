@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin
 
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -20,5 +21,11 @@ class ReclusterTwinsService(
       personEntity.assignToPersonKey(personKey)
       personKeyRepository.save(personKey)
     }
+    log.info("Created cluster ${personKey.personUUID} with these matchIds: ${personKey.personEntities.map { it.matchId }}")
   }
+
+  companion object{
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
+
 }
