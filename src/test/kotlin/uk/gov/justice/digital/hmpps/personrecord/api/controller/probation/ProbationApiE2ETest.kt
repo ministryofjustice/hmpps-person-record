@@ -512,7 +512,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         )
         offender.personKey?.assertClusterStatus(ACTIVE)
         offender.personKey?.assertClusterIsOfSize(2)
-        assertThat(offender.masterDefendantId).isNotNull
+        assertThat(offender.masterDefendantId).isEqualTo(defendant.masterDefendantId)
       }
 
       @Test
@@ -566,13 +566,8 @@ class ProbationApiE2ETest : E2ETestBase() {
       fun `should return Not Found if defendant does not exist`() {
         val defendantId = randomDefendantId()
         val offender = ProbationCase(
-          title = Value(),
           identifiers = Identifiers(crn = randomCrn()),
           name = ProbationCaseName(firstName = randomName()),
-          gender = Value(SexCode.M.name),
-          ethnicity = Value(randomProbationEthnicity()),
-          nationality = Value(randomProbationNationalityCode()),
-          contactDetails = ContactDetails(),
         )
         val expectedErrorMessage = "Not found: $defendantId"
         webTestClient.put()
@@ -590,13 +585,8 @@ class ProbationApiE2ETest : E2ETestBase() {
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         val offender = ProbationCase(
-          title = Value(),
           identifiers = Identifiers(crn = randomCrn()),
           name = ProbationCaseName(firstName = randomName()),
-          gender = Value(SexCode.M.name),
-          ethnicity = Value(randomProbationEthnicity()),
-          nationality = Value(randomProbationNationalityCode()),
-          contactDetails = ContactDetails(),
         )
         val expectedErrorMessage = "Forbidden: Access Denied"
         webTestClient.put()
