@@ -106,8 +106,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val selfDescribedGenderIdentity = randomName()
 
       val additionalIdentifierValueOne = randomName()
-      val additionalIdentifierValueTwo = randomName()
-      val additionalIdentifierValueThree = randomName()
 
       val additionalIdentifierCodeOne = randomAdditionalIdentifierCode()
 
