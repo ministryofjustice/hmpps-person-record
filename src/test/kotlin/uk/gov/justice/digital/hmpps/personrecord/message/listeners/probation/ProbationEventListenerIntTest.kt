@@ -474,7 +474,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       stub5xxResponse(probationUrl(crn), "next request will succeed", "retry")
       probationDomainEventAndResponseSetup(
         NEW_OFFENDER_CREATED,
-        ApiResponseSetup(crn = crn, pnc = randomLongPnc()),
+        ApiResponseSetup(crn = crn),
         scenario = "retry",
         currentScenarioState = "next request will succeed",
       )
@@ -486,10 +486,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `multiple updates to single probation record are processed successfully`() {
-      val pnc = randomLongPnc()
       val crn = randomCrn()
       blitz(30, 15) {
-        probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, pnc = pnc))
+        probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn))
       }
 
       expectNoMessagesOnQueueOrDlq(probationEventsQueue)
