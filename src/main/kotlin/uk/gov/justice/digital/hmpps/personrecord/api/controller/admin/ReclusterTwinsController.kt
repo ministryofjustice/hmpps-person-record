@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminTwin
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
+import java.util.UUID
 
 @RestController
 class ReclusterTwinsController(
@@ -48,7 +49,7 @@ class ReclusterTwinsController(
     }
   }
 
-  private fun searchForPersonByIdentifier(record: AdminTwin): PersonKeyEntity? = personKeyRepository.findByPersonUUID(record.uuid)
+  private fun searchForPersonByIdentifier(record: AdminTwin): PersonKeyEntity? = personKeyRepository.findByPersonUUID(UUID.fromString(record.uuid))
 
   private fun List<AdminTwin>.forEachPersonAndLog(processName: String, action: (PersonKeyEntity) -> Unit) {
     val total = this.count()
