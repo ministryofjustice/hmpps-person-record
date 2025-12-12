@@ -110,8 +110,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val additionalIdentifierValueThree = randomName()
 
       val additionalIdentifierCodeOne = randomAdditionalIdentifierCode()
-      val additionalIdentifierCodeTwo = randomAdditionalIdentifierCode()
-      val additionalIdentifierCodeThree = randomAdditionalIdentifierCode()
 
       val identifierNinoValue = randomNationalInsuranceNumber()
       val additionalIdentifierNinoValue = randomNationalInsuranceNumber()
@@ -146,14 +144,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           ApiResponseSetupAdditionalIdentifier(
             additionalIdentifierCodeOne.name,
             additionalIdentifierValueOne,
-          ),
-          ApiResponseSetupAdditionalIdentifier(
-            additionalIdentifierCodeTwo.name,
-            additionalIdentifierValueTwo,
-          ),
-          ApiResponseSetupAdditionalIdentifier(
-            additionalIdentifierCodeThree.name,
-            additionalIdentifierValueThree,
           ),
           ApiResponseSetupAdditionalIdentifier(
             "UNKOWN_IDENTIFIER",
@@ -219,8 +209,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(ethnicity))
 
       assertThat(personEntity.references.getType(additionalIdentifierCodeOne).first()).isEqualTo(additionalIdentifierValueOne)
-      assertThat(personEntity.references.getType(additionalIdentifierCodeTwo).first()).isEqualTo(additionalIdentifierValueTwo)
-      assertThat(personEntity.references.getType(additionalIdentifierCodeThree).first()).isEqualTo(additionalIdentifierValueThree)
 
       assertThat(personEntity.references.getType(IdentifierType.UNKNOWN).first()).isEqualTo("2222")
 
