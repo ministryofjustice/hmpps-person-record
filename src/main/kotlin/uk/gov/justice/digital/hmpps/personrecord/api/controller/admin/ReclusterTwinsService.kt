@@ -24,8 +24,7 @@ class ReclusterTwinsService(
     log.info("Created cluster ${personKey.personUUID} with these matchIds: ${personKey.personEntities.map { it.matchId }}")
   }
 
-  companion object{
+  companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
-
 }
