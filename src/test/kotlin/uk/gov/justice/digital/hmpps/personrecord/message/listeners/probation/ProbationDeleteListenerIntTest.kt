@@ -22,14 +22,12 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process offender GDPR delete`() {
     val crn = randomCrn()
-    val domainEvent = probationDomainEvent(OFFENDER_GDPR_DELETION, crn)
-
     val person = createPerson(createRandomProbationPersonDetails(crn))
     val personKey = createPersonKey()
       .addPerson(person)
       .addPerson(createRandomProbationPersonDetails())
 
-    publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
+    publishProbationDomainEvent(OFFENDER_GDPR_DELETION, crn)
 
     checkTelemetry(
       CPR_RECORD_DELETED,
@@ -45,10 +43,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process offender delete with 1 record on single UUID`() {
     val crn = randomCrn()
-    val domainEvent = probationDomainEvent(OFFENDER_DELETION, crn)
     val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
-
-    publishDomainEvent(OFFENDER_DELETION, domainEvent)
+    publishProbationDomainEvent(OFFENDER_DELETION, crn)
 
     checkTelemetry(
       CPR_RECORD_DELETED,
@@ -76,14 +72,13 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process offender delete with multiple records on single UUID`() {
     val crn = randomCrn()
-    val domainEvent = probationDomainEvent(OFFENDER_DELETION, crn)
 
     val person = createPerson(createRandomProbationPersonDetails(crn))
     val personKey = createPersonKey()
       .addPerson(person)
       .addPerson(createRandomProbationPersonDetails())
 
-    publishDomainEvent(OFFENDER_DELETION, domainEvent)
+    publishProbationDomainEvent(OFFENDER_DELETION, crn)
 
     checkTelemetry(
       CPR_RECORD_DELETED,
@@ -101,9 +96,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val recordACrn = randomCrn()
     val recordBCrn = randomCrn()
 
-    // Delete Record B
-    val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordBCrn)
-
     // Record Cluster (2 Records - B merged to A)
     val recordA = createPerson(createRandomProbationPersonDetails(recordACrn))
     val cluster = createPersonKey()
@@ -112,7 +104,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     mergeRecord(recordB, recordA)
 
-    publishDomainEvent(OFFENDER_DELETION, domainEvent)
+    publishProbationDomainEvent(OFFENDER_DELETION, recordBCrn)
 
     checkTelemetry(
       CPR_RECORD_DELETED,
@@ -129,7 +121,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should process offender delete with 2 records which have merged on a single UUID`() {
     val recordACrn = randomCrn()
     val recordBCrn = randomCrn()
-    val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordACrn)
 
     // Record Cluster (1 Record - B merged to A)
     val recordA = createPerson(createRandomProbationPersonDetails(recordACrn))
@@ -140,7 +131,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     mergeRecord(recordB, recordA)
 
-    publishDomainEvent(OFFENDER_DELETION, domainEvent)
+    publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
 
     checkTelemetry(
       CPR_RECORD_DELETED,
@@ -166,7 +157,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should process offender delete with 2 records which have merged on different UUIDs`() {
     val recordACrn = randomCrn()
     val recordBCrn = randomCrn()
-    val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordACrn)
 
     val mergedTo = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
     val mergedFrom = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
@@ -174,7 +164,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     mergeRecord(mergedFrom, mergedTo)
     mergeUuid(mergedFrom.personKey!!, mergedTo.personKey!!)
 
-    publishDomainEvent(OFFENDER_DELETION, domainEvent)
+    publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
 
     checkTelemetry(
       CPR_RECORD_DELETED,
@@ -209,7 +199,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val recordACrn = randomCrn()
     val recordBCrn = randomCrn()
     val recordCCrn = randomCrn()
-    val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordACrn)
 
     // First Record Cluster (1 Record)
     val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
@@ -222,7 +211,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     mergeRecord(recordB, recordA)
     mergeUuid(recordB.personKey!!, recordA.personKey!!)
 
-    publishDomainEvent(OFFENDER_DELETION, domainEvent)
+    publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
 
     checkTelemetry(
       CPR_RECORD_DELETED,
@@ -259,8 +248,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val recordBCrn = randomCrn()
     val recordCCrn = randomCrn()
 
-    val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordACrn)
-
     // Record Cluster (3 Records - B -> A <- C)
     val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
     val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
@@ -269,7 +256,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     mergeRecord(recordB, recordA)
     mergeRecord(recordC, recordA)
 
-    publishDomainEvent(OFFENDER_DELETION, domainEvent)
+    publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
 
     checkTelemetry(
       CPR_RECORD_DELETED,
@@ -304,8 +291,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val recordBCrn = randomCrn()
     val recordCCrn = randomCrn()
 
-    val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordACrn)
-
     // Record Cluster (3 Records - B -> A)
     val recordA = createPerson(createRandomProbationPersonDetails(recordACrn))
     val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
@@ -316,7 +301,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     mergeRecord(recordB, recordA)
 
-    publishDomainEvent(OFFENDER_DELETION, domainEvent)
+    publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
 
     checkTelemetry(
       CPR_RECORD_DELETED,
@@ -343,8 +328,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     stubPersonMatchUpsert()
     excludeRecord(personA, personB)
 
-    val domainEvent = probationDomainEvent(OFFENDER_DELETION, personA.crn!!)
-    publishDomainEvent(OFFENDER_DELETION, domainEvent)
+    publishProbationDomainEvent(OFFENDER_DELETION, personA.crn!!)
 
     checkTelemetry(
       CPR_RECORD_DELETED,

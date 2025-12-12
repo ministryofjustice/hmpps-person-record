@@ -225,7 +225,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.references.getType(IdentifierType.UNKNOWN).first()).isEqualTo("2222")
 
       assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(identifierNinoValue)
-      assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).get(1)).isEqualTo(additionalIdentifierNinoValue)
+      assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER)[1]).isEqualTo(additionalIdentifierNinoValue)
 
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)
@@ -705,9 +705,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should not push 404 from delius API to dead letter queue but discard message instead`() {
     val crn = randomCrn()
     stub404Response(probationUrl(crn))
-    val domainEvent = probationDomainEvent(NEW_OFFENDER_CREATED, crn)
-    publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
-
+    publishProbationDomainEvent(NEW_OFFENDER_CREATED, crn)
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
   }
 
@@ -717,9 +715,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     stub5xxResponse(probationUrl(crn), nextScenarioState = "request will fail", "failure")
     stub5xxResponse(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
     stub5xxResponse(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
-    val domainEvent = probationDomainEvent(NEW_OFFENDER_CREATED, crn)
-    publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
-
+    publishProbationDomainEvent(NEW_OFFENDER_CREATED, crn)
     expectOneMessageOnDlq(probationEventsQueue)
   }
 

@@ -210,10 +210,18 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   ) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
 
-    publishDomainEvent(eventType, probationDomainEvent(eventType, apiResponseSetup.crn!!, additionalInformation))
+    publishProbationDomainEvent(eventType, apiResponseSetup.crn!!, additionalInformation)
   }
 
-  fun probationDomainEvent(eventType: String, crn: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("CRN", crn))), additionalInformation)
+  fun publishProbationDomainEvent(
+    eventType: String,
+    crn: String,
+    additionalInformation: AdditionalInformation? = null,
+  ) {
+    publishDomainEvent(eventType, probationDomainEvent(eventType, crn, additionalInformation))
+  }
+
+  private fun probationDomainEvent(eventType: String, crn: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("CRN", crn))), additionalInformation)
 
   fun prisonDomainEvent(eventType: String, prisonNumber: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))), additionalInformation)
 

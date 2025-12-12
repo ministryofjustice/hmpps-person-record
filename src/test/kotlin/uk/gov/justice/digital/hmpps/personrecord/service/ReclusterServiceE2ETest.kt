@@ -168,9 +168,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(recordToDelete)
-
-      val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordToDelete.crn!!)
-      publishDomainEvent(OFFENDER_DELETION, domainEvent)
+      publishProbationDomainEvent(OFFENDER_DELETION, recordToDelete.crn!!)
 
       cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
@@ -193,8 +191,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(recordA)
         .addPerson(recordToDelete)
 
-      val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordToDelete.crn!!)
-      publishDomainEvent(OFFENDER_DELETION, domainEvent)
+      publishProbationDomainEvent(OFFENDER_DELETION, recordToDelete.crn!!)
 
       cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
