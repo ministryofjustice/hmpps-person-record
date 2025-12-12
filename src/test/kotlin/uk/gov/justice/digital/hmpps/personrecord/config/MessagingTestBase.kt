@@ -218,10 +218,11 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     crn: String,
     additionalInformation: AdditionalInformation? = null,
   ) {
-    publishDomainEvent(eventType, probationDomainEvent(eventType, crn, additionalInformation))
+    publishDomainEvent(
+      eventType,
+      DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("CRN", crn))), additionalInformation),
+    )
   }
-
-  private fun probationDomainEvent(eventType: String, crn: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("CRN", crn))), additionalInformation)
 
   fun prisonDomainEvent(eventType: String, prisonNumber: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))), additionalInformation)
 
