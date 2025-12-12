@@ -292,34 +292,21 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should process personal details updated events successfully`() {
-      val pnc = randomLongPnc()
       val crn = randomCrn()
-      val gender = randomProbationSexCode()
-      val originalEthnicity = randomProbationEthnicity()
-      val nationality = randomProbationNationalityCode()
-      val secondNationality = randomProbationNationalityCode()
-      val originalTitle = "Mrs"
+      val originalDetails = createRandomProbationPersonDetails(crn)
       probationDomainEventAndResponseSetup(
         NEW_OFFENDER_CREATED,
-        ApiResponseSetup(
-          crn = crn,
-          pnc = pnc,
-          gender = gender.key,
-          ethnicity = originalEthnicity,
-          title = originalTitle,
-          nationality = nationality,
-          secondNationality = secondNationality,
-        ),
+        ApiResponseSetup.from(originalDetails),
       )
       val personEntity = awaitNotNull { personRepository.findByCrn(crn) }
-      assertThat(personEntity.getPnc()).isEqualTo(pnc)
-      assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
+      assertThat(personEntity.getPnc()).isEqualTo(originalDetails.getPnc())
+      assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(originalDetails.sexCode)
       assertThat(personEntity.dateOfDeath).isNull()
-      assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(originalEthnicity))
+      assertThat(personEntity.ethnicityCode).isEqualTo(originalDetails.ethnicityCode)
       assertThat(personEntity.religion).isNull()
       assertThat(personEntity.genderIdentity).isNull()
       assertThat(personEntity.selfDescribedGenderIdentity).isNull()
-      assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(TitleCode.from(originalTitle))
+      assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(originalDetails.titleCode)
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 

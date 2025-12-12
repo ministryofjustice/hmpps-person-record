@@ -44,7 +44,6 @@ data class ApiResponseSetupAlias(val title: String? = null, val firstName: Strin
 
 data class ApiResponseSetup(
   val title: String? = null,
-  val titleCode: String? = null,
   val crn: String? = null,
   val cro: String? = null,
   val pnc: String? = null,
@@ -77,7 +76,7 @@ data class ApiResponseSetup(
   companion object {
 
     fun from(person: Person): ApiResponseSetup = ApiResponseSetup(
-      titleCode = person.titleCode?.name,
+      title = person.titleCode?.name,
       firstName = person.firstName,
       middleName = person.middleNames,
       lastName = person.lastName,
