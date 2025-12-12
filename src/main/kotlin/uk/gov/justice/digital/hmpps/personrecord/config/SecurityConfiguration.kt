@@ -22,6 +22,7 @@ class SecurityConfiguration {
         "/jobs/recordcountreport",
         "/jobs/recluster-needs-attention",
         "/admin/recluster",
+        "/admin/recluster-twins",
       )
     }
   }
