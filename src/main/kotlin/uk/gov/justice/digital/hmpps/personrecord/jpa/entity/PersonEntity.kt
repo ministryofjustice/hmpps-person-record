@@ -104,7 +104,7 @@ class PersonEntity(
   @Column
   var religion: String? = null,
 
-  @Column(name = "sexual_orientation")
+  @Column(name = "sexual_orientation_code")
   @Enumerated(STRING)
   var sexualOrientation: SexualOrientation? = null,
 
