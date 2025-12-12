@@ -137,7 +137,7 @@ jobs:
         with:
           name: ${{ inputs.artifact-name }}-coverage
           path: |
-            ${{ inputs.build-dir }}/reports/kover/html
+            ${{ inputs.build-dir }}/reports
       - name: Upload the build artifacts
         if: ${{ inputs.upload-build-artifacts && !cancelled() }}
         uses: actions/upload-artifact@v5
