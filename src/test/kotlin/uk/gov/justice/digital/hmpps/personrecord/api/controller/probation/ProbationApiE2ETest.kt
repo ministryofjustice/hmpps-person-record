@@ -512,7 +512,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         )
         offender.personKey?.assertClusterStatus(ACTIVE)
         offender.personKey?.assertClusterIsOfSize(2)
-        assertThat(offender.masterDefendantId).isNotNull
+        assertThat(offender.masterDefendantId).isEqualTo(defendant.masterDefendantId)
       }
 
       @Test
@@ -585,13 +585,8 @@ class ProbationApiE2ETest : E2ETestBase() {
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         val offender = ProbationCase(
-          title = Value(),
           identifiers = Identifiers(crn = randomCrn()),
           name = ProbationCaseName(firstName = randomName()),
-          gender = Value(SexCode.M.name),
-          ethnicity = Value(randomProbationEthnicity()),
-          nationality = Value(randomProbationNationalityCode()),
-          contactDetails = ContactDetails(),
         )
         val expectedErrorMessage = "Forbidden: Access Denied"
         webTestClient.put()
