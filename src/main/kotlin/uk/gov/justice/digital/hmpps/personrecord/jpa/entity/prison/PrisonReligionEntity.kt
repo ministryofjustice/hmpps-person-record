@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.P
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
 
 @Entity
 @Table(name = "prison_religion")
@@ -22,14 +21,11 @@ class PrisonReligionEntity(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
 
-  @Column(name = "cpr_religion_id", nullable = false)
-  val cprReligionId: UUID,
+  @Column(name = "prison_number", nullable = false)
+  val prisonNumber: String,
 
   @Column(name = "religion_code")
   var code: String? = null,
-
-  @Column(name = "prison_number")
-  val prisonNumber: String? = null,
 
   @Column(name = "change_reason_known")
   var changeReasonKnown: Boolean? = null,
@@ -46,15 +42,15 @@ class PrisonReligionEntity(
   @Column(name = "end_date")
   var endDate: LocalDate? = null,
 
-  @Column(name = "modify_date_time")
-  var modifyDateTime: LocalDateTime? = null,
+  @Column(name = "modify_date_time", nullable = false)
+  var modifyDateTime: LocalDateTime,
 
-  @Column(name = "modify_user_id")
-  var modifyUserId: String? = null,
+  @Column(name = "modify_user_id", nullable = false)
+  var modifyUserId: String,
 
-  @Column(name = "record_type")
+  @Column(name = "record_type", nullable = false)
   @Enumerated(STRING)
-  var prisonRecordType: PrisonRecordType? = null,
+  var prisonRecordType: PrisonRecordType,
 
 ) {
 
@@ -72,7 +68,6 @@ class PrisonReligionEntity(
 
   companion object {
     fun from(prisonNumber: String, prisonReligion: PrisonReligion) = PrisonReligionEntity(
-      cprReligionId = UUID.randomUUID(),
       prisonNumber = prisonNumber,
       code = prisonReligion.religionCode,
       changeReasonKnown = prisonReligion.changeReasonKnown,
