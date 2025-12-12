@@ -10,13 +10,17 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
@@ -31,6 +35,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAdditionalIdentifierCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
@@ -51,6 +56,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAdditionalIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupContact
@@ -99,6 +105,17 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val genderIdentity = randomProbationGenderIdentity()
       val selfDescribedGenderIdentity = randomName()
 
+      val additionalIdentifierValueOne = randomName()
+      val additionalIdentifierValueTwo = randomName()
+      val additionalIdentifierValueThree = randomName()
+
+      val additionalIdentifierCodeOne = randomAdditionalIdentifierCode()
+      val additionalIdentifierCodeTwo = randomAdditionalIdentifierCode()
+      val additionalIdentifierCodeThree = randomAdditionalIdentifierCode()
+
+      val identifierNinoValue = randomNationalInsuranceNumber()
+      val additionalIdentifierNinoValue = randomNationalInsuranceNumber()
+
       val buildingName = randomName()
       val addressNumber = randomAddressNumber()
       val streetName = randomName()
@@ -116,6 +133,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         dateOfDeath = dateOfDeath,
         crn = crn,
         pnc = pnc,
+        nationalInsuranceNumber = identifierNinoValue,
         title = title.key,
         firstName = firstName,
         middleName = middleName,
@@ -124,6 +142,29 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         cro = cro,
         genderIdentity = genderIdentity.key,
         selfDescribedGenderIdentity = selfDescribedGenderIdentity,
+        additionalIdentifiers = listOf(
+          ApiResponseSetupAdditionalIdentifier(
+            additionalIdentifierCodeOne.name,
+            additionalIdentifierValueOne,
+          ),
+          ApiResponseSetupAdditionalIdentifier(
+            additionalIdentifierCodeTwo.name,
+            additionalIdentifierValueTwo,
+          ),
+          ApiResponseSetupAdditionalIdentifier(
+            additionalIdentifierCodeThree.name,
+            additionalIdentifierValueThree,
+          ),
+          ApiResponseSetupAdditionalIdentifier(
+            "UNKOWN_IDENTIFIER",
+            "2222",
+          ),
+          ApiResponseSetupAdditionalIdentifier(
+            "NINO",
+            additionalIdentifierNinoValue,
+          ),
+
+        ),
         addresses = listOf(
           ApiResponseSetupAddress(
             noFixedAbode = true,
@@ -177,6 +218,15 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(ethnicity))
 
+      assertThat(personEntity.references.getType(additionalIdentifierCodeOne).first()).isEqualTo(additionalIdentifierValueOne)
+      assertThat(personEntity.references.getType(additionalIdentifierCodeTwo).first()).isEqualTo(additionalIdentifierValueTwo)
+      assertThat(personEntity.references.getType(additionalIdentifierCodeThree).first()).isEqualTo(additionalIdentifierValueThree)
+
+      assertThat(personEntity.references.getType(IdentifierType.UNKNOWN).first()).isEqualTo("2222")
+
+      assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(identifierNinoValue)
+      assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).get(1)).isEqualTo(additionalIdentifierNinoValue)
+
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)
       assertThat(personEntity.getAliases().size).isEqualTo(1)
@@ -229,6 +279,29 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+    }
+
+    @Test
+    fun `should deduplicate additional identifier national insurance numbers giving precedence to identifier nationalInsuranceNumber value`() {
+      val crn = randomCrn()
+      val nino = randomNationalInsuranceNumber()
+
+      val apiResponse = ApiResponseSetup(
+        crn = crn,
+        nationalInsuranceNumber = nino,
+        additionalIdentifiers = listOf(
+          ApiResponseSetupAdditionalIdentifier(
+            "NINO",
+            nino,
+          ),
+        ),
+      )
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
+
+      val personEntity = awaitNotNull { personRepository.findByCrn(crn) }
+
+      assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(nino)
+      assertThat(personEntity.references.size).isEqualTo(1)
     }
 
     @Test
@@ -332,8 +405,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val existingPrisoner = Person(
         prisonNumber = prisonNumber,
         references = listOf(
-          Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
-          Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
+          Reference(identifierType = PNC, identifierValue = pnc),
+          Reference(identifierType = CRO, identifierValue = cro),
         ),
         addresses = listOf(Address(postcode = postcode)),
         sourceSystem = NOMIS,
@@ -484,8 +557,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val person = personRepository.findByCrn(crn)
-      val pncEntity = person?.references?.find { it.identifierType == IdentifierType.PNC }
-      val croEntity = person?.references?.find { it.identifierType == IdentifierType.CRO }
+      val pncEntity = person?.references?.getPncsFromReferences()?.first()
+      val croEntity = person?.references?.getCrosFromReferences()?.first()
 
       val updatedCro = randomCro()
       probationDomainEventAndResponseSetup(
@@ -499,14 +572,14 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(updatedPerson.references).hasSize(2)
 
-      val updatedPncEntity = updatedPerson.references.find { it.identifierType == IdentifierType.PNC }
-      assertThat(updatedPncEntity?.identifierValue).isEqualTo(pnc)
-      assertThat(updatedPncEntity?.id).isEqualTo(pncEntity?.id)
-      assertThat(updatedPncEntity?.version).isEqualTo(pncEntity?.version)
+      val updatedPncEntity = updatedPerson.references.getPncsFromReferences().first()
+      assertThat(updatedPncEntity.identifierValue).isEqualTo(pnc)
+      assertThat(updatedPncEntity.id).isEqualTo(pncEntity?.id)
+      assertThat(updatedPncEntity.version).isEqualTo(pncEntity?.version)
 
-      val updatedCroEntity = updatedPerson.references.find { it.identifierType == IdentifierType.CRO }
-      assertThat(updatedCroEntity?.identifierValue).isEqualTo(updatedCro)
-      assertThat(updatedCroEntity?.id).isNotEqualTo(croEntity?.id)
+      val updatedCroEntity = updatedPerson.references.getCrosFromReferences().first()
+      assertThat(updatedCroEntity.identifierValue).isEqualTo(updatedCro)
+      assertThat(updatedCroEntity.id).isNotEqualTo(croEntity?.id)
     }
 
     @Test
@@ -728,4 +801,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val expected = nationalities.map { NationalityCode.fromProbationMapping(it) }
     assertThat(actual).containsAll(expected)
   }
+
+  private fun List<ReferenceEntity>.getCrosFromReferences(): List<ReferenceEntity> = this.filter { it.identifierType == CRO }
+  private fun List<ReferenceEntity>.getPncsFromReferences(): List<ReferenceEntity> = this.filter { it.identifierType == PNC }
 }
