@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Compa
 import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode.Companion.probationGenderIdentityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.Companion.probationAdditionalIdentifiers
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.Companion.probationAdditionalIdentifiersWithoutNino
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.commonPlatformSexCode
@@ -131,7 +131,7 @@ fun randomHearingId(): String = UUID.randomUUID().toString()
 
 fun randomCId(): String = randomDigit(9)
 
-fun randomAdditionalIdentifierCode(): IdentifierType = probationAdditionalIdentifiers.values.random()
+fun randomAdditionalIdentifierCode(): IdentifierType = probationAdditionalIdentifiersWithoutNino.values.random()
 
 private fun randomLowerCaseString(length: Int = 7): String = (1..length).map {
   ('a' + (Math.random() * 26).toInt())
