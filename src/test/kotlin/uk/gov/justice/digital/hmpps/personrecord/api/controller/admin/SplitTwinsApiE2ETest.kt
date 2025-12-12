@@ -5,15 +5,9 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType.APPLICATION_JSON
-import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminTwin
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
-import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 
 class SplitTwinsApiE2ETest : E2ETestBase() {
@@ -39,7 +33,7 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
       }
       cluster.addPerson(twinDetails.copy(crn = secondCrn))
 
-      val request = listOf(AdminTwin(toBeMerged.personKey!!.personUUID!!.toString()))
+      val request = listOf(toBeMerged.personKey!!.personUUID!!.toString())
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_TWINS_URL)
@@ -59,19 +53,12 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
     @Test
     fun `should split twins when only 2 records in the same cluster`() {
       val firstCrn = randomCrn()
-      val twinDetails = createRandomProbationPersonDetails(crn = firstCrn)
       val secondCrn = randomCrn()
-      // twins have different first name, different identifiers, otherwise identical
       val cluster = createPersonKey().addPerson(
-        twinDetails.copy(
-          firstName = "Ryan",
-          references = listOf(
-            Reference(CRO, randomCro()),
-            Reference(PNC, randomLongPnc()),
-          ),
-        ),
-      ).addPerson(twinDetails.copy(crn = secondCrn, firstName = "Bryan"))
-      val request = listOf(AdminTwin(cluster.personUUID!!.toString()))
+        createRandomProbationPersonDetails(crn = firstCrn),
+      )
+        .addPerson(createRandomProbationPersonDetails(crn = secondCrn))
+      val request = listOf(cluster.personUUID!!.toString())
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_TWINS_URL)
@@ -100,7 +87,7 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
           createRandomProbationPersonDetails(crn = secondTripletCrn),
         )
         .addPerson(createRandomProbationPersonDetails(crn = thirdTripletCrn))
-      val request = listOf(AdminTwin(cluster.personUUID!!.toString()))
+      val request = listOf(cluster.personUUID!!.toString())
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_TWINS_URL)
@@ -135,7 +122,7 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
         .addPerson(secondPair)
         .addPerson(secondPair.copy(crn = fourthCrn))
 
-      val request = listOf(AdminTwin(cluster.personUUID!!.toString()))
+      val request = listOf(cluster.personUUID!!.toString())
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_TWINS_URL)
