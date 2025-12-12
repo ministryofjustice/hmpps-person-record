@@ -566,13 +566,8 @@ class ProbationApiE2ETest : E2ETestBase() {
       fun `should return Not Found if defendant does not exist`() {
         val defendantId = randomDefendantId()
         val offender = ProbationCase(
-          title = Value(),
           identifiers = Identifiers(crn = randomCrn()),
           name = ProbationCaseName(firstName = randomName()),
-          gender = Value(SexCode.M.name),
-          ethnicity = Value(randomProbationEthnicity()),
-          nationality = Value(randomProbationNationalityCode()),
-          contactDetails = ContactDetails(),
         )
         val expectedErrorMessage = "Not found: $defendantId"
         webTestClient.put()
