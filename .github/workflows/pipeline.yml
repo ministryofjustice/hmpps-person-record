@@ -85,7 +85,7 @@ jobs:
           make e2e-start-containers
           ./gradlew e2eTest
       - name: Upload the test artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: e2e-test-results
           path: |
