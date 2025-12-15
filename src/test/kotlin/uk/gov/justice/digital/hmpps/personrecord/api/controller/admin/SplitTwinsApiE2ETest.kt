@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType.APPLICATION_JSON
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -72,6 +73,10 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
         val first = personRepository.findByCrn(firstCrn)!!
         val second = personRepository.findByCrn(secondCrn)!!
         assertThat(first.personKey!!.personUUID).isNotEqualTo(second.personKey!!.personUUID)
+      }
+      checkEventLog(secondCrn, CPRLogEvents.CPR_UUID_CREATED) { eventLogs ->
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.personUUID).isNotEqualTo(cluster.personUUID)
       }
     }
 
@@ -141,6 +146,20 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
         assertThat(second.personKey!!.personUUID).isNotEqualTo(third.personKey!!.personUUID)
         assertThat(third.personKey!!.personUUID).isEqualTo(fourth.personKey!!.personUUID)
       }
+      val first = personRepository.findByCrn(firstCrn)!!
+      val second = personRepository.findByCrn(secondCrn)!!
+      val third = personRepository.findByCrn(thirdCrn)!!
+      val fourth = personRepository.findByCrn(fourthCrn)!!
+
+      val eventLogClustersToCheck = listOf(first, second, third, fourth).filter { it.personKey!!.personUUID != cluster.personUUID }
+
+      val eventLogs = eventLogClustersToCheck.map { recordToCheck ->
+        eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(
+          CPRLogEvents.CPR_UUID_CREATED,
+          recordToCheck.crn!!,
+        )
+      }.filter { it?.size == 1 }
+      assertThat(eventLogs.size).isEqualTo(1)
     }
   }
 
