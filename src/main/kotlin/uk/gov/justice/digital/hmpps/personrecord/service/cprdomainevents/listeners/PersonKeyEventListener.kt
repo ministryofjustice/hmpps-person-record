@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyFound
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyLeave
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeySplit
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordPersonTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -51,5 +52,10 @@ class PersonKeyEventListener(
   @EventListener
   fun onPersonKeySplit(personKeySplit: PersonKeySplit) {
     publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_UUID_SPLIT, personKeySplit.personEntity))
+  }
+
+  @EventListener
+  fun onPersonKeyLeave(personKeyLeave: PersonKeyLeave) {
+    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_UUID_LEAVE, personKeyLeave.personEntity, EventLogClusterDetail.from(personKeyLeave.personKeyEntity)))
   }
 }
