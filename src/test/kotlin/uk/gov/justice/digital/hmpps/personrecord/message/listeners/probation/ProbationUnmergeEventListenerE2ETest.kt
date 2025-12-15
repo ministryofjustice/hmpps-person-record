@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -26,8 +27,9 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
 
       val unmergedPerson = createPerson(createRandomProbationPersonDetails(unmergedCrn))
       val cluster = createPersonKey().addPerson(unmergedPerson)
-      val reactivatedPerson = createRandomProbationPersonDetails(reactivatedCrn)
+      val reactivatedPersonData = createRandomProbationCase(reactivatedCrn)
       val masterDefendantId = randomDefendantId()
+      val reactivatedPerson = Person.from(reactivatedPersonData)
       reactivatedPerson.masterDefendantId = masterDefendantId
       val reactivatedPersonEntity = createPerson(reactivatedPerson)
 
@@ -36,7 +38,7 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_RECORD_MERGED)
       reactivatedPersonEntity.assertMergedTo(unmergedPerson)
 
-      val reactivatedSetup = ApiResponseSetup.from(reactivatedPerson)
+      val reactivatedSetup = ApiResponseSetup.from(reactivatedPersonData)
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn, reactivatedSetup = reactivatedSetup)
 
       checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_UUID_CREATED)
