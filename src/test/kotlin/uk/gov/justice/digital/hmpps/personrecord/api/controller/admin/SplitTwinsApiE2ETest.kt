@@ -76,15 +76,21 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
       }
       val first = personRepository.findByCrn(firstCrn)!!
       val second = personRepository.findByCrn(secondCrn)!!
-      val recordToCheck = when {
-        first.personKey!!.personUUID != cluster.personUUID -> first else -> second
+      val (leftUUID, stayedOnUUID ) = when {
+        first.personKey!!.personUUID != cluster.personUUID -> Pair(first,second) else -> Pair(second,first)
       }
-      checkEventLog(recordToCheck.crn!!, CPRLogEvents.CPR_UUID_CREATED) { eventLogs ->
+      checkEventLog(leftUUID.crn!!, CPRLogEvents.CPR_UUID_CREATED) { eventLogs ->
         val eventLog = eventLogs.first()
         assertThat(eventLog.personUUID).isNotEqualTo(cluster.personUUID)
       }
+      checkEventLog(stayedOnUUID.crn!!, CPRLogEvents.CPR_UUID_CREATED) { eventLogs ->
+        assertThat(eventLogs).isEmpty()
+      }
 
-      checkEventLogExist(secondCrn, CPRLogEvents.CPR_UUID_SPLIT)
+      checkEventLogExist(leftUUID.crn!!, CPRLogEvents.CPR_UUID_SPLIT)
+      checkEventLog(stayedOnUUID.crn!!, CPRLogEvents.CPR_UUID_SPLIT) { eventLogs ->
+        assertThat(eventLogs).isEmpty()
+      }
     }
 
     @Test
