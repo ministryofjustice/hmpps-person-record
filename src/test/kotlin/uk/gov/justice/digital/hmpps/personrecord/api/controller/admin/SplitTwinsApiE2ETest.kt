@@ -152,6 +152,7 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
       val fourth = personRepository.findByCrn(fourthCrn)!!
 
       val eventLogClustersToCheck = listOf(first, second, third, fourth).filter { it.personKey!!.personUUID != cluster.personUUID }
+      val eventLogClustersToCheckWithoutUUIDCreated = listOf(first, second, third, fourth).filter { it.personKey!!.personUUID == cluster.personUUID }
 
       val eventLogs = eventLogClustersToCheck.map { recordToCheck ->
         eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(
@@ -160,6 +161,15 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
         )
       }.filter { it?.size == 1 }
       assertThat(eventLogs.size).isEqualTo(1)
+
+
+      val noEventLogs = eventLogClustersToCheckWithoutUUIDCreated.map { recordToCheck ->
+        eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(
+          CPRLogEvents.CPR_UUID_CREATED,
+          recordToCheck.crn!!,
+        )
+      }.filter { it?.size == 1 }
+      assertThat(noEventLogs.isEmpty()).isTrue()
     }
   }
 
