@@ -74,9 +74,22 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
         val second = personRepository.findByCrn(secondCrn)!!
         assertThat(first.personKey!!.personUUID).isNotEqualTo(second.personKey!!.personUUID)
       }
-      checkEventLog(secondCrn, CPRLogEvents.CPR_UUID_CREATED) { eventLogs ->
+      val first = personRepository.findByCrn(firstCrn)!!
+      val second = personRepository.findByCrn(secondCrn)!!
+      val (leftUUID, stayedOnUUID) = when {
+        first.personKey!!.personUUID != cluster.personUUID -> Pair(first, second) else -> Pair(second, first)
+      }
+      checkEventLog(leftUUID.crn!!, CPRLogEvents.CPR_UUID_CREATED) { eventLogs ->
         val eventLog = eventLogs.first()
         assertThat(eventLog.personUUID).isNotEqualTo(cluster.personUUID)
+      }
+      checkEventLog(stayedOnUUID.crn!!, CPRLogEvents.CPR_UUID_CREATED) { eventLogs ->
+        assertThat(eventLogs).isEmpty()
+      }
+
+      checkEventLogExist(leftUUID.crn!!, CPRLogEvents.CPR_UUID_SPLIT)
+      checkEventLog(stayedOnUUID.crn!!, CPRLogEvents.CPR_UUID_SPLIT) { eventLogs ->
+        assertThat(eventLogs).isEmpty()
       }
     }
 
@@ -152,6 +165,7 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
       val fourth = personRepository.findByCrn(fourthCrn)!!
 
       val eventLogClustersToCheck = listOf(first, second, third, fourth).filter { it.personKey!!.personUUID != cluster.personUUID }
+      val eventLogClustersToCheckWithoutUUIDCreated = listOf(first, second, third, fourth).filter { it.personKey!!.personUUID == cluster.personUUID }
 
       val eventLogs = eventLogClustersToCheck.map { recordToCheck ->
         eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(
@@ -160,6 +174,17 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
         )
       }.filter { it?.size == 1 }
       assertThat(eventLogs.size).isEqualTo(1)
+      eventLogClustersToCheck.map { recordToCheck ->
+        checkEventLogExist(recordToCheck.crn!!, CPRLogEvents.CPR_UUID_SPLIT)
+      }
+
+      val noEventLogs = eventLogClustersToCheckWithoutUUIDCreated.map { recordToCheck ->
+        eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(
+          CPRLogEvents.CPR_UUID_CREATED,
+          recordToCheck.crn!!,
+        )
+      }.filter { it?.size == 1 }
+      assertThat(noEventLogs.isEmpty()).isTrue()
     }
   }
 

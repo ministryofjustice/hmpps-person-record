@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyCreated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeySplit
 import java.util.UUID
 
 @Component
@@ -27,6 +28,7 @@ class ReclusterTwinsService(
       if (index == 0) {
         publisher.publishEvent(PersonKeyCreated(personEntity, personKey))
       }
+      publisher.publishEvent(PersonKeySplit(personEntity, personKey))
     }
     log.info("Created cluster ${personKey.personUUID} with these matchIds: ${personKey.personEntities.map { it.matchId }}")
   }
