@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyCreated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyLeave
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeySplit
 import java.util.UUID
 
@@ -23,6 +24,7 @@ class ReclusterTwinsService(
     clusterToSplit.forEachIndexed { index, matchId ->
 
       val personEntity = personRepository.findByMatchId(UUID.fromString(matchId))!!
+      publisher.publishEvent(PersonKeyLeave(personEntity, personEntity.personKey!!))
       personEntity.assignToPersonKey(personKey)
       personKeyRepository.save(personKey)
       if (index == 0) {

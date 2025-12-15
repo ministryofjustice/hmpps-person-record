@@ -87,6 +87,11 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
         assertThat(eventLogs).isEmpty()
       }
 
+      checkEventLog(leftUUID.crn!!, CPRLogEvents.CPR_UUID_LEAVE) { eventLogs ->
+        assertThat(eventLogs).isNotEmpty()
+        assertThat(eventLogs.first().personUUID).isEqualTo(stayedOnUUID.personKey?.personUUID)
+      }
+
       checkEventLogExist(leftUUID.crn!!, CPRLogEvents.CPR_UUID_SPLIT)
       checkEventLog(stayedOnUUID.crn!!, CPRLogEvents.CPR_UUID_SPLIT) { eventLogs ->
         assertThat(eventLogs).isEmpty()
