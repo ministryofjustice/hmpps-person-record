@@ -174,6 +174,9 @@ class SplitTwinsApiE2ETest : E2ETestBase() {
         )
       }.filter { it?.size == 1 }
       assertThat(eventLogs.size).isEqualTo(1)
+      eventLogClustersToCheck.map { recordToCheck ->
+        checkEventLogExist(recordToCheck.crn!!, CPRLogEvents.CPR_UUID_SPLIT)
+      }
 
       val noEventLogs = eventLogClustersToCheckWithoutUUIDCreated.map { recordToCheck ->
         eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(
