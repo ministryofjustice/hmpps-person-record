@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -12,10 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 
 class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
 
@@ -29,26 +27,18 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
 
       val unmergedPerson = createPerson(createRandomProbationPersonDetails(unmergedCrn))
       val cluster = createPersonKey().addPerson(unmergedPerson)
-      val reactivatedPerson = createRandomProbationPersonDetails(reactivatedCrn)
+      val reactivatedPersonData = createRandomProbationCase(reactivatedCrn)
       val masterDefendantId = randomDefendantId()
+      val reactivatedPerson = Person.from(reactivatedPersonData)
       reactivatedPerson.masterDefendantId = masterDefendantId
       val reactivatedPersonEntity = createPerson(reactivatedPerson)
-      val reactivatedSetup = ApiResponseSetup(
-        crn = reactivatedCrn,
-        cro = reactivatedPerson.getCro(),
-        pnc = reactivatedPerson.getPnc(),
-        firstName = reactivatedPerson.firstName,
-        middleName = reactivatedPerson.middleNames,
-        lastName = reactivatedPerson.lastName,
-        dateOfBirth = reactivatedPerson.dateOfBirth,
-        addresses = listOf(ApiResponseSetupAddress(postcode = reactivatedPerson.addresses.first().postcode, fullAddress = randomFullAddress())),
-        aliases = listOf(ApiResponseSetupAlias(firstName = reactivatedPerson.aliases.first().firstName!!, middleName = reactivatedPerson.aliases.first().middleNames!!, lastName = reactivatedPerson.aliases.first().lastName!!, dateOfBirth = reactivatedPerson.aliases.first().dateOfBirth!!)),
-      )
+
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmergedCrn)
 
       checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_RECORD_MERGED)
       reactivatedPersonEntity.assertMergedTo(unmergedPerson)
 
+      val reactivatedSetup = ApiResponseSetup.from(reactivatedPersonData)
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn, reactivatedSetup = reactivatedSetup)
 
       checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_UUID_CREATED)

@@ -80,6 +80,12 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationGenderIdentity
+import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexualOrientation
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
@@ -159,26 +165,37 @@ class IntegrationTestBase {
   fun probationUrl(crn: String) = "/probation-cases/$crn"
 
   internal fun createRandomProbationPersonDetails(crn: String = randomCrn()): Person = Person.from(
-    ProbationCase(
-      name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
-      title = Value(randomTitleCode().key),
-      identifiers = Identifiers(crn = crn, pnc = randomLongPnc(), cro = randomCro()),
-      addresses = listOf(
-        ProbationAddress(postcode = randomPostcode()),
-        ProbationAddress(postcode = randomPostcode()),
-      ),
-      aliases = listOf(
-        ProbationCaseAlias(
-          ProbationCaseName(
-            firstName = randomName(),
-            middleNames = randomName(),
-            lastName = randomName(),
-          ),
-          dateOfBirth = randomDate(),
-        ),
-      ),
-      sentences = listOf(Sentences(randomDate())),
+    createRandomProbationCase(crn),
+  )
+
+  internal fun createRandomProbationCase(crn: String): ProbationCase = ProbationCase(
+    name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
+    title = Value(randomTitleCode().key),
+    identifiers = Identifiers(crn = crn, pnc = randomLongPnc(), cro = randomCro()),
+    addresses = listOf(
+      ProbationAddress(postcode = randomPostcode()),
+      ProbationAddress(postcode = randomPostcode()),
     ),
+    aliases = listOf(
+      ProbationCaseAlias(
+        ProbationCaseName(
+          firstName = randomName(),
+          middleNames = randomName(),
+          lastName = randomName(),
+        ),
+        dateOfBirth = randomDate(),
+        gender = Value(randomProbationSexCode().key),
+      ),
+    ),
+    sentences = listOf(Sentences(randomDate())),
+    gender = Value(randomProbationSexCode().key),
+    ethnicity = Value(randomProbationEthnicity()),
+    nationality = Value(randomProbationNationalityCode()),
+    sexualOrientation = Value(randomProbationSexualOrientation().key),
+    religion = Value(randomReligion()),
+    genderIdentity = Value(randomProbationGenderIdentity().key),
+    selfDescribedGenderIdentity = randomName(),
+
   )
 
   internal fun createRandomPrisonPersonDetails(prisonNumber: String = randomPrisonNumber()): Person = Person.from(
