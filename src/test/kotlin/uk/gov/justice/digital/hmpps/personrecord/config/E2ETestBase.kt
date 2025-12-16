@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.QUEUE_ADMIN
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.SentenceInfo
@@ -12,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
 @ActiveProfiles("e2e")
@@ -47,6 +50,10 @@ class E2ETestBase : MessagingTestBase() {
   internal fun ProbationCase.aboveFracture(): ProbationCase = this.copy(
     identifiers = this.identifiers.copy(pnc = null, cro = null),
     sentences = emptyList(),
+  )
+
+  internal fun ProbationCase.withChangedMatchDetails(): ProbationCase = this.copy(
+    addresses = this.addresses + ProbationAddress(postcode = randomPostcode())
   )
 
   internal fun Person.withChangedMatchDetails(): Person = this.copy(

@@ -964,8 +964,8 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should log needs attention when changed record has no matches`() {
-      val personData = createRandomProbationPersonDetails()
-      val personA = createPerson(personData)
+      val personData = createRandomProbationCase(randomCrn())
+      val personA = createPerson(Person.from(personData))
       val personB = createPerson(createRandomProbationPersonDetails())
       val personC = createPerson(createRandomProbationPersonDetails())
       val cluster = createPersonKey()
@@ -973,7 +973,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personB)
         .addPerson(personC)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(createProbationPersonFrom(personData.withChangedMatchDetails(), crn = personA.crn!!)))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(personData.withChangedMatchDetails(),  personA.crn!!))
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
