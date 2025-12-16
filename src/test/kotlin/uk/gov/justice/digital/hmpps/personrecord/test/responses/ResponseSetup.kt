@@ -1,14 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
@@ -100,37 +94,6 @@ data class ApiResponseSetup(
       genderIdentity = probationCase.genderIdentity?.value,
       selfDescribedGenderIdentity = probationCase.selfDescribedGenderIdentity,
       // TODO contacts
-
-    )
-
-    // this is a bad idea - should be done differently for probation and prison
-    fun from(person: Person): ApiResponseSetup = ApiResponseSetup(
-      title = person.titleCode?.name,
-      firstName = person.firstName,
-      middleName = person.middleNames,
-      lastName = person.lastName,
-      dateOfBirth = person.dateOfBirth,
-      crn = person.crn,
-      prisonNumber = person.prisonNumber,
-      cro = person.references.getType(CRO).firstOrNull()?.identifierValue,
-      pnc = person.references.getType(PNC).firstOrNull()?.identifierValue,
-      aliases = person.aliases.map { ApiResponseSetupAlias(it.titleCode?.name, it.firstName, it.middleNames, it.lastName, it.dateOfBirth) },
-      nationality = person.nationalities.firstOrNull()?.name,
-      secondNationality = when {
-        person.nationalities.size > 1 -> person.nationalities.lastOrNull()?.name else -> null
-      },
-      religion = person.religion,
-      addresses = person.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDate, it.endDate, it.postcode, it.fullAddress) },
-      nationalInsuranceNumber = person.references.getType(NATIONAL_INSURANCE_NUMBER).firstOrNull()?.identifierValue,
-      email = person.contacts.getType(EMAIL).firstOrNull()?.contactValue,
-      driverLicenseNumber = person.references.getType(DRIVER_LICENSE_NUMBER).firstOrNull()?.identifierValue,
-      identifiers = person.references.mapNotNull { ref -> ref.identifierValue?.let { ApiResponseSetupIdentifier(ref.identifierType.name, it) } },
-      sentences = person.sentences.map { ApiResponseSetupSentences(it.sentenceDate) },
-      gender = person.sexCode?.name,
-      contacts = person.contacts.mapNotNull { contact -> contact.contactValue?.let { ApiResponseSetupContact(contact.contactType, it) } },
-      ethnicity = person.ethnicityCode?.name,
-      sexualOrientation = person.sexualOrientation?.name,
-
     )
   }
 }

@@ -133,22 +133,21 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should not set a cluster to active if it is set to needs attention and an update does change the cluster composition`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase(randomCrn())
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createPerson(Person.from(basePersonData))
       val doesNotMatch = createPerson(createRandomProbationPersonDetails())
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(personA)
         .addPerson(doesNotMatch)
 
-      val newPersonCData = createProbationPersonFrom(basePersonData)
-      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup.from(newPersonCData))
+      val personCCrn = randomCrn()
+      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup.from(basePersonData, personCCrn))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
-      val updatedPersonCData = newPersonCData.withChangedMatchDetails()
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedPersonCData))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), personCCrn))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
@@ -156,11 +155,10 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should set a broken cluster to active if the cluster has one record in it after a delete`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase(randomCrn())
 
-      val recordAPersonData = createProbationPersonFrom(basePersonData)
-      val recordA = createPerson(recordAPersonData)
-      val recordToDelete = createPerson(createProbationPersonFrom(basePersonData))
+      val recordA = createPerson(Person.from(basePersonData))
+      val recordToDelete = createPerson(createProbationPersonFrom(Person.from(basePersonData)))
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(recordToDelete)
@@ -169,8 +167,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
-      val updatedRecordAData = recordAPersonData.withChangedMatchDetails()
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedRecordAData))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.withChangedMatchDetails()))
 
       cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(ACTIVE)
@@ -178,11 +175,10 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should retain needs attention if the cluster has one record in it after a delete but was a override conflict`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase(randomCrn())
 
-      val recordAPersonData = createProbationPersonFrom(basePersonData)
-      val recordA = createPerson(recordAPersonData)
-      val recordToDelete = createPerson(createProbationPersonFrom(basePersonData))
+      val recordA = createPerson(Person.from(basePersonData))
+      val recordToDelete = createPerson(createProbationPersonFrom(Person.from(basePersonData)))
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
         .addPerson(recordA)
         .addPerson(recordToDelete)
@@ -192,8 +188,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
 
-      val updatedRecordAData = recordAPersonData.withChangedMatchDetails()
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedRecordAData))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.withChangedMatchDetails()))
 
       cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
