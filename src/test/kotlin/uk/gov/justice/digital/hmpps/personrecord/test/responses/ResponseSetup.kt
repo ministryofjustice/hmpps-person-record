@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
@@ -44,7 +45,6 @@ data class ApiResponseSetupAlias(val title: String? = null, val firstName: Strin
 
 data class ApiResponseSetup(
   val title: String? = null,
-  val titleCode: String? = null,
   val crn: String? = null,
   val cro: String? = null,
   val pnc: String? = null,
@@ -75,9 +75,37 @@ data class ApiResponseSetup(
   val contacts: List<ApiResponseSetupContact> = listOf(),
 ) {
   companion object {
+    fun from(probationCase: ProbationCase, crn: String? = probationCase.identifiers.crn): ApiResponseSetup = ApiResponseSetup(
+      crn = crn,
+      pnc = probationCase.identifiers.pnc,
+      title = probationCase.title?.value,
+      firstName = probationCase.name.firstName,
+      middleName = probationCase.name.middleNames,
+      lastName = probationCase.name.lastName,
+      dateOfBirth = probationCase.dateOfBirth,
+      cro = probationCase.identifiers.cro,
+      aliases = probationCase.aliases?.map { ApiResponseSetupAlias(firstName = it.name.firstName, middleName = it.name.middleNames, lastName = it.name.lastName, dateOfBirth = it.dateOfBirth, gender = it.gender?.value) } ?: emptyList(),
+      nationality = probationCase.nationality?.value,
+      secondNationality = probationCase.secondNationality?.value,
+      religion = probationCase.religion?.value,
+      addresses = probationCase.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDate, it.endDate, it.postcode, it.fullAddress, it.buildingName, it.addressNumber, it.streetName, it.district, it.townCity, it.county, it.uprn, it.notes, it.telephoneNumber) },
+      nationalInsuranceNumber = probationCase.identifiers.nationalInsuranceNumber,
+      email = probationCase.contactDetails?.email,
+      driverLicenseNumber = probationCase.identifiers.additionalIdentifiers?.firstOrNull { it.type?.value == DRIVER_LICENSE_NUMBER.name }?.value,
+      additionalIdentifiers = probationCase.identifiers.additionalIdentifiers?.mapNotNull { ref -> ref.value?.let { ApiResponseSetupAdditionalIdentifier(ref.type?.value!!, ref.value) } } ?: emptyList(),
+      sentences = probationCase.sentences?.map { ApiResponseSetupSentences(it.sentenceDate) },
+      gender = probationCase.gender?.value,
+      ethnicity = probationCase.ethnicity?.value,
+      sexualOrientation = probationCase.sexualOrientation?.value,
+      genderIdentity = probationCase.genderIdentity?.value,
+      selfDescribedGenderIdentity = probationCase.selfDescribedGenderIdentity,
+      // TODO contacts
 
+    )
+
+    // this is a bad idea - should be done differently for probation and prison
     fun from(person: Person): ApiResponseSetup = ApiResponseSetup(
-      titleCode = person.titleCode?.name,
+      title = person.titleCode?.name,
       firstName = person.firstName,
       middleName = person.middleNames,
       lastName = person.lastName,
@@ -88,7 +116,9 @@ data class ApiResponseSetup(
       pnc = person.references.getType(PNC).firstOrNull()?.identifierValue,
       aliases = person.aliases.map { ApiResponseSetupAlias(it.titleCode?.name, it.firstName, it.middleNames, it.lastName, it.dateOfBirth) },
       nationality = person.nationalities.firstOrNull()?.name,
-      secondNationality = person.nationalities.lastOrNull()?.name,
+      secondNationality = when {
+        person.nationalities.size > 1 -> person.nationalities.lastOrNull()?.name else -> null
+      },
       religion = person.religion,
       addresses = person.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDate, it.endDate, it.postcode, it.fullAddress) },
       nationalInsuranceNumber = person.references.getType(NATIONAL_INSURANCE_NUMBER).firstOrNull()?.identifierValue,
@@ -98,6 +128,9 @@ data class ApiResponseSetup(
       sentences = person.sentences.map { ApiResponseSetupSentences(it.sentenceDate) },
       gender = person.sexCode?.name,
       contacts = person.contacts.mapNotNull { contact -> contact.contactValue?.let { ApiResponseSetupContact(contact.contactType, it) } },
+      ethnicity = person.ethnicityCode?.name,
+      sexualOrientation = person.sexualOrientation?.name,
+
     )
   }
 }

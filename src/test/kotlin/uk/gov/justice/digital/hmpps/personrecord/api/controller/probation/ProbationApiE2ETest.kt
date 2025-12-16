@@ -503,7 +503,7 @@ class ProbationApiE2ETest : E2ETestBase() {
 
         probationDomainEventAndResponseSetup(
           OFFENDER_PERSONAL_DETAILS_UPDATED,
-          ApiResponseSetup.from(Person.from(probationCase).aboveFracture()),
+          ApiResponseSetup.from(probationCase.aboveFracture()),
         )
 
         checkTelemetry(
@@ -525,7 +525,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         val crn = randomCrn()
         probationDomainEventAndResponseSetup(
           NEW_OFFENDER_CREATED,
-          ApiResponseSetup.from(createRandomProbationPersonDetails(crn)),
+          ApiResponseSetup.from(createRandomProbationCase(crn)),
         )
 
         val offender = awaitNotNull { personRepository.findByCrn(crn) }
