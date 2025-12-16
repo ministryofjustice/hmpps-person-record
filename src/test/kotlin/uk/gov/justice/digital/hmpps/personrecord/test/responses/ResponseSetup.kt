@@ -75,8 +75,8 @@ data class ApiResponseSetup(
   val contacts: List<ApiResponseSetupContact> = listOf(),
 ) {
   companion object {
-    fun from(probationCase: ProbationCase): ApiResponseSetup = ApiResponseSetup(
-      crn = probationCase.identifiers.crn,
+    fun from(probationCase: ProbationCase, crn: String?=probationCase.identifiers.crn): ApiResponseSetup = ApiResponseSetup(
+      crn = crn,
       pnc = probationCase.identifiers.pnc,
       title = probationCase.title?.value,
       firstName = probationCase.name.firstName,

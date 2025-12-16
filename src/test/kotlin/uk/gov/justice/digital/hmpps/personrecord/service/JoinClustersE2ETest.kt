@@ -273,14 +273,15 @@ class JoinClustersE2ETest : E2ETestBase() {
     val secondCrn = randomCrn()
     val thirdCrn = randomCrn()
 
-    val basePerson = createRandomProbationPersonDetails(firstCrn)
-    val firstSetup = ApiResponseSetup.from(basePerson)
+    val basePersonData = createRandomProbationCase(firstCrn)
+
+    val firstSetup = ApiResponseSetup.from(basePersonData)
 
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
     var firstPersonRecord = awaitNotNull { personRepository.findByCrn(firstCrn) }
     assertThat(firstPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
 
-    val secondSetup = ApiResponseSetup.from(basePerson.copy(crn = secondCrn))
+    val secondSetup = ApiResponseSetup.from(basePersonData,secondCrn)
 
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, secondCrn, firstCrn, reactivatedSetup = secondSetup, unmergedSetup = firstSetup)
     awaitAssert { assertThat(personRepository.findByCrn(secondCrn)?.personKey).isNotNull() }
@@ -289,7 +290,7 @@ class JoinClustersE2ETest : E2ETestBase() {
 
     secondPersonRecord.assertExcluded(firstPersonRecord)
 
-    val thirdSetup = ApiResponseSetup.from(basePerson.copy(crn = thirdCrn))
+    val thirdSetup = ApiResponseSetup.from(basePersonData, thirdCrn)
 
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, thirdSetup)
 
