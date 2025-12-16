@@ -43,6 +43,7 @@ class E2ETestBase : MessagingTestBase() {
     references = this.references.filterNot { it.identifierType == IdentifierType.PNC || it.identifierType == IdentifierType.CRO },
     sentences = emptyList(),
   )
+
   internal fun ProbationCase.aboveFracture(): ProbationCase = this.copy(
     identifiers = this.identifiers.copy(pnc = null, cro = null),
     sentences = emptyList(),

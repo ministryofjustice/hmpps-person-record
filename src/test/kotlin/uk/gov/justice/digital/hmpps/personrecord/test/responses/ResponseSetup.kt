@@ -88,7 +88,7 @@ data class ApiResponseSetup(
       nationality = probationCase.nationality?.value,
       secondNationality = probationCase.secondNationality?.value,
       religion = probationCase.religion?.value,
-      addresses = probationCase.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDate, it.endDate, it.postcode, it.fullAddress) },
+      addresses = probationCase.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDate, it.endDate, it.postcode, it.fullAddress) }, //TODO telephone number
       nationalInsuranceNumber = probationCase.identifiers.nationalInsuranceNumber,
       email = probationCase.contactDetails?.email,
       driverLicenseNumber = probationCase.identifiers.additionalIdentifiers?.firstOrNull { it.type?.value == DRIVER_LICENSE_NUMBER.name }?.value,
