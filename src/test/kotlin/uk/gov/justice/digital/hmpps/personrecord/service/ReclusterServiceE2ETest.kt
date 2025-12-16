@@ -973,7 +973,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personB)
         .addPerson(personC)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(personData.withChangedMatchDetails(),  personA.crn!!))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(personData.withChangedMatchDetails(), personA.crn!!))
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -993,11 +993,11 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should log back to active when cluster moves from needs attention to active`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase(randomCrn())
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createPerson(Person.from(basePersonData))
+      val personB = createPerson(createProbationPersonFrom(Person.from(basePersonData)))
+      val personC = createPerson(createProbationPersonFrom(Person.from(basePersonData)))
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(personA)
         .addPerson(personB)
@@ -1005,7 +1005,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(createProbationPersonFrom(basePersonData.withChangedMatchDetails(), crn = personA.crn!!)))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), crn = personA.crn!!))
 
       cluster.assertClusterStatus(ACTIVE)
 

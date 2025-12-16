@@ -6,7 +6,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.QUEUE_ADMIN
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.SentenceInfo
@@ -53,7 +52,7 @@ class E2ETestBase : MessagingTestBase() {
   )
 
   internal fun ProbationCase.withChangedMatchDetails(): ProbationCase = this.copy(
-    addresses = this.addresses + ProbationAddress(postcode = randomPostcode())
+    addresses = this.addresses + ProbationAddress(postcode = randomPostcode()),
   )
 
   internal fun Person.withChangedMatchDetails(): Person = this.copy(
