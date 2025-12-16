@@ -223,22 +223,22 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       Then A joins B on the same cluster
       And C does not because it is excluded
        */
-      val personAData = createRandomProbationPersonDetails()
-      val personBData = createRandomProbationPersonDetails()
+      val personAData = createRandomProbationCase(randomCrn())
+      val personBData = createRandomProbationCase(randomCrn())
 
-      val personA = createProbationPersonFrom(personAData)
-      val personB = createProbationPersonFrom(personBData)
-      val personC = createProbationPersonFrom(personAData)
+      val personA = Person.from(personAData)
+      val personB = Person.from(personBData)
+      val personC = createProbationPersonFrom(personA)
 
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personA))
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personB))
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personC))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personAData))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personBData))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personAData,personC.crn!!))
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personA.crn!!, personC.crn!!)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personA.crn!!, personC.crn)
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, personB.crn!!, personC.crn)
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personA.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personA))
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personB.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personB))
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personA.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personAData))
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personB.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personBData))
 
       val clusterA = awaitNotNull { personRepository.findByCrn(personA.crn) }.personKey
       clusterA?.assertClusterIsOfSize(1)
@@ -248,9 +248,8 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       val clusterC = awaitNotNull { personRepository.findByCrn(personC.crn) }.personKey
       clusterC?.assertClusterIsOfSize(1)
-
-      val updatePersonBSoItMatchesPersonA = personA.copy(crn = personB.crn)
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatePersonBSoItMatchesPersonA))
+      
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(personAData, personB.crn))
 
       clusterA?.assertClusterStatus(RECLUSTER_MERGE)
       clusterA?.assertClusterIsOfSize(0)
