@@ -75,8 +75,8 @@ data class ApiResponseSetup(
   val contacts: List<ApiResponseSetupContact> = listOf(),
 ) {
   companion object {
-    fun from(probationCase: ProbationCase): ApiResponseSetup = ApiResponseSetup(
-      crn = probationCase.identifiers.crn,
+    fun from(probationCase: ProbationCase, crn: String? = probationCase.identifiers.crn): ApiResponseSetup = ApiResponseSetup(
+      crn = crn,
       pnc = probationCase.identifiers.pnc,
       title = probationCase.title?.value,
       firstName = probationCase.name.firstName,
@@ -88,7 +88,7 @@ data class ApiResponseSetup(
       nationality = probationCase.nationality?.value,
       secondNationality = probationCase.secondNationality?.value,
       religion = probationCase.religion?.value,
-      addresses = probationCase.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDate, it.endDate, it.postcode, it.fullAddress) },
+      addresses = probationCase.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDate, it.endDate, it.postcode, it.fullAddress, it.buildingName, it.addressNumber, it.streetName, it.district, it.townCity, it.county, it.uprn, it.notes, it.telephoneNumber) },
       nationalInsuranceNumber = probationCase.identifiers.nationalInsuranceNumber,
       email = probationCase.contactDetails?.email,
       driverLicenseNumber = probationCase.identifiers.additionalIdentifiers?.firstOrNull { it.type?.value == DRIVER_LICENSE_NUMBER.name }?.value,

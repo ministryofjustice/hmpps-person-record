@@ -90,17 +90,17 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       val reactivatedCrn = randomCrn()
       val unmergedCrn = randomCrn()
 
-      val basePersonData = createRandomProbationPersonDetails()
+      val unmergedPersonDetails = createRandomProbationCase(unmergedCrn)
+      val reactivatedPersonDetails = createRandomProbationCase(reactivatedCrn)
 
-      val reactivatedPersonData = createProbationPersonFrom(basePersonData, reactivatedCrn)
-      val unmergedPersonData = createProbationPersonFrom(basePersonData, unmergedCrn)
-      val reactivatedPerson = createPersonWithNewKey(reactivatedPersonData)
-      val unmergedPerson = createPerson(unmergedPersonData)
+      val unmergedSetup = ApiResponseSetup.from(unmergedPersonDetails)
+      val reactivatedPerson = createPersonWithNewKey(Person.from(reactivatedPersonDetails))
+      val unmergedPerson = createPerson(Person.from(unmergedPersonDetails))
       val cluster = createPersonKey()
         .addPerson(unmergedPerson)
-        .addPerson(createProbationPersonFrom(basePersonData))
+        .addPerson(createProbationPersonFrom(Person.from(unmergedPersonDetails)))
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmergedCrn, apiResponseSetup = ApiResponseSetup.from(unmergedPersonData))
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmergedCrn, apiResponseSetup = unmergedSetup)
 
       checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_RECORD_MERGED)
       reactivatedPerson.assertMergedTo(unmergedPerson)
@@ -109,8 +109,8 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
         OFFENDER_UNMERGED,
         reactivatedCrn,
         unmergedCrn,
-        reactivatedSetup = ApiResponseSetup.from(reactivatedPersonData),
-        unmergedSetup = ApiResponseSetup.from(unmergedPersonData),
+        reactivatedSetup = ApiResponseSetup.from(reactivatedPersonDetails),
+        unmergedSetup = unmergedSetup,
       )
 
       checkTelemetry(
