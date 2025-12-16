@@ -230,7 +230,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sourcePersonEntity = createPerson(sourcePerson)
       val targetPersonDetails = createRandomProbationCase(targetCrn)
       val targetPersonEntity = createPerson(
-        Person.from(targetPersonDetails))
+        Person.from(targetPersonDetails),
+      )
       createPersonKey()
         .addPerson(sourcePersonEntity)
         .addPerson(targetPersonEntity)
