@@ -16,8 +16,10 @@ enum class CPRLogEvents {
   // Deprecated Events. Still kept in enum so we can still decode old events.
   @Deprecated("Used when splitting possible twins on the new cluster")
   CPR_UUID_SPLIT,
+
   @Deprecated("Used when splitting possible twins to indicate the record which left the old cluster")
   CPR_UUID_LEAVE,
+
   @Deprecated("Replaced by setting NEEDS ATTENTION on create / update")
   CPR_RECLUSTER_NEEDS_ATTENTION,
 

@@ -46,5 +46,4 @@ class PersonKeyEventListener(
     publisher.publishEvent(RecordPersonTelemetry(CPR_UUID_DELETED, personKeyDeleted.personEntity, mapOf(UUID to personKeyDeleted.personKeyEntity.personUUID.toString())))
     publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_UUID_DELETED, personKeyDeleted.personEntity))
   }
-
 }
