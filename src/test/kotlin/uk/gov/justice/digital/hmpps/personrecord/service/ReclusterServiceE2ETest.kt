@@ -25,7 +25,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_SELF_HEALED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ReclusterServiceE2ETest : E2ETestBase() {
@@ -232,7 +231,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personAData))
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personBData))
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personAData,personC.crn!!))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personAData, personC.crn!!))
 
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, personA.crn!!, personC.crn)
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, personB.crn!!, personC.crn)
@@ -248,7 +247,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       val clusterC = awaitNotNull { personRepository.findByCrn(personC.crn) }.personKey
       clusterC?.assertClusterIsOfSize(1)
-      
+
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(personAData, personB.crn))
 
       clusterA?.assertClusterStatus(RECLUSTER_MERGE)
