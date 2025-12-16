@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
@@ -227,14 +228,15 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetCrn = randomCrn()
       val sourcePerson = createRandomProbationPersonDetails(sourceCrn)
       val sourcePersonEntity = createPerson(sourcePerson)
-      val targetPerson = createRandomProbationPersonDetails(targetCrn)
-      val targetPersonEntity = createPerson(targetPerson)
+      val targetPersonDetails = createRandomProbationCase(targetCrn)
+      val targetPersonEntity = createPerson(
+        Person.from(targetPersonDetails))
       createPersonKey()
         .addPerson(sourcePersonEntity)
         .addPerson(targetPersonEntity)
 
       // stubs for failed delete
-      val response = ApiResponseSetup.from(targetPerson)
+      val response = ApiResponseSetup.from(targetPersonDetails)
       stubSingleProbationResponse(response)
       stubDeletePersonMatch(status = 500, nextScenarioState = "deleteWillWork") // scenario state changes so next calls will succeed
 
