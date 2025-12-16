@@ -249,11 +249,11 @@ class JoinClustersE2ETest : E2ETestBase() {
     val firstCrn = randomCrn()
     val secondCrn = randomCrn()
 
-    val basePerson = createRandomProbationPersonDetails(firstCrn)
+    val basePerson = createRandomProbationCase(firstCrn)
     val firstSetup = ApiResponseSetup.from(basePerson)
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
 
-    val secondSetup = ApiResponseSetup.from(basePerson.copy(crn = secondCrn))
+    val secondSetup = ApiResponseSetup.from(basePerson, secondCrn)
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, secondSetup)
 
     val secondPersonRecord = awaitNotNull { personRepository.findByCrn(secondCrn) }
