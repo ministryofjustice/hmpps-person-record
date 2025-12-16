@@ -37,18 +37,17 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster above the join threshold`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase(randomCrn())
 
-      val recordA = createPerson(createProbationPersonFrom(basePersonData))
-      val matchesA = createPerson(createProbationPersonFrom(basePersonData))
+      val recordA = createPerson(createProbationPersonFrom(Person.from(basePersonData)))
+      val matchesA = createPerson(createProbationPersonFrom(Person.from(basePersonData)))
       val doesNotMatch = createPerson(createRandomProbationPersonDetails())
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
 
-      val nowMatchesA = createProbationPersonFrom(basePersonData, crn = doesNotMatch.crn!!)
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(nowMatchesA))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData, crn = doesNotMatch.crn!!))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(ACTIVE)
@@ -56,18 +55,17 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should change from needs attention status with null reason to active when the non-matching record is updated to match the other records in the cluster above the join threshold`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase(randomCrn())
 
-      val recordA = createPerson(createProbationPersonFrom(basePersonData))
-      val matchesA = createPerson(createProbationPersonFrom(basePersonData))
+      val recordA = createPerson(Person.from(basePersonData))
+      val matchesA = createPerson(createProbationPersonFrom(Person.from(basePersonData)))
       val doesNotMatch = createPerson(createRandomProbationPersonDetails())
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = null)
         .addPerson(recordA)
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
 
-      val nowMatchesA = createProbationPersonFrom(basePersonData, crn = doesNotMatch.crn!!)
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(nowMatchesA))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData, crn = doesNotMatch.crn!!))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(ACTIVE)
@@ -75,18 +73,17 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster above the fracture threshold`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase(randomCrn())
 
-      val recordA = createPerson(createProbationPersonFrom(basePersonData))
-      val matchesA = createPerson(createProbationPersonFrom(basePersonData))
+      val recordA = createPerson(Person.from(basePersonData))
+      val matchesA = createPerson(createProbationPersonFrom(Person.from(basePersonData)))
       val doesNotMatch = createPerson(createRandomProbationPersonDetails())
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
 
-      val nowMatchesAboveFracture = createProbationPersonFrom(basePersonData, doesNotMatch.crn!!).aboveFracture()
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(nowMatchesAboveFracture))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.aboveFracture(), doesNotMatch.crn!!))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(ACTIVE)
