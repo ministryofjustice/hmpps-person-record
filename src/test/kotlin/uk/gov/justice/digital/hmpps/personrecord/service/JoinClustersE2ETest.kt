@@ -281,7 +281,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     var firstPersonRecord = awaitNotNull { personRepository.findByCrn(firstCrn) }
     assertThat(firstPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
 
-    val secondSetup = ApiResponseSetup.from(basePersonData,secondCrn)
+    val secondSetup = ApiResponseSetup.from(basePersonData, secondCrn)
 
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, secondCrn, firstCrn, reactivatedSetup = secondSetup, unmergedSetup = firstSetup)
     awaitAssert { assertThat(personRepository.findByCrn(secondCrn)?.personKey).isNotNull() }
