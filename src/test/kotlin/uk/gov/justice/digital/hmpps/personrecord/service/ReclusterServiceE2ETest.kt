@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_SELF_HEALED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ReclusterServiceE2ETest : E2ETestBase() {
@@ -369,11 +370,11 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should set record to active when inclusive links within cluster`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase(randomCrn())
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createPerson(createProbationPersonFrom(Person.from(basePersonData)))
+      val personB = createPerson(createProbationPersonFrom(Person.from(basePersonData)))
+      val personC = createPerson(createProbationPersonFrom(Person.from(basePersonData)))
       val cluster = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
@@ -381,7 +382,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       probationDomainEventAndResponseSetup(
         eventType = OFFENDER_PERSONAL_DETAILS_UPDATED,
-        ApiResponseSetup.from(createRandomProbationPersonDetails(crn = personB.crn!!)),
+        ApiResponseSetup.from(createRandomProbationCase(crn = personB.crn!!)),
       )
 
       cluster.assertClusterIsOfSize(3)
@@ -391,7 +392,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       probationDomainEventAndResponseSetup(
         eventType = OFFENDER_PERSONAL_DETAILS_UPDATED,
-        ApiResponseSetup.from(createProbationPersonFrom(basePersonData, crn = personA.crn!!).withChangedMatchDetails()),
+        ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), crn = personA.crn!!),
       )
 
       cluster.assertClusterIsOfSize(3)
