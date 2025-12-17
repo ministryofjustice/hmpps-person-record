@@ -24,11 +24,16 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
       val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
       assertThat(originalEntity.disability).isNull()
 
-      val disabilityStatus = createRandomPrisonDisabilityStatus(true)
+      val disabilityStatus = createPrisonDisabilityStatus(true)
       postDisabilityStatus(prisonNumber, disabilityStatus)
 
-      val updatedEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
-      assertThat(updatedEntity.disability).isEqualTo(disabilityStatus.disability)
+      awaitAssert {
+        val updatedEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+        assertThat(updatedEntity.disability).isEqualTo(disabilityStatus.disability)
+        assertThat(updatedEntity.getPrimaryName().dateOfBirth).isEqualTo(originalEntity.getPrimaryName().dateOfBirth)
+        assertThat(updatedEntity.getPrimaryName().firstName).isEqualTo(originalEntity.getPrimaryName().firstName)
+        assertThat(updatedEntity.getPrimaryName().lastName).isEqualTo(originalEntity.getPrimaryName().lastName)
+      }
     }
 
     @Test
@@ -37,7 +42,7 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
       val expectedErrorMessage = "Not found: $prisonNumber"
       webTestClient.post()
         .uri(disabilityUrl(prisonNumber))
-        .bodyValue(createRandomPrisonDisabilityStatus(randomBoolean()))
+        .bodyValue(createPrisonDisabilityStatus(randomBoolean()))
         .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
         .exchange()
         .expectStatus()
@@ -56,7 +61,7 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.post()
         .uri(disabilityUrl(randomPrisonNumber()))
-        .bodyValue(createRandomPrisonDisabilityStatus(randomBoolean()))
+        .bodyValue(createPrisonDisabilityStatus(randomBoolean()))
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
         .expectStatus()
@@ -87,7 +92,7 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
       .isOk
   }
 
-  private fun createRandomPrisonDisabilityStatus(status: Boolean): PrisonDisabilityStatus = PrisonDisabilityStatus(
+  private fun createPrisonDisabilityStatus(status: Boolean): PrisonDisabilityStatus = PrisonDisabilityStatus(
     disability = status,
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),
