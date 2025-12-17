@@ -119,6 +119,9 @@ class PersonEntity(
   @Column(name = "self_described_gender_identity")
   var selfDescribedGenderIdentity: String? = null,
 
+  @Column
+  var disability: Boolean? = null,
+
   @Column(name = "date_of_death")
   var dateOfDeath: LocalDate? = null,
 
@@ -196,6 +199,7 @@ class PersonEntity(
     this.ethnicityCode = person.ethnicityCode
     this.genderIdentity = person.genderIdentity
     this.selfDescribedGenderIdentity = person.selfDescribedGenderIdentity
+    this.disability = person.disability
     this.updateChildEntities(person)
   }
 
