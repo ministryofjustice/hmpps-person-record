@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -291,19 +290,45 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `should reconcile syscon field values when event published`() {
       val prisonNumber = randomPrisonNumber()
-      val prisoner = createPerson(Person(prisonNumber = prisonNumber, sourceSystem = NOMIS, disability = true))
+      val prisoner = createPerson(
+        Person(
+          prisonNumber = prisonNumber,
+          sourceSystem = NOMIS,
+          titleCode = randomTitleCode().value,
+          firstName = randomName(),
+          lastName = randomName(),
+          religion = randomReligion(),
+          disability = true,
+        ),
+      )
       createPersonKey().addPerson(prisoner)
+
+      val updatedTitle = randomTitleCode()
+      val updatedFirstName = randomName()
+      val updatedLastName = randomName()
+      val updatedReligion = randomReligion()
 
       stubNoMatchesPersonMatch(prisoner.matchId)
       prisonDomainEventAndResponseSetup(
         PRISONER_UPDATED,
-        apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber, title = TitleCode.MR.name),
+        apiResponseSetup = ApiResponseSetup(
+          prisonNumber = prisonNumber,
+          title = updatedTitle.key,
+          firstName = updatedFirstName,
+          lastName = updatedLastName,
+          religion = updatedReligion,
+        ),
       )
 
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
-        assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(TitleCode.MR)
+
         assertThat(personEntity.disability).isTrue()
+
+        assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(updatedTitle.value)
+        assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
+        assertThat(personEntity.getPrimaryName().lastName).isEqualTo(updatedLastName)
+        assertThat(personEntity.religion).isEqualTo(updatedReligion)
       }
     }
   }
