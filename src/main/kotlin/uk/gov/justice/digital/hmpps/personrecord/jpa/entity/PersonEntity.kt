@@ -138,6 +138,9 @@ class PersonEntity(
   @Column(name = "c_id")
   var cId: String? = null,
 
+  @Column("interest_to_immigration")
+  var immigrationStatus: Boolean? = null,
+
   @Column(name = "last_modified")
   var lastModified: LocalDateTime? = null,
 
@@ -200,6 +203,7 @@ class PersonEntity(
     this.genderIdentity = person.genderIdentity
     this.selfDescribedGenderIdentity = person.selfDescribedGenderIdentity
     this.disability = person.disability
+    this.immigrationStatus = person.immigrationStatus
     this.updateChildEntities(person)
   }
 
