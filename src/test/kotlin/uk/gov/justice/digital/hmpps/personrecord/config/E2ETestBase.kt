@@ -36,6 +36,8 @@ class E2ETestBase : MessagingTestBase() {
 
   internal fun createProbationPersonFrom(from: Person, crn: String = randomCrn()): Person = from.copy(crn = crn)
 
+  internal fun createProbationPersonFrom(probationCase: ProbationCase, crn: String = probationCase.identifiers.crn!!): Person = Person.from(probationCase).copy(crn = crn)
+
   /*
   Remove matching fields to reduce match weight below the join threshold but keep above fracture threshold
    */
@@ -52,5 +54,4 @@ class E2ETestBase : MessagingTestBase() {
   internal fun ProbationCase.withChangedMatchDetails(): ProbationCase = this.copy(
     addresses = this.addresses + ProbationAddress(postcode = randomPostcode()),
   )
-  
 }
