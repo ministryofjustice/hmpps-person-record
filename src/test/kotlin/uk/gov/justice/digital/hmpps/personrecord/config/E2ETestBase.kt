@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -41,11 +40,6 @@ class E2ETestBase : MessagingTestBase() {
   /*
   Remove matching fields to reduce match weight below the join threshold but keep above fracture threshold
    */
-  internal fun Person.aboveFracture(): Person = this.copy(
-    references = this.references.filterNot { it.identifierType == IdentifierType.PNC || it.identifierType == IdentifierType.CRO },
-    sentences = emptyList(),
-  )
-
   internal fun ProbationCase.aboveFracture(): ProbationCase = this.copy(
     identifiers = this.identifiers.copy(pnc = null, cro = null),
     sentences = emptyList(),
