@@ -15,8 +15,9 @@ class PrisonEventProcessor(
 
   @Transactional(isolation = REPEATABLE_READ)
   fun processEvent(person: Person) {
-    personService.processPerson(person) {
-      personRepository.findByPrisonNumber(person.prisonNumber!!)
+    val reconciledPerson = PrisonPersonReconciler.reconcile(person, personRepository.findByPrisonNumber(person.prisonNumber!!))
+    personService.processPerson(reconciledPerson) {
+      personRepository.findByPrisonNumber(reconciledPerson.prisonNumber!!)
     }
   }
 }
