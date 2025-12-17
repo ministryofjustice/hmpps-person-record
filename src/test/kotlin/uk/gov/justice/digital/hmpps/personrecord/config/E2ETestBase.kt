@@ -8,11 +8,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.person.SentenceInfo
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
@@ -54,10 +52,5 @@ class E2ETestBase : MessagingTestBase() {
   internal fun ProbationCase.withChangedMatchDetails(): ProbationCase = this.copy(
     addresses = this.addresses + ProbationAddress(postcode = randomPostcode()),
   )
-
-  internal fun Person.withChangedMatchDetails(): Person = this.copy(
-    sentences = this.sentences + SentenceInfo(
-      randomDate(),
-    ),
-  )
+  
 }
