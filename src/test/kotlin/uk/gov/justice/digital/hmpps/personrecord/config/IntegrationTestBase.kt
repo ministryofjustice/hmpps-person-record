@@ -168,7 +168,7 @@ class IntegrationTestBase {
     createRandomProbationCase(crn),
   )
 
-  internal fun createRandomProbationCase(crn: String): ProbationCase = ProbationCase(
+  internal fun createRandomProbationCase(crn: String? = randomCrn()): ProbationCase = ProbationCase(
     name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
     title = Value(randomTitleCode().key),
     identifiers = Identifiers(crn = crn, pnc = randomLongPnc(), cro = randomCro()),
