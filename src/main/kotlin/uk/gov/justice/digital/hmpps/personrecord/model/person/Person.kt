@@ -57,6 +57,7 @@ data class Person(
   val sexualOrientation: SexualOrientation? = null,
   val disability: Boolean? = null,
   val behaviour: Behaviour = Behaviour(),
+  val immigrationStatus: Boolean? = null,
 ) {
 
   companion object {
@@ -235,6 +236,7 @@ data class Person(
       sourceSystem = existingPersonEntity.sourceSystem,
       sentences = existingPersonEntity.sentenceInfo.map { SentenceInfo.from(it) },
       disability = existingPersonEntity.disability,
+      immigrationStatus = existingPersonEntity.immigrationStatus,
     )
   }
 
