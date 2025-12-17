@@ -418,7 +418,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val personA = createPerson(createProbationPersonFrom(basePersonData))
       val personB = createPerson(createProbationPersonFrom(basePersonData))
       val personC = createPerson(
-        createProbationPersonFrom(basePersonData.aboveFracture())
+        createProbationPersonFrom(basePersonData.aboveFracture()),
       )
       val cluster = createPersonKey()
         .addPerson(personA)
@@ -507,7 +507,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personB)
 
       val personC = createPerson(
-        createProbationPersonFrom(basePersonData.aboveFracture())
+        createProbationPersonFrom(basePersonData.aboveFracture()),
       )
       val cluster2 = createPersonKey()
         .addPerson(personC)
@@ -885,7 +885,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       val personA = createPerson(createProbationPersonFrom(basePersonData))
       val personB = createPerson(
-        createProbationPersonFrom(basePersonData.aboveFracture())
+        createProbationPersonFrom(basePersonData.aboveFracture()),
       )
       val personC = createPerson(createRandomProbationPersonDetails())
       val cluster = createPersonKey()
