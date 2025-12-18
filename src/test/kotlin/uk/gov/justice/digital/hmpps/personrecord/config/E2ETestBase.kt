@@ -33,9 +33,7 @@ class E2ETestBase : MessagingTestBase() {
     return personEntity
   }
 
-  internal fun createProbationPersonFrom(from: Person, crn: String = randomCrn()): PersonEntity = createPerson(from.copy(crn = crn))
-
-  internal fun createProbationPersonFrom(probationCase: ProbationCase): PersonEntity = createProbationPersonFrom(Person.from(probationCase))
+  internal fun createProbationPersonFrom(probationCase: ProbationCase): PersonEntity = createPerson(Person.from(probationCase).copy(crn = randomCrn()))
 
   /*
   Remove matching fields to reduce match weight below the join threshold but keep above fracture threshold
