@@ -213,41 +213,39 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       And C does not because it is excluded
        */
       val personAData = createRandomProbationCase()
+      val personAcrn = personAData.identifiers.crn!!
       val personBData = createRandomProbationCase()
-
-      val personA = Person.from(personAData)
-      val personB = Person.from(personBData)
-      val personC = createProbationPersonFrom(personA)
-
+      val personBcrn = personBData.identifiers.crn!!
+      val personCcrn = randomCrn()
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personAData))
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personBData))
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personAData, personC.crn!!))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personAData, personCcrn))
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personA.crn!!, personC.crn!!)
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personB.crn!!, personC.crn!!)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personAcrn, personCcrn)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personBcrn, personCcrn)
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personA.crn, personC.crn!!, reactivatedSetup = ApiResponseSetup.from(personAData))
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personB.crn, personC.crn!!, reactivatedSetup = ApiResponseSetup.from(personBData))
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personAcrn, personCcrn, reactivatedSetup = ApiResponseSetup.from(personAData))
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personBcrn, personCcrn, reactivatedSetup = ApiResponseSetup.from(personBData))
 
-      val clusterA = awaitNotNull { personRepository.findByCrn(personA.crn) }.personKey
+      val clusterA = awaitNotNull { personRepository.findByCrn(personAcrn) }.personKey
       clusterA?.assertClusterIsOfSize(1)
 
-      val clusterB = awaitNotNull { personRepository.findByCrn(personB.crn) }.personKey
+      val clusterB = awaitNotNull { personRepository.findByCrn(personBcrn) }.personKey
       clusterB?.assertClusterIsOfSize(1)
 
-      val clusterC = awaitNotNull { personRepository.findByCrn(personC.crn!!) }.personKey
+      val clusterC = awaitNotNull { personRepository.findByCrn(personCcrn) }.personKey
       clusterC?.assertClusterIsOfSize(1)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(personAData, personB.crn))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(personAData, personBcrn))
 
       clusterA?.assertClusterStatus(RECLUSTER_MERGE)
       clusterA?.assertClusterIsOfSize(0)
 
-      val updatedClusterWithPersonB = awaitNotNull { personRepository.findByCrn(personB.crn) }.personKey
+      val updatedClusterWithPersonB = awaitNotNull { personRepository.findByCrn(personBcrn) }.personKey
       updatedClusterWithPersonB?.assertClusterIsOfSize(2)
       updatedClusterWithPersonB?.assertClusterStatus(ACTIVE)
 
-      val updatedClusterWithPersonC = awaitNotNull { personRepository.findByCrn(personC.crn!!) }.personKey
+      val updatedClusterWithPersonC = awaitNotNull { personRepository.findByCrn(personCcrn) }.personKey
       updatedClusterWithPersonC?.assertClusterIsOfSize(1)
       updatedClusterWithPersonC?.assertClusterStatus(ACTIVE)
     }
