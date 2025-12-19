@@ -1,8 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
-import io.hypersistence.utils.hibernate.type.array.LocalDateArrayType
-import io.hypersistence.utils.hibernate.type.array.StringArrayType
-import io.hypersistence.utils.hibernate.type.array.UUIDArrayType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType.STRING
@@ -12,7 +9,6 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.GeneratedColumn
-import org.hibernate.annotations.Type
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -60,40 +56,32 @@ class EventLogEntity(
   @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate? = null,
 
-  @Type(StringArrayType::class)
   @Column(name = "first_name_aliases", columnDefinition = "text[]")
-  val firstNameAliases: Array<String> = emptyArray<String>(),
+  val firstNameAliases: List<String> = emptyList(),
 
-  @Type(StringArrayType::class)
   @Column(name = "last_name_aliases", columnDefinition = "text[]")
-  val lastNameAliases: Array<String> = emptyArray<String>(),
+  val lastNameAliases: List<String> = emptyList(),
 
-  @Type(LocalDateArrayType::class)
   @Column(name = "date_of_birth_aliases", columnDefinition = "date[]")
-  val dateOfBirthAliases: Array<LocalDate> = emptyArray<LocalDate>(),
+  val dateOfBirthAliases: List<LocalDate> = emptyList(),
 
-  @Type(StringArrayType::class)
   @Column(columnDefinition = "text[]")
-  val postcodes: Array<String> = emptyArray<String>(),
+  val postcodes: List<String> = emptyList(),
 
-  @Type(StringArrayType::class)
   @Column(columnDefinition = "text[]")
-  val cros: Array<String> = emptyArray<String>(),
+  val cros: List<String> = emptyList(),
 
-  @Type(StringArrayType::class)
   @Column(columnDefinition = "text[]")
-  val pncs: Array<String> = emptyArray<String>(),
+  val pncs: List<String> = emptyList(),
 
-  @Type(LocalDateArrayType::class)
   @Column(name = "sentence_dates", columnDefinition = "date[]")
-  val sentenceDates: Array<LocalDate> = emptyArray<LocalDate>(),
+  val sentenceDates: List<LocalDate> = emptyList(),
 
   @Column(name = "override_marker")
   val overrideMarker: UUID? = null,
 
-  @Type(UUIDArrayType::class)
   @Column(name = "override_scopes", columnDefinition = "uuid[]")
-  val overrideScopes: Array<UUID> = emptyArray<UUID>(),
+  val overrideScopes: List<UUID> = emptyList(),
 
   @Enumerated(STRING)
   @Column(name = "source_system")
@@ -128,15 +116,15 @@ class EventLogEntity(
         middleNames = eventLog.personEntity.getPrimaryName().middleNames,
         lastName = eventLog.personEntity.getPrimaryName().lastName,
         dateOfBirth = eventLog.personEntity.getPrimaryName().dateOfBirth,
-        firstNameAliases = aliases.mapNotNull { it.firstName }.dedupeAndSortedArray(),
-        lastNameAliases = aliases.mapNotNull { it.lastName }.dedupeAndSortedArray(),
-        dateOfBirthAliases = aliases.mapNotNull { it.dateOfBirth }.dedupeAndSortedArray(),
-        postcodes = eventLog.personEntity.addresses.mapNotNull { it.postcode }.dedupeAndSortedArray(),
-        cros = eventLog.personEntity.references.getCROs().dedupeAndSortedArray(),
-        pncs = eventLog.personEntity.references.getPNCs().dedupeAndSortedArray(),
-        sentenceDates = eventLog.personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.dedupeAndSortedArray(),
+        firstNameAliases = aliases.mapNotNull { it.firstName }.sorted().distinct(),
+        lastNameAliases = aliases.mapNotNull { it.lastName }.sorted().distinct(),
+        dateOfBirthAliases = aliases.mapNotNull { it.dateOfBirth }.sorted().distinct(),
+        postcodes = eventLog.personEntity.addresses.mapNotNull { it.postcode }.sorted().distinct(),
+        cros = eventLog.personEntity.references.getCROs().sorted().distinct(),
+        pncs = eventLog.personEntity.references.getPNCs().sorted().distinct(),
+        sentenceDates = eventLog.personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.sorted().distinct(),
         overrideMarker = eventLog.personEntity.overrideMarker,
-        overrideScopes = eventLog.personEntity.overrideScopes.map { it.scope }.dedupeAndSortedArray(),
+        overrideScopes = eventLog.personEntity.overrideScopes.map { it.scope }.sorted().distinct(),
         sourceSystem = eventLog.personEntity.sourceSystem,
         eventType = eventLog.eventType,
         recordMergedTo = eventLog.personEntity.mergedTo,
@@ -144,11 +132,5 @@ class EventLogEntity(
         eventTimestamp = eventLog.eventTimestamp,
       )
     }
-
-    private fun List<String>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
-
-    private fun List<UUID>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
-
-    private fun List<LocalDate>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
   }
 }
