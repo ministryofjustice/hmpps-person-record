@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
@@ -996,9 +995,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     @Test
     fun `should raise cluster for review when broken cluster and remove when self healed`() {
       val basePersonData = createRandomProbationCase()
-
-      val personAData = Person.from(basePersonData)
-      val personA = createPerson(personAData)
+      val personA = createProbationPerson(basePersonData)
       val personB = createMatchingRecord(basePersonData)
       val doesNotMatch = createProbationPerson()
       val cluster = createPersonKey()

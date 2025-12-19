@@ -22,8 +22,8 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should process isClusterValid response`() {
-      val personA = createPerson(createRandomLibraPersonDetails())
-      val personB = createPerson(createRandomLibraPersonDetails())
+      val personA = createRandomLibraPersonDetails()
+      val personB = createRandomLibraPersonDetails()
       val cluster = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
@@ -44,8 +44,8 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should handle out of sync isClusterValid response`() {
-      val personA = createPerson(createRandomLibraPersonDetails())
-      val personB = createPerson(createRandomLibraPersonDetails())
+      val personA = createRandomLibraPersonDetails()
+      val personB = createRandomLibraPersonDetails()
       val cluster = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
@@ -71,14 +71,14 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should handle out of sync isClusterMergeValid response`() {
-      val personA = createPerson(createRandomLibraPersonDetails())
-      val personB = createPerson(createRandomLibraPersonDetails())
+      val personA = createRandomLibraPersonDetails()
+      val personB = createRandomLibraPersonDetails()
       val cluster1 = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
 
-      val personC = createPerson(createRandomLibraPersonDetails())
-      val personD = createPerson(createRandomLibraPersonDetails())
+      val personC = createRandomLibraPersonDetails()
+      val personD = createRandomLibraPersonDetails()
       val cluster2 = createPersonKey()
         .addPerson(personC)
         .addPerson(personD)
@@ -108,8 +108,9 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should find one high confidence match for record not assigned to cluster`() {
-      val searchingRecord = createPerson(createRandomLibraPersonDetails())
-      val foundRecord = createPersonWithNewKey(createRandomLibraPersonDetails())
+      val searchingRecord = createRandomLibraPersonDetails()
+      val foundRecord = createRandomLibraPersonDetails()
+      createPersonKey().addPerson(foundRecord)
 
       stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
@@ -119,8 +120,10 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should find one high confidence match`() {
-      val searchingRecord = createPersonWithNewKey(createRandomLibraPersonDetails())
-      val foundRecord = createPersonWithNewKey(createRandomLibraPersonDetails())
+      val searchingRecord = createRandomLibraPersonDetails()
+      createPersonKey().addPerson(searchingRecord)
+      val foundRecord = createRandomLibraPersonDetails()
+      createPersonKey().addPerson(foundRecord)
 
       stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
@@ -130,8 +133,8 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should find multiple high confidence match`() {
-      val searchingRecord = createPersonWithNewKey(createRandomLibraPersonDetails())
-
+      val searchingRecord = createRandomLibraPersonDetails()
+      createPersonKey().addPerson(searchingRecord)
       val foundRecords = listOf(
         createPersonWithNewKey(createRandomLibraPersonDetails()),
         createPersonWithNewKey(createRandomLibraPersonDetails()),
@@ -164,8 +167,8 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should not return high confidence match that has no UUID`() {
-      val searchingRecord = createPerson(createRandomLibraPersonDetails())
-      val foundRecord = createPerson(createRandomLibraPersonDetails())
+      val searchingRecord = createRandomLibraPersonDetails()
+      val foundRecord = createRandomLibraPersonDetails()
 
       stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
@@ -176,12 +179,12 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should not return high confidence match has been merged to another record`() {
-      val searchingRecord = createPerson(createRandomLibraPersonDetails())
+      val searchingRecord = createRandomLibraPersonDetails()
       createPersonKey()
         .addPerson(searchingRecord)
 
-      val foundRecord = createPerson(createRandomLibraPersonDetails())
-      val mergedToRecord = createPerson(createRandomLibraPersonDetails())
+      val foundRecord = createRandomLibraPersonDetails()
+      val mergedToRecord = createRandomLibraPersonDetails()
       createPersonKey()
         .addPerson(foundRecord)
         .addPerson(mergedToRecord)
@@ -254,11 +257,11 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should not return high confidence match with recluster merge status`() {
-      val searchingRecord = createPerson(createRandomLibraPersonDetails())
+      val searchingRecord = createRandomLibraPersonDetails()
       createPersonKey()
         .addPerson(searchingRecord)
 
-      val foundRecord = createPerson(createRandomLibraPersonDetails())
+      val foundRecord = createRandomLibraPersonDetails()
       createPersonKey(UUIDStatusType.RECLUSTER_MERGE)
         .addPerson(foundRecord)
 
@@ -271,11 +274,11 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should not return high confidence match with merged status`() {
-      val searchingRecord = createPerson(createRandomLibraPersonDetails())
+      val searchingRecord = createRandomLibraPersonDetails()
       createPersonKey()
         .addPerson(searchingRecord)
 
-      val foundRecord = createPerson(createRandomLibraPersonDetails())
+      val foundRecord = createRandomLibraPersonDetails()
       createPersonKey(UUIDStatusType.MERGED)
         .addPerson(foundRecord)
 
