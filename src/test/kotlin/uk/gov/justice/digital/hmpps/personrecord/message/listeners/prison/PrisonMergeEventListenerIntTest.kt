@@ -263,6 +263,42 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
       )
     }
+
+    @Test
+    fun `should reconcile syscon field values on merge`() {
+      val targetPrisonNumber = randomPrisonNumber()
+      val sourcePrisonNumber = randomPrisonNumber()
+
+      val sourcePerson = createPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS, disability = true))
+      val targetPerson = createPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS, disability = true))
+      createPersonKey()
+        .addPerson(sourcePerson)
+        .addPerson(targetPerson)
+
+      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
+
+      sourcePerson.assertNotLinkedToCluster()
+      sourcePerson.assertMergedTo(targetPerson)
+      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      targetPerson.personKey?.assertClusterIsOfSize(1)
+
+      val updatedSource = awaitNotNull { personRepository.findByPrisonNumber(sourcePrisonNumber) }
+      val updatedTarget = awaitNotNull { personRepository.findByPrisonNumber(targetPrisonNumber) }
+
+      assertThat(updatedSource.disability).isTrue()
+      assertThat(updatedTarget.disability).isTrue()
+
+      checkTelemetry(
+        CPR_RECORD_MERGED,
+        mapOf(
+          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
+          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
+          "SOURCE_SYSTEM" to NOMIS.name,
+        ),
+      )
+      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
+    }
   }
 
   @Nested

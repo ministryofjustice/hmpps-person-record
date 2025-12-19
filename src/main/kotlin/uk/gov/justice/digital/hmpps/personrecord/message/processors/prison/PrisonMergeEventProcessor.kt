@@ -22,11 +22,11 @@ class PrisonMergeEventProcessor(
   fun processEvent(domainEvent: DomainEvent) {
     val prisonNumber = domainEvent.getPrisonNumber()
     prisonerSearchClient.getPrisoner(prisonNumber)?.let {
-      val from: PersonEntity? =
-        personRepository.findByPrisonNumber(domainEvent.additionalInformation?.sourcePrisonNumber!!)
-      val to: PersonEntity = personService.processPerson(
-        it.doNotReclusterOnUpdate(),
-      ) { personRepository.findByPrisonNumber(prisonNumber) }
+      val from: PersonEntity? = personRepository.findByPrisonNumber(domainEvent.additionalInformation?.sourcePrisonNumber!!)
+      val reconciledPerson = PrisonPersonReconciler.reconcile(it, from)
+      val to: PersonEntity = personService.processPerson(reconciledPerson.doNotReclusterOnUpdate()) {
+        personRepository.findByPrisonNumber(prisonNumber)
+      }
       mergeService.processMerge(from, to)
     }
   }
