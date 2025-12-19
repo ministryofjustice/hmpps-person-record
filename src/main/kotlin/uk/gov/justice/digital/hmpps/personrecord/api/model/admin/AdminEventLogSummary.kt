@@ -18,24 +18,24 @@ data class AdminEventLogSummary(
 data class AdminEventLogDetails(
   val uuidStatusType: String?,
   val firstName: String?,
-  val firstNameAliases: Array<String>,
+  val firstNameAliases: List<String>,
   val middleNames: String?,
   val lastName: String?,
-  val lastNameAliases: Array<String>,
+  val lastNameAliases: List<String>,
   val dateOfBirth: String?,
-  val dateOfBirthAliases: Array<String>,
-  val postcodes: Array<String>,
-  val pncs: Array<String>,
-  val cros: Array<String>,
+  val dateOfBirthAliases: List<String>,
+  val postcodes: List<String>,
+  val pncs: List<String>,
+  val cros: List<String>,
   val sourceSystem: String?,
   val sourceSystemId: String?,
   val masterDefendantId: String?,
   val eventType: String,
   val recordMergedTo: Long?,
   val eventTimestamp: String,
-  val sentenceDates: Array<String>,
+  val sentenceDates: List<String>,
   val overrideMarker: String?,
-  val overrideScopes: Array<String>,
+  val overrideScopes: List<String>,
 
 ) {
   companion object {
@@ -47,7 +47,7 @@ data class AdminEventLogDetails(
       lastName = eventLogEntity.lastName,
       lastNameAliases = eventLogEntity.lastNameAliases,
       dateOfBirth = eventLogEntity.dateOfBirth?.toString(),
-      dateOfBirthAliases = eventLogEntity.dateOfBirthAliases.map { it.toString() }.toTypedArray(),
+      dateOfBirthAliases = eventLogEntity.dateOfBirthAliases.map { it.toString() },
       postcodes = eventLogEntity.postcodes,
       pncs = eventLogEntity.pncs,
       cros = eventLogEntity.cros,
@@ -57,9 +57,9 @@ data class AdminEventLogDetails(
       eventType = eventLogEntity.eventType.name,
       recordMergedTo = eventLogEntity.recordMergedTo,
       eventTimestamp = eventLogEntity.eventTimestamp.toString(),
-      sentenceDates = eventLogEntity.sentenceDates.map { it.toString() }.toTypedArray(),
+      sentenceDates = eventLogEntity.sentenceDates.map { it.toString() },
       overrideMarker = eventLogEntity.overrideMarker?.toString(),
-      overrideScopes = eventLogEntity.overrideScopes.map { it.toString() }.toTypedArray(),
+      overrideScopes = eventLogEntity.overrideScopes.map { it.toString() },
     )
   }
 }
