@@ -3,141 +3,100 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.syscon.historic
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonDisabilityStatus
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonDisabilityStatusResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonDisabilityStatusRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDisability
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import java.util.UUID
 
 class SysconDisabilityStatusControllerIntTest : WebTestBase() {
-
-  @Autowired
-  private lateinit var prisonDisabilityStatusRepository: PrisonDisabilityStatusRepository
-
-  @Nested
-  inner class Create {
-
-    @Test
-    fun `should store current and historic disability status against a prison number`() {
-      val prisonNumber = randomPrisonNumber()
-
-      val currentDisabilityStatus = createRandomPrisonDisabilityStatus(prisonNumber, randomDisability(), true)
-      val currentCreationResponse = postDisabilityStatus(currentDisabilityStatus)
-
-      assertCorrectValuesSaved(currentDisabilityStatus, currentCreationResponse.cprDisabilityStatusId)
-
-      val historicDisabilityStatus = createRandomPrisonDisabilityStatus(prisonNumber, randomDisability(), false)
-      val historicCreationResponse = postDisabilityStatus(historicDisabilityStatus)
-
-      assertCorrectValuesSaved(historicDisabilityStatus, historicCreationResponse.cprDisabilityStatusId)
-    }
-  }
 
   @Nested
   inner class Update {
 
     @Test
-    fun `should update a disability status`() {
+    fun `should update person disability status`() {
       val prisonNumber = randomPrisonNumber()
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-      val currentDisabilityStatus = createRandomPrisonDisabilityStatus(prisonNumber, randomDisability(), true)
-      val currentCreationResponse = postDisabilityStatus(currentDisabilityStatus)
+      val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
+      assertThat(originalEntity.disability).isNull()
 
-      assertCorrectValuesSaved(currentDisabilityStatus, currentCreationResponse.cprDisabilityStatusId)
+      val disabilityStatus = createPrisonDisabilityStatus(true)
+      postDisabilityStatus(prisonNumber, disabilityStatus)
 
-      val updatedDisabilityStatus = createRandomPrisonDisabilityStatus(prisonNumber, randomDisability(), false)
+      awaitAssert {
+        val updatedEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+        assertThat(updatedEntity.disability).isEqualTo(disabilityStatus.disability)
+        assertThat(updatedEntity.getPrimaryName().dateOfBirth).isEqualTo(originalEntity.getPrimaryName().dateOfBirth)
+        assertThat(updatedEntity.getPrimaryName().firstName).isEqualTo(originalEntity.getPrimaryName().firstName)
+        assertThat(updatedEntity.getPrimaryName().lastName).isEqualTo(originalEntity.getPrimaryName().lastName)
+      }
+    }
 
-      webTestClient
-        .put()
-        .uri("/syscon-sync/disability-status/${currentCreationResponse.cprDisabilityStatusId}")
-        .bodyValue(updatedDisabilityStatus)
+    @Test
+    fun `should return 404 not found when person with prison number does not exist`() {
+      val prisonNumber = randomPrisonNumber()
+      val expectedErrorMessage = "Not found: $prisonNumber"
+      webTestClient.post()
+        .uri(disabilityUrl(prisonNumber))
+        .bodyValue(createPrisonDisabilityStatus(randomBoolean()))
         .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
         .exchange()
         .expectStatus()
-        .isOk
-
-      assertCorrectValuesSaved(updatedDisabilityStatus, currentCreationResponse.cprDisabilityStatusId)
+        .isNotFound
+        .expectBody()
+        .jsonPath("userMessage")
+        .isEqualTo(expectedErrorMessage)
     }
   }
 
-  @Test
-  fun `should return Access Denied 403 when role is wrong`() {
-    val expectedErrorMessage = "Forbidden: Access Denied"
-    webTestClient.post()
-      .uri("/syscon-sync/disability-status")
-      .bodyValue(createRandomPrisonDisabilityStatus(randomPrisonNumber(), randomDisability(), true))
-      .authorised(listOf("UNSUPPORTED-ROLE"))
-      .exchange()
-      .expectStatus()
-      .isForbidden
-      .expectBody()
-      .jsonPath("userMessage")
-      .isEqualTo(expectedErrorMessage)
+  @Nested
+  inner class Auth {
+
+    @Test
+    fun `should return Access Denied 403 when role is wrong`() {
+      val expectedErrorMessage = "Forbidden: Access Denied"
+      webTestClient.post()
+        .uri(disabilityUrl(randomPrisonNumber()))
+        .bodyValue(createPrisonDisabilityStatus(randomBoolean()))
+        .authorised(listOf("UNSUPPORTED-ROLE"))
+        .exchange()
+        .expectStatus()
+        .isForbidden
+        .expectBody()
+        .jsonPath("userMessage")
+        .isEqualTo(expectedErrorMessage)
+    }
+
+    @Test
+    fun `should return UNAUTHORIZED 401 when role is not set`() {
+      webTestClient.post()
+        .uri(disabilityUrl(randomPrisonNumber()))
+        .exchange()
+        .expectStatus()
+        .isUnauthorized
+    }
   }
 
-  @Test
-  fun `should return UNAUTHORIZED 401 when role is not set`() {
-    webTestClient.post()
-      .uri("/syscon-sync/disability-status")
-      .exchange()
-      .expectStatus()
-      .isUnauthorized
-  }
-
-  private fun postDisabilityStatus(status: PrisonDisabilityStatus): PrisonDisabilityStatusResponse {
-    val currentCreationResponse = webTestClient
+  private fun postDisabilityStatus(prisonNumber: String, disabilityStatus: PrisonDisabilityStatus) {
+    webTestClient
       .post()
-      .uri("/syscon-sync/disability-status")
-      .bodyValue(status)
+      .uri(disabilityUrl(prisonNumber))
+      .bodyValue(disabilityStatus)
       .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
       .exchange()
       .expectStatus()
-      .isCreated
-      .expectBody(PrisonDisabilityStatusResponse::class.java)
-      .returnResult()
-      .responseBody!!
-
-    return currentCreationResponse
+      .isOk
   }
 
-  private fun createRandomPrisonDisabilityStatus(prisonNumber: String, status: Boolean, current: Boolean): PrisonDisabilityStatus = PrisonDisabilityStatus(
-    prisonNumber = prisonNumber,
+  private fun createPrisonDisabilityStatus(status: Boolean): PrisonDisabilityStatus = PrisonDisabilityStatus(
     disability = status,
-    current = current,
-    startDate = randomDate(),
-    endDate = randomDate(),
-    createUserId = randomName(),
-    createDateTime = randomDateTime(),
-    createDisplayName = randomName(),
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),
-    modifyDisplayName = randomName(),
   )
 
-  private fun assertCorrectValuesSaved(
-    disabilityStatus: PrisonDisabilityStatus,
-    statusId: UUID,
-  ) {
-    val status = awaitNotNull { prisonDisabilityStatusRepository.findByCprDisabilityStatusId(statusId) }
-
-    assertThat(status.prisonNumber).isEqualTo(disabilityStatus.prisonNumber)
-    assertThat(status.disability).isEqualTo(disabilityStatus.disability)
-    assertThat(status.prisonRecordType).isEqualTo(PrisonRecordType.from(disabilityStatus.current))
-    assertThat(status.startDate).isEqualTo(disabilityStatus.startDate)
-    assertThat(status.endDate).isEqualTo(disabilityStatus.endDate)
-    assertThat(status.createUserId).isEqualTo(disabilityStatus.createUserId)
-    assertThat(status.createDateTime).isEqualTo(disabilityStatus.createDateTime)
-    assertThat(status.createDisplayName).isEqualTo(disabilityStatus.createDisplayName)
-    assertThat(status.modifyDateTime).isEqualTo(disabilityStatus.modifyDateTime)
-    assertThat(status.modifyUserId).isEqualTo(disabilityStatus.modifyUserId)
-    assertThat(status.modifyDisplayName).isEqualTo(disabilityStatus.modifyDisplayName)
-  }
+  private fun disabilityUrl(prisonNumber: String) = "/syscon-sync/disability-status/$prisonNumber"
 }
