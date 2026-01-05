@@ -52,7 +52,7 @@ dependencies {
 
   testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
   testImplementation("org.jmock:jmock:2.13.1")
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.8.2")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.0.0")
 }
 
 java {
