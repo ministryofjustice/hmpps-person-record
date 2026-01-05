@@ -56,8 +56,10 @@ data class Person(
   val selfDescribedGenderIdentity: String? = null,
   val sexualOrientation: SexualOrientation? = null,
   val disability: Boolean? = null,
-  val behaviour: Behaviour = Behaviour(),
   val immigrationStatus: Boolean? = null,
+  val birthplace: String? = null,
+  val birthCountryCode: String? = null,
+  val behaviour: Behaviour = Behaviour(),
 ) {
 
   companion object {
@@ -223,20 +225,30 @@ data class Person(
       middleNames = existingPersonEntity.getPrimaryName().middleNames,
       lastName = existingPersonEntity.getPrimaryName().lastName,
       dateOfBirth = existingPersonEntity.getPrimaryName().dateOfBirth,
-      sexCode = existingPersonEntity.getPrimaryName().sexCode,
+      dateOfDeath = existingPersonEntity.dateOfDeath,
       crn = existingPersonEntity.crn,
       prisonNumber = existingPersonEntity.prisonNumber,
       defendantId = existingPersonEntity.defendantId,
+      titleCode = existingPersonEntity.getPrimaryName().titleCode,
       aliases = existingPersonEntity.getAliases().map { Alias.from(it) },
       masterDefendantId = existingPersonEntity.masterDefendantId,
+      nationalities = existingPersonEntity.nationalities.map { it.nationalityCode },
       religion = existingPersonEntity.religion,
+      ethnicityCode = existingPersonEntity.ethnicityCode,
       contacts = existingPersonEntity.contacts.map { Contact.convertEntityToContact(it) },
       addresses = existingPersonEntity.addresses.map { Address.from(it) },
       references = existingPersonEntity.references.map { Reference.from(it) },
       sourceSystem = existingPersonEntity.sourceSystem,
       sentences = existingPersonEntity.sentenceInfo.map { SentenceInfo.from(it) },
+      cId = existingPersonEntity.cId,
+      sexCode = existingPersonEntity.getPrimaryName().sexCode,
+      genderIdentity = existingPersonEntity.genderIdentity,
+      selfDescribedGenderIdentity = existingPersonEntity.selfDescribedGenderIdentity,
+      sexualOrientation = existingPersonEntity.sexualOrientation,
       disability = existingPersonEntity.disability,
       immigrationStatus = existingPersonEntity.immigrationStatus,
+      birthplace = existingPersonEntity.birthplace,
+      birthCountryCode = existingPersonEntity.birthCountryCode,
     )
   }
 
