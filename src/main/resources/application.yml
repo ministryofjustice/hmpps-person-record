@@ -3,6 +3,10 @@ spring:
     name: hmpps-person-record-service
   codec:
     max-in-memory-size: 10MB
+
+  http:
+    codecs:
+      preferred-json-mapper: jackson2
   security:
     oauth2:
       resourceserver:
