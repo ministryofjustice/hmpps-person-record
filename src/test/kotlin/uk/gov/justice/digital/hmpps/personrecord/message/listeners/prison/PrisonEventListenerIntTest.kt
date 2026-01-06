@@ -305,29 +305,33 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val aliasMiddleName = randomName()
       val aliasLastName = randomName()
       val aliasDateOfBirth = randomDate()
+      val secondAliasFirstName = randomName()
+      val secondAliasMiddleName = randomName()
+      val secondAliasLastName = randomName()
+      val secondAliasDateOfBirth = randomDate()
 
       stubPersonMatchUpsert()
       stubNoMatchesPersonMatch()
       prisonDomainEventAndResponseSetup(
         PRISONER_CREATED,
-        apiResponseSetup = ApiResponseSetup(aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = aliasMiddleName, lastName = aliasLastName, dateOfBirth = aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, sentenceStartDate = sentenceStartDate, primarySentence = true, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true, fullAddress = "")), dateOfBirth = personDateOfBirth),
+        apiResponseSetup = ApiResponseSetup(aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = aliasMiddleName, lastName = aliasLastName, dateOfBirth = aliasDateOfBirth), ApiResponseSetupAlias(firstName = secondAliasFirstName, middleName = secondAliasMiddleName, lastName = secondAliasLastName, dateOfBirth = secondAliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, sentenceStartDate = sentenceStartDate, primarySentence = true, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true, fullAddress = "")), dateOfBirth = personDateOfBirth),
       )
 
       checkEventLog(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
         assertThat(eventLogs.size).isEqualTo(1)
         val createdLog = eventLogs.first()
-        assertThat(createdLog.pncs).isEqualTo(arrayOf(PNCIdentifier.from(pnc).pncId))
-        assertThat(createdLog.cros).isEqualTo(arrayOf(cro))
+        assertThat(createdLog.pncs).isEqualTo(listOf(PNCIdentifier.from(pnc).pncId))
+        assertThat(createdLog.cros).isEqualTo(listOf(cro))
         assertThat(createdLog.firstName).isEqualTo(firstName)
         assertThat(createdLog.middleNames).isEqualTo("$middleName $middleName")
         assertThat(createdLog.lastName).isEqualTo(lastName)
         assertThat(createdLog.dateOfBirth).isEqualTo(personDateOfBirth)
         assertThat(createdLog.sourceSystem).isEqualTo(NOMIS)
-        assertThat(createdLog.postcodes).isEqualTo(arrayOf(postcode))
-        assertThat(createdLog.sentenceDates).isEqualTo(arrayOf(sentenceStartDate))
-        assertThat(createdLog.firstNameAliases).isEqualTo(arrayOf(aliasFirstName))
-        assertThat(createdLog.lastNameAliases).isEqualTo(arrayOf(aliasLastName))
-        assertThat(createdLog.dateOfBirthAliases).isEqualTo(arrayOf(aliasDateOfBirth))
+        assertThat(createdLog.postcodes).isEqualTo(listOf(postcode))
+        assertThat(createdLog.sentenceDates).isEqualTo(listOf(sentenceStartDate))
+        assertThat(createdLog.firstNameAliases).isEqualTo(listOf(aliasFirstName, secondAliasFirstName).sorted())
+        assertThat(createdLog.lastNameAliases).isEqualTo(listOf(aliasLastName, secondAliasLastName).sorted())
+        assertThat(createdLog.dateOfBirthAliases).isEqualTo(listOf(aliasDateOfBirth, secondAliasDateOfBirth).sorted())
         assertThat(createdLog.personUUID).isNotNull()
         assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }

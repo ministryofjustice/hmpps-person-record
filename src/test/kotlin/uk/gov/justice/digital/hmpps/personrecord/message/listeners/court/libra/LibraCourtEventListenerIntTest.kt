@@ -285,12 +285,12 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkEventLog(cId, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
         assertThat(eventLogs.size).isEqualTo(1)
         val createdLog = eventLogs.first()
-        assertThat(createdLog.pncs).isEqualTo(arrayOf(pnc))
+        assertThat(createdLog.pncs).isEqualTo(listOf(pnc))
         assertThat(createdLog.firstName).isEqualTo(firstName)
         assertThat(createdLog.lastName).isEqualTo(lastName)
         assertThat(createdLog.dateOfBirth).isEqualTo(dateOfBirth)
         assertThat(createdLog.sourceSystem).isEqualTo(LIBRA)
-        assertThat(createdLog.postcodes).isEqualTo(arrayOf(postcode))
+        assertThat(createdLog.postcodes).isEqualTo(listOf(postcode))
         assertThat(createdLog.personUUID).isNotNull()
         assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }
