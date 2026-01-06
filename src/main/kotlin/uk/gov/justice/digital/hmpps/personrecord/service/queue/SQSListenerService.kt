@@ -48,7 +48,7 @@ class SQSListenerService(
 
 class DiscardableNotFoundException : RuntimeException()
 
-fun <T> Mono<out T>.discardNotFoundException(): Mono<out T> = this.onErrorResume(WebClientResponseException::class.java) {
+fun <T : Any> Mono<out T>.discardNotFoundException(): Mono<out T> = this.onErrorResume(WebClientResponseException::class.java) {
   if (it.statusCode == NOT_FOUND) {
     throw DiscardableNotFoundException()
   }

@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 
 @Configuration
 class OpenApiConfiguration(buildProperties: BuildProperties) {
-  private val version: String = buildProperties.version
+  private val version: String? = buildProperties.version
 
   @Bean
   fun customOpenAPI(): OpenAPI = OpenAPI()

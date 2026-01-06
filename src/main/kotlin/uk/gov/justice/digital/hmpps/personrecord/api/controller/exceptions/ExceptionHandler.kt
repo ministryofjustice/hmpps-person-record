@@ -17,7 +17,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 class ExceptionHandler {
 
   @ExceptionHandler(MethodArgumentTypeMismatchException::class)
-  fun handleBadRequest(e: MethodArgumentTypeMismatchException): ResponseEntity<ErrorResponse?>? = ResponseEntity
+  fun handleBadRequest(e: MethodArgumentTypeMismatchException): ResponseEntity<ErrorResponse> = ResponseEntity
     .status(BAD_REQUEST)
     .body(
       ErrorResponse(
@@ -27,7 +27,7 @@ class ExceptionHandler {
     )
 
   @ExceptionHandler(RuntimeException::class)
-  fun handleInternalServerError(e: RuntimeException): ResponseEntity<ErrorResponse?>? = ResponseEntity
+  fun handleInternalServerError(e: RuntimeException): ResponseEntity<ErrorResponse> = ResponseEntity
     .status(INTERNAL_SERVER_ERROR)
     .body(
       ErrorResponse(
@@ -37,7 +37,7 @@ class ExceptionHandler {
     )
 
   @ExceptionHandler(AccessDeniedException::class)
-  fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse?>? = ResponseEntity
+  fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse> = ResponseEntity
     .status(FORBIDDEN)
     .body(
       ErrorResponse(
@@ -57,7 +57,7 @@ class ExceptionHandler {
     )
 
   @ExceptionHandler(AuthenticationException::class)
-  fun handleUnauthorizedException(e: AuthenticationException): ResponseEntity<ErrorResponse?>? = ResponseEntity
+  fun handleUnauthorizedException(e: AuthenticationException): ResponseEntity<ErrorResponse> = ResponseEntity
     .status(UNAUTHORIZED)
     .body(
       ErrorResponse(
