@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.ValueDeserializer
 
-class CROIdentifierDeserializer : StdDeserializer<CROIdentifier>(CROIdentifier::class.java) {
+class CROIdentifierDeserializer : ValueDeserializer<CROIdentifier>() {
 
   override fun deserialize(parser: JsonParser?, context: DeserializationContext?): CROIdentifier = CROIdentifier.from(parser?.text ?: "")
 

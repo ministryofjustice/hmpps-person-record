@@ -2,9 +2,9 @@ package uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatf
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import jakarta.annotation.Nullable
 import jakarta.validation.Valid
+import tools.jackson.databind.annotation.JsonDeserialize
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifierDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier

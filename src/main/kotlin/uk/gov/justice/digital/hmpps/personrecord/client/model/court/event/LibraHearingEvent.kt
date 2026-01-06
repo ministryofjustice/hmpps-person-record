@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.OptBoolean
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
+import tools.jackson.databind.annotation.JsonDeserialize
+import tools.jackson.databind.ext.javatime.deser.LocalDateDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Address
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.PERSON
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name

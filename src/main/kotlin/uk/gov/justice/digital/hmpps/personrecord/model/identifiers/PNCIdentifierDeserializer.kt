@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.ValueDeserializer
 
-class PNCIdentifierDeserializer : StdDeserializer<PNCIdentifier>(PNCIdentifier::class.java) {
+class PNCIdentifierDeserializer : ValueDeserializer<PNCIdentifier>() {
 
   override fun deserialize(parser: JsonParser?, context: DeserializationContext?): PNCIdentifier = PNCIdentifier.from(parser?.text ?: "")
 
