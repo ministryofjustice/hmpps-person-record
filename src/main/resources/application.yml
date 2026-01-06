@@ -1,6 +1,9 @@
 spring:
   application:
     name: hmpps-person-record-service
+  http:
+    converters:
+      preferred-json-mapper: jackson2
   codec:
     max-in-memory-size: 10MB
   security:
@@ -33,6 +36,8 @@ spring:
             token-uri: ${nomis-oauth.base-url}/auth/oauth/token
 
   jackson:
+    date-format: "yyyy-MM-dd HH:mm:ss"
+  jackson2:
     date-format: "yyyy-MM-dd HH:mm:ss"
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
