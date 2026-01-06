@@ -2,9 +2,11 @@ package uk.gov.justice.digital.hmpps.personrecord.config
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.QUEUE_ADMIN
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
+@AutoConfigureWebTestClient
 abstract class WebTestBase : IntegrationTestBase() {
 
   @Autowired
