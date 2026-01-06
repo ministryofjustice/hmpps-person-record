@@ -76,7 +76,7 @@ class EventLogApiIntTest : WebTestBase() {
     assertThat(response.uuid).isEqualTo(person.personKey?.personUUID.toString())
     assertThat(response.eventLogs[0].eventType).isEqualTo(CPR_RECORD_UPDATED.name)
     assertThat(response.eventLogs[0].overrideMarker).isEqualTo(excludedPerson.overrideMarker.toString())
-    assertThat(response.eventLogs[0].overrideScopes).isEqualTo(excludedPerson.overrideScopes.map { it.scope.toString() }.toTypedArray())
+    assertThat(response.eventLogs[0].overrideScopes).isEqualTo(excludedPerson.overrideScopes.map { it.scope.toString() })
   }
 
   @Test
