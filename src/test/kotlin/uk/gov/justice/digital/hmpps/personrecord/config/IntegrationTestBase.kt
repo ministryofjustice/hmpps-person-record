@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
@@ -32,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.test.context.ActiveProfiles
+import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
@@ -103,7 +103,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 class IntegrationTestBase {
 
   @Autowired
-  lateinit var objectMapper: ObjectMapper
+  lateinit var jsonMapper: JsonMapper
 
   @Autowired
   lateinit var personKeyRepository: PersonKeyRepository
@@ -379,7 +379,7 @@ class IntegrationTestBase {
       nextScenarioState,
       urlPattern = matchIdUrlPattern,
       status = status,
-      body = objectMapper.writeValueAsString(personMatchResponse),
+      body = jsonMapper.writeValueAsString(personMatchResponse),
     )
   }
 
@@ -394,7 +394,7 @@ class IntegrationTestBase {
       nextScenarioState,
       url = "/is-cluster-valid",
       status = 200,
-      responseBody = objectMapper.writeValueAsString(IsClusterValidResponse(isClusterValid = true, emptyList())),
+      responseBody = jsonMapper.writeValueAsString(IsClusterValidResponse(isClusterValid = true, emptyList())),
     )
   }
 

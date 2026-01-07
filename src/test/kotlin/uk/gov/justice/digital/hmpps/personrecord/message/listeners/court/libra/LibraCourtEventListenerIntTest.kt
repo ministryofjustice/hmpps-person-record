@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.libra
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -200,7 +199,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
     assertThat(personRepository.findByCId(cId)).isNull()
 
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body(), SQSMessage::class.java) }
 
     val libraMessage: String = sqsMessage?.message!!
 
@@ -219,7 +218,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
     assertThat(personRepository.findByCId(cId)).isNull()
 
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body(), SQSMessage::class.java) }
 
     val libraMessage: String = sqsMessage?.message!!
 
@@ -248,7 +247,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val cprUUID = awaitNotNull { personRepository.findByCId(cId) }.personKey?.personUUID.toString()
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body(), SQSMessage::class.java) }
 
     val libraMessage: String = sqsMessage?.message!!
 
