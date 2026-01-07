@@ -132,7 +132,7 @@ abstract class MessagingTestBase : IntegrationTestBase() {
 
   fun publishDomainEvent(eventType: String, domainEvent: DomainEvent) {
     publishEvent(
-      objectMapper.writeValueAsString(domainEvent),
+      jsonMapper.writeValueAsString(domainEvent),
       domainEventsTopic,
       mapOf(
         "eventType" to MessageAttributeValue.builder().dataType("String")

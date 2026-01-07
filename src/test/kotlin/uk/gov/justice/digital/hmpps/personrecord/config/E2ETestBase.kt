@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.QUEUE_ADMIN
@@ -14,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
 @ActiveProfiles("e2e")
+@AutoConfigureWebTestClient
 class E2ETestBase : MessagingTestBase() {
 
   @Autowired

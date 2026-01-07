@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.libra
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -200,7 +199,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
     assertThat(personRepository.findByCId(cId)).isNull()
 
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body(), SQSMessage::class.java) }
 
     val libraMessage: String = sqsMessage?.message!!
 
@@ -219,7 +218,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
     assertThat(personRepository.findByCId(cId)).isNull()
 
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body(), SQSMessage::class.java) }
 
     val libraMessage: String = sqsMessage?.message!!
 
@@ -248,7 +247,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val cprUUID = awaitNotNull { personRepository.findByCId(cId) }.personKey?.personUUID.toString()
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body(), SQSMessage::class.java) }
 
     val libraMessage: String = sqsMessage?.message!!
 
@@ -285,12 +284,12 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkEventLog(cId, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
         assertThat(eventLogs.size).isEqualTo(1)
         val createdLog = eventLogs.first()
-        assertThat(createdLog.pncs).isEqualTo(arrayOf(pnc))
+        assertThat(createdLog.pncs).isEqualTo(listOf(pnc))
         assertThat(createdLog.firstName).isEqualTo(firstName)
         assertThat(createdLog.lastName).isEqualTo(lastName)
         assertThat(createdLog.dateOfBirth).isEqualTo(dateOfBirth)
         assertThat(createdLog.sourceSystem).isEqualTo(LIBRA)
-        assertThat(createdLog.postcodes).isEqualTo(arrayOf(postcode))
+        assertThat(createdLog.postcodes).isEqualTo(listOf(postcode))
         assertThat(createdLog.personUUID).isNotNull()
         assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }
