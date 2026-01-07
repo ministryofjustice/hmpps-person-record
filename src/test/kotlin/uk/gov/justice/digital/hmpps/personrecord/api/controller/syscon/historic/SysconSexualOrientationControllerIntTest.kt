@@ -133,13 +133,11 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
     assertThat(current.sexualOrientationCode).isEqualTo(sexualOrientation.sexualOrientationCode?.let { SexualOrientation.fromPrison(sexualOrientation.sexualOrientationCode) })
     assertThat(current.modifyDateTime).isEqualTo(sexualOrientation.modifyDateTime)
     assertThat(current.modifyUserId).isEqualTo(sexualOrientation.modifyUserId)
-    assertThat(current.modifyDisplayName).isEqualTo(sexualOrientation.modifyDisplayName)
   }
 
   private fun createRandomPrisonSexualOrientation(code: Map.Entry<String, SexualOrientation>?): PrisonSexualOrientation = PrisonSexualOrientation(
     sexualOrientationCode = code?.key,
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),
-    modifyDisplayName = randomName(),
   )
 }

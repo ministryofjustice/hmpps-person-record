@@ -18,16 +18,14 @@ import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.Resou
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonSexualOrientationRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Tag(name = "Syscon Sync")
 @RestController
-@PreAuthorize("hasRole('${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}')")
+@PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 class SysconSexualOrientationController(
-  private val prisonSexualOrientationRepository: PrisonSexualOrientationRepository,
   private val personRepository: PersonRepository,
   private val personService: PersonService,
 ) {
