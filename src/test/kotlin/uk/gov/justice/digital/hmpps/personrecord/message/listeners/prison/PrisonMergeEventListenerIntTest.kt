@@ -270,7 +270,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sourcePrisonNumber = randomPrisonNumber()
 
       val sourcePerson = createPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS, disability = true))
-      val targetPerson = createPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS, disability = true))
+      val targetPerson = createPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS, disability = false))
       createPersonKey()
         .addPerson(sourcePerson)
         .addPerson(targetPerson)
@@ -286,7 +286,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val updatedTarget = awaitNotNull { personRepository.findByPrisonNumber(targetPrisonNumber) }
 
       assertThat(updatedSource.disability).isTrue()
-      assertThat(updatedTarget.disability).isTrue()
+      assertThat(updatedTarget.disability).isFalse()
 
       checkTelemetry(
         CPR_RECORD_MERGED,
