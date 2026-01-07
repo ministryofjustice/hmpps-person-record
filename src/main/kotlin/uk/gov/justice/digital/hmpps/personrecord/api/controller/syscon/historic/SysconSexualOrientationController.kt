@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientation
@@ -43,7 +42,8 @@ class SysconSexualOrientationController(
     @PathVariable @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true) prisonNumber: String,
     @RequestBody sexualOrientation: PrisonSexualOrientation,
   ): String {
-    personRepository.findByPrisonNumber(prisonNumber)?.processUpdate(sexualOrientation)
+    personRepository.findByPrisonNumber(prisonNumber)
+      ?.processUpdate(sexualOrientation)
       ?: throw ResourceNotFoundException(prisonNumber)
     return OK
   }
