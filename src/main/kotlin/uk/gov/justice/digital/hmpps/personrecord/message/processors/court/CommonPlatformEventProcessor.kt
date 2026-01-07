@@ -44,7 +44,7 @@ class CommonPlatformEventProcessor(
     val defendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .asSequence()
       .flatMap { it.defendants }
-      .filterNot { it.isYouth }
+      .filterNot { it.isYouth?:false }
       .distinctBy { it.id }
       .map { populateIdentifiersFromDefendantWhenMissing(it) }
       .map { Person.from(it) }
