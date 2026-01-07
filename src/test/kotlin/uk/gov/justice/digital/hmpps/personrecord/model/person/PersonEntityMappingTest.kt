@@ -43,7 +43,7 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.jvmErasure
 
-class PersonEntityMappingTest : IntegrationTestBase() {
+class PersonEntityMappingTest {
 
   @Test
   fun `should map all dto fields from entity`() {
