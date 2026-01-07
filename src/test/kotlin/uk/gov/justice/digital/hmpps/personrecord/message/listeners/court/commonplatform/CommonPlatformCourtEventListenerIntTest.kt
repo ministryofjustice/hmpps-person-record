@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
+import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.LargeMessageBody
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
@@ -357,7 +358,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body(), SQSMessage::class.java) }!!
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
     assertThat(sqsMessage.message.contains("cprUUID")).isFalse()
     assertThat(sqsMessage.message.contains(youthDefendantId)).isTrue()
@@ -395,7 +396,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body(), SQSMessage::class.java) }!!
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
     assertThat(sqsMessage.message.contains("cprUUID")).isFalse()
     assertThat(sqsMessage.message.contains(defendantId)).isTrue()
@@ -418,7 +419,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body(), SQSMessage::class.java) }!!
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
     assertThat(sqsMessage.message.contains("cprUUID")).isFalse()
     assertThat(sqsMessage.message.contains(defendantId)).isTrue()
@@ -465,7 +466,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body(), SQSMessage::class.java) }
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }
     assertThat(sqsMessage?.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
     val commonPlatformHearing: String = sqsMessage?.message!!
 
@@ -543,7 +544,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body(), SQSMessage::class.java) }!!
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
     assertThat(sqsMessage.message.contains("pncId")).isFalse()
   }
@@ -579,7 +580,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body(), SQSMessage::class.java) }!!
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
     assertThat(sqsMessage.message.contains("croId")).isFalse()
   }
@@ -657,9 +658,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     expectOneMessageOn(testOnlyCourtEventsQueue)
 
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body(), SQSMessage::class.java) }
-    val messageBody = jsonMapper.readValue(sqsMessage?.message, ArrayList::class.java)
-    val (s3Key, s3BucketName) = jsonMapper.readValue(jsonMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }
+    val messageBody = jsonMapper.readValue<ArrayList<Any>>(sqsMessage?.message!!)
+    val (s3Key, s3BucketName) = jsonMapper.readValue<LargeMessageBody>(jsonMapper.writeValueAsString(messageBody[1]))
     val body = s3AsyncClient.getObject(
       GetObjectRequest.builder().key(s3Key).bucket(s3BucketName).build(),
       AsyncResponseTransformer.toBytes(),

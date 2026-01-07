@@ -7,6 +7,7 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.LargeMessageBody
@@ -39,7 +40,7 @@ class CommonPlatformEventProcessor(
       else -> sqsMessage.message
     }
 
-    val commonPlatformHearingEvent = jsonMapper.readValue(commonPlatformHearing, CommonPlatformHearingEvent::class.java)
+    val commonPlatformHearingEvent = jsonMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
 
     val defendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .asSequence()
@@ -65,10 +66,9 @@ class CommonPlatformEventProcessor(
   private fun messageLargerThanThreshold(message: String): Boolean = message.toByteArray().size >= MAX_MESSAGE_SIZE
 
   private suspend fun getPayloadFromS3(sqsMessage: SQSMessage): String {
-    val messageBody = jsonMapper.readValue(sqsMessage.message, ArrayList::class.java)
-    val (s3Key, s3BucketName) = jsonMapper.readValue(
+    val messageBody = jsonMapper.readValue<ArrayList<Any>>(sqsMessage.message)
+    val (s3Key, s3BucketName) = jsonMapper.readValue<LargeMessageBody>(
       jsonMapper.writeValueAsString(messageBody[1]),
-      LargeMessageBody::class.java,
     )
 
     val request = GetObjectRequest.builder().key(s3Key).bucket(s3BucketName).build()

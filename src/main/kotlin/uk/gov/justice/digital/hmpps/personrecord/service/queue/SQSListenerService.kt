@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
@@ -30,7 +31,7 @@ class SQSListenerService(
     ],
   )
   fun processSQSMessage(rawMessage: String, action: (sqsMessage: SQSMessage) -> Unit) = TimeoutExecutor.runWithTimeout {
-    val sqsMessage = jsonMapper.readValue<SQSMessage>(rawMessage, SQSMessage::class.java)
+    val sqsMessage = jsonMapper.readValue<SQSMessage>(rawMessage)
     try {
       when (sqsMessage.type) {
         NOTIFICATION -> action(sqsMessage)

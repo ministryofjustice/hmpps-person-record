@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 import com.jayway.jsonpath.JsonPath
 import org.springframework.stereotype.Component
 import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -17,7 +18,7 @@ class LibraEventProcessor(
 ) {
 
   fun processEvent(sqsMessage: SQSMessage) {
-    val libraHearingEvent = jsonMapper.readValue(sqsMessage.message, LibraHearingEvent::class.java)
+    val libraHearingEvent = jsonMapper.readValue<LibraHearingEvent>(sqsMessage.message)
     val person = Person.from(libraHearingEvent)
     val personEntity = when {
       libraHearingEvent.isPerson() && person.isPerson() -> transactionalLibraProcessor.processLibraPerson(person)

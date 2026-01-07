@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
 import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
@@ -22,7 +23,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DiscardableNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import java.util.UUID
-
 @Component
 class PersonMatchService(
   private val personMatchClient: PersonMatchClient,
@@ -72,7 +72,7 @@ class PersonMatchService(
 
   private fun handleDecodeOfNotFoundException(exception: NotFound): IsClusterValidMissingRecordResponse {
     val responseBody = exception.responseBodyAsString
-    return jsonMapper.readValue<IsClusterValidMissingRecordResponse>(responseBody, IsClusterValidMissingRecordResponse::class.java)
+    return jsonMapper.readValue<IsClusterValidMissingRecordResponse>(responseBody)
   }
 
   private fun getPersonRecords(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.mapNotNull {
