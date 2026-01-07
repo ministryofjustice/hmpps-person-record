@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
 @ActiveProfiles("e2e")
+@AutoConfigureWebTestClient
 class E2ETestBase : MessagingTestBase() {
 
   @Autowired
