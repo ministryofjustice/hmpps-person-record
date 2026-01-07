@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.model.person
 
 import org.assertj.core.api.SoftAssertions
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity

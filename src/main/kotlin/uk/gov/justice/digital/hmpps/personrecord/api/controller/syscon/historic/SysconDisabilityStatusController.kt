@@ -28,7 +28,7 @@ class SysconDisabilityStatusController(
   private val personService: PersonService,
 ) {
 
-  @Operation(description = """Update the disability status by prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.""")
+  @Operation(description = "Update the disability status by prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.")
   @PostMapping("/syscon-sync/disability-status/{prisonNumber}")
   @ApiResponses(
     ApiResponse(
@@ -38,9 +38,7 @@ class SysconDisabilityStatusController(
   )
   @Transactional(isolation = Isolation.REPEATABLE_READ)
   fun updateDisabilityStatus(
-    @PathVariable(name = "prisonNumber")
-    @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true)
-    prisonNumber: String,
+    @PathVariable @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true) prisonNumber: String,
     @RequestBody prisonDisabilityStatus: PrisonDisabilityStatus,
   ): String {
     personRepository.findByPrisonNumber(prisonNumber)
