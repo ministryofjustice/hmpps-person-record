@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.queue
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import jakarta.persistence.OptimisticLockException
 import org.slf4j.LoggerFactory
 import org.springframework.dao.CannotAcquireLockException
@@ -12,13 +10,14 @@ import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
+import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 
 @Component
 class SQSListenerService(
-  private val objectMapper: ObjectMapper,
+  private val jsonMapper: JsonMapper,
 ) {
 
   @Retryable(
@@ -31,7 +30,7 @@ class SQSListenerService(
     ],
   )
   fun processSQSMessage(rawMessage: String, action: (sqsMessage: SQSMessage) -> Unit) = TimeoutExecutor.runWithTimeout {
-    val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
+    val sqsMessage = jsonMapper.readValue<SQSMessage>(rawMessage, SQSMessage::class.java)
     try {
       when (sqsMessage.type) {
         NOTIFICATION -> action(sqsMessage)
