@@ -1,13 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.jayway.jsonpath.JsonPath
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.LargeMessageBody
@@ -24,7 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.CourtMessagePubli
 @Component
 class CommonPlatformEventProcessor(
   private val personRepository: PersonRepository,
-  private val objectMapper: ObjectMapper,
+  private val jsonMapper: JsonMapper,
   private val transactionalCommonPlatformProcessor: TransactionalCommonPlatformProcessor,
   private val courtMessagePublisher: CourtMessagePublisher,
   private val s3AsyncClient: S3AsyncClient,
@@ -40,7 +39,7 @@ class CommonPlatformEventProcessor(
       else -> sqsMessage.message
     }
 
-    val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
+    val commonPlatformHearingEvent = jsonMapper.readValue(commonPlatformHearing, CommonPlatformHearingEvent::class.java)
 
     val defendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .asSequence()
@@ -66,9 +65,9 @@ class CommonPlatformEventProcessor(
   private fun messageLargerThanThreshold(message: String): Boolean = message.toByteArray().size >= MAX_MESSAGE_SIZE
 
   private suspend fun getPayloadFromS3(sqsMessage: SQSMessage): String {
-    val messageBody = objectMapper.readValue(sqsMessage.message, ArrayList::class.java)
-    val (s3Key, s3BucketName) = objectMapper.readValue(
-      objectMapper.writeValueAsString(messageBody[1]),
+    val messageBody = jsonMapper.readValue(sqsMessage.message, ArrayList::class.java)
+    val (s3Key, s3BucketName) = jsonMapper.readValue(
+      jsonMapper.writeValueAsString(messageBody[1]),
       LargeMessageBody::class.java,
     )
 
