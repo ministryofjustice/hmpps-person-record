@@ -92,10 +92,10 @@ class PersonEntity(
   var prisonNumber: String? = null,
 
   @Column(name = "birth_place")
-  val birthplace: String? = null,
+  var birthplace: String? = null,
 
   @Column(name = "birth_country_code")
-  val birthCountryCode: String? = null,
+  var birthCountryCode: String? = null,
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
@@ -204,6 +204,8 @@ class PersonEntity(
     this.selfDescribedGenderIdentity = person.selfDescribedGenderIdentity
     this.disability = person.disability
     this.immigrationStatus = person.immigrationStatus
+    this.birthplace = person.birthplace
+    this.birthCountryCode = person.birthCountryCode
     this.updateChildEntities(person)
   }
 
