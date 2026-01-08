@@ -66,7 +66,6 @@ class PrisonSexualOrientationEntity(
   fun update(sexualOrientation: PrisonSexualOrientation) {
     this.sexualOrientationCode = sexualOrientation.sexualOrientationCode?.let { SexualOrientation.fromPrison(it) }
     this.modifyUserId = sexualOrientation.modifyUserId
-    this.modifyDisplayName = sexualOrientation.modifyDisplayName
     this.modifyDateTime = sexualOrientation.modifyDateTime
     this.prisonRecordType = PrisonRecordType.CURRENT
   }
@@ -79,7 +78,6 @@ class PrisonSexualOrientationEntity(
       sexualOrientationCode = sexualOrientation.sexualOrientationCode?.let { SexualOrientation.fromPrison(it) },
       modifyDateTime = sexualOrientation.modifyDateTime,
       modifyUserId = sexualOrientation.modifyUserId,
-      modifyDisplayName = sexualOrientation.modifyDisplayName,
       prisonRecordType = PrisonRecordType.CURRENT,
     )
   }
