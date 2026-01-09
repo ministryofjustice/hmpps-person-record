@@ -77,8 +77,11 @@ class ProbationApiE2ETest : E2ETestBase() {
       @Test
       fun `should return ok for get`() {
         val firstName = randomName()
+        val secondAliasFirstName = randomName()
         val lastName = randomName()
+        val secondAliasLastName = randomName()
         val middleNames = randomName()
+        val secondAliasMiddleName = randomName()
         val title = randomTitleCode()
         val pnc = randomLongPnc()
         val noFixedAbode = true
@@ -90,6 +93,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         val ethnicity = randomCommonPlatformEthnicity()
         val primarySex = randomProbationSexCode()
         val aliasSex1 = randomProbationSexCode()
+        val aliasSex2 = randomProbationSexCode()
 
         val buildingName = randomName()
         val buildingNumber = randomBuildingNumber()
@@ -124,6 +128,14 @@ class ProbationApiE2ETest : E2ETestBase() {
                 titleCode = title.value,
                 sexCode = aliasSex1.value,
               ),
+              Alias(
+                firstName = secondAliasFirstName,
+                middleNames = secondAliasMiddleName,
+                lastName = secondAliasLastName,
+                dateOfBirth = randomDate(),
+                titleCode = title.value,
+                sexCode = aliasSex2.value,
+              ),
             ),
             addresses = listOf(
               Address(
@@ -155,12 +167,21 @@ class ProbationApiE2ETest : E2ETestBase() {
           .returnResult()
           .responseBody!!
 
-        val canonicalAlias = CanonicalAlias(
-          firstName = firstName,
-          lastName = lastName,
-          middleNames = middleNames,
-          title = CanonicalTitle.from(title.value),
-          sex = CanonicalSex.from(aliasSex1.value),
+        val canonicalAliases = listOf(
+          CanonicalAlias(
+            firstName = firstName,
+            lastName = lastName,
+            middleNames = middleNames,
+            title = CanonicalTitle.from(title.value),
+            sex = CanonicalSex.from(aliasSex1.value),
+          ),
+          CanonicalAlias(
+            firstName = secondAliasFirstName,
+            lastName = secondAliasLastName,
+            middleNames = secondAliasMiddleName,
+            title = CanonicalTitle.from(title.value),
+            sex = CanonicalSex.from(aliasSex2.value),
+          )
         )
         val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
         val canonicalAddress = CanonicalAddress(
@@ -189,6 +210,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         )
         assertThat(responseBody.aliases.first().sex.code).isEqualTo(aliasSex1.value.name)
         assertThat(responseBody.aliases.first().sex.description).isEqualTo(aliasSex1.value.description)
+        assertThat(responseBody.aliases.last().sex.code).isEqualTo(aliasSex2.value.name)
+        assertThat(responseBody.aliases.last().sex.description).isEqualTo(aliasSex2.value.description)
         assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
         assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
         assertThat(responseBody.sex.code).isEqualTo(primarySex.value.name)
@@ -197,7 +220,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
         assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
         assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity.description)
-        assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
+        assertThat(responseBody.aliases).isEqualTo(canonicalAliases)
         assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
         assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
         assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
