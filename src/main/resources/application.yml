@@ -36,7 +36,9 @@ spring:
     date-format: "yyyy-MM-dd HH:mm:ss"
 
   datasource:
-    url: jdbc:postgresql://${database.endpoint:localhost:5432}/${database.name:postgres}?currentSchema=${database.schema.name}&user=${database.username:root}&password=${database.password:dev}&stringtype=unspecified&sslmode=verify-full
+    url: jdbc:postgresql://${database.endpoint:localhost:5432}/${database.name:postgres}?currentSchema=${database.schema.name}&stringtype=unspecified&sslmode=verify-full
+    username: ${database.username:root}
+    password: ${database.password:dev}
     hikari:
       maximum-pool-size: 50
   jpa:
