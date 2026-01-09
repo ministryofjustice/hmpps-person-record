@@ -59,7 +59,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
@@ -89,7 +88,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         val nationality = randomNationalityCode()
         val religion = randomReligion()
         val ethnicity = randomCommonPlatformEthnicity()
-        val sex = randomPrisonSexCode()
+        val primarySex = randomProbationSexCode()
+        val aliasSex1 = randomProbationSexCode()
 
         val buildingName = randomName()
         val buildingNumber = randomBuildingNumber()
@@ -110,7 +110,7 @@ class ProbationApiE2ETest : E2ETestBase() {
             sourceSystem = NOMIS,
             titleCode = title.value,
             crn = crn,
-            sexCode = sex.value,
+            sexCode = primarySex.value,
             prisonNumber = prisonNumber,
             nationalities = listOf(nationality),
             religion = religion,
@@ -122,7 +122,7 @@ class ProbationApiE2ETest : E2ETestBase() {
                 lastName = lastName,
                 dateOfBirth = randomDate(),
                 titleCode = title.value,
-                sexCode = sex.value,
+                sexCode = aliasSex1.value,
               ),
             ),
             addresses = listOf(
@@ -160,7 +160,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           lastName = lastName,
           middleNames = middleNames,
           title = CanonicalTitle.from(title.value),
-          sex = CanonicalSex.from(sex.value),
+          sex = CanonicalSex.from(aliasSex1.value),
         )
         val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
         val canonicalAddress = CanonicalAddress(
@@ -187,12 +187,12 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(responseBody.aliases.first().title.description).isEqualTo(
           person.getAliases().first().titleCode?.description,
         )
-        assertThat(responseBody.aliases.first().sex.code).isEqualTo(sex.value.name)
-        assertThat(responseBody.aliases.first().sex.description).isEqualTo(sex.value.description)
+        assertThat(responseBody.aliases.first().sex.code).isEqualTo(aliasSex1.value.name)
+        assertThat(responseBody.aliases.first().sex.description).isEqualTo(aliasSex1.value.description)
         assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
         assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
-        assertThat(responseBody.sex.code).isEqualTo(sex.value.name)
-        assertThat(responseBody.sex.description).isEqualTo(sex.value.description)
+        assertThat(responseBody.sex.code).isEqualTo(primarySex.value.name)
+        assertThat(responseBody.sex.description).isEqualTo(primarySex.value.description)
         assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
         assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
         assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
