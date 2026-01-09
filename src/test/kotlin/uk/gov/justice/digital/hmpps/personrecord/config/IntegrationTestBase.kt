@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
@@ -32,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.test.context.ActiveProfiles
+import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
@@ -80,6 +80,12 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationGenderIdentity
+import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexualOrientation
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
@@ -97,7 +103,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 class IntegrationTestBase {
 
   @Autowired
-  lateinit var objectMapper: ObjectMapper
+  lateinit var jsonMapper: JsonMapper
 
   @Autowired
   lateinit var personKeyRepository: PersonKeyRepository
@@ -159,26 +165,37 @@ class IntegrationTestBase {
   fun probationUrl(crn: String) = "/probation-cases/$crn"
 
   internal fun createRandomProbationPersonDetails(crn: String = randomCrn()): Person = Person.from(
-    ProbationCase(
-      name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
-      title = Value(randomTitleCode().key),
-      identifiers = Identifiers(crn = crn, pnc = randomLongPnc(), cro = randomCro()),
-      addresses = listOf(
-        ProbationAddress(postcode = randomPostcode()),
-        ProbationAddress(postcode = randomPostcode()),
-      ),
-      aliases = listOf(
-        ProbationCaseAlias(
-          ProbationCaseName(
-            firstName = randomName(),
-            middleNames = randomName(),
-            lastName = randomName(),
-          ),
-          dateOfBirth = randomDate(),
-        ),
-      ),
-      sentences = listOf(Sentences(randomDate())),
+    createRandomProbationCase(crn),
+  )
+
+  internal fun createRandomProbationCase(crn: String? = randomCrn()): ProbationCase = ProbationCase(
+    name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
+    title = Value(randomTitleCode().key),
+    identifiers = Identifiers(crn = crn, pnc = randomLongPnc(), cro = randomCro()),
+    addresses = listOf(
+      ProbationAddress(postcode = randomPostcode()),
+      ProbationAddress(postcode = randomPostcode()),
     ),
+    aliases = listOf(
+      ProbationCaseAlias(
+        ProbationCaseName(
+          firstName = randomName(),
+          middleNames = randomName(),
+          lastName = randomName(),
+        ),
+        dateOfBirth = randomDate(),
+        gender = Value(randomProbationSexCode().key),
+      ),
+    ),
+    sentences = listOf(Sentences(randomDate())),
+    gender = Value(randomProbationSexCode().key),
+    ethnicity = Value(randomProbationEthnicity()),
+    nationality = Value(randomProbationNationalityCode()),
+    sexualOrientation = Value(randomProbationSexualOrientation().key),
+    religion = Value(randomReligion()),
+    genderIdentity = Value(randomProbationGenderIdentity().key),
+    selfDescribedGenderIdentity = randomName(),
+
   )
 
   internal fun createRandomPrisonPersonDetails(prisonNumber: String = randomPrisonNumber()): Person = Person.from(
@@ -362,7 +379,7 @@ class IntegrationTestBase {
       nextScenarioState,
       urlPattern = matchIdUrlPattern,
       status = status,
-      body = objectMapper.writeValueAsString(personMatchResponse),
+      body = jsonMapper.writeValueAsString(personMatchResponse),
     )
   }
 
@@ -377,7 +394,7 @@ class IntegrationTestBase {
       nextScenarioState,
       url = "/is-cluster-valid",
       status = 200,
-      responseBody = objectMapper.writeValueAsString(IsClusterValidResponse(isClusterValid = true)),
+      responseBody = jsonMapper.writeValueAsString(IsClusterValidResponse(isClusterValid = true, emptyList())),
     )
   }
 

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
@@ -23,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_SELF_HEALED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ReclusterServiceE2ETest : E2ETestBase() {
@@ -35,18 +37,17 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster above the join threshold`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val recordA = createPerson(createProbationPersonFrom(basePersonData))
-      val matchesA = createPerson(createProbationPersonFrom(basePersonData))
-      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val recordA = createProbationPerson(basePersonData)
+      val matchesA = createMatchingRecord(basePersonData)
+      val doesNotMatch = createProbationPerson()
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
 
-      val nowMatchesA = createProbationPersonFrom(basePersonData, crn = doesNotMatch.crn!!)
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(nowMatchesA))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData, crn = doesNotMatch.crn!!))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(ACTIVE)
@@ -54,18 +55,17 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should change from needs attention status with null reason to active when the non-matching record is updated to match the other records in the cluster above the join threshold`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val recordA = createPerson(createProbationPersonFrom(basePersonData))
-      val matchesA = createPerson(createProbationPersonFrom(basePersonData))
-      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val recordA = createProbationPerson(basePersonData)
+      val matchesA = createMatchingRecord(basePersonData)
+      val doesNotMatch = createProbationPerson()
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = null)
         .addPerson(recordA)
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
 
-      val nowMatchesA = createProbationPersonFrom(basePersonData, crn = doesNotMatch.crn!!)
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(nowMatchesA))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData, crn = doesNotMatch.crn!!))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(ACTIVE)
@@ -73,18 +73,17 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster above the fracture threshold`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val recordA = createPerson(createProbationPersonFrom(basePersonData))
-      val matchesA = createPerson(createProbationPersonFrom(basePersonData))
-      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val recordA = createProbationPerson(basePersonData)
+      val matchesA = createMatchingRecord(basePersonData)
+      val doesNotMatch = createProbationPerson()
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
 
-      val nowMatchesAboveFracture = createProbationPersonFrom(basePersonData, doesNotMatch.crn!!).aboveFracture()
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(nowMatchesAboveFracture))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.aboveFracture(), doesNotMatch.crn!!))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(ACTIVE)
@@ -92,20 +91,18 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should retain needs attention status when a record is updated which continues to match only one record out of 2 in the cluster`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val recordAPersonData = createProbationPersonFrom(basePersonData)
-      val recordA = createPerson(recordAPersonData)
-      val matchesA = createPerson(createProbationPersonFrom(basePersonData))
+      val recordA = createProbationPerson(basePersonData)
+      val matchesA = createMatchingRecord(basePersonData)
 
-      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val doesNotMatch = createProbationPerson()
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
 
-      val updatedRecordAData = recordAPersonData.withChangedMatchDetails()
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedRecordAData))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), recordA.crn))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
@@ -113,20 +110,20 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster plus another one which is added to the cluster`() {
-      val basePersonData = createRandomProbationPersonDetails()
-      val recordA = createPerson(createProbationPersonFrom(basePersonData))
-      val matchesA = createPerson(createProbationPersonFrom(basePersonData))
+      val basePersonData = createRandomProbationCase()
+      val recordA = createProbationPerson(basePersonData)
+      val matchesA = createMatchingRecord(basePersonData)
 
-      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val doesNotMatch = createProbationPerson()
 
-      val recordToJoinCluster = createPersonWithNewKey(createProbationPersonFrom(basePersonData))
+      val recordToJoinCluster = createMatchingRecord(basePersonData)
+      createPersonKey().addPerson(recordToJoinCluster)
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
 
-      val nowMatchesAPersonData = createProbationPersonFrom(basePersonData, crn = doesNotMatch.crn!!)
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(nowMatchesAPersonData))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData, doesNotMatch.crn))
 
       recordToJoinCluster.assertLinkedToCluster(cluster)
 
@@ -137,22 +134,21 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should not set a cluster to active if it is set to needs attention and an update does change the cluster composition`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val personA = createProbationPerson(basePersonData)
+      val doesNotMatch = createProbationPerson()
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(personA)
         .addPerson(doesNotMatch)
 
-      val newPersonCData = createProbationPersonFrom(basePersonData)
-      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup.from(newPersonCData))
+      val personCCrn = randomCrn()
+      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup.from(basePersonData, personCCrn))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
-      val updatedPersonCData = newPersonCData.withChangedMatchDetails()
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedPersonCData))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), personCCrn))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
@@ -160,23 +156,19 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should set a broken cluster to active if the cluster has one record in it after a delete`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val recordAPersonData = createProbationPersonFrom(basePersonData)
-      val recordA = createPerson(recordAPersonData)
-      val recordToDelete = createPerson(createProbationPersonFrom(basePersonData))
+      val recordA = createProbationPerson(basePersonData)
+      val recordToDelete = createMatchingRecord(basePersonData)
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(recordToDelete)
-
-      val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordToDelete.crn!!)
-      publishDomainEvent(OFFENDER_DELETION, domainEvent)
+      publishProbationDomainEvent(OFFENDER_DELETION, recordToDelete.crn!!)
 
       cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
-      val updatedRecordAData = recordAPersonData.withChangedMatchDetails()
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedRecordAData))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), crn = recordA.crn))
 
       cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(ACTIVE)
@@ -184,23 +176,20 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should retain needs attention if the cluster has one record in it after a delete but was a override conflict`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val recordAPersonData = createProbationPersonFrom(basePersonData)
-      val recordA = createPerson(recordAPersonData)
-      val recordToDelete = createPerson(createProbationPersonFrom(basePersonData))
+      val recordA = createProbationPerson(basePersonData)
+      val recordToDelete = createMatchingRecord(basePersonData)
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
         .addPerson(recordA)
         .addPerson(recordToDelete)
 
-      val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordToDelete.crn!!)
-      publishDomainEvent(OFFENDER_DELETION, domainEvent)
+      publishProbationDomainEvent(OFFENDER_DELETION, recordToDelete.crn!!)
 
       cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
 
-      val updatedRecordAData = recordAPersonData.withChangedMatchDetails()
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedRecordAData))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.withChangedMatchDetails()))
 
       cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
@@ -213,6 +202,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     @Test
     fun `should merge matched clusters taking into account the exclusion marker`() {
       /*
+      This test uses events to set up data
       Given three person records are created A B C
       And A and C match
       And A is merged into C
@@ -223,61 +213,58 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       Then A joins B on the same cluster
       And C does not because it is excluded
        */
-      val personAData = createRandomProbationPersonDetails()
-      val personBData = createRandomProbationPersonDetails()
+      val personAData = createRandomProbationCase()
+      val personACrn = personAData.identifiers.crn!!
+      val personBData = createRandomProbationCase()
+      val personBCrn = personBData.identifiers.crn!!
+      val personCCrn = randomCrn()
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personAData))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personBData))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personAData, personCCrn))
 
-      val personA = createProbationPersonFrom(personAData)
-      val personB = createProbationPersonFrom(personBData)
-      val personC = createProbationPersonFrom(personAData)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personACrn, personCCrn)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personBCrn, personCCrn)
 
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personA))
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personB))
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personC))
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personACrn, personCCrn, reactivatedSetup = ApiResponseSetup.from(personAData))
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personBCrn, personCCrn, reactivatedSetup = ApiResponseSetup.from(personBData))
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personA.crn!!, personC.crn!!)
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personB.crn!!, personC.crn)
-
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personA.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personA))
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personB.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personB))
-
-      val clusterA = awaitNotNull { personRepository.findByCrn(personA.crn) }.personKey
+      val clusterA = awaitNotNull { personRepository.findByCrn(personACrn) }.personKey
       clusterA?.assertClusterIsOfSize(1)
 
-      val clusterB = awaitNotNull { personRepository.findByCrn(personB.crn) }.personKey
+      val clusterB = awaitNotNull { personRepository.findByCrn(personBCrn) }.personKey
       clusterB?.assertClusterIsOfSize(1)
 
-      val clusterC = awaitNotNull { personRepository.findByCrn(personC.crn) }.personKey
+      val clusterC = awaitNotNull { personRepository.findByCrn(personCCrn) }.personKey
       clusterC?.assertClusterIsOfSize(1)
 
-      val updatePersonBSoItMatchesPersonA = personA.copy(crn = personB.crn)
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatePersonBSoItMatchesPersonA))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(personAData, personBCrn))
 
       clusterA?.assertClusterStatus(RECLUSTER_MERGE)
       clusterA?.assertClusterIsOfSize(0)
 
-      val updatedClusterWithPersonB = awaitNotNull { personRepository.findByCrn(personB.crn) }.personKey
+      val updatedClusterWithPersonB = awaitNotNull { personRepository.findByCrn(personBCrn) }.personKey
       updatedClusterWithPersonB?.assertClusterIsOfSize(2)
       updatedClusterWithPersonB?.assertClusterStatus(ACTIVE)
 
-      val updatedClusterWithPersonC = awaitNotNull { personRepository.findByCrn(personC.crn) }.personKey
+      val updatedClusterWithPersonC = awaitNotNull { personRepository.findByCrn(personCCrn) }.personKey
       updatedClusterWithPersonC?.assertClusterIsOfSize(1)
       updatedClusterWithPersonC?.assertClusterStatus(ACTIVE)
     }
 
     @Test
     fun `should not merge an updated active cluster that has an exclusion marker to another matched active cluster`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
+      val personB = createMatchingRecord(basePersonData)
+      val personC = createMatchingRecord(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
         .addPerson(personC)
 
-      val personD = createPerson(createProbationPersonFrom(basePersonData))
-      val personE = createPerson(createProbationPersonFrom(basePersonData))
+      val personD = createMatchingRecord(basePersonData)
+      val personE = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
         .addPerson(personD)
         .addPerson(personE)
@@ -295,21 +282,21 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should mark active cluster as needs attention when the update record exclude another record in the matched clusters`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
 
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
         .addPerson(personB)
 
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val personC = createMatchingRecord(basePersonData)
       val cluster3 = createPersonKey()
         .addPerson(personC)
 
-      val personD = createPerson(createProbationPersonFrom(basePersonData))
+      val personD = createMatchingRecord(basePersonData)
       val cluster4 = createPersonKey()
         .addPerson(personD)
 
@@ -330,21 +317,21 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should mark active cluster needs attention when the update record exclude multiple records in the matched clusters`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
 
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
         .addPerson(personB)
 
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val personC = createMatchingRecord(basePersonData)
       val cluster3 = createPersonKey()
         .addPerson(personC)
 
-      val personD = createPerson(createProbationPersonFrom(basePersonData))
+      val personD = createMatchingRecord(basePersonData)
       val cluster4 = createPersonKey()
         .addPerson(personD)
 
@@ -370,11 +357,11 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should set record to active when inclusive links within cluster`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
+      val personB = createMatchingRecord(basePersonData)
+      val personC = createMatchingRecord(basePersonData)
       val cluster = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
@@ -382,7 +369,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       probationDomainEventAndResponseSetup(
         eventType = OFFENDER_PERSONAL_DETAILS_UPDATED,
-        ApiResponseSetup.from(createRandomProbationPersonDetails(crn = personB.crn!!)),
+        ApiResponseSetup.from(createRandomProbationCase(crn = personB.crn!!)),
       )
 
       cluster.assertClusterIsOfSize(3)
@@ -392,7 +379,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       probationDomainEventAndResponseSetup(
         eventType = OFFENDER_PERSONAL_DETAILS_UPDATED,
-        ApiResponseSetup.from(createProbationPersonFrom(basePersonData, crn = personA.crn!!).withChangedMatchDetails()),
+        ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), crn = personA.crn!!),
       )
 
       cluster.assertClusterIsOfSize(3)
@@ -405,17 +392,11 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should do nothing when only matches records in cluster above fracture threshold`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(
-        createProbationPersonFrom(basePersonData)
-          .aboveFracture(),
-      )
-      val personC = createPerson(
-        createProbationPersonFrom(basePersonData)
-          .aboveFracture(),
-      )
+      val personA = createProbationPerson(basePersonData)
+      val personB = createMatchingRecord(basePersonData.aboveFracture())
+      val personC = createMatchingRecord(basePersonData.aboveFracture())
       val cluster = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
@@ -428,14 +409,11 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should do nothing when matches only one record in cluster with multiple records but is still a valid cluster`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val personC = createPerson(
-        createProbationPersonFrom(basePersonData)
-          .aboveFracture(),
-      )
+      val personA = createProbationPerson(basePersonData)
+      val personB = createMatchingRecord(basePersonData)
+      val personC = createMatchingRecord(basePersonData.aboveFracture())
       val cluster = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
@@ -448,15 +426,15 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should do nothing when there is a mutual exclusion between updated record and a matched clusters`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
+      val personB = createMatchingRecord(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
 
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val personC = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
         .addPerson(personC)
 
@@ -470,14 +448,14 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should do nothing when there is a mutual exclusion between updated record and all records on matched cluster`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
 
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createMatchingRecord(basePersonData)
+      val personC = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
         .addPerson(personB)
         .addPerson(personC)
@@ -493,13 +471,13 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should do nothing when match return same items from cluster with large amount of records`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
-      val personD = createPerson(createProbationPersonFrom(basePersonData))
-      val personE = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
+      val personB = createMatchingRecord(basePersonData)
+      val personC = createMatchingRecord(basePersonData)
+      val personD = createMatchingRecord(basePersonData)
+      val personE = createMatchingRecord(basePersonData)
       val cluster = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
@@ -514,18 +492,15 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should do nothing when cluster is valid but matches to other clusters below the join threshold`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
+      val personB = createMatchingRecord(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
 
-      val personC = createPerson(
-        createProbationPersonFrom(basePersonData)
-          .aboveFracture(),
-      )
+      val personC = createMatchingRecord(basePersonData.aboveFracture())
       val cluster2 = createPersonKey()
         .addPerson(personC)
 
@@ -543,13 +518,13 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should not merge an active cluster to a matched cluster marked as recluster merge`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
 
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey(RECLUSTER_MERGE)
         .addPerson(personB)
 
@@ -564,13 +539,13 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should not merge an active cluster to a matched cluster marked as merged`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
 
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey(MERGED)
         .addPerson(personB)
 
@@ -589,15 +564,15 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should merge two active clusters`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
+      val personB = createMatchingRecord(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
 
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val personC = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
         .addPerson(personC)
 
@@ -614,17 +589,17 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should merge 3 active clusters`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
 
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
         .addPerson(personB)
 
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val personC = createMatchingRecord(basePersonData)
       val cluster3 = createPersonKey()
         .addPerson(personC)
 
@@ -644,16 +619,16 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should merge 2 active clusters when match score returns all records from the matched cluster`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
+      val personB = createMatchingRecord(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
 
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
-      val personD = createPerson(createProbationPersonFrom(basePersonData))
+      val personC = createMatchingRecord(basePersonData)
+      val personD = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
         .addPerson(personC)
         .addPerson(personD)
@@ -671,22 +646,22 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should merge 3 active clusters when match score returns multiple clusters with a cluster that contain unmatched records below join threshold`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
 
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val personC = createPerson(createProbationPersonFrom(basePersonData).aboveFracture())
-      val personD = createPerson(createProbationPersonFrom(basePersonData).aboveFracture())
+      val personB = createMatchingRecord(basePersonData)
+      val personC = createMatchingRecord(basePersonData.aboveFracture())
+      val personD = createMatchingRecord(basePersonData.aboveFracture())
       val cluster2 = createPersonKey()
         .addPerson(personB)
         .addPerson(personC)
         .addPerson(personD)
 
-      val personE = createPerson(createProbationPersonFrom(basePersonData))
-      val personF = createPerson(createProbationPersonFrom(basePersonData).aboveFracture())
+      val personE = createMatchingRecord(basePersonData)
+      val personF = createMatchingRecord(basePersonData.aboveFracture())
       val cluster3 = createPersonKey()
         .addPerson(personE)
         .addPerson(personF)
@@ -707,21 +682,21 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should merge 3 active cluster if matched cluster has a override marker to unrelated record`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
 
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
         .addPerson(personB)
 
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val personC = createMatchingRecord(basePersonData)
       val cluster3 = createPersonKey()
         .addPerson(personC)
 
-      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val doesNotMatch = createProbationPerson()
       val cluster4 = createPersonKey()
         .addPerson(doesNotMatch)
 
@@ -745,17 +720,17 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should only merge active cluster to active clusters and exclude clusters marked as needs attention`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
 
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey(NEEDS_ATTENTION)
         .addPerson(personB)
 
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val personC = createMatchingRecord(basePersonData)
       val cluster3 = createPersonKey()
         .addPerson(personC)
 
@@ -774,23 +749,17 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should merge clusters when record in a cluster only match above fracture threshold and match another cluster above join`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(
-        createProbationPersonFrom(basePersonData)
-          .aboveFracture(),
-      )
-      val personC = createPerson(
-        createProbationPersonFrom(basePersonData)
-          .aboveFracture(),
-      )
+      val personA = createProbationPerson(basePersonData)
+      val personB = createMatchingRecord(basePersonData.aboveFracture())
+      val personC = createMatchingRecord(basePersonData.aboveFracture())
       val cluster1 = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
         .addPerson(personC)
 
-      val personD = createPerson(createProbationPersonFrom(basePersonData))
+      val personD = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
         .addPerson(personD)
 
@@ -807,24 +776,21 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should merge to active cluster but not a needs attention cluster even if not all records matched but the cluster is valid`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val personC = createPerson(
-        createProbationPersonFrom(basePersonData)
-          .aboveFracture(),
-      )
+      val personA = createProbationPerson(basePersonData)
+      val personB = createMatchingRecord(basePersonData)
+      val personC = createMatchingRecord(basePersonData.aboveFracture())
       val cluster1 = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
         .addPerson(personC)
 
-      val personD = createPerson(createProbationPersonFrom(basePersonData))
+      val personD = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
         .addPerson(personD)
 
-      val personE = createPerson(createProbationPersonFrom(basePersonData))
+      val personE = createMatchingRecord(basePersonData)
       val cluster3 = createPersonKey(status = NEEDS_ATTENTION)
         .addPerson(personE)
 
@@ -847,11 +813,11 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should mark as need attention when only matches one in cluster with multiple records`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val personA = createProbationPerson(basePersonData)
+      val personB = createMatchingRecord(basePersonData)
+      val doesNotMatch = createProbationPerson()
       val cluster = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
@@ -864,9 +830,9 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should mark as need attention when matches no record in cluster with multiple records`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val personC = createPerson(createRandomProbationPersonDetails())
+      val personA = createProbationPerson()
+      val personB = createProbationPerson()
+      val personC = createProbationPerson()
       val cluster = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
@@ -879,17 +845,17 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should mark as need attention when matches less records in cluster and contains matches from another cluster`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personBDoesNotMatch = createPerson(createRandomProbationPersonDetails())
-      val personCDoesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val personA = createProbationPerson(basePersonData)
+      val personBDoesNotMatch = createProbationPerson()
+      val personCDoesNotMatch = createProbationPerson()
       val cluster1 = createPersonKey()
         .addPerson(personA)
         .addPerson(personBDoesNotMatch)
         .addPerson(personCDoesNotMatch)
 
-      val personD = createPerson(createProbationPersonFrom(basePersonData))
+      val personD = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
         .addPerson(personD)
 
@@ -901,14 +867,13 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should mark as need attention when only matches one above fracture threshold cluster with multiple records`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(
-        createProbationPersonFrom(basePersonData)
-          .aboveFracture(),
+      val personA = createProbationPerson(basePersonData)
+      val personB = createMatchingRecord(
+        basePersonData.aboveFracture(),
       )
-      val personC = createPerson(createRandomProbationPersonDetails())
+      val personC = createProbationPerson()
       val cluster = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
@@ -926,16 +891,16 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should log record merged when 2 active clusters merge on recluster`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
+      val personB = createMatchingRecord(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
 
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
-      val personD = createPerson(createProbationPersonFrom(basePersonData))
+      val personC = createMatchingRecord(basePersonData)
+      val personD = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
         .addPerson(personC)
         .addPerson(personD)
@@ -965,16 +930,16 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should log needs attention when changed record has no matches`() {
-      val personData = createRandomProbationPersonDetails()
-      val personA = createPerson(personData)
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val personC = createPerson(createRandomProbationPersonDetails())
+      val personData = createRandomProbationCase()
+      val personA = createProbationPerson(personData)
+      val personB = createProbationPerson()
+      val personC = createProbationPerson()
       val cluster = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
         .addPerson(personC)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(createProbationPersonFrom(personData.withChangedMatchDetails(), crn = personA.crn!!)))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(personData.withChangedMatchDetails(), personA.crn!!))
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -994,11 +959,11 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should log back to active when cluster moves from needs attention to active`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
+      val personB = createMatchingRecord(basePersonData)
+      val personC = createMatchingRecord(basePersonData)
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(personA)
         .addPerson(personB)
@@ -1006,7 +971,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(createProbationPersonFrom(basePersonData.withChangedMatchDetails(), crn = personA.crn!!)))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), crn = personA.crn!!))
 
       cluster.assertClusterStatus(ACTIVE)
 
@@ -1030,11 +995,12 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should raise cluster for review when broken cluster and remove when self healed`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val personAData = Person.from(basePersonData)
+      val personA = createPerson(personAData)
+      val personB = createMatchingRecord(basePersonData)
+      val doesNotMatch = createProbationPerson()
       val cluster = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
@@ -1048,8 +1014,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .hasReviewSize(1)
         .isPrimary(cluster)
 
-      val nowMatchesAboveFracture = createProbationPersonFrom(basePersonData, doesNotMatch.crn!!).aboveFracture()
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(nowMatchesAboveFracture))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.aboveFracture(), doesNotMatch.crn))
 
       cluster.assertClusterStatus(ACTIVE)
       review.removed()
@@ -1057,17 +1022,17 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should raise cluster for review when override conflict`() {
-      val basePersonData = createRandomProbationPersonDetails()
+      val basePersonData = createRandomProbationCase()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personA = createProbationPerson(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
 
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
         .addPerson(personB)
 
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val personC = createMatchingRecord(basePersonData)
       val cluster3 = createPersonKey()
         .addPerson(personC)
 

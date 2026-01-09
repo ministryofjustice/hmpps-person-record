@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.telemetry
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.EnableAsync
+import tools.jackson.databind.json.JsonMapper
 
 @Configuration
 @EnableAsync
@@ -13,15 +13,15 @@ import org.springframework.scheduling.annotation.EnableAsync
 class TelemetryTestConfig {
 
   @Bean
-  fun telemetryClient(telemetryRepository: TelemetryTestRepository, objectMapper: ObjectMapper): TelemetryClient = OurTelemetryClient(telemetryRepository, objectMapper)
+  fun telemetryClient(telemetryRepository: TelemetryTestRepository, jsonMapper: JsonMapper): TelemetryClient = OurTelemetryClient(telemetryRepository, jsonMapper)
 
-  class OurTelemetryClient(private val telemetryRepository: TelemetryTestRepository, private val objectMapper: ObjectMapper) : TelemetryClient() {
+  class OurTelemetryClient(private val telemetryRepository: TelemetryTestRepository, private val jsonMapper: JsonMapper) : TelemetryClient() {
     override fun trackEvent(
       event: String?,
       properties: MutableMap<String, String>?,
       metrics: MutableMap<String, Double>?,
     ) {
-      val telemetry = TelemetryEntity(event = event, properties = objectMapper.writeValueAsString(properties))
+      val telemetry = TelemetryEntity(event = event, properties = jsonMapper.writeValueAsString(properties))
       telemetryRepository.saveAndFlush(telemetry)
     }
   }

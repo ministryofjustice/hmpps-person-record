@@ -3,12 +3,14 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.syscon.historic
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonSexualOrientationRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -16,68 +18,74 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientat
 
 class SysconSexualOrientationControllerIntTest : WebTestBase() {
 
-  @Autowired
-  private lateinit var prisonSexualOrientationRepository: PrisonSexualOrientationRepository
-
-  @Nested
-  inner class Creation {
-
-    @Test
-    fun `should save current sexual orientation against a prison number`() {
-      val prisonNumber = randomPrisonNumber()
-
-      val currentCode = randomPrisonSexualOrientation()
-      val currentSexualOrientation = createRandomPrisonSexualOrientation(currentCode)
-
-      postSexualOrientation(prisonNumber, currentSexualOrientation)
-      assertCorrectValuesSaved(prisonNumber, currentSexualOrientation)
-    }
-
-    @Test
-    fun `should save current sexual orientation against a prison number when code is null`() {
-      val prisonNumber = randomPrisonNumber()
-
-      val currentSexualOrientation = createRandomPrisonSexualOrientation(null)
-
-      postSexualOrientation(prisonNumber, currentSexualOrientation)
-      assertCorrectValuesSaved(prisonNumber, currentSexualOrientation)
-    }
-  }
-
   @Nested
   inner class Update {
 
     @Test
-    fun `should update an existing sexual orientation`() {
+    fun `should update person sexual orientation`() {
       val prisonNumber = randomPrisonNumber()
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-      val currentCode = randomPrisonSexualOrientation()
-      val currentSexualOrientation = createRandomPrisonSexualOrientation(currentCode)
+      val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
+      assertThat(originalEntity.sexualOrientation).isNull()
 
-      postSexualOrientation(prisonNumber, currentSexualOrientation)
-      assertCorrectValuesSaved(prisonNumber, currentSexualOrientation)
+      val sexualOrientationCode = randomPrisonSexualOrientation()
+      val prisonSexualOrientation = createRandomPrisonSexualOrientation(sexualOrientationCode.key)
+      postSexualOrientation(prisonNumber, prisonSexualOrientation)
 
-      val updatedCode = randomPrisonSexualOrientation()
-      val updatedSexualOrientation = createRandomPrisonSexualOrientation(updatedCode)
-
-      postSexualOrientation(prisonNumber, updatedSexualOrientation)
-      assertCorrectValuesSaved(prisonNumber, updatedSexualOrientation)
+      assertCorrectValuesSaved(prisonNumber, originalEntity, sexualOrientationCode.value)
     }
 
     @Test
-    fun `should update an existing sexual orientation when code is null`() {
+    fun `should update person sexual orientation to UNKNOWN when code is unknown`() {
       val prisonNumber = randomPrisonNumber()
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-      val currentCode = randomPrisonSexualOrientation()
-      val currentSexualOrientation = createRandomPrisonSexualOrientation(currentCode)
+      val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
+      assertThat(originalEntity.sexualOrientation).isNull()
 
-      postSexualOrientation(prisonNumber, currentSexualOrientation)
-      assertCorrectValuesSaved(prisonNumber, currentSexualOrientation)
+      val prisonSexualOrientation = createRandomPrisonSexualOrientation("ABC12345")
+      postSexualOrientation(prisonNumber, prisonSexualOrientation)
 
-      val updatedSexualOrientation = createRandomPrisonSexualOrientation(null)
+      assertCorrectValuesSaved(prisonNumber, originalEntity, SexualOrientation.UNKNOWN)
+    }
 
-      postSexualOrientation(prisonNumber, updatedSexualOrientation)
-      assertCorrectValuesSaved(prisonNumber, updatedSexualOrientation)
+    @Test
+    fun `should update person sexual orientation to null when code is null`() {
+      val prisonNumber = randomPrisonNumber()
+      val person = Person(
+        prisonNumber = prisonNumber,
+        firstName = randomName(),
+        lastName = randomName(),
+        dateOfBirth = randomDate(),
+        sexualOrientation = randomPrisonSexualOrientation().value,
+        sourceSystem = SourceSystemType.NOMIS,
+      )
+      createPerson(person)
+
+      val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
+      assertThat(originalEntity.sexualOrientation).isNotNull()
+
+      val sexualOrientation = createRandomPrisonSexualOrientation(null)
+      postSexualOrientation(prisonNumber, sexualOrientation)
+
+      assertCorrectValuesSaved(prisonNumber, originalEntity, null)
+    }
+
+    @Test
+    fun `should return 404 not found when person with prison number does not exist`() {
+      val prisonNumber = randomPrisonNumber()
+      val expectedErrorMessage = "Not found: $prisonNumber"
+      webTestClient.post()
+        .uri(sexualOrientationUrl(prisonNumber))
+        .bodyValue(createRandomPrisonSexualOrientation(randomPrisonSexualOrientation().key))
+        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isNotFound
+        .expectBody()
+        .jsonPath("userMessage")
+        .isEqualTo(expectedErrorMessage)
     }
   }
 
@@ -88,8 +96,8 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
     fun `should return Access Denied 403 when role is wrong`() {
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.post()
-        .uri("/syscon-sync/sexual-orientation/" + randomPrisonNumber())
-        .bodyValue(createRandomPrisonSexualOrientation(randomPrisonSexualOrientation()))
+        .uri(sexualOrientationUrl(randomPrisonNumber()))
+        .bodyValue(createRandomPrisonSexualOrientation(randomPrisonSexualOrientation().key))
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
         .expectStatus()
@@ -102,7 +110,7 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       webTestClient.post()
-        .uri("/syscon-sync/sexual-orientation/" + randomPrisonNumber())
+        .uri(sexualOrientationUrl(randomPrisonNumber()))
         .exchange()
         .expectStatus()
         .isUnauthorized
@@ -115,9 +123,9 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
   ) {
     webTestClient
       .post()
-      .uri("/syscon-sync/sexual-orientation/$prisonNumber")
+      .uri(sexualOrientationUrl(prisonNumber))
       .bodyValue(sexualOrientation)
-      .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
+      .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
       .exchange()
       .expectStatus()
       .isOk
@@ -125,21 +133,23 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
 
   private fun assertCorrectValuesSaved(
     prisonNumber: String,
-    sexualOrientation: PrisonSexualOrientation,
+    originalEntity: PersonEntity,
+    sexualOrientation: SexualOrientation?,
   ) {
-    val current = awaitNotNull { prisonSexualOrientationRepository.findByPrisonNumber(prisonNumber) }
-
-    assertThat(current.prisonNumber).isEqualTo(prisonNumber)
-    assertThat(current.sexualOrientationCode).isEqualTo(sexualOrientation.sexualOrientationCode?.let { SexualOrientation.fromPrison(sexualOrientation.sexualOrientationCode) })
-    assertThat(current.modifyDateTime).isEqualTo(sexualOrientation.modifyDateTime)
-    assertThat(current.modifyUserId).isEqualTo(sexualOrientation.modifyUserId)
-    assertThat(current.modifyDisplayName).isEqualTo(sexualOrientation.modifyDisplayName)
+    awaitAssert {
+      val updatedEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+      assertThat(updatedEntity.sexualOrientation).isEqualTo(sexualOrientation)
+      assertThat(updatedEntity.getPrimaryName().dateOfBirth).isEqualTo(originalEntity.getPrimaryName().dateOfBirth)
+      assertThat(updatedEntity.getPrimaryName().firstName).isEqualTo(originalEntity.getPrimaryName().firstName)
+      assertThat(updatedEntity.getPrimaryName().lastName).isEqualTo(originalEntity.getPrimaryName().lastName)
+    }
   }
 
-  private fun createRandomPrisonSexualOrientation(code: Map.Entry<String, SexualOrientation>?): PrisonSexualOrientation = PrisonSexualOrientation(
-    sexualOrientationCode = code?.key,
+  private fun createRandomPrisonSexualOrientation(code: String?): PrisonSexualOrientation = PrisonSexualOrientation(
+    sexualOrientationCode = code,
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),
-    modifyDisplayName = randomName(),
   )
+
+  private fun sexualOrientationUrl(prisonNumber: String) = "/syscon-sync/sexual-orientation/$prisonNumber"
 }

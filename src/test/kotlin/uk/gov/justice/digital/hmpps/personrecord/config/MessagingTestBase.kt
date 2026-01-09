@@ -132,7 +132,7 @@ abstract class MessagingTestBase : IntegrationTestBase() {
 
   fun publishDomainEvent(eventType: String, domainEvent: DomainEvent) {
     publishEvent(
-      objectMapper.writeValueAsString(domainEvent),
+      jsonMapper.writeValueAsString(domainEvent),
       domainEventsTopic,
       mapOf(
         "eventType" to MessageAttributeValue.builder().dataType("String")
@@ -210,10 +210,19 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   ) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
 
-    publishDomainEvent(eventType, probationDomainEvent(eventType, apiResponseSetup.crn!!, additionalInformation))
+    publishProbationDomainEvent(eventType, apiResponseSetup.crn!!, additionalInformation)
   }
 
-  fun probationDomainEvent(eventType: String, crn: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("CRN", crn))), additionalInformation)
+  fun publishProbationDomainEvent(
+    eventType: String,
+    crn: String,
+    additionalInformation: AdditionalInformation? = null,
+  ) {
+    publishDomainEvent(
+      eventType,
+      DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("CRN", crn))), additionalInformation),
+    )
+  }
 
   fun prisonDomainEvent(eventType: String, prisonNumber: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))), additionalInformation)
 

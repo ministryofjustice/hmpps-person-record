@@ -26,7 +26,7 @@ class MultiApplicationContextExtension :
   }
 
   override fun close() {
-    instance1.context().close()
+    instance1.context()?.close()
   }
 
   companion object {

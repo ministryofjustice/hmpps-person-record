@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PathVariable
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 
@@ -23,7 +24,7 @@ class SysconReligionController(
   private val prisonReligionRepository: PrisonReligionRepository,
 ) {
 
-  @Operation(description = "Creates a new prison religion record, or updates the existing one if a record matching the prison number is found")
+  @Operation(description = "Updates the prison religion records for the given prison number")
   @PostMapping("/syscon-sync/religion/{prisonNumber}")
   @ApiResponses(
     ApiResponse(
@@ -32,15 +33,17 @@ class SysconReligionController(
     ),
   )
   @Transactional
-  fun saveReligion(
+  fun saveReligions(
     @PathVariable(name = "prisonNumber")
     @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true)
     prisonNumber: String,
-    @RequestBody religion: PrisonReligion,
+    @Valid @RequestBody religionRequest: PrisonReligionRequest,
   ): String {
-    prisonReligionRepository.findByPrisonNumber(prisonNumber)
-      ?.update(religion)
-      ?: prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, religion))
+    prisonReligionRepository.deleteByPrisonNumber(prisonNumber)
+
+    prisonReligionRepository.saveAll(
+      religionRequest.religions.map { PrisonReligionEntity.from(prisonNumber, it) },
+    )
 
     return OK
   }
