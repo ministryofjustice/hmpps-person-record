@@ -181,7 +181,7 @@ class ProbationApiE2ETest : E2ETestBase() {
             middleNames = secondAliasMiddleName,
             title = CanonicalTitle.from(title.value),
             sex = CanonicalSex.from(aliasSex2.value),
-          )
+          ),
         )
         val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
         val canonicalAddress = CanonicalAddress(
