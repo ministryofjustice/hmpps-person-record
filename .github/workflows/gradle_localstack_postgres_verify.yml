@@ -9,7 +9,7 @@ on:
       java-version:
         type: string
         required: false
-        default: '21'
+        default: '25'
       java-options:
         description: Any JAVA_OPTS that need to be set.  Not normally required when using github actions
         type: string

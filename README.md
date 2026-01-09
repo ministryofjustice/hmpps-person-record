@@ -12,7 +12,7 @@ For any service enquiries / troubleshooting see the [runbook](./runbooks/000-Per
 ## Development
 
 ### Prerequisites
-- JDK 21
+- JDK 25
 
 ### Running tests
 ```

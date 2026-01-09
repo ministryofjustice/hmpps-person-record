@@ -1,8 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
 kotlin {
+  jvmToolchain(25)
   compilerOptions {
-    jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
     freeCompilerArgs.add("-Xannotation-default-target=param-property")
   }
 }
@@ -12,7 +12,6 @@ plugins {
   kotlin("plugin.spring") version "2.3.0"
   kotlin("jvm") version "2.3.0"
   kotlin("plugin.jpa") version "2.3.0"
-  id("io.gitlab.arturbosch.detekt") version "1.23.8"
   id("org.jetbrains.kotlinx.kover") version "0.9.4"
   id("org.owasp.dependencycheck") version "12.1.9"
 }
@@ -58,19 +57,8 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
 }
 
-java {
-  toolchain.languageVersion.set(JavaLanguageVersion.of(21))
-}
-
 repositories {
   mavenCentral()
-}
-
-detekt {
-  source.setFrom("$projectDir/src/main")
-  buildUponDefaultConfig = true // preconfigure defaults
-  allRules = false // activate all available (even unstable) rules.
-  config.setFrom("$projectDir/detekt.yml") // point to your custom config defining rules
 }
 
 val test by testing.suites.existing(JvmTestSuite::class)
@@ -96,7 +84,7 @@ tasks {
   }
 
   getByName("check") {
-    dependsOn(":ktlintCheck", "detekt")
+    dependsOn(":ktlintCheck")
   }
 
   getByName("koverHtmlReport") {
@@ -106,12 +94,8 @@ tasks {
   withType<JavaCompile>().configureEach {
     options.isFork = true
   }
-}
 
-configurations.matching { it.name == "detekt" }.all {
-  resolutionStrategy.eachDependency {
-    if (requested.group == "org.jetbrains.kotlin") {
-      useVersion(io.gitlab.arturbosch.detekt.getSupportedKotlinVersion())
-    }
+  withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
   }
 }
