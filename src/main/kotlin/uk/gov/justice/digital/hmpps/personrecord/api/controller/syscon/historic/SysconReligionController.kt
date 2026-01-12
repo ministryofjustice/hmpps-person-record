@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -38,7 +39,7 @@ class SysconReligionController(
       description = "Religion saved in CPR",
     ),
   )
-  @Transactional
+  @Transactional(isolation = Isolation.REPEATABLE_READ)
   fun saveReligions(
     @PathVariable(name = "prisonNumber")
     @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true)
