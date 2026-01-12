@@ -28,7 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 class SysconReligionController(
   private val prisonReligionRepository: PrisonReligionRepository,
   private val personService: PersonService,
-  private val personRepository: PersonRepository
+  private val personRepository: PersonRepository,
 ) {
 
   @Operation(description = "Updates the prison religion records for the given prison number")
@@ -59,7 +59,6 @@ class SysconReligionController(
     if (count > 1) throw IllegalArgumentException("More than one current religion was sent for $religionRequest")
     if (count == 0) throw IllegalArgumentException("No current religion was sent for $religionRequest")
     val currentReligion = religionRequest.religions.firstOrNull { it.current } ?: throw IllegalArgumentException("No Current religion was found for $religionRequest")
-
 
     val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException(prisonNumber)
     person.religion = currentReligion.religionCode
