@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
@@ -16,7 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
 
 class SysconReligionControllerIntTest : WebTestBase() {
 
@@ -102,7 +101,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `should return a 400 when more than one current religion is sent`() {
       val prisonNumber = randomPrisonNumber()
-      val religions = listOf(createRandomReligion(randomReligion(), true), createRandomReligion(randomReligion(), true))
+      val religions = listOf(createRandomReligion(randomReligionCode(), true), createRandomReligion(randomReligionCode(), true))
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
       val reqBody = PrisonReligionRequest(religions)
 
@@ -121,7 +120,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `should return a 400 when no current religion is sent`() {
       val prisonNumber = randomPrisonNumber()
-      val religions = listOf(createRandomReligion(randomReligion(), false), createRandomReligion(randomReligion(), false))
+      val religions = listOf(createRandomReligion(randomReligionCode(), false), createRandomReligion(randomReligionCode(), false))
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
       val reqBody = PrisonReligionRequest(religions)
 
@@ -178,7 +177,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
   }
 
   private fun createRandomReligions(): List<PrisonReligion> = List((4..20).random()) { index ->
-    if (index == 0) createRandomReligion(randomName(), true) else createRandomReligion(randomName(), false)
+    if (index == 0) createRandomReligion(randomReligionCode(), true) else createRandomReligion(randomReligionCode(), false)
   }
 
   private fun createRandomReligion(code: String?, current: Boolean) = PrisonReligion(
