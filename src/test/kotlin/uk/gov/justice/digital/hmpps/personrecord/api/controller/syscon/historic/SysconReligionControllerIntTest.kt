@@ -45,24 +45,6 @@ class SysconReligionControllerIntTest : WebTestBase() {
       postReligions(prisonNumber, religions)
       assertCorrectValuesSaved(prisonNumber, religions)
     }
-
-    @Test
-    fun `should return a 4xx when the person does not exist`() {
-      val prisonNumber = randomPrisonNumber()
-      val expectedErrorMessage = "Not found: $prisonNumber"
-      val religions = createRandomReligions() + createRandomReligion(null, false)
-
-      webTestClient.post()
-        .uri("/syscon-sync/religion/$prisonNumber")
-        .bodyValue(PrisonReligionRequest(religions))
-        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
-        .isNotFound
-        .expectBody()
-        .jsonPath("userMessage")
-        .isEqualTo(expectedErrorMessage)
-    }
   }
 
   @Nested
@@ -91,23 +73,41 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `should respond with bad request when no religions are posted`() {
       webTestClient.post()
-        .uri("/syscon-sync/religion/" + randomPrisonNumber())
+        .uri(religionUrl(randomPrisonNumber()))
         .bodyValue(PrisonReligionRequest(emptyList()))
-        .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
         .exchange()
         .expectStatus()
         .isBadRequest
     }
 
     @Test
+    fun `should return a 404 when the person does not exist`() {
+      val prisonNumber = randomPrisonNumber()
+      val expectedErrorMessage = "Not found: $prisonNumber"
+      val religions = createRandomReligions() + createRandomReligion(null, false)
+
+      webTestClient.post()
+        .uri(religionUrl(prisonNumber))
+        .bodyValue(PrisonReligionRequest(religions))
+        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isNotFound
+        .expectBody()
+        .jsonPath("userMessage")
+        .isEqualTo(expectedErrorMessage)
+    }
+
+    @Test
     fun `should return a 400 when more than one current religion is sent`() {
       val prisonNumber = randomPrisonNumber()
       val religions = listOf(createRandomReligion(randomReligion(), true), createRandomReligion(randomReligion(), true))
-
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
       val reqBody = PrisonReligionRequest(religions)
+
       webTestClient.post()
-        .uri("/syscon-sync/religion/$prisonNumber")
+        .uri(religionUrl(prisonNumber))
         .bodyValue(reqBody)
         .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
         .exchange()
@@ -122,11 +122,11 @@ class SysconReligionControllerIntTest : WebTestBase() {
     fun `should return a 400 when no current religion is sent`() {
       val prisonNumber = randomPrisonNumber()
       val religions = listOf(createRandomReligion(randomReligion(), false), createRandomReligion(randomReligion(), false))
-
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
       val reqBody = PrisonReligionRequest(religions)
+
       webTestClient.post()
-        .uri("/syscon-sync/religion/$prisonNumber")
+        .uri(religionUrl(prisonNumber))
         .bodyValue(reqBody)
         .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
         .exchange()
@@ -145,7 +145,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     fun `should return Access Denied 403 when role is wrong`() {
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.post()
-        .uri("/syscon-sync/religion/" + randomPrisonNumber())
+        .uri(religionUrl(randomPrisonNumber()))
         .bodyValue(PrisonReligionRequest(createRandomReligions()))
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
@@ -159,7 +159,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       webTestClient.post()
-        .uri("/syscon-sync/religion/" + randomPrisonNumber())
+        .uri(religionUrl(randomPrisonNumber()))
         .exchange()
         .expectStatus()
         .isUnauthorized
@@ -169,9 +169,9 @@ class SysconReligionControllerIntTest : WebTestBase() {
   private fun postReligions(prisonNumber: String, religions: List<PrisonReligion>) {
     webTestClient
       .post()
-      .uri("/syscon-sync/religion/$prisonNumber")
+      .uri(religionUrl(prisonNumber))
       .bodyValue(PrisonReligionRequest(religions))
-      .authorised(roles = listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
+      .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
       .exchange()
       .expectStatus()
       .isOk
@@ -216,4 +216,6 @@ class SysconReligionControllerIntTest : WebTestBase() {
       assertThat(storedReligion.prisonRecordType).isEqualTo(PrisonRecordType.from(sentReligion.current))
     }
   }
+
+  private fun religionUrl(prisonNumber: String) = "/syscon-sync/religion/$prisonNumber"
 }
