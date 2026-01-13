@@ -3,13 +3,10 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.syscon.historic
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonImmigrationStatus
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonImmigrationStatusRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -27,7 +24,7 @@ class SysconImmigrationStatusControllerIntTest : WebTestBase() {
       val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
       assertThat(originalEntity.immigrationStatus).isNull()
 
-      val immigrationStatus = createPrisonImmigrationStatus(prisonNumber, true)
+      val immigrationStatus = createPrisonImmigrationStatus()
       postImmigrationStatus(prisonNumber, immigrationStatus)
 
       awaitAssert {
@@ -45,7 +42,7 @@ class SysconImmigrationStatusControllerIntTest : WebTestBase() {
       val expectedErrorMessage = "Not found: $prisonNumber"
       webTestClient.post()
         .uri(immigrationUrl(prisonNumber))
-        .bodyValue(createPrisonImmigrationStatus(prisonNumber, randomBoolean()))
+        .bodyValue(createPrisonImmigrationStatus())
         .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
         .exchange()
         .expectStatus()
@@ -64,7 +61,7 @@ class SysconImmigrationStatusControllerIntTest : WebTestBase() {
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.post()
         .uri(immigrationUrl(randomPrisonNumber()))
-        .bodyValue(createPrisonImmigrationStatus(randomPrisonNumber(), randomBoolean()))
+        .bodyValue(createPrisonImmigrationStatus())
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
         .expectStatus()
@@ -95,18 +92,10 @@ class SysconImmigrationStatusControllerIntTest : WebTestBase() {
       .isOk
   }
 
-  private fun createPrisonImmigrationStatus(prisonNumber: String, current: Boolean): PrisonImmigrationStatus = PrisonImmigrationStatus(
-    prisonNumber = prisonNumber,
+  private fun createPrisonImmigrationStatus(): PrisonImmigrationStatus = PrisonImmigrationStatus(
     interestToImmigration = randomBoolean(),
-    startDate = randomDate(),
-    endDate = randomDate(),
-    createUserId = randomName(),
-    createDateTime = randomDateTime(),
-    createDisplayName = randomName(),
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),
-    modifyDisplayName = randomName(),
-    current = current,
   )
 
   private fun immigrationUrl(prisonNumber: String) = "/syscon-sync/immigration-status/$prisonNumber"
