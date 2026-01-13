@@ -53,6 +53,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       val middleNames = randomName()
       val title = randomTitleCode()
       val disability = randomBoolean()
+      val interestToImmigration = randomBoolean()
       val pnc = randomLongPnc()
       val noFixedAbode = true
       val startDate = randomDate()
@@ -82,6 +83,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
           dateOfBirth = randomDate(),
           sourceSystem = NOMIS,
           disability = disability,
+          immigrationStatus = interestToImmigration,
           titleCode = title.value,
           crn = crn,
           sexCode = sex.value,
@@ -157,6 +159,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
       assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
       assertThat(responseBody.disability).isEqualTo(person.disability)
+      assertThat(responseBody.interestToImmigration).isEqualTo(person.immigrationStatus)
       assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().titleCode?.name)
       assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().titleCode?.description)
       assertThat(responseBody.aliases.first().title.code).isEqualTo(person.getAliases().first().titleCode?.name)
