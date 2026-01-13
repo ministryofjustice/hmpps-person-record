@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -51,6 +52,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       val lastName = randomName()
       val middleNames = randomName()
       val title = randomTitleCode()
+      val disability = randomBoolean()
       val pnc = randomLongPnc()
       val noFixedAbode = true
       val startDate = randomDate()
@@ -79,6 +81,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
           middleNames = randomName(),
           dateOfBirth = randomDate(),
           sourceSystem = NOMIS,
+          disability = disability,
           titleCode = title.value,
           crn = crn,
           sexCode = sex.value,
@@ -153,6 +156,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
       assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
       assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
+      assertThat(responseBody.disability).isEqualTo(person.disability)
       assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().titleCode?.name)
       assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().titleCode?.description)
       assertThat(responseBody.aliases.first().title.code).isEqualTo(person.getAliases().first().titleCode?.name)
