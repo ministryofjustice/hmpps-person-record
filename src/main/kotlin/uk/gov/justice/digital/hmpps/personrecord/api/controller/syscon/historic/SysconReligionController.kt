@@ -45,26 +45,26 @@ class SysconReligionController(
     @PathVariable @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true) prisonNumber: String,
     @Valid @RequestBody religionRequest: PrisonReligionRequest,
   ): String {
-    religionRequest.religions.requireExactlyOneCurrent(religionRequest)
+    val currentPrisonReligion = religionRequest.extractExactlyOneCurrentReligion()
+    val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException(prisonNumber)
 
     prisonReligionRepository.deleteInBulkByPrisonNumber(prisonNumber)
     prisonReligionRepository.saveAll(
       religionRequest.religions.map { PrisonReligionEntity.from(prisonNumber, it) },
     )
 
-    val currentReligion = religionRequest.religions.first { it.current }
-    val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException(prisonNumber)
-    person.religion = currentReligion.religionCode
+    person.religion = currentPrisonReligion.religionCode
     personService.processPerson(Person.from(person)) { person }
 
     return OK
   }
 
-  private fun List<PrisonReligion>.requireExactlyOneCurrent(religionRequest: PrisonReligionRequest) {
-    val currentReligionCount = count { it.current }
-    when {
-      currentReligionCount > 1 -> throw IllegalArgumentException("More than one current religion was sent for $religionRequest")
-      currentReligionCount == 0 -> throw IllegalArgumentException("No current religion was sent for $religionRequest")
+  private fun PrisonReligionRequest.extractExactlyOneCurrentReligion(): PrisonReligion {
+    val currentReligionCount = this.religions.filter { it.current }
+    return when {
+      currentReligionCount.size > 1 -> throw IllegalArgumentException("More than one current religion was sent for $this")
+      currentReligionCount.isEmpty() -> throw IllegalArgumentException("No current religion was sent for $this")
+      else -> currentReligionCount.first()
     }
   }
 
