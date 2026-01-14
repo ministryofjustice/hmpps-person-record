@@ -47,7 +47,7 @@ class SysconReligionController(
   ): String {
     religionRequest.religions.requireExactlyOneCurrent(religionRequest)
 
-    prisonReligionRepository.deleteByPrisonNumber(prisonNumber)
+    prisonReligionRepository.deleteInBulkByPrisonNumber(prisonNumber)
     prisonReligionRepository.saveAll(
       religionRequest.religions.map { PrisonReligionEntity.from(prisonNumber, it) },
     )
