@@ -13,7 +13,7 @@ plugins {
   kotlin("jvm") version "2.3.0"
   kotlin("plugin.jpa") version "2.3.0"
   id("org.jetbrains.kotlinx.kover") version "0.9.4"
-  id("org.owasp.dependencycheck") version "12.1.9"
+  id("org.owasp.dependencycheck") version "12.2.0"
 }
 
 dependencyCheck {

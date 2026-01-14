@@ -42,6 +42,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnicity
@@ -59,6 +60,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
@@ -94,6 +96,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         val primarySex = randomProbationSexCode()
         val aliasSex1 = randomProbationSexCode()
         val aliasSex2 = randomProbationSexCode()
+        val sexualOrientation = randomPrisonSexualOrientation().value
 
         val buildingName = randomName()
         val buildingNumber = randomBuildingNumber()
@@ -111,10 +114,13 @@ class ProbationApiE2ETest : E2ETestBase() {
             lastName = randomName(),
             middleNames = randomName(),
             dateOfBirth = randomDate(),
+            disability = randomBoolean(),
+            immigrationStatus = randomBoolean(),
             sourceSystem = NOMIS,
             titleCode = title.value,
             crn = crn,
             sexCode = primarySex.value,
+            sexualOrientation = sexualOrientation,
             prisonNumber = prisonNumber,
             nationalities = listOf(nationality),
             religion = religion,
@@ -202,6 +208,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
         assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
         assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
+        assertThat(responseBody.disability).isEqualTo(person.disability)
+        assertThat(responseBody.interestToImmigration).isEqualTo(person.immigrationStatus)
         assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().titleCode?.name)
         assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().titleCode?.description)
         assertThat(responseBody.aliases.first().title.code).isEqualTo(person.getAliases().first().titleCode?.name)
@@ -216,6 +224,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
         assertThat(responseBody.sex.code).isEqualTo(primarySex.value.name)
         assertThat(responseBody.sex.description).isEqualTo(primarySex.value.description)
+        assertThat(responseBody.sexualOrientation.code).isEqualTo(sexualOrientation.name)
+        assertThat(responseBody.sexualOrientation.description).isEqualTo(sexualOrientation.description)
         assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
         assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
         assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)

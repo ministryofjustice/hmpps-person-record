@@ -15,10 +15,16 @@ data class CanonicalRecord(
   val lastName: String? = null,
   @Schema(description = "Person date of birth", example = "1990-08-21")
   val dateOfBirth: String? = null,
+  @Schema(description = "Person disability", example = "true")
+  val disability: Boolean? = null,
+  @Schema(description = "Person interest to immigration", example = "true")
+  val interestToImmigration: Boolean? = null,
   @Schema(description = "Person title")
   val title: CanonicalTitle,
   @Schema(description = "Person sex")
   val sex: CanonicalSex,
+  @Schema(description = "Person sexual orientation")
+  val sexualOrientation: CanonicalSexualOrientation,
   @Schema(description = "Person religion")
   val religion: CanonicalReligion,
   @Schema(description = "Person ethnicity")
@@ -42,8 +48,11 @@ data class CanonicalRecord(
         middleNames = latestPerson.getPrimaryName().middleNames,
         lastName = latestPerson.getPrimaryName().lastName,
         dateOfBirth = latestPerson.getPrimaryName().dateOfBirth?.toString(),
+        disability = latestPerson.disability,
+        interestToImmigration = latestPerson.immigrationStatus,
         title = CanonicalTitle.from(latestPerson.getPrimaryName().titleCode),
         sex = CanonicalSex.from(latestPerson.getPrimaryName().sexCode),
+        sexualOrientation = CanonicalSexualOrientation.from(latestPerson.sexualOrientation),
         religion = CanonicalReligion.from(latestPerson.religion),
         ethnicity = CanonicalEthnicity.from(latestPerson.ethnicityCode),
         aliases = getAliases(latestPerson),
@@ -58,8 +67,11 @@ data class CanonicalRecord(
       middleNames = person.getPrimaryName().middleNames,
       lastName = person.getPrimaryName().lastName,
       dateOfBirth = person.getPrimaryName().dateOfBirth?.toString(),
+      disability = person.disability,
+      interestToImmigration = person.immigrationStatus,
       title = CanonicalTitle.from(person.getPrimaryName().titleCode),
       sex = CanonicalSex.from(person.getPrimaryName().sexCode),
+      sexualOrientation = CanonicalSexualOrientation.from(person.sexualOrientation),
       religion = CanonicalReligion.from(person.religion),
       ethnicity = CanonicalEthnicity.from(person.ethnicityCode),
       aliases = getAliases(person),
