@@ -105,11 +105,13 @@ class SysconImmigrationStatusControllerIntTest : WebTestBase() {
   }
 
   private fun assertCorrectValuesSaved(prisonNumber: String, originalEntity: PersonEntity, expectedImmigrationStatus: Boolean?) {
-    val updatedEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
-    assertThat(updatedEntity.immigrationStatus).isEqualTo(expectedImmigrationStatus)
-    assertThat(updatedEntity.getPrimaryName().dateOfBirth).isEqualTo(originalEntity.getPrimaryName().dateOfBirth)
-    assertThat(updatedEntity.getPrimaryName().firstName).isEqualTo(originalEntity.getPrimaryName().firstName)
-    assertThat(updatedEntity.getPrimaryName().lastName).isEqualTo(originalEntity.getPrimaryName().lastName)
+    awaitAssert {
+      val updatedEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+      assertThat(updatedEntity.immigrationStatus).isEqualTo(expectedImmigrationStatus)
+      assertThat(updatedEntity.getPrimaryName().dateOfBirth).isEqualTo(originalEntity.getPrimaryName().dateOfBirth)
+      assertThat(updatedEntity.getPrimaryName().firstName).isEqualTo(originalEntity.getPrimaryName().firstName)
+      assertThat(updatedEntity.getPrimaryName().lastName).isEqualTo(originalEntity.getPrimaryName().lastName)
+    }
   }
 
   private fun createPrisonImmigrationStatus(): PrisonImmigrationStatus = PrisonImmigrationStatus(
