@@ -48,10 +48,8 @@ class SysconReligionController(
     val currentPrisonReligion = religionRequest.extractExactlyOneCurrentReligion()
     val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException(prisonNumber)
 
-    prisonReligionRepository.deleteInBulkByPrisonNumber(prisonNumber)
-    prisonReligionRepository.saveAll(
-      religionRequest.religions.map { PrisonReligionEntity.from(prisonNumber, it) },
-    )
+    prisonReligionRepository.findByPrisonNumber(prisonNumber).let { prisonReligionRepository.deleteAllInBatch(it) }
+    prisonReligionRepository.saveAll(religionRequest.religions.map { PrisonReligionEntity.from(prisonNumber, it) })
 
     person.religion = currentPrisonReligion.religionCode
     personService.processPerson(Person.from(person)) { person }
@@ -62,8 +60,7 @@ class SysconReligionController(
   private fun PrisonReligionRequest.extractExactlyOneCurrentReligion(): PrisonReligion {
     val currentReligionCount = this.religions.filter { it.current }
     return when {
-      currentReligionCount.size > 1 -> throw IllegalArgumentException("More than one current religion was sent for $this")
-      currentReligionCount.isEmpty() -> throw IllegalArgumentException("No current religion was sent for $this")
+      currentReligionCount.size != 1 -> throw IllegalArgumentException("Exactly one current prison religion must be sent for $this")
       else -> currentReligionCount.first()
     }
   }
