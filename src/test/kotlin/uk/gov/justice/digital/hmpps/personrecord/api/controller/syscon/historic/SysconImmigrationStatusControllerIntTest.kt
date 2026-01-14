@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonImmigrationStatus
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -27,13 +28,7 @@ class SysconImmigrationStatusControllerIntTest : WebTestBase() {
       val immigrationStatus = createPrisonImmigrationStatus()
       postImmigrationStatus(prisonNumber, immigrationStatus)
 
-      awaitAssert {
-        val updatedEntity = personRepository.findByPrisonNumber(prisonNumber)!!
-        assertThat(updatedEntity.immigrationStatus).isEqualTo(immigrationStatus.interestToImmigration)
-        assertThat(updatedEntity.getPrimaryName().dateOfBirth).isEqualTo(originalEntity.getPrimaryName().dateOfBirth)
-        assertThat(updatedEntity.getPrimaryName().firstName).isEqualTo(originalEntity.getPrimaryName().firstName)
-        assertThat(updatedEntity.getPrimaryName().lastName).isEqualTo(originalEntity.getPrimaryName().lastName)
-      }
+      assertCorrectValuesSaved(prisonNumber, originalEntity, immigrationStatus.interestToImmigration)
     }
 
     @Test
@@ -58,9 +53,15 @@ class SysconImmigrationStatusControllerIntTest : WebTestBase() {
 
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
+      val prisonNumber = randomPrisonNumber()
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+
+      val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
+      assertThat(originalEntity.immigrationStatus).isNull()
+
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.post()
-        .uri(immigrationUrl(randomPrisonNumber()))
+        .uri(immigrationUrl(prisonNumber))
         .bodyValue(createPrisonImmigrationStatus())
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
@@ -69,15 +70,26 @@ class SysconImmigrationStatusControllerIntTest : WebTestBase() {
         .expectBody()
         .jsonPath("userMessage")
         .isEqualTo(expectedErrorMessage)
+
+      assertCorrectValuesSaved(prisonNumber, originalEntity, null)
     }
 
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
+      val prisonNumber = randomPrisonNumber()
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+
+      val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
+      assertThat(originalEntity.immigrationStatus).isNull()
+
       webTestClient.post()
         .uri(immigrationUrl(randomPrisonNumber()))
+        .bodyValue(createPrisonImmigrationStatus())
         .exchange()
         .expectStatus()
         .isUnauthorized
+
+      assertCorrectValuesSaved(prisonNumber, originalEntity, null)
     }
   }
 
@@ -90,6 +102,14 @@ class SysconImmigrationStatusControllerIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
+  }
+
+  private fun assertCorrectValuesSaved(prisonNumber: String, originalEntity: PersonEntity, expectedImmigrationStatus: Boolean?) {
+    val updatedEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
+    assertThat(updatedEntity.immigrationStatus).isEqualTo(expectedImmigrationStatus)
+    assertThat(updatedEntity.getPrimaryName().dateOfBirth).isEqualTo(originalEntity.getPrimaryName().dateOfBirth)
+    assertThat(updatedEntity.getPrimaryName().firstName).isEqualTo(originalEntity.getPrimaryName().firstName)
+    assertThat(updatedEntity.getPrimaryName().lastName).isEqualTo(originalEntity.getPrimaryName().lastName)
   }
 
   private fun createPrisonImmigrationStatus(): PrisonImmigrationStatus = PrisonImmigrationStatus(
