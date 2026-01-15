@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.util.UUID.randomUUID
 
@@ -197,6 +198,25 @@ class ClusterApiIntTest : WebTestBase() {
     }
 
     @Test
+    fun `should return massive cluster`() {
+      val person = createPersonWithNewKey(createRandomPrisonPersonDetails())
+
+      stubVisualiseMassiveCluster()
+
+      val response = webTestClient.get()
+        .uri(prisonNumberClusterUrl(person.prisonNumber!!))
+        .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody(AdminClusterDetail::class.java)
+        .returnResult()
+        .responseBody!!
+
+      assertThat(response.uuid).isEqualTo(person.personKey?.personUUID.toString())
+    }
+
+    @Test
     fun `should return not found if cluster does not exist`() {
       webTestClient.get()
         .uri(prisonNumberClusterUrl(randomPrisonNumber()))
@@ -236,6 +256,12 @@ class ClusterApiIntTest : WebTestBase() {
     url = "/visualise-cluster",
     status = 200,
     responseBody = """ { "spec": {} } """.trimIndent(),
+  )
+
+  private fun stubVisualiseMassiveCluster() = stubPostRequest(
+    url = "/visualise-cluster",
+    status = 200,
+    responseBody = """ { "spec": "${randomLowerCaseString(262145)}" } """.trimIndent(),
   )
 
   companion object {

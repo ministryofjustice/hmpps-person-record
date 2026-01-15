@@ -133,7 +133,7 @@ fun randomCId(): String = randomDigit(9)
 
 fun randomAdditionalIdentifierCode(): IdentifierType = probationAdditionalIdentifiersWithoutNino.values.random()
 
-private fun randomLowerCaseString(length: Int = 7): String = (1..length).map {
+fun randomLowerCaseString(length: Int = 7): String = (1..length).map {
   ('a' + (Math.random() * 26).toInt())
 }.joinToString("")
 
