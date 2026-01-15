@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -36,6 +37,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 
@@ -50,6 +52,8 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       val lastName = randomName()
       val middleNames = randomName()
       val title = randomTitleCode()
+      val disability = randomBoolean()
+      val interestToImmigration = randomBoolean()
       val pnc = randomLongPnc()
       val noFixedAbode = true
       val startDate = randomDate()
@@ -59,6 +63,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       val religion = randomReligion()
       val ethnicity = randomPrisonEthnicity()
       val sex = randomPrisonSexCode()
+      val sexualOrientation = randomPrisonSexualOrientation()
 
       val buildingName = randomName()
       val buildingNumber = randomBuildingNumber()
@@ -77,9 +82,12 @@ class PrisonAPIControllerIntTest : WebTestBase() {
           middleNames = randomName(),
           dateOfBirth = randomDate(),
           sourceSystem = NOMIS,
+          disability = disability,
+          immigrationStatus = interestToImmigration,
           titleCode = title.value,
           crn = crn,
           sexCode = sex.value,
+          sexualOrientation = sexualOrientation.value,
           prisonNumber = prisonNumber,
           nationalities = listOf(nationality),
           religion = religion,
@@ -150,6 +158,8 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
       assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
       assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
+      assertThat(responseBody.disability).isEqualTo(person.disability)
+      assertThat(responseBody.interestToImmigration).isEqualTo(person.immigrationStatus)
       assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().titleCode?.name)
       assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().titleCode?.description)
       assertThat(responseBody.aliases.first().title.code).isEqualTo(person.getAliases().first().titleCode?.name)
@@ -160,6 +170,9 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
       assertThat(responseBody.aliases.first().sex.code).isEqualTo(sex.value.name)
       assertThat(responseBody.aliases.first().sex.description).isEqualTo(sex.value.description)
+
+      assertThat(responseBody.sexualOrientation.code).isEqualTo(sexualOrientation.value.name)
+      assertThat(responseBody.sexualOrientation.description).isEqualTo(sexualOrientation.value.description)
       assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
       assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
       assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)

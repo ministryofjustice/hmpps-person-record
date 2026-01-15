@@ -26,6 +26,16 @@ class ExceptionHandler {
       ),
     )
 
+  @ExceptionHandler(IllegalArgumentException::class)
+  fun handleBadRequest(e: IllegalArgumentException): ResponseEntity<ErrorResponse> = ResponseEntity
+    .status(BAD_REQUEST)
+    .body(
+      ErrorResponse(
+        status = BAD_REQUEST,
+        userMessage = "Bad request: ${e.message}",
+      ),
+    )
+
   @ExceptionHandler(RuntimeException::class)
   fun handleInternalServerError(e: RuntimeException): ResponseEntity<ErrorResponse> = ResponseEntity
     .status(INTERNAL_SERVER_ERROR)
