@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
@@ -19,6 +20,43 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
+
+    @Test
+    fun`check the status of the override marker and scope after a record is unmerged`() {
+      val remainingCrn = randomCrn()
+      val deletedCrn = randomCrn()
+
+      val deleted = createPerson(createRandomProbationPersonDetails(deletedCrn))
+      val cluster = createPersonKey().addPerson(deleted)
+      val remainingPersonData = createRandomProbationCase(remainingCrn)
+      val masterDefendantId = randomDefendantId()
+      val remainingPerson = Person.from(remainingPersonData)
+      remainingPerson.masterDefendantId = masterDefendantId
+      val remaining = createPerson(remainingPerson)
+
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, remainingCrn, deletedCrn)
+
+      checkEventLogExist(remainingCrn, CPRLogEvents.CPR_RECORD_MERGED)
+      remaining.assertMergedTo(deleted)
+
+      val remainingSetup = ApiResponseSetup.from(remainingPersonData)
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, remainingCrn, deletedCrn, reactivatedSetup = remainingSetup)
+
+      checkEventLogExist(remainingCrn, CPRLogEvents.CPR_UUID_CREATED)
+
+      awaitAssert{
+        remaining.assertExcluded(personRepository.findByCrn(deletedCrn)!!)
+      }
+
+      publishProbationDomainEvent(OFFENDER_GDPR_DELETION, deletedCrn)
+
+      checkEventLogExist(deletedCrn, CPRLogEvents.CPR_RECORD_DELETED)
+
+      awaitAssert{
+        val remainAfterDelete = personRepository.findByCrn(remainingCrn)
+        assertThat(remainAfterDelete?.overrideMarker).isNotNull()
+      }
+    }
 
     @Test
     fun `should unmerge 2 records that have been merged`() {
