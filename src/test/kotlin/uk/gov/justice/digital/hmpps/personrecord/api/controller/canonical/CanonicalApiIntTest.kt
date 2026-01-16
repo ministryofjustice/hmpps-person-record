@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
@@ -88,7 +89,7 @@ class CanonicalApiIntTest : WebTestBase() {
         sexCode = sex.value,
         sexualOrientation = sexualOrientation,
         prisonNumber = prisonNumber,
-        nationalities = listOf(nationality),
+        nationalities = listOf(Nationality(nationality)),
         religion = religion,
         cId = cid,
         ethnicityCode = EthnicityCode.fromPrison(ethnicity),
@@ -330,7 +331,7 @@ class CanonicalApiIntTest : WebTestBase() {
         sourceSystem = NOMIS,
         crn = personOneCrn,
         prisonNumber = randomPrisonNumber(),
-        nationalities = listOf(randomNationalityCode()),
+        nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         cId = randomCId(),
         defendantId = randomDefendantId(),
@@ -354,7 +355,7 @@ class CanonicalApiIntTest : WebTestBase() {
         sourceSystem = NOMIS,
         crn = personTwoCrn,
         prisonNumber = randomPrisonNumber(),
-        nationalities = listOf(randomNationalityCode()),
+        nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         cId = randomCId(),
         defendantId = randomDefendantId(),
@@ -400,7 +401,7 @@ class CanonicalApiIntTest : WebTestBase() {
         middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
-        nationalities = listOf(randomNationalityCode()),
+        nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         masterDefendantId = randomDefendantId(),
       ),

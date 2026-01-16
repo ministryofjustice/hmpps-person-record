@@ -54,7 +54,8 @@ class SysconNationalityController(
     val nationalityCode = NationalityCode.fromPrisonMapping(nationality.nationalityCode) ?: NationalityCode.UNKNOWN
     val nationalityEntity = NationalityEntity.from(Nationality(nationalityCode, nationality.notes))
 
-    this.nationalities = mutableListOf(nationalityEntity)
+    this.nationalities.clear()
+    this.nationalities.add(nationalityEntity)
     val person = Person.from(this)
     personService.processPerson(person) { this }
   }

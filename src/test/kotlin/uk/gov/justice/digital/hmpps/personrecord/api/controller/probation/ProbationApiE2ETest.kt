@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
@@ -122,7 +123,7 @@ class ProbationApiE2ETest : E2ETestBase() {
             sexCode = primarySex.value,
             sexualOrientation = sexualOrientation,
             prisonNumber = prisonNumber,
-            nationalities = listOf(nationality),
+            nationalities = listOf(Nationality(nationality)),
             religion = religion,
             ethnicityCode = EthnicityCode.fromCommonPlatform(ethnicity),
             aliases = listOf(
@@ -270,7 +271,7 @@ class ProbationApiE2ETest : E2ETestBase() {
             sourceSystem = NOMIS,
             crn = personOneCrn,
             prisonNumber = randomPrisonNumber(),
-            nationalities = listOf(randomNationalityCode()),
+            nationalities = listOf(Nationality(randomNationalityCode())),
             religion = randomReligion(),
             cId = randomCId(),
             defendantId = personOneDefendantId,
@@ -303,7 +304,7 @@ class ProbationApiE2ETest : E2ETestBase() {
             sourceSystem = NOMIS,
             crn = personTwoCrn,
             prisonNumber = randomPrisonNumber(),
-            nationalities = listOf(randomNationalityCode()),
+            nationalities = listOf(Nationality(randomNationalityCode())),
             religion = randomReligion(),
             cId = randomCId(),
             defendantId = personTwoDefendantId,

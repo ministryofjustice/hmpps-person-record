@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
@@ -95,7 +96,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
           sexCode = sex.value,
           sexualOrientation = sexualOrientation,
           prisonNumber = prisonNumber,
-          nationalities = listOf(nationality),
+          nationalities = listOf(Nationality(nationality)),
           religion = religion,
           cId = cid,
           ethnicityCode = EthnicityCode.fromCommonPlatform(ethnicity),
@@ -324,7 +325,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
           middleNames = randomName(),
           dateOfBirth = randomDate(),
           sourceSystem = COMMON_PLATFORM,
-          nationalities = listOf(randomNationalityCode()),
+          nationalities = listOf(Nationality(randomNationalityCode())),
           religion = randomReligion(),
           defendantId = personOneDefendantId,
           masterDefendantId = personOneDefendantId,
@@ -355,7 +356,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
           dateOfBirth = randomDate(),
           sourceSystem = DELIUS,
           crn = personTwoCrn,
-          nationalities = listOf(randomNationalityCode()),
+          nationalities = listOf(Nationality(randomNationalityCode())),
           religion = randomReligion(),
           references = listOf(
             Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),

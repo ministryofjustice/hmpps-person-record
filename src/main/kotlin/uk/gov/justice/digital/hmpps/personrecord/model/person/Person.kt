@@ -235,7 +235,7 @@ data class Person(
       titleCode = existingPersonEntity.getPrimaryName().titleCode,
       aliases = existingPersonEntity.getAliases().map { Alias.from(it) },
       masterDefendantId = existingPersonEntity.masterDefendantId,
-      nationalities = existingPersonEntity.nationalities.map { Nationality(nationalityCode = it.nationalityCode) },
+      nationalities = existingPersonEntity.nationalities.map { Nationality(nationalityCode = it.nationalityCode, notes = it.notes) },
       religion = existingPersonEntity.religion,
       ethnicityCode = existingPersonEntity.ethnicityCode,
       contacts = existingPersonEntity.contacts.map { Contact.convertEntityToContact(it) },

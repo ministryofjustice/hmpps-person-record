@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
@@ -144,7 +145,7 @@ class PersonEntityMappingTest {
     titleCode = TitleCode.MISS,
     aliases = listOf(Alias(firstName = randomName(), middleNames = randomName(), lastName = randomName(), dateOfBirth = randomDate(), titleCode = TitleCode.MISS, sexCode = SexCode.N)),
     masterDefendantId = randomDefendantId(),
-    nationalities = listOf(randomNationalityCode()),
+    nationalities = listOf(Nationality(randomNationalityCode())),
     religion = randomReligion(),
     ethnicityCode = EthnicityCode.O1,
     contacts = listOf(Contact(contactType = ContactType.HOME, contactValue = randomName())),
