@@ -62,8 +62,6 @@ hmpps.sqs:
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres?currentSchema=personrecordservice&stringtype=unspecified
-    username: ${database.username:root}
-    password: ${database.password:dev}
 
 aws:
   endpoint: http://localhost:4566
