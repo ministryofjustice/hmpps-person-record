@@ -43,7 +43,7 @@ data class Person(
   val titleCode: TitleCode? = null,
   val aliases: List<Alias> = emptyList(),
   var masterDefendantId: String? = null,
-  val nationalities: List<Nationality> = emptyList(),
+  var nationalities: List<Nationality> = emptyList(),
   val religion: String? = null,
   val ethnicityCode: EthnicityCode? = null,
   val contacts: List<Contact> = emptyList(),

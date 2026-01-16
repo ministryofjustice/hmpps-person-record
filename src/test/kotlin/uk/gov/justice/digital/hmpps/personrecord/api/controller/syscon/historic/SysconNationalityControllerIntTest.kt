@@ -27,16 +27,6 @@ class SysconNationalityControllerIntTest : WebTestBase() {
       postNationality(prisonNumber, currentNationality)
       assertCorrectValuesSaved(prisonNumber, currentNationality)
     }
-
-    @Test
-    fun `should save current nationality against a prison number when code is null`() {
-      val prisonNumber = randomPrisonNumber()
-      val currentNationality = createRandomPrisonNationality(null)
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
-
-      postNationality(prisonNumber, currentNationality)
-      assertCorrectValuesSaved(prisonNumber, currentNationality)
-    }
   }
 
   @Nested
@@ -55,21 +45,6 @@ class SysconNationalityControllerIntTest : WebTestBase() {
       val updatedCode = randomPrisonNationalityCode()
       val updatedNationality = createRandomPrisonNationality(updatedCode)
 
-      postNationality(prisonNumber, updatedNationality)
-      assertCorrectValuesSaved(prisonNumber, updatedNationality)
-    }
-
-    @Test
-    fun `should update an existing nationality when code is null`() {
-      val prisonNumber = randomPrisonNumber()
-      val currentCode = randomPrisonNationalityCode()
-      val currentNationality = createRandomPrisonNationality(currentCode)
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
-
-      postNationality(prisonNumber, currentNationality)
-      assertCorrectValuesSaved(prisonNumber, currentNationality)
-
-      val updatedNationality = createRandomPrisonNationality(null)
       postNationality(prisonNumber, updatedNationality)
       assertCorrectValuesSaved(prisonNumber, updatedNationality)
     }
@@ -123,7 +98,7 @@ class SysconNationalityControllerIntTest : WebTestBase() {
     assertThat(actualPerson.prisonNumber).isEqualTo(prisonNumber)
     assertThat(actualPerson.nationalities.size).isEqualTo(1)
     val actualNationality = actualPerson.nationalities.first()
-    assertThat(actualNationality.nationalityCode).isEqualTo(NationalityCode.fromPrisonMapping(nationality.nationalityCode) ?: NationalityCode.UNKNOWN)
+    assertThat(actualNationality.nationalityCode).isEqualTo(NationalityCode.fromPrisonMapping(nationality.nationalityCode))
     assertThat(actualNationality.notes).isEqualTo(nationality.notes)
     assertThat(actualNationality.person!!.id).isEqualTo(actualNationality.person!!.id)
   }

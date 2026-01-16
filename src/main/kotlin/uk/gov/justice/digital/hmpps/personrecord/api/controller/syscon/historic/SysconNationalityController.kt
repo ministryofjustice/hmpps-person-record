@@ -51,13 +51,12 @@ class SysconNationalityController(
   }
 
   fun PersonEntity.processUpsert(nationality: PrisonNationality) {
-    val nationalityCode = NationalityCode.fromPrisonMapping(nationality.nationalityCode) ?: NationalityCode.UNKNOWN
-    val nationalityEntity = NationalityEntity.from(Nationality(nationalityCode, nationality.notes))
-
-    this.nationalities.clear()
-    this.nationalities.add(nationalityEntity)
-    val person = Person.from(this)
-    personService.processPerson(person) { this }
+    NationalityCode.fromPrisonMapping(nationality.nationalityCode)?.let {
+      val person = Person.from(this).apply {
+        nationalities = listOf(Nationality(it, nationality.notes))
+      }
+      personService.processPerson(person) { this }
+    }
   }
 
   companion object {

@@ -47,7 +47,7 @@ class NationalityCodeTest {
   fun `should map probation nationality codes to cpr nationality codes`(probationCode: String, cprCode: NationalityCode) {
     val probationCase = ProbationCase(name = ProbationCaseName(firstName = randomName()), identifiers = Identifiers(crn = randomCrn()), nationality = Value(probationCode))
     val person = Person.from(probationCase)
-    assertThat(person.nationalities.first()).isEqualTo(cprCode)
+    assertThat(person.nationalities.first().nationalityCode).isEqualTo(cprCode)
   }
 
   @Test
@@ -62,7 +62,7 @@ class NationalityCodeTest {
   fun `should map prison nationality codes to cpr nationality codes`(prisonCode: String, cprCode: NationalityCode) {
     val prisoner = Prisoner(prisonNumber = randomPrisonNumber(), firstName = randomName(), lastName = randomName(), dateOfBirth = randomDate(), nationality = prisonCode)
     val person = Person.from(prisoner)
-    assertThat(person.nationalities.first()).isEqualTo(cprCode)
+    assertThat(person.nationalities.first().nationalityCode).isEqualTo(cprCode)
   }
 
   @Test
@@ -77,7 +77,7 @@ class NationalityCodeTest {
   fun `should map common platform nationality codes to cpr nationality codes`(commonPlatformCode: String, cprCode: NationalityCode) {
     val defendant = Defendant(id = randomDefendantId(), personDefendant = PersonDefendant(PersonDetails(lastName = randomName(), nationalityCode = commonPlatformCode)))
     val person = Person.from(defendant)
-    assertThat(person.nationalities.first()).isEqualTo(cprCode)
+    assertThat(person.nationalities.first().nationalityCode).isEqualTo(cprCode)
   }
 
   companion object {
