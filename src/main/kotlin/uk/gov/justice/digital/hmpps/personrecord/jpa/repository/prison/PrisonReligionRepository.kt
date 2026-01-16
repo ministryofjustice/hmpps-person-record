@@ -10,4 +10,5 @@ interface PrisonReligionRepository : JpaRepository<PrisonReligionEntity, Long> {
   fun deleteByPrisonNumber(prisonNumber: String)
 
   fun findByPrisonNumber(prisonNumber: String): List<PrisonReligionEntity>
+  fun findAllByPrisonNumber(prisonNumber: String): MutableList<PrisonReligionEntity>
 }

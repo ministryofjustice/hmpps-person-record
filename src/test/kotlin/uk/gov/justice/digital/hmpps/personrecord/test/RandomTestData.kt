@@ -98,6 +98,8 @@ fun randomProbationNationalityCode(): String = PROBATION_NATIONALITY_MAPPING.ent
 
 fun randomCommonPlatformNationalityCode(): String = COMMON_PLATFORM_NATIONALITY_MAPPING.entries.random().key
 
+fun randomReligionCode(): String = ReligionCode.entries.random().name
+
 fun randomReligion(): String = ReligionCode.entries.random().description
 
 fun randomDriverLicenseNumber(): String {
@@ -131,7 +133,7 @@ fun randomCId(): String = randomDigit(9)
 
 fun randomAdditionalIdentifierCode(): IdentifierType = probationAdditionalIdentifiersWithoutNino.values.random()
 
-private fun randomLowerCaseString(length: Int = 7): String = (1..length).map {
+fun randomLowerCaseString(length: Int = 7): String = (1..length).map {
   ('a' + (Math.random() * 26).toInt())
 }.joinToString("")
 
