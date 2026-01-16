@@ -18,9 +18,20 @@ class SysconNationalityControllerIntTest : WebTestBase() {
   inner class Creation {
 
     @Test
-    fun `should save current nationality against a prison number`() {
+    fun `should save current nationality against a prison number when older code type is sent`() {
       val prisonNumber = randomPrisonNumber()
       val currentCode = randomPrisonNationalityCode()
+      val currentNationality = createRandomPrisonNationality(currentCode)
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+
+      postNationality(prisonNumber, currentNationality)
+      assertCorrectValuesSaved(prisonNumber, currentNationality)
+    }
+
+    @Test
+    fun `should save current nationality against a prison number when newer code type is sent`() {
+      val prisonNumber = randomPrisonNumber()
+      val currentCode = NationalityCode.entries.random().toString()
       val currentNationality = createRandomPrisonNationality(currentCode)
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
