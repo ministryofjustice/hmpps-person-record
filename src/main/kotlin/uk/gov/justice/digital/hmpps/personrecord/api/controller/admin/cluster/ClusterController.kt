@@ -28,11 +28,8 @@ class ClusterController(
   @GetMapping("/admin/cluster/{uuid}")
   suspend fun getClusterFromUUID(
     @PathVariable(name = "uuid") uuid: UUID,
-  ): AdminClusterDetail {
-    val personKeyEntity = withContext(Dispatchers.IO) {
-      personKeyRepository.findByPersonUUID(uuid)
-    } ?: throw ResourceNotFoundException(uuid.toString())
-    return getClusterDetail(personKeyEntity)
+  ): AdminClusterDetail = withContext(Dispatchers.IO) {
+    getClusterDetail(uuid.toString()) { personKeyRepository.findByPersonUUID(uuid) }
   }
 
   @Hidden
@@ -40,11 +37,8 @@ class ClusterController(
   @GetMapping("/admin/cluster/probation/{crn}")
   suspend fun getClusterFromCRN(
     @PathVariable(name = "crn") crn: String,
-  ): AdminClusterDetail {
-    val personKeyEntity = withContext(Dispatchers.IO) {
-      personRepository.findByCrn(crn)?.personKey
-    } ?: throw ResourceNotFoundException(crn)
-    return getClusterDetail(personKeyEntity)
+  ): AdminClusterDetail = withContext(Dispatchers.IO) {
+    getClusterDetail(crn) { personRepository.findByCrn(crn)?.personKey }
   }
 
   @Hidden
@@ -52,15 +46,12 @@ class ClusterController(
   @GetMapping("/admin/cluster/prison/{prisonNumber}")
   suspend fun getClusterFromPrisonNumber(
     @PathVariable(name = "prisonNumber") prisonNumber: String,
-  ): AdminClusterDetail {
-    val personKeyEntity = withContext(Dispatchers.IO) {
-      personRepository.findByPrisonNumber(prisonNumber)?.personKey
-    } ?: throw ResourceNotFoundException(prisonNumber)
-    return getClusterDetail(personKeyEntity)
+  ): AdminClusterDetail = withContext(Dispatchers.IO) {
+    getClusterDetail(prisonNumber) { personRepository.findByPrisonNumber(prisonNumber)?.personKey }
   }
 
-  private fun getClusterDetail(personKeyEntity: PersonKeyEntity): AdminClusterDetail {
-    val clusterVisualisationSpec = personMatchService.retrieveClusterVisualisationSpec(personKeyEntity).spec
-    return AdminClusterDetail.from(personKeyEntity, clusterVisualisationSpec)
-  }
+  private fun getClusterDetail(identifier: String, findPersonKey: () -> PersonKeyEntity?): AdminClusterDetail = findPersonKey()?.let {
+    val clusterVisualisationSpec = personMatchService.retrieveClusterVisualisationSpec(it).spec
+    return AdminClusterDetail.from(it, clusterVisualisationSpec)
+  } ?: throw ResourceNotFoundException(identifier)
 }
