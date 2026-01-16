@@ -3,7 +3,9 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OverrideScopeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -18,16 +20,19 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
 
+  @Autowired
+  private lateinit var overrideScopeRepository: OverrideScopeRepository
+
   @Nested
   inner class SuccessfulProcessing {
 
     @Test
-    fun`check the status of the override marker and scope after a record is unmerged`() {
+    fun `check the status of the override marker and scope after a record is unmerged`() {
       val remainingCrn = randomCrn()
       val deletedCrn = randomCrn()
 
       val deleted = createPerson(createRandomProbationPersonDetails(deletedCrn))
-      val cluster = createPersonKey().addPerson(deleted)
+      createPersonKey().addPerson(deleted)
       val remainingPersonData = createRandomProbationCase(remainingCrn)
       val masterDefendantId = randomDefendantId()
       val remainingPerson = Person.from(remainingPersonData)
@@ -44,17 +49,20 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
 
       checkEventLogExist(remainingCrn, CPRLogEvents.CPR_UUID_CREATED)
 
-      awaitAssert{
+      awaitAssert {
         remaining.assertExcluded(personRepository.findByCrn(deletedCrn)!!)
       }
 
+      val deletedScope = personRepository.findByCrn(deletedCrn)?.overrideScopes
       publishProbationDomainEvent(OFFENDER_GDPR_DELETION, deletedCrn)
 
       checkEventLogExist(deletedCrn, CPRLogEvents.CPR_RECORD_DELETED)
 
-      awaitAssert{
-        val remainAfterDelete = personRepository.findByCrn(remainingCrn)
-        assertThat(remainAfterDelete?.overrideMarker).isNotNull()
+      awaitAssert {
+        val remainAfterDelete = personRepository.findByCrn(remainingCrn)!!
+        assertThat(remainAfterDelete.overrideMarker).isNotNull()
+        assertThat(remainAfterDelete.overrideScopes.first().scope).isEqualTo(deletedScope?.first()?.scope) // the scope is still present on the remaining record
+        assertThat(overrideScopeRepository.findById(deletedScope?.first()?.id!!)).isNotNull() // the override scope of the deleted record is still there
       }
     }
 
