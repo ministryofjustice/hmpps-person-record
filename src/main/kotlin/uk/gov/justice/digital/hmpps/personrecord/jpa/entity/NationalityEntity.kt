@@ -10,6 +10,8 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonNationality
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 
 @Entity
@@ -28,14 +30,18 @@ class NationalityEntity(
   )
   var person: PersonEntity? = null,
 
+  @Column(name = "notes")
+  val notes: String? = null,
+
   @Column(name = "nationality_code")
   @Enumerated(EnumType.STRING)
   var nationalityCode: NationalityCode,
 ) {
   companion object {
 
-    fun from(nationalityCode: NationalityCode): NationalityEntity = NationalityEntity(
-      nationalityCode = nationalityCode,
+    fun from(nationality: Nationality): NationalityEntity = NationalityEntity(
+      nationalityCode = nationality.nationalityCode,
+      notes = nationality.notes,
     )
   }
 }

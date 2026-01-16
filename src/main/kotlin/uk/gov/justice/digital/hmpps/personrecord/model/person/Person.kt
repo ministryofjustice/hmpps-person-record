@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import java.time.LocalDate
 import java.util.UUID
@@ -42,7 +43,7 @@ data class Person(
   val titleCode: TitleCode? = null,
   val aliases: List<Alias> = emptyList(),
   var masterDefendantId: String? = null,
-  val nationalities: List<NationalityCode> = emptyList(),
+  val nationalities: List<Nationality> = emptyList(),
   val religion: String? = null,
   val ethnicityCode: EthnicityCode? = null,
   val contacts: List<Contact> = emptyList(),
@@ -75,10 +76,10 @@ data class Person(
 
       val references = IdentifierType.createProbationIdentifierReferences(probationCase)
 
-      val nationalities: List<NationalityCode> = listOf(
+      val nationalities: List<Nationality> = listOf(
         NationalityCode.fromProbationMapping(probationCase.nationality?.value),
         NationalityCode.fromProbationMapping(probationCase.secondNationality?.value),
-      ).mapNotNull { it }
+      ).mapNotNull { it?.let { nationalityCode -> Nationality(nationalityCode = nationalityCode) } }
 
       return Person(
         titleCode = TitleCode.from(probationCase.title?.value),
@@ -130,10 +131,10 @@ data class Person(
         Reference.from(identifierType = CRO, identifierValue = defendant.cro?.croId),
       )
 
-      val nationalities: List<NationalityCode> = listOf(
+      val nationalities: List<Nationality> = listOf(
         NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.nationalityCode),
         NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.additionalNationalityCode),
-      ).mapNotNull { it }
+      ).mapNotNull { it?.let { nationalityCode -> Nationality(nationalityCode = nationalityCode) } }
 
       return Person(
         titleCode = TitleCode.from(defendant.personDefendant?.personDetails?.title.nullIfBlank()),
@@ -197,7 +198,9 @@ data class Person(
           identifierValue = prisoner.identifiers.getType("DL")?.value,
         ),
       )
-      val nationalities: List<NationalityCode> = NationalityCode.fromPrisonMapping(prisoner.nationality)?.let { listOf(it) } ?: emptyList()
+      val nationalities: List<Nationality> = NationalityCode.fromPrisonMapping(prisoner.nationality)
+        ?.let { listOf(Nationality(it)) }
+        ?: emptyList()
 
       return Person(
         prisonNumber = prisoner.prisonNumber.nullIfBlank(),
@@ -232,7 +235,7 @@ data class Person(
       titleCode = existingPersonEntity.getPrimaryName().titleCode,
       aliases = existingPersonEntity.getAliases().map { Alias.from(it) },
       masterDefendantId = existingPersonEntity.masterDefendantId,
-      nationalities = existingPersonEntity.nationalities.map { it.nationalityCode },
+      nationalities = existingPersonEntity.nationalities.map { Nationality(nationalityCode = it.nationalityCode) },
       religion = existingPersonEntity.religion,
       ethnicityCode = existingPersonEntity.ethnicityCode,
       contacts = existingPersonEntity.contacts.map { Contact.convertEntityToContact(it) },
