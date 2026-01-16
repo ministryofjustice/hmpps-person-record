@@ -17,7 +17,7 @@ enum class ReligionCode(val description: String) {
   JAIN("Jain"),
   JEHV("Jehovah's Witness"),
   JEW("Jewish"),
-  MOS("Muslim - Other"),
+  MOS("Muslim"),
   NIL("No Faith or Belief"),
   OORTH("Christian - Oriental Orthodox"),
   OTH("Other Faith or Belief"),
