@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin.cluster
 
 import io.swagger.v3.oas.annotations.Hidden
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -28,27 +26,21 @@ class ClusterController(
   @GetMapping("/admin/cluster/{uuid}")
   suspend fun getClusterFromUUID(
     @PathVariable(name = "uuid") uuid: UUID,
-  ): AdminClusterDetail = withContext(Dispatchers.IO) {
-    getClusterDetail(uuid.toString()) { personKeyRepository.findByPersonUUID(uuid) }
-  }
+  ): AdminClusterDetail = getClusterDetail(uuid.toString()) { personKeyRepository.findByPersonUUID(uuid) }
 
   @Hidden
   @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
   @GetMapping("/admin/cluster/probation/{crn}")
   suspend fun getClusterFromCRN(
     @PathVariable(name = "crn") crn: String,
-  ): AdminClusterDetail = withContext(Dispatchers.IO) {
-    getClusterDetail(crn) { personRepository.findByCrn(crn)?.personKey }
-  }
+  ): AdminClusterDetail = getClusterDetail(crn) { personRepository.findByCrn(crn)?.personKey }
 
   @Hidden
   @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
   @GetMapping("/admin/cluster/prison/{prisonNumber}")
   suspend fun getClusterFromPrisonNumber(
     @PathVariable(name = "prisonNumber") prisonNumber: String,
-  ): AdminClusterDetail = withContext(Dispatchers.IO) {
-    getClusterDetail(prisonNumber) { personRepository.findByPrisonNumber(prisonNumber)?.personKey }
-  }
+  ): AdminClusterDetail = getClusterDetail(prisonNumber) { personRepository.findByPrisonNumber(prisonNumber)?.personKey }
 
   private fun getClusterDetail(identifier: String, findPersonKey: () -> PersonKeyEntity?): AdminClusterDetail = findPersonKey()?.let {
     val clusterVisualisationSpec = personMatchService.retrieveClusterVisualisationSpec(it).spec
