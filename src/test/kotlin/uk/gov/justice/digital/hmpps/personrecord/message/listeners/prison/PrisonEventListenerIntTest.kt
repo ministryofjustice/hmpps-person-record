@@ -146,8 +146,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.contacts.getMobile()?.contactValue).isEqualTo("01141234567")
         assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceStartDate)
         assertThat(personEntity.nationalities.size).isEqualTo(1)
-        assertThat(personEntity.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.name)
-        assertThat(personEntity.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.description)
+        assertThat(personEntity.nationalities.first().nationalityCode?.name).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.name)
+        assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.description)
         assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))
       }
 
@@ -242,8 +242,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))
 
         assertThat(personEntity.nationalities.size).isEqualTo(1)
-        assertThat(personEntity.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.name)
-        assertThat(personEntity.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.description)
+        assertThat(personEntity.nationalities.first().nationalityCode?.name).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.name)
+        assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.description)
       }
     }
 

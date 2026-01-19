@@ -18,62 +18,33 @@ class SysconNationalityControllerIntTest : WebTestBase() {
   inner class Creation {
 
     @Test
-    fun `should save current nationality against a prison number when newer code type is sent`() {
+    fun `should save current nationality against a prison number when code is sent`() {
       val prisonNumber = randomPrisonNumber()
-      val currentCode = NationalityCode.entries.random().toString()
-      val currentNationality = createRandomPrisonNationality(currentCode)
+      val currentNationality = createRandomPrisonNationality(NationalityCode.entries.random().toString())
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       postNationality(prisonNumber, currentNationality)
       assertCorrectValuesSaved(prisonNumber, currentNationality)
     }
-  }
-
-  @Nested
-  inner class Error {
 
     @Test
-    fun `should not save nationality when a blank nationality code is sent`() {
+    fun `should save nationality as null when a blank nationality code is sent`() {
       val prisonNumber = randomPrisonNumber()
-      val currentCode = "  "
-      val requestBody = createRandomPrisonNationality(currentCode)
+      val currentNationality = createRandomPrisonNationality(" ")
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-      webTestClient.post()
-        .uri("/syscon-sync/nationality/$prisonNumber")
-        .bodyValue(requestBody)
-        .authorised(listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
-        .isBadRequest
-        .expectBody()
-        .jsonPath("userMessage")
-        .isEqualTo("Bad request: Nationality code cannot be null or blank: $prisonNumber")
-
-      val actualPerson = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
-      assertThat(actualPerson.nationalities.size).isEqualTo(0)
+      postNationality(prisonNumber, currentNationality)
+      assertCorrectValuesSaved(prisonNumber, currentNationality)
     }
 
     @Test
-    fun `should not save nationality when an incorrect nationality code is sent`() {
+    fun `should save nationality as null when a null nationality code is sent`() {
       val prisonNumber = randomPrisonNumber()
-      val currentCode = "UNRECOGNISED_CODE"
-      val requestBody = createRandomPrisonNationality(currentCode)
+      val currentNationality = createRandomPrisonNationality(null)
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-      webTestClient.post()
-        .uri("/syscon-sync/nationality/$prisonNumber")
-        .bodyValue(requestBody)
-        .authorised(listOf(Roles.PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
-        .isBadRequest
-        .expectBody()
-        .jsonPath("userMessage")
-        .isEqualTo("Bad request: Nationality code $currentCode is not valid: $prisonNumber")
-
-      val actualPerson = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
-      assertThat(actualPerson.nationalities.size).isEqualTo(0)
+      postNationality(prisonNumber, currentNationality)
+      assertCorrectValuesSaved(prisonNumber, currentNationality)
     }
   }
 
@@ -92,6 +63,23 @@ class SysconNationalityControllerIntTest : WebTestBase() {
 
       val updatedCode = NationalityCode.entries.random().toString()
       val updatedNationality = createRandomPrisonNationality(updatedCode)
+
+      postNationality(prisonNumber, updatedNationality)
+      assertCorrectValuesSaved(prisonNumber, updatedNationality)
+    }
+
+    @Test
+    fun `should update an existing nationality when updated nationality code is null`() {
+      val prisonNumber = randomPrisonNumber()
+
+      val currentCode = NationalityCode.entries.random().toString()
+      val currentNationality = createRandomPrisonNationality(currentCode)
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+
+      postNationality(prisonNumber, currentNationality)
+      assertCorrectValuesSaved(prisonNumber, currentNationality)
+
+      val updatedNationality = createRandomPrisonNationality(null)
 
       postNationality(prisonNumber, updatedNationality)
       assertCorrectValuesSaved(prisonNumber, updatedNationality)
@@ -146,8 +134,13 @@ class SysconNationalityControllerIntTest : WebTestBase() {
     assertThat(actualPerson.prisonNumber).isEqualTo(prisonNumber)
     assertThat(actualPerson.nationalities.size).isEqualTo(1)
     val actualNationality = actualPerson.nationalities.first()
-    assertThat(actualNationality.nationalityCode).isEqualTo(NationalityCode.valueOf(nationality.nationalityCode!!))
-    assertThat(actualNationality.person!!.id).isEqualTo(actualNationality.person!!.id)
+    val expectedNationality = if (!nationality.nationalityCode.isNullOrBlank()) nationality.nationalityCode else null
+
+    expectedNationality?.let {
+      assertThat(actualNationality.nationalityCode).isEqualTo(NationalityCode.valueOf(it))
+    } ?: assertThat(actualNationality.nationalityCode).isEqualTo(expectedNationality)
+
+    assertThat(actualNationality.person!!.id).isEqualTo(actualPerson.id)
   }
 
   private fun createRandomPrisonNationality(code: String?): PrisonNationality = PrisonNationality(

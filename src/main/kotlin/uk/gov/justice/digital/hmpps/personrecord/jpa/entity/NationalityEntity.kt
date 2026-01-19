@@ -30,11 +30,11 @@ class NationalityEntity(
 
   @Column(name = "nationality_code")
   @Enumerated(EnumType.STRING)
-  var nationalityCode: NationalityCode,
+  var nationalityCode: NationalityCode?,
 ) {
   companion object {
 
-    fun from(nationalityCode: NationalityCode): NationalityEntity = NationalityEntity(
+    fun from(nationalityCode: NationalityCode?): NationalityEntity = NationalityEntity(
       nationalityCode = nationalityCode,
     )
   }

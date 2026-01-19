@@ -42,26 +42,24 @@ class SysconNationalityController(
     prisonNumber: String,
     @RequestBody nationality: PrisonNationality,
   ): String {
-    personRepository.findByPrisonNumber(prisonNumber)?.processUpsert(nationality, prisonNumber)
+    personRepository.findByPrisonNumber(prisonNumber)?.processUpsert(nationality)
       ?: throw ResourceNotFoundException(prisonNumber)
 
     return OK
   }
 
-  fun PersonEntity.processUpsert(nationality: PrisonNationality, prisonNumber: String) {
-    val nationalityCode = mapNationalityCodeElseThrow(nationality.nationalityCode, prisonNumber)
+  fun PersonEntity.processUpsert(nationality: PrisonNationality) {
+    val nationalityCode = tryMapNationalityCode(nationality.nationalityCode)
     val person = Person.from(this)
+
     person.nationalities = listOf(nationalityCode)
     personService.processPerson(person) { this }
   }
 
-  private fun mapNationalityCodeElseThrow(nationality: String?, prisonNumber: String): NationalityCode {
-    require(!nationality.isNullOrBlank()) { "Nationality code cannot be null or blank: $prisonNumber" }
-    return try {
-      NationalityCode.valueOf(nationality)
-    } catch (_: IllegalArgumentException) {
-      throw IllegalArgumentException("Nationality code $nationality is not valid: $prisonNumber")
-    }
+  private fun tryMapNationalityCode(nationality: String?): NationalityCode? = try {
+    nationality?.let { NationalityCode.valueOf(it) }
+  } catch (_: IllegalArgumentException) {
+    null
   }
 
   companion object {

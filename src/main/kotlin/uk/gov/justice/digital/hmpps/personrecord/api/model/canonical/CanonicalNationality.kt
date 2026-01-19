@@ -13,8 +13,8 @@ data class CanonicalNationality(
 
     fun from(personEntity: PersonEntity): List<CanonicalNationality> = personEntity.nationalities.map {
       CanonicalNationality(
-        code = it.nationalityCode.name,
-        description = it.nationalityCode.description,
+        code = it.nationalityCode?.name,
+        description = it.nationalityCode?.description,
       )
     }
   }
