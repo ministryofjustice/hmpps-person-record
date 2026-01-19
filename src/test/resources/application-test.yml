@@ -76,7 +76,7 @@ spring:
   flyway:
     out-of-order: true
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=personrecordservice&user=root&password=dev&stringtype=unspecified
+    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=personrecordservice&stringtype=unspecified
     hikari:
       maximum-pool-size: 20
 
