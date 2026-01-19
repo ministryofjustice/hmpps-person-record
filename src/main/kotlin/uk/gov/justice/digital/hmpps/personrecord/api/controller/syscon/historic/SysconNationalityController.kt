@@ -12,17 +12,22 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonNationality
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonNationalityEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonNationalityRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Tag(name = "Syscon Sync")
 @RestController
 @PreAuthorize("hasRole('${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 class SysconNationalityController(
-  private val prisonNationalityRepository: PrisonNationalityRepository,
+  private val personRepository: PersonRepository,
+  private val personService: PersonService,
 ) {
-  @Operation(description = "Creates a new prison nationality record, or updates the existing one if a record matching the prison number is found")
+  @Operation(description = "Upserts a nationality record on a matching prison number")
   @PostMapping("/syscon-sync/nationality/{prisonNumber}")
   @ApiResponses(
     ApiResponse(
@@ -37,11 +42,26 @@ class SysconNationalityController(
     prisonNumber: String,
     @RequestBody nationality: PrisonNationality,
   ): String {
-    prisonNationalityRepository.findByPrisonNumber(prisonNumber)
-      ?.update(nationality)
-      ?: prisonNationalityRepository.save(PrisonNationalityEntity.from(prisonNumber, nationality))
+    personRepository.findByPrisonNumber(prisonNumber)?.processUpsert(nationality, prisonNumber)
+      ?: throw ResourceNotFoundException(prisonNumber)
 
     return OK
+  }
+
+  fun PersonEntity.processUpsert(nationality: PrisonNationality, prisonNumber: String) {
+    val nationalityCode = mapNationalityCodeElseThrow(nationality.nationalityCode, prisonNumber)
+    val person = Person.from(this)
+    person.nationalities = listOf(nationalityCode)
+    personService.processPerson(person) { this }
+  }
+
+  private fun mapNationalityCodeElseThrow(nationality: String?, prisonNumber: String): NationalityCode {
+    require(!nationality.isNullOrBlank()) { "Nationality code cannot be null or blank: $prisonNumber" }
+    return try {
+      NationalityCode.valueOf(nationality)
+    } catch (_: IllegalArgumentException) {
+      throw IllegalArgumentException("Nationality code $nationality is not valid: $prisonNumber")
+    }
   }
 
   companion object {
