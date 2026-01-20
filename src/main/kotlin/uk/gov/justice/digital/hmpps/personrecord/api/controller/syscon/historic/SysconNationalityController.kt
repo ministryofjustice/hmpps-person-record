@@ -52,7 +52,13 @@ class SysconNationalityController(
     val nationalityCode = tryMapNationalityCode(nationality.nationalityCode)
     val person = Person.from(this)
 
-    person.nationalities = listOf(nationalityCode)
+
+    if (nationalityCode != null) {
+      person.nationalities = listOf(nationalityCode)
+    } else {
+      person.nationalities = emptyList()
+    }
+
     personService.processPerson(person) { this }
   }
 

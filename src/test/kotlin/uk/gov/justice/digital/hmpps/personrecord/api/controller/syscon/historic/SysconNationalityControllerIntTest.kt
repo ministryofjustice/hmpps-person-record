@@ -34,7 +34,9 @@ class SysconNationalityControllerIntTest : WebTestBase() {
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       postNationality(prisonNumber, currentNationality)
-      assertCorrectValuesSaved(prisonNumber, currentNationality)
+
+      val actualPerson = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
+      assertThat(actualPerson.nationalities.size).isEqualTo(0)
     }
 
     @Test
@@ -44,7 +46,9 @@ class SysconNationalityControllerIntTest : WebTestBase() {
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       postNationality(prisonNumber, currentNationality)
-      assertCorrectValuesSaved(prisonNumber, currentNationality)
+
+      val actualPerson = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
+      assertThat(actualPerson.nationalities.size).isEqualTo(0)
     }
   }
 
@@ -82,7 +86,9 @@ class SysconNationalityControllerIntTest : WebTestBase() {
       val updatedNationality = createRandomPrisonNationality(null)
 
       postNationality(prisonNumber, updatedNationality)
-      assertCorrectValuesSaved(prisonNumber, updatedNationality)
+
+      val actualPerson = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
+      assertThat(actualPerson.nationalities.size).isEqualTo(0)
     }
   }
 
