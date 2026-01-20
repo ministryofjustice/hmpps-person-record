@@ -28,7 +28,7 @@ class SysconNationalityControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should save nationality as null when a blank nationality code is sent`() {
+    fun `should delete nationality when a blank nationality code is sent`() {
       val prisonNumber = randomPrisonNumber()
       val currentNationality = createRandomPrisonNationality(" ")
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
@@ -40,7 +40,7 @@ class SysconNationalityControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should save nationality as null when a null nationality code is sent`() {
+    fun `should delete nationality when a null nationality code is sent`() {
       val prisonNumber = randomPrisonNumber()
       val currentNationality = createRandomPrisonNationality(null)
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
@@ -73,7 +73,7 @@ class SysconNationalityControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should update an existing nationality when updated nationality code is null`() {
+    fun `should delete an existing nationality when a null code is sent`() {
       val prisonNumber = randomPrisonNumber()
 
       val currentCode = NationalityCode.entries.random().toString()
