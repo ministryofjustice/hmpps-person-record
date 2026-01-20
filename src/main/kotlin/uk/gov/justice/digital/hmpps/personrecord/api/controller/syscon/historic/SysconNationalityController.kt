@@ -49,23 +49,15 @@ class SysconNationalityController(
   }
 
   fun PersonEntity.processUpsert(nationality: PrisonNationality) {
-    val nationalityCode = tryMapNationalityCode(nationality.nationalityCode)
+    val nationalityCode = NationalityCode.fromPrisonCode(nationality.nationalityCode)
     val person = Person.from(this)
 
-
-    if (nationalityCode != null) {
-      person.nationalities = listOf(nationalityCode)
-    } else {
-      person.nationalities = emptyList()
+    when (nationalityCode != null) {
+      true -> person.nationalities = listOf(nationalityCode)
+      false -> person.nationalities = emptyList()
     }
 
     personService.processPerson(person) { this }
-  }
-
-  private fun tryMapNationalityCode(nationality: String?): NationalityCode? = try {
-    nationality?.let { NationalityCode.valueOf(it) }
-  } catch (_: IllegalArgumentException) {
-    null
   }
 
   companion object {
