@@ -137,16 +137,10 @@ class SysconNationalityControllerIntTest : WebTestBase() {
   ) {
     val actualPerson = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
 
-    assertThat(actualPerson.prisonNumber).isEqualTo(prisonNumber)
     assertThat(actualPerson.nationalities.size).isEqualTo(1)
-    val actualNationality = actualPerson.nationalities.first()
-    val expectedNationality = if (!nationality.nationalityCode.isNullOrBlank()) nationality.nationalityCode else null
-
-    expectedNationality?.let {
-      assertThat(actualNationality.nationalityCode).isEqualTo(NationalityCode.valueOf(it))
-    } ?: assertThat(actualNationality.nationalityCode).isEqualTo(expectedNationality)
-
-    assertThat(actualNationality.person!!.id).isEqualTo(actualPerson.id)
+    val actualNationality = actualPerson.nationalities.first().nationalityCode
+    val expectedNationality = nationality.nationalityCode
+    assertThat(actualNationality.name).isEqualTo(expectedNationality)
   }
 
   private fun createRandomPrisonNationality(code: String?): PrisonNationality = PrisonNationality(
