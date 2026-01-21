@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.syscon
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.ContactInfo
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.DemographicAttributes
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Name
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
@@ -68,13 +67,9 @@ class SysconSyncIntTest : WebTestBase() {
       ethnicityCode = randomPrisonEthnicity(),
       sexCode = "",
     ),
-    addresses = emptyList(),
-    religions = emptyList(),
-    contactInfo = ContactInfo(
-      phoneNumbers = emptyList(),
-      emails = emptyList(),
-    ),
     aliases = emptyList(),
+    addresses = emptyList(),
+    contacts = emptyList(),
     identifiers = emptyList(),
     sentences = emptyList(),
   )

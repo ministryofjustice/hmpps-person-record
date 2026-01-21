@@ -4,44 +4,38 @@ import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate
 
 data class Address(
-  @Schema(description = "The address ID", example = "9d35c1cb-e515-47fc-b6d1-c776d935a78c")
-  val id: String?,
-  @Schema(description = "The address type", example = "HOME")
-  val type: AddressType,
-  @Schema(description = "The address flat detail", example = "12")
-  val flat: String?,
-  @Schema(description = "The address premise", example = "Brighton Courts")
-  val premise: String?,
-  @Schema(description = "The address street", example = "Petty France")
-  val street: String?,
-  @Schema(description = "The address locality", example = "Westminster")
-  val locality: String?,
-  @Schema(description = "The address town code", example = "LDN")
-  val townCode: String?,
-  @Schema(description = "The address postcode", example = "LD1 1DN")
-  val postcode: String?,
-  @Schema(description = "The address county code", example = "WY")
-  val countyCode: String?,
+  @Schema(description = "The full address", example = "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ")
+  val fullAddress: String? = null,
+  @Schema(description = "Is the person without a permanent residence", example = "false")
+  val noFixedAbode: Boolean? = null,
+  @Schema(description = "The address start date", example = "2020-02-26")
+  val startDate: LocalDate? = null,
+  @Schema(description = "The address end date", example = "2023-07-15")
+  val endDate: String? = null,
+  @Schema(description = "The address postcode", example = "SW1H 9AJ")
+  val postcode: String? = null,
+  @Schema(description = "The address sub building name", example = "Sub building 2")
+  val subBuildingName: String? = null,
+  @Schema(description = "The address building name", example = "Main Building")
+  val buildingName: String? = null,
+  @Schema(description = "The address building number", example = "102")
+  val buildingNumber: String? = null,
+  @Schema(description = "The address thoroughfare name", example = "Petty France")
+  val thoroughfareName: String? = null,
+  @Schema(description = "The address dependent locality", example = "Westminster")
+  val dependentLocality: String? = null,
+  @Schema(description = "The address building number", example = "London")
+  val postTown: String? = null,
+  @Schema(description = "The address building number", example = "Greater London")
+  val county: String? = null,
   @Schema(description = "The address country code", example = "UK")
-  val countryCode: String?,
-  @Schema(description = "The address no fixed abode")
-  val noFixedAddress: Boolean?,
-  @Schema(description = "The address start date", example = "1980-01-01")
-  val startDate: LocalDate?,
-  @Schema(description = "The address end date", example = "1990-01-01")
-  val endDate: String?,
-  @Schema(description = "The address comment")
-  val comment: String?,
-  @Schema(description = "Is this the primary address")
-  val isPrimary: Boolean,
-  @Schema(description = "Is this the mail address")
-  val isMail: Boolean,
-  @Schema(description = "Is this an active address")
-  val isActive: Boolean,
+  val countryCode: String? = null,
+  @Schema(description = "The address comment", example = "String")
+  val comment: String? = null,
+  @Schema(description = "Is this the primary address", example = "true")
+  val isPrimary: Boolean? = null,
+  @Schema(description = "Is this the mail address", example = "true")
+  val isMail: Boolean? = null,
+  @Schema(description = "List of address usages")
+  val addressUsage: List<AddressUsage>? = null,
 )
-
-enum class AddressType {
-  BUS,
-  HOME,
-  WORK,
-}

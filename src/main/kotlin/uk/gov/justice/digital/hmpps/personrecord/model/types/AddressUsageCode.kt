@@ -1,0 +1,25 @@
+package uk.gov.justice.digital.hmpps.personrecord.model.types
+
+enum class AddressUsageCode(val description: String) {
+  CARE("Care or Old Persons Home"),
+  CURFEW("Curfew Order"),
+  DAP("Discharge - Approved Premises"),
+  DBA("Discharge - BASS Accommodation"),
+  DBH("Discharge - Bail/Probation Hostel"),
+  DNF("Discharge - NFA"),
+  DOH("Discharge - Other Hostel"),
+  DPH("Discharge - Permanent Housing"),
+  DSH("Discharge - Supported Housing"),
+  DST("Discharge - Transient/Short Term"),
+  DUT("Discharge - Unknown Accommodation Type"),
+  HDC("HDC Address"),
+  HDC2("2nd HDC Address"),
+  HOME("Home"),
+  HOSP("Hospital"),
+  HOST("Approved Premises"),
+  OTHER("Other"),
+  RECEP("Reception"),
+  RELEASE("Discharge"),
+  RES("Residency Condition"),
+  ROTL("Release on Temporary Licence"),
+}
