@@ -44,6 +44,23 @@ class SysconReligionControllerIntTest : WebTestBase() {
       postReligions(prisonNumber, religions)
       assertCorrectValuesSaved(prisonNumber, religions)
     }
+
+    @Test
+    fun `should handle many requests very close to each other`() {
+      // this test fails intermittently without retry logic - as some of the requests fail
+      // we cannot predict which it might be
+      val prisonNumber = randomPrisonNumber()
+      val religionsOne = createRandomReligions()
+      val religionsTwo = createRandomReligions()
+
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+
+      blitz(15, 5) {
+        postReligions(prisonNumber, religionsOne)
+        postReligions(prisonNumber, religionsTwo)
+      }
+      assertCorrectValuesSaved(prisonNumber, religionsTwo)
+    }
   }
 
   @Nested
