@@ -10,7 +10,6 @@ enum class ReligionCode(val description: String) {
   CHRST("Christian - Other"),
   CHSC("Church of Christ, Scientist"),
   COFE("Christian - Anglican (incl. CofE & CinW)"),
-  DRU("Druid"),
   HARE("Hare Krishna"),
   HIND("Hindu"),
   HUM("Humanist"),

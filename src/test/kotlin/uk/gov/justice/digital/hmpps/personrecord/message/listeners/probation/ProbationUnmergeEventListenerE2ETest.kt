@@ -3,11 +3,14 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OverrideScopeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
@@ -17,8 +20,51 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
 
+  @Autowired
+  private lateinit var overrideScopeRepository: OverrideScopeRepository
+
   @Nested
   inner class SuccessfulProcessing {
+
+    @Test
+    fun `check the status of the override marker and scope after a record is unmerged`() {
+      val remainingCrn = randomCrn()
+      val deletedCrn = randomCrn()
+
+      val deleted = createPerson(createRandomProbationPersonDetails(deletedCrn))
+      createPersonKey().addPerson(deleted)
+      val remainingPersonData = createRandomProbationCase(remainingCrn)
+      val masterDefendantId = randomDefendantId()
+      val remainingPerson = Person.from(remainingPersonData)
+      remainingPerson.masterDefendantId = masterDefendantId
+      val remaining = createPerson(remainingPerson)
+
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, remainingCrn, deletedCrn)
+
+      checkEventLogExist(remainingCrn, CPRLogEvents.CPR_RECORD_MERGED)
+      remaining.assertMergedTo(deleted)
+
+      val remainingSetup = ApiResponseSetup.from(remainingPersonData)
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, remainingCrn, deletedCrn, reactivatedSetup = remainingSetup)
+
+      checkEventLogExist(remainingCrn, CPRLogEvents.CPR_UUID_CREATED)
+
+      awaitAssert {
+        remaining.assertExcluded(personRepository.findByCrn(deletedCrn)!!)
+      }
+
+      val deletedScope = personRepository.findByCrn(deletedCrn)?.overrideScopes
+      publishProbationDomainEvent(OFFENDER_GDPR_DELETION, deletedCrn)
+
+      checkEventLogExist(deletedCrn, CPRLogEvents.CPR_RECORD_DELETED)
+
+      awaitAssert {
+        val remainAfterDelete = personRepository.findByCrn(remainingCrn)!!
+        assertThat(remainAfterDelete.overrideMarker).isNotNull()
+        assertThat(remainAfterDelete.overrideScopes.first().scope).isEqualTo(deletedScope?.first()?.scope) // the scope is still present on the remaining record
+        assertThat(overrideScopeRepository.findById(deletedScope?.first()?.id!!)).isNotNull() // the override scope of the deleted record is still there
+      }
+    }
 
     @Test
     fun `should unmerge 2 records that have been merged`() {

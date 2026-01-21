@@ -254,6 +254,8 @@ enum class NationalityCode(val description: String) {
 
     fun fromPrisonMapping(code: String?): NationalityCode? = getNationalityOrUnknown(PRISON_NATIONALITY_MAPPING, code, "prison")
 
+    fun fromPrisonCode(code: String?): NationalityCode? = getNationalityOrUnknown(NationalityCode.entries.associateBy { it.name }, code, "prison")
+
     fun fromCommonPlatformMapping(code: String?): NationalityCode? = getNationalityOrUnknown(COMMON_PLATFORM_NATIONALITY_MAPPING, code, "common platform")
 
     private fun getNationalityOrUnknown(nationalityMap: Map<String, NationalityCode>, code: String?, sourceSystem: String): NationalityCode? = code.normalise()?.let { normalisedCode ->
