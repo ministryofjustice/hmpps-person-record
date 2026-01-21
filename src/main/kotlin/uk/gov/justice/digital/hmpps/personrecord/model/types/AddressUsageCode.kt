@@ -5,7 +5,7 @@ enum class AddressUsageCode(val description: String) {
   CURFEW("Curfew Order"),
   DAP("Discharge - Approved Premises"),
   DBA("Discharge - BASS Accommodation"),
-  DBH("Discharge - Bail/Probation Hostel"), // inactive
+  DBH("Discharge - Bail/Probation Hostel"),
   DNF("Discharge - NFA"),
   DOH("Discharge - Other Hostel"),
   DPH("Discharge - Permanent Housing"),
@@ -19,7 +19,7 @@ enum class AddressUsageCode(val description: String) {
   HOST("Approved Premises"),
   OTHER("Other"),
   RECEP("Reception"),
-  RELEASE("Discharge"), // inactive
+  RELEASE("Discharge"),
   RES("Residency Condition"),
   ROTL("Release on Temporary Licence"),
 }
