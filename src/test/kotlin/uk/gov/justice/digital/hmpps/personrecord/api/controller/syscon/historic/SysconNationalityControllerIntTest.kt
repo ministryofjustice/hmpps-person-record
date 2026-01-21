@@ -28,6 +28,16 @@ class SysconNationalityControllerIntTest : WebTestBase() {
     }
 
     @Test
+    fun `should save current nationality against a prison number when code is sent (null notes)`() {
+      val prisonNumber = randomPrisonNumber()
+      val currentNationality = createRandomPrisonNationality(NationalityCode.entries.random().toString()).copy(notes = null)
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+
+      postNationality(prisonNumber, currentNationality)
+      assertCorrectValuesSaved(prisonNumber, currentNationality)
+    }
+
+    @Test
     fun `should delete nationality when a blank nationality code is sent`() {
       val prisonNumber = randomPrisonNumber()
       val currentNationality = createRandomPrisonNationality(" ")
@@ -137,6 +147,7 @@ class SysconNationalityControllerIntTest : WebTestBase() {
   ) {
     val actualPerson = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
 
+    assertThat(actualPerson.nationalityNotes).isEqualTo(nationality.notes)
     assertThat(actualPerson.nationalities.size).isEqualTo(1)
     val actualNationality = actualPerson.nationalities.first().nationalityCode
     val expectedNationality = nationality.nationalityCode

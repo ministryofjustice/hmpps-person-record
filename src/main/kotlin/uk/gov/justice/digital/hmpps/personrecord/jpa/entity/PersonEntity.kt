@@ -101,6 +101,9 @@ class PersonEntity(
   @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var nationalities: MutableList<NationalityEntity> = mutableListOf(),
 
+  @Column(name = "nationality_notes")
+  var nationalityNotes: String? = null,
+
   @Column
   var religion: String? = null,
 
@@ -206,6 +209,7 @@ class PersonEntity(
     this.immigrationStatus = person.immigrationStatus
     this.birthplace = person.birthplace
     this.birthCountryCode = person.birthCountryCode
+    this.nationalityNotes = person.nationalityNotes
     this.updateChildEntities(person)
   }
 

@@ -5,5 +5,5 @@ import java.time.LocalDate
 
 data class Sentence(
   @Schema(description = "The sentence date", example = "1980-01-01")
-  val sentenceDate: LocalDate?,
+  val sentenceDate: LocalDate? = null,
 )
