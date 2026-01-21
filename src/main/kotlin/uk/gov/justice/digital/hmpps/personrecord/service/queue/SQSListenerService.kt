@@ -5,13 +5,12 @@ import org.slf4j.LoggerFactory
 import org.springframework.dao.CannotAcquireLockException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus.NOT_FOUND
-import org.springframework.retry.annotation.Backoff
-import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.readValue
+import uk.gov.justice.digital.hmpps.personrecord.CprRetryable
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
@@ -21,9 +20,7 @@ class SQSListenerService(
   private val jsonMapper: JsonMapper,
 ) {
 
-  @Retryable(
-    maxAttempts = 5,
-    backoff = Backoff(delay = 200, random = true, multiplier = 3.0),
+  @CprRetryable(
     retryFor = [
       OptimisticLockException::class,
       DataIntegrityViolationException::class,
