@@ -2,13 +2,12 @@ package uk.gov.justice.digital.hmpps.personrecord.config
 
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.ExtensionContext
-import org.junit.jupiter.api.extension.ExtensionContext.Store.CloseableResource
 import org.springframework.boot.builder.SpringApplicationBuilder
 import uk.gov.justice.digital.hmpps.personrecord.HmppsPersonRecord
 
 class MultiApplicationContextExtension :
   BeforeAllCallback,
-  CloseableResource {
+  AutoCloseable {
 
   private val instance1: SpringApplicationBuilder = SpringApplicationBuilder(HmppsPersonRecord::class.java)
     .profiles("test", "test-instance-1")
