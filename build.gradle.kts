@@ -1,8 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-import org.gradle.kotlin.dsl.runtimeOnly
-
-
 kotlin {
   jvmToolchain(25)
   compilerOptions {
