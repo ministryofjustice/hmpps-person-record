@@ -1,9 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.queue
 
-import jakarta.persistence.OptimisticLockException
 import org.slf4j.LoggerFactory
-import org.springframework.dao.CannotAcquireLockException
-import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClientResponseException
@@ -20,13 +17,7 @@ class SQSListenerService(
   private val jsonMapper: JsonMapper,
 ) {
 
-  @CprRetryable(
-    retryFor = [
-      OptimisticLockException::class,
-      DataIntegrityViolationException::class,
-      CannotAcquireLockException::class,
-    ],
-  )
+  @CprRetryable
   fun processSQSMessage(rawMessage: String, action: (sqsMessage: SQSMessage) -> Unit) = TimeoutExecutor.runWithTimeout {
     val sqsMessage = jsonMapper.readValue<SQSMessage>(rawMessage)
     try {

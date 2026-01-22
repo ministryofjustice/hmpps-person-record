@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.digital.hmpps.personrecord.CprRetryable
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
@@ -34,12 +33,7 @@ class SysconReligionController(
   private val personRepository: PersonRepository,
 ) {
 
-  @CprRetryable(
-    retryFor = [
-      IllegalStateException::class,
-      WebClientResponseException.InternalServerError::class,
-    ],
-  )
+  @CprRetryable
   @Operation(description = "Update the prison religion records for the given prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.")
   @PostMapping("/syscon-sync/religion/{prisonNumber}")
   @ApiResponses(
