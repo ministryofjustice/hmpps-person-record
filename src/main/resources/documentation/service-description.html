@@ -14,22 +14,18 @@
   <h2 id="role-restrictions">Role restrictions</h2>
   <p>
     Role restrictions in this service are applied by a `@PreAuthorize` annotation at either resource or service level.
-    Furthermore the annotation can be applied at individual method level or class level.
+    Furthermore, the annotation can be applied at individual method level or class level.
   </p>
   <p>
     Each endpoint in this API documentation should normally include what restrictions are applied. If there is any doubt
-    then it is worth looking at the github repository
-    <a href = "https://github.com/ministryofjustice/hmpps-person-record/blob/main/src/main/kotlin/uk/gov/justice/digital/hmpps/personrecord/api/controller/SearchController.kt"> here</a> and looking at the endpoint in question.
+    then it is worth looking at the GitHub repository
+    <a href = "https://github.com/ministryofjustice/hmpps-person-record/blob/main/src/main/kotlin/uk/gov/justice/digital/hmpps/personrecord/api/controller"> here</a> and looking at the endpoint in question.
   </p>
 
   The following roles are currently in use in this service:
-  <ol>
-    <li>
-      ROLE_CORE_PERSON_RECORD_API__RO: Grants access to the Retrieve person record by UUID</li>
-  </ol>
-  <h2 id="types-of-endpoints">Types of endpoints</h2>
-  <h3>Retrieve person record by UUID</h3>
-  <p>
-   This will give back a person record with data including Identifiers associated with that UUID.
-  </p>
+  <ul>
+    <li>ROLE_CORE_PERSON_RECORD_API__RO: Grants access to HMPPS Person API endpoints to retrieve a person record by UUID, CRN, Prison Number or Defendant ID</li>
+    <li>ROLE_CORE_PERSON_RECORD_API__PROBATION_RW: Grants access to create a person record by CRN</li>
+    <li>ROLE_CORE_PERSON_RECORD_API__SYSCON_SYNC_RW: Grants access to update a person record by Prison Number</li>
+  </ul>
 </div>
