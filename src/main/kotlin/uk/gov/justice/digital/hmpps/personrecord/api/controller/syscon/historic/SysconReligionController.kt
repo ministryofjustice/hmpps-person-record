@@ -7,12 +7,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.transaction.annotation.Isolation
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.personrecord.CprRetryable
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
@@ -23,6 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonRel
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
+@CprRetryable
 @Tag(name = "Syscon Sync")
 @RestController
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
@@ -30,6 +30,7 @@ class SysconReligionController(
   private val prisonReligionRepository: PrisonReligionRepository,
   private val personService: PersonService,
   private val personRepository: PersonRepository,
+  private val transactionalExecutor: TransactionalExecutor,
 ) {
 
   @Operation(description = "Update the prison religion records for the given prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.")
@@ -40,19 +41,20 @@ class SysconReligionController(
       description = "Religions saved in CPR",
     ),
   )
-  @Transactional(isolation = Isolation.REPEATABLE_READ)
   fun saveReligions(
     @PathVariable @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true) prisonNumber: String,
     @Valid @RequestBody religionRequest: PrisonReligionRequest,
   ): String {
-    val currentPrisonReligion = religionRequest.extractExactlyOneCurrentReligion()
-    val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException(prisonNumber)
+    transactionalExecutor.exec {
+      val currentPrisonReligion = religionRequest.extractExactlyOneCurrentReligion()
+      val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException(prisonNumber)
 
-    prisonReligionRepository.findByPrisonNumber(prisonNumber).let { prisonReligionRepository.deleteAllInBatch(it) }
-    prisonReligionRepository.saveAll(religionRequest.religions.map { PrisonReligionEntity.from(prisonNumber, it) })
+      prisonReligionRepository.findByPrisonNumber(prisonNumber).let { prisonReligionRepository.deleteAllInBatch(it) }
+      prisonReligionRepository.saveAll(religionRequest.religions.map { PrisonReligionEntity.from(prisonNumber, it) })
 
-    person.religion = currentPrisonReligion.religionCode
-    personService.processPerson(Person.from(person)) { person }
+      person.religion = currentPrisonReligion.religionCode
+      personService.processPerson(Person.from(person)) { person }
+    }
 
     return OK
   }
