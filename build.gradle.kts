@@ -45,7 +45,6 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql:42.7.9")
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
-  runtimeOnly("org.springframework.boot:spring-boot-starter-aop")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
