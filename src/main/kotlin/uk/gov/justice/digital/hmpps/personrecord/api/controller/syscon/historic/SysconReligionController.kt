@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import org.slf4j.LoggerFactory
 import org.springframework.dao.CannotAcquireLockException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.access.prepost.PreAuthorize
@@ -38,7 +37,7 @@ class SysconReligionController(
   private val prisonReligionRepository: PrisonReligionRepository,
   private val personService: PersonService,
   private val personRepository: PersonRepository,
-  private val retryableExecutor: RetryableExecutor,
+  private val transactionalExecutor: TransactionalExecutor,
 ) {
 
   @Operation(description = "Update the prison religion records for the given prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.")
@@ -53,20 +52,17 @@ class SysconReligionController(
     @PathVariable @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true) prisonNumber: String,
     @Valid @RequestBody religionRequest: PrisonReligionRequest,
   ): String {
-    try {
-      retryableExecutor.exec {
-        val currentPrisonReligion = religionRequest.extractExactlyOneCurrentReligion()
-        val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException(prisonNumber)
+    transactionalExecutor.exec {
+      val currentPrisonReligion = religionRequest.extractExactlyOneCurrentReligion()
+      val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException(prisonNumber)
 
-        prisonReligionRepository.findByPrisonNumber(prisonNumber).let { prisonReligionRepository.deleteAllInBatch(it) }
-        prisonReligionRepository.saveAll(religionRequest.religions.map { PrisonReligionEntity.from(prisonNumber, it) })
+      prisonReligionRepository.findByPrisonNumber(prisonNumber).let { prisonReligionRepository.deleteAllInBatch(it) }
+      prisonReligionRepository.saveAll(religionRequest.religions.map { PrisonReligionEntity.from(prisonNumber, it) })
 
-        person.religion = currentPrisonReligion.religionCode
-        personService.processPerson(Person.from(person)) { person }
-      }
-    } catch (e: RuntimeException) {
-      log.error("Error while saving religion records for $prisonNumber", e)
+      person.religion = currentPrisonReligion.religionCode
+      personService.processPerson(Person.from(person)) { person }
     }
+
     return OK
   }
 
@@ -80,6 +76,5 @@ class SysconReligionController(
 
   companion object {
     private const val OK = "OK"
-    private val log = LoggerFactory.getLogger(this::class.java)
   }
 }

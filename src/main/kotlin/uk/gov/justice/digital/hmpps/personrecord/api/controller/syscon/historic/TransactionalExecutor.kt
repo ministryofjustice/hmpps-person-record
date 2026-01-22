@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 
 @Component
-class RetryableExecutor {
+class TransactionalExecutor {
 
   @Transactional(isolation = Isolation.REPEATABLE_READ)
   fun exec(action: () -> Unit) = TimeoutExecutor.runWithTimeout {
