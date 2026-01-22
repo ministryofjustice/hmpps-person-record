@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.P
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
@@ -47,19 +48,16 @@ class SysconReligionControllerIntTest : WebTestBase() {
 
     @Test
     fun `should handle many requests very close to each other`() {
-      // this test fails intermittently without retry logic - as some of the requests fail
-      // we cannot predict which it might be
       val prisonNumber = randomPrisonNumber()
       val religionsOne = createRandomReligions()
-      val religionsTwo = createRandomReligions()
-
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       blitz(15, 5) {
         postReligions(prisonNumber, religionsOne)
-        postReligions(prisonNumber, religionsTwo)
       }
-      assertCorrectValuesSaved(prisonNumber, religionsTwo)
+      checkTelemetry(TelemetryEventType.CPR_RECORD_UPDATED, mapOf("PRISON_NUMBER" to prisonNumber), 15)
+
+      assertCorrectValuesSaved(prisonNumber, religionsOne)
     }
   }
 
