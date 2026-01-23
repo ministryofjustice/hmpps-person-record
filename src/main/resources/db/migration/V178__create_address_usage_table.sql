@@ -1,7 +1,7 @@
 BEGIN;
 -------------------------------------------------------
 
-CREATE TABLE if not exists personrecordservice.address_usage
+CREATE TABLE IF NOT EXISTS personrecordservice.address_usage
 (
     id                                      SERIAL      PRIMARY KEY,
     fk_address_id                           BIGINT      NOT NULL,
