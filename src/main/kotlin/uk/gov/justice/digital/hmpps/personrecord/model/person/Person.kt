@@ -222,10 +222,12 @@ data class Person(
     }
 
     fun from(prisoner: SysconPrisoner): Person {
+      // NOTE: should we really continue without a finding a prison number?!?
       val prisonNumber = prisoner.identifiers.firstOrNull { it.type?.equals(uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.IdentifierType.PNC) ?: false }?.value
       val references = prisoner.identifiers.mapNotNull {
         // NOTE: Can more be ascertained like above ones?!?
-        val identifierType = it.type?.let { identifierType -> IdentifierType.valueOf(identifierType.name) } ?: IdentifierType.UNKNOWN // NOTE: Seems a waist to drop it from list otherwise!?!
+        val identifierType = it.type
+          ?.let { identifierType -> IdentifierType.valueOf(identifierType.name) } ?: IdentifierType.UNKNOWN // NOTE: Seems a waist to drop it from list otherwise!?!
         Reference.from(identifierType, it.value)
       }
       val nationalities = listOf(NationalityCode.fromPrisonCode(prisoner.demographicAttributes.nationalityCode)).mapNotNull { it }

@@ -108,6 +108,13 @@ data class Address(
       noFixedAbode = address.noFixedAbode,
       startDate = address.startDate,
       endDate = address.endDate,
+      recordType = when (address.isPrimary != null) {
+        true -> when (address.isPrimary) {
+          true -> AddressRecordType.PRIMARY
+          false -> AddressRecordType.PREVIOUS
+        }
+        false -> null
+      },
       postcode = address.postcode,
       fullAddress = address.fullAddress,
       subBuildingName = address.subBuildingName,

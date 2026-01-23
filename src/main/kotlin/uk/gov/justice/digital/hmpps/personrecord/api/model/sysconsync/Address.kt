@@ -32,10 +32,10 @@ data class Address(
   val countryCode: String? = null,
   @Schema(description = "The address comment", example = "String")
   val comment: String? = null,
-
-  // NOTE: The below don't exist on Person. We are going to ignore them?!?
   @Schema(description = "Is this the primary address", example = "true")
   val isPrimary: Boolean? = null,
+
+  // NOTE: The below don't exist on Person. We are going to ignore them?!?
   @Schema(description = "Is this the mail address", example = "true")
   val isMail: Boolean? = null,
   @Schema(description = "List of address usages")
