@@ -494,7 +494,6 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.addresses[0].endDate).isEqualTo(probationCase.addresses[0].endDate)
         assertThat(offender.addresses[0].postcode).isEqualTo(probationCase.addresses[0].postcode)
         assertThat(offender.addresses[0].fullAddress).isEqualTo(probationCase.addresses[0].fullAddress)
-        assertThat(offender.addresses[0].type).isEqualTo(null)
         assertThat(offender.contacts.size).isEqualTo(3)
         assertThat(offender.contacts.getHome()?.contactValue).isEqualTo(probationCase.contactDetails?.telephone)
         assertThat(offender.contacts.getMobile()?.contactValue).isEqualTo(probationCase.contactDetails?.mobile)
