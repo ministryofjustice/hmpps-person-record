@@ -53,9 +53,6 @@ class AddressEntity(
   @Column
   val postcode: String? = null,
 
-  @Column(name = "address_type")
-  val type: String? = null,
-
   @Column(name = "sub_building_name")
   val subBuildingName: String? = null,
 
