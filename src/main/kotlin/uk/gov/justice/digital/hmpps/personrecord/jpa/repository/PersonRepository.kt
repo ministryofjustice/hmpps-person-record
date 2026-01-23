@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Repository
@@ -25,4 +26,8 @@ interface PersonRepository : JpaRepository<PersonEntity, Long> {
   fun findByMatchId(matchId: UUID): PersonEntity?
 
   fun countBySourceSystemAndMergedToIsNull(sourceSystem: SourceSystemType): Long
+  fun findByLastModifiedBetween(
+    lastModifiedAfter: LocalDateTime,
+    lastModifiedBefore: LocalDateTime,
+  ): MutableList<PersonEntity>
 }
