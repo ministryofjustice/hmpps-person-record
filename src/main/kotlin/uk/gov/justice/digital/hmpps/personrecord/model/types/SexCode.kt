@@ -62,6 +62,10 @@ enum class SexCode(val description: String) {
       prisonSexCode.getOrDefault(it, N)
     }
 
+    fun from(sexCode: String?): SexCode? {
+      return probationSexCode[sexCode] // NOTES: Which sex codes are they sending?!?
+    }
+
     fun from(prisonerAlias: PrisonerAlias): SexCode? = prisonerAlias.gender.nullIfBlank()?.let {
       prisonSexCode.getOrDefault(it, N)
     }

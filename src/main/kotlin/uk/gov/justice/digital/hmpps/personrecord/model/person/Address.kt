@@ -5,7 +5,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import java.time.LocalDate
+import kotlin.Boolean
 import kotlin.reflect.full.memberProperties
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Address as SysconAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Address as CommonPlatformAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Address as LibraAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress as OffenderAddress
@@ -87,6 +89,7 @@ data class Address(
       postcode = addressEntity.postcode,
       fullAddress = addressEntity.fullAddress,
       startDate = addressEntity.startDate,
+      endDate = addressEntity.endDate,
       noFixedAbode = addressEntity.noFixedAbode,
       subBuildingName = addressEntity.subBuildingName,
       buildingName = addressEntity.buildingName,
@@ -99,6 +102,23 @@ data class Address(
       uprn = addressEntity.uprn,
       comment = addressEntity.comment,
       recordType = addressEntity.recordType,
+    )
+
+    fun from(address: SysconAddress): Address = Address(
+      noFixedAbode = address.noFixedAbode,
+      startDate = address.startDate,
+      endDate = address.endDate,
+      postcode = address.postcode,
+      fullAddress = address.fullAddress,
+      subBuildingName = address.subBuildingName,
+      buildingName = address.buildingName,
+      buildingNumber = address.buildingNumber,
+      thoroughfareName = address.thoroughfareName,
+      dependentLocality = address.dependentLocality,
+      postTown = address.postTown,
+      county = address.county,
+      countryCode = address.countryCode,
+      comment = address.comment,
     )
   }
 

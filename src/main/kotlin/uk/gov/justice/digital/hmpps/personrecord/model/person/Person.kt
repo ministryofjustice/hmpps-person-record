@@ -28,6 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import java.time.LocalDate
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner as SysconPrisoner
 
 data class Person(
   val personId: UUID? = null,
@@ -217,6 +218,37 @@ data class Person(
         religion = prisoner.religion.nullIfBlank(),
         sentences = prisoner.allConvictedOffences?.map { SentenceInfo.from(it) } ?: emptyList(),
         sexCode = SexCode.from(prisoner),
+      )
+    }
+
+    fun from(prisoner: SysconPrisoner): Person {
+      val prisonNumber = prisoner.identifiers.firstOrNull { it.type?.equals(uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.IdentifierType.PNC) ?: false }?.value
+      val references = prisoner.identifiers.mapNotNull {
+        // NOTE: Can more be ascertained like above ones?!?
+        val identifierType = it.type?.let { identifierType -> IdentifierType.valueOf(identifierType.name) } ?: IdentifierType.UNKNOWN // NOTE: Seems a waist to drop it from list otherwise!?!
+        Reference.from(identifierType, it.value)
+      }
+      val nationalities = listOf(NationalityCode.fromPrisonCode(prisoner.demographicAttributes.nationalityCode)).mapNotNull { it }
+
+      return Person(
+        prisonNumber = prisonNumber,
+        titleCode = TitleCode.from(prisoner.name.titleCode),
+        firstName = prisoner.name.firstName.nullIfBlank(),
+        middleNames = prisoner.name.middleNames?.nullIfBlank(),
+        lastName = prisoner.name.lastName.nullIfBlank(),
+        dateOfBirth = prisoner.demographicAttributes.dateOfBirth,
+        ethnicityCode = EthnicityCode.fromPrison(prisoner.demographicAttributes.ethnicityCode),
+        aliases = prisoner.aliases.map { Alias.from(it) },
+        contacts = prisoner.contacts.mapNotNull { contact -> contact.type?.let { cType -> Contact(cType, contact.value) } }, // NOTE: this will drop any contacts from list that don't have a type. Type in db is not null though?!?
+        addresses = prisoner.addresses.map { Address.from(it) },
+
+        references = references,
+        sourceSystem = NOMIS, // NOTE: Should we specify Syscon directly?!?
+        nationalities = nationalities,
+        nationalityNotes = prisoner.demographicAttributes.nationalityNote.nullIfBlank(),
+        religion = prisoner.demographicAttributes.religionCode.nullIfBlank(),
+        sentences = prisoner.sentences.map { SentenceInfo(it.sentenceDate) },
+        sexCode = SexCode.from(prisoner.demographicAttributes.sexCode),
       )
     }
 
