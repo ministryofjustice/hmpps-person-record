@@ -114,7 +114,9 @@ class SysconSyncControllerIntTest : WebTestBase() {
       val actualPerson = personRepository.findByPrisonNumber(prisonerNumber)?.let { Person.from(it) } ?: fail { "Prisoner record was expected to be found" }
       val expectedPerson = Person.from(request).copy(personId = actualPerson.personId)
       assertThat { actualPerson == expectedPerson }
-    } else assertThat(personRepository.findByPrisonNumber(prisonerNumber)).isNull()
+    } else {
+      assertThat(personRepository.findByPrisonNumber(prisonerNumber)).isNull()
+    }
     return this
   }
 
@@ -139,8 +141,8 @@ class SysconSyncControllerIntTest : WebTestBase() {
         middleNames = randomName(),
         lastName = randomName(),
         dateOfBirth = LocalDate.now().minusYears((30..70).random().toLong()),
-        sexCode = randomProbationSexCode().value.name // NOTE: !!!
-      )
+        sexCode = randomProbationSexCode().value.name, // NOTE: !!!
+      ),
     ),
     addresses = listOf(
       Address(
@@ -160,8 +162,8 @@ class SysconSyncControllerIntTest : WebTestBase() {
         comment = randomName(),
         isPrimary = randomBoolean(),
         isMail = randomBoolean(),
-        addressUsage = emptyList()
-      )
+        addressUsage = emptyList(),
+      ),
     ),
     contacts = listOf(
       Contact(
@@ -169,19 +171,19 @@ class SysconSyncControllerIntTest : WebTestBase() {
         type = ContactType.entries.random(),
         extension = null,
         isPersonContact = randomBoolean(),
-        isAddressContact = randomBoolean()
-      )
+        isAddressContact = randomBoolean(),
+      ),
     ),
     identifiers = listOf(
       Identifier(
         type = IdentifierType.PNC,
         value = prisonerNumber,
-      )
+      ),
     ),
     sentences = listOf(
       Sentence(
-        sentenceDate = randomDate()
-      )
-    )
+        sentenceDate = randomDate(),
+      ),
+    ),
   )
 }
