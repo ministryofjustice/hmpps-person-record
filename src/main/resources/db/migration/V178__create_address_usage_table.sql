@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS personrecordservice.address_usage
     version                                 int4        NOT NULL DEFAULT 0,
     CONSTRAINT fk_address_id FOREIGN KEY (fk_address_id) REFERENCES address (id) ON DELETE CASCADE
 );
-CREATE index idx_address_usage_fk_address_id ON address_usage(fk_address_id);
+CREATE INDEX idx_address_usage_fk_address_id ON address_usage(fk_address_id);
 
 -----------------------------------------------------
 COMMIT;
