@@ -4,9 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema
 
 data class Identifier(
   @Schema(description = "The identifier type", example = "PNC")
-  val type: IdentifierType? = null,
+  val type: IdentifierType,
   @Schema(description = "The identifier value", example = "2000/1234567A")
-  val value: String? = null,
+  val value: String,
 )
 
 enum class IdentifierType {
