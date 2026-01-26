@@ -115,7 +115,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
     if (write) {
       val actualPerson = personRepository.findByPrisonNumber(prisonerNumber)?.let { Person.from(it) } ?: fail { "Prisoner record was expected to be found" }
       val expectedPerson = Person.from(request).copy(personId = actualPerson.personId)
-      assertThat { actualPerson == expectedPerson }
+      assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
     } else {
       assertThat(personRepository.findByPrisonNumber(prisonerNumber)).isNull()
     }
