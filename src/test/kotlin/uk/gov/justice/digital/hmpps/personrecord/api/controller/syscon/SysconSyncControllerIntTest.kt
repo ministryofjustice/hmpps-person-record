@@ -31,7 +31,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
 import java.time.LocalDate
 
 class SysconSyncControllerIntTest : WebTestBase() {
@@ -134,7 +133,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       birthPlace = randomName(),
       birthCountryCode = randomName(),
       ethnicityCode = randomPrisonEthnicity(),
-      sexCode = SexCode.M.name,
+      sexCode = SexCode.M,
     ),
     aliases = listOf(
       Alias(
@@ -143,7 +142,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
         middleNames = randomName(),
         lastName = randomName(),
         dateOfBirth = LocalDate.now().minusYears((30..70).random().toLong()),
-        sexCode = randomProbationSexCode().value.name, // NOTE: !!!
+        sexCode = SexCode.entries.random(),
       ),
     ),
     addresses = listOf(

@@ -238,7 +238,7 @@ data class Person(
       nationalityNotes = prisoner.demographicAttributes.nationalityNote.nullIfBlank(),
       religion = prisoner.demographicAttributes.religionCode.nullIfBlank(),
       sentences = prisoner.sentences.map { SentenceInfo(it.sentenceDate) },
-      sexCode = SexCode.from(prisoner.demographicAttributes.sexCode),
+      sexCode = prisoner.demographicAttributes.sexCode,
     )
 
     fun from(existingPersonEntity: PersonEntity): Person = Person(

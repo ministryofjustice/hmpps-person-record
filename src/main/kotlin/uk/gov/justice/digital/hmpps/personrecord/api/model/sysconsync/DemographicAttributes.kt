@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import java.time.LocalDate
 
 data class DemographicAttributes(
@@ -13,7 +14,7 @@ data class DemographicAttributes(
   @Schema(description = "The person's ethnicity code", example = "W1")
   val ethnicityCode: String? = null,
   @Schema(description = "The person's sex code", example = "M")
-  val sexCode: String? = null,
+  val sexCode: SexCode? = null,
   @Schema(description = "The person's sexual orientation code", example = "HET")
   val sexualOrientation: String? = null,
   @Schema(description = "Does the person have a disability", example = "false")
