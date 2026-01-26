@@ -221,36 +221,25 @@ data class Person(
       )
     }
 
-    fun from(prisoner: SysconPrisoner): Person {
-      val prisonNumber = prisoner.identifiers.firstOrNull { it.type?.equals(uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.IdentifierType.PNC) ?: false }?.value
-      val references = prisoner.identifiers.mapNotNull {
-        val identifierType = it.type
-          ?.let { identifierType -> IdentifierType.valueOf(identifierType.name) } ?: IdentifierType.UNKNOWN // NOTE: Seems a waist to drop it from list otherwise!?!
-        Reference.from(identifierType, it.value)
-      }
-      val nationalities = listOf(NationalityCode.fromPrisonCode(prisoner.demographicAttributes.nationalityCode)).mapNotNull { it }
-
-      return Person(
-        prisonNumber = prisonNumber,
-        titleCode = TitleCode.from(prisoner.name.titleCode),
-        firstName = prisoner.name.firstName.nullIfBlank(),
-        middleNames = prisoner.name.middleNames?.nullIfBlank(),
-        lastName = prisoner.name.lastName.nullIfBlank(),
-        dateOfBirth = prisoner.demographicAttributes.dateOfBirth,
-        ethnicityCode = EthnicityCode.fromPrison(prisoner.demographicAttributes.ethnicityCode),
-        aliases = prisoner.aliases.map { Alias.from(it) },
-        contacts = prisoner.contacts.map { contact -> Contact(contact.type, contact.value) },
-        addresses = prisoner.addresses.map { Address.from(it) },
-
-        references = references,
-        sourceSystem = NOMIS,
-        nationalities = nationalities,
-        nationalityNotes = prisoner.demographicAttributes.nationalityNote.nullIfBlank(),
-        religion = prisoner.demographicAttributes.religionCode.nullIfBlank(),
-        sentences = prisoner.sentences.map { SentenceInfo(it.sentenceDate) },
-        sexCode = SexCode.from(prisoner.demographicAttributes.sexCode),
-      )
-    }
+    fun from(prisoner: SysconPrisoner, prisonNumber: String): Person = Person(
+      prisonNumber = prisonNumber,
+      titleCode = TitleCode.from(prisoner.name.titleCode),
+      firstName = prisoner.name.firstName.nullIfBlank(),
+      middleNames = prisoner.name.middleNames?.nullIfBlank(),
+      lastName = prisoner.name.lastName.nullIfBlank(),
+      dateOfBirth = prisoner.demographicAttributes.dateOfBirth,
+      ethnicityCode = EthnicityCode.fromPrison(prisoner.demographicAttributes.ethnicityCode),
+      aliases = prisoner.aliases.map { Alias.from(it) },
+      contacts = prisoner.contacts.map { contact -> Contact(contact.type, contact.value) },
+      addresses = prisoner.addresses.map { Address.from(it) },
+      references = prisoner.identifiers.mapNotNull { Reference.from(IdentifierType.valueOf(it.type.name), it.value) },
+      sourceSystem = NOMIS,
+      nationalities = listOf(NationalityCode.fromPrisonCode(prisoner.demographicAttributes.nationalityCode)).mapNotNull { it },
+      nationalityNotes = prisoner.demographicAttributes.nationalityNote.nullIfBlank(),
+      religion = prisoner.demographicAttributes.religionCode.nullIfBlank(),
+      sentences = prisoner.sentences.map { SentenceInfo(it.sentenceDate) },
+      sexCode = SexCode.from(prisoner.demographicAttributes.sexCode),
+    )
 
     fun from(existingPersonEntity: PersonEntity): Person = Person(
       personId = existingPersonEntity.personKey?.personUUID,

@@ -50,7 +50,7 @@ class SysconSyncController(
     prisonNumber: String,
     @RequestBody prisoner: Prisoner,
   ): String {
-    val person = Person.from(prisoner)
+    val person = Person.from(prisoner, prisonNumber)
     personService.processPerson(person) { personRepository.findByPrisonNumber(prisonNumber) }
     return "OK"
   }

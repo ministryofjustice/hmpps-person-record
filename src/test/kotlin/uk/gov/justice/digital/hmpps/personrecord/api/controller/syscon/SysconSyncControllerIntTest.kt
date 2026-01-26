@@ -62,7 +62,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       stubPersonMatchUpsert()
 
       val prisonNumber = randomPrisonNumber()
-      createPerson(Person.from(buildRequestBody(prisonNumber)))
+      createPerson(Person.from(buildRequestBody(prisonNumber), prisonNumber))
 
       val updatedPrisonerRequest = buildRequestBody(prisonNumber)
       webTestClient
@@ -114,7 +114,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
   private fun WebTestClient.ResponseSpec.assertDatabase(prisonerNumber: String, request: Prisoner, write: Boolean = true): WebTestClient.ResponseSpec {
     if (write) {
       val actualPerson = personRepository.findByPrisonNumber(prisonerNumber)?.let { Person.from(it) } ?: fail { "Prisoner record was expected to be found" }
-      val expectedPerson = Person.from(request).copy(personId = actualPerson.personId)
+      val expectedPerson = Person.from(request, prisonerNumber).copy(personId = actualPerson.personId)
       assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
     } else {
       assertThat(personRepository.findByPrisonNumber(prisonerNumber)).isNull()
