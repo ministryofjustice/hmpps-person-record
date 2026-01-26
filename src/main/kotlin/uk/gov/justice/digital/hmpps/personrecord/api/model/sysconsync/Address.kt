@@ -37,5 +37,5 @@ data class Address(
   @Schema(description = "Is this the mail address", example = "true")
   val isMail: Boolean? = null,
   @Schema(description = "List of address usages")
-  val addressUsage: List<AddressUsage>? = null,
+  val addressUsage: List<AddressUsage> = emptyList(),
 )
