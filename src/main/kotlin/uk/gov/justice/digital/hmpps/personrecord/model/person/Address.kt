@@ -31,6 +31,8 @@ data class Address(
   val comment: String? = null,
   val telephoneNumber: Contact? = null,
   var recordType: AddressRecordType? = null,
+  var isPrimary: Boolean? = null,
+  var isMail: Boolean? = null,
 ) {
 
   fun allPropertiesOrNull(): Address? = this.takeIf { it.allPropertiesNotNull() }
@@ -102,6 +104,8 @@ data class Address(
       uprn = addressEntity.uprn,
       comment = addressEntity.comment,
       recordType = addressEntity.recordType,
+      isPrimary = addressEntity.primary,
+      isMail = addressEntity.mail,
     )
 
     fun from(address: SysconAddress): Address = Address(
@@ -126,6 +130,8 @@ data class Address(
       county = address.county,
       countryCode = address.countryCode,
       comment = address.comment,
+      isPrimary = address.isPrimary,
+      isMail = address.isMail,
     )
   }
 
