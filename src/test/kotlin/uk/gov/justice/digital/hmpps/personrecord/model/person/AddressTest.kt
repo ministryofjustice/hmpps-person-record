@@ -43,14 +43,14 @@ class AddressTest {
 
   @Test
   fun `SYSCON - isPrimary equals true - sets PRIMARY`() {
-    val sysconAddress = buildSysconAddress().copy(isPrimary = true)
+    val sysconAddress = buildSysconAddress()
     val actualAddress = Address.from(sysconAddress)
     assertThat(actualAddress.recordType).isEqualTo(AddressRecordType.PRIMARY)
   }
 
   @Test
   fun `SYSCON - isPrimary equals true - sets PREVIOUS`() {
-    val sysconAddress = buildSysconAddress().copy(isPrimary = false)
+    val sysconAddress = buildSysconAddress(isPrimary = false)
     val actualAddress = Address.from(sysconAddress)
     assertThat(actualAddress.recordType).isEqualTo(AddressRecordType.PREVIOUS)
   }
