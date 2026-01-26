@@ -222,10 +222,8 @@ data class Person(
     }
 
     fun from(prisoner: SysconPrisoner): Person {
-      // NOTE: should we really continue without a finding a prison number?!?
       val prisonNumber = prisoner.identifiers.firstOrNull { it.type?.equals(uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.IdentifierType.PNC) ?: false }?.value
       val references = prisoner.identifiers.mapNotNull {
-        // NOTE: Can more be ascertained like above ones?!?
         val identifierType = it.type
           ?.let { identifierType -> IdentifierType.valueOf(identifierType.name) } ?: IdentifierType.UNKNOWN // NOTE: Seems a waist to drop it from list otherwise!?!
         Reference.from(identifierType, it.value)
@@ -245,7 +243,7 @@ data class Person(
         addresses = prisoner.addresses.map { Address.from(it) },
 
         references = references,
-        sourceSystem = NOMIS, // NOTE: Should we specify Syscon directly?!?
+        sourceSystem = NOMIS,
         nationalities = nationalities,
         nationalityNotes = prisoner.demographicAttributes.nationalityNote.nullIfBlank(),
         religion = prisoner.demographicAttributes.religionCode.nullIfBlank(),

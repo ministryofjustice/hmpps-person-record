@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 
-// NOTE: Rename class and sub classes with "Syscon" Prefix to avoid having to use full qualifier name everywhere?!?
 data class Prisoner(
   @Schema(description = "The names of the person")
   val name: Name,
