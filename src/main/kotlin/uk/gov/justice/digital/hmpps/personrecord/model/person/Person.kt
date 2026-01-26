@@ -239,7 +239,7 @@ data class Person(
         dateOfBirth = prisoner.demographicAttributes.dateOfBirth,
         ethnicityCode = EthnicityCode.fromPrison(prisoner.demographicAttributes.ethnicityCode),
         aliases = prisoner.aliases.map { Alias.from(it) },
-        contacts = prisoner.contacts.mapNotNull { contact -> contact.type?.let { cType -> Contact(cType, contact.value) } }, // NOTE: this will drop any contacts from list that don't have a type. Type in db is not null though?!?
+        contacts = prisoner.contacts.map { contact -> Contact(contact.type, contact.value) },
         addresses = prisoner.addresses.map { Address.from(it) },
 
         references = references,
