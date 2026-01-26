@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import java.time.LocalDate
@@ -33,6 +35,7 @@ data class Address(
   var recordType: AddressRecordType? = null,
   var isPrimary: Boolean? = null,
   var isMail: Boolean? = null,
+  var usages: List<AddressUsage>? = null,
 ) {
 
   fun allPropertiesOrNull(): Address? = this.takeIf { it.allPropertiesNotNull() }
@@ -106,6 +109,7 @@ data class Address(
       recordType = addressEntity.recordType,
       isPrimary = addressEntity.primary,
       isMail = addressEntity.mail,
+      usages = addressEntity.usages.map { addressUsageEntity -> AddressUsageEntity.from(addressUsageEntity) },
     )
 
     fun from(address: SysconAddress): Address = Address(
@@ -132,6 +136,7 @@ data class Address(
       comment = address.comment,
       isPrimary = address.isPrimary,
       isMail = address.isMail,
+      usages = address.addressUsage,
     )
   }
 

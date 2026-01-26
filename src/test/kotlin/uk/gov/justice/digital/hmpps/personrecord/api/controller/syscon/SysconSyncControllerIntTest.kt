@@ -8,6 +8,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Address
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Alias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Contact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.DemographicAttributes
@@ -18,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Sentence
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
@@ -162,7 +164,12 @@ class SysconSyncControllerIntTest : WebTestBase() {
         comment = randomName(),
         isPrimary = randomBoolean(),
         isMail = randomBoolean(),
-        addressUsage = emptyList(),
+        addressUsage = listOf(
+          AddressUsage(
+            addressUsageCode = AddressUsageCode.HOME,
+            isActive = true,
+          ),
+        ),
       ),
     ),
     contacts = listOf(
