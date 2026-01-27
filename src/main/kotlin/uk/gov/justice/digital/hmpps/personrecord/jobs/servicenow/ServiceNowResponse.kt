@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.jobs
+package uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty

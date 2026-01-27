@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.jobs
+package uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow
 
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.jobs
+package uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow
 
 import io.swagger.v3.oas.annotations.Hidden
 import org.springframework.context.annotation.Profile
