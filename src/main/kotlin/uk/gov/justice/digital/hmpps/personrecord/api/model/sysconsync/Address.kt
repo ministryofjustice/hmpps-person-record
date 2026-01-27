@@ -11,7 +11,7 @@ data class Address(
   @Schema(description = "The address start date", example = "2020-02-26")
   val startDate: LocalDate? = null,
   @Schema(description = "The address end date", example = "2023-07-15")
-  val endDate: String? = null,
+  val endDate: LocalDate? = null,
   @Schema(description = "The address postcode", example = "SW1H 9AJ")
   val postcode: String? = null,
   @Schema(description = "The address sub building name", example = "Sub building 2")
