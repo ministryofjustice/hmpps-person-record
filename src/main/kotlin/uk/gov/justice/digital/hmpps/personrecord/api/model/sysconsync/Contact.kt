@@ -8,7 +8,7 @@ data class Contact(
   @Schema(description = "The contact value", example = "01234567890")
   val value: String? = null,
   @Schema(description = "The contact type", example = "HOME")
-  val type: ContactType? = null,
+  val type: ContactType,
   @Schema(description = "The contact extension", example = "235")
   val extension: String? = null,
   @NotNull

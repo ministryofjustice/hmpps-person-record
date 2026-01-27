@@ -238,6 +238,7 @@ class PersonEntity(
     this.addresses.clear()
     addresses.forEach { personAddressEntity ->
       personAddressEntity.person = this
+      personAddressEntity.usages.forEach { usage -> usage.address = personAddressEntity }
       personAddressEntity.contacts.forEach { contactEntity -> contactEntity.address = personAddressEntity }
     }
     this.addresses.addAll(addresses)
