@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.jobs
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -8,6 +9,25 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import java.time.LocalDateTime
 
 class ServiceNowDeliusMergeRequestIntTest : WebTestBase() {
+
+  @BeforeEach
+  fun beforeEach() {
+    stubPostRequest(
+      url = "/api/sn_sc/servicecatalog/items/order_now",
+      responseBody = """{
+        "result": {
+          "sys_id": "20d3ba6b47a272106322862c736d437c",
+          "number": "REQ2039412",
+          "request_number": "REQ2039412",
+          "parent_id": null,
+          "request_id": "20d3ba6b47a272106322862c736d437c",
+          "parent_table": "task",
+          "table": "sc_request"
+        }
+      } 
+      """.trimIndent(),
+    )
+  }
 
   @Test
   fun `sends merge request to ServiceNow`() {
@@ -57,22 +77,6 @@ class ServiceNowDeliusMergeRequestIntTest : WebTestBase() {
     personRepository.updateLastModifiedDate(crn8, LocalDateTime.now().minusDays(1).plusMinutes(8))
     personRepository.updateLastModifiedDate(crn9, LocalDateTime.now().minusDays(1).plusMinutes(9))
     personRepository.updateLastModifiedDate(crn10, LocalDateTime.now().minusDays(1).plusMinutes(10))
-
-    stubPostRequest(
-      url = "/api/sn_sc/servicecatalog/items/order_now",
-      responseBody = """{
-        "result": {
-          "sys_id": "20d3ba6b47a272106322862c736d437c",
-          "number": "REQ2039412",
-          "request_number": "REQ2039412",
-          "parent_id": null,
-          "request_id": "20d3ba6b47a272106322862c736d437c",
-          "parent_table": "task",
-          "table": "sc_request"
-        }
-      } 
-      """.trimIndent(),
-    )
 
     val response = webTestClient.post()
       .uri("/jobs/service-now/generate-delius-merge-requests")
