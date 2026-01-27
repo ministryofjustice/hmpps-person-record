@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.jobs
 
 import io.swagger.v3.oas.annotations.Hidden
+import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
@@ -9,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import java.time.LocalDateTime
 
+@Profile("!preprod & !prod")
 @RestController
 class ServiceNowDeliusMergeRequest(private val personRepository: PersonRepository, private val serviceNowClient: ServiceNowClient) {
 
@@ -46,7 +48,6 @@ class ServiceNowDeliusMergeRequest(private val personRepository: PersonRepositor
   }
 
   companion object {
-    private const val OK = "OK"
-    private val CLUSTER_TO_PROCESS_COUNT = 5
+    private const val CLUSTER_TO_PROCESS_COUNT = 5
   }
 }

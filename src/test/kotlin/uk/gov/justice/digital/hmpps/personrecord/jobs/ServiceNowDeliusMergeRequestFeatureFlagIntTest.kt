@@ -1,0 +1,36 @@
+package uk.gov.justice.digital.hmpps.personrecord.jobs
+
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.springframework.test.context.ActiveProfiles
+import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+
+class ServiceNowDeliusMergeRequestFeatureFlagIntTest : WebTestBase() {
+
+  @Nested
+  @ActiveProfiles("preprod")
+  inner class Preprod {
+
+    @Test
+    fun `not available in preprod`() {
+      webTestClient.post()
+        .uri("/jobs/service-now/generate-delius-merge-requests")
+        .exchange()
+        .expectStatus()
+        .isUnauthorized
+    }
+  }
+
+  @Nested
+  @ActiveProfiles("prod")
+  inner class Prod {
+    @Test
+    fun `not available in prod`() {
+      webTestClient.post()
+        .uri("/jobs/service-now/generate-delius-merge-requests")
+        .exchange()
+        .expectStatus()
+        .isUnauthorized
+    }
+  }
+}
