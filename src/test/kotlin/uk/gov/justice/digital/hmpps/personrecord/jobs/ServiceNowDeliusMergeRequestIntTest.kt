@@ -1,7 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.jobs
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import java.time.LocalDateTime
 
 class ServiceNowDeliusMergeRequestIntTest : WebTestBase() {
 
@@ -12,5 +16,79 @@ class ServiceNowDeliusMergeRequestIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
+  }
+
+  @Test
+  fun `should pick top 5 clusters where each cluster has more than one delius record`() {
+    val crn1 = randomCrn()
+    val crn2 = randomCrn()
+    val crn3 = randomCrn()
+    val crn4 = randomCrn()
+    val crn5 = randomCrn()
+    val crn6 = randomCrn()
+    val crn7 = randomCrn()
+    val crn8 = randomCrn()
+    val crn9 = randomCrn()
+    val crn10 = randomCrn()
+
+    createPersonKey()
+      .addPerson(createRandomProbationPersonDetails(crn1))
+      .addPerson(createRandomProbationPersonDetails(crn2))
+    createPersonKey()
+      .addPerson(createRandomProbationPersonDetails(crn3))
+      .addPerson(createRandomProbationPersonDetails(crn4))
+    createPersonKey()
+      .addPerson(createRandomProbationPersonDetails(crn5))
+      .addPerson(createRandomProbationPersonDetails(crn6))
+    createPersonKey()
+      .addPerson(createRandomProbationPersonDetails(crn7))
+      .addPerson(createRandomProbationPersonDetails(crn8))
+    createPersonKey()
+      .addPerson(createRandomProbationPersonDetails(crn9))
+      .addPerson(createRandomProbationPersonDetails(crn10))
+
+    personRepository.updateLastModifiedDate(crn1, LocalDateTime.now().minusDays(1).plusMinutes(1))
+    personRepository.updateLastModifiedDate(crn2, LocalDateTime.now().minusDays(1).plusMinutes(2))
+    personRepository.updateLastModifiedDate(crn3, LocalDateTime.now().minusDays(1).plusMinutes(3))
+    personRepository.updateLastModifiedDate(crn4, LocalDateTime.now().minusDays(1).plusMinutes(4))
+    personRepository.updateLastModifiedDate(crn5, LocalDateTime.now().minusDays(1).plusMinutes(5))
+    personRepository.updateLastModifiedDate(crn6, LocalDateTime.now().minusDays(1).plusMinutes(6))
+    personRepository.updateLastModifiedDate(crn7, LocalDateTime.now().minusDays(1).plusMinutes(7))
+    personRepository.updateLastModifiedDate(crn8, LocalDateTime.now().minusDays(1).plusMinutes(8))
+    personRepository.updateLastModifiedDate(crn9, LocalDateTime.now().minusDays(1).plusMinutes(9))
+    personRepository.updateLastModifiedDate(crn10, LocalDateTime.now().minusDays(1).plusMinutes(10))
+
+    stubPostRequest(
+      url = "/api/sn_sc/servicecatalog/items/order_now",
+      responseBody = """{
+        "result": {
+          "sys_id": "20d3ba6b47a272106322862c736d437c",
+          "number": "REQ2039412",
+          "request_number": "REQ2039412",
+          "parent_id": null,
+          "request_id": "20d3ba6b47a272106322862c736d437c",
+          "parent_table": "task",
+          "table": "sc_request"
+        }
+      } 
+      """.trimIndent(),
+    )
+
+    val response = webTestClient.post()
+      .uri("/jobs/service-now/generate-delius-merge-requests")
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(ServiceNowResponse::class.java)
+      .returnResult()
+      .responseBody
+
+    assertThat(response?.result?.requestNumber).isEqualTo("REQ2039412")
+  }
+
+  private fun PersonRepository.updateLastModifiedDate(crn: String, lastModified: LocalDateTime) {
+    val personEntity = findByCrn(crn)!!
+    personEntity.lastModified = lastModified
+    saveAndFlush(personEntity)
   }
 }

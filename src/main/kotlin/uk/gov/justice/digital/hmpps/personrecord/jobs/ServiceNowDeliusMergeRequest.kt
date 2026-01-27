@@ -4,23 +4,35 @@ import io.swagger.v3.oas.annotations.Hidden
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import java.time.LocalDateTime
 
 @RestController
-class ServiceNowDeliusMergeRequest(private val personRepository: PersonRepository) {
+class ServiceNowDeliusMergeRequest(private val personRepository: PersonRepository, private val serviceNowClient: ServiceNowClient) {
 
   @Hidden
   @RequestMapping(method = [RequestMethod.POST], value = ["/jobs/service-now/generate-delius-merge-requests"])
-  fun collectAndReport(): String {
-    generate()
-    return OK
+  fun collectAndReport(): ServiceNowResponse {
+    val recordsToProcess = generate()
+    val payload = ServiceNowPayload(
+      sysParmId = "",
+      quantity = 1,
+      variables = Variables(
+        requester = "",
+        requestedFor = "",
+        details = recordsToProcess.map { NDeliusRecord.from(it) },
+      ),
+    )
+    return serviceNowClient.postRecords(payload)
   }
 
-  fun generate() {
-    // find cluster updates yesterday with more than 1 Delius record (not working at the moment)
-    personRepository.findByLastModifiedBetween(
+  fun generate(): List<PersonEntity> {
+    // TODO: persist processed clusters to db
+    // TODO: extract processed clusters from db
+    // TODO: exclude processed clusters
+    val deliusRecords = personRepository.findByLastModifiedBetween(
       LocalDateTime.now().minusDays(1),
       LocalDateTime.now().minusDays(1).plusHours(1),
     )
@@ -29,13 +41,12 @@ class ServiceNowDeliusMergeRequest(private val personRepository: PersonRepositor
           it.sourceSystem == SourceSystemType.DELIUS
         }?.size!! > 1
       }
-
-    // identify 5 clusters with more than 1 Delius record
-    // call servicenow
-    // write response to db
+    val uniquePersonKey = deliusRecords.map { it.personKey?.personUUID }.toSet().take(CLUSTER_TO_PROCESS_COUNT)
+    return deliusRecords.filter { it.personKey?.personUUID in uniquePersonKey }
   }
 
   companion object {
     private const val OK = "OK"
+    private val CLUSTER_TO_PROCESS_COUNT = 5
   }
 }

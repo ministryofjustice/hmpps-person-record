@@ -13,6 +13,7 @@ class WebClientConfig(
   @Value("\${person-match.base-url}") val personMatchUrl: String,
   @Value("\${prisoner-search.base-url}") val prisonerSearchUrl: String,
   @Value("\${core-person-record-and-delius.base-url}") val corePersonRecordAndDeliusUrl: String,
+  @Value("\${service-now.base-url}") val serviceNowUrl: String,
   @Value("\${retry.timeout}") val timeout: Long,
 ) {
 
@@ -46,6 +47,17 @@ class WebClientConfig(
     authorizedClientManager = authorizedClientManager,
     registrationId = "core-person-record-and-delius",
     url = corePersonRecordAndDeliusUrl,
+    timeout = Duration.ofMillis(timeout),
+  )
+
+  @Bean
+  fun serviceNowWebClient(
+    authorizedClientManager: OAuth2AuthorizedClientManager,
+    builder: WebClient.Builder,
+  ): WebClient = builder.authorisedWebClient(
+    authorizedClientManager = authorizedClientManager,
+    registrationId = "service-now",
+    url = serviceNowUrl,
     timeout = Duration.ofMillis(timeout),
   )
 }
