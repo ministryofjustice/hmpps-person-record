@@ -258,7 +258,7 @@ data class Person(
       nationalityNotes = existingPersonEntity.nationalityNotes,
       religion = existingPersonEntity.religion,
       ethnicityCode = existingPersonEntity.ethnicityCode,
-      contacts = existingPersonEntity.contacts.map { Contact.convertEntityToContact(it) },
+      contacts = existingPersonEntity.contacts.map { Contact.from(it) },
       addresses = existingPersonEntity.addresses.map { Address.from(it) },
       references = existingPersonEntity.references.map { Reference.from(it) },
       sourceSystem = existingPersonEntity.sourceSystem,

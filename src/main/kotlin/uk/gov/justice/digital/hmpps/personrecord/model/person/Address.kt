@@ -28,11 +28,11 @@ data class Address(
   val countryCode: String? = null,
   val uprn: String? = null,
   val comment: String? = null,
-  val telephoneNumber: Contact? = null,
+  val contacts: List<Contact> = emptyList(),
   var recordType: AddressRecordType? = null,
   var isPrimary: Boolean? = null,
   var isMail: Boolean? = null,
-  var usages: List<AddressUsage>? = emptyList(),
+  var usages: List<AddressUsage> = emptyList(),
 ) {
 
   fun allPropertiesOrNull(): Address? = this.takeIf { it.hasAnyMeaningfulProperty() }
@@ -67,7 +67,7 @@ data class Address(
       county = address.county.nullIfBlank(),
       uprn = address.uprn.nullIfBlank(),
       comment = address.notes.nullIfBlank(),
-      telephoneNumber = address.telephoneNumber.nullIfBlank()?.let { Contact(ContactType.HOME, it) },
+      contacts = listOfNotNull(address.telephoneNumber.nullIfBlank()?.let { Contact(ContactType.HOME, it) }),
     ).allPropertiesOrNull()
 
     fun from(address: CommonPlatformAddress?): Address? = Address(
@@ -113,6 +113,7 @@ data class Address(
       isPrimary = address.isPrimary,
       isMail = address.isMail,
       usages = address.addressUsage.map { AddressUsage.from(it) },
+      contacts = address.contacts.mapNotNull { Contact.from(it) },
     )
 
     fun fromPrisonerAddressList(addresses: List<PrisonerAddress>): List<Address> = addresses.mapNotNull { from(it) }
@@ -138,7 +139,8 @@ data class Address(
       recordType = addressEntity.recordType,
       isPrimary = addressEntity.primary,
       isMail = addressEntity.mail,
-      usages = addressEntity.usages.map { addressUsageEntity -> AddressUsage.from(addressUsageEntity) },
+      usages = addressEntity.usages.map { AddressUsage.from(it) },
+      contacts = addressEntity.contacts.map { Contact.from(it) },
     )
   }
 
