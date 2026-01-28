@@ -21,9 +21,5 @@ object CommonPlatformAddressBuilder {
       it.setToPrevious()
     }?.toTypedArray() ?: arrayOf()
 
-  private fun alreadyExists(address: Address, newAddress: Address?): Boolean {
-    val x = address.copy(recordType = null)
-    val y = newAddress?.copy(recordType = null)
-    return x == y
-  }
+  private fun alreadyExists(address: Address, newAddress: Address?) = address.copy(recordType = null) == newAddress?.copy(recordType = null)
 }
