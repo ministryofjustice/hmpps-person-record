@@ -1,20 +1,28 @@
 package uk.gov.justice.digital.hmpps.personrecord.jobs
 
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Value
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 
 class ServiceNowDeliusMergeRequestIntTest : WebTestBase() {
+
+  @Value($$"${service-now.sysparm-id}")
+  lateinit var sysParmId: String
 
   @BeforeEach
   fun beforeEach() {
     stubPostRequest(
-      url = "/api/sn_sc/servicecatalog/items/order_now",
+      url = "/api/sn_sc/servicecatalog/items/$sysParmId/order_now",
       responseBody = """{
         "result": {
           "sys_id": "20d3ba6b47a272106322862c736d437c",
@@ -27,6 +35,27 @@ class ServiceNowDeliusMergeRequestIntTest : WebTestBase() {
         }
       } 
       """.trimIndent(),
+    )
+    serviceNowAuthSetup()
+  }
+
+  fun serviceNowAuthSetup() {
+    wiremock.stubFor(
+      WireMock.post("/oauth_token.do")
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+            .withBody(
+              """
+                {
+                  "token_type": "bearer",
+                  "access_token": "SOME_TOKEN",
+                  "expires_in": ${LocalDateTime.now().truncatedTo(ChronoUnit.HOURS).toEpochSecond(ZoneOffset.UTC)}
+                }
+              """.trimIndent(),
+            ),
+        ),
     )
   }
 

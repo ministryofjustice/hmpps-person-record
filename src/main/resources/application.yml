@@ -30,8 +30,7 @@ spring:
             client-id: ${core-person-record-and-delius.client-id}
             client-secret: ${core-person-record-and-delius.client-secret}
           service-now:
-#            TODO: the following provider need to match service-now auth service
-            provider: nomis-oauth-service
+            provider: service-now-oauth-service
             client-authentication-method: client_secret_basic
             authorization-grant-type: client_credentials
             client-id: ${service-now.client-id}
@@ -41,7 +40,6 @@ spring:
             token-uri: ${nomis-oauth.base-url}/auth/oauth/token
           service-now-oauth-service:
             token-uri: ${service-now.base-url}/oauth_token.do
-#            redirect_uri: ${service-now.base-url}/oauth_redirect.do
 
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
