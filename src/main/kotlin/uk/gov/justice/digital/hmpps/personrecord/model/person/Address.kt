@@ -35,10 +35,17 @@ data class Address(
   var usages: List<AddressUsage>? = emptyList(),
 ) {
 
-  fun allPropertiesOrNull(): Address? = this.takeIf { it.allPropertiesNotNull() }
+  fun allPropertiesOrNull(): Address? =
+    this.takeIf { it.hasAnyMeaningfulProperty() }
 
-  private fun allPropertiesNotNull(): Boolean = this::class.memberProperties
-    .all { it.call(this) == null }.not()
+  private fun hasAnyMeaningfulProperty(): Boolean =
+    this::class.memberProperties.any { prop ->
+      when (val value = prop.call(this)) {
+        null -> false
+        is Collection<*> -> value.isNotEmpty()
+        else -> true
+      }
+    }
 
   companion object {
     fun from(address: PrisonerAddress): Address? = Address(

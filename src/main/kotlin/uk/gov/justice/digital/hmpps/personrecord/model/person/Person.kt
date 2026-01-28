@@ -113,7 +113,7 @@ data class Person(
         Contact.from(ContactType.EMAIL, defendant.personDefendant?.personDetails?.contact?.primaryEmail),
       )
 
-      val addresses = listOfNotNull(defendant.personDefendant?.personDetails?.address?.let { Address.from(defendant.personDefendant.personDetails.address) })
+      val addresses = listOfNotNull(Address.from(defendant.personDefendant?.personDetails?.address))
 
       val references: List<Reference> = listOfNotNull(
         Reference.from(
