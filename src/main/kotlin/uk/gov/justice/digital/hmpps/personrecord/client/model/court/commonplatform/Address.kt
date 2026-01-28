@@ -13,8 +13,16 @@ data class Address(
   val postcode: String? = null,
 ) {
 
-  fun allPropertiesOrNull(): Address? = this.takeIf { it.allPropertiesNotNull() }
+  fun allPropertiesOrNull(): Address? = this.takeIf {
+    it.allNullOrBlank().not()
+  }
 
-  private fun allPropertiesNotNull(): Boolean = this::class.memberProperties
-    .all { it.call(this) == null }.not()
+  fun allNullOrBlank(): Boolean =
+    this::class.memberProperties.all { prop ->
+      when (val value = prop.getter.call(this)) {
+        null -> true
+        is String -> value.isBlank()
+        else -> false
+      }
+    }
 }

@@ -47,7 +47,8 @@ class CommonPlatformEventProcessor(
       .flatMap { it.defendants }
       .map {
         val address = it.personDefendant?.personDetails?.address?.allPropertiesOrNull()
-        address?.copy(u)
+        it.personDefendant?.personDetails?.address = address
+        it
       }
       .filterNot { it.isYouth ?: false }
       .distinctBy { it.id }
