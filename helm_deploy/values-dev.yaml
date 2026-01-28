@@ -13,6 +13,14 @@ generic-service:
     PRISONER_SEARCH_BASE_URL: https://prisoner-search-dev.prison.service.justice.gov.uk
     CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: https://core-person-record-and-delius-dev.hmpps.service.justice.gov.uk
 
+  namespace_secrets:
+    hmpps-person-record-servicenow-client:
+      SERVICE_NOW_CLIENT_ID: "client_id"
+      SERVICE_NOW_CLIENT_SECRET: "client_secret"
+      SERVICE_NOW_REQUESTED_FOR: "requested_for"
+      SERVICE_NOW_REQUESTOR: "requestor"
+      SERVICE_NOW_SYSPARM_ID: "sysparm_id"
+
   scheduledDowntime:
     enabled: true
     # Start at 6:35am UTC Monday-Friday - 5 minutes after hmpps-person-match
