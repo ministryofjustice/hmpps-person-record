@@ -17,12 +17,11 @@ data class Address(
     it.allNullOrBlank().not()
   }
 
-  fun allNullOrBlank(): Boolean =
-    this::class.memberProperties.all { prop ->
-      when (val value = prop.getter.call(this)) {
-        null -> true
-        is String -> value.isBlank()
-        else -> false
-      }
+  fun allNullOrBlank(): Boolean = this::class.memberProperties.all { prop ->
+    when (val value = prop.getter.call(this)) {
+      null -> true
+      is String -> value.isBlank()
+      else -> false
     }
+  }
 }
