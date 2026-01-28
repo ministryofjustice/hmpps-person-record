@@ -28,6 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import java.time.LocalDate
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner as SysconPrisoner
 
 data class Person(
   val personId: UUID? = null,
@@ -220,6 +221,26 @@ data class Person(
       )
     }
 
+    fun from(prisoner: SysconPrisoner, prisonNumber: String): Person = Person(
+      prisonNumber = prisonNumber,
+      titleCode = TitleCode.from(prisoner.name.titleCode),
+      firstName = prisoner.name.firstName.nullIfBlank(),
+      middleNames = prisoner.name.middleNames?.nullIfBlank(),
+      lastName = prisoner.name.lastName.nullIfBlank(),
+      dateOfBirth = prisoner.demographicAttributes.dateOfBirth,
+      ethnicityCode = EthnicityCode.fromPrison(prisoner.demographicAttributes.ethnicityCode),
+      aliases = prisoner.aliases.map { Alias.from(it) },
+      contacts = prisoner.contacts.map { contact -> Contact(contact.type, contact.value) },
+      addresses = prisoner.addresses.map { Address.from(it) },
+      references = prisoner.identifiers.mapNotNull { Reference.from(IdentifierType.valueOf(it.type.name), it.value) },
+      sourceSystem = NOMIS,
+      nationalities = listOf(NationalityCode.fromPrisonCode(prisoner.demographicAttributes.nationalityCode)).mapNotNull { it },
+      nationalityNotes = prisoner.demographicAttributes.nationalityNote.nullIfBlank(),
+      religion = prisoner.demographicAttributes.religionCode.nullIfBlank(),
+      sentences = prisoner.sentences.map { SentenceInfo(it.sentenceDate) },
+      sexCode = prisoner.demographicAttributes.sexCode,
+    )
+
     fun from(existingPersonEntity: PersonEntity): Person = Person(
       personId = existingPersonEntity.personKey?.personUUID,
       firstName = existingPersonEntity.getPrimaryName().firstName,
@@ -237,7 +258,7 @@ data class Person(
       nationalityNotes = existingPersonEntity.nationalityNotes,
       religion = existingPersonEntity.religion,
       ethnicityCode = existingPersonEntity.ethnicityCode,
-      contacts = existingPersonEntity.contacts.map { Contact.convertEntityToContact(it) },
+      contacts = existingPersonEntity.contacts.map { Contact.from(it) },
       addresses = existingPersonEntity.addresses.map { Address.from(it) },
       references = existingPersonEntity.references.map { Reference.from(it) },
       sourceSystem = existingPersonEntity.sourceSystem,
