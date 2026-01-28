@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 
 import io.swagger.v3.oas.annotations.media.Schema
-import jakarta.validation.Valid
 
 data class Prisoner(
   @Schema(description = "The names of the person")
@@ -12,7 +11,6 @@ data class Prisoner(
   val aliases: List<Alias> = emptyList(),
   @Schema(description = "The addresses of the person")
   val addresses: List<Address> = emptyList(),
-  @Valid
   @Schema(description = "The contacts of the person")
   val contacts: List<Contact> = emptyList(),
   @Schema(description = "The identifiers of the person")

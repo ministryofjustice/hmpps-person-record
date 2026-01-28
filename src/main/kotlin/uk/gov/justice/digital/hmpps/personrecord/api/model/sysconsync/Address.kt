@@ -38,4 +38,6 @@ data class Address(
   val isMail: Boolean? = null,
   @Schema(description = "List of address usages")
   val addressUsage: List<AddressUsage> = emptyList(),
+  @Schema(description = "List of address contacts")
+  val contacts: List<Contact> = emptyList(),
 )
