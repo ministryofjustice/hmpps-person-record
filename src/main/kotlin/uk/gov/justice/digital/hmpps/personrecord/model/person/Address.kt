@@ -112,6 +112,7 @@ data class Address(
       isPrimary = address.isPrimary,
       isMail = address.isMail,
       usages = address.addressUsage.map { AddressUsage.from(it) },
+      contacts = address.contacts.mapNotNull { Contact.from(it) },
     )
 
     fun fromPrisonerAddressList(addresses: List<PrisonerAddress>): List<Address> = addresses.mapNotNull { from(it) }
@@ -137,7 +138,8 @@ data class Address(
       recordType = addressEntity.recordType,
       isPrimary = addressEntity.primary,
       isMail = addressEntity.mail,
-      usages = addressEntity.usages.map { addressUsageEntity -> AddressUsage.from(addressUsageEntity) },
+      usages = addressEntity.usages.map { AddressUsage.from(it) },
+      contacts = addressEntity.contacts.map { Contact.from(it) },
     )
   }
 

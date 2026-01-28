@@ -112,7 +112,8 @@ class SysconSyncControllerIntTest : WebTestBase() {
 
   private fun WebTestClient.ResponseSpec.assertDatabase(prisonerNumber: String, request: Prisoner, write: Boolean = true): WebTestClient.ResponseSpec {
     if (write) {
-      val actualPerson = personRepository.findByPrisonNumber(prisonerNumber)?.let { Person.from(it) } ?: fail { "Prisoner record was expected to be found" }
+      val actualPersonEntity = personRepository.findByPrisonNumber(prisonerNumber)
+      val actualPerson = actualPersonEntity?.let { Person.from(it) } ?: fail { "Prisoner record was expected to be found" }
       val expectedPerson = Person.from(request, prisonerNumber).copy(personId = actualPerson.personId)
       assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
     } else {
@@ -169,6 +170,13 @@ class SysconSyncControllerIntTest : WebTestBase() {
             isActive = true,
           ),
         ),
+        contacts = listOf(
+          Contact(
+            value = randomPhoneNumber(),
+            type = ContactType.entries.random(),
+            extension = null,
+          ),
+        ),
       ),
     ),
     contacts = listOf(
@@ -176,8 +184,6 @@ class SysconSyncControllerIntTest : WebTestBase() {
         value = randomPhoneNumber(),
         type = ContactType.entries.random(),
         extension = null,
-        isPersonContact = randomBoolean(),
-        isAddressContact = randomBoolean(),
       ),
     ),
     identifiers = listOf(
