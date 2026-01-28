@@ -45,6 +45,10 @@ class CommonPlatformEventProcessor(
     val defendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .asSequence()
       .flatMap { it.defendants }
+      .map {
+        val address = it.personDefendant?.personDetails?.address?.allPropertiesOrNull()
+        address?.copy(u)
+      }
       .filterNot { it.isYouth ?: false }
       .distinctBy { it.id }
       .map { populateIdentifiersFromDefendantWhenMissing(it) }
