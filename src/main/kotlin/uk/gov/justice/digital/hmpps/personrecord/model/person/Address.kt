@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
@@ -34,11 +33,7 @@ data class Address(
   var isMail: Boolean? = null,
   var usages: List<AddressUsage> = emptyList(),
   var recordType: AddressRecordType? = null,
-  var isPrimary: Boolean? = null,
-  var isMail: Boolean? = null,
-  var usages: List<AddressUsage>? = emptyList(),
 ) {
-
   fun allPropertiesOrNull(): Address? = this.takeIf { it.hasAnyMeaningfulProperty() }
 
   private fun hasAnyMeaningfulProperty(): Boolean = this::class.memberProperties.any { prop ->
