@@ -196,7 +196,7 @@ class IntegrationTestBase {
     religion = Value(randomReligion()),
     genderIdentity = Value(randomProbationGenderIdentity().key),
     selfDescribedGenderIdentity = randomName(),
-
+    dateOfBirth = randomDate(),
   )
 
   internal fun createRandomPrisonPersonDetails(prisonNumber: String = randomPrisonNumber()): Person = Person.from(

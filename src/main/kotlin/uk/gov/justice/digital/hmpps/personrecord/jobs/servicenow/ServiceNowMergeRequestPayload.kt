@@ -12,7 +12,12 @@ data class ProbationRecord(
   @JsonProperty("police_national_computer_pnc_reference_b") val pnc: String?,
 ) {
   companion object {
-    fun from(personEntity: PersonEntity): ProbationRecord = ProbationRecord(fullName = "${personEntity.getPrimaryName().firstName} ${personEntity.getPrimaryName().middleNames} ${personEntity.getPrimaryName().lastName}", dateOfBirth = personEntity.getPrimaryName().dateOfBirth, crn = personEntity.crn!!, pnc = personEntity.references.getPNCs().first())
+    fun from(personEntity: PersonEntity): ProbationRecord = ProbationRecord(
+      fullName = "${personEntity.getPrimaryName().firstName} ${personEntity.getPrimaryName().middleNames} ${personEntity.getPrimaryName().lastName}",
+      dateOfBirth = personEntity.getPrimaryName().dateOfBirth,
+      crn = personEntity.crn!!,
+      pnc = personEntity.references.getPNCs().first(),
+    )
   }
 }
 
