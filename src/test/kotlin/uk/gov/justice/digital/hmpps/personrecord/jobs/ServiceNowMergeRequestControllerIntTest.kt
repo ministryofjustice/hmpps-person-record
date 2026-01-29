@@ -167,12 +167,12 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
     "requester" : "",
     "requested_for" : "",
     "record_a_details_cpr_ndelius" : [ {
-      "full_name_b" : "",
+      "full_name_b" : "${person1.firstName} ${person1.middleNames} ${person1.lastName}",
       "date_of_birth_b" : null,
       "case_reference_number_crn_a" : "$crn1",
       "police_national_computer_pnc_reference_b" : "${person1.getPnc()}"
     }, {
-      "full_name_b" : "",
+      "full_name_b" : "${person2.firstName} ${person2.middleNames} ${person2.lastName}",
       "date_of_birth_b" : null,
       "case_reference_number_crn_a" : "$crn2",
       "police_national_computer_pnc_reference_b" : "${person2.getPnc()}"
