@@ -21,5 +21,6 @@ class ServiceNowMergeRequestEntity(
 ) {
   companion object {
     fun from(it: PersonEntity): ServiceNowMergeRequestEntity = ServiceNowMergeRequestEntity(personUUID = it.personKey?.personUUID)
+    fun fromUuid(uuid: UUID?): ServiceNowMergeRequestEntity = ServiceNowMergeRequestEntity(personUUID = uuid)
   }
 }

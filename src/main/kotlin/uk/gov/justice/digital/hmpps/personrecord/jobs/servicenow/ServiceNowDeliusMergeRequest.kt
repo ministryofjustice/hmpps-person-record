@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Profile("!preprod & !prod")
 @RestController
@@ -20,28 +21,26 @@ class ServiceNowDeliusMergeRequest(
 
   @Hidden
   @RequestMapping(method = [RequestMethod.POST], value = ["/jobs/service-now/generate-delius-merge-requests"])
-  fun collectAndReport(): ServiceNowResponse {
+  fun collectAndReport(): String {
     val recordsToProcess = generate()
-    val payload = ServiceNowPayload(
-      sysParmId = "",
-      quantity = 1,
-      variables = Variables(
-        requester = "",
-        requestedFor = "",
-        details = recordsToProcess.map { NDeliusRecord.from(it) },
-      ),
-    )
-    val response = serviceNowClient.postRecords(payload)
+
     recordsToProcess.forEach {
-      serviceNowMergeRequestRepository.save(ServiceNowMergeRequestEntity.from(it))
+      val payload = ServiceNowPayload(
+        sysParmId = "",
+        quantity = 1,
+        variables = Variables(
+          requester = "",
+          requestedFor = "",
+          details = it.persons.map { person -> NDeliusRecord.from(person) },
+        ),
+      )
+      serviceNowClient.postRecords(payload)
+      serviceNowMergeRequestRepository.save(ServiceNowMergeRequestEntity.fromUuid(it.personUuid))
     }
-    return response
+    return "ok"
   }
 
-  fun generate(): List<PersonEntity> {
-    // TODO: persist processed clusters to db
-    // TODO: extract processed clusters from db
-    // TODO: exclude processed clusters
+  fun generate(): List<MergeRequestItem> {
     val deliusRecords = personRepository.findByLastModifiedBetween(
       LocalDateTime.now().minusDays(1),
       LocalDateTime.now().minusDays(1).plusHours(1),
@@ -51,11 +50,27 @@ class ServiceNowDeliusMergeRequest(
           it.sourceSystem == SourceSystemType.DELIUS
         }?.size!! > 1
       }
-    val uniquePersonKey = deliusRecords.map { it.personKey?.personUUID }.toSet()
-    return deliusRecords.filter { it.personKey?.personUUID in uniquePersonKey }
-      .filterNot { serviceNowMergeRequestRepository.existsByPersonUUID(it.personKey?.personUUID) }
-      .take(CLUSTER_TO_PROCESS_COUNT)
+    val uniquePersonKey = deliusRecords.map { it.personKey }
+      .toSet()
+      .filterNot {
+        serviceNowMergeRequestRepository.existsByPersonUUID(
+          it!!.personUUID,
+        )
+      }
+    return uniquePersonKey.map {
+      MergeRequestItem(
+        it!!.personUUID!!,
+        it.personEntities.filter {
+          it.sourceSystem == SourceSystemType.DELIUS
+        },
+      )
+    }.take(CLUSTER_TO_PROCESS_COUNT)
   }
+
+  data class MergeRequestItem(
+    val personUuid: UUID,
+    val persons: List<PersonEntity>,
+  )
 
   companion object {
     private const val CLUSTER_TO_PROCESS_COUNT = 5

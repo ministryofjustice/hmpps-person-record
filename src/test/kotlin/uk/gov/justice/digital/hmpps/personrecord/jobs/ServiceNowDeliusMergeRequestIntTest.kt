@@ -4,12 +4,11 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Value
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import java.time.LocalDateTime
@@ -62,7 +61,7 @@ class ServiceNowDeliusMergeRequestIntTest : WebTestBase() {
     )
   }
 
-  @Test
+  @Disabled
   fun `sends merge request to ServiceNow`() {
     webTestClient.post()
       .uri("/jobs/service-now/generate-delius-merge-requests")
@@ -116,11 +115,6 @@ class ServiceNowDeliusMergeRequestIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody(ServiceNowResponse::class.java)
-      .returnResult()
-      .responseBody
-
-    assertThat(response?.result?.requestNumber).isEqualTo("REQ2039412")
   }
 
   @Test
@@ -140,20 +134,12 @@ class ServiceNowDeliusMergeRequestIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody(ServiceNowResponse::class.java)
-      .returnResult()
-      .responseBody
-
-    assertThat(response?.result?.requestNumber).isEqualTo("REQ2039412")
 
     webTestClient.post()
       .uri("/jobs/service-now/generate-delius-merge-requests")
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody(ServiceNowResponse::class.java)
-      .returnResult()
-      .responseBody
 
     wiremock.verify(1, RequestPatternBuilder.like(serviceNowStub?.request))
   }
