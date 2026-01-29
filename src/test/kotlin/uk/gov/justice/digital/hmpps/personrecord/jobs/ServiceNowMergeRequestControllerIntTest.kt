@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.jobs
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import org.junit.jupiter.api.BeforeEach
@@ -134,9 +135,11 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
     val crn1 = randomCrn()
     val crn2 = randomCrn()
 
+    val person1 = createRandomProbationPersonDetails(crn1)
+    val person2 = createRandomProbationPersonDetails(crn2)
     createPersonKey()
-      .addPerson(createRandomProbationPersonDetails(crn1))
-      .addPerson(createRandomProbationPersonDetails(crn2))
+      .addPerson(person1)
+      .addPerson(person2)
 
     personRepository.updateLastModifiedDate(crn1, LocalDateTime.now().minusDays(1).plusMinutes(1))
     personRepository.updateLastModifiedDate(crn2, LocalDateTime.now().minusDays(1).plusMinutes(2))
@@ -153,12 +156,37 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
       .expectStatus()
       .isOk
 
-    wiremock.verify(1, RequestPatternBuilder.like(serviceNowStub?.request))
+    wiremock.verify(
+      1,
+      RequestPatternBuilder.like(serviceNowStub?.request).withRequestBody(
+        equalToJson(
+          """{
+  "sysparm_id" : "",
+  "sysparm_quantity" : 1,
+  "variables" : {
+    "requester" : "",
+    "requested_for" : "",
+    "record_a_details_cpr_ndelius" : [ {
+      "full_name_b" : "",
+      "date_of_birth_b" : null,
+      "case_reference_number_crn_a" : "$crn1",
+      "police_national_computer_pnc_reference_b" : "${person1.getPnc()}"
+    }, {
+      "full_name_b" : "",
+      "date_of_birth_b" : null,
+      "case_reference_number_crn_a" : "$crn2",
+      "police_national_computer_pnc_reference_b" : "${person2.getPnc()}"
+    } ]
+  }
+}""",
+        ),
+      ),
+    )
   }
 
   @Test
   fun `should not send a merge request for a cluster which has two prison records but no probation records`() {
-    personRepository.deleteAll()
+    personKeyRepository.deleteAll()
     val prisonNumber1 = randomPrisonNumber()
     val prisonNumber2 = randomPrisonNumber()
 
