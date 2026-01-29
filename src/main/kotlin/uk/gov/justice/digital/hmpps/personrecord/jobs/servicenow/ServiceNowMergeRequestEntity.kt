@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import java.util.UUID
 
 @Entity
@@ -17,4 +18,8 @@ class ServiceNowMergeRequestEntity(
 
   @Column(name = "person_uuid")
   val personUUID: UUID? = null,
-)
+) {
+  companion object {
+    fun from(it: PersonEntity): ServiceNowMergeRequestEntity = ServiceNowMergeRequestEntity(personUUID = it.personKey?.personUUID)
+  }
+}

@@ -12,7 +12,11 @@ import java.time.LocalDateTime
 
 @Profile("!preprod & !prod")
 @RestController
-class ServiceNowDeliusMergeRequest(private val personRepository: PersonRepository, private val serviceNowClient: ServiceNowClient) {
+class ServiceNowDeliusMergeRequest(
+  private val personRepository: PersonRepository,
+  private val serviceNowClient: ServiceNowClient,
+  private val serviceNowMergeRequestRepository: ServiceNowMergeRequestRepository,
+) {
 
   @Hidden
   @RequestMapping(method = [RequestMethod.POST], value = ["/jobs/service-now/generate-delius-merge-requests"])
@@ -27,7 +31,11 @@ class ServiceNowDeliusMergeRequest(private val personRepository: PersonRepositor
         details = recordsToProcess.map { NDeliusRecord.from(it) },
       ),
     )
-    return serviceNowClient.postRecords(payload)
+    val response = serviceNowClient.postRecords(payload)
+    recordsToProcess.forEach {
+      serviceNowMergeRequestRepository.save(ServiceNowMergeRequestEntity.from(it))
+    }
+    return response
   }
 
   fun generate(): List<PersonEntity> {
@@ -43,8 +51,10 @@ class ServiceNowDeliusMergeRequest(private val personRepository: PersonRepositor
           it.sourceSystem == SourceSystemType.DELIUS
         }?.size!! > 1
       }
-    val uniquePersonKey = deliusRecords.map { it.personKey?.personUUID }.toSet().take(CLUSTER_TO_PROCESS_COUNT)
+    val uniquePersonKey = deliusRecords.map { it.personKey?.personUUID }.toSet()
     return deliusRecords.filter { it.personKey?.personUUID in uniquePersonKey }
+      .filterNot { serviceNowMergeRequestRepository.existsByPersonUUID(it.personKey?.personUUID) }
+      .take(CLUSTER_TO_PROCESS_COUNT)
   }
 
   companion object {

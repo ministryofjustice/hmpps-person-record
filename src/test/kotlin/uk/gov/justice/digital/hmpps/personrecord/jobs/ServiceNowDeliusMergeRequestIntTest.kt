@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.jobs
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
+import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -18,10 +20,11 @@ class ServiceNowDeliusMergeRequestIntTest : WebTestBase() {
 
   @Value($$"${service-now.sysparm-id}")
   lateinit var sysParmId: String
+  var serviceNowStub: StubMapping? = null
 
   @BeforeEach
   fun beforeEach() {
-    stubPostRequest(
+    serviceNowStub = stubPostRequest(
       url = "/api/sn_sc/servicecatalog/items/$sysParmId/order_now",
       responseBody = """{
         "result": {
@@ -118,6 +121,41 @@ class ServiceNowDeliusMergeRequestIntTest : WebTestBase() {
       .responseBody
 
     assertThat(response?.result?.requestNumber).isEqualTo("REQ2039412")
+  }
+
+  @Test
+  fun `should not send a merge request for a cluster which has already had a merge request`() {
+    val crn1 = randomCrn()
+    val crn2 = randomCrn()
+
+    createPersonKey()
+      .addPerson(createRandomProbationPersonDetails(crn1))
+      .addPerson(createRandomProbationPersonDetails(crn2))
+
+    personRepository.updateLastModifiedDate(crn1, LocalDateTime.now().minusDays(1).plusMinutes(1))
+    personRepository.updateLastModifiedDate(crn2, LocalDateTime.now().minusDays(1).plusMinutes(2))
+
+    val response = webTestClient.post()
+      .uri("/jobs/service-now/generate-delius-merge-requests")
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(ServiceNowResponse::class.java)
+      .returnResult()
+      .responseBody
+
+    assertThat(response?.result?.requestNumber).isEqualTo("REQ2039412")
+
+    webTestClient.post()
+      .uri("/jobs/service-now/generate-delius-merge-requests")
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(ServiceNowResponse::class.java)
+      .returnResult()
+      .responseBody
+
+    wiremock.verify(1, RequestPatternBuilder.like(serviceNowStub?.request))
   }
 
   private fun PersonRepository.updateLastModifiedDate(crn: String, lastModified: LocalDateTime) {
