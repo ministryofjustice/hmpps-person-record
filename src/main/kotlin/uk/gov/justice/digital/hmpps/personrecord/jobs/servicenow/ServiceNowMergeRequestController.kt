@@ -13,9 +13,9 @@ import java.util.UUID
 
 @Profile("!preprod & !prod")
 @RestController
-class ServiceNowDeliusMergeRequest(
+class ServiceNowMergeRequestController(
   private val personRepository: PersonRepository,
-  private val serviceNowClient: ServiceNowClient,
+  private val serviceNowMergeRequestClient: ServiceNowMergeRequestClient,
   private val serviceNowMergeRequestRepository: ServiceNowMergeRequestRepository,
 ) {
 
@@ -34,7 +34,7 @@ class ServiceNowDeliusMergeRequest(
           details = it.persons.map { person -> NDeliusRecord.from(person) },
         ),
       )
-      serviceNowClient.postRecords(payload)
+      serviceNowMergeRequestClient.postRecords(payload)
       serviceNowMergeRequestRepository.save(ServiceNowMergeRequestEntity.fromUuid(it.personUuid))
     }
     return "ok"

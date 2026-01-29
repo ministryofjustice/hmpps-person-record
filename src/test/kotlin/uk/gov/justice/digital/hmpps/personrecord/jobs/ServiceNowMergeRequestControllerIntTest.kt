@@ -15,7 +15,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
-class ServiceNowDeliusMergeRequestIntTest : WebTestBase() {
+class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
 
   @Value($$"${service-now.sysparm-id}")
   lateinit var sysParmId: String
@@ -61,7 +61,7 @@ class ServiceNowDeliusMergeRequestIntTest : WebTestBase() {
     )
   }
 
-  @Disabled
+  @Disabled("may not be needed anymore")
   @Test
   fun `sends merge request to ServiceNow`() {
     webTestClient.post()

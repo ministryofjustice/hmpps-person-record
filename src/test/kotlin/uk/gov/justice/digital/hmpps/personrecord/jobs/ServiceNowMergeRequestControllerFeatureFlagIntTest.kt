@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 
-class ServiceNowDeliusMergeRequestFeatureFlagIntTest : WebTestBase() {
+class ServiceNowMergeRequestControllerFeatureFlagIntTest : WebTestBase() {
 
   @Nested
   @ActiveProfiles("preprod")
