@@ -23,6 +23,12 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
   @Value($$"${service-now.sysparm-id}")
   lateinit var sysParmId: String
 
+  @Value($$"${service-now.requestor}")
+  lateinit var requestor: String
+
+  @Value($$"${service-now.requested-for}")
+  lateinit var requestedFor: String
+
   var serviceNowStub: StubMapping? = null
 
   @BeforeEach
@@ -164,8 +170,8 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
           "sysparm_id" : "$sysParmId",
           "sysparm_quantity" : 1,
           "variables" : {
-    "requester" : "",
-    "requested_for" : "",
+    "requester" : "$requestor",
+    "requested_for" : "$requestedFor",
     "record_a_details_cpr_ndelius" : [ {
       "full_name_b" : "${person1.firstName} ${person1.middleNames} ${person1.lastName}",
       "date_of_birth_b" : "${person1.dateOfBirth}",

@@ -19,6 +19,8 @@ class ServiceNowMergeRequestController(
   private val serviceNowMergeRequestClient: ServiceNowMergeRequestClient,
   private val serviceNowMergeRequestRepository: ServiceNowMergeRequestRepository,
   @Value($$"${service-now.sysparm-id}")private val sysParmId: String,
+  @Value($$"${service-now.requestor}")private val requestor: String,
+  @Value($$"${service-now.requested-for}")private val requestedFor: String,
 ) {
 
   @Hidden
@@ -31,8 +33,8 @@ class ServiceNowMergeRequestController(
         sysParmId = sysParmId,
         quantity = 1,
         variables = Variables(
-          requester = "",
-          requestedFor = "",
+          requester = requestor,
+          requestedFor = requestedFor,
           details = it.personEntities.map { person -> ProbationRecord.from(person) },
         ),
       )

@@ -20,6 +20,8 @@ core-person-record-and-delius:
 service-now:
   base-url: http://localhost:8090
   sysparm-id: sysparm12345
+  requestor: abcd
+  requested-for: efgh
 
 retry:
   timeout: 200
