@@ -38,6 +38,10 @@ class AddressEntity(
   @OneToMany(mappedBy = "address", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var contacts: MutableList<ContactEntity> = mutableListOf(),
 
+  @Column
+  @OneToMany(mappedBy = "address", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
+  val usages: MutableList<AddressUsageEntity> = mutableListOf(),
+
   @Column(name = "start_date")
   val startDate: LocalDate? = null,
 
