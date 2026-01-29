@@ -152,7 +152,7 @@ class IntegrationTestBase {
         } else {
           wiremock.verify(getRequestedFor(urlMatching(it.request.urlPathPattern)))
         }
-        POST -> if (it.request.url != "/auth/oauth/token") {
+        POST -> if (it.request.url != "/auth/oauth/token" && it.request.url != "/oauth_token.do") {
           wiremock.verify(postRequestedFor(urlEqualTo(it.request.url)))
         }
         DELETE -> wiremock.verify(deleteRequestedFor(urlEqualTo(it.request.url)))
