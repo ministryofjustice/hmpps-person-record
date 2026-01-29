@@ -62,6 +62,7 @@ class ServiceNowDeliusMergeRequestIntTest : WebTestBase() {
   }
 
   @Disabled
+  @Test
   fun `sends merge request to ServiceNow`() {
     webTestClient.post()
       .uri("/jobs/service-now/generate-delius-merge-requests")
