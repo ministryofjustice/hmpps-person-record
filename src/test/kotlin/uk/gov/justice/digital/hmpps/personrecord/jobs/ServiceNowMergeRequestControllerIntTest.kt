@@ -161,7 +161,7 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
       RequestPatternBuilder.like(serviceNowStub?.request).withRequestBody(
         equalToJson(
           """{
-          "sysparm_id" : "",
+          "sysparm_id" : "$sysParmId",
           "sysparm_quantity" : 1,
           "variables" : {
     "requester" : "",
