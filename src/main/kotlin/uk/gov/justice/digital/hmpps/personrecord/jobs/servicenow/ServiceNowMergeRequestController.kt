@@ -25,17 +25,17 @@ class ServiceNowMergeRequestController(
     val recordsToProcess = generate()
 
     recordsToProcess.forEach {
-      val payload = ServiceNowPayload(
+      val payload = ServiceNowMergeRequestPayload(
         sysParmId = "",
         quantity = 1,
         variables = Variables(
           requester = "",
           requestedFor = "",
-          details = it.persons.map { person -> NDeliusRecord.from(person) },
+          details = it.personEntities.map { person -> ProbationRecord.from(person) },
         ),
       )
       serviceNowMergeRequestClient.postRecords(payload)
-      serviceNowMergeRequestRepository.save(ServiceNowMergeRequestEntity.fromUuid(it.personUuid))
+      serviceNowMergeRequestRepository.save(ServiceNowMergeRequestEntity.fromUuid(it.personKeyUUID))
     }
     return "ok"
   }
@@ -68,8 +68,8 @@ class ServiceNowMergeRequestController(
   }
 
   data class MergeRequestItem(
-    val personUuid: UUID,
-    val persons: List<PersonEntity>,
+    val personKeyUUID: UUID,
+    val personEntities: List<PersonEntity>,
   )
 
   companion object {

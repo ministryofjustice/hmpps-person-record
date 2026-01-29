@@ -8,7 +8,7 @@ import org.springframework.web.reactive.function.client.WebClient
 @Profile("!preprod & !prod")
 @Component
 class ServiceNowMergeRequestClient(private val serviceNowWebClient: WebClient, @Value($$"${service-now.sysparm-id}")private val sysParmId: String) {
-  fun postRecords(payload: ServiceNowPayload) = serviceNowWebClient
+  fun postRecords(payload: ServiceNowMergeRequestPayload) = serviceNowWebClient
     .post()
     .uri("/api/sn_sc/servicecatalog/items/$sysParmId/order_now")
     .bodyValue(payload)
