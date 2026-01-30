@@ -2,9 +2,6 @@ name: SCA
 run-name: SCA ⚡️
 
 on:
-  push: # TEMP
-    branches:
-      - CPR-1056-security-improvments
   schedule:
     - cron: "0 0 * * *" # Daily at midnight UTC
   pull_request:
