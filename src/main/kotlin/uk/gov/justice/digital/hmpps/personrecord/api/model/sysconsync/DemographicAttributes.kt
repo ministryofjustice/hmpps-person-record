@@ -2,11 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
-import java.time.LocalDate
 
 data class DemographicAttributes(
-  @Schema(description = "The person's date of birth", example = "1980-01-01")
-  val dateOfBirth: LocalDate? = null,
   @Schema(description = "The person's birth place", example = "Milton Keynes")
   val birthPlace: String? = null,
   @Schema(description = "The person's birth country code", example = "UK")

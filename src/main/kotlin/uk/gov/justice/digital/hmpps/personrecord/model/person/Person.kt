@@ -221,25 +221,33 @@ data class Person(
       )
     }
 
-    fun from(prisoner: SysconPrisoner, prisonNumber: String): Person = Person(
-      prisonNumber = prisonNumber,
-      titleCode = TitleCode.from(prisoner.name.titleCode),
-      firstName = prisoner.name.firstName.nullIfBlank(),
-      middleNames = prisoner.name.middleNames?.nullIfBlank(),
-      lastName = prisoner.name.lastName.nullIfBlank(),
-      dateOfBirth = prisoner.demographicAttributes.dateOfBirth,
-      ethnicityCode = EthnicityCode.fromPrison(prisoner.demographicAttributes.ethnicityCode),
-      aliases = prisoner.aliases.map { Alias.from(it) },
-      contacts = prisoner.contacts.map { contact -> Contact(contact.type, contact.value) },
-      addresses = prisoner.addresses.map { Address.from(it) },
-      references = prisoner.identifiers.mapNotNull { Reference.from(IdentifierType.valueOf(it.type.name), it.value) },
-      sourceSystem = NOMIS,
-      nationalities = listOf(NationalityCode.fromPrisonCode(prisoner.demographicAttributes.nationalityCode)).mapNotNull { it },
-      nationalityNotes = prisoner.demographicAttributes.nationalityNote.nullIfBlank(),
-      religion = prisoner.demographicAttributes.religionCode.nullIfBlank(),
-      sentences = prisoner.sentences.map { SentenceInfo(it.sentenceDate) },
-      sexCode = prisoner.demographicAttributes.sexCode,
-    )
+    fun from(prisoner: SysconPrisoner, prisonNumber: String): Person {
+      val primaryAlias = prisoner.aliases.firstOrNull { it.isPrimary == true } ?: throw IllegalArgumentException("No primary alias was found for update on prisoner $prisonNumber")
+
+      val identifiers = prisoner.aliases
+        .flatMap { it.identifiers?.toList() ?: emptyList() }
+        .mapNotNull { Reference.from(IdentifierType.valueOf(it.type.name), it.value) }
+
+      return Person(
+        prisonNumber = prisonNumber,
+        titleCode = TitleCode.from(primaryAlias.titleCode),
+        firstName = primaryAlias.firstName.nullIfBlank(),
+        middleNames = primaryAlias.middleNames?.nullIfBlank(),
+        lastName = primaryAlias.lastName.nullIfBlank(),
+        dateOfBirth = primaryAlias.dateOfBirth,
+        ethnicityCode = EthnicityCode.fromPrison(prisoner.demographicAttributes.ethnicityCode),
+        aliases = prisoner.aliases.map { Alias.from(it) },
+        contacts = prisoner.personContacts.map { contact -> Contact(contact.type, contact.value) },
+        addresses = prisoner.addresses.map { Address.from(it) },
+        references = identifiers,
+        sourceSystem = NOMIS,
+        nationalities = listOf(NationalityCode.fromPrisonCode(prisoner.demographicAttributes.nationalityCode)).mapNotNull { it },
+        nationalityNotes = prisoner.demographicAttributes.nationalityNote.nullIfBlank(),
+        religion = prisoner.demographicAttributes.religionCode.nullIfBlank(),
+        sentences = prisoner.sentences.map { SentenceInfo(it.sentenceDate) },
+        sexCode = prisoner.demographicAttributes.sexCode,
+      )
+    }
 
     fun from(existingPersonEntity: PersonEntity): Person = Person(
       personId = existingPersonEntity.personKey?.personUUID,

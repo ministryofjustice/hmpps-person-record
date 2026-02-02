@@ -8,6 +8,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 enum class IdentifierType {
   PNC,
   CRO,
+  DL,
+  NINO,
   NATIONAL_INSURANCE_NUMBER,
   DRIVER_LICENSE_NUMBER,
   ARREST_SUMMONS_NUMBER,

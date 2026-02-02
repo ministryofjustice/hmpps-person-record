@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.constraints.NotBlank
-import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PathVariable
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.res.SysconUpsertResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
@@ -50,17 +48,16 @@ class SysconSyncController(
     ),
   )
   @Transactional
-  fun create(
+  fun update(
     @NotBlank
     @PathVariable(name = "prisonNumber")
     @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true)
     prisonNumber: String,
     @RequestBody prisoner: Prisoner,
-  ): ResponseEntity<SysconUpsertResponseBody> {
-    return personRepository.findByPrisonNumber(prisonNumber)?.let {
-      val person = Person.from(prisoner, prisonNumber)
-      val updatedPersonEntity = personService.processPerson(person) { it }
-      ResponseEntity.ok(SysconUpsertResponseBody.from(updatedPersonEntity))
-    } ?: throw ResourceNotFoundException("Prisoner not found $prisonNumber")
-  }
+  ): String = personRepository.findByPrisonNumber(prisonNumber)?.let {
+    val person = Person.from(prisoner, prisonNumber)
+    val updatedPersonEntity = personService.processPerson(person) { it }
+    "OK"
+//    ResponseEntity.ok(SysconUpsertResponseBody.from(updatedPersonEntity))
+  } ?: throw ResourceNotFoundException("Prisoner not found $prisonNumber")
 }

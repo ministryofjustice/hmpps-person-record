@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate
 
 data class Address(
+  @Schema(description = "Is nomis address id", example = "5678")
+  val nomisAddressId: Long,
   @Schema(description = "The full address", example = "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ")
   val fullAddress: String? = null,
   @Schema(description = "Is the person without a permanent residence", example = "false")

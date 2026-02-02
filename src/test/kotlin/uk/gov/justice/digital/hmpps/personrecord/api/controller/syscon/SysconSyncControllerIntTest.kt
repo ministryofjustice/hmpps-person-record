@@ -14,9 +14,9 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Contact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.DemographicAttributes
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Identifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Name
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Sentence
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.res.SysconUpsertResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
@@ -24,13 +24,19 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import java.time.LocalDate
 
 class SysconSyncControllerIntTest : WebTestBase() {
@@ -42,9 +48,9 @@ class SysconSyncControllerIntTest : WebTestBase() {
       stubPersonMatchUpsert()
 
       val prisonNumber = randomPrisonNumber()
-      createPerson(Person.from(buildRequestBody(prisonNumber), prisonNumber))
+      createPerson(Person.from(buildRequestBody(), prisonNumber))
 
-      val updatedPrisonerRequest = buildRequestBody(prisonNumber)
+      val updatedPrisonerRequest = buildRequestBody()
       webTestClient
         .put()
         .uri("/syscon-sync/person/$prisonNumber")
@@ -52,6 +58,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
         .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
         .exchange()
         .assertDatabase(prisonNumber, updatedPrisonerRequest)
+//        .assertBodyResponse(prisonNumber, updatedPrisonerRequest)
         .expectStatus()
         .isOk
     }
@@ -62,7 +69,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
     @Test
     fun `person record does not exists - does not insert - returns correct response`() {
       val prisonNumber = randomPrisonNumber()
-      val prisonerRequest = buildRequestBody(prisonNumber)
+      val prisonerRequest = buildRequestBody()
 
       webTestClient
         .put()
@@ -81,7 +88,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
       val prisonerNumber = randomPrisonNumber()
-      val prisonerRequest = buildRequestBody(prisonerNumber)
+      val prisonerRequest = buildRequestBody()
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.put()
         .uri("/syscon-sync/person/$prisonerNumber")
@@ -99,7 +106,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       val prisonerNumber = randomPrisonNumber()
-      val prisonerRequest = buildRequestBody(prisonerNumber)
+      val prisonerRequest = buildRequestBody()
       webTestClient.put()
         .uri("/syscon-sync/person/$prisonerNumber")
         .body(Mono.just(prisonerRequest), Prisoner::class.java)
@@ -112,8 +119,8 @@ class SysconSyncControllerIntTest : WebTestBase() {
 
   private fun WebTestClient.ResponseSpec.assertDatabase(prisonerNumber: String, request: Prisoner, write: Boolean = true): WebTestClient.ResponseSpec {
     if (write) {
-      val actualPersonEntity = personRepository.findByPrisonNumber(prisonerNumber)
-      val actualPerson = actualPersonEntity?.let { Person.from(it) } ?: fail { "Prisoner record was expected to be found" }
+      val actualPersonEntity = personRepository.findByPrisonNumber(prisonerNumber) ?: fail { "Prisoner record was expected to be found" }
+      val actualPerson =  Person.from(actualPersonEntity)
       val expectedPerson = Person.from(request, prisonerNumber).copy(personId = actualPerson.personId)
       assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
     } else {
@@ -122,32 +129,50 @@ class SysconSyncControllerIntTest : WebTestBase() {
     return this
   }
 
-  private fun buildRequestBody(prisonerNumber: String = randomPrisonNumber()): Prisoner = Prisoner(
-    name = Name(
-      titleCode = "MR",
-      firstName = randomName(),
-      middleNames = randomName(),
-      lastName = randomName(),
-    ),
+  private fun WebTestClient.ResponseSpec.assertBodyResponse(prisonerNumber: String, request: Prisoner): WebTestClient.ResponseSpec {
+    val actualPersonEntity = personRepository.findByPrisonNumber(prisonerNumber) ?: fail { "Prisoner record was expected to be found" }
+    val body = this.expectBody(SysconUpsertResponseBody::class.java).returnResult().responseBody ?: fail { "Response body was not correctly de-serialised" }
+
+
+    return this
+  }
+
+  private fun buildRequestBody(): Prisoner = Prisoner(
     demographicAttributes = DemographicAttributes(
-      dateOfBirth = randomDate(),
       birthPlace = randomName(),
       birthCountryCode = randomName(),
       ethnicityCode = randomPrisonEthnicity(),
-      sexCode = SexCode.M,
+      sexCode = randomPrisonSexCode().value,
+      sexualOrientation = randomPrisonSexualOrientation().value.name,
+      disability = randomBoolean(),
+      interestToImmigration = randomBoolean(),
+      religionCode = randomReligionCode(),
+      nationalityCode = randomNationalityCode().name,
+      nationalityNote = randomName()
     ),
     aliases = listOf(
       Alias(
-        titleCode = "MISS",
+        nomisAliasId = randomCId().toLong(),
+        titleCode = randomTitleCode().value.name,
         firstName = randomName(),
         middleNames = randomName(),
         lastName = randomName(),
         dateOfBirth = LocalDate.now().minusYears((30..70).random().toLong()),
         sexCode = SexCode.entries.random(),
+        isPrimary = true,
+        identifiers = listOf(
+          Identifier(
+            nomisIdentifierId = randomCId().toLong(),
+            type = IdentifierType.entries.random(),
+            value = randomName(),
+            comment = randomName()
+          )
+        )
       ),
     ),
     addresses = listOf(
       Address(
+        nomisAddressId = randomCId().toLong(),
         fullAddress = randomFullAddress(),
         noFixedAbode = randomBoolean(),
         startDate = LocalDate.now().minusYears((1..25).random().toLong()),
@@ -166,12 +191,14 @@ class SysconSyncControllerIntTest : WebTestBase() {
         isMail = randomBoolean(),
         addressUsage = listOf(
           AddressUsage(
+            nomisAddressUsageId = randomCId().toLong(),
             addressUsageCode = AddressUsageCode.HOME,
             isActive = true,
           ),
         ),
         contacts = listOf(
           Contact(
+            nomisAddressContactId = randomCId().toLong(),
             value = randomPhoneNumber(),
             type = ContactType.entries.random(),
             extension = null,
@@ -179,17 +206,12 @@ class SysconSyncControllerIntTest : WebTestBase() {
         ),
       ),
     ),
-    contacts = listOf(
+    personContacts = listOf(
       Contact(
+        nomisPersonContactId = randomCId().toLong(),
         value = randomPhoneNumber(),
         type = ContactType.entries.random(),
         extension = null,
-      ),
-    ),
-    identifiers = listOf(
-      Identifier(
-        type = IdentifierType.PNC,
-        value = prisonerNumber,
       ),
     ),
     sentences = listOf(
