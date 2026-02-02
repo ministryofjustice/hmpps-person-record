@@ -36,26 +36,7 @@ import java.time.LocalDate
 class SysconSyncControllerIntTest : WebTestBase() {
 
   @Nested
-  inner class Upsert {
-    @Test
-    fun `person record does not exists - saves record - returns correct response`() {
-      stubPersonMatchUpsert()
-      stubNoMatchesPersonMatch()
-
-      val prisonNumber = randomPrisonNumber()
-      val prisonerRequest = buildRequestBody(prisonNumber)
-
-      webTestClient
-        .post()
-        .uri("/syscon-sync/$prisonNumber")
-        .body(Mono.just(prisonerRequest), Prisoner::class.java)
-        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .assertDatabase(prisonNumber, prisonerRequest)
-        .expectStatus()
-        .isOk
-    }
-
+  inner class Update {
     @Test
     fun `person record does exists - updates record - returns correct response`() {
       stubPersonMatchUpsert()
@@ -65,7 +46,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
 
       val updatedPrisonerRequest = buildRequestBody(prisonNumber)
       webTestClient
-        .post()
+        .put()
         .uri("/syscon-sync/$prisonNumber")
         .body(Mono.just(updatedPrisonerRequest), Prisoner::class.java)
         .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
@@ -77,13 +58,32 @@ class SysconSyncControllerIntTest : WebTestBase() {
   }
 
   @Nested
+  inner class BadRequest {
+    @Test
+    fun `person record does not exists - does not insert - returns correct response`() {
+      val prisonNumber = randomPrisonNumber()
+      val prisonerRequest = buildRequestBody(prisonNumber)
+
+      webTestClient
+        .put()
+        .uri("/syscon-sync/$prisonNumber")
+        .body(Mono.just(prisonerRequest), Prisoner::class.java)
+        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .assertDatabase(prisonNumber, prisonerRequest, write = false)
+        .expectStatus()
+        .isNotFound
+    }
+  }
+
+  @Nested
   inner class Auth {
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
       val prisonerNumber = randomPrisonNumber()
       val prisonerRequest = buildRequestBody(prisonerNumber)
       val expectedErrorMessage = "Forbidden: Access Denied"
-      webTestClient.post()
+      webTestClient.put()
         .uri("/syscon-sync/$prisonerNumber")
         .body(Mono.just(prisonerRequest), Prisoner::class.java)
         .authorised(listOf("UNSUPPORTED-ROLE"))
@@ -100,7 +100,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       val prisonerNumber = randomPrisonNumber()
       val prisonerRequest = buildRequestBody(prisonerNumber)
-      webTestClient.post()
+      webTestClient.put()
         .uri("/syscon-sync/$prisonerNumber")
         .body(Mono.just(prisonerRequest), Prisoner::class.java)
         .exchange()

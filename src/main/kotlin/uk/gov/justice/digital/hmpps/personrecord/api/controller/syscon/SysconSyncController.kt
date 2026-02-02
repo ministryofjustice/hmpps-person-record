@@ -11,10 +11,11 @@ import jakarta.validation.constraints.NotBlank
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -30,7 +31,7 @@ class SysconSyncController(
 ) {
 
   @Operation(description = "Upsert a prison record by prison number")
-  @PostMapping("/syscon-sync/{prisonNumber}")
+  @PutMapping("/syscon-sync/{prisonNumber}")
   @ApiResponses(
     ApiResponse(
       responseCode = "200",
@@ -51,7 +52,13 @@ class SysconSyncController(
     @RequestBody prisoner: Prisoner,
   ): String {
     val person = Person.from(prisoner, prisonNumber)
-    personService.processPerson(person) { personRepository.findByPrisonNumber(prisonNumber) }
-    return "OK"
+    val existingPerson = personRepository.findByPrisonNumber(prisonNumber)
+
+    if (existingPerson != null) {
+      personService.processPerson(person) { existingPerson }
+      return "OK"
+    } else {
+      throw ResourceNotFoundException("Person not found")
+    }
   }
 }
