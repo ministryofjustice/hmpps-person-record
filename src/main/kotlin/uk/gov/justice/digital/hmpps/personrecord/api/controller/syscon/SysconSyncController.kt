@@ -30,12 +30,16 @@ class SysconSyncController(
   private val personService: PersonService,
 ) {
 
-  @Operation(description = "Upsert a prison record by prison number")
-  @PutMapping("/syscon-sync/{prisonNumber}")
+  @Operation(description = "Update a prison record by prison number")
+  @PutMapping("/syscon-sync/person/{prisonNumber}")
   @ApiResponses(
     ApiResponse(
       responseCode = "200",
-      description = "Data created in CPR",
+      description = "Data update in CPR",
+    ),
+    ApiResponse(
+      responseCode = "404",
+      description = "Person not found",
     ),
     ApiResponse(
       responseCode = "500",
@@ -51,14 +55,10 @@ class SysconSyncController(
     prisonNumber: String,
     @RequestBody prisoner: Prisoner,
   ): String {
-    val person = Person.from(prisoner, prisonNumber)
-    val existingPerson = personRepository.findByPrisonNumber(prisonNumber)
-
-    if (existingPerson != null) {
-      personService.processPerson(person) { existingPerson }
-      return "OK"
-    } else {
-      throw ResourceNotFoundException("Person not found")
-    }
+    return personRepository.findByPrisonNumber(prisonNumber)?.let {
+      val person = Person.from(prisoner, prisonNumber)
+      personService.processPerson(person) { it }
+      "OK"
+    } ?: throw ResourceNotFoundException("Person not found $prisonNumber")
   }
 }

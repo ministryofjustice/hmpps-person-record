@@ -47,7 +47,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       val updatedPrisonerRequest = buildRequestBody(prisonNumber)
       webTestClient
         .put()
-        .uri("/syscon-sync/$prisonNumber")
+        .uri("/syscon-sync/person/$prisonNumber")
         .body(Mono.just(updatedPrisonerRequest), Prisoner::class.java)
         .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
         .exchange()
@@ -66,7 +66,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
 
       webTestClient
         .put()
-        .uri("/syscon-sync/$prisonNumber")
+        .uri("/syscon-sync/person/$prisonNumber")
         .body(Mono.just(prisonerRequest), Prisoner::class.java)
         .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
         .exchange()
@@ -84,7 +84,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       val prisonerRequest = buildRequestBody(prisonerNumber)
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.put()
-        .uri("/syscon-sync/$prisonerNumber")
+        .uri("/syscon-sync/person/$prisonerNumber")
         .body(Mono.just(prisonerRequest), Prisoner::class.java)
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
@@ -101,7 +101,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       val prisonerNumber = randomPrisonNumber()
       val prisonerRequest = buildRequestBody(prisonerNumber)
       webTestClient.put()
-        .uri("/syscon-sync/$prisonerNumber")
+        .uri("/syscon-sync/person/$prisonerNumber")
         .body(Mono.just(prisonerRequest), Prisoner::class.java)
         .exchange()
         .assertDatabase(prisonerNumber, prisonerRequest, write = false)
