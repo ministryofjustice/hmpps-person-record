@@ -43,27 +43,28 @@ class ServiceNowMergeRequestController(
 
   fun getClustersForMergeRequests(): List<MergeRequestItem> {
     val thisTimeYesterday = LocalDateTime.now().minusDays(1)
-    val clustersWithMoreThanOneProbationRecordWhichWereChangedYesterday = personRepository.findByLastModifiedBetween(
+    return personRepository.findByLastModifiedBetween(
       thisTimeYesterday,
       thisTimeYesterday.plusHours(1),
     )
-      .filter { person ->
-        person.personKey!!.personEntities.filter {
-          it.sourceSystem == DELIUS
-        }.size > 1
-      }.map { it.personKey!! }
-    val clustersWhichHaveNotAlreadyHadMergeRequest = clustersWithMoreThanOneProbationRecordWhichWereChangedYesterday
       .filterNot {
-        serviceNowMergeRequestRepository.existsByPersonUUID(it.personUUID)
+        serviceNowMergeRequestRepository.existsByPersonUUID(it.personKey!!.personUUID)
       }
-    return clustersWhichHaveNotAlreadyHadMergeRequest.toSet().map {
-      MergeRequestItem(
-        it.personUUID!!,
-        it.personEntities.filter {
+      .filter { cluster ->
+        cluster.personKey!!.personEntities.count {
           it.sourceSystem == DELIUS
-        }.map { ProbationRecord.from(it) },
-      )
-    }.take(CLUSTER_TO_PROCESS_COUNT)
+        } > 1
+      }
+      .map { it.personKey!! }
+      .toSet()
+      .map {
+        MergeRequestItem(
+          it.personUUID!!,
+          it.personEntities.filter {
+            it.sourceSystem == DELIUS
+          }.map { ProbationRecord.from(it) },
+        )
+      }.take(CLUSTER_TO_PROCESS_COUNT)
   }
 
   data class MergeRequestItem(
