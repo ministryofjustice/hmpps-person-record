@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -26,9 +26,7 @@ class ServiceNowMergeRequestController(
   @Hidden
   @RequestMapping(method = [RequestMethod.POST], value = ["/jobs/service-now/generate-delius-merge-requests"])
   fun collectAndReport(): String {
-    val recordsToProcess = generate()
-
-    recordsToProcess.forEach {
+    getClustersForMergeRequests().forEach {
       val payload = ServiceNowMergeRequestPayload(
         sysParmId = sysParmId,
         quantity = 1,
@@ -44,28 +42,28 @@ class ServiceNowMergeRequestController(
     return "ok"
   }
 
-  fun generate(): List<MergeRequestItem> {
-    val deliusRecords = personRepository.findByLastModifiedBetween(
-      LocalDateTime.now().minusDays(1),
-      LocalDateTime.now().minusDays(1).plusHours(1),
+  fun getClustersForMergeRequests(): List<MergeRequestItem> {
+    val thisTimeYesterday = LocalDateTime.now().minusDays(1)
+    val clustersWithMoreThanOneProbationRecordWhichWereChangedYesterday = personRepository.findByLastModifiedBetween(
+      thisTimeYesterday,
+      thisTimeYesterday.plusHours(1),
     )
       .filter { person ->
-        person.personKey?.personEntities?.filter {
-          it.sourceSystem == SourceSystemType.DELIUS
-        }?.size!! > 1
-      }
-    val uniquePersonKey = deliusRecords.map { it.personKey }
-      .toSet()
+        person.personKey!!.personEntities.filter {
+          it.sourceSystem == DELIUS
+        }.size > 1
+      }.map { it.personKey!! }
+    val clustersWhichHaveNotAlreadyHadMergeRequest = clustersWithMoreThanOneProbationRecordWhichWereChangedYesterday
       .filterNot {
         serviceNowMergeRequestRepository.existsByPersonUUID(
-          it!!.personUUID,
+          it.personUUID,
         )
       }
-    return uniquePersonKey.map {
+    return clustersWhichHaveNotAlreadyHadMergeRequest.toSet().map {
       MergeRequestItem(
-        it!!.personUUID!!,
+        it.personUUID!!,
         it.personEntities.filter {
-          it.sourceSystem == SourceSystemType.DELIUS
+          it.sourceSystem == DELIUS
         },
       )
     }.take(CLUSTER_TO_PROCESS_COUNT)
