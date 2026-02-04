@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import java.time.LocalDateTime
@@ -33,7 +32,7 @@ class ServiceNowMergeRequestController(
         variables = Variables(
           requester = requestor,
           requestedFor = requestedFor,
-          details = it.personEntities.map { person -> ProbationRecord.from(person) },
+          details = it.probationRecords,
         ),
       )
       serviceNowMergeRequestClient.postRecords(payload)
@@ -64,14 +63,14 @@ class ServiceNowMergeRequestController(
         it.personUUID!!,
         it.personEntities.filter {
           it.sourceSystem == DELIUS
-        },
+        }.map { ProbationRecord.from(it) },
       )
     }.take(CLUSTER_TO_PROCESS_COUNT)
   }
 
   data class MergeRequestItem(
     val personKeyUUID: UUID,
-    val personEntities: List<PersonEntity>,
+    val probationRecords: List<ProbationRecord>,
   )
 
   companion object {
