@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import java.time.LocalDateTime
@@ -47,16 +48,10 @@ class ServiceNowMergeRequestController(
       thisTimeYesterday,
       thisTimeYesterday.plusHours(1),
     )
-      .filterNot {
-        serviceNowMergeRequestRepository.existsByPersonUUID(it.personKey!!.personUUID)
-      }
-      .filter { cluster ->
-        cluster.personKey!!.personEntities.count {
-          it.sourceSystem == DELIUS
-        } > 1
-      }
+      .filter { hasMoreThanOneProbationRecord(it) }
+      .filterNot { mergeRequestAlreadyMade(it) }
+      .distinctBy { it.personKey }
       .map { it.personKey!! }
-      .toSet()
       .map {
         MergeRequestItem(
           it.personUUID!!,
@@ -66,6 +61,12 @@ class ServiceNowMergeRequestController(
         )
       }.take(CLUSTER_TO_PROCESS_COUNT)
   }
+
+  fun hasMoreThanOneProbationRecord(person: PersonEntity): Boolean = person.personKey!!.personEntities.count {
+    it.sourceSystem == DELIUS
+  } > 1
+
+  private fun mergeRequestAlreadyMade(entity: PersonEntity): Boolean = serviceNowMergeRequestRepository.existsByPersonUUID(entity.personKey!!.personUUID)
 
   data class MergeRequestItem(
     val personKeyUUID: UUID,
