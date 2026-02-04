@@ -224,9 +224,9 @@ data class Person(
     fun from(prisoner: SysconPrisoner, prisonNumber: String): Person {
       val primaryAlias = prisoner.aliases.firstOrNull { it.isPrimary == true } ?: throw IllegalArgumentException("No primary alias was found for update on prisoner $prisonNumber")
 
-      val identifiers = prisoner.aliases
+      val references = prisoner.aliases
         .flatMap { it.identifiers?.toList() ?: emptyList() }
-        .mapNotNull { Reference.from(IdentifierType.valueOf(it.type.name), it.value) }
+        .map { Reference.from(it) }
 
       return Person(
         prisonNumber = prisonNumber,
@@ -239,7 +239,7 @@ data class Person(
         aliases = prisoner.aliases.map { Alias.from(it) },
         contacts = prisoner.personContacts.map { contact -> Contact(contact.type, contact.value) },
         addresses = prisoner.addresses.map { Address.from(it) },
-        references = identifiers,
+        references = references,
         sourceSystem = NOMIS,
         nationalities = listOf(NationalityCode.fromPrisonCode(prisoner.demographicAttributes.nationalityCode)).mapNotNull { it },
         nationalityNotes = prisoner.demographicAttributes.nationalityNote.nullIfBlank(),

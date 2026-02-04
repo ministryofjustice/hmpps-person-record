@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Identifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Sentence
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.res.SysconUpsertResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
@@ -58,7 +57,6 @@ class SysconSyncControllerIntTest : WebTestBase() {
         .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
         .exchange()
         .assertDatabase(prisonNumber, updatedPrisonerRequest)
-//        .assertBodyResponse(prisonNumber, updatedPrisonerRequest)
         .expectStatus()
         .isOk
     }
@@ -120,20 +118,12 @@ class SysconSyncControllerIntTest : WebTestBase() {
   private fun WebTestClient.ResponseSpec.assertDatabase(prisonerNumber: String, request: Prisoner, write: Boolean = true): WebTestClient.ResponseSpec {
     if (write) {
       val actualPersonEntity = personRepository.findByPrisonNumber(prisonerNumber) ?: fail { "Prisoner record was expected to be found" }
-      val actualPerson =  Person.from(actualPersonEntity)
+      val actualPerson = Person.from(actualPersonEntity)
       val expectedPerson = Person.from(request, prisonerNumber).copy(personId = actualPerson.personId)
       assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
     } else {
       assertThat(personRepository.findByPrisonNumber(prisonerNumber)).isNull()
     }
-    return this
-  }
-
-  private fun WebTestClient.ResponseSpec.assertBodyResponse(prisonerNumber: String, request: Prisoner): WebTestClient.ResponseSpec {
-    val actualPersonEntity = personRepository.findByPrisonNumber(prisonerNumber) ?: fail { "Prisoner record was expected to be found" }
-    val body = this.expectBody(SysconUpsertResponseBody::class.java).returnResult().responseBody ?: fail { "Response body was not correctly de-serialised" }
-
-
     return this
   }
 
@@ -148,7 +138,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       interestToImmigration = randomBoolean(),
       religionCode = randomReligionCode(),
       nationalityCode = randomNationalityCode().name,
-      nationalityNote = randomName()
+      nationalityNote = randomName(),
     ),
     aliases = listOf(
       Alias(
@@ -165,9 +155,9 @@ class SysconSyncControllerIntTest : WebTestBase() {
             nomisIdentifierId = randomCId().toLong(),
             type = IdentifierType.entries.random(),
             value = randomName(),
-            comment = randomName()
-          )
-        )
+            comment = randomName(),
+          ),
+        ),
       ),
     ),
     addresses = listOf(

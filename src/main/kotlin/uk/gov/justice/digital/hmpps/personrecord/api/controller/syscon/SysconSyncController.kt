@@ -56,8 +56,7 @@ class SysconSyncController(
     @RequestBody prisoner: Prisoner,
   ): String = personRepository.findByPrisonNumber(prisonNumber)?.let {
     val person = Person.from(prisoner, prisonNumber)
-    val updatedPersonEntity = personService.processPerson(person) { it }
+    personService.processPerson(person) { it }
     "OK"
-//    ResponseEntity.ok(SysconUpsertResponseBody.from(updatedPersonEntity))
   } ?: throw ResourceNotFoundException("Prisoner not found $prisonNumber")
 }

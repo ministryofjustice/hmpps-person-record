@@ -14,12 +14,10 @@ object CommonPlatformAddressBuilder {
   }
 
   private fun setToPrevious(addresses: List<AddressEntity>?, newAddress: Address?): Array<Address> = addresses?.map { Address.from(it) }
-    ?.filterNot {
-      alreadyExists(it, newAddress)
-    }
+    ?.filterNot { alreadyExists(it, newAddress) }
     ?.map {
       it.setToPrevious()
     }?.toTypedArray() ?: arrayOf()
 
-  private fun alreadyExists(address: Address, newAddress: Address?) = address.copy(recordType = null) == newAddress?.copy(recordType = null)
+  private fun alreadyExists(address: Address, newAddress: Address?): Boolean = address.copy(recordType = null) == newAddress?.copy(recordType = null)
 }
