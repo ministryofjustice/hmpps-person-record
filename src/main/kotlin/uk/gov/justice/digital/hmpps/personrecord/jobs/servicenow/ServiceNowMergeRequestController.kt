@@ -33,7 +33,7 @@ class ServiceNowMergeRequestController(
         variables = Variables(
           requester = requestor,
           requestedFor = requestedFor,
-          details = it.probationRecords,
+          details = it.mergeRequestDetails,
         ),
       )
       serviceNowMergeRequestClient.postRecords(payload)
@@ -49,28 +49,28 @@ class ServiceNowMergeRequestController(
       thisTimeYesterday.plusHours(1),
     )
       .filter { hasMoreThanOneProbationRecord(it) }
-      .filterNot { mergeRequestAlreadyMade(it) }
       .distinctBy { it.personKey }
-      .map { it.personKey!! }
       .map {
         MergeRequestItem(
-          it.personUUID!!,
-          it.personEntities.filter {
-            it.sourceSystem == DELIUS
-          }.map { ProbationRecord.from(it) },
+          it.personKey!!.personUUID!!,
+          it.personKey!!.personEntities.filter { person ->
+            person.isProbationRecord()
+          }.map { person -> MergeRequestDetails.from(person) },
         )
-      }.take(CLUSTER_TO_PROCESS_COUNT)
+      }
+      .filterNot { mergeRequestAlreadyMade(it.personKeyUUID) }
+      .take(CLUSTER_TO_PROCESS_COUNT)
   }
 
-  fun hasMoreThanOneProbationRecord(person: PersonEntity): Boolean = person.personKey!!.personEntities.count {
-    it.sourceSystem == DELIUS
-  } > 1
+  private fun hasMoreThanOneProbationRecord(person: PersonEntity): Boolean = person.personKey!!.personEntities.count { it.isProbationRecord() } > 1
 
-  private fun mergeRequestAlreadyMade(entity: PersonEntity): Boolean = serviceNowMergeRequestRepository.existsByPersonUUID(entity.personKey!!.personUUID)
+  private fun PersonEntity.isProbationRecord(): Boolean = this.sourceSystem == DELIUS
+
+  private fun mergeRequestAlreadyMade(personUUID: UUID): Boolean = serviceNowMergeRequestRepository.existsByPersonUUID(personUUID)
 
   data class MergeRequestItem(
     val personKeyUUID: UUID,
-    val probationRecords: List<ProbationRecord>,
+    val mergeRequestDetails: List<MergeRequestDetails>,
   )
 
   companion object {

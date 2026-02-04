@@ -5,14 +5,14 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import java.time.LocalDate
 
-data class ProbationRecord(
+data class MergeRequestDetails(
   @JsonProperty("full_name_b") val fullName: String,
   @JsonProperty("date_of_birth_b") val dateOfBirth: LocalDate?,
   @JsonProperty("case_reference_number_crn_a") val crn: String,
   @JsonProperty("police_national_computer_pnc_reference_b") val pnc: String?,
 ) {
   companion object {
-    fun from(personEntity: PersonEntity): ProbationRecord = ProbationRecord(
+    fun from(personEntity: PersonEntity): MergeRequestDetails = MergeRequestDetails(
       fullName = "${personEntity.getPrimaryName().firstName} ${personEntity.getPrimaryName().middleNames} ${personEntity.getPrimaryName().lastName}",
       dateOfBirth = personEntity.getPrimaryName().dateOfBirth,
       crn = personEntity.crn!!,
@@ -24,7 +24,7 @@ data class ProbationRecord(
 data class Variables(
   val requester: String,
   @JsonProperty("requested_for") val requestedFor: String,
-  @JsonProperty("record_a_details_cpr_ndelius") val details: List<ProbationRecord>,
+  @JsonProperty("record_a_details_cpr_ndelius") val details: List<MergeRequestDetails>,
 )
 
 data class ServiceNowMergeRequestPayload(
