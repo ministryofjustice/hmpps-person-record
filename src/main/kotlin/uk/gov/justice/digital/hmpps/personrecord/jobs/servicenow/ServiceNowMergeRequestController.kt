@@ -54,9 +54,7 @@ class ServiceNowMergeRequestController(
       }.map { it.personKey!! }
     val clustersWhichHaveNotAlreadyHadMergeRequest = clustersWithMoreThanOneProbationRecordWhichWereChangedYesterday
       .filterNot {
-        serviceNowMergeRequestRepository.existsByPersonUUID(
-          it.personUUID,
-        )
+        serviceNowMergeRequestRepository.existsByPersonUUID(it.personUUID)
       }
     return clustersWhichHaveNotAlreadyHadMergeRequest.toSet().map {
       MergeRequestItem(
