@@ -14,11 +14,4 @@ data class Contact(
   val type: ContactType,
   @Schema(description = "The contact extension", example = "235")
   val extension: String? = null,
-) {
-  init {
-    // NOTE: Separate class for a contact from an address?!?!
-    require(nomisPersonContactId != null || nomisAddressContactId != null) {
-      "nomisPersonContactId and nomisAddressContactId can not both be null"
-    }
-  }
-}
+)
