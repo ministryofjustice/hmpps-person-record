@@ -153,7 +153,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
         identifiers = listOf(
           Identifier(
             nomisIdentifierId = randomCId().toLong(),
-            type = IdentifierType.entries.random(),
+            type = IdentifierType.PNC,
             value = randomName(),
             comment = randomName(),
           ),
