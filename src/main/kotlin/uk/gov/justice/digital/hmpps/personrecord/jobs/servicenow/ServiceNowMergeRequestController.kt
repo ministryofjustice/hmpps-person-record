@@ -47,7 +47,7 @@ class ServiceNowMergeRequestController(
   fun getClustersForMergeRequests(): List<MergeRequestItem> {
     val thisTimeYesterday = LocalDateTime.now().minusDays(1)
     return personRepository.findByLastModifiedBetween(
-      thisTimeYesterday,
+      thisTimeYesterday.minusHours(900),
       thisTimeYesterday.plusHours(1),
     )
       .distinctBy { it.personKey }
