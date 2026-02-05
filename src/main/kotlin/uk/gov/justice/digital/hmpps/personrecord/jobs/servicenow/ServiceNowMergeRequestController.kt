@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Hidden
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestMethod.POST
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -18,13 +18,13 @@ class ServiceNowMergeRequestController(
   private val personRepository: PersonRepository,
   private val serviceNowMergeRequestClient: ServiceNowMergeRequestClient,
   private val serviceNowMergeRequestRepository: ServiceNowMergeRequestRepository,
-  @Value($$"${service-now.sysparm-id}")private val sysParmId: String,
-  @Value($$"${service-now.requestor}")private val requestor: String,
-  @Value($$"${service-now.requested-for}")private val requestedFor: String,
+  @Value($$"${service-now.sysparm-id}") private val sysParmId: String,
+  @Value($$"${service-now.requestor}") private val requestor: String,
+  @Value($$"${service-now.requested-for}") private val requestedFor: String,
 ) {
 
   @Hidden
-  @RequestMapping(method = [RequestMethod.POST], value = ["/jobs/service-now/generate-delius-merge-requests"])
+  @RequestMapping(method = [POST], value = ["/jobs/service-now/generate-delius-merge-requests"])
   fun collectAndReport(): String {
     getClustersForMergeRequests().forEach {
       val payload = ServiceNowMergeRequestPayload(
@@ -48,8 +48,8 @@ class ServiceNowMergeRequestController(
       thisTimeYesterday,
       thisTimeYesterday.plusHours(1),
     )
-      .filter { hasMoreThanOneProbationRecord(it) }
       .distinctBy { it.personKey }
+      .filter { hasMoreThanOneProbationRecord(it) }
       .map {
         MergeRequestItem(
           it.personKey!!.personUUID!!,
