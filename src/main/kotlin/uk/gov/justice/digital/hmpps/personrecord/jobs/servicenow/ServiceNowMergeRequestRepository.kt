@@ -6,5 +6,5 @@ import java.util.UUID
 
 @Repository
 interface ServiceNowMergeRequestRepository : JpaRepository<ServiceNowMergeRequestEntity, Long> {
-  fun existsByPersonUUID(personUUID: UUID?): Boolean
+  fun existsByPersonUUID(personUUID: UUID): Boolean
 }
