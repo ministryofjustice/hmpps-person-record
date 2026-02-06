@@ -98,7 +98,7 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
     val crn12 = randomCrn()
 
     createPersonKey()
-      .addPerson(createRandomProbationPersonDetails(crn1))
+      .addPerson(createRandomProbationPersonDetails(crn1).copy(references = emptyList()))
       .addPerson(createRandomProbationPersonDetails(crn2))
     createPersonKey()
       .addPerson(createRandomProbationPersonDetails(crn3))
