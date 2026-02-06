@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod.POST
 import org.springframework.web.bind.annotation.RestController
-import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -24,22 +24,21 @@ class ServiceNowMergeRequestController(
   @Value($$"${service-now.sysparm-id}") private val sysParmId: String,
   @Value($$"${service-now.requestor}") private val requestor: String,
   @Value($$"${service-now.requested-for}") private val requestedFor: String,
-  private val objectMapper: ObjectMapper,
+  private val jsonMapper: JsonMapper,
 ) {
 
   @Hidden
   @Transactional
   @RequestMapping(method = [POST], value = ["/jobs/service-now/generate-delius-merge-requests"])
   fun collectAndReport(): String {
-    // TODO ignore merged mecords
+    // TODO ignore merged records
     getClustersForMergeRequests().forEach {
       val payload = ServiceNowMergeRequestPayload(
         sysParmId = sysParmId,
-        quantity = "1",
         variables = Variables(
           requestor = requestor,
           requestedFor = requestedFor,
-          details = objectMapper.writeValueAsString(it.mergeRequestDetails),
+          details = jsonMapper.writeValueAsString(it.mergeRequestDetails),
         ),
       )
       serviceNowMergeRequestClient.postRecords(payload)
@@ -104,7 +103,7 @@ class ServiceNowMergeRequestController(
   companion object {
     private const val CLUSTER_TO_PROCESS_COUNT = 5
     private const val HOURS_TO_CHOOSE_FROM = 1L
-    val START = LocalDateTime.of(2026, 2, 2, 14, 0)
+    val START: LocalDateTime = LocalDateTime.of(2026, 2, 2, 14, 0)
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
