@@ -162,30 +162,32 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
+    "[ {\n" +
+      "      \"full_name_b\":\"${person1.firstName} \${person1.middleNames} \${person1.lastName}\",\n" +
+      "      \"date_of_birth_b\":\"${person1.dateOfBirth}\",\n" +
+      "      \"case_reference_number_crn_a\":\"$crn1\",\n" +
+      "      \"police_national_computer_pnc_reference_b\":\"${person1.getPnc()}\"\n" +
+      "    }, {\n" +
+      "      \"full_name_b\":\"${person2.firstName} \${person2.middleNames} \${person2.lastName}\",\n" +
+      "      \"date_of_birth_b\":\"${person2.dateOfBirth}\",\n" +
+      "      \"case_reference_number_crn_a\":\"$crn2\",\n" +
+      "      \"police_national_computer_pnc_reference_b\":\"${person2.getPnc()}\"\n" +
+      "    } ]"
+    val body = """{
+          "sysparm_id":"$sysParmId",
+          "sysparm_quantity":"1",
+          "variables":{
+    "requestor":"$requestor",
+    "requested_for":"$requestedFor",
+    "record_a_details_cpr_ndelius":"[{\"full_name_b\":\"${person1.firstName} ${person1.middleNames} ${person1.lastName}\",\"date_of_birth_b\":\"${person1.dateOfBirth}\",\"case_reference_number_crn_a\":\"$crn1\",\"police_national_computer_pnc_reference_b\":\"${person1.getPnc()}\"},{\"full_name_b\":\"${person2.firstName} ${person2.middleNames} ${person2.lastName}\",\"date_of_birth_b\":\"${person2.dateOfBirth}\",\"case_reference_number_crn_a\":\"$crn2\",\"police_national_computer_pnc_reference_b\":\"${person2.getPnc()}\"}]"
+  }
+      }"""
 
     wiremock.verify(
       1,
       RequestPatternBuilder.like(serviceNowStub?.request).withRequestBody(
         equalToJson(
-          """{
-          "sysparm_id" : "$sysParmId",
-          "sysparm_quantity" : "1",
-          "variables" : {
-    "requester" : "$requestor",
-    "requested_for" : "$requestedFor",
-    "record_a_details_cpr_ndelius" : [ {
-      "full_name_b" : "${person1.firstName} ${person1.middleNames} ${person1.lastName}",
-      "date_of_birth_b" : "${person1.dateOfBirth}",
-      "case_reference_number_crn_a" : "$crn1",
-      "police_national_computer_pnc_reference_b" : "${person1.getPnc()}"
-    }, {
-      "full_name_b" : "${person2.firstName} ${person2.middleNames} ${person2.lastName}",
-      "date_of_birth_b" : "${person2.dateOfBirth}",
-      "case_reference_number_crn_a" : "$crn2",
-      "police_national_computer_pnc_reference_b" : "${person2.getPnc()}"
-    } ]
-  }
-      }""",
+          body,
         ),
       ),
     )

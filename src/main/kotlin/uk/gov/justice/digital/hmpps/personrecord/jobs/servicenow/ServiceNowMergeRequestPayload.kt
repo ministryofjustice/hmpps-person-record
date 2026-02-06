@@ -22,9 +22,9 @@ data class MergeRequestDetails(
 }
 
 data class Variables(
-  val requester: String,
+  val requestor: String,
   @JsonProperty("requested_for") val requestedFor: String,
-  @JsonProperty("record_a_details_cpr_ndelius") val details: List<MergeRequestDetails>,
+  @JsonProperty("record_a_details_cpr_ndelius") val details: String,
 )
 
 data class ServiceNowMergeRequestPayload(

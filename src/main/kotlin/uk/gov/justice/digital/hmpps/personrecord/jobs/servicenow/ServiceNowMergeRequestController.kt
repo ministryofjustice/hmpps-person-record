@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod.POST
 import org.springframework.web.bind.annotation.RestController
+import tools.jackson.databind.ObjectMapper
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -23,6 +24,7 @@ class ServiceNowMergeRequestController(
   @Value($$"${service-now.sysparm-id}") private val sysParmId: String,
   @Value($$"${service-now.requestor}") private val requestor: String,
   @Value($$"${service-now.requested-for}") private val requestedFor: String,
+  private val objectMapper: ObjectMapper,
 ) {
 
   @Hidden
@@ -35,9 +37,9 @@ class ServiceNowMergeRequestController(
         sysParmId = sysParmId,
         quantity = "1",
         variables = Variables(
-          requester = requestor,
+          requestor = requestor,
           requestedFor = requestedFor,
-          details = it.mergeRequestDetails,
+          details = objectMapper.writeValueAsString(it.mergeRequestDetails),
         ),
       )
       serviceNowMergeRequestClient.postRecords(payload)
