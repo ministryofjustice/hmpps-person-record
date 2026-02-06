@@ -33,7 +33,7 @@ class ServiceNowMergeRequestController(
     getClustersForMergeRequests().forEach {
       val payload = ServiceNowMergeRequestPayload(
         sysParmId = sysParmId,
-        quantity = 1,
+        quantity = "1",
         variables = Variables(
           requester = requestor,
           requestedFor = requestedFor,
