@@ -16,7 +16,7 @@ data class MergeRequestDetails(
       fullName = "${personEntity.getPrimaryName().firstName} ${personEntity.getPrimaryName().middleNames} ${personEntity.getPrimaryName().lastName}",
       dateOfBirth = personEntity.getPrimaryName().dateOfBirth,
       crn = personEntity.crn!!,
-      pnc = personEntity.references.getPNCs().first(),
+      pnc = personEntity.references.getPNCs().firstOrNull(),
     )
   }
 }

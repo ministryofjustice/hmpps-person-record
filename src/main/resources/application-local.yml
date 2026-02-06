@@ -67,7 +67,7 @@ hmpps.sqs:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=personrecordservice&stringtype=unspecified
+    url: jdbc:postgresql://localhost:${SPRING_DATASOURCE_PORT:5432}/${SPRING_DATASOURCE_NAME:postgres}?currentSchema=personrecordservice&stringtype=unspecified
 
 aws:
   endpoint: http://localhost:4566
