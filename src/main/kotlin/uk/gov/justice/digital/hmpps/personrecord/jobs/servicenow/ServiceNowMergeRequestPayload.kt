@@ -29,6 +29,6 @@ data class Variables(
 
 data class ServiceNowMergeRequestPayload(
   @JsonProperty("sysparm_id") val sysParmId: String,
-  @JsonProperty("sysparm_quantity") val quantity: String,
+  @JsonProperty("sysparm_quantity") val quantity: String = "1",
   val variables: Variables,
 )
