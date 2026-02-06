@@ -169,7 +169,7 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
         equalToJson(
           """{
           "sysparm_id" : "$sysParmId",
-          "sysparm_quantity" : 1,
+          "sysparm_quantity" : "1",
           "variables" : {
     "requester" : "$requestor",
     "requested_for" : "$requestedFor",
