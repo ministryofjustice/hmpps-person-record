@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Value
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestController.Companion.START
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -115,18 +116,18 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
       .addPerson(createRandomProbationPersonDetails(crn11))
       .addPerson(createRandomProbationPersonDetails(crn12))
 
-    personRepository.updateLastModifiedDate(crn1, LocalDateTime.now().minusDays(1).plusMinutes(1))
-    personRepository.updateLastModifiedDate(crn2, LocalDateTime.now().minusDays(1).plusMinutes(2))
-    personRepository.updateLastModifiedDate(crn3, LocalDateTime.now().minusDays(1).plusMinutes(3))
-    personRepository.updateLastModifiedDate(crn4, LocalDateTime.now().minusDays(1).plusMinutes(4))
-    personRepository.updateLastModifiedDate(crn5, LocalDateTime.now().minusDays(1).plusMinutes(5))
-    personRepository.updateLastModifiedDate(crn6, LocalDateTime.now().minusDays(1).plusMinutes(6))
-    personRepository.updateLastModifiedDate(crn7, LocalDateTime.now().minusDays(1).plusMinutes(7))
-    personRepository.updateLastModifiedDate(crn8, LocalDateTime.now().minusDays(1).plusMinutes(8))
-    personRepository.updateLastModifiedDate(crn9, LocalDateTime.now().minusDays(1).plusMinutes(9))
-    personRepository.updateLastModifiedDate(crn10, LocalDateTime.now().minusDays(1).plusMinutes(10))
-    personRepository.updateLastModifiedDate(crn11, LocalDateTime.now().minusDays(1).plusMinutes(11))
-    personRepository.updateLastModifiedDate(crn12, LocalDateTime.now().minusDays(1).plusMinutes(12))
+    personRepository.updateLastModifiedDate(crn1, START.plusMinutes(1))
+    personRepository.updateLastModifiedDate(crn2, START.plusMinutes(2))
+    personRepository.updateLastModifiedDate(crn3, START.plusMinutes(3))
+    personRepository.updateLastModifiedDate(crn4, START.plusMinutes(4))
+    personRepository.updateLastModifiedDate(crn5, START.plusMinutes(5))
+    personRepository.updateLastModifiedDate(crn6, START.plusMinutes(6))
+    personRepository.updateLastModifiedDate(crn7, START.plusMinutes(7))
+    personRepository.updateLastModifiedDate(crn8, START.plusMinutes(8))
+    personRepository.updateLastModifiedDate(crn9, START.plusMinutes(9))
+    personRepository.updateLastModifiedDate(crn10, START.plusMinutes(10))
+    personRepository.updateLastModifiedDate(crn11, START.plusMinutes(11))
+    personRepository.updateLastModifiedDate(crn12, START.plusMinutes(12))
 
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)
@@ -147,8 +148,8 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
       .addPerson(person1)
       .addPerson(person2)
 
-    personRepository.updateLastModifiedDate(crn1, LocalDateTime.now().minusDays(1).plusMinutes(1))
-    personRepository.updateLastModifiedDate(crn2, LocalDateTime.now().minusDays(1).plusMinutes(2))
+    personRepository.updateLastModifiedDate(crn1, START.plusMinutes(1))
+    personRepository.updateLastModifiedDate(crn2, START.plusMinutes(2))
 
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)
@@ -200,8 +201,8 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
       .addPerson(createRandomPrisonPersonDetails(prisonNumber1))
       .addPerson(createRandomPrisonPersonDetails(prisonNumber2))
 
-    personRepository.updatePrisonerLastModifiedDate(prisonNumber1, LocalDateTime.now().minusDays(1).plusMinutes(1))
-    personRepository.updatePrisonerLastModifiedDate(prisonNumber2, LocalDateTime.now().minusDays(1).plusMinutes(2))
+    personRepository.updatePrisonerLastModifiedDate(prisonNumber1, START.plusMinutes(1))
+    personRepository.updatePrisonerLastModifiedDate(prisonNumber2, START.plusMinutes(2))
 
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)

@@ -13,7 +13,10 @@ core-person-record-and-delius:
   base-url: https://core-person-record-and-delius-dev.hmpps.service.justice.gov.uk
 
 service-now:
-  base-url: https://mojdev.service-now.com
+  base-url: http://localhost:9090
+  sysparm-id: sysparm12345
+  requestor: abcd
+  requested-for: efgh
 
 hmpps.sqs:
   enabled: true
