@@ -16,19 +16,19 @@ data class MergeRequestDetails(
       fullName = "${personEntity.getPrimaryName().firstName} ${personEntity.getPrimaryName().middleNames} ${personEntity.getPrimaryName().lastName}",
       dateOfBirth = personEntity.getPrimaryName().dateOfBirth,
       crn = personEntity.crn!!,
-      pnc = personEntity.references.getPNCs().first(),
+      pnc = personEntity.references.getPNCs().firstOrNull(),
     )
   }
 }
 
 data class Variables(
-  val requester: String,
+  val requestor: String,
   @JsonProperty("requested_for") val requestedFor: String,
-  @JsonProperty("record_a_details_cpr_ndelius") val details: List<MergeRequestDetails>,
+  @JsonProperty("record_a_details_cpr_ndelius") val details: String,
 )
 
 data class ServiceNowMergeRequestPayload(
   @JsonProperty("sysparm_id") val sysParmId: String,
-  @JsonProperty("sysparm_quantity") val quantity: Int,
+  @JsonProperty("sysparm_quantity") val quantity: String = "1",
   val variables: Variables,
 )
