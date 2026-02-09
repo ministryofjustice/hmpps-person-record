@@ -47,7 +47,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       stubPersonMatchUpsert()
 
       val prisonNumber = randomPrisonNumber()
-      createPerson(Person.from(buildRequestBody(), prisonNumber))
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val updatedPrisonerRequest = buildRequestBody()
       webTestClient
@@ -78,6 +78,28 @@ class SysconSyncControllerIntTest : WebTestBase() {
         .assertDatabase(prisonNumber, prisonerRequest, write = false)
         .expectStatus()
         .isNotFound
+    }
+
+    @Test
+    fun `no primary alias is sent - does not update - returns correct response`() {
+      val prisonNumber = randomPrisonNumber()
+      val originalPerson = createPerson(createRandomPrisonPersonDetails(prisonNumber))
+
+      val requestBody = buildRequestBody().copy(aliases = buildAliasList(false))
+      webTestClient
+        .put()
+        .uri("/syscon-sync/person/$prisonNumber")
+        .body(Mono.just(requestBody), Prisoner::class.java)
+        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isBadRequest
+        .expectBody()
+        .jsonPath("userMessage")
+        .isEqualTo("Bad request: No primary alias was found for update on prisoner $prisonNumber")
+
+      val actualPerson = personRepository.findByPrisonNumber(prisonNumber)
+      assertThat(actualPerson).usingRecursiveComparison().isEqualTo(originalPerson)
     }
   }
 
@@ -140,26 +162,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       nationalityCode = randomNationalityCode().name,
       nationalityNote = randomName(),
     ),
-    aliases = listOf(
-      Alias(
-        nomisAliasId = randomCId().toLong(),
-        titleCode = randomTitleCode().value.name,
-        firstName = randomName(),
-        middleNames = randomName(),
-        lastName = randomName(),
-        dateOfBirth = LocalDate.now().minusYears((30..70).random().toLong()),
-        sexCode = SexCode.entries.random(),
-        isPrimary = true,
-        identifiers = listOf(
-          Identifier(
-            nomisIdentifierId = randomCId().toLong(),
-            type = IdentifierType.PNC,
-            value = randomName(),
-            comment = randomName(),
-          ),
-        ),
-      ),
-    ),
+    aliases = buildAliasList(),
     addresses = listOf(
       Address(
         nomisAddressId = randomCId().toLong(),
@@ -207,6 +210,27 @@ class SysconSyncControllerIntTest : WebTestBase() {
     sentences = listOf(
       Sentence(
         sentenceDate = randomDate(),
+      ),
+    ),
+  )
+
+  private fun buildAliasList(hasPrimary: Boolean = true): List<Alias> = listOf(
+    Alias(
+      nomisAliasId = randomCId().toLong(),
+      titleCode = randomTitleCode().value.name,
+      firstName = randomName(),
+      middleNames = randomName(),
+      lastName = randomName(),
+      dateOfBirth = LocalDate.now().minusYears((30..70).random().toLong()),
+      sexCode = SexCode.entries.random(),
+      isPrimary = hasPrimary,
+      identifiers = listOf(
+        Identifier(
+          nomisIdentifierId = randomCId().toLong(),
+          type = IdentifierType.PNC,
+          value = randomName(),
+          comment = randomName(),
+        ),
       ),
     ),
   )
