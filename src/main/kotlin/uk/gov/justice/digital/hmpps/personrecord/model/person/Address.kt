@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
@@ -27,14 +28,23 @@ data class Address(
   val countryCode: String? = null,
   val uprn: String? = null,
   val comment: String? = null,
+  val contacts: List<Contact> = emptyList(),
+  var isPrimary: Boolean? = null,
+  var isMail: Boolean? = null,
+  var usages: List<AddressUsage> = emptyList(),
   val telephoneNumber: Contact? = null,
   var recordType: AddressRecordType? = null,
 ) {
 
-  fun allPropertiesOrNull(): Address? = this.takeIf { it.allPropertiesNotNull() }
+  fun allPropertiesOrNull(): Address? = this.takeIf { it.hasAnyMeaningfulProperty() }
 
-  private fun allPropertiesNotNull(): Boolean = this::class.memberProperties
-    .all { it.call(this) == null }.not()
+  private fun hasAnyMeaningfulProperty(): Boolean = this::class.memberProperties.any { prop ->
+    when (val value = prop.call(this)) {
+      null -> false
+      is Collection<*> -> value.isNotEmpty()
+      else -> true
+    }
+  }
 
   companion object {
     fun from(address: PrisonerAddress): Address? = Address(
