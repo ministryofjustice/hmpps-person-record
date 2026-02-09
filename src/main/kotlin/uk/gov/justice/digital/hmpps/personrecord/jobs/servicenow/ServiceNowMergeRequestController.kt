@@ -1,12 +1,14 @@
 package uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow
 
 import io.swagger.v3.oas.annotations.Hidden
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod.POST
 import org.springframework.web.bind.annotation.RestController
+import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -22,20 +24,21 @@ class ServiceNowMergeRequestController(
   @Value($$"${service-now.sysparm-id}") private val sysParmId: String,
   @Value($$"${service-now.requestor}") private val requestor: String,
   @Value($$"${service-now.requested-for}") private val requestedFor: String,
+  private val jsonMapper: JsonMapper,
 ) {
 
   @Hidden
   @Transactional
   @RequestMapping(method = [POST], value = ["/jobs/service-now/generate-delius-merge-requests"])
   fun collectAndReport(): String {
+    // TODO ignore merged records
     getClustersForMergeRequests().forEach {
       val payload = ServiceNowMergeRequestPayload(
         sysParmId = sysParmId,
-        quantity = 1,
         variables = Variables(
-          requester = requestor,
+          requestor = requestor,
           requestedFor = requestedFor,
-          details = it.mergeRequestDetails,
+          details = jsonMapper.writeValueAsString(it.mergeRequestDetails),
         ),
       )
       serviceNowMergeRequestClient.postRecords(payload)
@@ -45,23 +48,45 @@ class ServiceNowMergeRequestController(
   }
 
   fun getClustersForMergeRequests(): List<MergeRequestItem> {
-    val thisTimeYesterday = LocalDateTime.now().minusDays(1)
-    return personRepository.findByLastModifiedBetween(
-      thisTimeYesterday,
-      thisTimeYesterday.plusHours(1),
+    log.info("starting")
+    // val start = LocalDateTime.now().minusHours(HOURS_AGO)
+    // there are 11 in this hour on dev which should be enough for testing.
+    // Takes about 40 seconds to get them from the read replica.
+    // we will replace this with the line above once we have proved it in dev
+    // in preprod and prod there should be plenty every hour
+    val start = START
+    val findByLastModifiedAfter = personRepository.findByLastModifiedBetween(
+      start,
+      start.plusHours(HOURS_TO_CHOOSE_FROM),
     )
+    log.info("finished getting modified clusters for ${findByLastModifiedAfter.size}")
+    val distinctBy = findByLastModifiedAfter
       .distinctBy { it.personKey }
-      .filter { hasMoreThanOneProbationRecord(it) }
-      .map {
-        MergeRequestItem(
-          it.personKey!!.personUUID!!,
-          it.personKey!!.personEntities.filter { person ->
-            person.isProbationRecord()
-          }.map { person -> MergeRequestDetails.from(person) },
-        )
-      }
-      .filterNot { mergeRequestAlreadyMade(it.personKeyUUID) }
-      .take(CLUSTER_TO_PROCESS_COUNT)
+
+    log.info("Got distinct ${distinctBy.size}")
+
+    val dupes = distinctBy.filter { hasMoreThanOneProbationRecord(it) }
+    log.info("Got duplicates ${dupes.size}")
+
+    val noDoubles = dupes.filterNot { mergeRequestAlreadyMade(it.personKey!!.personUUID!!) }
+    log.info("removed requests already made ${noDoubles.size}")
+    val five = noDoubles.take(CLUSTER_TO_PROCESS_COUNT)
+    log.info("taken five ${five.size}")
+    val mapped = five.map {
+      log.info(
+        " probation records ${it.personKey!!.personEntities.filter { person ->
+          person.isProbationRecord()
+        }.size}",
+      )
+      MergeRequestItem(
+        it.personKey!!.personUUID!!,
+        it.personKey!!.personEntities.filter { person ->
+          person.isProbationRecord()
+        }.map { person -> MergeRequestDetails.from(person) },
+      )
+    }
+    log.info("mapped ${mapped.size}")
+    return mapped
   }
 
   private fun hasMoreThanOneProbationRecord(person: PersonEntity): Boolean = person.personKey!!.personEntities.count { it.isProbationRecord() } > 1
@@ -77,5 +102,8 @@ class ServiceNowMergeRequestController(
 
   companion object {
     private const val CLUSTER_TO_PROCESS_COUNT = 5
+    private const val HOURS_TO_CHOOSE_FROM = 1L
+    val START: LocalDateTime = LocalDateTime.of(2026, 2, 2, 14, 0)
+    private val log = LoggerFactory.getLogger(this::class.java)
   }
 }

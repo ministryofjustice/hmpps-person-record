@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Value
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestController.Companion.START
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -97,7 +98,7 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
     val crn12 = randomCrn()
 
     createPersonKey()
-      .addPerson(createRandomProbationPersonDetails(crn1))
+      .addPerson(createRandomProbationPersonDetails(crn1).copy(references = emptyList()))
       .addPerson(createRandomProbationPersonDetails(crn2))
     createPersonKey()
       .addPerson(createRandomProbationPersonDetails(crn3))
@@ -115,18 +116,18 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
       .addPerson(createRandomProbationPersonDetails(crn11))
       .addPerson(createRandomProbationPersonDetails(crn12))
 
-    personRepository.updateLastModifiedDate(crn1, LocalDateTime.now().minusDays(1).plusMinutes(1))
-    personRepository.updateLastModifiedDate(crn2, LocalDateTime.now().minusDays(1).plusMinutes(2))
-    personRepository.updateLastModifiedDate(crn3, LocalDateTime.now().minusDays(1).plusMinutes(3))
-    personRepository.updateLastModifiedDate(crn4, LocalDateTime.now().minusDays(1).plusMinutes(4))
-    personRepository.updateLastModifiedDate(crn5, LocalDateTime.now().minusDays(1).plusMinutes(5))
-    personRepository.updateLastModifiedDate(crn6, LocalDateTime.now().minusDays(1).plusMinutes(6))
-    personRepository.updateLastModifiedDate(crn7, LocalDateTime.now().minusDays(1).plusMinutes(7))
-    personRepository.updateLastModifiedDate(crn8, LocalDateTime.now().minusDays(1).plusMinutes(8))
-    personRepository.updateLastModifiedDate(crn9, LocalDateTime.now().minusDays(1).plusMinutes(9))
-    personRepository.updateLastModifiedDate(crn10, LocalDateTime.now().minusDays(1).plusMinutes(10))
-    personRepository.updateLastModifiedDate(crn11, LocalDateTime.now().minusDays(1).plusMinutes(11))
-    personRepository.updateLastModifiedDate(crn12, LocalDateTime.now().minusDays(1).plusMinutes(12))
+    personRepository.updateLastModifiedDate(crn1, START.plusMinutes(1))
+    personRepository.updateLastModifiedDate(crn2, START.plusMinutes(2))
+    personRepository.updateLastModifiedDate(crn3, START.plusMinutes(3))
+    personRepository.updateLastModifiedDate(crn4, START.plusMinutes(4))
+    personRepository.updateLastModifiedDate(crn5, START.plusMinutes(5))
+    personRepository.updateLastModifiedDate(crn6, START.plusMinutes(6))
+    personRepository.updateLastModifiedDate(crn7, START.plusMinutes(7))
+    personRepository.updateLastModifiedDate(crn8, START.plusMinutes(8))
+    personRepository.updateLastModifiedDate(crn9, START.plusMinutes(9))
+    personRepository.updateLastModifiedDate(crn10, START.plusMinutes(10))
+    personRepository.updateLastModifiedDate(crn11, START.plusMinutes(11))
+    personRepository.updateLastModifiedDate(crn12, START.plusMinutes(12))
 
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)
@@ -147,8 +148,8 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
       .addPerson(person1)
       .addPerson(person2)
 
-    personRepository.updateLastModifiedDate(crn1, LocalDateTime.now().minusDays(1).plusMinutes(1))
-    personRepository.updateLastModifiedDate(crn2, LocalDateTime.now().minusDays(1).plusMinutes(2))
+    personRepository.updateLastModifiedDate(crn1, START.plusMinutes(1))
+    personRepository.updateLastModifiedDate(crn2, START.plusMinutes(2))
 
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)
@@ -161,30 +162,32 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
+    "[ {\n" +
+      "      \"full_name_b\":\"${person1.firstName} \${person1.middleNames} \${person1.lastName}\",\n" +
+      "      \"date_of_birth_b\":\"${person1.dateOfBirth}\",\n" +
+      "      \"case_reference_number_crn_a\":\"$crn1\",\n" +
+      "      \"police_national_computer_pnc_reference_b\":\"${person1.getPnc()}\"\n" +
+      "    }, {\n" +
+      "      \"full_name_b\":\"${person2.firstName} \${person2.middleNames} \${person2.lastName}\",\n" +
+      "      \"date_of_birth_b\":\"${person2.dateOfBirth}\",\n" +
+      "      \"case_reference_number_crn_a\":\"$crn2\",\n" +
+      "      \"police_national_computer_pnc_reference_b\":\"${person2.getPnc()}\"\n" +
+      "    } ]"
+    val body = """{
+          "sysparm_id":"$sysParmId",
+          "sysparm_quantity":"1",
+          "variables":{
+    "requestor":"$requestor",
+    "requested_for":"$requestedFor",
+    "record_a_details_cpr_ndelius":"[{\"full_name_b\":\"${person1.firstName} ${person1.middleNames} ${person1.lastName}\",\"date_of_birth_b\":\"${person1.dateOfBirth}\",\"case_reference_number_crn_a\":\"$crn1\",\"police_national_computer_pnc_reference_b\":\"${person1.getPnc()}\"},{\"full_name_b\":\"${person2.firstName} ${person2.middleNames} ${person2.lastName}\",\"date_of_birth_b\":\"${person2.dateOfBirth}\",\"case_reference_number_crn_a\":\"$crn2\",\"police_national_computer_pnc_reference_b\":\"${person2.getPnc()}\"}]"
+  }
+      }"""
 
     wiremock.verify(
       1,
       RequestPatternBuilder.like(serviceNowStub?.request).withRequestBody(
         equalToJson(
-          """{
-          "sysparm_id" : "$sysParmId",
-          "sysparm_quantity" : 1,
-          "variables" : {
-    "requester" : "$requestor",
-    "requested_for" : "$requestedFor",
-    "record_a_details_cpr_ndelius" : [ {
-      "full_name_b" : "${person1.firstName} ${person1.middleNames} ${person1.lastName}",
-      "date_of_birth_b" : "${person1.dateOfBirth}",
-      "case_reference_number_crn_a" : "$crn1",
-      "police_national_computer_pnc_reference_b" : "${person1.getPnc()}"
-    }, {
-      "full_name_b" : "${person2.firstName} ${person2.middleNames} ${person2.lastName}",
-      "date_of_birth_b" : "${person2.dateOfBirth}",
-      "case_reference_number_crn_a" : "$crn2",
-      "police_national_computer_pnc_reference_b" : "${person2.getPnc()}"
-    } ]
-  }
-      }""",
+          body,
         ),
       ),
     )
@@ -200,8 +203,8 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
       .addPerson(createRandomPrisonPersonDetails(prisonNumber1))
       .addPerson(createRandomPrisonPersonDetails(prisonNumber2))
 
-    personRepository.updatePrisonerLastModifiedDate(prisonNumber1, LocalDateTime.now().minusDays(1).plusMinutes(1))
-    personRepository.updatePrisonerLastModifiedDate(prisonNumber2, LocalDateTime.now().minusDays(1).plusMinutes(2))
+    personRepository.updatePrisonerLastModifiedDate(prisonNumber1, START.plusMinutes(1))
+    personRepository.updatePrisonerLastModifiedDate(prisonNumber2, START.plusMinutes(2))
 
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)
