@@ -32,7 +32,6 @@ data class Address(
   var isPrimary: Boolean? = null,
   var isMail: Boolean? = null,
   var usages: List<AddressUsage> = emptyList(),
-  val telephoneNumber: Contact? = null,
   var recordType: AddressRecordType? = null,
 ) {
 
@@ -68,7 +67,7 @@ data class Address(
       county = address.county.nullIfBlank(),
       uprn = address.uprn.nullIfBlank(),
       comment = address.notes.nullIfBlank(),
-      telephoneNumber = address.telephoneNumber.nullIfBlank()?.let { Contact(ContactType.HOME, it) },
+      contacts = address.telephoneNumber?.let { listOf(Contact(ContactType.HOME, it)) } ?: emptyList(),
     ).allPropertiesOrNull()
 
     fun from(address: CommonPlatformAddress?): Address? = Address(
