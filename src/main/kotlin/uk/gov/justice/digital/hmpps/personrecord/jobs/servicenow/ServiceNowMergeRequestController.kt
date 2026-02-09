@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import java.time.LocalDateTime
 import java.util.UUID
 
-@Profile("!preprod & !prod")
+@Profile("!prod")
 @RestController
 class ServiceNowMergeRequestController(
   private val personRepository: PersonRepository,
@@ -54,10 +54,10 @@ class ServiceNowMergeRequestController(
     // Takes about 40 seconds to get them from the read replica.
     // we will replace this with the line above once we have proved it in dev
     // in preprod and prod there should be plenty every hour
-    val start = START
+    val thisTimeYesterday = LocalDateTime.now().minusDays(1)
     val findByLastModifiedAfter = personRepository.findByLastModifiedBetween(
-      start,
-      start.plusHours(HOURS_TO_CHOOSE_FROM),
+      thisTimeYesterday,
+      thisTimeYesterday.plusHours(HOURS_TO_CHOOSE_FROM),
     )
     log.info("finished getting modified clusters for ${findByLastModifiedAfter.size}")
     val distinctBy = findByLastModifiedAfter

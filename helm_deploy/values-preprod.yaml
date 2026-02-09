@@ -12,6 +12,15 @@ generic-service:
     NOMIS_OAUTH_BASE_URL: https://sign-in-preprod.hmpps.service.justice.gov.uk
     PRISONER_SEARCH_BASE_URL: https://prisoner-search-preprod.prison.service.justice.gov.uk
     CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: https://core-person-record-and-delius-preprod.hmpps.service.justice.gov.uk
+    SERVICE_NOW_BASE_URL: https://mojdev.service-now.com
+
+    namespace_secrets:
+      hmpps-person-record-servicenow-client:
+        SERVICE_NOW_CLIENT_ID: "client_id"
+        SERVICE_NOW_CLIENT_SECRET: "client_secret"
+        SERVICE_NOW_REQUESTED_FOR: "requested_for"
+        SERVICE_NOW_REQUESTOR: "requestor"
+        SERVICE_NOW_SYSPARM_ID: "sysparm_id"
 
   scheduledDowntime:
     enabled: true
