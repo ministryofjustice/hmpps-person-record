@@ -37,11 +37,18 @@ class ReferenceEntity(
   @Column(name = "identifier_value")
   val identifierValue: String? = null,
 
+  @Column(name = "identifier_comment")
+  val comment: String? = null,
+
   @Version
   var version: Int = 0,
 ) {
 
   companion object {
-    fun from(reference: Reference): ReferenceEntity = ReferenceEntity(identifierType = reference.identifierType, identifierValue = reference.identifierValue)
+    fun from(reference: Reference): ReferenceEntity = ReferenceEntity(
+      identifierType = reference.identifierType,
+      identifierValue = reference.identifierValue,
+      comment = reference.comment,
+    )
   }
 }
