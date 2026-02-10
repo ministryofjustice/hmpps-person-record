@@ -35,7 +35,7 @@ data class Address(
   @Schema(description = "The address comment", example = "String")
   val comment: String? = null,
   @Schema(description = "Is this the primary address", example = "true")
-  val isPrimary: Boolean? = null,
+  val isPrimary: Boolean,
   @Schema(description = "Is this the mail address", example = "true")
   val isMail: Boolean? = null,
   @Schema(description = "List of address usages")
