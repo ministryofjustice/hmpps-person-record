@@ -98,8 +98,9 @@ class SysconSyncControllerIntTest : WebTestBase() {
         .jsonPath("userMessage")
         .isEqualTo("Bad request: No primary alias was found for update on prisoner $prisonNumber")
 
-      val actualPerson = personRepository.findByPrisonNumber(prisonNumber)
-      assertThat(actualPerson).usingRecursiveComparison().isEqualTo(originalPerson)
+      val actualPerson = personRepository.findByPrisonNumber(prisonNumber)?.let { Person.from(it) } ?: fail { "Person not found for update on prisoner $prisonNumber" }
+      val expectedPerson = Person.from(originalPerson)
+      assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
     }
   }
 
