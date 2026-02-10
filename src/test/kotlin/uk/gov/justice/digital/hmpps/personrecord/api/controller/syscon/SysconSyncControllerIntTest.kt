@@ -191,7 +191,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
         ),
         contacts = listOf(
           Contact(
-            nomisAddressContactId = randomCId().toLong(),
+            nomisContactId = randomCId().toLong(),
             value = randomPhoneNumber(),
             type = ContactType.entries.random(),
             extension = null,
@@ -201,7 +201,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
     ),
     personContacts = listOf(
       Contact(
-        nomisPersonContactId = randomCId().toLong(),
+        nomisContactId = randomCId().toLong(),
         value = randomPhoneNumber(),
         type = ContactType.entries.random(),
         extension = null,
