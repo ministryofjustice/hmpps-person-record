@@ -22,5 +22,5 @@ data class Alias(
   @Schema(description = "Indicates if this is a primary alias", example = "true")
   val isPrimary: Boolean? = null,
   @Schema(description = "The identifiers for the prisoner alias")
-  val identifiers: List<Identifier>? = null,
+  val identifiers: List<Identifier> = emptyList(),
 )
