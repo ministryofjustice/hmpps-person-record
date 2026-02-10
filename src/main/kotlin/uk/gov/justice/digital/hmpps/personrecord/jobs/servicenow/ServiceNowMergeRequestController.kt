@@ -49,11 +49,6 @@ class ServiceNowMergeRequestController(
 
   fun getClustersForMergeRequests(): List<MergeRequestItem> {
     log.info("starting")
-    // val start = LocalDateTime.now().minusHours(HOURS_AGO)
-    // there are 11 in this hour on dev which should be enough for testing.
-    // Takes about 40 seconds to get them from the read replica.
-    // we will replace this with the line above once we have proved it in dev
-    // in preprod and prod there should be plenty every hour
     val thisTimeYesterday = LocalDateTime.now().minusDays(1)
     val findByLastModifiedAfter = personRepository.findByLastModifiedBetween(
       thisTimeYesterday,
@@ -103,7 +98,6 @@ class ServiceNowMergeRequestController(
   companion object {
     private const val CLUSTER_TO_PROCESS_COUNT = 5
     private const val HOURS_TO_CHOOSE_FROM = 1L
-    val START: LocalDateTime = LocalDateTime.of(2026, 2, 2, 14, 0)
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
