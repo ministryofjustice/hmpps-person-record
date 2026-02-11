@@ -30,7 +30,7 @@ generic-service:
     NOMIS_OAUTH_BASE_URL: https://sign-in.hmpps.service.justice.gov.uk
     PRISONER_SEARCH_BASE_URL: https://prisoner-search.prison.service.justice.gov.uk
     CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: https://core-person-record-and-delius.hmpps.service.justice.gov.uk
-    SERVICE_NOW_BASE_URL: https://mojdev.service-now.com
+    SERVICE_NOW_BASE_URL: https://mojprod.service-now.com/
 
 generic-prometheus-alerts:
   sqsOldestAlertQueueNames:
