@@ -25,7 +25,7 @@ class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebCl
 
   private fun getProbationCase(crn: String): Mono<ProbationCase> = corePersonRecordAndDeliusWebClient
     .get()
-    .uri("/probation-cases/$crn")
+    .uri("/probation-cases/{id}", crn)
     .retrieve()
     .bodyToMono(ProbationCase::class.java)
 }
