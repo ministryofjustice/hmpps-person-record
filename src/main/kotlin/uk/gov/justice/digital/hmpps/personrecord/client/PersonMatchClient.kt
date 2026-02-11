@@ -32,7 +32,7 @@ class PersonMatchClient(private val personMatchWebClient: WebClient) {
 
   fun getPersonScores(matchId: String): List<PersonMatchScore> = personMatchWebClient
     .get()
-    .uri("/person/score/$matchId")
+    .uri("/person/score/{id}", matchId)
     .retrieve()
     .bodyToMono<List<PersonMatchScore>>()
     .block()!!
