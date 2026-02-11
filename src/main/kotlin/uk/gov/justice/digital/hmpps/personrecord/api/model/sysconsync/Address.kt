@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate
 
 data class Address(
+  @Schema(description = "Is nomis address id", example = "5678")
+  val nomisAddressId: Long,
   @Schema(description = "The full address", example = "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ")
   val fullAddress: String? = null,
   @Schema(description = "Is the person without a permanent residence", example = "false")
@@ -11,7 +13,7 @@ data class Address(
   @Schema(description = "The address start date", example = "2020-02-26")
   val startDate: LocalDate? = null,
   @Schema(description = "The address end date", example = "2023-07-15")
-  val endDate: String? = null,
+  val endDate: LocalDate? = null,
   @Schema(description = "The address postcode", example = "SW1H 9AJ")
   val postcode: String? = null,
   @Schema(description = "The address sub building name", example = "Sub building 2")
@@ -33,7 +35,7 @@ data class Address(
   @Schema(description = "The address comment", example = "String")
   val comment: String? = null,
   @Schema(description = "Is this the primary address", example = "true")
-  val isPrimary: Boolean? = null,
+  val isPrimary: Boolean,
   @Schema(description = "Is this the mail address", example = "true")
   val isMail: Boolean? = null,
   @Schema(description = "List of address usages")

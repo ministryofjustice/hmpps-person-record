@@ -11,6 +11,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 
 @Entity
@@ -26,7 +27,7 @@ class AddressUsageEntity(
     referencedColumnName = "id",
     nullable = false,
   )
-  val address: AddressEntity? = null,
+  var address: AddressEntity? = null,
 
   @Column(name = "usage_code")
   @Enumerated(EnumType.STRING)
@@ -37,4 +38,11 @@ class AddressUsageEntity(
 
   @Version
   var version: Int = 0,
-)
+) {
+  companion object {
+    fun from(addressUsage: AddressUsage) = AddressUsageEntity(
+      usageCode = addressUsage.addressUsageCode,
+      active = addressUsage.isActive,
+    )
+  }
+}

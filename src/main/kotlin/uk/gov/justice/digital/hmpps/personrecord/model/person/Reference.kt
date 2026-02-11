@@ -3,16 +3,24 @@ package uk.gov.justice.digital.hmpps.personrecord.model.person
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Identifier as SysconIdentifier
 
 data class Reference(
   val identifierType: IdentifierType,
   val identifierValue: String? = null,
+  val comment: String? = null,
 ) {
   companion object {
     fun from(identifierType: IdentifierType, identifierValue: String?): Reference? = identifierValue?.nullIfBlank()?.let { Reference(identifierType, it) }
     fun from(referenceEntity: ReferenceEntity): Reference = Reference(
       identifierType = referenceEntity.identifierType,
       identifierValue = referenceEntity.identifierValue,
+      comment = referenceEntity.comment,
+    )
+    fun from(sysconIdentifier: SysconIdentifier): Reference = Reference(
+      identifierType = IdentifierType.valueOf(sysconIdentifier.type.name),
+      identifierValue = sysconIdentifier.value,
+      comment = sysconIdentifier.comment,
     )
   }
 }

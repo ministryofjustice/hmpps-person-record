@@ -119,9 +119,10 @@ class AddressEntity(
       uprn = address.uprn,
       recordType = address.recordType,
       comment = address.comment,
-      contacts = address.telephoneNumber?.let {
-        mutableListOf(ContactEntity.from(it))
-      } ?: mutableListOf(),
+      primary = address.isPrimary,
+      mail = address.isMail,
+      usages = address.usages.map { AddressUsageEntity.from(it) }.toMutableList(),
+      contacts = address.contacts.map { ContactEntity.from(it) }.toMutableList(),
     )
   }
 }
