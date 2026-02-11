@@ -150,89 +150,91 @@ class SysconSyncControllerIntTest : WebTestBase() {
     return this
   }
 
-  private fun buildRequestBody(): Prisoner = Prisoner(
-    demographicAttributes = DemographicAttributes(
-      birthPlace = randomName(),
-      birthCountryCode = randomName(),
-      ethnicityCode = randomPrisonEthnicity(),
-      sexCode = randomPrisonSexCode().value,
-      sexualOrientation = randomPrisonSexualOrientation().value.name,
-      disability = randomBoolean(),
-      interestToImmigration = randomBoolean(),
-      religionCode = randomReligionCode(),
-      nationalityCode = randomNationalityCode().name,
-      nationalityNote = randomName(),
-    ),
-    aliases = buildAliasList(),
-    addresses = listOf(
-      Address(
-        nomisAddressId = randomCId().toLong(),
-        fullAddress = randomFullAddress(),
-        noFixedAbode = randomBoolean(),
-        startDate = LocalDate.now().minusYears((1..25).random().toLong()),
-        endDate = LocalDate.now().plusYears((1..25).random().toLong()),
-        postcode = randomPostcode(),
-        subBuildingName = randomName(),
-        buildingName = randomName(),
-        buildingNumber = randomName(),
-        thoroughfareName = randomName(),
-        dependentLocality = randomName(),
-        postTown = randomName(),
-        county = randomName(),
-        countryCode = CountryCode.entries.random().name,
-        comment = randomName(),
-        isPrimary = randomBoolean(),
-        isMail = randomBoolean(),
-        addressUsage = listOf(
-          AddressUsage(
-            nomisAddressUsageId = randomCId().toLong(),
-            addressUsageCode = AddressUsageCode.HOME,
-            isActive = true,
-          ),
-        ),
-        contacts = listOf(
-          Contact(
-            nomisContactId = randomCId().toLong(),
-            value = randomPhoneNumber(),
-            type = ContactType.entries.random(),
-            extension = null,
-          ),
-        ),
+  companion object {
+    fun buildRequestBody(): Prisoner = Prisoner(
+      demographicAttributes = DemographicAttributes(
+        birthPlace = randomName(),
+        birthCountryCode = randomName(),
+        ethnicityCode = randomPrisonEthnicity(),
+        sexCode = randomPrisonSexCode().value,
+        sexualOrientation = randomPrisonSexualOrientation().value.name,
+        disability = randomBoolean(),
+        interestToImmigration = randomBoolean(),
+        religionCode = randomReligionCode(),
+        nationalityCode = randomNationalityCode().name,
+        nationalityNote = randomName(),
       ),
-    ),
-    personContacts = listOf(
-      Contact(
-        nomisContactId = randomCId().toLong(),
-        value = randomPhoneNumber(),
-        type = ContactType.entries.random(),
-        extension = null,
-      ),
-    ),
-    sentences = listOf(
-      Sentence(
-        sentenceDate = randomDate(),
-      ),
-    ),
-  )
-
-  private fun buildAliasList(hasPrimary: Boolean = true): List<Alias> = listOf(
-    Alias(
-      nomisAliasId = randomCId().toLong(),
-      titleCode = randomTitleCode().value.name,
-      firstName = randomName(),
-      middleNames = randomName(),
-      lastName = randomName(),
-      dateOfBirth = LocalDate.now().minusYears((30..70).random().toLong()),
-      sexCode = SexCode.entries.random(),
-      isPrimary = hasPrimary,
-      identifiers = listOf(
-        Identifier(
-          nomisIdentifierId = randomCId().toLong(),
-          type = IdentifierType.PNC,
-          value = randomName(),
+      aliases = buildAliasList(),
+      addresses = listOf(
+        Address(
+          nomisAddressId = randomCId().toLong(),
+          fullAddress = randomFullAddress(),
+          noFixedAbode = randomBoolean(),
+          startDate = LocalDate.now().minusYears((1..25).random().toLong()),
+          endDate = LocalDate.now().plusYears((1..25).random().toLong()),
+          postcode = randomPostcode(),
+          subBuildingName = randomName(),
+          buildingName = randomName(),
+          buildingNumber = randomName(),
+          thoroughfareName = randomName(),
+          dependentLocality = randomName(),
+          postTown = randomName(),
+          county = randomName(),
+          countryCode = CountryCode.entries.random().name,
           comment = randomName(),
+          isPrimary = randomBoolean(),
+          isMail = randomBoolean(),
+          addressUsage = listOf(
+            AddressUsage(
+              nomisAddressUsageId = randomCId().toLong(),
+              addressUsageCode = AddressUsageCode.HOME,
+              isActive = true,
+            ),
+          ),
+          contacts = listOf(
+            Contact(
+              nomisContactId = randomCId().toLong(),
+              value = randomPhoneNumber(),
+              type = ContactType.entries.random(),
+              extension = null,
+            ),
+          ),
         ),
       ),
-    ),
-  )
+      personContacts = listOf(
+        Contact(
+          nomisContactId = randomCId().toLong(),
+          value = randomPhoneNumber(),
+          type = ContactType.entries.random(),
+          extension = null,
+        ),
+      ),
+      sentences = listOf(
+        Sentence(
+          sentenceDate = randomDate(),
+        ),
+      ),
+    )
+
+    fun buildAliasList(hasPrimary: Boolean = true): List<Alias> = listOf(
+      Alias(
+        nomisAliasId = randomCId().toLong(),
+        titleCode = randomTitleCode().value.name,
+        firstName = randomName(),
+        middleNames = randomName(),
+        lastName = randomName(),
+        dateOfBirth = LocalDate.now().minusYears((30..70).random().toLong()),
+        sexCode = SexCode.entries.random(),
+        isPrimary = hasPrimary,
+        identifiers = listOf(
+          Identifier(
+            nomisIdentifierId = randomCId().toLong(),
+            type = IdentifierType.PNC,
+            value = randomName(),
+            comment = randomName(),
+          ),
+        ),
+      ),
+    )
+  }
 }
