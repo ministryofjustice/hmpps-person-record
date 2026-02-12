@@ -96,7 +96,7 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
     val crn11 = randomCrn()
     val crn12 = randomCrn()
 
-    val thisTimeYesterday =LocalDateTime.now().minusDays(1)
+    val thisTimeYesterday = LocalDateTime.now().minusDays(1)
     createPersonKey()
       .addPerson(createRandomProbationPersonDetails(crn1).copy(references = emptyList()))
       .addPerson(createRandomProbationPersonDetails(crn2))
