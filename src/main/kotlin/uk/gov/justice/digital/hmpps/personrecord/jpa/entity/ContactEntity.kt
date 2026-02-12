@@ -54,6 +54,6 @@ class ContactEntity(
 ) {
   companion object {
 
-    fun from(contact: Contact): ContactEntity = ContactEntity(contactType = contact.contactType, contactValue = contact.contactValue)
+    fun from(contact: Contact): ContactEntity = ContactEntity(contactType = contact.contactType, contactValue = contact.contactValue, extension = contact.extension)
   }
 }

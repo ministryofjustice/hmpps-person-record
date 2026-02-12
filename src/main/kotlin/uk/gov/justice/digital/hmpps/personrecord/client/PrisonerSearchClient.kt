@@ -11,7 +11,7 @@ class PrisonerSearchClient(private val prisonerSearchWebClient: WebClient) {
 
   fun getPrisoner(prisonNumber: String): Person? = prisonerSearchWebClient
     .get()
-    .uri("/prisoner/$prisonNumber")
+    .uri("/prisoner/{id}", prisonNumber)
     .retrieve()
     .bodyToMono(Prisoner::class.java)
     .discardNotFoundException()

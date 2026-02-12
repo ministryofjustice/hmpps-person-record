@@ -9,10 +9,10 @@ kotlin {
 
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.0.3"
-  kotlin("plugin.spring") version "2.3.0"
-  kotlin("jvm") version "2.3.0"
-  kotlin("plugin.jpa") version "2.3.0"
-  id("org.jetbrains.kotlinx.kover") version "0.9.6"
+  kotlin("plugin.spring") version "2.3.10"
+  kotlin("jvm") version "2.3.10"
+  kotlin("plugin.jpa") version "2.3.10"
+  id("org.jetbrains.kotlinx.kover") version "0.9.7"
   id("org.owasp.dependencycheck") version "12.2.0"
 }
 
@@ -42,7 +42,7 @@ dependencies {
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
-  runtimeOnly("org.postgresql:postgresql:42.7.9")
+  runtimeOnly("org.postgresql:postgresql:42.7.10")
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 

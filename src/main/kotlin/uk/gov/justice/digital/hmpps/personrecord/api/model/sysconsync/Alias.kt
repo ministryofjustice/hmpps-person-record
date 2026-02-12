@@ -1,9 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import java.time.LocalDate
 
 data class Alias(
+  @Schema(description = "The nomis alias id", example = "2378")
+  val nomisAliasId: Long,
   @Schema(description = "The alias title code", example = "MR")
   val titleCode: String? = null,
   @Schema(description = "The alias first name", example = "Jon")
@@ -15,5 +18,9 @@ data class Alias(
   @Schema(description = "The alias date of birth", example = "1980-01-01")
   val dateOfBirth: LocalDate? = null,
   @Schema(description = "The alias sex code", example = "M")
-  val sexCode: String? = null,
+  val sexCode: SexCode? = null,
+  @Schema(description = "Indicates if this is a primary alias", example = "true")
+  val isPrimary: Boolean? = null,
+  @Schema(description = "The identifiers for the prisoner alias")
+  val identifiers: List<Identifier> = emptyList(),
 )
