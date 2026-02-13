@@ -23,7 +23,7 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
       .addPerson(createRandomPrisonPersonDetails(prisonerNumberOne))
       .addPerson(createRandomPrisonPersonDetails(prisonerNumberTwo))
 
-    personExclusionService.exclude(prisonerNumberTwo) { personRepository.findByPrisonNumber(prisonerNumberTwo) }
+    personExclusionService.exclude { personRepository.findByPrisonNumber(prisonerNumberTwo) }
 
     // assert prisoner one (one that is not being excluded) has not changed clusters
     val personOne = personRepository.findByPrisonNumber(prisonerNumberOne)!!
@@ -44,7 +44,7 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
     val originalPersonKeyEntity = createPersonKey()
       .addPerson(createRandomPrisonPersonDetails(prisonerNumberOne))
 
-    personExclusionService.exclude(prisonerNumberOne) { personRepository.findByPrisonNumber(prisonerNumberOne)  }
+    personExclusionService.exclude { personRepository.findByPrisonNumber(prisonerNumberOne)  }
 
     val personOne = personRepository.findByPrisonNumber(prisonerNumberOne)!!
     assertThat(personOne.personKey!!.personUUID).isEqualTo(originalPersonKeyEntity.personUUID)

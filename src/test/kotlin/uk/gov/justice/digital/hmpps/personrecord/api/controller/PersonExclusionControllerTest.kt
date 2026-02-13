@@ -41,6 +41,6 @@ class PersonExclusionControllerTest : WebTestBase() {
       .isNotFound
       .expectBody()
       .jsonPath("userMessage")
-      .isEqualTo("Not found: Person with prisoner $nonExistingPrisonerId not found")
+      .isEqualTo("Not found: Person not found")
   }
 }

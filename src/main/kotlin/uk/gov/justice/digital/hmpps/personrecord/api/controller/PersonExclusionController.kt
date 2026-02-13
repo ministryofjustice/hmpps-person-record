@@ -19,7 +19,7 @@ class PersonExclusionController(
   @PostMapping("/admin/exclusion/prisoner/{prisonNumber}")
   @Transactional
   fun excludePrisoner(@NotBlank @PathVariable(name = "prisonNumber") prisonNumber: String): String {
-    personExclusionService.exclude(prisonNumber) { personRepository.findByPrisonNumber(prisonNumber) }
+    personExclusionService.exclude { personRepository.findByPrisonNumber(prisonNumber) }
     return "OK"
   }
 }
