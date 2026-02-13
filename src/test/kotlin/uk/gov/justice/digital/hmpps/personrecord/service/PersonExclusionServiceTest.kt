@@ -44,7 +44,7 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
     val originalPersonKeyEntity = createPersonKey()
       .addPerson(createRandomPrisonPersonDetails(prisonerNumberOne))
 
-    personExclusionService.exclude { personRepository.findByPrisonNumber(prisonerNumberOne)  }
+    personExclusionService.exclude { personRepository.findByPrisonNumber(prisonerNumberOne) }
 
     val personOne = personRepository.findByPrisonNumber(prisonerNumberOne)!!
     assertThat(personOne.personKey!!.personUUID).isEqualTo(originalPersonKeyEntity.personUUID)

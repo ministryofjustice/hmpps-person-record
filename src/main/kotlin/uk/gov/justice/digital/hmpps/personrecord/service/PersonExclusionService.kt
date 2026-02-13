@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchServi
 @Service
 class PersonExclusionService(
   private val personKeyRepository: PersonKeyRepository,
-  private val personMatchService: PersonMatchService
+  private val personMatchService: PersonMatchService,
 ) {
 
   @Transactional
@@ -19,29 +19,18 @@ class PersonExclusionService(
     val personEntityToBeExcluded = personToBeExcludeFind() ?: throw ResourceNotFoundException("Person not found")
     val personKeyEntity = personEntityToBeExcluded.personKey ?: throw ResourceNotFoundException("Person key not found")
 
-    // do marker stuff
+    // do marker stuff...
 
     if (personKeyEntity.personEntities.size <= 1) {
       return
     }
 
-    // remove link to person key
     personEntityToBeExcluded.removePersonKeyLink()
-
-    // create a new person key
     val newPersonKeyEntity = PersonKeyEntity.new()
 
-    // attach person to new person key
     personEntityToBeExcluded.assignToPersonKey(newPersonKeyEntity)
 
-    // actually update
     personKeyRepository.save(newPersonKeyEntity)
-
-    // delete from person match
     personMatchService.deleteFromPersonMatch(personEntityToBeExcluded)
-
-    // recluster?!?
-
-
   }
 }
