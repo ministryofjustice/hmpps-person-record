@@ -2,6 +2,8 @@ openapi: 3.0.1
 info:
   title: Proposed Design of Syscon Migration API
   version: 1.0.0
+security:
+  - hmpps-auth-token: []
 
 paths:
   /syscon-sync/person/{number}:
@@ -168,14 +170,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      # security:
-      #   - bearerAuth: []
 
 components:
   schemas:
     securitySchemes:
-      bearerAuth:
+      hmpps-auth-token:
         type: http
+        name: Authorization
+        in: header
         scheme: bearer
         bearerFormat: JWT
 
