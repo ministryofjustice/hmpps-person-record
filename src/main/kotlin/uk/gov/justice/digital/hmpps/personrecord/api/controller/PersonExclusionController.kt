@@ -12,10 +12,10 @@ import uk.gov.justice.digital.hmpps.personrecord.service.PersonExclusionService
 
 @Hidden
 @RestController
-@PreAuthorize("hasRole('${Roles.PRISONER_EXCLUSION}')")
+@PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_WRITE}')")
 class PersonExclusionController(private val personExclusionService: PersonExclusionService) {
 
-  @PostMapping("/ex/person/{id}")
+  @PostMapping("/admin/exclusion/person/{prisonNumber}")
   @Transactional
   fun exclude(@NotBlank @PathVariable(name = "prisonNumber") prisonNumber: String): String {
     personExclusionService.exclude(prisonNumber)
