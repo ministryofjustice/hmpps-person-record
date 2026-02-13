@@ -1,0 +1,494 @@
+openapi: 3.0.1
+info:
+  title: Proposed Design of Syscon Migration API
+  version: 1.0.0
+
+paths:
+  /syscon-sync/person/{number}:
+    put:
+      summary: Update a person record
+      operationId: putPersonSync
+      tags:
+        - Syscon migration
+      parameters:
+        - in: path
+          name: number
+          required: true
+          schema:
+            type: string
+          description: Unique person number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonSyncRequest"
+      responses:
+        "200":
+          description: Successfully synced person data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonSyncResponse"
+
+    post:
+      summary: Create a person record
+      operationId: postPersonSync
+      tags:
+        - Person
+      parameters:
+        - in: path
+          name: number
+          required: true
+          schema:
+            type: string
+          description: Unique person number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonSyncRequest"
+      responses:
+        "200":
+          description: Successfully synced person data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonSyncResponse"
+
+  /syscon-sync/religion/{prisonNumber}:
+    post:
+      summary: Sync religions for a prisoner
+      description: >
+        Accepts a list of religion records for a given prisoner (identified by **prisonNumber**) and returns
+        mapping identifiers between NOMIS and CPR.
+      operationId: postSyncReligions
+      tags:
+        - Religion
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: >
+            Prisoner number/identifier. Example: `A6443EG`.
+          schema:
+            type: string
+            maxLength: 20
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReligionSyncRequest'
+            examples:
+              sample:
+                summary: Sample request
+                value:
+                  religions:
+                    - nomisReligionId: "3456"
+                      religionCode: "AGNO"
+                      changeReasonKnown: true
+                      comments: "Foo Bar"
+                      verified: true
+                      startDate: "1980-01-01"
+                      endDate: "2000-01-01"
+                      modifyDateTime: "2000-01-01 12:00:00"
+                      modifyUserId: "12345"
+                      current: true
+                    - nomisReligionId: "3457"
+                      religionCode: "AGNO"
+                      changeReasonKnown: true
+                      comments: "Foo Bar"
+                      verified: true
+                      startDate: "1980-01-01"
+                      endDate: "2000-01-01"
+                      modifyDateTime: "2000-01-01 12:00:00"
+                      modifyUserId: "12345"
+                      current: true
+      responses:
+        '200':
+          description: Religion mappings successfully created/returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReligionSyncResponse'
+              examples:
+                sample:
+                  summary: Sample response
+                  value:
+                    prisonerId: "A6443EG"
+                    religionMappings:
+                      - nomisReligionId: "3456"
+                        cprReligionId: "204ea843-c52b-4a30-a236-249402537593"
+                      - nomisReligionId: "3457"
+                        cprReligionId: "ed0e22c5-c2c9-4567-96f1-5cf781a40a7f"
+        '400':
+          description: Bad request - validation or payload errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidDate:
+                  summary: Invalid date format
+                  value:
+                    status: 400
+                    error: "Bad Request"
+                    message: "modifyDateTime must be 'yyyy-MM-dd HH:mm:ss'"
+        '401':
+          description: Unauthorized - missing or invalid credentials
+        '404':
+          description: Prisoner not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  value:
+                    status: 404
+                    error: "Not Found"
+                    message: "Prisoner A6443EG not found"
+        '409':
+          description: Conflict - conflicting state for provided data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                conflict:
+                  value:
+                    status: 409
+                    error: "Conflict"
+                    message: "Duplicate nomisReligionId detected"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      # security:
+      #   - bearerAuth: []
+
+components:
+  schemas:
+    securitySchemes:
+      bearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
+
+    PersonSyncRequest:
+      type: object
+      properties:
+        demographicAttributes:
+          $ref: "#/components/schemas/DemographicAttributes"
+
+        personContacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/PersonContact"
+
+        pseudonym:
+          type: array
+          items:
+            $ref: "#/components/schemas/Pseudonym"
+
+        addresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/Address"
+
+        sentences:
+          type: array
+          items:
+            $ref: "#/components/schemas/Sentence"
+
+    DemographicAttributes:
+      type: object
+      properties:
+        birthPlace: { type: string }
+        birthCountryCode: { type: string }
+        ethnicityCode: { type: string }
+        sexualOrientation: { type: string }
+        disability: { type: boolean }
+        interestToImmigration: { type: boolean }
+        religionCode: { type: string }
+        nationalityCode: { type: string }
+        nationalityNote: { type: string }
+
+    PersonContact:
+      type: object
+      properties:
+        nomisPersonContactId: { type: string }
+        value: { type: string }
+        type: { type: string }
+        extension:
+          type: string
+          nullable: true
+
+    Pseudonym:
+      type: object
+      properties:
+        nomisPseudonymId: { type: string }
+        titleCode: { type: string }
+        firstName: { type: string }
+        middleNames: { type: string }
+        lastName: { type: string }
+        dateOfBirth: { type: string, format: date }
+        sexCode: { type: string }
+        isPrimary: { type: boolean }
+        identifiers:
+          type: array
+          items:
+            $ref: "#/components/schemas/Identifier"
+
+    Identifier:
+      type: object
+      properties:
+        nomisIdentifierId: { type: string }
+        type: { type: string }
+        value: { type: string }
+        comment: { type: string }
+
+    Address:
+      type: object
+      properties:
+        nomisAddressId: { type: string }
+        fullAddress: { type: string }
+        noFixedAbode: { type: boolean }
+        startDate: { type: string, format: date }
+        endDate:
+          type: string
+          format: date
+          nullable: true
+        postcode: { type: string }
+        subBuildingName: { type: string }
+        buildingName: { type: string }
+        buildingNumber: { type: string }
+        thoroughfareName: { type: string }
+        dependentLocality: { type: string }
+        postTown: { type: string }
+        county: { type: string }
+        countryCode: { type: string }
+        comment: { type: string }
+        isPrimary: { type: boolean }
+        isMail: { type: boolean }
+        addressUsage:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressUsage"
+        contacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressContact"
+
+    AddressUsage:
+      type: object
+      properties:
+        nomisAddressUsageId: { type: string }
+        addressUsageCode: { type: string }
+        isActive: { type: boolean }
+
+    AddressContact:
+      type: object
+      properties:
+        nomisAddressContactId: { type: string }
+        type: { type: string }
+        value: { type: string }
+        extension: { type: string }
+
+    Sentence:
+      type: object
+      properties:
+        sentenceDate:
+          type: string
+          format: date
+
+    PersonSyncResponse:
+      type: object
+      properties:
+        prisonerId: { type: string }
+        addressMappings:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressMapping"
+        personContactMappings:
+          type: array
+          items:
+            $ref: "#/components/schemas/PersonContactMapping"
+        pseudonymMappings:
+          type: array
+          items:
+            $ref: "#/components/schemas/PseudonymMapping"
+
+    AddressMapping:
+      type: object
+      properties:
+        nomisAddressId: { type: string }
+        cprAddressId: { type: string }
+        addressUsageMappings:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressUsageMapping"
+        addressContactMappings:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressContactMapping"
+
+    AddressUsageMapping:
+      type: object
+      properties:
+        nomisAddressUsageId: { type: string }
+        cprAddressUsageid: { type: string }
+
+    AddressContactMapping:
+      type: object
+      properties:
+        nomisContactId: { type: string }
+        cprContactId: { type: string }
+
+    PersonContactMapping:
+      type: object
+      properties:
+        nomisContactId: { type: string }
+        cprContactId: { type: string }
+
+    PseudonymMapping:
+      type: object
+      properties:
+        nomisPseudonymId: { type: string }
+        cprPseudonymId: { type: string }
+        identifierMappings:
+          type: array
+          items:
+            $ref: "#/components/schemas/IdentifierMapping"
+
+    IdentifierMapping:
+      type: object
+      properties:
+        nomisIdentifierId: { type: string }
+        cprIdentifierId: { type: string }
+
+    ReligionSyncRequest:
+      type: object
+      required:
+        - religions
+      properties:
+        religions:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ReligionItem'
+
+    ReligionItem:
+      type: object
+      required:
+        - nomisReligionId
+        - religionCode
+        - changeReasonKnown
+        - verified
+        - startDate
+        - modifyDateTime
+        - modifyUserId
+        - current
+      properties:
+        nomisReligionId:
+          type: string
+          description: External NOMIS religion identifier.
+          maxLength: 50
+          example: "3456"
+        religionCode:
+          type: string
+          description: Internal/standardized religion code (e.g., AGNO).
+          maxLength: 20
+          example: "AGNO"
+        changeReasonKnown:
+          type: boolean
+          description: Whether the reason for change is known.
+          example: true
+        comments:
+          type: string
+          description: Free-text comments.
+          maxLength: 4000
+          example: "Foo Bar"
+        verified:
+          type: boolean
+          description: Whether the religion assignment has been verified.
+          example: true
+        startDate:
+          type: string
+          description: Start date in ISO 8601 calendar date.
+          format: date
+          example: "1980-01-01"
+        endDate:
+          type: string
+          description: Optional end date in ISO 8601 calendar date.
+          format: date
+          nullable: true
+          example: "2000-01-01"
+        modifyDateTime:
+          type: string
+          description: >
+            Last modification timestamp in **'yyyy-MM-dd HH:mm:ss'** (24h) format.
+            Note: This is not ISO 8601; avoid timezone suffixes.
+          example: "2000-01-01 12:00:00"
+        modifyUserId:
+          type: string
+          description: Identifier of the user who made the modification.
+          maxLength: 100
+          example: "12345"
+        current:
+          type: boolean
+          description: Whether this entry is the current religion record.
+          example: true
+
+    ReligionSyncResponse:
+      type: object
+      required:
+        - prisonerId
+        - religionMappings
+      properties:
+        prisonerId:
+          type: string
+          description: Prisoner identifier/number.
+          example: "A6443EG"
+        religionMappings:
+          type: array
+          description: Mapping between NOMIS and CPR identifiers for the synced religions.
+          items:
+            $ref: '#/components/schemas/ReligionMapping'
+
+    ReligionMapping:
+      type: object
+      required:
+        - nomisReligionId
+        - cprReligionId
+      properties:
+        nomisReligionId:
+          type: string
+          description: External NOMIS religion identifier.
+          example: "3456"
+        cprReligionId:
+          type: string
+          format: uuid
+          description: CPR religion record identifier (UUID).
+          example: "204ea843-c52b-4a30-a236-249402537593"
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 400
+        error:
+          type: string
+          example: "Bad Request"
+        message:
+          type: string
+          example: "Validation failed"
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/ftl/Sync-with-Ids/1.0.0
