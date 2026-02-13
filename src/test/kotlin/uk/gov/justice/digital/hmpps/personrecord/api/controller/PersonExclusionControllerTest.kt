@@ -19,7 +19,7 @@ class PersonExclusionControllerTest : WebTestBase() {
 
     webTestClient
       .post()
-      .uri("/admin/exclusion/person/$prisonerNumberTwo")
+      .uri("/admin/exclusion/prisoner/$prisonerNumberTwo")
       .authorised(roles = listOf(PERSON_RECORD_ADMIN_WRITE))
       .exchange()
       .expectStatus()
@@ -37,7 +37,7 @@ class PersonExclusionControllerTest : WebTestBase() {
     val nonExistingPrisonerId = randomPrisonNumber()
     webTestClient
       .post()
-      .uri("/admin/exclusion/person/$nonExistingPrisonerId")
+      .uri("/admin/exclusion/prisoner/$nonExistingPrisonerId")
       .authorised(roles = listOf(PERSON_RECORD_ADMIN_WRITE))
       .exchange()
       .expectStatus()

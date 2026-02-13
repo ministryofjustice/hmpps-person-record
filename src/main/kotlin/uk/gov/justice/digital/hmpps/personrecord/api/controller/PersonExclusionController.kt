@@ -8,17 +8,21 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonExclusionService
 
 @Hidden
 @RestController
 @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_WRITE}')")
-class PersonExclusionController(private val personExclusionService: PersonExclusionService) {
+class PersonExclusionController(
+  private val personRepository: PersonRepository,
+  private val personExclusionService: PersonExclusionService
+) {
 
-  @PostMapping("/admin/exclusion/person/{prisonNumber}")
+  @PostMapping("/admin/exclusion/prisoner/{prisonNumber}")
   @Transactional
-  fun exclude(@NotBlank @PathVariable(name = "prisonNumber") prisonNumber: String): String {
-    personExclusionService.exclude(prisonNumber)
+  fun excludePrisoner(@NotBlank @PathVariable(name = "prisonNumber") prisonNumber: String): String {
+    personExclusionService.exclude(prisonNumber) { personRepository.findByPrisonNumber(prisonNumber) }
     return "OK"
   }
 }
