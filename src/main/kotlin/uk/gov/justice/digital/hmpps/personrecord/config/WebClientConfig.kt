@@ -51,7 +51,7 @@ class WebClientConfig(
     timeout = Duration.ofMillis(timeout),
   )
 
-  @Profile("!preprod & !prod")
+  @Profile("!prod")
   @Bean
   fun serviceNowWebClient(
     authorizedClientManager: OAuth2AuthorizedClientManager,

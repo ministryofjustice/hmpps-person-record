@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 
-@Profile("!preprod & !prod")
+@Profile("!prod")
 @Component
 class ServiceNowMergeRequestClient(private val serviceNowWebClient: WebClient, @Value($$"${service-now.sysparm-id}")private val sysParmId: String) {
   fun postRecords(payload: ServiceNowMergeRequestPayload) = serviceNowWebClient

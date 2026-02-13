@@ -9,7 +9,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Value
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestController.Companion.START
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -97,6 +96,7 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
     val crn11 = randomCrn()
     val crn12 = randomCrn()
 
+    val thisTimeYesterday = LocalDateTime.now().minusDays(1)
     createPersonKey()
       .addPerson(createRandomProbationPersonDetails(crn1).copy(references = emptyList()))
       .addPerson(createRandomProbationPersonDetails(crn2))
@@ -116,18 +116,18 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
       .addPerson(createRandomProbationPersonDetails(crn11))
       .addPerson(createRandomProbationPersonDetails(crn12))
 
-    personRepository.updateLastModifiedDate(crn1, START.plusMinutes(1))
-    personRepository.updateLastModifiedDate(crn2, START.plusMinutes(2))
-    personRepository.updateLastModifiedDate(crn3, START.plusMinutes(3))
-    personRepository.updateLastModifiedDate(crn4, START.plusMinutes(4))
-    personRepository.updateLastModifiedDate(crn5, START.plusMinutes(5))
-    personRepository.updateLastModifiedDate(crn6, START.plusMinutes(6))
-    personRepository.updateLastModifiedDate(crn7, START.plusMinutes(7))
-    personRepository.updateLastModifiedDate(crn8, START.plusMinutes(8))
-    personRepository.updateLastModifiedDate(crn9, START.plusMinutes(9))
-    personRepository.updateLastModifiedDate(crn10, START.plusMinutes(10))
-    personRepository.updateLastModifiedDate(crn11, START.plusMinutes(11))
-    personRepository.updateLastModifiedDate(crn12, START.plusMinutes(12))
+    personRepository.updateLastModifiedDate(crn1, thisTimeYesterday.plusMinutes(1))
+    personRepository.updateLastModifiedDate(crn2, thisTimeYesterday.plusMinutes(2))
+    personRepository.updateLastModifiedDate(crn3, thisTimeYesterday.plusMinutes(3))
+    personRepository.updateLastModifiedDate(crn4, thisTimeYesterday.plusMinutes(4))
+    personRepository.updateLastModifiedDate(crn5, thisTimeYesterday.plusMinutes(5))
+    personRepository.updateLastModifiedDate(crn6, thisTimeYesterday.plusMinutes(6))
+    personRepository.updateLastModifiedDate(crn7, thisTimeYesterday.plusMinutes(7))
+    personRepository.updateLastModifiedDate(crn8, thisTimeYesterday.plusMinutes(8))
+    personRepository.updateLastModifiedDate(crn9, thisTimeYesterday.plusMinutes(9))
+    personRepository.updateLastModifiedDate(crn10, thisTimeYesterday.plusMinutes(10))
+    personRepository.updateLastModifiedDate(crn11, thisTimeYesterday.plusMinutes(11))
+    personRepository.updateLastModifiedDate(crn12, thisTimeYesterday.plusMinutes(12))
 
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)
@@ -141,6 +141,7 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
   fun `should not send a merge request for a cluster which has already had a merge request`() {
     val crn1 = randomCrn()
     val crn2 = randomCrn()
+    val thisTimeYesterday = LocalDateTime.now().minusDays(1)
 
     val person1 = createRandomProbationPersonDetails(crn1)
     val person2 = createRandomProbationPersonDetails(crn2)
@@ -148,8 +149,8 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
       .addPerson(person1)
       .addPerson(person2)
 
-    personRepository.updateLastModifiedDate(crn1, START.plusMinutes(1))
-    personRepository.updateLastModifiedDate(crn2, START.plusMinutes(2))
+    personRepository.updateLastModifiedDate(crn1, thisTimeYesterday.plusMinutes(1))
+    personRepository.updateLastModifiedDate(crn2, thisTimeYesterday.plusMinutes(2))
 
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)
@@ -198,13 +199,13 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
     personKeyRepository.deleteAll()
     val prisonNumber1 = randomPrisonNumber()
     val prisonNumber2 = randomPrisonNumber()
-
+    val thisTimeYesterday = LocalDateTime.now().minusDays(1)
     createPersonKey()
       .addPerson(createRandomPrisonPersonDetails(prisonNumber1))
       .addPerson(createRandomPrisonPersonDetails(prisonNumber2))
 
-    personRepository.updatePrisonerLastModifiedDate(prisonNumber1, START.plusMinutes(1))
-    personRepository.updatePrisonerLastModifiedDate(prisonNumber2, START.plusMinutes(2))
+    personRepository.updatePrisonerLastModifiedDate(prisonNumber1, thisTimeYesterday.plusMinutes(1))
+    personRepository.updatePrisonerLastModifiedDate(prisonNumber2, thisTimeYesterday.plusMinutes(2))
 
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)
