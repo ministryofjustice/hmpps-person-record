@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
-import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
 class PersonExclusionServiceTest : IntegrationTestBase() {
@@ -22,9 +21,6 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
 
   @MockitoSpyBean
   private lateinit var mockPersonKeyRepository: PersonKeyRepository
-
-  @MockitoSpyBean
-  private lateinit var mockPersonMatchService: PersonMatchService
 
   @Test
   fun `cluster size greater than 1 - removes person from cluster - attaches person to new cluster - deletes from person match`() {
