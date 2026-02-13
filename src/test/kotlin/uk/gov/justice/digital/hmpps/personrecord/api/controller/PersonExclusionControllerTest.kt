@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 class PersonExclusionControllerTest : WebTestBase() {
 
   @Test
-  fun `cluster size greater than 1 - unlinks`() {
+  fun `person exists - returns OK`() {
     stubDeletePersonMatch()
 
     val prisonerNumberOne = randomPrisonNumber()
@@ -26,7 +26,7 @@ class PersonExclusionControllerTest : WebTestBase() {
   }
 
   @Test
-  fun `non existing prisoner id`() {
+  fun `person does not exist - returns NOT_FOUND`() {
     val prisonerNumberOne = randomPrisonNumber()
     val prisonerNumberTwo = randomPrisonNumber()
     createPersonKey()

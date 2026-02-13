@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
@@ -13,10 +14,13 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
   @Autowired
   private lateinit var personExclusionService: PersonExclusionService
 
-  @Test
-  fun `cluster size greater than 1 - unlinks person in question`() {
+  @BeforeEach
+  fun beforeEach() {
     stubDeletePersonMatch()
+  }
 
+  @Test
+  fun `cluster size greater than 1 - removes person from cluster - attaches person to new cluster - deletes from person match`() {
     val prisonerNumberOne = randomPrisonNumber()
     val prisonerNumberTwo = randomPrisonNumber()
     val originalPersonKeyEntity = createPersonKey()
@@ -39,7 +43,7 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `cluster size of 1 - does nothing`() {
+  fun `cluster size of 1 - only deletes from person match`() {
     val prisonerNumberOne = randomPrisonNumber()
     val originalPersonKeyEntity = createPersonKey()
       .addPerson(createRandomPrisonPersonDetails(prisonerNumberOne))
@@ -50,6 +54,6 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
     assertThat(personOne.personKey!!.personUUID).isEqualTo(originalPersonKeyEntity.personUUID)
     assertThat(personOne.personKey!!.personEntities.size).isEqualTo(1)
 
-    wiremock.verify(0, deleteRequestedFor(urlEqualTo("/person")))
+    wiremock.verify(1, deleteRequestedFor(urlEqualTo("/person")))
   }
 }

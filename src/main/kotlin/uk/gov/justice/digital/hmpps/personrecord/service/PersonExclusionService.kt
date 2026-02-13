@@ -22,6 +22,7 @@ class PersonExclusionService(
     // do marker stuff...
 
     if (personKeyEntity.personEntities.size <= 1) {
+      personMatchService.deleteFromPersonMatch(personEntityToBeExcluded)
       return
     }
 
