@@ -15,8 +15,8 @@ class PersonExclusionService(
 ) {
 
   @Transactional
-  fun exclude(personToBeExcludeFind: () -> PersonEntity?) {
-    val personEntityToBeExcluded = personToBeExcludeFind() ?: throw ResourceNotFoundException("Person not found")
+  fun exclude(findPersonToBeExcluded: () -> PersonEntity?) {
+    val personEntityToBeExcluded = findPersonToBeExcluded() ?: throw ResourceNotFoundException("Person not found")
     val personKeyEntity = personEntityToBeExcluded.personKey ?: throw ResourceNotFoundException("Person key not found")
 
     // do marker stuff...
