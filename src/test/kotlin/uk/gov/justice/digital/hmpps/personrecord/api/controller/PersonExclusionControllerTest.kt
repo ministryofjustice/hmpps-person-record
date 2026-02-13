@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller
 
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_ADMIN_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
@@ -20,7 +19,6 @@ class PersonExclusionControllerTest : WebTestBase() {
     webTestClient
       .post()
       .uri("/admin/exclusion/prisoner/$prisonerNumberTwo")
-      .authorised(roles = listOf(PERSON_RECORD_ADMIN_WRITE))
       .exchange()
       .expectStatus()
       .isOk
@@ -38,7 +36,6 @@ class PersonExclusionControllerTest : WebTestBase() {
     webTestClient
       .post()
       .uri("/admin/exclusion/prisoner/$nonExistingPrisonerId")
-      .authorised(roles = listOf(PERSON_RECORD_ADMIN_WRITE))
       .exchange()
       .expectStatus()
       .isNotFound
