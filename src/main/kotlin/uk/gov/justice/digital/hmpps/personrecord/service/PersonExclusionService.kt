@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -18,8 +17,8 @@ class PersonExclusionService(
 
   @Transactional
   fun exclude(prisonerNumber: String) {
-    val personEntity = personRepository.findByPrisonNumber(prisonerNumber) ?: throw ResourceNotFoundException("Person with prisoner $prisonerNumber not found")
-    val personKeyEntity = personEntity.personKey ?: throw ResourceNotFoundException("Person with prisoner $prisonerNumber not found")
+    val personEntityToBeExcluded = personRepository.findByPrisonNumber(prisonerNumber) ?: throw ResourceNotFoundException("Person with prisoner $prisonerNumber not found")
+    val personKeyEntity = personEntityToBeExcluded.personKey ?: throw ResourceNotFoundException("Person with prisoner $prisonerNumber not found")
 
     // do marker stuff
 
@@ -28,18 +27,19 @@ class PersonExclusionService(
     }
 
     // remove link to person key
-    personEntity.removePersonKeyLink()
+    personEntityToBeExcluded.removePersonKeyLink()
 
     // create a new person key
     val newPersonKeyEntity = PersonKeyEntity.new()
 
     // attach person to new person key
-    personEntity.assignToPersonKey(newPersonKeyEntity)
+    personEntityToBeExcluded.assignToPersonKey(newPersonKeyEntity)
 
     // actually update
     personKeyRepository.save(newPersonKeyEntity)
 
     // delete from person match
+    personMatchService.deleteFromPersonMatch(personEntityToBeExcluded)
 
     // recluster?!?
 
