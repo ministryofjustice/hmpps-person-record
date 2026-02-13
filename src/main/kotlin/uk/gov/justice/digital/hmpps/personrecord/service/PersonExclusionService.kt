@@ -18,7 +18,14 @@ class PersonExclusionService(
 
   @Transactional
   fun exclude(prisonerNumber: String) {
-    val personEntity = getPersonEntityIfApplicableForExclusion(prisonerNumber)
+    val personEntity = personRepository.findByPrisonNumber(prisonerNumber) ?: throw ResourceNotFoundException("Person with prisoner $prisonerNumber not found")
+    val personKeyEntity = personEntity.personKey ?: throw ResourceNotFoundException("Person with prisoner $prisonerNumber not found")
+
+    // do marker stuff
+
+    if (personKeyEntity.personEntities.size <= 1) {
+      return
+    }
 
     // remove link to person key
     personEntity.removePersonKeyLink()
@@ -37,19 +44,5 @@ class PersonExclusionService(
     // recluster?!?
 
 
-  }
-
-  private fun getPersonEntityIfApplicableForExclusion(prisonerNumber: String): PersonEntity {
-    val personEntity = personRepository.findByPrisonNumber(prisonerNumber) ?: throw ResourceNotFoundException("Person with prisoner $prisonerNumber not found")
-    val personKeyEntityId = personEntity.personKey?.id ?: throw ResourceNotFoundException("Person key was not retrieved with person for prisoner $prisonerNumber")
-    val personKeyEntity = personKeyRepository.findById(personKeyEntityId).orElseThrow { ResourceNotFoundException("Person key with id $personKeyEntityId not found") }
-    validateIsApplicableForExclusion(personKeyEntity)
-    return personEntity
-  }
-
-  private fun validateIsApplicableForExclusion(personKeyEntity: PersonKeyEntity) {
-    if (personKeyEntity.personEntities.size <= 1) {
-      // skip?
-    }
   }
 }
