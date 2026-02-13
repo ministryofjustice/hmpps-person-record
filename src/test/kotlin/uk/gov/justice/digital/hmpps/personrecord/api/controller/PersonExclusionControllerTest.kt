@@ -18,7 +18,8 @@ class PersonExclusionControllerTest : WebTestBase() {
 
     webTestClient
       .post()
-      .uri("/admin/exclusion/prisoner/$prisonerNumberTwo")
+      .uri("/admin/exclusion/prisoner")
+      .bodyValue(PersonExclusionController.ExclusionRequest(prisonerNumberTwo))
       .exchange()
       .expectStatus()
       .isOk
@@ -32,10 +33,10 @@ class PersonExclusionControllerTest : WebTestBase() {
       .addPerson(createRandomPrisonPersonDetails(prisonerNumberOne))
       .addPerson(createRandomPrisonPersonDetails(prisonerNumberTwo))
 
-    val nonExistingPrisonerId = randomPrisonNumber()
     webTestClient
       .post()
-      .uri("/admin/exclusion/prisoner/$nonExistingPrisonerId")
+      .uri("/admin/exclusion/prisoner")
+      .bodyValue(PersonExclusionController.ExclusionRequest(randomPrisonNumber()))
       .exchange()
       .expectStatus()
       .isNotFound

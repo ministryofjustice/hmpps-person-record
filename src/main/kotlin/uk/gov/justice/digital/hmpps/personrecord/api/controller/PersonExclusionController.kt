@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonExclusionService
@@ -16,10 +17,14 @@ class PersonExclusionController(
   private val personExclusionService: PersonExclusionService
 ) {
 
-  @PostMapping("/admin/exclusion/prisoner/{prisonNumber}")
+  @PostMapping("/admin/exclusion/prisoner")
   @Transactional
-  fun excludePrisoner(@NotBlank @PathVariable(name = "prisonNumber") prisonNumber: String): String {
-    personExclusionService.exclude { personRepository.findByPrisonNumber(prisonNumber) }
+  fun excludePrisoner(@RequestBody exclusionRequest: ExclusionRequest): String {
+    personExclusionService.exclude { personRepository.findByPrisonNumber(exclusionRequest.personId) }
     return "OK"
   }
+
+  data class ExclusionRequest(
+    val personId: String
+  )
 }
