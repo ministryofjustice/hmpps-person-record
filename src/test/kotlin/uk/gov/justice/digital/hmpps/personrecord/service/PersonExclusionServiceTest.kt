@@ -23,7 +23,7 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
   private lateinit var mockPersonKeyRepository: PersonKeyRepository
 
   @Test
-  fun `cluster size greater than 1 - removes person from cluster - attaches person to new cluster - deletes from person match`() {
+  fun `cluster size greater than 1 - updates marker - removes person from cluster - attaches person to new cluster - deletes from person match`() {
     stubDeletePersonMatch()
 
     val prisonerNumberOne = randomPrisonNumber()
@@ -44,17 +44,19 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
       val personOne = personRepository.findByPrisonNumber(prisonerNumberOne)!!
       assertThat(personOne.personKey!!.personUUID).isEqualTo(originalPersonKeyEntity.personUUID)
       assertThat(personOne.personKey!!.personEntities.size).isEqualTo(1)
+      assertThat(personOne.passiveState).isFalse()
 
       // assert prisoner two (one that IS being excluded) has changed clusters
       val personTwo = personRepository.findByPrisonNumber(prisonerNumberTwo)!!
       assertThat(personOne.personKey!!.personUUID).isNotEqualTo(personTwo.personKey!!.personUUID)
       assertThat(personTwo.personKey!!.personEntities.size).isEqualTo(1)
+      assertThat(personTwo.passiveState).isTrue()
       wiremock.verify(1, deleteRequestedFor(urlEqualTo("/person")))
     }
   }
 
   @Test
-  fun `cluster size of 1 - only deletes from person match`() {
+  fun `cluster size of 1 - updates marker and deletes from person match`() {
     stubDeletePersonMatch()
 
     val prisonerNumberOne = randomPrisonNumber()
@@ -67,12 +69,13 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
       val personOne = personRepository.findByPrisonNumber(prisonerNumberOne)!!
       assertThat(personOne.personKey!!.personUUID).isEqualTo(originalPersonKeyEntity.personUUID)
       assertThat(personOne.personKey!!.personEntities.size).isEqualTo(1)
+      assertThat(personOne.passiveState).isTrue()
       wiremock.verify(1, deleteRequestedFor(urlEqualTo("/person")))
     }
   }
 
   @Test
-  fun `error writing to db - does not call person match to delete`() {
+  fun `error writing to db - maintains marker state and does not call person match to delete`() {
     val prisonerNumberOne = randomPrisonNumber()
     val prisonerNumberTwo = randomPrisonNumber()
     val originalPersonKeyEntity = createPersonKey()
@@ -91,6 +94,34 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
     awaitAssert {
       val clusterAfterExclusion = personKeyRepository.findByPersonUUID(originalPersonKeyEntity.personUUID)
       assertThat(clusterAfterExclusion!!.personEntities.size).isEqualTo(2)
+
+      val personOne = personRepository.findByPrisonNumber(prisonerNumberOne)!!
+      assertThat(personOne.passiveState).isFalse()
+
+      val personTwo = personRepository.findByPrisonNumber(prisonerNumberTwo)!!
+      assertThat(personTwo.passiveState).isFalse()
+
+      wiremock.verify(0, deleteRequestedFor(urlEqualTo("/person")))
+    }
+  }
+
+  @Test
+  fun `already in passive state - no update to person record`() {
+    val prisonerNumberOne = randomPrisonNumber()
+    val personEntity = createPerson(createRandomPrisonPersonDetails(prisonerNumberOne))
+    personEntity.passiveState = true
+    val originalPersonKeyEntity = createPersonKey()
+      .addPerson(personEntity)
+    val beforeLastModified = personEntity.lastModified
+
+    personExclusionService.exclude { personRepository.findByPrisonNumber(prisonerNumberOne) }
+
+    awaitAssert {
+      val personOne = personRepository.findByPrisonNumber(prisonerNumberOne)!!
+      assertThat(personOne.personKey!!.personUUID).isEqualTo(originalPersonKeyEntity.personUUID)
+      assertThat(personOne.personKey!!.personEntities.size).isEqualTo(1)
+      assertThat(personOne.passiveState).isTrue()
+      assertThat(personOne.lastModified).isEqualTo(beforeLastModified)
       wiremock.verify(0, deleteRequestedFor(urlEqualTo("/person")))
     }
   }

@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller
 
 import io.swagger.v3.oas.annotations.Hidden
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -16,7 +15,6 @@ class PersonExclusionController(
 ) {
 
   @PostMapping("/admin/exclusion/prisoner")
-  @Transactional
   fun excludePrisoner(@RequestBody exclusionRequest: ExclusionRequest): String {
     personExclusionService.exclude { personRepository.findByPrisonNumber(exclusionRequest.personId) }
     return "OK"

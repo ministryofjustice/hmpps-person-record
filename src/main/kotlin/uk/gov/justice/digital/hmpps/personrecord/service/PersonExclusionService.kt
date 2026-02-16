@@ -19,7 +19,11 @@ class PersonExclusionService(
     val personEntityToBeExcluded = findPersonToBeExcluded() ?: throw ResourceNotFoundException("Person not found")
     val personKeyEntity = personEntityToBeExcluded.personKey ?: throw ResourceNotFoundException("Person key not found")
 
-    // do marker stuff...
+    if (personEntityToBeExcluded.isPassive()) {
+      return
+    }
+
+    personEntityToBeExcluded.markAsPassive()
 
     if (personKeyEntity.personEntities.size <= 1) {
       personMatchService.deleteFromPersonMatch(personEntityToBeExcluded)
