@@ -45,13 +45,13 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
       val personOne = personRepository.findByPrisonNumber(prisonerNumberOne)!!
       assertThat(personOne.personKey!!.personUUID).isEqualTo(originalPersonKeyEntity.personUUID)
       assertThat(personOne.personKey!!.personEntities.size).isEqualTo(1)
-      assertThat(personOne.passiveState).isFalse()
+      assertThat(personOne.isPassive()).isFalse()
 
       // assert prisoner two (one that IS being excluded) has changed clusters
       val personTwo = personRepository.findByPrisonNumber(prisonerNumberTwo)!!
       assertThat(personOne.personKey!!.personUUID).isNotEqualTo(personTwo.personKey!!.personUUID)
       assertThat(personTwo.personKey!!.personEntities.size).isEqualTo(1)
-      assertThat(personTwo.passiveState).isTrue()
+      assertThat(personTwo.isPassive()).isTrue()
       wiremock.verify(1, deleteRequestedFor(urlEqualTo("/person")))
     }
   }
@@ -70,7 +70,7 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
       val personOne = personRepository.findByPrisonNumber(prisonerNumberOne)!!
       assertThat(personOne.personKey!!.personUUID).isEqualTo(originalPersonKeyEntity.personUUID)
       assertThat(personOne.personKey!!.personEntities.size).isEqualTo(1)
-      assertThat(personOne.passiveState).isTrue()
+      assertThat(personOne.isPassive()).isTrue()
       wiremock.verify(1, deleteRequestedFor(urlEqualTo("/person")))
     }
   }
@@ -97,10 +97,10 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
       assertThat(clusterAfterExclusion!!.personEntities.size).isEqualTo(2)
 
       val personOne = personRepository.findByPrisonNumber(prisonerNumberOne)!!
-      assertThat(personOne.passiveState).isFalse()
+      assertThat(personOne.isPassive()).isFalse()
 
       val personTwo = personRepository.findByPrisonNumber(prisonerNumberTwo)!!
-      assertThat(personTwo.passiveState).isFalse()
+      assertThat(personTwo.isPassive()).isFalse()
 
       wiremock.verify(0, deleteRequestedFor(urlEqualTo("/person")))
     }
@@ -120,7 +120,7 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
       val personOne = personRepository.findByPrisonNumber(prisonerNumberOne)!!
       assertThat(personOne.personKey!!.personUUID).isEqualTo(originalPersonKeyEntity.personUUID)
       assertThat(personOne.personKey!!.personEntities.size).isEqualTo(1)
-      assertThat(personOne.passiveState).isTrue()
+      assertThat(personOne.isPassive()).isTrue()
       assertThat(personOne.lastModified!!.truncatedTo(ChronoUnit.MICROS)).isEqualTo(originalPersonEntity.lastModified!!.truncatedTo(ChronoUnit.MICROS))
       wiremock.verify(0, deleteRequestedFor(urlEqualTo("/person")))
     }
