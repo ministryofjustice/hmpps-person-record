@@ -6,12 +6,10 @@ import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.Resou
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
-import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Service
 class PersonExclusionService(
   private val personKeyRepository: PersonKeyRepository,
-  private val personMatchService: PersonMatchService,
 ) {
 
   @Transactional
@@ -26,7 +24,6 @@ class PersonExclusionService(
     personEntityToBeExcluded.markAsPassive()
 
     if (personKeyEntity.personEntities.size <= 1) {
-      personMatchService.deleteFromPersonMatch(personEntityToBeExcluded)
       return
     }
 
@@ -36,6 +33,5 @@ class PersonExclusionService(
     personEntityToBeExcluded.assignToPersonKey(newPersonKeyEntity)
 
     personKeyRepository.save(newPersonKeyEntity)
-    personMatchService.deleteFromPersonMatch(personEntityToBeExcluded)
   }
 }

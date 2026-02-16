@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
-import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -25,8 +23,6 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
 
   @Test
   fun `cluster size greater than 1 - updates marker - removes person from cluster - attaches person to new cluster - deletes from person match`() {
-    stubDeletePersonMatch()
-
     val prisonerNumberOne = randomPrisonNumber()
     val prisonerNumberTwo = randomPrisonNumber()
     val originalPersonKeyEntity = createPersonKey()
@@ -52,14 +48,11 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
       assertThat(personOne.personKey!!.personUUID).isNotEqualTo(personTwo.personKey!!.personUUID)
       assertThat(personTwo.personKey!!.personEntities.size).isEqualTo(1)
       assertThat(personTwo.isPassive()).isTrue()
-      wiremock.verify(1, deleteRequestedFor(urlEqualTo("/person")))
     }
   }
 
   @Test
   fun `cluster size of 1 - updates marker and deletes from person match`() {
-    stubDeletePersonMatch()
-
     val prisonerNumberOne = randomPrisonNumber()
     val originalPersonKeyEntity = createPersonKey()
       .addPerson(createRandomPrisonPersonDetails(prisonerNumberOne))
@@ -71,7 +64,6 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
       assertThat(personOne.personKey!!.personUUID).isEqualTo(originalPersonKeyEntity.personUUID)
       assertThat(personOne.personKey!!.personEntities.size).isEqualTo(1)
       assertThat(personOne.isPassive()).isTrue()
-      wiremock.verify(1, deleteRequestedFor(urlEqualTo("/person")))
     }
   }
 
@@ -101,8 +93,6 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
 
       val personTwo = personRepository.findByPrisonNumber(prisonerNumberTwo)!!
       assertThat(personTwo.isPassive()).isFalse()
-
-      wiremock.verify(0, deleteRequestedFor(urlEqualTo("/person")))
     }
   }
 
@@ -122,7 +112,6 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
       assertThat(personOne.personKey!!.personEntities.size).isEqualTo(1)
       assertThat(personOne.isPassive()).isTrue()
       assertThat(personOne.lastModified!!.truncatedTo(ChronoUnit.MICROS)).isEqualTo(originalPersonEntity.lastModified!!.truncatedTo(ChronoUnit.MICROS))
-      wiremock.verify(0, deleteRequestedFor(urlEqualTo("/person")))
     }
   }
 }
