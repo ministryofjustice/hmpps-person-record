@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.temporal.ChronoUnit
 
@@ -22,7 +23,7 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
   private lateinit var mockPersonKeyRepository: PersonKeyRepository
 
   @Test
-  fun `cluster size greater than 1 - updates marker - removes person from cluster - attaches person to new cluster - deletes from person match`() {
+  fun `cluster size greater than 1 - updates marker - removes person from cluster - attaches person to new cluster`() {
     val prisonerNumberOne = randomPrisonNumber()
     val prisonerNumberTwo = randomPrisonNumber()
     val originalPersonKeyEntity = createPersonKey()
@@ -48,11 +49,13 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
       assertThat(personOne.personKey!!.personUUID).isNotEqualTo(personTwo.personKey!!.personUUID)
       assertThat(personTwo.personKey!!.personEntities.size).isEqualTo(1)
       assertThat(personTwo.isPassive()).isTrue()
+
+      checkEventLogExist(prisonerNumberTwo, CPRLogEvents.CPR_UUID_CREATED)
     }
   }
 
   @Test
-  fun `cluster size of 1 - updates marker and deletes from person match`() {
+  fun `cluster size of 1 - updates marker`() {
     val prisonerNumberOne = randomPrisonNumber()
     val originalPersonKeyEntity = createPersonKey()
       .addPerson(createRandomPrisonPersonDetails(prisonerNumberOne))
@@ -68,7 +71,7 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `error writing to db - maintains marker state and does not call person match to delete`() {
+  fun `error writing to db - maintains marker state`() {
     val prisonerNumberOne = randomPrisonNumber()
     val prisonerNumberTwo = randomPrisonNumber()
     val originalPersonKeyEntity = createPersonKey()
