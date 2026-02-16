@@ -108,11 +108,10 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
   @Test
   fun `already in passive state - no update to person record`() {
     val prisonerNumberOne = randomPrisonNumber()
-    val personEntity = createPerson(createRandomPrisonPersonDetails(prisonerNumberOne))
-    personEntity.passiveState = true
+    val originalPersonEntity = createPerson(createRandomPrisonPersonDetails(prisonerNumberOne))
+    originalPersonEntity.markAsPassive()
     val originalPersonKeyEntity = createPersonKey()
-      .addPerson(personEntity)
-    val beforeLastModified = personEntity.lastModified
+      .addPerson(originalPersonEntity)
 
     personExclusionService.exclude { personRepository.findByPrisonNumber(prisonerNumberOne) }
 
@@ -121,7 +120,7 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
       assertThat(personOne.personKey!!.personUUID).isEqualTo(originalPersonKeyEntity.personUUID)
       assertThat(personOne.personKey!!.personEntities.size).isEqualTo(1)
       assertThat(personOne.passiveState).isTrue()
-      assertThat(personOne.lastModified).isEqualTo(beforeLastModified)
+      assertThat(personOne.lastModified).isEqualTo(originalPersonEntity.lastModified)
       wiremock.verify(0, deleteRequestedFor(urlEqualTo("/person")))
     }
   }
