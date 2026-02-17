@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import java.time.temporal.ChronoUnit
 
 class PersonExclusionServiceTest : IntegrationTestBase() {
 
