@@ -24,24 +24,24 @@ class PersonExclusionService(
     val personEntityToBeExcluded = findPersonToBeExcluded() ?: throw ResourceNotFoundException("Person not found")
     val personKeyEntity = personEntityToBeExcluded.personKey ?: throw ResourceNotFoundException("Person key not found")
 
-    if (personEntityToBeExcluded.isPassive()) {
-      return
+    when (personEntityToBeExcluded.isPassive()) {
+      true -> return
+      false -> {
+        personEntityToBeExcluded.markAsPassive()
+        personRepository.save(personEntityToBeExcluded)
+
+        if (personKeyEntity.personEntities.size <= 1) {
+          personMatchService.deleteFromPersonMatch(personEntityToBeExcluded)
+        } else {
+          personEntityToBeExcluded.removePersonKeyLink()
+          val newPersonKeyEntity = PersonKeyEntity.new()
+          personEntityToBeExcluded.assignToPersonKey(newPersonKeyEntity)
+
+          personKeyRepository.save(newPersonKeyEntity)
+          personMatchService.deleteFromPersonMatch(personEntityToBeExcluded)
+          publisher.publishEvent(PersonKeyCreated(personEntityToBeExcluded, newPersonKeyEntity))
+        }
+      }
     }
-
-    personEntityToBeExcluded.markAsPassive()
-    personRepository.save(personEntityToBeExcluded)
-
-    if (personKeyEntity.personEntities.size <= 1) {
-      personMatchService.deleteFromPersonMatch(personEntityToBeExcluded)
-      return
-    }
-
-    personEntityToBeExcluded.removePersonKeyLink()
-    val newPersonKeyEntity = PersonKeyEntity.new()
-    personEntityToBeExcluded.assignToPersonKey(newPersonKeyEntity)
-
-    personKeyRepository.save(newPersonKeyEntity)
-    personMatchService.deleteFromPersonMatch(personEntityToBeExcluded)
-    publisher.publishEvent(PersonKeyCreated(personEntityToBeExcluded, newPersonKeyEntity))
   }
 }
