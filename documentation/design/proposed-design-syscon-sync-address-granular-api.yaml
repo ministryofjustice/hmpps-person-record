@@ -1,0 +1,980 @@
+openapi: 3.0.3
+info:
+  title: Person Address API
+  version: 1.0.0
+  description: >
+    API for creating, updating, and retrieving prisoner address details and related mappings.
+
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/ftl/Granular-Sync-Endpoints/1.0.0
+  - url: https://api.yourdomain.tld
+
+tags:
+  - name: Address
+    description: Endpoints for person address management
+
+paths:
+  /person/prison/{prisonNumber}/address:
+    post:
+      summary: Create address records for a prisoner
+      description: Creates one or more addresses for the specified prisoner number.
+      tags: [Address]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prisoner number (e.g., NOMIS number)
+          schema:
+            type: string
+            example: A6443EG
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressPostRequest'
+            examples:
+              sample:
+                value:
+                  addresses:
+                    - nomisAddressId: "5677"
+                      fullAddress: "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ"
+                      noFixedAbode: false
+                      startDate: "2020-02-26"
+                      endDate: "2023-07-15"
+                      postcode: "SW1H 9AJ"
+                      uprn: "string"
+                      subBuildingName: "Sub building 2"
+                      buildingName: "Main Building"
+                      buildingNumber: "102"
+                      thoroughfareName: "Petty France"
+                      dependentLocality: "Westminster"
+                      postTown: "London"
+                      county: "Greater London"
+                      countryCode: "UK"
+                      comment: "String"
+                      isPrimary: true
+                      isMail: true
+                      addressUsage:
+                        - nomisAddressUsageId: "5678"
+                          addressUsageCode: "DSH"
+                          isActive: true
+                      contacts:
+                        - nomisAddressContactId: "5679"
+                          type: "PHONE"
+                          value: "+44 20 7946 0000"
+                          extension: "1234"
+      responses:
+        '200':
+          description: Address records synced successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressUpsertResponse'
+              examples:
+                sample:
+                  value:
+                    prisonerId: "A6443EG"
+                    addressMappings:
+                      - nomisAddressId: "5677"
+                        cprAddressId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+                        addressUsageMappings:
+                          - nomisAddressUsageId: "5678"
+                            cprAddressUsageid: "d4ae7071-58ae-42f0-bf5d-c69289fb1e6d"
+                        addressContactMappings:
+                          - nomisContactId: "5679"
+                            cprContactId: "e34a39e9-c22a-44c3-87ae-ab5017f465c3"
+        '400':
+          description: Invalid data supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Prisoner not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /person/prison/{prisonNumber}/address/{cprAddressId}:
+    put:
+      summary: Update an existing CPR address for a prisoner
+      description: >
+        Updates an existing CPR address for the specified prisoner.
+      tags: [Address]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prisoner number (e.g., NOMIS number)
+          schema:
+            type: string
+            example: A6443EG
+        - name: cprAddressId
+          in: path
+          required: true
+          description: CPR Address UUID
+          schema:
+            type: string
+            format: uuid
+            example: 0b6f8655-278a-4cb8-81c6-21364a91c466
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressPutRequest'
+            examples:
+              sample:
+                value:
+                  addresses:
+                    - nomisAddressId: "5677"
+                      fullAddress: "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ"
+                      noFixedAbode: false
+                      startDate: "2020-02-26"
+                      endDate: "2023-07-15"
+                      postcode: "SW1H 9AJ"
+                      uprn: "string"
+                      subBuildingName: "Sub building 2"
+                      buildingName: "Main Building"
+                      buildingNumber: "102"
+                      thoroughfareName: "Petty France"
+                      dependentLocality: "Westminster"
+                      postTown: "London"
+                      county: "Greater London"
+                      countryCode: "UK"
+                      comment: "String"
+                      isPrimary: true
+                      isMail: true
+      responses:
+        '200':
+          description: Address updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressUpdateResponse'
+              examples:
+                sample:
+                  value:
+                    prisonerId: "A6443EG"
+                    addressMappings:
+                      - nomisAddressId: "5677"
+                        cprAddressId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+                        addressUsageMappings:
+                          - nomisAddressUsageId: "5678"
+                            cprAddressUsageid: "d4ae7071-58ae-42f0-bf5d-c69289fb1e6d"
+                        addressContactMappings:
+                          - nomisContactId: "5679"
+                            cprContactId: "e34a39e9-c22a-44c3-87ae-ab5017f465c3"
+        '400':
+          description: Invalid data supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Prisoner or address not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    # /person/prison/{prisonNumber}/address/{cprAddressId}:
+    get:
+      summary: Retrieve address details for a CPR address usage (without NOMIS IDs)
+      description: Returns address JSON matching POST/PUT shapes but with all NOMIS IDs removed.
+      tags: [Address]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prisoner number (e.g., NOMIS number)
+          schema:
+            type: string
+            example: A6443EG
+        - name: cprAddressId
+          in: path
+          required: true
+          description: CPR Address ID
+          schema:
+            type: string
+            format: uuid
+            example: d4ae7071-58ae-42f0-bf5d-c69289fb1e6d
+      responses:
+        '200':
+          description: Address details (NOMIS IDs removed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressGetResponse'
+              examples:
+                sample:
+                  value:
+                    addresses:
+                      - fullAddress: "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ"
+                        noFixedAbode: false
+                        startDate: "2020-02-26"
+                        endDate: "2023-07-15"
+                        postcode: "SW1H 9AJ"
+                        uprn: "string"
+                        subBuildingName: "Sub building 2"
+                        buildingName: "Main Building"
+                        buildingNumber: "102"
+                        thoroughfareName: "Petty France"
+                        dependentLocality: "Westminster"
+                        postTown: "London"
+                        county: "Greater London"
+                        countryCode: "UK"
+                        comment: "String"
+                        isPrimary: true
+                        isMail: true
+                        addressUsage:
+                          - addressUsageCode: "DSH"
+                            isActive: true
+                        contacts:
+                          - type: "PHONE"
+                            value: "+44 20 7946 0000"
+                            extension: "1234"
+        '404':
+          description: Address usage not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /person/prison/{prisonNumber}/address/{cprAddressId}/addressUsage:
+    post:
+      summary: Create new CPR address usage mapping for a prisoner
+      tags: [Address Usage]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: cprAddressId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddressUsageRequest"
+            examples:
+              sample:
+                value:
+                  addressUsage:
+                    - nomisAddressUsageId: "5678"
+                      addressUsageCode: "DSH"
+                      isActive: true
+      responses:
+        '200':
+          description: Address usage created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddressUsageResponse"
+              examples:
+                sample:
+                  value:
+                    prisonerId: "A6443EG"
+                    addressUsageMappings:
+                      - nomisAddressUsageId: "5678"
+                        cprAddressUsageId: "d4ae7071-58ae-42f0-bf5d-c69289fb1e6d"
+        '400':
+          description: Invalid input supplied
+        '404':
+          description: Prisoner or CPR address not found
+
+  /person/prison/{prisonNumber}/address-usage/{cprAddressUsageId}:
+    put:
+      summary: Update CPR address usage for a prisoner
+      tags: [Address Usage]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "A6443EG"
+        - name: cprAddressUsageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "d4ae7071-58ae-42f0-bf5d-c69289fb1e6d"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddressUsageRequest"
+            examples:
+              sample:
+                value:
+                  addressUsage:
+                    - nomisAddressUsageId: "5678"
+                      addressUsageCode: "DSH"
+                      isActive: true
+      responses:
+        '200':
+          description: Address usage updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddressUsageResponse"
+              examples:
+                sample:
+                  value:
+                    prisonerId: "A6443EG"
+                    addressUsageMappings:
+                      - nomisAddressUsageId: "5678"
+                        cprAddressUsageId: "d4ae7071-58ae-42f0-bf5d-c69289fb1e6d"
+        '400':
+          description: Invalid input supplied
+        '404':
+          description: Prisoner or address usage not found
+
+    # /person/prison/{prisonNumber}/address-usage/{cprAddressUsageId}:
+    get:
+      summary: Retrieve CPR address usage
+      tags: [Address Usage]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: cprAddressUsageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Address usage details (NOMIS ID removed)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddressUsageGetResponse"
+              examples:
+                sample:
+                  value:
+                    addressUsage:
+                      - addressUsageCode: "DSH"
+                        addressUsageDescription: "Discharge - Supported Housing"
+                        isActive: true
+        '404':
+          description: Address usage not found
+
+  /person/prison/{prisonNumber}/address-contact/:
+    post:
+      summary: Create address contacts for a CPR address contact
+      description: Creates one or more contacts for the specified CPR address contact ID.
+      tags: [Address Contact]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prisoner number (e.g., NOMIS number)
+          schema:
+            type: string
+            example: A6443EG
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressContactRequest'
+            examples:
+              sample:
+                value:
+                  contacts:
+                    - nomisAddressContactId: "5679"
+                      type: "PHONE"
+                      value: "+44 20 7946 0000"
+                      extension: "1234"
+      responses:
+        '200':
+          description: Address contacts synced successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressContactUpsertResponse'
+              examples:
+                sample:
+                  value:
+                    prisonerId: "A6443EG"
+                    addressContactMappings:
+                      - nomisContactId: "5679"
+                        cprContactId: "e34a39e9-c22a-44c3-87ae-ab5017f465c3"
+        '400':
+          description: Invalid data supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Prisoner or CPR address contact not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /person/prison/{prisonNumber}/address-contact/{cprAddressContactId}:
+    put:
+      summary: Update address contacts for a CPR address contact
+      description: Updates one or more contacts for the specified CPR address contact ID.
+      tags: [Address Contact]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prisoner number (e.g., NOMIS number)
+          schema:
+            type: string
+            example: A6443EG
+        - name: cprAddressContactId
+          in: path
+          required: true
+          description: CPR Address Contact UUID
+          schema:
+            type: string
+            format: uuid
+            example: e34a39e9-c22a-44c3-87ae-ab5017f465c3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressContactRequest'
+            examples:
+              sample:
+                value:
+                  contacts:
+                    - nomisAddressContactId: "5679"
+                      type: "PHONE"
+                      value: "+44 20 7946 0000"
+                      extension: "1234"
+      responses:
+        '200':
+          description: Address contacts updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressContactUpsertResponse'
+              examples:
+                sample:
+                  value:
+                    prisonerId: "A6443EG"
+                    addressContactMappings:
+                      - nomisContactId: "5679"
+                        cprContactId: "e34a39e9-c22a-44c3-87ae-ab5017f465c3"
+        '400':
+          description: Invalid data supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Prisoner or CPR address contact not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    # /person/prison/{prisonerNumber}/address-contact/{cprAddressContact}:
+    get:
+      summary: Retrieve address contacts.
+      description: Returns contacts JSON
+      tags: [Address Contact]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prisoner number (e.g., NOMIS number)
+          schema:
+            type: string
+            example: A6443EG
+        - name: cprAddressContactId
+          in: path
+          required: true
+          description: CPR Address Contact UUID
+          schema:
+            type: string
+            format: uuid
+            example: e34a39e9-c22a-44c3-87ae-ab5017f465c3
+      responses:
+        '200':
+          description: Address contacts (NOMIS ID removed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressContactGetResponse'
+              examples:
+                sample:
+                  value:
+                    contacts:
+                      - type: "PHONE"
+                        value: "+44 20 7946 0000"
+                        extension: "1234"
+        '404':
+          description: CPR address contact not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ---- Requests ----
+    AddressPostRequest:
+      type: object
+      required: [addresses]
+      properties:
+        addresses:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/AddressItemPost'
+
+    AddressPutRequest:
+      type: object
+      required: [addresses]
+      properties:
+        addresses:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/AddressItemPut'
+
+    AddressItemPost:
+      type: object
+      properties:
+        nomisAddressId:
+          type: string
+          example: "5677"
+        fullAddress:
+          type: string
+        noFixedAbode:
+          type: boolean
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+          nullable: true
+        postcode:
+          type: string
+        uprn:
+          type: string
+          description: Unique Property Reference Number
+          example: "string"
+        subBuildingName:
+          type: string
+        buildingName:
+          type: string
+        buildingNumber:
+          type: string
+        thoroughfareName:
+          type: string
+        dependentLocality:
+          type: string
+        postTown:
+          type: string
+        county:
+          type: string
+        countryCode:
+          type: string
+        comment:
+          type: string
+        isPrimary:
+          type: boolean
+        isMail:
+          type: boolean
+        addressUsage:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressUsageItem'
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressContactItem'
+
+    AddressItemPut:
+      description: Same as POST request but without addressUsage and contacts.
+      type: object
+      properties:
+        nomisAddressId:
+          type: string
+          example: "5677"
+        fullAddress:
+          type: string
+        noFixedAbode:
+          type: boolean
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+          nullable: true
+        postcode:
+          type: string
+        uprn:
+          type: string
+          description: Unique Property Reference Number
+          example: "string"
+        subBuildingName:
+          type: string
+        buildingName:
+          type: string
+        buildingNumber:
+          type: string
+        thoroughfareName:
+          type: string
+        dependentLocality:
+          type: string
+        postTown:
+          type: string
+        county:
+          type: string
+        countryCode:
+          type: string
+        comment:
+          type: string
+        isPrimary:
+          type: boolean
+        isMail:
+          type: boolean
+
+    AddressUsageItem:
+      type: object
+      properties:
+        nomisAddressUsageId:
+          type: string
+          example: "5678"
+        addressUsageCode:
+          type: string
+          example: "DSH"
+        isActive:
+          type: boolean
+
+    AddressContactItem:
+      type: object
+      properties:
+        nomisAddressContactId:
+          type: string
+          example: "5679"
+        type:
+          type: string
+          example: "PHONE"
+        value:
+          type: string
+          example: "+44 20 7946 0000"
+        extension:
+          type: string
+          example: "1234"
+
+    # ---- Responses ----
+    AddressUpsertResponse:
+      type: object
+      properties:
+        prisonerId:
+          type: string
+          example: "A6443EG"
+        addressMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressMapping'
+
+    AddressMapping:
+      type: object
+      properties:
+        nomisAddressId:
+          type: string
+        cprAddressId:
+          type: string
+          format: uuid
+        addressUsageMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressUsageMapping'
+        addressContactMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressContactMapping'
+
+    AddressUsageMapping:
+      type: object
+      properties:
+        nomisAddressUsageId:
+          type: string
+        cprAddressUsageid:
+          type: string
+          format: uuid
+
+    AddressContactMapping:
+      type: object
+      properties:
+        nomisContactId:
+          type: string
+        cprContactId:
+          type: string
+          format: uuid
+
+    AddressUpdateResponse:
+      type: object
+      properties:
+        prisonerId:
+          type: string
+          example: "A6443EG"
+        addressMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressUpdateMapping'
+
+    AddressUpdateMapping:
+      type: object
+      properties:
+        nomisAddressId:
+          type: string
+        cprAddressId:
+          type: string
+          format: uuid
+
+    AddressGetResponse:
+      type: object
+      description: Address information as per POST/PUT but with all NOMIS IDs removed.
+      properties:
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressWithoutNomisIds'
+
+    AddressWithoutNomisIds:
+      type: object
+      description: Same structure as AddressItemPost with NOMIS identifiers removed.
+      properties:
+        fullAddress:
+          type: string
+        noFixedAbode:
+          type: boolean
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+          nullable: true
+        postcode:
+          type: string
+        uprn:
+          type: string
+          description: Unique Property Reference Number
+          example: "string"
+        subBuildingName:
+          type: string
+        buildingName:
+          type: string
+        buildingNumber:
+          type: string
+        thoroughfareName:
+          type: string
+        dependentLocality:
+          type: string
+        postTown:
+          type: string
+        county:
+          type: string
+        countryCode:
+          type: string
+        comment:
+          type: string
+        isPrimary:
+          type: boolean
+        isMail:
+          type: boolean
+        addressUsage:
+          type: array
+          items:
+            type: object
+            properties:
+              addressUsageCode:
+                type: string
+              isActive:
+                type: boolean
+        contacts:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              value:
+                type: string
+              extension:
+                type: string
+
+
+
+    # --- address usage -----
+    # ----- REQUEST -----
+    AddressUsageRequest:
+      type: object
+      required: [addressUsage]
+      properties:
+        addressUsage:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/AddressUsageItem"
+
+    # AddressUsageItem:
+    #   type: object
+    #   properties:
+    #     nomisAddressUsageId:
+    #       type: string
+    #       example: "5678"
+    #     addressUsageCode:
+    #       type: string
+    #       example: "DSH"
+    #     isActive:
+    #       type: boolean
+
+    # ----- RESPONSE (PUT + POST) -----
+    AddressUsageResponse:
+      type: object
+      properties:
+        prisonerId:
+          type: string
+          example: "A6443EG"
+        addressUsageMappings:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressUsageMapping"
+
+    # AddressUsageMapping:
+    #   type: object
+    #   properties:
+    #     nomisAddressUsageId:
+    #       type: string
+    #     cprAddressUsageId:
+    #       type: string
+    #       format: uuid
+    AddressUsageGetResponse:
+      type: object
+      properties:
+        addressUsage:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressUsageWithoutNomisId"
+
+    AddressUsageWithoutNomisId:
+      type: object
+      description: Address usage response
+      properties:
+        addressUsageCode:
+          type: string
+          example: "DSH"
+        addressUsageDescription:
+          type: string
+          example: "Discharge - Supported Housing"
+        isActive:
+          type: boolean
+
+        # ------- address contacts -----------
+        # ---- Requests ----
+    AddressContactRequest:
+      type: object
+      required: [contacts]
+      properties:
+        contacts:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/AddressContactItem'
+
+    # AddressContactItem:
+    #   type: object
+    #   properties:
+    #     nomisAddressContactId:
+    #       type: string
+    #       example: "5679"
+    #     type:
+    #       type: string
+    #       example: "PHONE"
+    #     value:
+    #       type: string
+    #       example: "+44 20 7946 0000"
+    #     extension:
+    #       type: string
+    #       example: "1234"
+    # ---- PUT/POST Response ----
+    AddressContactUpsertResponse:
+      type: object
+      properties:
+        prisonerId:
+          type: string
+          example: "A6443EG"
+        addressContactMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressContactMapping'
+
+    # AddressContactMapping:
+    #   type: object
+    #   properties:
+    #     nomisContactId:
+    #       type: string
+    #     cprContactId:
+    #       type: string
+    #       format: uuid
+    # ---- GET Response (without NOMIS IDs) ----
+    AddressContactGetResponse:
+      type: object
+      description: Address contact information with NOMIS identifiers removed.
+      properties:
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressContactWithoutNomisId'
+
+    AddressContactWithoutNomisId:
+      type: object
+      description: Same structure as request but without nomisAddressContactId.
+      properties:
+        type:
+          type: string
+          example: "PHONE"
+        value:
+          type: string
+          example: "+44 20 7946 0000"
+        extension:
+          type: string
+          example: "1234"
+
+    # ---- Common error ----
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 404
+        error:
+          type: string
+          example: Not Found
+        message:
+          type: string
+          example: "Prisoner A6443EG not found"
