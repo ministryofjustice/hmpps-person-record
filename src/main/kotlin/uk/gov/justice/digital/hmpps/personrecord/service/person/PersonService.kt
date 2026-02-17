@@ -50,10 +50,8 @@ class PersonService(
     personEntity.update(person)
     personRepository.save(personEntity)
     val matchingFieldsChanged = beforeUpdate.matchingFieldsAreDifferent(personEntity)
-    if (matchingFieldsChanged) {
+    if (matchingFieldsChanged && !personEntity.isPassive()) {
       personMatchService.saveToPersonMatch(personEntity)
-    }
-    if (!personEntity.isPassive()) {
       recluster(person, personEntity)
     }
     publisher.publishEvent(PersonUpdated(personEntity, matchingFieldsChanged))
