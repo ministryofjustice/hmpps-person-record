@@ -33,7 +33,7 @@ import java.time.format.DateTimeFormatter
 class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
-  fun `should create new person from Libra message`() {
+  fun `should create new person from Libra message for non organisations`() {
     val title = randomTitleCode()
     val firstName = randomName()
     val forename2 = randomName()
@@ -72,6 +72,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         line3 = thoroughfareName,
         line4 = dependentLocality,
         line5 = postTown,
+        defendantType = null,
       ),
     )
 
