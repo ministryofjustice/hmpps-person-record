@@ -200,6 +200,24 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `should not return high confidence match to a passive state record`() {
+      val searchingRecord = createPerson(createExamplePerson())
+      createPersonKey()
+        .addPerson(searchingRecord)
+
+      val passiveRecord = createPerson(createExamplePerson())
+      passiveRecord.markAsPassive()
+      createPersonKey()
+        .addPerson(passiveRecord)
+
+      stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = passiveRecord.matchId)
+
+      val highConfidenceMatch = personMatchService.findClustersToJoin(searchingRecord)
+
+      noCandidateFound(highConfidenceMatch)
+    }
+
+    @Test
     fun `should not return its self if person match sends it back`() {
       val record = createPersonWithNewKey(createExamplePerson())
 
