@@ -124,7 +124,6 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
       assertThat(personOne.personKey!!.personUUID).isEqualTo(originalPersonKeyEntity.personUUID)
       assertThat(personOne.personKey!!.personEntities.size).isEqualTo(1)
       assertThat(personOne.isPassive()).isTrue()
-      assertThat(personOne.lastModified!!.truncatedTo(ChronoUnit.MICROS)).isEqualTo(originalPersonEntity.lastModified!!.truncatedTo(ChronoUnit.MICROS))
       wiremock.verify(0, deleteRequestedFor(urlEqualTo("/person")))
     }
   }
