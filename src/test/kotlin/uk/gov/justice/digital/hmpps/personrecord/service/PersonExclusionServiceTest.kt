@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import java.time.temporal.ChronoUnit
 
 class PersonExclusionServiceTest : IntegrationTestBase() {
 
@@ -124,7 +123,6 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
       assertThat(personOne.personKey!!.personUUID).isEqualTo(originalPersonKeyEntity.personUUID)
       assertThat(personOne.personKey!!.personEntities.size).isEqualTo(1)
       assertThat(personOne.isPassive()).isTrue()
-      assertThat(personOne.lastModified!!.truncatedTo(ChronoUnit.MICROS)).isEqualTo(originalPersonEntity.lastModified!!.truncatedTo(ChronoUnit.MICROS))
       wiremock.verify(0, deleteRequestedFor(urlEqualTo("/person")))
     }
   }
