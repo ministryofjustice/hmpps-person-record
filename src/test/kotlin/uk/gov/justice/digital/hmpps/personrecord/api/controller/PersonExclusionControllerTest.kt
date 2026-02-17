@@ -44,4 +44,20 @@ class PersonExclusionControllerTest : WebTestBase() {
       .jsonPath("userMessage")
       .isEqualTo("Not found: Person not found")
   }
+
+  @Test
+  fun `person already in passive state - returns OK`() {
+    val prisonerNumberOne = randomPrisonNumber()
+    val personEntity = createPerson(createRandomPrisonPersonDetails(prisonerNumberOne))
+    personEntity.markAsPassive()
+    createPersonKey().addPerson(personEntity)
+
+    webTestClient
+      .post()
+      .uri("/admin/exclusion/prisoner")
+      .bodyValue(PersonExclusionController.ExclusionRequest(prisonerNumberOne))
+      .exchange()
+      .expectStatus()
+      .isOk
+  }
 }
