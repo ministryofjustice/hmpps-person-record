@@ -95,6 +95,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       val updatedPerson = personRepository.findByPrisonNumber(prisonNumber)
       assertThat(updatedPerson!!.personKey!!.personUUID).isEqualTo(originalCluster!!.personUUID)
       verifyNoInteractions(mockReclusterService, mockPersonMatchService)
+      checkEventLogExist(updatedPerson.prisonNumber!!, CPRLogEvents.CPR_RECORD_UPDATED)
     }
   }
 }
