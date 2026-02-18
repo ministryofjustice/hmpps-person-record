@@ -245,7 +245,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /person/prison/{prisonNumber}/address/{cprAddressId}/addressUsage:
+  /person/prison/{prisonNumber}/address/{cprAddressId}/address-usage:
     post:
       summary: Create new CPR address usage mapping for a prisoner
       tags: [Address Usage]
@@ -377,7 +377,7 @@ paths:
         '404':
           description: Address usage not found
 
-  /person/prison/{prisonNumber}/address-contact/:
+  /person/prison/{prisonNumber}/address/{cprAddressId}/address-contact:
     post:
       summary: Create address contacts for a CPR address contact
       description: Creates one or more contacts for the specified CPR address contact ID.
@@ -390,6 +390,15 @@ paths:
           schema:
             type: string
             example: A6443EG
+        - name: cprAddressId
+          in: path
+          required: true
+          description: cpr address id
+          schema:
+            type: string
+            format: uuid
+            example: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+
       requestBody:
         required: true
         content:
