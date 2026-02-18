@@ -314,6 +314,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       sourcePerson.assertNotLinkedToCluster()
       sourcePerson.assertMergedTo(targetPerson)
+      assertThat(sourcePerson.isPassive()).isFalse()
       targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       targetPerson.personKey?.assertClusterIsOfSize(1)
       assertThat(targetPerson.isPassive()).isTrue()
