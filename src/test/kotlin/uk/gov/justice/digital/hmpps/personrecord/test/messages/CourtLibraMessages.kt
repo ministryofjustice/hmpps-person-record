@@ -24,7 +24,7 @@ fun libraHearing(
   line4: String? = randomName(),
   line5: String? = randomName(),
   cId: String = randomCId(),
-  defendantType: DefendantType = PERSON,
+  defendantType: DefendantType? = PERSON,
   defendantSex: String? = null,
 ) = """
 {
@@ -38,7 +38,7 @@ fun libraHearing(
       "surname":"$lastName"
    },
    "defendantName":"Mr $firstName $lastName",
-   "defendantType": "${defendantType.value}",
+   "defendantType": "${defendantType?.value}",
    "defendantSex":"$defendantSex",
    "defendantDob":"$dateOfBirth",
    "defendantAge":"20",

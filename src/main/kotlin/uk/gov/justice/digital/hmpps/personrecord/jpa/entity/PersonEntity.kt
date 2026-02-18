@@ -147,6 +147,9 @@ class PersonEntity(
   @Column(name = "last_modified")
   var lastModified: LocalDateTime? = null,
 
+  @Column(name = "passive_state")
+  var passiveState: Boolean = false,
+
   @Version
   var version: Int = 0,
 
@@ -191,6 +194,12 @@ class PersonEntity(
     this.personKey = personKey
     personKey.personEntities.add(this)
   }
+
+  fun markAsPassive() {
+    this.passiveState = true
+  }
+
+  fun isPassive() = this.passiveState
 
   fun update(person: Person) {
     this.defendantId = person.defendantId
@@ -238,6 +247,7 @@ class PersonEntity(
     this.addresses.clear()
     addresses.forEach { personAddressEntity ->
       personAddressEntity.person = this
+      personAddressEntity.usages.forEach { usage -> usage.address = personAddressEntity }
       personAddressEntity.contacts.forEach { contactEntity -> contactEntity.address = personAddressEntity }
     }
     this.addresses.addAll(addresses)

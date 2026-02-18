@@ -227,6 +227,25 @@ class ClusterApiIntTest : WebTestBase() {
     }
 
     @Test
+    fun `should return cluster details even when visualisation data is not present`() {
+      val person = createPersonWithNewKey(createRandomPrisonPersonDetails())
+
+      stubVisualiseClusterWith404()
+
+      val response = webTestClient.get()
+        .uri(prisonNumberClusterUrl(person.prisonNumber!!))
+        .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody(AdminClusterDetail::class.java)
+        .returnResult()
+        .responseBody!!
+
+      assertThat(response.uuid).isEqualTo(person.personKey?.personUUID.toString())
+    }
+
+    @Test
     fun `should return Access Denied 403 when role is wrong`() {
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.get()
@@ -255,6 +274,12 @@ class ClusterApiIntTest : WebTestBase() {
   private fun stubVisualiseCluster() = stubPostRequest(
     url = "/visualise-cluster",
     status = 200,
+    responseBody = """ { "spec": {} } """.trimIndent(),
+  )
+
+  private fun stubVisualiseClusterWith404() = stubPostRequest(
+    url = "/visualise-cluster",
+    status = 404,
     responseBody = """ { "spec": {} } """.trimIndent(),
   )
 

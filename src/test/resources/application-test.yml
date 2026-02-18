@@ -17,6 +17,12 @@ prisoner-search:
 core-person-record-and-delius:
   base-url: http://localhost:8090
 
+service-now:
+  base-url: http://localhost:8090
+  sysparm-id: sysparm12345
+  requestor: abcd
+  requested-for: efgh
+
 retry:
   timeout: 200
 
@@ -78,7 +84,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres?currentSchema=personrecordservice&stringtype=unspecified
     hikari:
-      maximum-pool-size: 20
+      maximum-pool-size: 10
 
 aws:
   endpoint: http://localhost:4566

@@ -17,6 +17,7 @@ import com.github.tomakehurst.wiremock.http.RequestMethod.PUT
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.matching.UrlPattern
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
+import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.awaitility.kotlin.atMost
@@ -152,7 +153,7 @@ class IntegrationTestBase {
         } else {
           wiremock.verify(getRequestedFor(urlMatching(it.request.urlPathPattern)))
         }
-        POST -> if (it.request.url != "/auth/oauth/token") {
+        POST -> if (it.request.url != "/auth/oauth/token" && it.request.url != "/oauth_token.do") {
           wiremock.verify(postRequestedFor(urlEqualTo(it.request.url)))
         }
         DELETE -> wiremock.verify(deleteRequestedFor(urlEqualTo(it.request.url)))
@@ -195,7 +196,7 @@ class IntegrationTestBase {
     religion = Value(randomReligion()),
     genderIdentity = Value(randomProbationGenderIdentity().key),
     selfDescribedGenderIdentity = randomName(),
-
+    dateOfBirth = randomDate(),
   )
 
   internal fun createRandomPrisonPersonDetails(prisonNumber: String = randomPrisonNumber()): Person = Person.from(
@@ -463,9 +464,9 @@ class IntegrationTestBase {
     )
   }
 
-  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, responseBody: String, status: Int = 200) {
+  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, responseBody: String, status: Int = 200): StubMapping? {
     authSetup()
-    wiremock.stubFor(
+    return wiremock.stubFor(
       WireMock.post(url)
         .inScenario(scenarioName)
         .whenScenarioStateIs(currentScenarioState)
@@ -476,6 +477,7 @@ class IntegrationTestBase {
             .withStatus(status)
             .withBody(responseBody),
         ),
+
     )
   }
 

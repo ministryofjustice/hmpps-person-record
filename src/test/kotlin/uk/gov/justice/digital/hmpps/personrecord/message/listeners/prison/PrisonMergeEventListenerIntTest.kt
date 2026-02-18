@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
+import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -282,6 +285,91 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       publishDomainEvent(PRISONER_MERGED, domainEvent)
 
       expectOneMessageOnDlq(prisonMergeEventsQueue)
+    }
+  }
+
+  @Nested
+  inner class PassiveStateRecords {
+
+    @BeforeEach
+    fun beforeEach() {
+      stubDeletePersonMatch()
+    }
+
+    @Test
+    fun `processes prisoner merge event and target record passive state is maintained`() {
+      val targetPrisonNumber = randomPrisonNumber()
+      val sourcePrisonNumber = randomPrisonNumber()
+
+      val sourcePerson = createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
+      val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
+      targetPerson.markAsPassive()
+      personRepository.saveAndFlush(targetPerson)
+
+      prisonMergeEventAndResponseSetup(
+        PRISONER_MERGED,
+        sourcePrisonNumber = sourcePrisonNumber,
+        targetPrisonNumber = targetPrisonNumber,
+      )
+
+      sourcePerson.assertNotLinkedToCluster()
+      sourcePerson.assertMergedTo(targetPerson)
+      assertThat(sourcePerson.isPassive()).isFalse()
+      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      targetPerson.personKey?.assertClusterIsOfSize(1)
+      assertThat(targetPerson.isPassive()).isTrue()
+      wiremock.verify(0, postRequestedFor(urlEqualTo("/person")))
+      wiremock.verify(1, deleteRequestedFor(urlEqualTo("/person")))
+
+      checkTelemetry(
+        CPR_RECORD_MERGED,
+        mapOf(
+          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
+          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
+          "SOURCE_SYSTEM" to NOMIS.name,
+        ),
+      )
+      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
+    }
+
+    @Test
+    fun `processes prisoner merge event and source record passive state is not maintained on target record`() {
+      stubPersonMatchUpsert()
+
+      val targetPrisonNumber = randomPrisonNumber()
+      val sourcePrisonNumber = randomPrisonNumber()
+
+      val sourcePerson = createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
+      val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
+      sourcePerson.markAsPassive()
+      personRepository.saveAndFlush(sourcePerson)
+
+      prisonMergeEventAndResponseSetup(
+        PRISONER_MERGED,
+        sourcePrisonNumber = sourcePrisonNumber,
+        targetPrisonNumber = targetPrisonNumber,
+      )
+
+      sourcePerson.assertNotLinkedToCluster()
+      sourcePerson.assertMergedTo(targetPerson)
+      assertThat(sourcePerson.isPassive()).isTrue()
+      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      targetPerson.personKey?.assertClusterIsOfSize(1)
+      assertThat(targetPerson.isPassive()).isFalse()
+      wiremock.verify(1, postRequestedFor(urlEqualTo("/person")))
+      wiremock.verify(1, deleteRequestedFor(urlEqualTo("/person")))
+
+      checkTelemetry(
+        CPR_RECORD_MERGED,
+        mapOf(
+          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
+          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
+          "SOURCE_SYSTEM" to NOMIS.name,
+        ),
+      )
+      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
     }
   }
 }
