@@ -1,0 +1,633 @@
+openapi: 3.0.3
+info:
+  title: Person Pseudonym API
+  version: 1.0.0
+  description: API for creating, updating, and retrieving prisoner pseudonyms and identifier mappings.
+
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/ftl/names/1.0.0
+  - url: https://api.yourdomain.tld
+
+tags:
+  - name: Pseudonym
+    description: Endpoints for prisoner pseudonyms
+
+paths:
+  /person/prison/{prisonNumber}/pseudonym:
+    post:
+      summary: Create pseudonyms for a prisoner
+      tags: [Pseudonym]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prisoner number
+          schema:
+            type: string
+            example: A6443EG
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PseudonymRequest'
+            examples:
+              sample:
+                value:
+                  pseudonym:
+                    - nomisPseudonymId: "2378"
+                      titleCode: "MR"
+                      firstName: "John"
+                      middleNames: "Jimmy Jane"
+                      lastName: "Smith"
+                      dateOfBirth: "1980-01-01"
+                      sexCode: "M"
+                      isPrimary: true
+                      identifiers:
+                        - nomisIdentifierId: "2333"
+                          type: "PNC"
+                          value: "2000/1234567A"
+                          comment: "Test comment"
+                    - nomisPseudonymId: "2379"
+                      titleCode: "MR"
+                      firstName: "Jon"
+                      middleNames: "James"
+                      lastName: "Smythe"
+                      dateOfBirth: "1980-01-01"
+                      sexCode: "M"
+                      isPrimary: false
+                      identifiers:
+                        - nomisIdentifierId: "2478"
+                          type: "PNC"
+                          value: "2000/1234567A"
+                          comment: "Test comment2"
+                        - nomisIdentifierId: "2479"
+                          type: "NINO"
+                          value: "SC344857F"
+                          comment: "Test comment3"
+      responses:
+        '200':
+          description: Pseudonyms processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PseudonymUpsertResponse'
+              examples:
+                sample:
+                  value:
+                    pseudonymMappings:
+                      - nomisPseudonymId: "2378"
+                        cprPseudonymId: "be3fb82f-fe3f-474c-8cbe-2170dec7d422"
+                        identifierMappings:
+                          - nomisIdentifierId: "2477"
+                            cprIdentifierId: "684125bb-49dc-491b-a185-3d0f706f4541"
+                      - nomisPseudonymId: "2379"
+                        cprPseudonymId: "ff41fec8-65e2-476d-a5eb-d209869d72c2"
+                        identifierMappings:
+                          - nomisIdentifierId: "2478"
+                            cprIdentifierId: "b7bb703f-d55e-419d-9126-b37ceb6e1b9d"
+                          - nomisIdentifierId: "2479"
+                            cprIdentifierId: "cfa14df6-9044-4532-8590-96f1589ebfaf"
+        '400':
+          description: Invalid data supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Prisoner not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /person/prison/{prisonNumber}/pseudonym/{cprPseudonymId}:
+    put:
+      summary: Update an existing CPR pseudonym for a prisoner
+      tags: [Pseudonym]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prisoner number
+          schema:
+            type: string
+            example: A6443EG
+        - name: cprPseudonymId
+          in: path
+          required: true
+          description: CPR Pseudonym UUID
+          schema:
+            type: string
+            format: uuid
+            example: be3fb82f-fe3f-474c-8cbe-2170dec7d422
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PseudonymRequest'
+            examples:
+              sample:
+                value:
+                  pseudonym:
+                    - nomisPseudonymId: "2378"
+                      titleCode: "MR"
+                      firstName: "John"
+                      middleNames: "Jimmy Jane"
+                      lastName: "Smith"
+                      dateOfBirth: "1980-01-01"
+                      sexCode: "M"
+                      isPrimary: true
+                      identifiers:
+                        - nomisIdentifierId: "2333"
+                          type: "PNC"
+                          value: "2000/1234567A"
+                          comment: "Test comment"
+      responses:
+        '200':
+          description: Pseudonym updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PseudonymUpsertResponse'
+              examples:
+                sample:
+                  value:
+                    pseudonymMappings:
+                      - nomisPseudonymId: "2378"
+                        cprPseudonymId: "be3fb82f-fe3f-474c-8cbe-2170dec7d422"
+                        identifierMappings:
+                          - nomisIdentifierId: "2477"
+                            cprIdentifierId: "684125bb-49dc-491b-a185-3d0f706f4541"
+        '400':
+          description: Invalid data supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Prisoner or pseudonym not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      summary: Retrieve CPR pseudonym details
+      description: Returns pseudonym JSON
+      tags: [Pseudonym]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prisoner number (e.g., NOMIS number)
+          schema:
+            type: string
+            example: A6443EG
+        - name: cprPseudonymId
+          in: path
+          required: true
+          description: CPR Pseudonym UUID
+          schema:
+            type: string
+            format: uuid
+            example: be3fb82f-fe3f-474c-8cbe-2170dec7d422
+      responses:
+        '200':
+          description: Pseudonym details (NOMIS IDs removed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PseudonymGetResponse'
+              examples:
+                sample:
+                  value:
+                    pseudonym:
+                      - titleCode: "MR"
+                        firstName: "John"
+                        middleNames: "Jimmy Jane"
+                        lastName: "Smith"
+                        dateOfBirth: "1980-01-01"
+                        sexCode: "M"
+                        isPrimary: true
+                        identifiers:
+                          - type: "PNC"
+                            value: "2000/1234567A"
+                            comment: "Test comment"
+        '404':
+          description: CPR pseudonym not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /person/prison/{prisonNumber}/pseudonym/{cprPseudonymId}/identifier:
+    post:
+      summary: Create identifiers for a CPR pseudonym
+      description: Creates one or more identifiers under the specified CPR pseudonym.
+      tags: [Identifier]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prisoner number
+          schema:
+            type: string
+            example: A6443EG
+        - name: cprPseudonymId
+          in: path
+          required: true
+          description: CPR Pseudonym UUID
+          schema:
+            type: string
+            format: uuid
+            example: be3fb82f-fe3f-474c-8cbe-2170dec7d422
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdentifiersRequest'
+            examples:
+              sample:
+                value:
+                  identifiers:
+                    - nomisIdentifierId: "2478"
+                      type: "PNC"
+                      value: "2000/1234567A"
+                      comment: "Test comment2"
+                    - nomisIdentifierId: "2479"
+                      type: "NINO"
+                      value: "SC344857F"
+                      comment: "Test comment3"
+      responses:
+        '200':
+          description: Identifiers processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentifiersUpsertResponse'
+              examples:
+                sample:
+                  value:
+                    identifierMappings:
+                      - nomisIdentifierId: "2478"
+                        cprIdentifierId: "b7bb703f-d55e-419d-9126-b37ceb6e1b9d"
+                      - nomisIdentifierId: "2479"
+                        cprIdentifierId: "cfa14df6-9044-4532-8590-96f1589ebfaf"
+        '400':
+          description: Invalid input supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Prisoner or CPR pseudonym not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /person/prison/{prisonNumber}/identifier/{cprIdentifierId}:
+    put:
+      summary: Update an existing CPR identifier for a prisoner
+      description: Updates one or more identifiers corresponding to the specified CPR identifier.
+      tags: [Identifier]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prisoner number (e.g., NOMIS number)
+          schema:
+            type: string
+            example: A6443EG
+        - name: cprIdentifierId
+          in: path
+          required: true
+          description: CPR Identifier UUID
+          schema:
+            type: string
+            format: uuid
+            example: b7bb703f-d55e-419d-9126-b37ceb6e1b9d
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdentifiersRequest'
+            examples:
+              sample:
+                value:
+                  identifiers:
+                    - nomisIdentifierId: "2478"
+                      type: "PNC"
+                      value: "2000/1234567A"
+                      comment: "Test comment2"
+                    - nomisIdentifierId: "2479"
+                      type: "NINO"
+                      value: "SC344857F"
+                      comment: "Test comment3"
+      responses:
+        '200':
+          description: Identifier updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentifiersUpsertResponse'
+              examples:
+                sample:
+                  value:
+                    identifierMappings:
+                      - nomisIdentifierId: "2478"
+                        cprIdentifierId: "b7bb703f-d55e-419d-9126-b37ceb6e1b9d"
+                      - nomisIdentifierId: "2479"
+                        cprIdentifierId: "cfa14df6-9044-4532-8590-96f1589ebfaf"
+        '400':
+          description: Invalid input supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Prisoner or CPR identifier not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      summary: Retrieve CPR identifier details
+      description: Returns identifier JSON
+      tags: [Identifier]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prisoner number (e.g., NOMIS number)
+          schema:
+            type: string
+            example: A6443EG
+        - name: cprIdentifierId
+          in: path
+          required: true
+          description: CPR Identifier UUID
+          schema:
+            type: string
+            format: uuid
+            example: b7bb703f-d55e-419d-9126-b37ceb6e1b9d
+      responses:
+        '200':
+          description: Identifier details (NOMIS ID removed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentifiersGetResponse'
+              examples:
+                sample:
+                  value:
+                    identifiers:
+                      - type: "PNC"
+                        value: "2000/1234567A"
+                        comment: "Test comment2"
+                      - type: "NINO"
+                        value: "SC344857F"
+                        comment: "Test comment3"
+        '404':
+          description: CPR identifier not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ----- REQUEST -----
+    PseudonymRequest:
+      type: object
+      required: [pseudonym]
+      properties:
+        pseudonym:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/PseudonymItem'
+
+    PseudonymItem:
+      type: object
+      properties:
+        nomisPseudonymId:
+          type: string
+          example: "2378"
+        titleCode:
+          type: string
+          example: "MR"
+        firstName:
+          type: string
+          example: "John"
+        middleNames:
+          type: string
+          example: "Jimmy Jane"
+        lastName:
+          type: string
+          example: "Smith"
+        dateOfBirth:
+          type: string
+          format: date
+          example: "1980-01-01"
+        sexCode:
+          type: string
+          example: "M"
+        isPrimary:
+          type: boolean
+          example: true
+        identifiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PseudonymIdentifierItem'
+
+    PseudonymIdentifierItem:
+      type: object
+      properties:
+        nomisIdentifierId:
+          type: string
+          example: "2478"
+        type:
+          type: string
+          example: "PNC"
+        value:
+          type: string
+          example: "2000/1234567A"
+        comment:
+          type: string
+          example: "Test comment"
+
+    # ----- PUT/POST RESPONSE -----
+    PseudonymUpsertResponse:
+      type: object
+      properties:
+        pseudonymMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/PseudonymMapping'
+
+    PseudonymMapping:
+      type: object
+      properties:
+        nomisPseudonymId:
+          type: string
+        cprPseudonymId:
+          type: string
+          format: uuid
+        identifierMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/IdentifierMapping'
+
+    IdentifierMapping:
+      type: object
+      properties:
+        nomisIdentifierId:
+          type: string
+        cprIdentifierId:
+          type: string
+          format: uuid
+
+    # ----- GET RESPONSE (NOMIS IDs REMOVED) -----
+    PseudonymGetResponse:
+      type: object
+      description: Pseudonym data without NOMIS identifiers.
+      properties:
+        pseudonym:
+          type: array
+          items:
+            $ref: '#/components/schemas/PseudonymWithoutNomisIds'
+
+    PseudonymWithoutNomisIds:
+      type: object
+      description: Same as request pseudonym item but without `nomisPseudonymId` and without `nomisIdentifierId` inside identifiers.
+      properties:
+        titleCode:
+          type: string
+          example: "MR"
+        firstName:
+          type: string
+          example: "John"
+        middleNames:
+          type: string
+          example: "Jimmy Jane"
+        lastName:
+          type: string
+          example: "Smith"
+        dateOfBirth:
+          type: string
+          format: date
+          example: "1980-01-01"
+        sexCode:
+          type: string
+          example: "M"
+        isPrimary:
+          type: boolean
+          example: true
+        identifiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PseudonymIdentifierWithoutNomisId'
+
+    PseudonymIdentifierWithoutNomisId:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "PNC"
+        value:
+          type: string
+          example: "2000/1234567A"
+        comment:
+          type: string
+          example: "Test comment"
+
+    # ----- identifiers -----
+    # ----- REQUEST -----
+    IdentifiersRequest:
+      type: object
+      required: [identifiers]
+      properties:
+        identifiers:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/IdentifierItem'
+
+    IdentifierItem:
+      type: object
+      properties:
+        nomisIdentifierId:
+          type: string
+          example: "2478"
+        type:
+          type: string
+          example: "PNC"
+        value:
+          type: string
+          example: "2000/1234567A"
+        comment:
+          type: string
+          example: "Test comment2"
+
+    # ----- PUT/POST RESPONSE -----
+    IdentifiersUpsertResponse:
+      type: object
+      properties:
+        identifierMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/IdentifierMapping'
+
+    # IdentifierMapping:
+    #   type: object
+    #   properties:
+    #     nomisIdentifierId:
+    #       type: string
+    #     cprIdentifierId:
+    #       type: string
+    #       format: uuid
+
+    # ----- GET RESPONSE (NOMIS IDs REMOVED) -----
+    IdentifiersGetResponse:
+      type: object
+      description: Identifiers returned without NOMIS identifier IDs.
+      properties:
+        identifiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/IdentifierWithoutNomisId'
+
+    IdentifierWithoutNomisId:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "PNC"
+        value:
+          type: string
+          example: "2000/1234567A"
+        comment:
+          type: string
+          example: "Test comment2"
+
+    # ----- COMMON ERROR -----
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 404
+        error:
+          type: string
+          example: Not Found
+        message:
+          type: string
+          example: "CPR pseudonym not found"
