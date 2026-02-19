@@ -49,4 +49,4 @@ generic-prometheus-alerts:
 cron:
   recordCountReportJob: "0 8-17 * * 1-5"
   reclusterNeedsAttentionJob: "0 13 * * 1-5"
-  generateDeliusMergeRequestsJob: "0 7 * * *"
+  generateDeliusMergeRequestsJob: "0 7 * * 1-5"
