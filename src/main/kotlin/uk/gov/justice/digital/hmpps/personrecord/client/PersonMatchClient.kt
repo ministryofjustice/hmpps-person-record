@@ -1,9 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.client
 
 import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
@@ -27,6 +29,7 @@ class PersonMatchClient(private val personMatchWebClient: WebClient) {
     .uri("/visualise-cluster")
     .bodyValue(requestBody)
     .retrieve()
+    .onStatus({ it.value() == HttpStatus.NOT_FOUND.value() }) { Mono.empty() }
     .bodyToMono(VisualiseCluster::class.java)
     .block()!!
 

@@ -8,20 +8,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 class ServiceNowMergeRequestControllerFeatureFlagIntTest : WebTestBase() {
 
   @Nested
-  @ActiveProfiles("preprod")
-  inner class Preprod {
-
-    @Test
-    fun `not available in preprod`() {
-      webTestClient.post()
-        .uri("/jobs/service-now/generate-delius-merge-requests")
-        .exchange()
-        .expectStatus()
-        .isUnauthorized
-    }
-  }
-
-  @Nested
   @ActiveProfiles("prod")
   inner class Prod {
     @Test

@@ -7,10 +7,10 @@ data class AdminClusterDetail(
   val status: String,
   val statusReasonCode: String?,
   val records: List<AdminRecordDetail>,
-  val clusterSpec: Any,
+  val clusterSpec: Any?,
 ) {
   companion object {
-    fun from(personKeyEntity: PersonKeyEntity, clusterSpec: Any): AdminClusterDetail = AdminClusterDetail(
+    fun from(personKeyEntity: PersonKeyEntity, clusterSpec: Any?): AdminClusterDetail = AdminClusterDetail(
       uuid = personKeyEntity.personUUID.toString(),
       status = personKeyEntity.status.name,
       statusReasonCode = personKeyEntity.statusReason?.name,
