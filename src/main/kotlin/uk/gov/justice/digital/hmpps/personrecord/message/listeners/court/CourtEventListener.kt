@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerServic
 @ConditionalOnProperty(
   name = ["sqs.listeners.enabled"],
   havingValue = "true",
-  matchIfMissing = true
+  matchIfMissing = true,
 )
 class CourtEventListener(
   private val commonPlatformEventProcessor: CommonPlatformEventProcessor,

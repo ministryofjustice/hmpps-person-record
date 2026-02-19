@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 @ConditionalOnProperty(
   name = ["sqs.listeners.enabled"],
   havingValue = "true",
-  matchIfMissing = true
+  matchIfMissing = true,
 )
 class PrisonEventListener(
   private val domainEventProcessor: DomainEventProcessor,

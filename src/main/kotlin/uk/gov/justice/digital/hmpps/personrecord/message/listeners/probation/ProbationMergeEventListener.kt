@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 @ConditionalOnProperty(
   name = ["sqs.listeners.enabled"],
   havingValue = "true",
-  matchIfMissing = true
+  matchIfMissing = true,
 )
 class ProbationMergeEventListener(
   private val domainEventProcessor: DomainEventProcessor,
