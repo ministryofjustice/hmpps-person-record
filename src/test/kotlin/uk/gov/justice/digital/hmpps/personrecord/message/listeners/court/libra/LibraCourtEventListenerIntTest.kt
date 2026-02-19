@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLibraSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNonOrganisationDefendantTypeOrNull
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import java.time.format.DateTimeFormatter
@@ -33,7 +34,7 @@ import java.time.format.DateTimeFormatter
 class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
-  fun `should create new person from Libra message`() {
+  fun `should create new person from Libra message for non organisations`() {
     val title = randomTitleCode()
     val firstName = randomName()
     val forename2 = randomName()
@@ -43,6 +44,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val pnc = randomLongPnc()
     val dateOfBirth = randomDate()
     val cId = randomCId()
+    val nonOrganisationDefendantTypeOrNull = randomNonOrganisationDefendantTypeOrNull()
 
     val buildingName = randomName()
     val buildingNumber = randomBuildingNumber()
@@ -72,6 +74,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         line3 = thoroughfareName,
         line4 = dependentLocality,
         line5 = postTown,
+        defendantType = nonOrganisationDefendantTypeOrNull,
       ),
     )
 

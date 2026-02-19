@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.test
 
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.VALID_LETTERS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.commonPlatformEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.prisonEthnicity
@@ -142,3 +143,5 @@ private fun randomDigit(length: Int = 7): String = (1..length).map {
 }.joinToString("")
 
 private fun randomYear() = (1950..LocalDate.now().year).random()
+
+fun randomNonOrganisationDefendantTypeOrNull(): DefendantType? = listOf(null, DefendantType.PERSON).random()
