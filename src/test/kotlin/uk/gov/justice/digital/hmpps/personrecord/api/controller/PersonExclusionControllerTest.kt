@@ -48,9 +48,7 @@ class PersonExclusionControllerTest : WebTestBase() {
   @Test
   fun `person already in passive state - returns OK`() {
     val prisonerNumberOne = randomPrisonNumber()
-    val personEntity = createPerson(createRandomPrisonPersonDetails(prisonerNumberOne))
-    personEntity.markAsPassive()
-    createPersonKey().addPerson(personEntity)
+    createPersonWithNewKey(createRandomPrisonPersonDetails(prisonerNumberOne)) { markAsPassive() }
 
     webTestClient
       .post()

@@ -111,8 +111,7 @@ class PersonExclusionServiceTest : IntegrationTestBase() {
   @Test
   fun `already in passive state - no update to person record`() {
     val prisonerNumberOne = randomPrisonNumber()
-    val originalPersonEntity = createPerson(createRandomPrisonPersonDetails(prisonerNumberOne))
-    originalPersonEntity.markAsPassive()
+    val originalPersonEntity = createPerson(createRandomPrisonPersonDetails(prisonerNumberOne)) { markAsPassive() }
     val originalPersonKeyEntity = createPersonKey()
       .addPerson(originalPersonEntity)
 

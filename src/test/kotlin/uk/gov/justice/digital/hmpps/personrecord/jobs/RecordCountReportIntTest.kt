@@ -42,10 +42,7 @@ class RecordCountReportIntTest : WebTestBase() {
 
   @Test
   fun `should not include passive state records in telemetry`() {
-    val passive = createPerson(createRandomPrisonPersonDetails())
-    passive.markAsPassive()
-    personRepository.saveAndFlush(passive)
-
+    createPerson(createRandomPrisonPersonDetails()) { markAsPassive() }
     createPerson(createRandomPrisonPersonDetails())
     createPerson(createRandomProbationPersonDetails())
     createPerson(createRandomLibraPersonDetails())

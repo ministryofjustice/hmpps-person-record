@@ -205,8 +205,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       createPersonKey()
         .addPerson(searchingRecord)
 
-      val passiveRecord = createPerson(createExamplePerson())
-      passiveRecord.markAsPassive()
+      val passiveRecord = createPerson(createExamplePerson()) { markAsPassive() }
       createPersonKey()
         .addPerson(passiveRecord)
 
