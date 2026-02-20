@@ -33,10 +33,10 @@ class RecordCountReport(
         RecordTelemetry(
           TelemetryEventType.CPR_RECORD_COUNT_REPORT,
           mapOf(
-            EventKeys.NOMIS to personRepository.countBySourceSystemAndMergedToIsNull(SourceSystemType.NOMIS).toString(),
-            EventKeys.DELIUS to personRepository.countBySourceSystemAndMergedToIsNull(SourceSystemType.DELIUS).toString(),
-            EventKeys.LIBRA to personRepository.countBySourceSystemAndMergedToIsNull(SourceSystemType.LIBRA).toString(),
-            EventKeys.COMMON_PLATFORM to personRepository.countBySourceSystemAndMergedToIsNull(SourceSystemType.COMMON_PLATFORM).toString(),
+            EventKeys.NOMIS to personRepository.countBySourceSystemAndMergedToIsNullAndPassiveStateFalse(SourceSystemType.NOMIS).toString(),
+            EventKeys.DELIUS to personRepository.countBySourceSystemAndMergedToIsNullAndPassiveStateFalse(SourceSystemType.DELIUS).toString(),
+            EventKeys.LIBRA to personRepository.countBySourceSystemAndMergedToIsNullAndPassiveStateFalse(SourceSystemType.LIBRA).toString(),
+            EventKeys.COMMON_PLATFORM to personRepository.countBySourceSystemAndMergedToIsNullAndPassiveStateFalse(SourceSystemType.COMMON_PLATFORM).toString(),
           ),
         ),
       )

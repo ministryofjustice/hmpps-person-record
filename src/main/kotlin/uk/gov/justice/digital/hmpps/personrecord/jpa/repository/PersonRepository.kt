@@ -25,7 +25,7 @@ interface PersonRepository : JpaRepository<PersonEntity, Long> {
 
   fun findByMatchId(matchId: UUID): PersonEntity?
 
-  fun countBySourceSystemAndMergedToIsNull(sourceSystem: SourceSystemType): Long
+  fun countBySourceSystemAndMergedToIsNullAndPassiveStateFalse(sourceSystem: SourceSystemType): Long
 
   fun findByLastModifiedBetween(
     lastModifiedAfter: LocalDateTime,

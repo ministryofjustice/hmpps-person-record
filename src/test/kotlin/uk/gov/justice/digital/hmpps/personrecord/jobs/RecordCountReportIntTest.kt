@@ -39,4 +39,32 @@ class RecordCountReportIntTest : WebTestBase() {
       ),
     )
   }
+
+  @Test
+  fun `should not include passive state records in telemetry`() {
+    val passive = createPerson(createRandomPrisonPersonDetails())
+    passive.markAsPassive()
+    personRepository.saveAndFlush(passive)
+
+    createPerson(createRandomPrisonPersonDetails())
+    createPerson(createRandomProbationPersonDetails())
+    createPerson(createRandomLibraPersonDetails())
+    createPerson(createRandomCommonPlatformPersonDetails())
+
+    webTestClient.post()
+      .uri("/jobs/recordcountreport")
+      .exchange()
+      .expectStatus()
+      .isOk
+
+    checkTelemetry(
+      TelemetryEventType.CPR_RECORD_COUNT_REPORT,
+      mapOf(
+        "NOMIS" to "1",
+        "DELIUS" to "1",
+        "COMMON_PLATFORM" to "1",
+        "LIBRA" to "1",
+      ),
+    )
+  }
 }
