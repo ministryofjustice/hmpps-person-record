@@ -1,9 +1,10 @@
+{{- if .Values.cron.generateDeliusMergeRequestsJob }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ include "generic-service.fullname" . | trunc 26 }}-generate-delius-merge-requests
 spec:
-  schedule:  "{{ .Values.cron.generateDeliusMergeRequestsJob }}"
+  schedule: "{{ .Values.cron.generateDeliusMergeRequestsJob }}"
   concurrencyPolicy: Replace
   failedJobsHistoryLimit: 1
   startingDeadlineSeconds: 43200
@@ -31,3 +32,4 @@ spec:
                 - /bin/sh
                 - -c
                 - curl --fail --retry 2 -X POST http://hmpps-person-record/jobs/service-now/generate-delius-merge-requests
+{{- end }}
