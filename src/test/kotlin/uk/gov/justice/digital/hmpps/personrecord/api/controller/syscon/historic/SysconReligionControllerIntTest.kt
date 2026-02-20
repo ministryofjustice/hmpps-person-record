@@ -218,6 +218,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
 
     assertThat(religionEntities.size).isEqualTo(religions.size)
     religions.zip(religionEntities).forEachIndexed { _, (sentReligion, storedReligion) ->
+      assertThat(storedReligion.updateId).isNotNull()
       assertThat(storedReligion.prisonNumber).isEqualTo(prisonNumber)
       assertThat(storedReligion.verified).isEqualTo(sentReligion.verified)
       assertThat(storedReligion.comments).isEqualTo(sentReligion.comments)
