@@ -302,9 +302,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sourcePrisonNumber = randomPrisonNumber()
 
       val sourcePerson = createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
-      val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
-      targetPerson.markAsPassive()
-      personRepository.saveAndFlush(targetPerson)
+      val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS)) { markAsPassive() }
 
       prisonMergeEventAndResponseSetup(
         PRISONER_MERGED,
@@ -340,10 +338,8 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
 
-      val sourcePerson = createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
+      val sourcePerson = createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS)) { markAsPassive() }
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
-      sourcePerson.markAsPassive()
-      personRepository.saveAndFlush(sourcePerson)
 
       prisonMergeEventAndResponseSetup(
         PRISONER_MERGED,

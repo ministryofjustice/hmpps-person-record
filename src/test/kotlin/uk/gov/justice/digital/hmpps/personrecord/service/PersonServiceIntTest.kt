@@ -82,14 +82,12 @@ class PersonServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should not save to person match or recluster passive records on update`() {
     val prisonNumber = randomPrisonNumber()
-    val originalEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-    originalEntity.markAsPassive()
-    val updatedEntity = personRepository.saveAndFlush(originalEntity)
-    val originalCluster = updatedEntity.personKey
+    val originalEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber)) { markAsPassive() }
+    val originalCluster = originalEntity.personKey
 
-    val updatedPerson = Person.from(updatedEntity).copy(firstName = randomName())
+    val updatedPerson = Person.from(originalEntity).copy(firstName = randomName())
 
-    personService.processPerson(updatedPerson) { updatedEntity }
+    personService.processPerson(updatedPerson) { originalEntity }
 
     awaitAssert {
       val updatedPerson = personRepository.findByPrisonNumber(prisonNumber)
