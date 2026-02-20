@@ -90,21 +90,17 @@ paths:
               sample:
                 value:
                   contact:
-                    - nomisContactId: 1234
-                      contactType: "MOBILE"
-                      contactValue: "+44 7700 900123"
-                      extension: null
-                    - nomisContactId: 1235
-                      contactType: "EMAIL"
-                      contactValue: "abc@def.xyz"
-                      extension: null
+                    nomisContactId: 1234
+                    contactType: "MOBILE"
+                    contactValue: "+44 7700 900123"
+                    extension: null
       responses:
         '200':
           description: Person contacts updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PersonContactResponse"
+                $ref: "#/components/schemas/PersonContactPutResponse"
         '400':
           description: Invalid request
         '404':
@@ -136,12 +132,10 @@ paths:
                 sample:
                   value:
                     contact:
-                      - contactType: "MOBILE"
-                        contactValue: "+44 7700 900123"
-                        extension: null
-                      - contactType: "EMAIL"
-                        contactValue: "abc@def.xyz"
-                        extension: null
+                      contactType: "MOBILE"
+                      contactValue: "+44 7700 900123"
+                      extension: null
+
         '404':
           description: CPR person contact not found
 
@@ -190,7 +184,7 @@ paths:
 
 components:
   schemas:
-    # ----- REQUEST -----
+    # ----- POST REQUEST -----
     PersonContactRequest:
       type: object
       required: [contact]
@@ -217,7 +211,7 @@ components:
           nullable: true
           example: null
 
-    # ----- PUT/POST RESPONSE -----
+    # ----- POST RESPONSE -----
     PersonContactResponse:
       type: object
       properties:
@@ -230,6 +224,52 @@ components:
             $ref: "#/components/schemas/PersonContactMapping"
 
     PersonContactMapping:
+      type: object
+      properties:
+        nomisContactId:
+          type: string
+        cprContactId:
+          type: string
+          format: uuid
+
+    # ----- PUT REQUEST -----
+    PersonContactPutRequest:
+      type: object
+      required: [contact]
+      properties:
+        contact:
+          $ref: "#/components/schemas/PersonContactPutItem"
+
+    PersonContactPutItem:
+      type: object
+      properties:
+        nomisContactId:
+          type: integer
+          example: 1234
+        contactType:
+          type: string
+          example: "MOBILE"
+        contactValue:
+          type: string
+          example: "+44 7700 900123"
+        extension:
+          type: string
+          nullable: true
+          example: null
+
+    # ----- PUT RESPONSE -----
+    PersonContactPutResponse:
+      type: object
+      properties:
+        prisonerNumber:
+          type: string
+          example: "A6443EG"
+        personContactMappings:
+          type: array
+          items:
+            $ref: "#/components/schemas/PersonContactPutMapping"
+
+    PersonContactPutMapping:
       type: object
       properties:
         nomisContactId:
