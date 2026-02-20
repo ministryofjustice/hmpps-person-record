@@ -1,0 +1,334 @@
+openapi: 3.0.3
+info:
+  title: Prisoner Religion API
+  version: 1.0.0
+  description: API for creating, updating, and retrieving prisoner religion details and CPR/NOMIS mappings.
+
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/ftl/names/1.0.0
+  - url: https://api.yourdomain.tld
+
+tags:
+  - name: Religion
+    description: Endpoints for prisoner religions
+
+paths:
+  /person/prison/{prisonerNumber}/religion:
+    post:
+      summary: Create/sync a religion for a prisoner
+      description: Accepts a single religion object and returns the CPR mapping for it.
+      tags: [Religion]
+      parameters:
+        - name: prisonerNumber
+          in: path
+          required: true
+          description: Prisoner number (e.g., NOMIS number)
+          schema:
+            type: string
+            example: "A6443EG"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReligionEnvelope"
+            examples:
+              sample:
+                value:
+                  religion:
+                    nomisReligionId: 3456
+                    religionCode: "AGNO"
+                    changeReasonKnown: true
+                    comments: "Foo Bar"
+                    verified: true
+                    startDate: "1980-01-01"
+                    endDate: "2000-01-01"
+                    modifyDateTime: "2000-01-01 12:00:00"
+                    modifyUserId: "12345"
+                    current: true
+      responses:
+        "200":
+          description: Religion processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReligionMappingResponse"
+              examples:
+                sample:
+                  value:
+                    prisonerId: "A6443EG"
+                    religionMappings:
+                      nomisReligionId: "3456"
+                      cprReligionId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Prisoner not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /person/prison/{prisonerNumber}/religion/{cprReligionId}:
+    put:
+      summary: Update an existing CPR religion for a prisoner
+      tags: [Religion]
+      parameters:
+        - name: prisonerNumber
+          in: path
+          required: true
+          description: Prisoner number (e.g., NOMIS number)
+          schema:
+            type: string
+            example: "A6443EG"
+        - name: cprReligionId
+          in: path
+          required: true
+          description: CPR Religion ID (UUID or system identifier)
+          schema:
+            type: string
+            example: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReligionEnvelope"
+            examples:
+              sample:
+                value:
+                  religion:
+                    nomisReligionId: 3456
+                    religionCode: "AGNO"
+                    changeReasonKnown: true
+                    comments: "Foo Bar"
+                    verified: true
+                    startDate: "1980-01-01"
+                    endDate: "2000-01-01"
+                    modifyDateTime: "2000-01-01 12:00:00"
+                    modifyUserId: "12345"
+                    current: true
+      responses:
+        "200":
+          description: Religion updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReligionMappingResponse"
+              examples:
+                sample:
+                  value:
+                    prisonerId: "A6443EG"
+                    religionMappings:
+                      nomisReligionId: "3456"
+                      cprReligionId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Prisoner or religion not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      summary: Retrieve CPR religion details (NOMIS ID removed)
+      description: Returns the religion JSON used in POST/PUT without `nomisReligionId`.
+      tags: [Religion]
+      parameters:
+        - name: prisonerNumber
+          in: path
+          required: true
+          description: Prisoner number (e.g., NOMIS number)
+          schema:
+            type: string
+            example: "A6443EG"
+        - name: cprReligionId
+          in: path
+          required: true
+          description: CPR Religion ID (UUID or system identifier)
+          schema:
+            type: string
+            example: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+      responses:
+        "200":
+          description: Religion details (NOMIS ID removed)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReligionGetResponse"
+              examples:
+                sample:
+                  value:
+                    religion:
+                      religionCode: "AGNO"
+                      changeReasonKnown: true
+                      comments: "Foo Bar"
+                      verified: true
+                      startDate: "1980-01-01"
+                      endDate: "2000-01-01"
+                      modifyDateTime: "2000-01-01 12:00:00"
+                      modifyUserId: "12345"
+                      current: true
+        "404":
+          description: CPR religion not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    # ---------- Request Envelope ----------
+    ReligionEnvelope:
+      type: object
+      required: [religion]
+      properties:
+        religion:
+          $ref: "#/components/schemas/ReligionItem"
+
+    # ---------- Religion Item ----------
+    ReligionItem:
+      type: object
+      required:
+        - nomisReligionId
+        - religionCode
+        - changeReasonKnown
+        - verified
+        - startDate
+        - modifyDateTime
+        - modifyUserId
+        - current
+      properties:
+        nomisReligionId:
+          type: integer
+          example: 3456
+        religionCode:
+          type: string
+          example: "AGNO"
+        changeReasonKnown:
+          type: boolean
+          example: true
+        comments:
+          type: string
+          example: "Foo Bar"
+        verified:
+          type: boolean
+          example: true
+        startDate:
+          type: string
+          format: date
+          example: "1980-01-01"
+        endDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2000-01-01"
+        modifyDateTime:
+          type: string
+          description: "Non-ISO timestamp in 'yyyy-MM-dd HH:mm:ss' format"
+          example: "2000-01-01 12:00:00"
+        modifyUserId:
+          type: string
+          example: "12345"
+        current:
+          type: boolean
+          example: true
+
+    # ---------- PUT/POST Response ----------
+    ReligionMappingResponse:
+      type: object
+      required: [prisonerId, religionMappings]
+      properties:
+        prisonerId:
+          type: string
+          example: "A6443EG"
+        religionMappings:
+          $ref: "#/components/schemas/ReligionMapping"
+
+    ReligionMapping:
+      type: object
+      required: [nomisReligionId, cprReligionId]
+      properties:
+        nomisReligionId:
+          type: string
+          example: "3456"
+        cprReligionId:
+          type: string
+          example: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+
+    # ---------- GET Response (without NOMIS ID) ----------
+    ReligionGetResponse:
+      type: object
+      description: Religion returned without NOMIS identifiers.
+      required: [religion]
+      properties:
+        religion:
+          $ref: "#/components/schemas/ReligionWithoutNomisId"
+
+    ReligionWithoutNomisId:
+      type: object
+      required:
+        - religionCode
+        - changeReasonKnown
+        - verified
+        - startDate
+        - modifyDateTime
+        - modifyUserId
+        - current
+      properties:
+        religionCode:
+          type: string
+          example: "AGNO"
+        changeReasonKnown:
+          type: boolean
+          example: true
+        comments:
+          type: string
+          example: "Foo Bar"
+        verified:
+          type: boolean
+          example: true
+        startDate:
+          type: string
+          format: date
+          example: "1980-01-01"
+        endDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2000-01-01"
+        modifyDateTime:
+          type: string
+          description: "Non-ISO timestamp in 'yyyy-MM-dd HH:mm:ss' format"
+          example: "2000-01-01 12:00:00"
+        modifyUserId:
+          type: string
+          example: "12345"
+        current:
+          type: boolean
+          example: true
+
+    # ---------- Common Error ----------
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 404
+        error:
+          type: string
+          example: Not Found
+        message:
+          type: string
+          example: "CPR religion not found"
