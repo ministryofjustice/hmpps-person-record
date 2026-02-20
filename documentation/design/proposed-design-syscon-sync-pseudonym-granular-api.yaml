@@ -6,6 +6,9 @@ info:
 
 servers:
   # Added by API Auto Mocking Plugin
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/ftl/Pesudonym-Identifiers/1.0.0
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/ftl/names/1.0.0
   - url: https://api.yourdomain.tld
@@ -32,24 +35,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PseudonymRequest'
+              $ref: '#/components/schemas/PseudonymPostRequest'
             examples:
               sample:
                 value:
                   pseudonym:
-                    - nomisPseudonymId: "2378"
-                      titleCode: "MR"
-                      firstName: "John"
-                      middleNames: "Jimmy Jane"
-                      lastName: "Smith"
-                      dateOfBirth: "1980-01-01"
-                      sexCode: "M"
-                      isPrimary: true
-                      identifiers:
-                        - nomisIdentifierId: "2333"
-                          type: "PNC"
-                          value: "2000/1234567A"
-                          comment: "Test comment"
                     - nomisPseudonymId: "2379"
                       titleCode: "MR"
                       firstName: "Jon"
@@ -73,7 +63,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PseudonymUpsertResponse'
+                $ref: '#/components/schemas/PseudonymPostResponse'
               examples:
                 sample:
                   value:
@@ -128,40 +118,40 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PseudonymRequest'
+              $ref: '#/components/schemas/PseudonymPutRequest'
             examples:
               sample:
                 value:
                   pseudonym:
-                    - nomisPseudonymId: "2378"
-                      titleCode: "MR"
-                      firstName: "John"
-                      middleNames: "Jimmy Jane"
-                      lastName: "Smith"
-                      dateOfBirth: "1980-01-01"
-                      sexCode: "M"
-                      isPrimary: true
-                      identifiers:
-                        - nomisIdentifierId: "2333"
-                          type: "PNC"
-                          value: "2000/1234567A"
-                          comment: "Test comment"
+                    nomisPseudonymId: "2378"
+                    titleCode: "MR"
+                    firstName: "John"
+                    middleNames: "Jimmy Jane"
+                    lastName: "Smith"
+                    dateOfBirth: "1980-01-01"
+                    sexCode: "M"
+                    isPrimary: true
+                    # identifiers:
+                    #   - nomisIdentifierId: "2333"
+                    #     type: "PNC"
+                    #     value: "2000/1234567A"
+                    #     comment: "Test comment"
       responses:
         '200':
           description: Pseudonym updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PseudonymUpsertResponse'
+                $ref: '#/components/schemas/PseudonymPutResponse'
               examples:
                 sample:
                   value:
                     pseudonymMappings:
-                      - nomisPseudonymId: "2378"
-                        cprPseudonymId: "be3fb82f-fe3f-474c-8cbe-2170dec7d422"
-                        identifierMappings:
-                          - nomisIdentifierId: "2477"
-                            cprIdentifierId: "684125bb-49dc-491b-a185-3d0f706f4541"
+                      nomisPseudonymId: "2378"
+                      cprPseudonymId: "be3fb82f-fe3f-474c-8cbe-2170dec7d422"
+                      # identifierMappings:
+                      #   - nomisIdentifierId: "2477"
+                      #     cprIdentifierId: "684125bb-49dc-491b-a185-3d0f706f4541"
         '400':
           description: Invalid data supplied
           content:
@@ -197,7 +187,7 @@ paths:
             example: be3fb82f-fe3f-474c-8cbe-2170dec7d422
       responses:
         '200':
-          description: Pseudonym details (NOMIS IDs removed)
+          description: Pseudonym details
           content:
             application/json:
               schema:
@@ -206,17 +196,17 @@ paths:
                 sample:
                   value:
                     pseudonym:
-                      - titleCode: "MR"
-                        firstName: "John"
-                        middleNames: "Jimmy Jane"
-                        lastName: "Smith"
-                        dateOfBirth: "1980-01-01"
-                        sexCode: "M"
-                        isPrimary: true
-                        identifiers:
-                          - type: "PNC"
-                            value: "2000/1234567A"
-                            comment: "Test comment"
+                      titleCode: "MR"
+                      firstName: "John"
+                      middleNames: "Jimmy Jane"
+                      lastName: "Smith"
+                      dateOfBirth: "1980-01-01"
+                      sexCode: "M"
+                      isPrimary: true
+                      # identifiers:
+                      #   - type: "PNC"
+                      #     value: "2000/1234567A"
+                      #     comment: "Test comment"
         '404':
           description: CPR pseudonym not found
           content:
@@ -269,7 +259,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdentifiersUpsertResponse'
+                $ref: '#/components/schemas/IdentifiersPostResponse'
               examples:
                 sample:
                   value:
@@ -322,29 +312,25 @@ paths:
               sample:
                 value:
                   identifiers:
-                    - nomisIdentifierId: "2478"
-                      type: "PNC"
-                      value: "2000/1234567A"
-                      comment: "Test comment2"
-                    - nomisIdentifierId: "2479"
-                      type: "NINO"
-                      value: "SC344857F"
-                      comment: "Test comment3"
+                    nomisIdentifierId: "2478"
+                    type: "PNC"
+                    value: "2000/1234567A"
+                    comment: "Test comment2"
+
       responses:
         '200':
           description: Identifier updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdentifiersUpsertResponse'
+                $ref: '#/components/schemas/IdentifiersPutResponse'
               examples:
                 sample:
                   value:
                     identifierMappings:
-                      - nomisIdentifierId: "2478"
-                        cprIdentifierId: "b7bb703f-d55e-419d-9126-b37ceb6e1b9d"
-                      - nomisIdentifierId: "2479"
-                        cprIdentifierId: "cfa14df6-9044-4532-8590-96f1589ebfaf"
+                      nomisIdentifierId: "2478"
+                      cprIdentifierId: "b7bb703f-d55e-419d-9126-b37ceb6e1b9d"
+
         '400':
           description: Invalid input supplied
           content:
@@ -389,12 +375,10 @@ paths:
                 sample:
                   value:
                     identifiers:
-                      - type: "PNC"
-                        value: "2000/1234567A"
-                        comment: "Test comment2"
-                      - type: "NINO"
-                        value: "SC344857F"
-                        comment: "Test comment3"
+                      type: "PNC"
+                      value: "2000/1234567A"
+                      comment: "Test comment2"
+
         '404':
           description: CPR identifier not found
           content:
@@ -404,18 +388,18 @@ paths:
 
 components:
   schemas:
-    # ----- REQUEST -----
-    PseudonymRequest:
+    # ----- POST REQUEST -----
+    PseudonymPostRequest:
       type: object
       required: [pseudonym]
       properties:
         pseudonym:
-          type: array
-          minItems: 1
-          items:
-            $ref: '#/components/schemas/PseudonymItem'
+          # type: array
+          # minItems: 1
+          # items:
+          $ref: '#/components/schemas/PseudonymPostItem'
 
-    PseudonymItem:
+    PseudonymPostItem:
       type: object
       properties:
         nomisPseudonymId:
@@ -446,9 +430,9 @@ components:
         identifiers:
           type: array
           items:
-            $ref: '#/components/schemas/PseudonymIdentifierItem'
+            $ref: '#/components/schemas/PseudonymIdentifierPostItem'
 
-    PseudonymIdentifierItem:
+    PseudonymIdentifierPostItem:
       type: object
       properties:
         nomisIdentifierId:
@@ -464,16 +448,16 @@ components:
           type: string
           example: "Test comment"
 
-    # ----- PUT/POST RESPONSE -----
-    PseudonymUpsertResponse:
+    # # ----- POST RESPONSE -----
+    PseudonymPostResponse:
       type: object
       properties:
-        pseudonymMappings:
+        pseudonymPostMappings:
           type: array
           items:
-            $ref: '#/components/schemas/PseudonymMapping'
+            $ref: '#/components/schemas/PseudonymPostMapping'
 
-    PseudonymMapping:
+    PseudonymPostMapping:
       type: object
       properties:
         nomisPseudonymId:
@@ -486,14 +470,105 @@ components:
           items:
             $ref: '#/components/schemas/IdentifierMapping'
 
-    IdentifierMapping:
+    # IdentifierMapping:
+    #   type: object
+    #   properties:
+    #     nomisIdentifierId:
+    #       type: string
+    #     cprIdentifierId:
+    #       type: string
+    #       format: uuid
+
+    # ----- PUT REQUEST -----
+    PseudonymPutRequest:
+      type: object
+      required: [pseudonym]
+      properties:
+        pseudonym:
+          # type: array
+          # minItems: 1
+          # items:
+          $ref: '#/components/schemas/PseudonymItem'
+
+    PseudonymItem:
       type: object
       properties:
-        nomisIdentifierId:
+        nomisPseudonymId:
           type: string
-        cprIdentifierId:
+          example: "2378"
+        titleCode:
+          type: string
+          example: "MR"
+        firstName:
+          type: string
+          example: "John"
+        middleNames:
+          type: string
+          example: "Jimmy Jane"
+        lastName:
+          type: string
+          example: "Smith"
+        dateOfBirth:
+          type: string
+          format: date
+          example: "1980-01-01"
+        sexCode:
+          type: string
+          example: "M"
+        isPrimary:
+          type: boolean
+          example: true
+        # identifiers:
+        #   type: array
+        #   items:
+        #     $ref: '#/components/schemas/PseudonymIdentifierItem'
+
+    # PseudonymIdentifierItem:
+    #   type: object
+    #   properties:
+    #     nomisIdentifierId:
+    #       type: string
+    #       example: "2478"
+    #     type:
+    #       type: string
+    #       example: "PNC"
+    #     value:
+    #       type: string
+    #       example: "2000/1234567A"
+    #     comment:
+    #       type: string
+    #       example: "Test comment"
+
+    # ----- PUT RESPONSE -----
+    PseudonymPutResponse:
+      type: object
+      properties:
+        pseudonymPutMappings:
+          # type: array
+          # items:
+          $ref: '#/components/schemas/PseudonymPutMapping'
+
+    PseudonymPutMapping:
+      type: object
+      properties:
+        nomisPseudonymId:
+          type: string
+        cprPseudonymId:
           type: string
           format: uuid
+        # identifierMappings:
+        #   type: array
+        #   items:
+        #     $ref: '#/components/schemas/IdentifierMapping'
+
+    # IdentifierMapping:
+    #   type: object
+    #   properties:
+    #     nomisIdentifierId:
+    #       type: string
+    #     cprIdentifierId:
+    #       type: string
+    #       format: uuid
 
     # ----- GET RESPONSE (NOMIS IDs REMOVED) -----
     PseudonymGetResponse:
@@ -501,9 +576,9 @@ components:
       description: Pseudonym data without NOMIS identifiers.
       properties:
         pseudonym:
-          type: array
-          items:
-            $ref: '#/components/schemas/PseudonymWithoutNomisIds'
+          # type: array
+          # items:
+          $ref: '#/components/schemas/PseudonymWithoutNomisIds'
 
     PseudonymWithoutNomisIds:
       type: object
@@ -531,10 +606,10 @@ components:
         isPrimary:
           type: boolean
           example: true
-        identifiers:
-          type: array
-          items:
-            $ref: '#/components/schemas/PseudonymIdentifierWithoutNomisId'
+        # identifiers:
+        #   type: array
+        #   items:
+        #     $ref: '#/components/schemas/PseudonymIdentifierWithoutNomisId'
 
     PseudonymIdentifierWithoutNomisId:
       type: object
@@ -577,14 +652,30 @@ components:
           type: string
           example: "Test comment2"
 
-    # ----- PUT/POST RESPONSE -----
-    IdentifiersUpsertResponse:
+    # ----- POST RESPONSE -----
+    IdentifiersPostResponse:
       type: object
       properties:
         identifierMappings:
           type: array
           items:
             $ref: '#/components/schemas/IdentifierMapping'
+
+    IdentifierMapping:
+      type: object
+      properties:
+        nomisIdentifierId:
+          type: string
+        cprIdentifierId:
+          type: string
+          format: uuid
+
+    # ----- PUT RESPONSE -----
+    IdentifiersPutResponse:
+      type: object
+      properties:
+        identifierMappings:
+          $ref: '#/components/schemas/IdentifierMapping'
 
     # IdentifierMapping:
     #   type: object
@@ -595,15 +686,13 @@ components:
     #       type: string
     #       format: uuid
 
-    # ----- GET RESPONSE (NOMIS IDs REMOVED) -----
+    # ----- GET RESPONSE  -----
     IdentifiersGetResponse:
       type: object
       description: Identifiers returned without NOMIS identifier IDs.
       properties:
         identifiers:
-          type: array
-          items:
-            $ref: '#/components/schemas/IdentifierWithoutNomisId'
+          $ref: '#/components/schemas/IdentifierWithoutNomisId'
 
     IdentifierWithoutNomisId:
       type: object
