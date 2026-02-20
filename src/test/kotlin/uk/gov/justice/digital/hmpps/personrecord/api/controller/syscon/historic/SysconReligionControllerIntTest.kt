@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
@@ -27,7 +28,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
   inner class Creation {
 
     @Test
-    fun `should save religions against a new prison number`() {
+    fun `when no existing religions exist by prisoner number - should save religions`() {
       val prisonNumber = randomPrisonNumber()
       val religions = createRandomReligions()
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
@@ -62,27 +63,32 @@ class SysconReligionControllerIntTest : WebTestBase() {
   }
 
   @Nested
-  inner class Update {
+  inner class Validation {
 
     @Test
-    fun `should replace the existing religions against a prison number`() {
+    fun `when existing religions do exist by prisoner number - should not replace existing religions`() {
       val prisonNumber = randomPrisonNumber()
-      val religions = createRandomReligions()
-
+      val originalReligions = createRandomReligions()
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-      postReligions(prisonNumber, religions)
-      assertCorrectValuesSaved(prisonNumber, religions)
+      postReligions(prisonNumber, originalReligions)
+      assertCorrectValuesSaved(prisonNumber, originalReligions)
 
-      val updatedReligions = createRandomReligions()
+      val updateReligions = createRandomReligions()
+      webTestClient
+        .post()
+        .uri(religionUrl(prisonNumber))
+        .bodyValue(PrisonReligionRequest(updateReligions))
+        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .value { HttpStatus.CONFLICT }
+        .expectBody()
+        .jsonPath("userMessage")
+        .isEqualTo("Conflict: Religion(s) already exists for $prisonNumber")
 
-      postReligions(prisonNumber, updatedReligions)
-      assertCorrectValuesSaved(prisonNumber, updatedReligions)
+      assertCorrectValuesSaved(prisonNumber, originalReligions)
     }
-  }
-
-  @Nested
-  inner class Validation {
 
     @Test
     fun `should respond with bad request when no religions are posted`() {
@@ -211,13 +217,13 @@ class SysconReligionControllerIntTest : WebTestBase() {
     prisonNumber: String,
     religions: List<PrisonReligion>,
   ) {
-    val religionEntities = awaitNotNull { prisonReligionRepository.findByPrisonNumber(prisonNumber) }
+    val actualReligionEntities = awaitNotNull { prisonReligionRepository.findByPrisonNumber(prisonNumber) }
     val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
     val expectedCurrReligion = religions.find { it.current }
     assertThat(expectedCurrReligion!!.religionCode).isEqualTo(personEntity.religion)
 
-    assertThat(religionEntities.size).isEqualTo(religions.size)
-    religions.zip(religionEntities).forEachIndexed { _, (sentReligion, storedReligion) ->
+    assertThat(actualReligionEntities.size).isEqualTo(religions.size)
+    religions.zip(actualReligionEntities).forEachIndexed { _, (sentReligion, storedReligion) ->
       assertThat(storedReligion.updateId).isNotNull()
       assertThat(storedReligion.prisonNumber).isEqualTo(prisonNumber)
       assertThat(storedReligion.verified).isEqualTo(sentReligion.verified)
