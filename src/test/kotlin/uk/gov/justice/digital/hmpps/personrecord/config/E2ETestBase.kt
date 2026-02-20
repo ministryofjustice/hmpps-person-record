@@ -29,8 +29,8 @@ class E2ETestBase : MessagingTestBase() {
   @Autowired
   private lateinit var personMatchService: PersonMatchService
 
-  override fun createPerson(person: Person): PersonEntity {
-    val personEntity = super.createPerson(person)
+  override fun createPerson(person: Person, configure: PersonEntity.() -> Unit): PersonEntity {
+    val personEntity = super.createPerson(person, configure)
     personMatchService.saveToPersonMatch(personEntity)
     return personEntity
   }

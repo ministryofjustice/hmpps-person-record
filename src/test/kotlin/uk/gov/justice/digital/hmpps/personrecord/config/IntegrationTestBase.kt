@@ -282,13 +282,15 @@ class IntegrationTestBase {
 
   internal fun PersonKeyEntity.addPerson(person: Person): PersonKeyEntity = this.addPerson(createPerson(person))
 
-  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonEntity {
-    val personEntity = createPerson(person)
+  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null, configure: PersonEntity.() -> Unit = {}): PersonEntity {
+    val personEntity = createPerson(person, configure)
     createPersonKey(status, reason).addPerson(personEntity)
     return personRepository.findByMatchId(personEntity.matchId)!!
   }
 
-  internal fun createPerson(person: Person): PersonEntity = personRepository.saveAndFlush(PersonEntity.new(person))
+  internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(person)
+    .apply(configure)
+    .let(personRepository::saveAndFlush)
 
   internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity): PersonEntity {
     val source = personRepository.findByMatchId(sourcePersonEntity.matchId)!!
