@@ -21,7 +21,7 @@ paths:
       description: Accepts a single religion object and returns the CPR mapping for it.
       tags: [Religion]
       parameters:
-        - name: prisonerNumber
+        - name: prisonNumber
           in: path
           required: true
           description: Prisoner number (e.g., NOMIS number)
@@ -80,7 +80,7 @@ paths:
       summary: Update an existing CPR religion for a prisoner
       tags: [Religion]
       parameters:
-        - name: prisonerNumber
+        - name: prisonNumber
           in: path
           required: true
           description: Prisoner number (e.g., NOMIS number)
@@ -146,7 +146,7 @@ paths:
       description: Returns the religion JSON used in POST/PUT without `nomisReligionId`.
       tags: [Religion]
       parameters:
-        - name: prisonerNumber
+        - name: prisonNumber
           in: path
           required: true
           description: Prisoner number (e.g., NOMIS number)
