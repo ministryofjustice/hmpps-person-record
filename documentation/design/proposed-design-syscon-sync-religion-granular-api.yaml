@@ -15,7 +15,7 @@ tags:
     description: Endpoints for prisoner religions
 
 paths:
-  /person/prison/{prisonerNumber}/religion:
+  /person/prison/{prisonNumber}/religion:
     post:
       summary: Create/sync a religion for a prisoner
       description: Accepts a single religion object and returns the CPR mapping for it.
@@ -38,7 +38,7 @@ paths:
               sample:
                 value:
                   religion:
-                    nomisReligionId: 3456
+                    nomisReligionId: "3456"
                     religionCode: "AGNO"
                     changeReasonKnown: true
                     comments: "Foo Bar"
@@ -75,7 +75,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /person/prison/{prisonerNumber}/religion/{cprReligionId}:
+  /person/prison/{prisonNumber}/religion/{cprReligionId}:
     put:
       summary: Update an existing CPR religion for a prisoner
       tags: [Religion]
@@ -104,7 +104,7 @@ paths:
               sample:
                 value:
                   religion:
-                    nomisReligionId: 3456
+                    nomisReligionId: "3456"
                     religionCode: "AGNO"
                     changeReasonKnown: true
                     comments: "Foo Bar"
@@ -211,8 +211,8 @@ components:
         - current
       properties:
         nomisReligionId:
-          type: integer
-          example: 3456
+          type: string
+          example: "3456"
         religionCode:
           type: string
           example: "AGNO"
