@@ -32,6 +32,7 @@ class PrisonReligionSchemaTest : IntegrationTestBase() {
   }
 
   private fun createRandomCurrentReligion(code: String?) = PrisonReligion(
+    nomisReligionId = randomPrisonNumber(),
     changeReasonKnown = randomBoolean(),
     comments = randomName(),
     verified = randomBoolean(),

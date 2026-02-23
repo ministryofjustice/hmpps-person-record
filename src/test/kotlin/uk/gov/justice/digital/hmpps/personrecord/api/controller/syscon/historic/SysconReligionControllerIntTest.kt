@@ -179,7 +179,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
       .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
       .exchange()
       .expectStatus()
-      .isOk
+      .isCreated
   }
 
   private fun createRandomReligions(): List<PrisonReligion> = List((4..20).random()) { index ->
@@ -187,6 +187,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
   }
 
   private fun createRandomReligion(code: String?, current: Boolean) = PrisonReligion(
+    nomisReligionId = randomPrisonNumber(),
     changeReasonKnown = randomBoolean(),
     comments = randomName(),
     verified = randomBoolean(),
