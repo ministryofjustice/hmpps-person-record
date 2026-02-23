@@ -63,7 +63,7 @@ class SysconReligionController(
 
   fun saveReligionsMapped(
     prisonerNumber: String,
-    prisonReligionRequest: PrisonReligionRequest
+    prisonReligionRequest: PrisonReligionRequest,
   ): Map<String, String> {
     val cprReligionIdByNomisId = HashMap<String, String>()
     prisonReligionRequest.religions.forEach { prisonReligion ->
