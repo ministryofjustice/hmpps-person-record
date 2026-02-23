@@ -66,6 +66,12 @@ generic-service:
       PRISONER_SEARCH_CLIENT_SECRET: "NOMIS_OAUTH_CLIENT_SECRET"
       CORE_PERSON_RECORD_AND_DELIUS_CLIENT_ID: "NOMIS_OAUTH_CLIENT_ID"
       CORE_PERSON_RECORD_AND_DELIUS_CLIENT_SECRET: "NOMIS_OAUTH_CLIENT_SECRET"
+    hmpps-person-record-servicenow-client:
+      SERVICE_NOW_CLIENT_ID: "client_id"
+      SERVICE_NOW_CLIENT_SECRET: "client_secret"
+      SERVICE_NOW_REQUESTED_FOR: "requested_for"
+      SERVICE_NOW_REQUESTOR: "requestor"
+      SERVICE_NOW_SYSPARM_ID: "sysparm_id"
     sqs-cpr-court-cases-secret:
         HMPPS_SQS_QUEUES_CPRCOURTCASESQUEUE_QUEUE_NAME: "sqs_queue_name"
     sqs-cpr-court-cases-dlq-secret:
@@ -92,12 +98,6 @@ generic-service:
       HMPPS_SQS_QUEUES_CPRNOMISMERGEEVENTSQUEUE_DLQ_NAME: "sqs_queue_name"
     court-topic:
       HMPPS_SQS_TOPICS_CPRCOURTCASESTOPIC_ARN: topic_arn
-      hmpps-person-record-servicenow-client:
-        SERVICE_NOW_CLIENT_ID: "client_id"
-        SERVICE_NOW_CLIENT_SECRET: "client_secret"
-        SERVICE_NOW_REQUESTED_FOR: "requested_for"
-        SERVICE_NOW_REQUESTOR: "requestor"
-        SERVICE_NOW_SYSPARM_ID: "sysparm_id"
 
     uuid-enriched-large-court-cases-s3-bucket:
       AWS_CPR_COURT_MESSAGE_BUCKET_NAME: "bucket_name"
