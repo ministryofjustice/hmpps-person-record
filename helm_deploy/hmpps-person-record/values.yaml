@@ -92,6 +92,12 @@ generic-service:
       HMPPS_SQS_QUEUES_CPRNOMISMERGEEVENTSQUEUE_DLQ_NAME: "sqs_queue_name"
     court-topic:
       HMPPS_SQS_TOPICS_CPRCOURTCASESTOPIC_ARN: topic_arn
+      hmpps-person-record-servicenow-client:
+        SERVICE_NOW_CLIENT_ID: "client_id"
+        SERVICE_NOW_CLIENT_SECRET: "client_secret"
+        SERVICE_NOW_REQUESTED_FOR: "requested_for"
+        SERVICE_NOW_REQUESTOR: "requestor"
+        SERVICE_NOW_SYSPARM_ID: "sysparm_id"
 
     uuid-enriched-large-court-cases-s3-bucket:
       AWS_CPR_COURT_MESSAGE_BUCKET_NAME: "bucket_name"
@@ -117,4 +123,4 @@ generic-prometheus-alerts:
 cron:
   recordCountReportJob: "0 0-23 * * *"
   reclusterNeedsAttentionJob: "0 13 * * *"
-  generateDeliusMergeRequestsJob: null
+  generateDeliusMergeRequestsJob: "0 7 * * 1-5"
