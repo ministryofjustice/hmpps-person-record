@@ -8,9 +8,12 @@ import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.res.SysconReligionMapping
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.res.SysconReligionResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
@@ -34,6 +37,38 @@ class SysconReligionControllerIntTest : WebTestBase() {
 
       postReligions(prisonNumber, religions)
       assertCorrectValuesSaved(prisonNumber, religions)
+    }
+
+    @Test
+    fun `successful save returns the correct response body`() {
+      val prisonNumber = randomPrisonNumber()
+      val currentReligion = createRandomReligion(ReligionCode.AGNO.name, true)
+      val anotherReligion = createRandomReligion(ReligionCode.BAHA.name, false)
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+
+      val actualResponseBody = webTestClient
+        .post()
+        .uri(religionUrl(prisonNumber))
+        .bodyValue(PrisonReligionRequest(listOf(currentReligion, anotherReligion)))
+        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isCreated
+        .expectBody(SysconReligionResponseBody::class.java)
+        .returnResult()
+        .responseBody!!
+
+      val actualReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber).associateBy { it.code }
+      val actualCurrentReligionEntity = actualReligionEntities[currentReligion.religionCode]
+      val actualAnotherReligionEntity = actualReligionEntities[anotherReligion.religionCode]
+
+      assertThat(actualResponseBody.religionMappings.size).isEqualTo(2)
+      val actualCurrentReligionMapping = actualResponseBody.religionMappings.find { it.nomisReligionId == currentReligion.nomisReligionId }
+      val actualAnotherReligionMapping = actualResponseBody.religionMappings.find { it.nomisReligionId == anotherReligion.nomisReligionId }
+      val expectedCurrentReligionMapping = SysconReligionMapping(currentReligion.nomisReligionId, actualCurrentReligionEntity!!.updateId.toString())
+      val expectedAnotherReligionMapping = SysconReligionMapping(anotherReligion.nomisReligionId, actualAnotherReligionEntity!!.updateId.toString())
+      assertThat(actualCurrentReligionMapping).isEqualTo(expectedCurrentReligionMapping)
+      assertThat(actualAnotherReligionMapping).isEqualTo(expectedAnotherReligionMapping)
     }
 
     @Test

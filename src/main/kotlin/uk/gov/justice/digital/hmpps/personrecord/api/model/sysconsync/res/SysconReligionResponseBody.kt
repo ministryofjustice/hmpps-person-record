@@ -5,16 +5,14 @@ data class SysconReligionResponseBody(
   val religionMappings: List<SysconReligionMapping>,
 ) {
   companion object {
-    fun from(prisonerId: String, cprReligionIdByNomisId: Map<String, String>): SysconReligionResponseBody {
-      return SysconReligionResponseBody(
-        prisonerId = prisonerId,
-        religionMappings = cprReligionIdByNomisId.map { SysconReligionMapping(it.key, it.value) }
-      )
-    }
+    fun from(prisonerId: String, cprReligionIdByNomisId: Map<String, String>): SysconReligionResponseBody = SysconReligionResponseBody(
+      prisonerId = prisonerId,
+      religionMappings = cprReligionIdByNomisId.map { SysconReligionMapping(it.key, it.value) },
+    )
   }
 }
 
 data class SysconReligionMapping(
   val nomisReligionId: String,
-  val cprReligionId: String
+  val cprReligionId: String,
 )
