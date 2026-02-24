@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.Resou
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.res.SysconReligionResponseBody
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
@@ -49,8 +50,7 @@ class SysconReligionController(
     @Valid @RequestBody religionRequest: PrisonReligionRequest,
   ): ResponseEntity<SysconReligionResponseBody> {
     val currentPrisonReligion = religionRequest.extractExactlyOneCurrentReligion()
-    val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException(prisonNumber)
-    if (prisonReligionRepository.findByPrisonNumber(prisonNumber).isNotEmpty()) throw ConflictException("Religion(s) already exists for $prisonNumber")
+    val person = validateRequest(prisonNumber, religionRequest)
 
     val cprReligionIdByNomisId = saveReligionsMapped(prisonNumber, religionRequest)
 
@@ -61,7 +61,19 @@ class SysconReligionController(
     return ResponseEntity.status(HttpStatus.CREATED).body(religionResponseBody)
   }
 
-  fun saveReligionsMapped(
+  private fun validateRequest(prisonerNumber: String, religionRequest: PrisonReligionRequest): PersonEntity {
+    val person = personRepository.findByPrisonNumber(prisonerNumber) ?: throw ResourceNotFoundException(prisonerNumber)
+    if (prisonReligionRepository.findByPrisonNumber(prisonerNumber).isNotEmpty()) throw ConflictException("Religion(s) already exists for $prisonerNumber")
+
+    val map = HashMap<String, String>()
+    religionRequest.religions.forEach {
+      if (map.contains(it.nomisReligionId)) throw IllegalArgumentException("Duplicate nomis religion id were detected for $prisonerNumber")
+      else map[it.nomisReligionId] = it.nomisReligionId
+    }
+    return person
+  }
+
+  private fun saveReligionsMapped(
     prisonerNumber: String,
     prisonReligionRequest: PrisonReligionRequest,
   ): Map<String, String> {

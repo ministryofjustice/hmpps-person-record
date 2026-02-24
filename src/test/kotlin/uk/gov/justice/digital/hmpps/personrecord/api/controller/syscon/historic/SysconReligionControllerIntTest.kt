@@ -86,6 +86,25 @@ class SysconReligionControllerIntTest : WebTestBase() {
   inner class Validation {
 
     @Test
+    fun `request contains duplicate nomis id - does not save religions`() {
+      val prisonNumber = randomPrisonNumber()
+      val currentReligion = createRandomReligion(ReligionCode.AGNO.name, true)
+      val anotherReligionWithDuplicateNomisId = currentReligion.copy(religionCode = ReligionCode.BAHA.name, current = false)
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+
+      webTestClient
+        .post()
+        .uri(religionUrl(prisonNumber))
+        .bodyValue(PrisonReligionRequest(listOf(currentReligion, anotherReligionWithDuplicateNomisId)))
+        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isBadRequest
+
+      assertThat(prisonReligionRepository.findByPrisonNumber(prisonNumber)).isEmpty()
+    }
+
+    @Test
     fun `when existing religions do exist by prisoner number - should not replace existing religions`() {
       val prisonNumber = randomPrisonNumber()
       val originalReligions = createRandomReligions()
