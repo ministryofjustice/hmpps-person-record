@@ -32,11 +32,11 @@ class SysconReligionInsertHandler(
 
   private fun validateRequest(prisonNumber: String, prisonReligionRequest: PrisonReligionRequest): Pair<PersonEntity, PrisonReligion> {
     val currentPrisonReligion = prisonReligionRequest.getCurrentReligion() ?: throw IllegalArgumentException("Exactly one current prison religion must be sent for $prisonNumber")
-    val nomisIdMap = HashMap<String, String>()
+    val nomisIdSet = hashSetOf<String>()
     prisonReligionRequest.religions.forEach {
-      when (nomisIdMap.contains(it.nomisReligionId)) {
+      when (nomisIdSet.contains(it.nomisReligionId)) {
         true -> throw IllegalArgumentException("Duplicate nomis religion id '${it.nomisReligionId}' were detected for $prisonNumber")
-        false -> nomisIdMap[it.nomisReligionId] = it.nomisReligionId
+        false -> nomisIdSet.add(it.nomisReligionId)
       }
     }
 
