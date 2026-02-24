@@ -45,40 +45,43 @@ class SysconReligionController(
     ),
   )
   @Transactional
-  fun saveReligions(
+  fun savePrisonerReligions(
     @PathVariable @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true) prisonNumber: String,
     @Valid @RequestBody religionRequest: PrisonReligionRequest,
   ): ResponseEntity<SysconReligionResponseBody> {
-    val currentPrisonReligion = religionRequest.extractExactlyOneCurrentReligion()
-    val person = validateRequest(prisonNumber, religionRequest)
-
-    val cprReligionIdByNomisId = saveReligionsMapped(prisonNumber, religionRequest)
-
-    person.religion = currentPrisonReligion.religionCode
-    personService.processPerson(Person.from(person)) { person }
-
+    val cprReligionIdByNomisId = saveReligions(prisonNumber, religionRequest)
     val religionResponseBody = SysconReligionResponseBody.from(prisonNumber, cprReligionIdByNomisId)
     return ResponseEntity.status(HttpStatus.CREATED).body(religionResponseBody)
   }
 
-  private fun validateRequest(prisonerNumber: String, religionRequest: PrisonReligionRequest): PersonEntity {
-    val person = personRepository.findByPrisonNumber(prisonerNumber) ?: throw ResourceNotFoundException(prisonerNumber)
-    if (prisonReligionRepository.findByPrisonNumber(prisonerNumber).isNotEmpty()) throw ConflictException("Religion(s) already exists for $prisonerNumber")
-
-    val map = HashMap<String, String>()
-    religionRequest.religions.forEach {
-      if (map.contains(it.nomisReligionId)) throw IllegalArgumentException("Duplicate nomis religion id were detected for $prisonerNumber")
-      else map[it.nomisReligionId] = it.nomisReligionId
-    }
-    return person
-  }
-
-  private fun saveReligionsMapped(
+  private fun saveReligions(
     prisonerNumber: String,
     prisonReligionRequest: PrisonReligionRequest,
   ): Map<String, String> {
+    val (personEntity, currentPrisonReligion) = validateRequest(prisonerNumber, prisonReligionRequest)
+    val cprReligionIdByNomisId = saveReligionsMapped(prisonerNumber, prisonReligionRequest).also {
+      personEntity.religion = currentPrisonReligion.religionCode
+      personService.processPerson(Person.from(personEntity)) { personEntity }
+    }
+    return cprReligionIdByNomisId
+  }
+
+  private fun validateRequest(prisonerNumber: String, religionRequest: PrisonReligionRequest): Pair<PersonEntity, PrisonReligion> {
+    val currentPrisonReligion = religionRequest.extractExactlyOneCurrentReligion()
+    val nomisIdMap = HashMap<String, String>()
+    religionRequest.religions.forEach {
+      if (nomisIdMap.contains(it.nomisReligionId)) throw IllegalArgumentException("Duplicate nomis religion id '${it.nomisReligionId}' were detected for $prisonerNumber")
+      else nomisIdMap[it.nomisReligionId] = it.nomisReligionId
+    }
+
+    val personEntity = personRepository.findByPrisonNumber(prisonerNumber) ?: throw ResourceNotFoundException(prisonerNumber)
+    if (prisonReligionRepository.findByPrisonNumber(prisonerNumber).isNotEmpty()) throw ConflictException("Religion(s) already exists for $prisonerNumber")
+    return personEntity to currentPrisonReligion
+  }
+
+  fun saveReligionsMapped(prisonerNumber: String, religionRequest: PrisonReligionRequest): Map<String, String> {
     val cprReligionIdByNomisId = HashMap<String, String>()
-    prisonReligionRequest.religions.forEach { prisonReligion ->
+    religionRequest.religions.forEach { prisonReligion ->
       val religionEntity = PrisonReligionEntity.from(prisonerNumber, prisonReligion)
       val prisonReligionEntity = prisonReligionRepository.save(religionEntity)
       cprReligionIdByNomisId[prisonReligion.nomisReligionId] = prisonReligionEntity.updateId.toString()
@@ -92,9 +95,5 @@ class SysconReligionController(
       currentReligionCount.size != 1 -> throw IllegalArgumentException("Exactly one current prison religion must be sent for $this")
       else -> currentReligionCount.first()
     }
-  }
-
-  companion object {
-    private const val OK = "OK"
   }
 }

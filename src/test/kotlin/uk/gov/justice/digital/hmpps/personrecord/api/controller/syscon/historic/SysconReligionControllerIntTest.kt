@@ -102,6 +102,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
         .isBadRequest
 
       assertThat(prisonReligionRepository.findByPrisonNumber(prisonNumber)).isEmpty()
+      assertThat(personRepository.findByPrisonNumber(prisonNumber)!!.religion).isNull()
     }
 
     @Test
