@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test
 class SysconReligionResponseBodyTest {
   @Test
   fun `correctly maps response body`() {
-    val prisonerId = "1"
+    val prisonId = "1"
     val cprIdsByNomisId = mapOf("2" to "3", "4" to "5")
 
-    val actual = SysconReligionResponseBody.from(prisonerId, cprIdsByNomisId)
-    assertThat(actual.prisonerId).isEqualTo(prisonerId)
+    val actual = SysconReligionResponseBody.from(prisonId, cprIdsByNomisId)
+    assertThat(actual.prisonNumber).isEqualTo(prisonId)
     assertThat(actual.religionMappings.size).isEqualTo(2)
     assertThat(actual.religionMappings[0].nomisReligionId).isEqualTo(cprIdsByNomisId.entries.elementAt(0).key)
     assertThat(actual.religionMappings[0].cprReligionId).isEqualTo(cprIdsByNomisId.entries.elementAt(0).value)
