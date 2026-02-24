@@ -175,7 +175,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
         .isBadRequest
         .expectBody()
         .jsonPath("userMessage")
-        .isEqualTo("Bad request: Exactly one current prison religion must be sent for $reqBody")
+        .isEqualTo("Bad request: Exactly one current prison religion must be sent for $prisonNumber")
     }
 
     @Test
@@ -194,7 +194,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
         .isBadRequest
         .expectBody()
         .jsonPath("userMessage")
-        .isEqualTo("Bad request: Exactly one current prison religion must be sent for $reqBody")
+        .isEqualTo("Bad request: Exactly one current prison religion must be sent for $prisonNumber")
     }
   }
 
