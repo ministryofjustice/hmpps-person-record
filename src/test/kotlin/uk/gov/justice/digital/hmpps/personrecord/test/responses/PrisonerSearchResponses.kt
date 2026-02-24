@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
 fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
   {
-    "prisonNumber": "${responseSetup.prisonNumber}",
+    "prisonerNumber": "${responseSetup.prisonNumber}",
     "pncNumber": "${responseSetup.pnc}",
     "pncNumberCanonicalShort": "${responseSetup.pnc}",
     "pncNumberCanonicalLong": "${responseSetup.pnc}",
