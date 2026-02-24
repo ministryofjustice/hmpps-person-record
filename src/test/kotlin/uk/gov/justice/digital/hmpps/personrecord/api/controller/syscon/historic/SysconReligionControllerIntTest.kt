@@ -8,8 +8,8 @@ import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.res.SysconReligionMapping
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.res.SysconReligionResponseBody
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconReligionMapping
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconReligionResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
