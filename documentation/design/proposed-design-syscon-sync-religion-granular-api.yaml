@@ -99,12 +99,12 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ReligionEnvelope"
+              $ref: "#/components/schemas/ReligionWithoutNomisId"
             examples:
               sample:
                 value:
                   religion:
-                    nomisReligionId: "3456"
+                    # nomisReligionId: "3456"
                     religionCode: "AGNO"
                     changeReasonKnown: true
                     comments: "Foo Bar"
