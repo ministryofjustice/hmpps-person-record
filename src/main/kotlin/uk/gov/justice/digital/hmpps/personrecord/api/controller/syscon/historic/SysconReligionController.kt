@@ -70,8 +70,10 @@ class SysconReligionController(
     val currentPrisonReligion = religionRequest.extractExactlyOneCurrentReligion()
     val nomisIdMap = HashMap<String, String>()
     religionRequest.religions.forEach {
-      if (nomisIdMap.contains(it.nomisReligionId)) throw IllegalArgumentException("Duplicate nomis religion id '${it.nomisReligionId}' were detected for $prisonerNumber")
-      else nomisIdMap[it.nomisReligionId] = it.nomisReligionId
+      when (nomisIdMap.contains(it.nomisReligionId)) {
+        true -> throw IllegalArgumentException("Duplicate nomis religion id '${it.nomisReligionId}' were detected for $prisonerNumber")
+        false -> nomisIdMap[it.nomisReligionId] = it.nomisReligionId
+      }
     }
 
     val personEntity = personRepository.findByPrisonNumber(prisonerNumber) ?: throw ResourceNotFoundException(prisonerNumber)
