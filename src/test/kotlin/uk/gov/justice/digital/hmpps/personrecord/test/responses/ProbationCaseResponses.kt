@@ -9,7 +9,7 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
           ${probationCase.pnc?.let { """ "pnc": "${probationCase.pnc}", """.trimIndent() } ?: ""}
           "crn": "${probationCase.crn ?: ""}",
           "cro": "${probationCase.cro ?: ""}",
-          "prisonerNumber": "${probationCase.prisonNumber ?: ""}",
+          "prisonNumber": "${probationCase.prisonNumber ?: ""}",
           "ni": "${probationCase.nationalInsuranceNumber ?: ""}",
           "additionalIdentifiers": [${probationCase.additionalIdentifiers.joinToString { additionalIdentifier(it) }}]
       },
