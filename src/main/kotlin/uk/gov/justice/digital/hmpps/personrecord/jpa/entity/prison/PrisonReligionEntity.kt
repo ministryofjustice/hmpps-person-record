@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison
 
+import jakarta.annotation.Generated
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType.STRING
@@ -8,7 +9,6 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import java.time.LocalDate
