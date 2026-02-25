@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.res
+package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response
 
 data class AliasMapping(
   val nomisAliasId: Long,
