@@ -51,7 +51,7 @@ paths:
               examples:
                 sample:
                   value:
-                    prisonerNumber: "A6443EG"
+                    PrisonNumber: "A6443EG"
                     personContactMappings:
                       nomisContactId: "1234"
                       cprContactId: "e34a39e9-c22a-44c3-87ae-ab5017f465c3"
@@ -213,7 +213,7 @@ components:
     PersonContactResponse:
       type: object
       properties:
-        prisonerNumber:
+        PrisonNumber:
           type: string
           example: "A6443EG"
         personContactMappings:
@@ -232,7 +232,7 @@ components:
     PersonContactPutResponse:
       type: object
       properties:
-        prisonerNumber:
+        PrisonNumber:
           type: string
           example: "A6443EG"
         personContactMappings:
