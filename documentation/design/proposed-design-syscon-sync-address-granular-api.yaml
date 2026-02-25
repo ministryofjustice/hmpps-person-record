@@ -502,7 +502,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-    # /person/prison/{prisonerNumber}/address-contact/{cprAddressContact}:
     get:
       summary: Retrieve address contacts.
       description: Returns contacts JSON

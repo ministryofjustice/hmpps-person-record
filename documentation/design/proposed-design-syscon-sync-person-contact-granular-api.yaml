@@ -42,7 +42,7 @@ paths:
                     extension: null
 
       responses:
-        '200':
+        '201':
           description: Person contacts processed successfully
           content:
             application/json:

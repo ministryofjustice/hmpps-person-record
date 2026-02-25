@@ -49,7 +49,7 @@ paths:
                     sexCode: "M"
                     isPrimary: false
       responses:
-        '200':
+        '201':
           description: Pseudonyms processed successfully
           content:
             application/json:
@@ -230,7 +230,7 @@ paths:
                       value: "SC344857F"
                       comment: "Test comment3"
       responses:
-        '200':
+        '201':
           description: Identifiers processed successfully
           content:
             application/json:
@@ -500,7 +500,7 @@ components:
     # ----- GET RESPONSE (NOMIS IDs REMOVED) -----
     PseudonymGetResponse:
       type: object
-      description: Pseudonym data without NOMIS identifiers.
+      description: Pseudonym data
       properties:
         prisonNumber:
           type: string
@@ -510,7 +510,7 @@ components:
 
     PseudonymWithoutNomisIds:
       type: object
-      description: Same as request pseudonym item but without `nomisPseudonymId` and without `nomisIdentifierId` inside identifiers.
+      description: Same as request pseudonym item but without `nomisPseudonymId`
       properties:
         titleCode:
           type: string
@@ -598,7 +598,7 @@ components:
     # ----- GET RESPONSE  -----
     IdentifiersGetResponse:
       type: object
-      description: Identifiers returned without NOMIS identifier IDs.
+      description: Identifiers returned.
       properties:
         prisonNumber:
           type: string
