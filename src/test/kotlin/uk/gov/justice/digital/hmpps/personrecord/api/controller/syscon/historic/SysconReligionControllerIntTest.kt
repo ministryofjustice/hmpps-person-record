@@ -8,12 +8,16 @@ import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconReligionMapping
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconReligionResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
@@ -37,6 +41,38 @@ class SysconReligionControllerIntTest : WebTestBase() {
     }
 
     @Test
+    fun `successful save returns the correct response body`() {
+      val prisonNumber = randomPrisonNumber()
+      val currentReligion = createRandomReligion(ReligionCode.AGNO.name, true)
+      val anotherReligion = createRandomReligion(ReligionCode.BAHA.name, false)
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+
+      val actualResponseBody = webTestClient
+        .post()
+        .uri(religionUrl(prisonNumber))
+        .bodyValue(PrisonReligionRequest(listOf(currentReligion, anotherReligion)))
+        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isCreated
+        .expectBody(SysconReligionResponseBody::class.java)
+        .returnResult()
+        .responseBody!!
+
+      val actualReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber).associateBy { it.code }
+      val actualCurrentReligionEntity = actualReligionEntities[currentReligion.religionCode]
+      val actualAnotherReligionEntity = actualReligionEntities[anotherReligion.religionCode]
+
+      assertThat(actualResponseBody.religionMappings.size).isEqualTo(2)
+      val actualCurrentReligionMapping = actualResponseBody.religionMappings.find { it.nomisReligionId == currentReligion.nomisReligionId }
+      val actualAnotherReligionMapping = actualResponseBody.religionMappings.find { it.nomisReligionId == anotherReligion.nomisReligionId }
+      val expectedCurrentReligionMapping = SysconReligionMapping(currentReligion.nomisReligionId, actualCurrentReligionEntity!!.updateId.toString())
+      val expectedAnotherReligionMapping = SysconReligionMapping(anotherReligion.nomisReligionId, actualAnotherReligionEntity!!.updateId.toString())
+      assertThat(actualCurrentReligionMapping).isEqualTo(expectedCurrentReligionMapping)
+      assertThat(actualAnotherReligionMapping).isEqualTo(expectedAnotherReligionMapping)
+    }
+
+    @Test
     fun `should save religions against a new prison number when an entry has a null code`() {
       val prisonNumber = randomPrisonNumber()
       val religions = createRandomReligions() + createRandomReligion(null, false)
@@ -49,6 +85,26 @@ class SysconReligionControllerIntTest : WebTestBase() {
 
   @Nested
   inner class Validation {
+
+    @Test
+    fun `request contains duplicate nomis id - does not save religions`() {
+      val prisonNumber = randomPrisonNumber()
+      val currentReligion = createRandomReligion()
+      val anotherReligionWithDuplicateNomisReligionId = currentReligion.copy(comments = randomLowerCaseString())
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+
+      webTestClient
+        .post()
+        .uri(religionUrl(prisonNumber))
+        .bodyValue(PrisonReligionRequest(listOf(currentReligion, anotherReligionWithDuplicateNomisReligionId)))
+        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isBadRequest
+
+      assertThat(prisonReligionRepository.findByPrisonNumber(prisonNumber)).isEmpty()
+      assertThat(personRepository.findByPrisonNumber(prisonNumber)!!.religion).isNull()
+    }
 
     @Test
     fun `when existing religions do exist by prisoner number - should not replace existing religions`() {
@@ -120,7 +176,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
         .isBadRequest
         .expectBody()
         .jsonPath("userMessage")
-        .isEqualTo("Bad request: Exactly one current prison religion must be sent for $reqBody")
+        .isEqualTo("Bad request: Exactly one current prison religion must be sent for $prisonNumber")
     }
 
     @Test
@@ -139,7 +195,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
         .isBadRequest
         .expectBody()
         .jsonPath("userMessage")
-        .isEqualTo("Bad request: Exactly one current prison religion must be sent for $reqBody")
+        .isEqualTo("Bad request: Exactly one current prison religion must be sent for $prisonNumber")
     }
   }
 
@@ -179,14 +235,15 @@ class SysconReligionControllerIntTest : WebTestBase() {
       .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
       .exchange()
       .expectStatus()
-      .isOk
+      .isCreated
   }
 
   private fun createRandomReligions(): List<PrisonReligion> = List((4..20).random()) { index ->
     if (index == 0) createRandomReligion(randomReligionCode(), true) else createRandomReligion(randomReligionCode(), false)
   }
 
-  private fun createRandomReligion(code: String?, current: Boolean) = PrisonReligion(
+  private fun createRandomReligion(code: String? = randomReligionCode(), current: Boolean = true) = PrisonReligion(
+    nomisReligionId = randomPrisonNumber(),
     changeReasonKnown = randomBoolean(),
     comments = randomName(),
     verified = randomBoolean(),

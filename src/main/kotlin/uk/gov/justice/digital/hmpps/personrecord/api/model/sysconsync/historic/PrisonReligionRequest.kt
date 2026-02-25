@@ -9,4 +9,12 @@ data class PrisonReligionRequest(
   @NotEmpty
   @Schema(description = "The list of religions for a given prison number", required = true)
   val religions: List<PrisonReligion>,
-)
+) {
+  fun getCurrentReligion(): PrisonReligion? {
+    val currentReligionCount = this.religions.filter { it.current }
+    return when {
+      currentReligionCount.size != 1 -> null
+      else -> currentReligionCount.first()
+    }
+  }
+}

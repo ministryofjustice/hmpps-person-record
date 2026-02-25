@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import java.time.LocalDate
@@ -28,6 +29,7 @@ class PrisonReligionEntity(
     updatable = false,
     nullable = false,
   )
+  @Generated
   var updateId: UUID? = null,
 
   @Column(name = "prison_number", nullable = false)
