@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Person API
+  title: Person & Person Contact API
   version: 1.0.0
   description: API for creating, updating, and retrieving prisoner personal contact details.
 
@@ -36,14 +36,11 @@ paths:
               sample:
                 value:
                   contact:
-                    - nomisContactId: 1234
-                      contactType: "MOBILE"
-                      contactValue: "+44 7700 900123"
-                      extension: null
-                    - nomisContactId: 1235
-                      contactType: "EMAIL"
-                      contactValue: "abc@def.xyz"
-                      extension: null
+                    nomisContactId: "1234"
+                    contactType: "MOBILE"
+                    contactValue: "+44 7700 900123"
+                    extension: null
+
       responses:
         '200':
           description: Person contacts processed successfully
@@ -56,8 +53,8 @@ paths:
                   value:
                     prisonerNumber: "A6443EG"
                     personContactMappings:
-                      - nomisContactId: "1234"
-                        cprContactId: "e34a39e9-c22a-44c3-87ae-ab5017f465c3"
+                      nomisContactId: "1234"
+                      cprContactId: "e34a39e9-c22a-44c3-87ae-ab5017f465c3"
         '400':
           description: Invalid request
         '404':
@@ -90,7 +87,7 @@ paths:
               sample:
                 value:
                   contact:
-                    nomisContactId: 1234
+                    nomisContactId: "1234"
                     contactType: "MOBILE"
                     contactValue: "+44 7700 900123"
                     extension: null
@@ -115,15 +112,17 @@ paths:
           required: true
           schema:
             type: string
+            example: A6443EG
         - name: cprPersonContactId
           in: path
           required: true
           schema:
             type: string
             format: uuid
+            example: b7bb703f-d55e-419d-9126-b37ceb6e1b9d
       responses:
         '200':
-          description: Contact details for the CPR contact (without NOMIS ID)
+          description: Contact details for the CPR contact
           content:
             application/json:
               schema:
@@ -131,6 +130,7 @@ paths:
               examples:
                 sample:
                   value:
+                    prisonNumber: "A6443EG"
                     contact:
                       contactType: "MOBILE"
                       contactValue: "+44 7700 900123"
@@ -184,22 +184,20 @@ paths:
 
 components:
   schemas:
-    # ----- POST REQUEST -----
+    # ----- POST/PUT REQUEST -----
     PersonContactRequest:
       type: object
       required: [contact]
       properties:
         contact:
-          type: array
-          items:
-            $ref: "#/components/schemas/PersonContactItem"
+          $ref: "#/components/schemas/PersonContactItem"
 
     PersonContactItem:
       type: object
       properties:
         nomisContactId:
-          type: integer
-          example: 1234
+          type: string
+          example: "1234"
         contactType:
           type: string
           example: "MOBILE"
@@ -219,9 +217,7 @@ components:
           type: string
           example: "A6443EG"
         personContactMappings:
-          type: array
-          items:
-            $ref: "#/components/schemas/PersonContactMapping"
+          $ref: "#/components/schemas/PersonContactMapping"
 
     PersonContactMapping:
       type: object
@@ -232,31 +228,6 @@ components:
           type: string
           format: uuid
 
-    # ----- PUT REQUEST -----
-    PersonContactPutRequest:
-      type: object
-      required: [contact]
-      properties:
-        contact:
-          $ref: "#/components/schemas/PersonContactPutItem"
-
-    PersonContactPutItem:
-      type: object
-      properties:
-        nomisContactId:
-          type: integer
-          example: 1234
-        contactType:
-          type: string
-          example: "MOBILE"
-        contactValue:
-          type: string
-          example: "+44 7700 900123"
-        extension:
-          type: string
-          nullable: true
-          example: null
-
     # ----- PUT RESPONSE -----
     PersonContactPutResponse:
       type: object
@@ -265,9 +236,7 @@ components:
           type: string
           example: "A6443EG"
         personContactMappings:
-          type: array
-          items:
-            $ref: "#/components/schemas/PersonContactPutMapping"
+          $ref: "#/components/schemas/PersonContactPutMapping"
 
     PersonContactPutMapping:
       type: object
@@ -281,7 +250,7 @@ components:
     # ----- GET RESPONSE (NOMIS ID REMOVED) -----
     PersonContactGetResponse:
       type: object
-      description: Contact info returned without NOMIS contact IDs
+      description: Contact info returned
       properties:
         contact:
           type: array
@@ -290,7 +259,7 @@ components:
 
     PersonContactWithoutNomisId:
       type: object
-      description: Same shape as request but without nomisContactId
+      description: Contact info for person
       properties:
         contactType:
           type: string
