@@ -7,17 +7,17 @@ info:
 servers:
   # Added by API Auto Mocking Plugin
   - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/ftl/names/1.0.0
+    url: https://virtserver.swaggerhub.com/ftl/Person-Religion-API/1.0.0
   - url: https://api.yourdomain.tld
 
 tags:
   - name: Religion
-    description: Endpoints for prisoner religions
+    description: Endpoints for prisoner religion
 
 paths:
   /person/prison/{prisonNumber}/religion:
     post:
-      summary: Create/sync a religion for a prisoner
+      summary: Create a religion record for a prisoner
       description: Accepts a single religion object and returns the CPR mapping for it.
       tags: [Religion]
       parameters:
@@ -49,7 +49,7 @@ paths:
                     modifyUserId: "12345"
                     current: true
       responses:
-        "200":
+        "201":
           description: Religion processed successfully
           content:
             application/json:
@@ -143,27 +143,27 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 
     get:
-      summary: Retrieve CPR religion details (NOMIS ID removed)
-      description: Returns the religion JSON used in POST/PUT without `nomisReligionId`.
+      summary: Retrieve CPR religion details
+      description: Returns the religion JSON.
       tags: [Religion]
       parameters:
         - name: prisonNumber
           in: path
           required: true
-          description: Prisoner number (e.g., NOMIS number)
+          description: Prisoner number
           schema:
             type: string
             example: "A6443EG"
         - name: cprReligionId
           in: path
           required: true
-          description: CPR Religion ID (UUID or system identifier)
+          description: CPR Religion ID (UUID)
           schema:
             type: string
             example: "0b6f8655-278a-4cb8-81c6-21364a91c466"
       responses:
         "200":
-          description: Religion details (NOMIS ID removed)
+          description: Religion details
           content:
             application/json:
               schema:
@@ -272,7 +272,7 @@ components:
     # ---------- GET Response (without NOMIS ID) ----------
     ReligionGetResponse:
       type: object
-      description: Religion returned without NOMIS identifiers.
+      description: Religion details returned
       required: [prisonNumber, religion]
       properties:
         prisonNumber:
