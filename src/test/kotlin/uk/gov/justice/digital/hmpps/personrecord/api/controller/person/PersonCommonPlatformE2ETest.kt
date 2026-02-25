@@ -63,6 +63,27 @@ class PersonCommonPlatformE2ETest : E2ETestBase() {
         .jsonPath("$.matchStatus").isEqualTo(MatchStatus.NO_MATCH.name)
     }
 
+    @Test
+    fun `should return no match status when 2 common record are not matched`() {
+
+      val commonPlatformPersonOne = createRandomCommonPlatformPersonDetails()
+
+      val createCommonPlatformPersonOne = createPerson(commonPlatformPersonOne)
+      val createCommonPlatformPersonTwo = createPerson(commonPlatformPersonOne.copy(defendantId = randomDefendantId()))
+
+      createPersonKey()
+        .addPerson(createCommonPlatformPersonOne)
+        .addPerson(createCommonPlatformPersonTwo)
+
+
+      webTestClient.get()
+        .uri(matchDetailsUrl(commonPlatformPersonOne.defendantId.toString()))
+        .authorised(listOf(API_READ_ONLY))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.matchStatus").isEqualTo(MatchStatus.NO_MATCH.name)
+    }
     private fun matchDetailsUrl(defendantId: String) = "/person/commonplatform/$defendantId/match-details"
   }
 }
