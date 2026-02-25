@@ -138,7 +138,7 @@ fun randomLowerCaseString(length: Int = 7): String = (1..length).map {
   ('a' + (Math.random() * 26).toInt())
 }.joinToString("")
 
-private fun randomDigit(length: Int = 7): String = (1..length).map {
+fun randomDigit(length: Int = 7): String = (1..length).map {
   (0..9).random()
 }.joinToString("")
 
