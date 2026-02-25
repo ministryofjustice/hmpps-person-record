@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligio
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Tag(name = "HMPPS Person API")
@@ -79,6 +80,10 @@ class PrisonWriteAPIController(
   ): ResponseEntity<PrisonReligionResponseBody> {
     PrisonReligionEntity.from(prisonerNumber, prisonReligionRequest)
     val personEntity = personRepository.findByPrisonNumber(prisonerNumber) ?: throw ResourceNotFoundException("Person with $prisonerNumber not found")
+    val existingCurrentPrisonReligionEntity = prisonReligionRepository.findByPrisonNumber(prisonerNumber).firstOrNull { it.prisonRecordType == PrisonRecordType.CURRENT }
+    if (existingCurrentPrisonReligionEntity != null && prisonReligionRequest.current) {
+      throw IllegalArgumentException("Person $prisonerNumber already has a current religion")
+    }
 
     val prisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonerNumber, prisonReligionRequest))
       .also {
