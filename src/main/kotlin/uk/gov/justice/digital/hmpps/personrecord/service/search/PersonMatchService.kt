@@ -8,6 +8,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
@@ -65,6 +66,19 @@ class PersonMatchService(
     personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity))
   } catch (_: DiscardableNotFoundException) {
     log.info("ignoring 404 from person match because record has already been deleted")
+  }
+
+  fun determineMatchStatus(personEntity: PersonEntity): MatchStatus {
+    val results = findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity)
+    val matchWeight = results.firstOrNull()?.matchWeight
+
+    if (matchWeight == null) return MatchStatus.NO_MATCH
+
+    return when {
+      matchWeight >= 20 -> MatchStatus.MATCH
+      matchWeight > -10 -> MatchStatus.POSSIBLE_MATCH
+      else -> MatchStatus.NO_MATCH
+    }
   }
 
   private fun IsClusterValidMissingRecordResponse.upsertMissingRecords() = this.unknownIds.forEach { matchId ->
