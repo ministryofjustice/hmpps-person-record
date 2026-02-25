@@ -45,13 +45,8 @@ class SysconReligionInsertHandler(
     return personEntity to currentPrisonReligion
   }
 
-  private fun saveReligionsMapped(prisonNumber: String, prisonReligionRequest: PrisonReligionRequest): Map<String, String> {
-    val cprReligionIdByNomisId = HashMap<String, String>()
-    prisonReligionRequest.religions.forEach { prisonReligion ->
-      val religionEntity = PrisonReligionEntity.from(prisonNumber, prisonReligion)
-      val prisonReligionEntity = prisonReligionRepository.save(religionEntity)
-      cprReligionIdByNomisId[prisonReligion.nomisReligionId] = prisonReligionEntity.updateId.toString()
-    }
-    return cprReligionIdByNomisId
+  private fun saveReligionsMapped(prisonNumber: String, prisonReligionRequest: PrisonReligionRequest) = prisonReligionRequest.religions.associate { prisonReligion ->
+    val prisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, prisonReligion))
+    prisonReligion.nomisReligionId to prisonReligionEntity.updateId.toString()
   }
 }
