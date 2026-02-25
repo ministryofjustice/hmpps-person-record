@@ -58,7 +58,7 @@ paths:
               examples:
                 sample:
                   value:
-                    prisonerId: "A6443EG"
+                    prisonNumber: "A6443EG"
                     religionMappings:
                       nomisReligionId: "3456"
                       cprReligionId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
@@ -103,6 +103,7 @@ paths:
             examples:
               sample:
                 value:
+                  prisonNumber: "A6443EG"
                   religion:
                     # nomisReligionId: "3456"
                     religionCode: "AGNO"
@@ -124,7 +125,7 @@ paths:
               examples:
                 sample:
                   value:
-                    prisonerId: "A6443EG"
+                    prisonNumber: "A6443EG"
                     religionMappings:
                       nomisReligionId: "3456"
                       cprReligionId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
@@ -170,6 +171,7 @@ paths:
               examples:
                 sample:
                   value:
+                    prisonNumber: "A6443EG"
                     religion:
                       religionCode: "AGNO"
                       changeReasonKnown: true
@@ -248,9 +250,9 @@ components:
     # ---------- PUT/POST Response ----------
     ReligionMappingResponse:
       type: object
-      required: [prisonerId, religionMappings]
+      required: [prisonNumber, religionMappings]
       properties:
-        prisonerId:
+        prisonNumber:
           type: string
           example: "A6443EG"
         religionMappings:
@@ -271,8 +273,11 @@ components:
     ReligionGetResponse:
       type: object
       description: Religion returned without NOMIS identifiers.
-      required: [religion]
+      required: [prisonNumber, religion]
       properties:
+        prisonNumber:
+          type: string
+          example: "A6443EG"
         religion:
           $ref: "#/components/schemas/ReligionWithoutNomisId"
 
