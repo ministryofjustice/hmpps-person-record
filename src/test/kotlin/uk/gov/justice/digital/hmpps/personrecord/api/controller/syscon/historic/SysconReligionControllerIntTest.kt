@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
@@ -88,14 +89,14 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `request contains duplicate nomis id - does not save religions`() {
       val prisonNumber = randomPrisonNumber()
-      val currentReligion = createRandomReligion(ReligionCode.AGNO.name, true)
-      val anotherReligionWithDuplicateNomisId = currentReligion.copy(religionCode = ReligionCode.BAHA.name, current = false)
+      val currentReligion = createRandomReligion()
+      val anotherReligionWithDuplicateNomisReligionId = currentReligion.copy(comments = randomLowerCaseString())
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       webTestClient
         .post()
         .uri(religionUrl(prisonNumber))
-        .bodyValue(PrisonReligionRequest(listOf(currentReligion, anotherReligionWithDuplicateNomisId)))
+        .bodyValue(PrisonReligionRequest(listOf(currentReligion, anotherReligionWithDuplicateNomisReligionId)))
         .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
         .exchange()
         .expectStatus()
@@ -241,7 +242,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     if (index == 0) createRandomReligion(randomReligionCode(), true) else createRandomReligion(randomReligionCode(), false)
   }
 
-  private fun createRandomReligion(code: String?, current: Boolean) = PrisonReligion(
+  private fun createRandomReligion(code: String? = randomReligionCode(), current: Boolean = true) = PrisonReligion(
     nomisReligionId = randomPrisonNumber(),
     changeReasonKnown = randomBoolean(),
     comments = randomName(),
