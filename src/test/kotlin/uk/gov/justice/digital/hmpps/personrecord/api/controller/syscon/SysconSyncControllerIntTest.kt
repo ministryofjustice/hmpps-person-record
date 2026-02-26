@@ -108,15 +108,15 @@ class SysconSyncControllerIntTest : WebTestBase() {
   inner class Auth {
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
-      val prisonerNumber = randomPrisonNumber()
+      val prisonNumber = randomPrisonNumber()
       val prisonerRequest = buildRequestBody()
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.put()
-        .uri("/syscon-sync/person/$prisonerNumber")
+        .uri("/syscon-sync/person/$prisonNumber")
         .body(Mono.just(prisonerRequest), Prisoner::class.java)
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
-        .assertDatabase(prisonerNumber, prisonerRequest, write = false)
+        .assertDatabase(prisonNumber, prisonerRequest, write = false)
         .expectStatus()
         .isForbidden
         .expectBody()
@@ -126,26 +126,26 @@ class SysconSyncControllerIntTest : WebTestBase() {
 
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
-      val prisonerNumber = randomPrisonNumber()
+      val prisonNumber = randomPrisonNumber()
       val prisonerRequest = buildRequestBody()
       webTestClient.put()
-        .uri("/syscon-sync/person/$prisonerNumber")
+        .uri("/syscon-sync/person/$prisonNumber")
         .body(Mono.just(prisonerRequest), Prisoner::class.java)
         .exchange()
-        .assertDatabase(prisonerNumber, prisonerRequest, write = false)
+        .assertDatabase(prisonNumber, prisonerRequest, write = false)
         .expectStatus()
         .isUnauthorized
     }
   }
 
-  private fun WebTestClient.ResponseSpec.assertDatabase(prisonerNumber: String, request: Prisoner, write: Boolean = true): WebTestClient.ResponseSpec {
+  private fun WebTestClient.ResponseSpec.assertDatabase(prisonNumber: String, request: Prisoner, write: Boolean = true): WebTestClient.ResponseSpec {
     if (write) {
-      val actualPersonEntity = personRepository.findByPrisonNumber(prisonerNumber) ?: fail { "Prisoner record was expected to be found" }
+      val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail { "Prisoner record was expected to be found" }
       val actualPerson = Person.from(actualPersonEntity)
-      val expectedPerson = Person.from(request, prisonerNumber).copy(personId = actualPerson.personId)
+      val expectedPerson = Person.from(request, prisonNumber).copy(personId = actualPerson.personId)
       assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
     } else {
-      assertThat(personRepository.findByPrisonNumber(prisonerNumber)).isNull()
+      assertThat(personRepository.findByPrisonNumber(prisonNumber)).isNull()
     }
     return this
   }
