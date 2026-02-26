@@ -9,6 +9,9 @@ import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchStatus
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchStatus.MATCH
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchStatus.NO_MATCH
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchStatus.POSSIBLE_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
@@ -69,15 +72,14 @@ class PersonMatchService(
   }
 
   fun determineMatchStatus(personEntity: PersonEntity): MatchStatus {
-    val results = findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity)
-    val matchWeight = results.firstOrNull()?.matchWeight
-
-    if (matchWeight == null) return MatchStatus.NO_MATCH
+    val personScores = handleCollectingPersonScores(personEntity).removeSelf(personEntity)
+    val results = getPersonRecords(personScores)
+    val matchWeight = results.firstOrNull()?.matchWeight ?: return NO_MATCH
 
     return when {
-      matchWeight >= 20 -> MatchStatus.MATCH
-      matchWeight > -10 -> MatchStatus.POSSIBLE_MATCH
-      else -> MatchStatus.NO_MATCH
+      matchWeight >= 20 -> MATCH
+      matchWeight > -10 -> POSSIBLE_MATCH
+      else -> NO_MATCH
     }
   }
 
