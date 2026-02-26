@@ -66,7 +66,7 @@ class PrisonWriteAPIController(private val prisonReligionInsertHandler: PrisonRe
     @RequestBody prisonReligionRequest: PrisonReligion,
   ): ResponseEntity<PrisonReligionResponseBody> {
     val prisonReligionMapping = prisonReligionInsertHandler.handleInsert(prisonNumber, prisonReligionRequest)
-    val responseBody = PrisonReligionResponseBody.from(prisonNumber, prisonReligionMapping)
+    val responseBody = PrisonReligionResponseBody(prisonNumber, prisonReligionMapping)
     return ResponseEntity(responseBody, HttpStatus.CREATED)
   }
 }
