@@ -29,11 +29,15 @@ class PrisonReligionInsertHandler(
 
   private fun validateRequest(prisonNumber: String, prisonReligion: PrisonReligion): PersonEntity {
     val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
-    val existingCurrentPrisonReligionEntity = prisonReligionRepository.findByPrisonNumber(prisonNumber).firstOrNull { it.prisonRecordType == PrisonRecordType.CURRENT }
-    if (existingCurrentPrisonReligionEntity != null && prisonReligion.current) {
+    if (existingReligionsContainCurrentAndNewReligionIsCurrent(prisonNumber, prisonReligion)) {
       throw IllegalArgumentException("Person $prisonNumber already has a current religion")
     }
     return personEntity
+  }
+
+  private fun existingReligionsContainCurrentAndNewReligionIsCurrent(prisonNumber: String, prisonReligion: PrisonReligion): Boolean {
+    val existingCurrentPrisonReligionEntity = prisonReligionRepository.findByPrisonNumber(prisonNumber).firstOrNull { it.prisonRecordType == PrisonRecordType.CURRENT }
+    return existingCurrentPrisonReligionEntity != null && prisonReligion.current
   }
 
   private fun handlePrisonReligionSave(
