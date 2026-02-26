@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.visualiseclu
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
@@ -73,7 +74,7 @@ class PersonMatchService(
 
   fun determineMatchStatus(personEntity: PersonEntity): MatchStatus {
     val personScores = collectPersonScores(personEntity)
-    val results = getPersonRecords(personScores)
+    val results = getPersonRecords(personScores).filter { it.personEntity.sourceSystem == DELIUS }
     val matchWeight = results.firstOrNull()?.matchWeight ?: return NO_MATCH
 
     return when {

@@ -17,7 +17,6 @@ class PersonCommonPlatformE2ETest : E2ETestBase() {
   @Nested
   inner class SuccessfulProcessing {
 
-    // TODO consider merged and passive records?
     @Test
     fun `should return match status when common platform record matches a probation record`() {
       val defendantId = randomDefendantId()
