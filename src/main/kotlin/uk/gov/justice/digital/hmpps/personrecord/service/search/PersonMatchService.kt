@@ -41,7 +41,7 @@ class PersonMatchService(
     .removeExcludedClusters(personEntity)
 
   fun findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity: PersonEntity): List<PersonMatchResult> {
-    val personScores = handleCollectingPersonScores(personEntity).removeSelf(personEntity)
+    val personScores = collectPersonScores(personEntity)
     val aboveFractureThresholdPersonRecords = getPersonRecords(personScores.getClustersAboveFractureThreshold())
       .allowMatchesWithUUID()
       .removeMergedRecords()
@@ -72,7 +72,7 @@ class PersonMatchService(
   }
 
   fun determineMatchStatus(personEntity: PersonEntity): MatchStatus {
-    val personScores = handleCollectingPersonScores(personEntity).removeSelf(personEntity)
+    val personScores = collectPersonScores(personEntity)
     val results = getPersonRecords(personScores)
     val matchWeight = results.firstOrNull()?.matchWeight ?: return NO_MATCH
 
@@ -102,9 +102,9 @@ class PersonMatchService(
     }
   }
 
-  private fun handleCollectingPersonScores(personEntity: PersonEntity): List<PersonMatchScore> = runBlocking {
+  private fun collectPersonScores(personEntity: PersonEntity): List<PersonMatchScore> = runBlocking {
     getPersonScores(personEntity).fold(
-      onSuccess = { it },
+      onSuccess = { it.removeSelf(personEntity) },
       onFailure = { throw it },
     )
   }
@@ -113,7 +113,7 @@ class PersonMatchService(
 
   private fun List<PersonMatchResult>.getClustersThatItCanJoin(): List<PersonMatchResult> = this.filter { it.shouldJoin }
 
-  private fun List<PersonMatchScore>.getClustersAboveFractureThreshold(): List<PersonMatchScore> = this.filter { candidate -> candidate.candidateShouldFracture.not() }
+  private fun List<PersonMatchScore>.getClustersAboveFractureThreshold(): List<PersonMatchScore> = this.filterNot { candidate -> candidate.candidateShouldFracture }
 
   private suspend fun getPersonScores(personEntity: PersonEntity): Result<List<PersonMatchScore>> = kotlin.runCatching {
     personMatchClient.getPersonScores(personEntity.matchId.toString())
@@ -123,7 +123,7 @@ class PersonMatchService(
 
   private fun List<PersonMatchResult>.removeMergedRecords(): List<PersonMatchResult> = this.filter { it.personEntity.mergedTo == null }
 
-  private fun List<PersonMatchResult>.removePassiveRecords(): List<PersonMatchResult> = this.filter { !it.personEntity.isPassive() }
+  private fun List<PersonMatchResult>.removePassiveRecords(): List<PersonMatchResult> = this.filterNot { it.personEntity.isPassive() }
 
   private fun List<PersonMatchResult>.removeMatchesWhereClusterInInvalidState(): List<PersonMatchResult> {
     val validStatuses = listOf(UUIDStatusType.ACTIVE, UUIDStatusType.NEEDS_ATTENTION)
