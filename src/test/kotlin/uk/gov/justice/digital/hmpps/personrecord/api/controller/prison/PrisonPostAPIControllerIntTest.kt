@@ -211,11 +211,11 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
     }
   }
 
-  private fun sendRequestAsserted(prisonNumber: String, prisonReligion: PrisonReligion?, expectedStatus: HttpStatus) {
+  private fun sendRequestAsserted(prisonNumber: String, prisonReligion: PrisonReligion, expectedStatus: HttpStatus) {
     val res = webTestClient
       .post()
       .uri(prisonReligionPostEndpoint(prisonNumber))
-      .bodyValue(prisonReligion ?: Any())
+      .bodyValue(prisonReligion)
       .authorised(roles = listOf(PRISON_API_READ_WRITE))
       .exchange()
 
