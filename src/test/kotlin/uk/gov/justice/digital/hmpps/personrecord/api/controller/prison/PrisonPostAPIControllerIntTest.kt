@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -29,7 +30,12 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createRandomReligion(current = true)
-      sendRequestAsserted(prisonNumber, requestBody, HttpStatus.CREATED)
+      sendRequestAsserted<PrisonReligionResponseBody>(
+        url = prisonReligionPostEndpoint(prisonNumber),
+        body = requestBody,
+        roles = listOf(PRISON_API_READ_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+      )
 
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
@@ -47,7 +53,12 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createRandomReligion(current = false)
-      sendRequestAsserted(prisonNumber, requestBody, HttpStatus.CREATED)
+      sendRequestAsserted<PrisonReligionResponseBody>(
+        url = prisonReligionPostEndpoint(prisonNumber),
+        body = requestBody,
+        roles = listOf(PRISON_API_READ_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+      )
 
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
@@ -74,7 +85,12 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
         personRepository.saveAndFlush(personEntityWithCurrentReligion)
 
         val requestBody = createRandomReligion(current = true)
-        sendRequestAsserted(prisonNumber, requestBody, HttpStatus.BAD_REQUEST)
+        sendRequestAsserted<Unit>(
+          url = prisonReligionPostEndpoint(prisonNumber),
+          body = requestBody,
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = HttpStatus.BAD_REQUEST,
+        )
 
         awaitAssert {
           val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
@@ -95,7 +111,12 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
         personRepository.saveAndFlush(personEntityWithCurrentReligion)
 
         val requestBody = createRandomReligion(current = false)
-        sendRequestAsserted(prisonNumber, requestBody, HttpStatus.CREATED)
+        sendRequestAsserted<PrisonReligionResponseBody>(
+          url = prisonReligionPostEndpoint(prisonNumber),
+          body = requestBody,
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = HttpStatus.CREATED,
+        )
 
         awaitAssert {
           val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
@@ -122,7 +143,12 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
         personRepository.saveAndFlush(personEntityWithCurrentReligion)
 
         val requestBody = createRandomReligion(current = true)
-        sendRequestAsserted(prisonNumber, requestBody, HttpStatus.CREATED)
+        sendRequestAsserted<PrisonReligionResponseBody>(
+          url = prisonReligionPostEndpoint(prisonNumber),
+          body = requestBody,
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = HttpStatus.CREATED,
+        )
 
         awaitAssert {
           val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
@@ -147,7 +173,12 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
       personRepository.saveAndFlush(personEntityWithCurrentReligion)
 
       val requestBody = createRandomReligion(current = false)
-      sendRequestAsserted(prisonNumber, requestBody, HttpStatus.CREATED)
+      sendRequestAsserted<PrisonReligionResponseBody>(
+        url = prisonReligionPostEndpoint(prisonNumber),
+        body = requestBody,
+        roles = listOf(PRISON_API_READ_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+      )
 
       awaitAssert {
         val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
@@ -170,7 +201,12 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createRandomReligion(current = true)
-      sendRequestAsserted(randomPrisonNumber(), requestBody, HttpStatus.NOT_FOUND)
+      sendRequestAsserted<Unit>(
+        url = prisonReligionPostEndpoint(randomPrisonNumber()),
+        body = requestBody,
+        roles = listOf(PRISON_API_READ_WRITE),
+        expectedStatus = HttpStatus.NOT_FOUND,
+      )
 
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
@@ -187,44 +223,23 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
 
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
-      webTestClient.post()
-        .uri(prisonReligionPostEndpoint(randomPrisonNumber()))
-        .bodyValue(createRandomReligion())
-        .exchange()
-        .expectStatus()
-        .isUnauthorized
+      sendRequestAsserted<Unit>(
+        url = prisonReligionPostEndpoint(randomPrisonNumber()),
+        body = createRandomReligion(),
+        roles = listOf(PRISON_API_READ_WRITE),
+        expectedStatus = HttpStatus.UNAUTHORIZED,
+        sendAuthorised = false,
+      )
     }
 
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
-      val expectedErrorMessage = "Forbidden: Access Denied"
-      webTestClient.post()
-        .uri(prisonReligionPostEndpoint(randomPrisonNumber()))
-        .bodyValue(createRandomReligion())
-        .authorised(listOf("UNSUPPORTED-ROLE"))
-        .exchange()
-        .expectStatus()
-        .isForbidden
-        .expectBody()
-        .jsonPath("userMessage")
-        .isEqualTo(expectedErrorMessage)
-    }
-  }
-
-  private fun sendRequestAsserted(prisonNumber: String, prisonReligion: PrisonReligion, expectedStatus: HttpStatus) {
-    val res = webTestClient
-      .post()
-      .uri(prisonReligionPostEndpoint(prisonNumber))
-      .bodyValue(prisonReligion)
-      .authorised(roles = listOf(PRISON_API_READ_WRITE))
-      .exchange()
-
-    when (expectedStatus) {
-      HttpStatus.CREATED -> res.expectStatus().isCreated
-      HttpStatus.BAD_REQUEST -> res.expectStatus().isBadRequest
-      HttpStatus.NOT_FOUND -> res.expectStatus().isNotFound
-      HttpStatus.INTERNAL_SERVER_ERROR -> res.expectStatus().is5xxServerError
-      else -> fail("Unexpected status code $expectedStatus")
+      sendRequestAsserted<Unit>(
+        url = prisonReligionPostEndpoint(randomPrisonNumber()),
+        body = createRandomReligion(),
+        roles = listOf("UNSUPPORTED_ROLE"),
+        expectedStatus = HttpStatus.FORBIDDEN,
+      )
     }
   }
 
