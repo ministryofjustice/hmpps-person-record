@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.prison
 
 data class PrisonReligionResponseBody(
-  val prisonerNumber: String,
+  val prisonNumber: String,
   val religionMappings: PrisonReligionMapping,
 ) {
   companion object {
-    fun from(prisonerNumber: String, prisonReligionMapping: PrisonReligionMapping) = PrisonReligionResponseBody(
-      prisonerNumber = prisonerNumber,
+    fun from(prisonNumber: String, prisonReligionMapping: PrisonReligionMapping) = PrisonReligionResponseBody(
+      prisonNumber = prisonNumber,
       religionMappings = prisonReligionMapping,
     )
   }

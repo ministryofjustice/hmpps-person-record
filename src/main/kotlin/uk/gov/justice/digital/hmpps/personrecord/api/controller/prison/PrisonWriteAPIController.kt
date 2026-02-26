@@ -62,11 +62,11 @@ class PrisonWriteAPIController(private val prisonReligionInsertHandler: PrisonRe
   )
   @PostMapping("/person/prison/{prisonerNumber}/religion")
   fun save(
-    @PathVariable("prisonerNumber") prisonerNumber: String,
+    @PathVariable("prisonerNumber") prisonNumber: String,
     @RequestBody prisonReligionRequest: PrisonReligion,
   ): ResponseEntity<PrisonReligionResponseBody> {
-    val prisonReligionMapping = prisonReligionInsertHandler.handleInsert(prisonerNumber, prisonReligionRequest)
-    val responseBody = PrisonReligionResponseBody.from(prisonerNumber, prisonReligionMapping)
+    val prisonReligionMapping = prisonReligionInsertHandler.handleInsert(prisonNumber, prisonReligionRequest)
+    val responseBody = PrisonReligionResponseBody.from(prisonNumber, prisonReligionMapping)
     return ResponseEntity(responseBody, HttpStatus.CREATED)
   }
 }
