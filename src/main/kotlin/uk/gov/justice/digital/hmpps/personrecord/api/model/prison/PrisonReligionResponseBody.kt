@@ -5,12 +5,9 @@ data class PrisonReligionResponseBody(
   val religionMappings: PrisonReligionMapping,
 ) {
   companion object {
-    fun from(prisonerNumber: String, nomisReligionId: String, cprReligionId: String) = PrisonReligionResponseBody(
+    fun from(prisonerNumber: String, prisonReligionMapping: PrisonReligionMapping) = PrisonReligionResponseBody(
       prisonerNumber = prisonerNumber,
-      religionMappings = PrisonReligionMapping(
-        nomisReligionId = nomisReligionId,
-        cprReligionId = cprReligionId,
-      ),
+      religionMappings = prisonReligionMapping,
     )
   }
 }
