@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
@@ -71,13 +70,5 @@ class PrisonWriteAPIController(private val prisonReligionInsertHandler: PrisonRe
     val prisonReligionMapping = prisonReligionInsertHandler.handleInsert(prisonerNumber, prisonReligionRequest)
     val responseBody = PrisonReligionResponseBody.from(prisonerNumber, prisonReligionMapping)
     return ResponseEntity(responseBody, HttpStatus.CREATED)
-  }
-
-  @PutMapping("/person/prison/{prisonerNumber}/religion/{cprReligionId}")
-  fun update(
-    @PathVariable("prisonerNumber") prisonerNumber: String,
-    @PathVariable("cprReligionId") cprReligionId: String,
-    @RequestBody prisonReligionRequest: PrisonReligion,
-  ) {
   }
 }
