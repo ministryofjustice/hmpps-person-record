@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -67,6 +68,26 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
         val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
         assertThat(actualPrisonReligionEntities).hasSize(1)
         assertPrisonReligionEntityColumns(prisonNumber, actualPrisonReligionEntities.first(), requestBody)
+      }
+    }
+
+    @Test
+    fun `sending a religion - successful - returns correct response body`() {
+      val prisonNumber = randomPrisonNumber()
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+
+      val requestBody = createRandomReligion(current = true)
+      val responseBody = sendRequestAsserted<PrisonReligionResponseBody>(
+        url = prisonReligionPostEndpoint(prisonNumber),
+        body = requestBody,
+        roles = listOf(PRISON_API_READ_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+      )
+
+      awaitAssert {
+        val actualPrisonReligionEntity = prisonReligionRepository.findByPrisonNumber(prisonNumber).first()
+        val expectedResponseBody = PrisonReligionResponseBody(prisonNumber, PrisonReligionMapping(requestBody.nomisReligionId, actualPrisonReligionEntity.updateId.toString()))
+        responseBody.isEqualTo(expectedResponseBody)
       }
     }
   }
