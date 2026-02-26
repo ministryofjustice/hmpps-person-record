@@ -1,17 +1,15 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.prison
 
-import java.util.UUID
-
 data class PrisonReligionResponseBody(
   val prisonerNumber: String,
   val religionMappings: PrisonReligionMapping,
 ) {
   companion object {
-    fun from(prisonerNumber: String, nomisReligionId: String, cprReligionId: UUID?) = PrisonReligionResponseBody(
+    fun from(prisonerNumber: String, nomisReligionId: String, cprReligionId: String) = PrisonReligionResponseBody(
       prisonerNumber = prisonerNumber,
       religionMappings = PrisonReligionMapping(
         nomisReligionId = nomisReligionId,
-        cprReligionId = cprReligionId.toString(),
+        cprReligionId = cprReligionId,
       ),
     )
   }

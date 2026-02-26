@@ -228,11 +228,11 @@ class PrisonWriteAPIControllerIntTest : WebTestBase() {
     }
   }
 
-  private fun sendRequestAsserted(prisonNumber: String, requestBody: PrisonReligion?, expectedStatus: HttpStatus) {
+  private fun sendRequestAsserted(prisonNumber: String, prisonReligion: PrisonReligion?, expectedStatus: HttpStatus) {
     val res = webTestClient
       .post()
       .uri(prisonReligionPostEndpoint(prisonNumber))
-      .bodyValue(requestBody ?: Any())
+      .bodyValue(prisonReligion ?: Any())
       .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
       .exchange()
 
