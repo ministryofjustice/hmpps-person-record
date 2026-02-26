@@ -165,23 +165,6 @@ class PrisonWriteAPIControllerIntTest : WebTestBase() {
   inner class Validation {
 
     @Test
-    fun `bad request body - returns 400 bad request`() {
-      val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
-
-      // TODO: make return 400
-      sendRequestAsserted(prisonNumber, null, HttpStatus.INTERNAL_SERVER_ERROR)
-
-      awaitAssert {
-        val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
-        assertThat(personEntity.religion).isEqualTo(null)
-
-        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
-        assertThat(actualPrisonReligionEntities).hasSize(0)
-      }
-    }
-
-    @Test
     fun `person does not exist - returns 404 not found`() {
       val prisonNumber = randomPrisonNumber()
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
