@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -233,7 +233,7 @@ class PrisonWriteAPIControllerIntTest : WebTestBase() {
       .post()
       .uri(prisonReligionPostEndpoint(prisonNumber))
       .bodyValue(prisonReligion ?: Any())
-      .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+      .authorised(roles = listOf(PRISON_API_READ_WRITE))
       .exchange()
 
     when (expectedStatus) {
