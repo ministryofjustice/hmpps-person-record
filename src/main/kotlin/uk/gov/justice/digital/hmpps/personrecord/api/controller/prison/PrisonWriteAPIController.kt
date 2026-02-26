@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.PrisonReligionInsertHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 
 @Tag(name = "HMPPS Person API")
 @RestController
@@ -66,7 +65,6 @@ class PrisonWriteAPIController(private val prisonReligionInsertHandler: PrisonRe
     @PathVariable("prisonerNumber") prisonerNumber: String,
     @RequestBody prisonReligionRequest: PrisonReligion,
   ): ResponseEntity<PrisonReligionResponseBody> {
-    PrisonReligionEntity.from(prisonerNumber, prisonReligionRequest)
     val prisonReligionMapping = prisonReligionInsertHandler.handleInsert(prisonerNumber, prisonReligionRequest)
     val responseBody = PrisonReligionResponseBody.from(prisonerNumber, prisonReligionMapping)
     return ResponseEntity(responseBody, HttpStatus.CREATED)
