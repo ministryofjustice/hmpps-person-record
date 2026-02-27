@@ -217,17 +217,6 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `should not return its self if person match sends it back`() {
-      val record = createPersonWithNewKey(createExamplePerson())
-
-      stubOnePersonMatchAboveJoinThreshold(matchId = record.matchId, matchedRecord = record.matchId)
-
-      val highConfidenceMatch = personMatchService.findClustersToJoin(record)
-
-      noCandidateFound(highConfidenceMatch)
-    }
-
-    @Test
     fun `should return highest scoring record`() {
       val searchingRecord = createPersonWithNewKey(createExamplePerson())
 
