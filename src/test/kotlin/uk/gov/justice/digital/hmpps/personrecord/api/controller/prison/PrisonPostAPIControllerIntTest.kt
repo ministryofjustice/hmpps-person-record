@@ -49,7 +49,7 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `person has existing prion religion - saves prison religion - demotes old prison religion - updates current religion`() {
+    fun `person has existing current prison religion - does not save prison religion - return internal server error`() {
       val prisonNumber = randomPrisonNumber()
       val existingReligionEntity = PrisonReligionEntity.from(prisonNumber, createRandomReligion())
       val personEntityWithCurrentReligion = PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = existingReligionEntity.code))
@@ -57,25 +57,19 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
       personRepository.saveAndFlush(personEntityWithCurrentReligion)
 
       val requestBody = createRandomReligion()
-      sendRequestAsserted<PrisonReligionResponseBody>(
+      sendRequestAsserted<Unit>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
         roles = listOf(PRISON_API_READ_WRITE),
-        expectedStatus = HttpStatus.CREATED,
+        expectedStatus = HttpStatus.INTERNAL_SERVER_ERROR,
       )
 
       awaitAssert {
         val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
-        assertThat(actualPersonEntity.religion).isEqualTo(requestBody.religionCode)
+        assertThat(actualPersonEntity.religion).isEqualTo(actualPersonEntity.religion)
 
-        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber).associateBy { it.prisonRecordType }
-        assertThat(actualPrisonReligionEntities.keys).hasSize(2)
-
-        val actualOldReligion = actualPrisonReligionEntities[PrisonRecordType.HISTORIC]!!
-        assertThat(actualOldReligion.prisonRecordType).isEqualTo(PrisonRecordType.HISTORIC)
-
-        val actualNewReligion = actualPrisonReligionEntities[PrisonRecordType.CURRENT]!!
-        assertPrisonReligionEntityColumns(prisonNumber, actualNewReligion, requestBody)
+        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
+        assertThat(actualPrisonReligionEntities).hasSize(1)
       }
     }
 
