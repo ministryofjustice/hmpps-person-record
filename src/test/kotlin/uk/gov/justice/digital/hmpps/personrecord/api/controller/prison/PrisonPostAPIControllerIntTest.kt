@@ -23,14 +23,14 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
   private lateinit var prisonReligionRepository: PrisonReligionRepository
 
   @Nested
-  inner class PersonHasNoExistingPrisonReligionRecords {
+  inner class Successful {
 
     @Test
-    fun `sending a current religion - saves religion - updates current religion`() {
+    fun `person has no prison religions - saves prison religion - updates current religion`() {
       val prisonNumber = randomPrisonNumber()
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-      val requestBody = createRandomReligion(current = true)
+      val requestBody = createRandomReligion()
       sendRequestAsserted<PrisonReligionResponseBody>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
@@ -49,11 +49,14 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `sending a non current religion - saves religion - does not update current religion`() {
+    fun `person has existing prion religion - saves prison religion - demotes old prison religion - updates current religion`() {
       val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      val existingReligionEntity = PrisonReligionEntity.from(prisonNumber, createRandomReligion())
+      val personEntityWithCurrentReligion = PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = existingReligionEntity.code))
+      prisonReligionRepository.save(existingReligionEntity)
+      personRepository.saveAndFlush(personEntityWithCurrentReligion)
 
-      val requestBody = createRandomReligion(current = false)
+      val requestBody = createRandomReligion()
       sendRequestAsserted<PrisonReligionResponseBody>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
@@ -62,21 +65,26 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
       )
 
       awaitAssert {
-        val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
-        assertThat(personEntity.religion).isEqualTo(null)
+        val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
+        assertThat(actualPersonEntity.religion).isEqualTo(requestBody.religionCode)
 
-        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
-        assertThat(actualPrisonReligionEntities).hasSize(1)
-        assertPrisonReligionEntityColumns(prisonNumber, actualPrisonReligionEntities.first(), requestBody)
+        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber).associateBy { it.prisonRecordType }
+        assertThat(actualPrisonReligionEntities.keys).hasSize(2)
+
+        val actualOldReligion = actualPrisonReligionEntities[PrisonRecordType.HISTORIC]!!
+        assertThat(actualOldReligion.prisonRecordType).isEqualTo(PrisonRecordType.HISTORIC)
+
+        val actualNewReligion = actualPrisonReligionEntities[PrisonRecordType.CURRENT]!!
+        assertPrisonReligionEntityColumns(prisonNumber, actualNewReligion, requestBody)
       }
     }
 
     @Test
-    fun `sending a religion - successful - returns correct response body`() {
+    fun `saves prison religion - returns correct response body`() {
       val prisonNumber = randomPrisonNumber()
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-      val requestBody = createRandomReligion(current = true)
+      val requestBody = createRandomReligion()
       val responseBody = sendRequestAsserted<PrisonReligionResponseBody>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
@@ -93,127 +101,6 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
   }
 
   @Nested
-  inner class PersonHasExistingPrisonReligionRecords {
-
-    @Nested
-    inner class ExistingIsCurrent {
-      @Test
-      fun `sending a current religion - does not save religion - does not update current religion`() {
-        val prisonNumber = randomPrisonNumber()
-        val existingReligionEntity = PrisonReligionEntity.from(prisonNumber, createRandomReligion(current = true))
-        val personEntityWithCurrentReligion = PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = existingReligionEntity.code))
-        prisonReligionRepository.save(existingReligionEntity)
-        personRepository.saveAndFlush(personEntityWithCurrentReligion)
-
-        val requestBody = createRandomReligion(current = true)
-        sendRequestAsserted<Unit>(
-          url = prisonReligionPostEndpoint(prisonNumber),
-          body = requestBody,
-          roles = listOf(PRISON_API_READ_WRITE),
-          expectedStatus = HttpStatus.BAD_REQUEST,
-        )
-
-        awaitAssert {
-          val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
-          assertThat(actualPersonEntity.religion).isEqualTo(existingReligionEntity.code)
-
-          val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
-          assertThat(actualPrisonReligionEntities).hasSize(1)
-          assertThat(actualPrisonReligionEntities.first()).usingRecursiveComparison().isEqualTo(existingReligionEntity)
-        }
-      }
-
-      @Test
-      fun `sending a non current religion - saves religion - does not update current religion`() {
-        val prisonNumber = randomPrisonNumber()
-        val existingReligionEntity = PrisonReligionEntity.from(prisonNumber, createRandomReligion(current = true))
-        val personEntityWithCurrentReligion = PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = existingReligionEntity.code))
-        prisonReligionRepository.save(existingReligionEntity)
-        personRepository.saveAndFlush(personEntityWithCurrentReligion)
-
-        val requestBody = createRandomReligion(current = false)
-        sendRequestAsserted<PrisonReligionResponseBody>(
-          url = prisonReligionPostEndpoint(prisonNumber),
-          body = requestBody,
-          roles = listOf(PRISON_API_READ_WRITE),
-          expectedStatus = HttpStatus.CREATED,
-        )
-
-        awaitAssert {
-          val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
-          assertThat(actualPersonEntity.religion).isEqualTo(existingReligionEntity.code)
-
-          val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
-          assertThat(actualPrisonReligionEntities).hasSize(2)
-          val actualCurrentReligionEntity = actualPrisonReligionEntities.first { it.prisonRecordType == PrisonRecordType.CURRENT }
-          val actualNonCurrentReligionEntity = actualPrisonReligionEntities.first { it.prisonRecordType == PrisonRecordType.HISTORIC }
-          assertThat(actualCurrentReligionEntity).usingRecursiveComparison().isEqualTo(existingReligionEntity)
-          assertPrisonReligionEntityColumns(prisonNumber, actualNonCurrentReligionEntity, requestBody)
-        }
-      }
-    }
-
-    @Nested
-    inner class ExistingIsNotCurrent {
-      @Test
-      fun `sending a current religion - saves religion - updates current religion`() {
-        val prisonNumber = randomPrisonNumber()
-        val existingReligionEntity = PrisonReligionEntity.from(prisonNumber, createRandomReligion(current = false))
-        val personEntityWithCurrentReligion = PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = null))
-        prisonReligionRepository.save(existingReligionEntity)
-        personRepository.saveAndFlush(personEntityWithCurrentReligion)
-
-        val requestBody = createRandomReligion(current = true)
-        sendRequestAsserted<PrisonReligionResponseBody>(
-          url = prisonReligionPostEndpoint(prisonNumber),
-          body = requestBody,
-          roles = listOf(PRISON_API_READ_WRITE),
-          expectedStatus = HttpStatus.CREATED,
-        )
-
-        awaitAssert {
-          val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
-          assertThat(actualPersonEntity.religion).isEqualTo(requestBody.religionCode)
-
-          val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
-          assertThat(actualPrisonReligionEntities).hasSize(2)
-          val actualNonCurrentReligionEntity = actualPrisonReligionEntities.first { it.prisonRecordType == PrisonRecordType.HISTORIC }
-          val actualCurrentReligionEntity = actualPrisonReligionEntities.first { it.prisonRecordType == PrisonRecordType.CURRENT }
-          assertThat(actualNonCurrentReligionEntity).usingRecursiveComparison().isEqualTo(existingReligionEntity)
-          assertPrisonReligionEntityColumns(prisonNumber, actualCurrentReligionEntity, requestBody)
-        }
-      }
-    }
-
-    @Test
-    fun `sending a non current religion - saves religion - does not update current religion`() {
-      val prisonNumber = randomPrisonNumber()
-      val existingReligionEntity = PrisonReligionEntity.from(prisonNumber, createRandomReligion(current = false))
-      val personEntityWithCurrentReligion = PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = null))
-      prisonReligionRepository.save(existingReligionEntity)
-      personRepository.saveAndFlush(personEntityWithCurrentReligion)
-
-      val requestBody = createRandomReligion(current = false)
-      sendRequestAsserted<PrisonReligionResponseBody>(
-        url = prisonReligionPostEndpoint(prisonNumber),
-        body = requestBody,
-        roles = listOf(PRISON_API_READ_WRITE),
-        expectedStatus = HttpStatus.CREATED,
-      )
-
-      awaitAssert {
-        val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
-        assertThat(actualPersonEntity.religion).isEqualTo(null)
-
-        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber).sortedBy { it.id }
-        assertThat(actualPrisonReligionEntities).hasSize(2)
-        assertThat(actualPrisonReligionEntities.first()).usingRecursiveComparison().isEqualTo(existingReligionEntity)
-        assertPrisonReligionEntityColumns(prisonNumber, actualPrisonReligionEntities.last(), requestBody)
-      }
-    }
-  }
-
-  @Nested
   inner class Validation {
 
     @Test
@@ -221,7 +108,7 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-      val requestBody = createRandomReligion(current = true)
+      val requestBody = createRandomReligion()
       sendRequestAsserted<Unit>(
         url = prisonReligionPostEndpoint(randomPrisonNumber()),
         body = requestBody,

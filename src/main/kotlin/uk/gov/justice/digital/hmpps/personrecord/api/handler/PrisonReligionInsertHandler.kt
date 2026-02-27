@@ -22,22 +22,9 @@ class PrisonReligionInsertHandler(
 
   @Transactional
   fun handleInsert(prisonNumber: String, prisonReligion: PrisonReligion): PrisonReligionMapping {
-    val personEntity = validateRequest(prisonNumber, prisonReligion)
+    val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
     val cprReligionId = handlePrisonReligionSave(prisonNumber, prisonReligion, personEntity)
     return PrisonReligionMapping(prisonReligion.nomisReligionId, cprReligionId)
-  }
-
-  private fun validateRequest(prisonNumber: String, prisonReligion: PrisonReligion): PersonEntity {
-    val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
-    if (existingReligionsContainCurrentAndNewReligionIsCurrent(prisonNumber, prisonReligion)) {
-      throw IllegalArgumentException("Person $prisonNumber already has a current religion")
-    }
-    return personEntity
-  }
-
-  private fun existingReligionsContainCurrentAndNewReligionIsCurrent(prisonNumber: String, prisonReligion: PrisonReligion): Boolean {
-    val existingCurrentPrisonReligionEntity = prisonReligionRepository.findByPrisonNumber(prisonNumber).firstOrNull { it.prisonRecordType == PrisonRecordType.CURRENT }
-    return existingCurrentPrisonReligionEntity != null && prisonReligion.current
   }
 
   private fun handlePrisonReligionSave(
@@ -45,11 +32,16 @@ class PrisonReligionInsertHandler(
     prisonReligion: PrisonReligion,
     personEntity: PersonEntity,
   ): String {
-    val prisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, prisonReligion))
-    if (prisonReligion.current) {
-      personEntity.religion = prisonReligion.religionCode
-      personService.processPerson(Person.from(personEntity)) { personEntity }
+    val existingCurrentPrisonReligionEntity = prisonReligionRepository.findByPrisonNumber(prisonNumber).firstOrNull { it.prisonRecordType == PrisonRecordType.CURRENT }
+    if (existingCurrentPrisonReligionEntity != null) {
+      existingCurrentPrisonReligionEntity.prisonRecordType = PrisonRecordType.HISTORIC
+      prisonReligionRepository.saveAndFlush(existingCurrentPrisonReligionEntity)
     }
+
+    val prisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, prisonReligion))
+
+    personEntity.religion = prisonReligion.religionCode
+    personService.processPerson(Person.from(personEntity)) { personEntity }
     return prisonReligionEntity.updateId.toString()
   }
 }
