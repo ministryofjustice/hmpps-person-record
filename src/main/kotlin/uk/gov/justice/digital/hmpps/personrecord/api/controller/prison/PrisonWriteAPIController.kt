@@ -12,17 +12,23 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.PrisonReligionInsertHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.PrisonReligionUpdateHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.PrisonReligionUpdateHandler.PrisonReligionPatchRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 
 @Tag(name = "HMPPS Person API")
 @RestController
 @PreAuthorize("hasRole('$PERSON_RECORD_SYSCON_SYNC_WRITE')")
-class PrisonWriteAPIController(private val prisonReligionInsertHandler: PrisonReligionInsertHandler) {
+class PrisonWriteAPIController(
+  private val prisonReligionInsertHandler: PrisonReligionInsertHandler,
+  private val prisonReligionUpdateHandler: PrisonReligionUpdateHandler,
+) {
 
   @Operation(
     description = """Save prison religion record by Prison Number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.""",
@@ -48,5 +54,53 @@ class PrisonWriteAPIController(private val prisonReligionInsertHandler: PrisonRe
     val prisonReligionMapping = prisonReligionInsertHandler.handleInsert(prisonNumber, prisonReligionRequest)
     val responseBody = PrisonReligionResponseBody(prisonNumber, prisonReligionMapping)
     return ResponseEntity(responseBody, HttpStatus.CREATED)
+  }
+
+  @Operation(
+    description = """Update prison religion record by Prison Number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.""",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @ApiResponses(
+    ApiResponse(
+      responseCode = "200",
+      description = "OK",
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = PrisonReligionResponseBody::class),
+        ),
+      ],
+    ),
+    ApiResponse(
+      responseCode = "400",
+      description = "Bad Request",
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(hidden = true),
+        ),
+      ],
+    ),
+    ApiResponse(
+      responseCode = "404",
+      description = "Not Found",
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(hidden = true),
+        ),
+      ],
+    ),
+  )
+  @PutMapping("/person/prison/{prisonerNumber}/religion/{cprReligionId}")
+  fun update(
+    @PathVariable("prisonerNumber") prisonNumber: String,
+    @PathVariable("cprReligionId") cprReligionId: String,
+    @RequestBody prisonReligionRequest: PrisonReligion,
+  ): ResponseEntity<PrisonReligionResponseBody> {
+    val updateRequest = PrisonReligionPatchRequest.from(prisonNumber, cprReligionId, prisonReligionRequest)
+    val prisonReligionMapping = prisonReligionUpdateHandler.handleUpdate(updateRequest)
+    val responseBody = PrisonReligionResponseBody(prisonNumber, prisonReligionMapping)
+    return ResponseEntity(responseBody, HttpStatus.OK)
   }
 }

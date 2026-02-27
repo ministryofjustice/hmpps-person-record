@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.config
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
@@ -19,15 +20,32 @@ abstract class WebTestBase : IntegrationTestBase() {
 
   protected fun WebTestClient.RequestHeadersSpec<*>.authorised(roles: List<String> = listOf(QUEUE_ADMIN)): WebTestClient.RequestBodySpec = headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = roles)) as WebTestClient.RequestBodySpec
 
+  protected final inline fun <reified T : Any> sendPostRequestAsserted(
+    url: String,
+    body: Any,
+    roles: List<String>,
+    expectedStatus: HttpStatus,
+    sendAuthorised: Boolean = true,
+  ): WebTestClient.BodySpec<T, *> = sendRequestAsserted(url, body, roles, expectedStatus, sendAuthorised, HttpMethod.POST)
+
+  protected final inline fun <reified T : Any> sendPutRequestAsserted(
+    url: String,
+    body: Any,
+    roles: List<String>,
+    expectedStatus: HttpStatus,
+    sendAuthorised: Boolean = true,
+  ): WebTestClient.BodySpec<T, *> = sendRequestAsserted(url, body, roles, expectedStatus, sendAuthorised, HttpMethod.PUT)
+
   protected final inline fun <reified T : Any> sendRequestAsserted(
     url: String,
     body: Any,
     roles: List<String>,
     expectedStatus: HttpStatus,
     sendAuthorised: Boolean = true,
+    methodType: HttpMethod,
   ): WebTestClient.BodySpec<T, *> {
     val requestSpec = webTestClient
-      .post()
+      .method(methodType)
       .uri(url)
       .bodyValue(body)
 
