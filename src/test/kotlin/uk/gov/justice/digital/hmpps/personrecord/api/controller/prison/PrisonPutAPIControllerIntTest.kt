@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import java.util.UUID
 
 class PrisonPutAPIControllerIntTest : WebTestBase() {
 
@@ -67,11 +68,19 @@ class PrisonPutAPIControllerIntTest : WebTestBase() {
   inner class Validation {
 
     @Test
-    fun `person does not exist - returns 404 not found`() {
-    }
-
-    @Test
     fun `prison religion does not exist - returns 404 not found`() {
+      val prisonNumber = randomPrisonNumber()
+      val requestBody = createRandomReligionUpdateRequest()
+      sendPutRequestAsserted<Unit>(
+        url = prisonReligionPutEndpoint(prisonNumber, UUID.randomUUID().toString()),
+        body = requestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.NOT_FOUND,
+      )
+
+      awaitAssert {
+        assertThat(prisonReligionRepository.findByPrisonNumber(prisonNumber)).isEmpty()
+      }
     }
   }
 
@@ -80,10 +89,23 @@ class PrisonPutAPIControllerIntTest : WebTestBase() {
 
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
+      sendPutRequestAsserted<Unit>(
+        url = prisonReligionPutEndpoint(randomPrisonNumber(), UUID.randomUUID().toString()),
+        body = createRandomReligionUpdateRequest(),
+        roles = listOf(),
+        expectedStatus = HttpStatus.UNAUTHORIZED,
+        sendAuthorised = false,
+      )
     }
 
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
+      sendPutRequestAsserted<Unit>(
+        url = prisonReligionPutEndpoint(randomPrisonNumber(), UUID.randomUUID().toString()),
+        body = createRandomReligionUpdateRequest(),
+        roles = listOf("UNSUPPORTED_ROLE"),
+        expectedStatus = HttpStatus.FORBIDDEN,
+      )
     }
   }
 
