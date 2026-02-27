@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.PrisonReligionInsertHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.PrisonReligionUpdateHandler
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.PrisonReligionUpdateHandler.PrisonReligionPatchRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionResponseBody
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionUpdateRequestBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 
 @Tag(name = "HMPPS Person API")
@@ -96,10 +96,9 @@ class PrisonWriteAPIController(
   fun update(
     @PathVariable("prisonerNumber") prisonNumber: String,
     @PathVariable("cprReligionId") cprReligionId: String,
-    @RequestBody prisonReligionRequest: PrisonReligion,
+    @RequestBody requestBody: PrisonReligionUpdateRequestBody,
   ): ResponseEntity<PrisonReligionResponseBody> {
-    val updateRequest = PrisonReligionPatchRequest.from(prisonNumber, cprReligionId, prisonReligionRequest)
-    val prisonReligionMapping = prisonReligionUpdateHandler.handleUpdate(updateRequest)
+    val prisonReligionMapping = prisonReligionUpdateHandler.handleUpdate(cprReligionId, requestBody)
     val responseBody = PrisonReligionResponseBody(prisonNumber, prisonReligionMapping)
     return ResponseEntity(responseBody, HttpStatus.OK)
   }
