@@ -14,18 +14,18 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.PrisonReligionInsertHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 
 @Tag(name = "HMPPS Person API")
 @RestController
-@PreAuthorize("hasRole('$PRISON_API_READ_WRITE')")
+@PreAuthorize("hasRole('$PERSON_RECORD_SYSCON_SYNC_WRITE')")
 class PrisonWriteAPIController(private val prisonReligionInsertHandler: PrisonReligionInsertHandler) {
 
   @Operation(
-    description = """Save prison religion record by Prison Number. Role required is **$PRISON_API_READ_WRITE**.""",
+    description = """Save prison religion record by Prison Number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.""",
     security = [SecurityRequirement(name = "api-role")],
   )
   @ApiResponses(

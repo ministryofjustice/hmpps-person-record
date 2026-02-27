@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
@@ -34,7 +34,7 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
       sendRequestAsserted<PrisonReligionResponseBody>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
-        roles = listOf(PRISON_API_READ_WRITE),
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.CREATED,
       )
 
@@ -60,7 +60,7 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
       sendRequestAsserted<Unit>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
-        roles = listOf(PRISON_API_READ_WRITE),
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.INTERNAL_SERVER_ERROR,
       )
 
@@ -82,7 +82,7 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
       val responseBody = sendRequestAsserted<PrisonReligionResponseBody>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
-        roles = listOf(PRISON_API_READ_WRITE),
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.CREATED,
       )
 
@@ -106,7 +106,7 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
       sendRequestAsserted<Unit>(
         url = prisonReligionPostEndpoint(randomPrisonNumber()),
         body = requestBody,
-        roles = listOf(PRISON_API_READ_WRITE),
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.NOT_FOUND,
       )
 
@@ -128,7 +128,7 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
       sendRequestAsserted<Unit>(
         url = prisonReligionPostEndpoint(randomPrisonNumber()),
         body = createRandomReligion(),
-        roles = listOf(PRISON_API_READ_WRITE),
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.UNAUTHORIZED,
         sendAuthorised = false,
       )
