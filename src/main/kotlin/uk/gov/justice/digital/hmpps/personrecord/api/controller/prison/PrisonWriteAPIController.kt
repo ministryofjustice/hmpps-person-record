@@ -71,26 +71,6 @@ class PrisonWriteAPIController(
         ),
       ],
     ),
-    ApiResponse(
-      responseCode = "400",
-      description = "Bad Request",
-      content = [
-        Content(
-          mediaType = "application/json",
-          schema = Schema(hidden = true),
-        ),
-      ],
-    ),
-    ApiResponse(
-      responseCode = "404",
-      description = "Not Found",
-      content = [
-        Content(
-          mediaType = "application/json",
-          schema = Schema(hidden = true),
-        ),
-      ],
-    ),
   )
   @PutMapping("/person/prison/{prisonerNumber}/religion/{cprReligionId}")
   fun update(
