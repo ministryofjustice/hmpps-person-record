@@ -37,7 +37,7 @@ class PersonMatchService(
     .removeExcludedClusters(personEntity)
 
   fun findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity: PersonEntity): List<PersonMatchResult> {
-    val personScores = handleCollectingPersonScores(personEntity).removeSelf(personEntity)
+    val personScores = handleCollectingPersonScores(personEntity)
     val aboveFractureThresholdPersonRecords = getPersonRecords(personScores.getClustersAboveFractureThreshold())
       .allowMatchesWithUUID()
       .removeMergedRecords()
@@ -92,8 +92,6 @@ class PersonMatchService(
       onFailure = { throw it },
     )
   }
-
-  private fun List<PersonMatchScore>.removeSelf(personEntity: PersonEntity): List<PersonMatchScore> = this.filterNot { score -> score.candidateMatchId == personEntity.matchId.toString() }
 
   private fun List<PersonMatchResult>.getClustersThatItCanJoin(): List<PersonMatchResult> = this.filter { it.shouldJoin }
 
