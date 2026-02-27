@@ -1,6 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.match
 
-data class MatchDetailsResponse(
+import com.fasterxml.jackson.annotation.JsonProperty
+
+data class PersonMatchDetailsResponse(
+  @JsonProperty("match_status")
   val matchStatus: MatchStatus,
 )
 

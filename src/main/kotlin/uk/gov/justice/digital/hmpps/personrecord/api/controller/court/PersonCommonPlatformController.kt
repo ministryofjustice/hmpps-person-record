@@ -7,16 +7,17 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchDetailsResponse
+import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchStatus
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 
 @RestController
 @RequestMapping("/person/commonplatform")
 @PreAuthorize("hasRole('$API_READ_ONLY')")
 class PersonCommonPlatformController(
   private val personRepository: PersonRepository,
-  private val personMatchService: PersonMatchService,
+  private val personMatchClient: PersonMatchClient,
 ) {
 
   @GetMapping("/{defendantId}/match-details")
@@ -24,7 +25,10 @@ class PersonCommonPlatformController(
     val personEntity = personRepository.findByDefendantId(defendantId)
       ?: return ResponseEntity.notFound().build()
 
-    val status = personMatchService.determineMatchStatus(personEntity)
-    return ResponseEntity.ok(MatchDetailsResponse(matchStatus = status))
+    return ResponseEntity.ok().body(MatchDetailsResponse(personMatchClient.getPersonBestMatch(personEntity.matchId.toString(), SourceSystemType.DELIUS).matchStatus))
   }
 }
+
+data class MatchDetailsResponse(
+  val matchStatus: MatchStatus,
+)

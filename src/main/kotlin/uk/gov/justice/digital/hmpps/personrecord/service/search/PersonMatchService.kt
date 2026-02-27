@@ -8,10 +8,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchStatus
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchStatus.MATCH
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchStatus.NO_MATCH
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchStatus.POSSIBLE_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
@@ -21,13 +17,13 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.visualiseclu
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DiscardableNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import java.util.UUID
+
 @Component
 class PersonMatchService(
   private val personMatchClient: PersonMatchClient,
@@ -70,18 +66,6 @@ class PersonMatchService(
     personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity))
   } catch (_: DiscardableNotFoundException) {
     log.info("ignoring 404 from person match because record has already been deleted")
-  }
-
-  fun determineMatchStatus(personEntity: PersonEntity): MatchStatus {
-    val personScores = collectPersonScores(personEntity)
-    val results = getPersonRecords(personScores).filter { it.personEntity.sourceSystem == DELIUS }
-    val matchWeight = results.firstOrNull()?.matchWeight ?: return NO_MATCH
-
-    return when {
-      matchWeight >= 20 -> MATCH
-      matchWeight > -10 -> POSSIBLE_MATCH
-      else -> NO_MATCH
-    }
   }
 
   private fun IsClusterValidMissingRecordResponse.upsertMissingRecords() = this.unknownIds.forEach { matchId ->
