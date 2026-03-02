@@ -31,7 +31,7 @@ class PrisonPutAPIControllerIntTest : WebTestBase() {
   inner class Successful {
 
     @Test
-    fun `prison religion exists - updates prison religion - returns correct response body`() {
+    fun `prison religion exists - updates prison religion - updates prison religion`() {
       val prisonNumber = randomPrisonNumber()
       val existingReligionEntity = PrisonReligionEntity.from(prisonNumber, createRandomReligion(code = ReligionCode.AGNO.toString()))
       val existingPersonEntity = PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = existingReligionEntity.code))
@@ -62,10 +62,61 @@ class PrisonPutAPIControllerIntTest : WebTestBase() {
         assertThat(actualPrisonReligion.prisonRecordType).isEqualTo(PrisonRecordType.from(requestBody.current))
       }
     }
+
+    @Test
+    fun `prison religion exists - demoting a current religion - update prison religion`() {
+      val prisonNumber = randomPrisonNumber()
+      val existingCurrentReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createRandomReligion(code = ReligionCode.AGNO.toString())))
+      val existingPersonEntity = PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = existingCurrentReligionEntity.code))
+      personRepository.saveAndFlush(existingPersonEntity)
+
+      val requestBody = createRandomReligionUpdateRequest(current = false)
+      sendPutRequestAsserted<PrisonReligionResponseBody>(
+        url = prisonReligionPutEndpoint(prisonNumber, existingCurrentReligionEntity.updateId.toString()),
+        body = requestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.OK,
+      )
+
+      awaitAssert {
+        val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
+        assertThat(actualPersonEntity.religion).isEqualTo(existingPersonEntity.religion)
+
+        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
+        assertThat(actualPrisonReligionEntities.first().prisonRecordType).isEqualTo(PrisonRecordType.HISTORIC)
+      }
+    }
   }
 
   @Nested
   inner class Validation {
+
+    @Test
+    fun `prison religion exists - promoting a non current religion - returns 400 bad request`() {
+      val prisonNumber = randomPrisonNumber()
+      val existingCurrentReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createRandomReligion(code = ReligionCode.AGNO.toString())))
+      val existingNonCurrentReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createRandomReligion(current = false, code = ReligionCode.BAHA.toString())))
+      val existingPersonEntity = PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = existingCurrentReligionEntity.code))
+      personRepository.saveAndFlush(existingPersonEntity)
+
+      val requestBody = createRandomReligionUpdateRequest(current = true)
+      sendPutRequestAsserted<Unit>(
+        url = prisonReligionPutEndpoint(prisonNumber, existingNonCurrentReligionEntity.updateId.toString()),
+        body = requestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.BAD_REQUEST,
+      )
+
+      awaitAssert {
+        val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
+        assertThat(actualPersonEntity.religion).isEqualTo(existingPersonEntity.religion)
+
+        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber).associateBy { it.id }
+        assertThat(actualPrisonReligionEntities.keys).hasSize(2)
+        assertThat(actualPrisonReligionEntities[existingCurrentReligionEntity.id]).usingRecursiveComparison().isEqualTo(existingCurrentReligionEntity)
+        assertThat(actualPrisonReligionEntities[existingNonCurrentReligionEntity.id]).usingRecursiveComparison().isEqualTo(existingNonCurrentReligionEntity)
+      }
+    }
 
     @Test
     fun `prison religion does not exist - returns 404 not found`() {
