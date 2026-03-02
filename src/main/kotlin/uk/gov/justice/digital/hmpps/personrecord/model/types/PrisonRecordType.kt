@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
-enum class PrisonRecordType {
-  CURRENT,
-  HISTORIC,
+enum class PrisonRecordType(val value: Boolean) {
+  CURRENT(true),
+  HISTORIC(false),
   ;
 
   companion object {

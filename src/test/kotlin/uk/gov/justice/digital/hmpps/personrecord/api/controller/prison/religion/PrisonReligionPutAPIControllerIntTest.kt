@@ -16,12 +16,12 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligio
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
+import uk.gov.justice.digital.hmpps.personrecord.test.generateUUIDString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import java.util.UUID
 
 class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
 
@@ -126,7 +126,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
       val requestBody = createRandomReligionUpdateRequest()
       sendPutRequestAsserted<Unit>(
-        url = prisonReligionPutEndpoint(prisonNumber, UUID.randomUUID().toString()),
+        url = prisonReligionPutEndpoint(prisonNumber, generateUUIDString()),
         body = requestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.NOT_FOUND,
@@ -144,7 +144,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       sendPutRequestAsserted<Unit>(
-        url = prisonReligionPutEndpoint(randomPrisonNumber(), UUID.randomUUID().toString()),
+        url = prisonReligionPutEndpoint(randomPrisonNumber(), generateUUIDString()),
         body = createRandomReligionUpdateRequest(),
         roles = listOf(),
         expectedStatus = HttpStatus.UNAUTHORIZED,
@@ -155,7 +155,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
       sendPutRequestAsserted<Unit>(
-        url = prisonReligionPutEndpoint(randomPrisonNumber(), UUID.randomUUID().toString()),
+        url = prisonReligionPutEndpoint(randomPrisonNumber(), generateUUIDString()),
         body = createRandomReligionUpdateRequest(),
         roles = listOf("UNSUPPORTED_ROLE"),
         expectedStatus = HttpStatus.FORBIDDEN,
