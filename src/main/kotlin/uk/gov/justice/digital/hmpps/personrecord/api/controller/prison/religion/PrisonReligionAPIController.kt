@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.religion
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.PrisonReligionInsertHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.PrisonReligionUpdateHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionResponseBody
@@ -24,14 +24,14 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.P
 
 @Tag(name = "HMPPS Person API")
 @RestController
-@PreAuthorize("hasRole('$PERSON_RECORD_SYSCON_SYNC_WRITE')")
-class PrisonWriteAPIController(
+@PreAuthorize("hasRole('${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}')")
+class PrisonReligionAPIController(
   private val prisonReligionInsertHandler: PrisonReligionInsertHandler,
   private val prisonReligionUpdateHandler: PrisonReligionUpdateHandler,
 ) {
 
   @Operation(
-    description = """Save prison religion record by Prison Number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.""",
+    description = """Save prison religion record by Prison Number. Role required is **${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
     security = [SecurityRequirement(name = "api-role")],
   )
   @ApiResponses(
@@ -57,7 +57,7 @@ class PrisonWriteAPIController(
   }
 
   @Operation(
-    description = """Update prison religion record by Prison Number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.""",
+    description = """Update prison religion record by Prison Number. Role required is **${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
     security = [SecurityRequirement(name = "api-role")],
   )
   @ApiResponses(
