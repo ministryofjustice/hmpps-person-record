@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.prison
 
-data class PrisonReligionResponseBody(
+data class PrisonReligionResponse(
   val prisonNumber: String,
   val religionMappings: PrisonReligionMapping,
 )
