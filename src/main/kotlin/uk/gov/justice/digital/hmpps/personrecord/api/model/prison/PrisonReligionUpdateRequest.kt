@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.prison
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class PrisonReligionUpdateRequestBody(
+data class PrisonReligionUpdateRequest(
   val nomisReligionId: String,
   val current: Boolean,
   val modifyUserId: String,

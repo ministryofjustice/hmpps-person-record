@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionResponseBody
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionUpdateRequestBody
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionUpdateRequest
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
@@ -163,7 +163,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
     }
   }
 
-  private fun createRandomReligionUpdateRequest(current: Boolean = true) = PrisonReligionUpdateRequestBody(
+  private fun createRandomReligionUpdateRequest(current: Boolean = true) = PrisonReligionUpdateRequest(
     nomisReligionId = randomPrisonNumber(),
     comments = randomName(),
     verified = randomBoolean(),
