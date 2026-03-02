@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.religion
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.fail
@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonRel
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
-class PrisonPostAPIControllerIntTest : WebTestBase() {
+class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
 
   @Autowired
   private lateinit var prisonReligionRepository: PrisonReligionRepository
@@ -31,7 +31,7 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createRandomReligion()
-      sendRequestAsserted<PrisonReligionResponseBody>(
+      sendPostRequestAsserted<PrisonReligionResponseBody>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
@@ -57,7 +57,7 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
       personRepository.saveAndFlush(personEntityWithCurrentReligion)
 
       val requestBody = createRandomReligion()
-      sendRequestAsserted<Unit>(
+      sendPostRequestAsserted<Unit>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
@@ -79,7 +79,7 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createRandomReligion()
-      val responseBody = sendRequestAsserted<PrisonReligionResponseBody>(
+      val responseBody = sendPostRequestAsserted<PrisonReligionResponseBody>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
@@ -103,7 +103,7 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createRandomReligion()
-      sendRequestAsserted<Unit>(
+      sendPostRequestAsserted<Unit>(
         url = prisonReligionPostEndpoint(randomPrisonNumber()),
         body = requestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
@@ -125,7 +125,7 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
 
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
-      sendRequestAsserted<Unit>(
+      sendPostRequestAsserted<Unit>(
         url = prisonReligionPostEndpoint(randomPrisonNumber()),
         body = createRandomReligion(),
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
@@ -136,7 +136,7 @@ class PrisonPostAPIControllerIntTest : WebTestBase() {
 
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
-      sendRequestAsserted<Unit>(
+      sendPostRequestAsserted<Unit>(
         url = prisonReligionPostEndpoint(randomPrisonNumber()),
         body = createRandomReligion(),
         roles = listOf("UNSUPPORTED_ROLE"),
