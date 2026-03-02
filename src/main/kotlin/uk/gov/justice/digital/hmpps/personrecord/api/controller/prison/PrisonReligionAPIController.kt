@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.religion
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -14,10 +14,11 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.PrisonReligionInsertHandler
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.PrisonReligionUpdateHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionInsertHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionUpdateHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionUpdateRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
@@ -25,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.P
 @Tag(name = "HMPPS Person API")
 @RestController
 @PreAuthorize("hasRole('${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}')")
+@RequestMapping("/person/prison")
 class PrisonReligionAPIController(
   private val prisonReligionInsertHandler: PrisonReligionInsertHandler,
   private val prisonReligionUpdateHandler: PrisonReligionUpdateHandler,
@@ -46,7 +48,7 @@ class PrisonReligionAPIController(
       ],
     ),
   )
-  @PostMapping("/person/prison/{prisonNumber}/religion")
+  @PostMapping("/{prisonNumber}/religion")
   fun save(
     @PathVariable("prisonNumber") prisonNumber: String,
     @RequestBody prisonReligionRequest: PrisonReligion,
@@ -72,7 +74,7 @@ class PrisonReligionAPIController(
       ],
     ),
   )
-  @PutMapping("/person/prison/{prisonNumber}/religion/{cprReligionId}")
+  @PutMapping("/{prisonNumber}/religion/{cprReligionId}")
   fun update(
     @PathVariable("prisonNumber") prisonNumber: String,
     @PathVariable("cprReligionId") cprReligionId: String,

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.handler
+package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
