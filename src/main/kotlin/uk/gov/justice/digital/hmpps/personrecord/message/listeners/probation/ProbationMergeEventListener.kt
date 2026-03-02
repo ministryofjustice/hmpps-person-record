@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import io.awspring.cloud.sqs.annotation.SqsListener
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationMergeEventProcessor
@@ -11,6 +12,11 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 
 @Component
+@ConditionalOnProperty(
+  name = ["sqs.listeners.enabled"],
+  havingValue = "true",
+  matchIfMissing = true,
+)
 class ProbationMergeEventListener(
   private val domainEventProcessor: DomainEventProcessor,
   private val mergeEventProcessor: ProbationMergeEventProcessor,

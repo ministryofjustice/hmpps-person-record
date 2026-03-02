@@ -103,7 +103,7 @@ import java.util.UUID
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name as LibraName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName as OffenderName
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = ["sqs.listeners.enabled=false"])
 @ActiveProfiles("test")
 class IntegrationTestBase {
 
