@@ -46,9 +46,9 @@ class PrisonWriteAPIController(
       ],
     ),
   )
-  @PostMapping("/person/prison/{prisonerNumber}/religion")
+  @PostMapping("/person/prison/{prisonNumber}/religion")
   fun save(
-    @PathVariable("prisonerNumber") prisonNumber: String,
+    @PathVariable("prisonNumber") prisonNumber: String,
     @RequestBody prisonReligionRequest: PrisonReligion,
   ): ResponseEntity<PrisonReligionResponseBody> {
     val prisonReligionMapping = prisonReligionInsertHandler.handleInsert(prisonNumber, prisonReligionRequest)
@@ -72,9 +72,9 @@ class PrisonWriteAPIController(
       ],
     ),
   )
-  @PutMapping("/person/prison/{prisonerNumber}/religion/{cprReligionId}")
+  @PutMapping("/person/prison/{prisonNumber}/religion/{cprReligionId}")
   fun update(
-    @PathVariable("prisonerNumber") prisonNumber: String,
+    @PathVariable("prisonNumber") prisonNumber: String,
     @PathVariable("cprReligionId") cprReligionId: String,
     @RequestBody requestBody: PrisonReligionUpdateRequestBody,
   ): ResponseEntity<PrisonReligionResponseBody> {
