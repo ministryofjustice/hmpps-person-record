@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.util.UUID
 
-class PrisonReligionGetResponseBodyTest {
+class PrisonReligionGetResponseTest {
 
   @Test
   fun `should build object correctly`() {
@@ -31,9 +31,9 @@ class PrisonReligionGetResponseBodyTest {
       prisonRecordType = PrisonRecordType.entries.random(),
     )
 
-    val actual = PrisonReligionGetResponseBody.from(prisonNumber, prisonReligionEntity)
+    val actual = PrisonReligionGetResponse.from(prisonNumber, prisonReligionEntity)
 
-    val expected = PrisonReligionGetResponseBody(
+    val expected = PrisonReligionGetResponse(
       prisonNumber = prisonNumber,
       religion = PrisonReligion(
         religionCode = prisonReligionEntity.code,

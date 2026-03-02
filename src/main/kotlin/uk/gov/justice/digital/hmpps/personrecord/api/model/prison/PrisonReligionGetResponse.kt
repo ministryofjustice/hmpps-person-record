@@ -4,12 +4,12 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligio
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class PrisonReligionGetResponseBody(
+data class PrisonReligionGetResponse(
   val prisonNumber: String,
   val religion: PrisonReligion,
 ) {
   companion object {
-    fun from(prisonNumber: String, prisonReligionEntity: PrisonReligionEntity): PrisonReligionGetResponseBody = PrisonReligionGetResponseBody(
+    fun from(prisonNumber: String, prisonReligionEntity: PrisonReligionEntity): PrisonReligionGetResponse = PrisonReligionGetResponse(
       prisonNumber = prisonNumber,
       religion = PrisonReligion(
         religionCode = prisonReligionEntity.code,
