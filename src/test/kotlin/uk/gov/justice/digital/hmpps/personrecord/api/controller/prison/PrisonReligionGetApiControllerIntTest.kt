@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.religion
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
