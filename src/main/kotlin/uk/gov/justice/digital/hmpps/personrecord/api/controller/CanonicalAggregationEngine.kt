@@ -7,8 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEt
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord.Companion.getAddresses
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord.Companion.getAliases
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSexualOrientation
@@ -49,11 +47,14 @@ class CanonicalAggregationEngine(
     )
   }
 
-  private fun getAddresses(person: PersonEntity): List<CanonicalAddress> {
-    TODO("Not yet implemented")
-  }
+  private fun getAddresses(person: PersonEntity): List<CanonicalAddress> = emptyList()
 
   private fun getAliases(person: PersonEntity): List<CanonicalAlias> {
-    TODO("Not yet implemented")
+    val aliases = mutableListOf<CanonicalAlias>()
+
+    person.personKey!!.personEntities.forEach {
+      aliases.addAll(CanonicalAlias.from(it) ?: emptyList())
+    }
+    return aliases
   }
 }
