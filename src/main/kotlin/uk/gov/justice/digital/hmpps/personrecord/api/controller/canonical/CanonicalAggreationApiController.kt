@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.canonical
 
-import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.Hidden
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyReposit
 import java.net.URI
 import java.util.UUID
 
-@Tag(name = "HMPPS Person API")
+@Hidden
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
 class CanonicalAggreationApiController(
