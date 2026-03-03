@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecordView
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 
@@ -32,14 +31,14 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java)
+        .expectBody(CanonicalRecordView::class.java)
         .returnResult()
         .responseBody!!
 
       val canonicalAlias = CanonicalAlias.from(prisonPerson)!! + CanonicalAlias.from(probationPerson)!!
 
-      assertThat(responseBody.firstName).isEqualTo(probationDetails.firstName)
-      assertThat(responseBody.aliases).isEqualTo(canonicalAlias)
+      assertThat(responseBody.canonicalRecord.firstName).isEqualTo(probationDetails.firstName)
+      assertThat(responseBody.canonicalRecord.aliases).isEqualTo(canonicalAlias)
     }
 
     @Test
@@ -60,14 +59,14 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java)
+        .expectBody(CanonicalRecordView::class.java)
         .returnResult()
         .responseBody!!
 
       val canonicalAlias = CanonicalAlias.from(latestPerson)!!
 
-      assertThat(responseBody.firstName).isEqualTo(probationDetails.firstName)
-      assertThat(responseBody.aliases).isEqualTo(canonicalAlias)
+      assertThat(responseBody.canonicalRecord.firstName).isEqualTo(probationDetails.firstName)
+      assertThat(responseBody.canonicalRecord.aliases).isEqualTo(canonicalAlias)
     }
   }
 
@@ -91,14 +90,14 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java)
+        .expectBody(CanonicalRecordView::class.java)
         .returnResult()
         .responseBody!!
 
       val canonicalAddress = prisonPerson.addresses.map { CanonicalAddress.from(it) } + latestPerson.addresses.map { CanonicalAddress.from(it) }
 
-      assertThat(responseBody.firstName).isEqualTo(probationDetails.firstName)
-      assertThat(responseBody.addresses).isEqualTo(canonicalAddress)
+      assertThat(responseBody.canonicalRecord.firstName).isEqualTo(probationDetails.firstName)
+      assertThat(responseBody.canonicalRecord.addresses).isEqualTo(canonicalAddress)
     }
 
     @Test
@@ -119,14 +118,14 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java)
+        .expectBody(CanonicalRecordView::class.java)
         .returnResult()
         .responseBody!!
 
       val canonicalAddress = prisonPerson.addresses.map { CanonicalAddress.from(it) } + latestPerson.addresses.map { CanonicalAddress.from(it) }
 
-      assertThat(responseBody.firstName).isEqualTo(probationDetails.firstName)
-      assertThat(responseBody.addresses).isEqualTo(canonicalAddress)
+      assertThat(responseBody.canonicalRecord.firstName).isEqualTo(probationDetails.firstName)
+      assertThat(responseBody.canonicalRecord.addresses).isEqualTo(canonicalAddress)
     }
   }
 
