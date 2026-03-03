@@ -23,14 +23,12 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
     val prisonDetails = createRandomPrisonPersonDetails()
     val probationDetails = createRandomProbationPersonDetails()
 
-
     val prisonPerson = createPerson(prisonDetails)
     val probationPerson = createPerson(probationDetails)
 
     val personKey = createPersonKey()
       .addPerson(prisonPerson)
       .addPerson(probationPerson)
-
 
     val responseBody = webTestClient.get()
       .uri(canonicalAPIUrlAggregate(personKey.personUUID.toString()))
@@ -43,11 +41,11 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
       .responseBody!!
 
 
-    val canonicalAlias = CanonicalAlias.from(prisonPerson)?.plus( CanonicalAlias.from(probationPerson))
+    val canonicalAlias = CanonicalAlias.from(prisonPerson)!! + CanonicalAlias.from(probationPerson)!!
 
 
     assertThat(responseBody.firstName).isEqualTo(probationDetails.firstName)
-    assertThat(responseBody.aliases).isEqualTo(canonicalAlias?.get(0))
+    assertThat(responseBody.aliases).isEqualTo(canonicalAlias)
 
 
   }
