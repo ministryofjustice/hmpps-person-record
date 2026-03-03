@@ -40,7 +40,7 @@ class CanonicalAggregationEngine(
       sexualOrientation = CanonicalSexualOrientation.from(latestPerson.sexualOrientation),
       religion = CanonicalReligion.from(latestPerson.religion),
       ethnicity = CanonicalEthnicity.from(latestPerson.ethnicityCode),
-      aliases = getAliases(latestPerson),
+      aliases = getAliases(latestPerson).toList(),
       addresses = getAddresses(latestPerson),
       identifiers = CanonicalIdentifiers.from(personKey.personEntities),
       nationalities = CanonicalNationality.from(latestPerson),
@@ -49,9 +49,8 @@ class CanonicalAggregationEngine(
 
   private fun getAddresses(person: PersonEntity): List<CanonicalAddress> = emptyList()
 
-  private fun getAliases(person: PersonEntity): List<CanonicalAlias> {
-    val aliases = mutableListOf<CanonicalAlias>()
-
+  private fun getAliases(person: PersonEntity): Set<CanonicalAlias> {
+    val aliases = mutableSetOf<CanonicalAlias>()
     person.personKey!!.personEntities.forEach {
       aliases.addAll(CanonicalAlias.from(it) ?: emptyList())
     }
