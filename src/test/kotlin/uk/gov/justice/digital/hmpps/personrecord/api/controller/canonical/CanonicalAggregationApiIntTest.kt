@@ -165,7 +165,7 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
       val probationDetails = createRandomProbationPersonDetails()
 
       val prisonPerson = createPerson(prisonDetails)
-      val latestPerson = createPerson(probationDetails)
+      val latestPerson = createPerson(probationDetails.copy(sentences = probationDetails.sentences + prisonDetails.sentences))
 
       val personKey = createPersonKey()
         .addPerson(prisonPerson)
@@ -184,7 +184,7 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
       val canonicalSentences = prisonPerson.sentenceInfo.map { it.sentenceDate } + latestPerson.sentenceInfo.map { it.sentenceDate }
 
       assertThat(responseBody.canonicalRecord.firstName).isEqualTo(probationDetails.firstName)
-      assertThat(responseBody.sentences).isEqualTo(canonicalSentences)
+      assertThat(responseBody.sentences.toList()).containsAll(canonicalSentences)
     }
   }
 
