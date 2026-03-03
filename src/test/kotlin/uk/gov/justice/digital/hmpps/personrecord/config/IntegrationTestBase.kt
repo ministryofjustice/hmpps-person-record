@@ -48,6 +48,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Address
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.AllConvictedOffences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAlias
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
@@ -231,6 +232,12 @@ class IntegrationTestBase {
           fullAddress = randomFullAddress(),
           noFixedAbode = randomBoolean(),
           startDate = randomDate(),
+        ),
+      ),
+      allConvictedOffences = listOf(
+        AllConvictedOffences(
+          sentenceStartDate = randomDate(),
+          primarySentence = true,
         ),
       ),
     ),
