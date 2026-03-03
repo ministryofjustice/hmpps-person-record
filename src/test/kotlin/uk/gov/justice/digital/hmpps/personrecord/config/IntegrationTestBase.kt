@@ -47,6 +47,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Address
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAlias
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
@@ -81,6 +82,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -205,14 +207,33 @@ class IntegrationTestBase {
   )
 
   internal fun createRandomPrisonPersonDetails(prisonNumber: String = randomPrisonNumber()): Person = Person.from(
-    Prisoner(prisonNumber = prisonNumber, firstName = randomName(), lastName = randomName(), dateOfBirth = randomDate(),
+    Prisoner(
+      prisonNumber = prisonNumber,
+      firstName = randomName(),
+      lastName = randomName(),
+      dateOfBirth = randomDate(),
       aliases = listOf(
         PrisonerAlias(
           firstName = randomName(),
           middleNames = randomName(),
-          lastName = randomName()
+          lastName = randomName(),
         ),
-      )),
+      ),
+      addresses = listOf(
+        Address(
+          postcode = randomPostcode(),
+          fullAddress = randomFullAddress(),
+          noFixedAbode = randomBoolean(),
+          startDate = randomDate(),
+        ),
+        Address(
+          postcode = randomPostcode(),
+          fullAddress = randomFullAddress(),
+          noFixedAbode = randomBoolean(),
+          startDate = randomDate(),
+        ),
+      ),
+    ),
   )
 
   internal fun createRandomLibraPersonDetails(cId: String = randomCId()): Person = Person.from(LibraHearingEvent(name = LibraName(firstName = randomName(), lastName = randomName()), cId = cId))

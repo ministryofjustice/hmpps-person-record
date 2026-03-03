@@ -41,13 +41,19 @@ class CanonicalAggregationEngine(
       religion = CanonicalReligion.from(latestPerson.religion),
       ethnicity = CanonicalEthnicity.from(latestPerson.ethnicityCode),
       aliases = getAliases(latestPerson).toList(),
-      addresses = getAddresses(latestPerson),
+      addresses = getAddresses(latestPerson).toList(),
       identifiers = CanonicalIdentifiers.from(personKey.personEntities),
       nationalities = CanonicalNationality.from(latestPerson),
     )
   }
 
-  private fun getAddresses(person: PersonEntity): List<CanonicalAddress> = emptyList()
+  private fun getAddresses(person: PersonEntity): Set<CanonicalAddress> {
+    val addresses = mutableSetOf<CanonicalAddress>()
+    person.personKey!!.personEntities.forEach {
+      addresses.addAll(CanonicalAddress.fromAddressEntityList(it.addresses))
+    }
+    return addresses
+  }
 
   private fun getAliases(person: PersonEntity): Set<CanonicalAlias> {
     val aliases = mutableSetOf<CanonicalAlias>()

@@ -1,67 +1,132 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.canonical
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 
 class CanonicalAggregationApiIntTest : WebTestBase() {
-  @Test
-  fun `should return latest modified from 2 records combining aliases `() {
-    val prisonDetails = createRandomPrisonPersonDetails()
-    val probationDetails = createRandomProbationPersonDetails()
 
-    val prisonPerson = createPerson(prisonDetails)
-    val probationPerson = createPerson(probationDetails)
+  @Nested
+  inner class Aliases {
+    @Test
+    fun `should return latest modified from 2 records combining`() {
+      val prisonDetails = createRandomPrisonPersonDetails()
+      val probationDetails = createRandomProbationPersonDetails()
 
-    val personKey = createPersonKey()
-      .addPerson(prisonPerson)
-      .addPerson(probationPerson)
+      val prisonPerson = createPerson(prisonDetails)
+      val probationPerson = createPerson(probationDetails)
 
-    val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrlAggregate(personKey.personUUID.toString()))
-      .authorised(listOf(API_READ_ONLY))
-      .exchange()
-      .expectStatus()
-      .isOk
-      .expectBody(CanonicalRecord::class.java)
-      .returnResult()
-      .responseBody!!
+      val personKey = createPersonKey()
+        .addPerson(prisonPerson)
+        .addPerson(probationPerson)
 
-    val canonicalAlias = CanonicalAlias.from(prisonPerson)!! + CanonicalAlias.from(probationPerson)!!
+      val responseBody = webTestClient.get()
+        .uri(canonicalAPIUrlAggregate(personKey.personUUID.toString()))
+        .authorised(listOf(API_READ_ONLY))
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody(CanonicalRecord::class.java)
+        .returnResult()
+        .responseBody!!
 
-    assertThat(responseBody.firstName).isEqualTo(probationDetails.firstName)
-    assertThat(responseBody.aliases).isEqualTo(canonicalAlias)
+      val canonicalAlias = CanonicalAlias.from(prisonPerson)!! + CanonicalAlias.from(probationPerson)!!
+
+      assertThat(responseBody.firstName).isEqualTo(probationDetails.firstName)
+      assertThat(responseBody.aliases).isEqualTo(canonicalAlias)
+    }
+
+    @Test
+    fun `should return latest modified from 2 records deduplicating`() {
+      val prisonDetails = createRandomPrisonPersonDetails()
+      val probationDetails = createRandomProbationPersonDetails()
+
+      val prisonPerson = createPerson(prisonDetails)
+      val latestPerson = createPerson(probationDetails.copy(aliases = prisonDetails.aliases))
+
+      val personKey = createPersonKey()
+        .addPerson(prisonPerson)
+        .addPerson(latestPerson)
+
+      val responseBody = webTestClient.get()
+        .uri(canonicalAPIUrlAggregate(personKey.personUUID.toString()))
+        .authorised(listOf(API_READ_ONLY))
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody(CanonicalRecord::class.java)
+        .returnResult()
+        .responseBody!!
+
+      val canonicalAlias = CanonicalAlias.from(latestPerson)!!
+
+      assertThat(responseBody.firstName).isEqualTo(probationDetails.firstName)
+      assertThat(responseBody.aliases).isEqualTo(canonicalAlias)
+    }
   }
 
-  @Test
-  fun `should return latest modified from 2 records deduplicating aliases `() {
-    val prisonDetails = createRandomPrisonPersonDetails()
-    val probationDetails = createRandomProbationPersonDetails()
+  @Nested
+  inner class Addresses {
+    @Test
+    fun `should return latest modified from 2 records combining`() {
+      val prisonDetails = createRandomPrisonPersonDetails()
+      val probationDetails = createRandomProbationPersonDetails()
 
-    val prisonPerson = createPerson(prisonDetails)
-    val latestPerson = createPerson(probationDetails.copy(aliases = prisonDetails.aliases))
+      val prisonPerson = createPerson(prisonDetails)
+      val latestPerson = createPerson(probationDetails)
 
-    val personKey = createPersonKey()
-      .addPerson(prisonPerson)
-      .addPerson(latestPerson)
+      val personKey = createPersonKey()
+        .addPerson(prisonPerson)
+        .addPerson(latestPerson)
 
-    val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrlAggregate(personKey.personUUID.toString()))
-      .authorised(listOf(API_READ_ONLY))
-      .exchange()
-      .expectStatus()
-      .isOk
-      .expectBody(CanonicalRecord::class.java)
-      .returnResult()
-      .responseBody!!
+      val responseBody = webTestClient.get()
+        .uri(canonicalAPIUrlAggregate(personKey.personUUID.toString()))
+        .authorised(listOf(API_READ_ONLY))
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody(CanonicalRecord::class.java)
+        .returnResult()
+        .responseBody!!
 
-    val canonicalAlias = CanonicalAlias.from(latestPerson)!!
+      val canonicalAddress = prisonPerson.addresses.map { CanonicalAddress.from(it) } + latestPerson.addresses.map { CanonicalAddress.from(it) }
 
-    assertThat(responseBody.firstName).isEqualTo(probationDetails.firstName)
-    assertThat(responseBody.aliases).isEqualTo(canonicalAlias)
+      assertThat(responseBody.firstName).isEqualTo(probationDetails.firstName)
+      assertThat(responseBody.addresses).isEqualTo(canonicalAddress)
+    }
+
+    @Test
+    fun `should return latest modified from 2 records deduplicating`() {
+      val prisonDetails = createRandomPrisonPersonDetails()
+      val probationDetails = createRandomProbationPersonDetails()
+
+      val prisonPerson = createPerson(prisonDetails)
+      val latestPerson = createPerson(probationDetails)
+
+      val personKey = createPersonKey()
+        .addPerson(prisonPerson)
+        .addPerson(latestPerson)
+
+      val responseBody = webTestClient.get()
+        .uri(canonicalAPIUrlAggregate(personKey.personUUID.toString()))
+        .authorised(listOf(API_READ_ONLY))
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody(CanonicalRecord::class.java)
+        .returnResult()
+        .responseBody!!
+
+      val canonicalAddress = prisonPerson.addresses.map { CanonicalAddress.from(it) } + latestPerson.addresses.map { CanonicalAddress.from(it) }
+
+      assertThat(responseBody.firstName).isEqualTo(probationDetails.firstName)
+      assertThat(responseBody.addresses).isEqualTo(canonicalAddress)
+    }
   }
 
   private fun canonicalAPIUrlAggregate(uuid: String) = "/canonical-record/$uuid"
