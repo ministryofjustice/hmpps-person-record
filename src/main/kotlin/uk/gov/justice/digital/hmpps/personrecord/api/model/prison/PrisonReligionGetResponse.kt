@@ -6,12 +6,12 @@ import java.time.LocalDateTime
 
 data class PrisonReligionGetResponse(
   val prisonNumber: String,
-  val religion: PrisonReligion,
+  val religion: PrisonReligionGet,
 ) {
   companion object {
     fun from(prisonNumber: String, prisonReligionEntity: PrisonReligionEntity): PrisonReligionGetResponse = PrisonReligionGetResponse(
       prisonNumber = prisonNumber,
-      religion = PrisonReligion(
+      religion = PrisonReligionGet(
         religionCode = prisonReligionEntity.code,
         changeReasonKnown = prisonReligionEntity.changeReasonKnown,
         comments = prisonReligionEntity.comments,
@@ -26,7 +26,7 @@ data class PrisonReligionGetResponse(
   }
 }
 
-data class PrisonReligion(
+data class PrisonReligionGet(
   val religionCode: String? = null,
   val changeReasonKnown: Boolean? = null,
   val comments: String? = null,
