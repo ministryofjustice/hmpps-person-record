@@ -7,14 +7,15 @@ import java.time.LocalDate
 
 class SentenceInfo(
   val sentenceDate: LocalDate? = null,
-  val primarySentence: Boolean? = true,
 ) {
   companion object {
 
-    fun from(sentences: AllConvictedOffences): SentenceInfo = SentenceInfo(
-      sentenceDate = sentences.sentenceStartDate,
-      primarySentence = sentences.primarySentence,
-    )
+    fun from(sentences: AllConvictedOffences): SentenceInfo? = when {
+      sentences.primarySentence == true -> SentenceInfo(
+        sentenceDate = sentences.sentenceStartDate,
+      )
+      else -> null
+    }
 
     fun from(sentences: Sentences): SentenceInfo = SentenceInfo(
       sentenceDate = sentences.sentenceDate,
