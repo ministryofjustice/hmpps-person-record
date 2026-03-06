@@ -1,11 +1,45 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.court
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReligion
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
+import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformSexCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 
 class LibraApiControllerIntTest : WebTestBase() {
@@ -22,32 +56,32 @@ class LibraApiControllerIntTest : WebTestBase() {
       val pnc = randomLongPnc()
       val noFixedAbode = true
       val startDate = randomDate()
-      val endDate = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomDate()
-      val postcode = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode()
-      val nationality = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode()
-      val religion = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomReligion()
-      val ethnicity = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnicity()
-      val sex = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformSexCode()
+      val endDate = randomDate()
+      val postcode = randomPostcode()
+      val nationality = randomNationalityCode()
+      val religion = randomReligion()
+      val ethnicity = randomCommonPlatformEthnicity()
+      val sex = randomCommonPlatformSexCode()
 
-      val buildingName = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName()
-      val buildingNumber = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber()
-      val thoroughfareName = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName()
-      val dependentLocality = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName()
-      val postTown = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName()
+      val buildingName = randomName()
+      val buildingNumber = randomBuildingNumber()
+      val thoroughfareName = randomName()
+      val dependentLocality = randomName()
+      val postTown = randomName()
 
-      val cro = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomCro()
-      val crn = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomCrn()
-      val defendantId = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId()
-      val prisonNumber = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber()
-      val cid = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomCId()
+      val cro = randomCro()
+      val crn = randomCrn()
+      val defendantId = randomDefendantId()
+      val prisonNumber = randomPrisonNumber()
+      val cid = randomCId()
 
       val person = createPersonWithNewKey(
-        _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Person(
-          firstName = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName(),
-          lastName = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName(),
-          middleNames = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName(),
-          dateOfBirth = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomDate(),
-          sourceSystem = uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA,
+        Person(
+          firstName = randomName(),
+          lastName = randomName(),
+          middleNames = randomName(),
+          dateOfBirth = randomDate(),
+          sourceSystem = LIBRA,
           titleCode = title.value,
           crn = crn,
           sexCode = sex.value,
@@ -55,22 +89,22 @@ class LibraApiControllerIntTest : WebTestBase() {
           nationalities = listOf(nationality),
           religion = religion,
           cId = cid,
-          ethnicityCode = uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.fromCommonPlatform(
+          ethnicityCode = EthnicityCode.fromCommonPlatform(
             ethnicity,
           ),
           defendantId = defendantId,
           aliases = listOf(
-            _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Alias(
+            Alias(
               firstName = firstName,
               middleNames = middleNames,
               lastName = lastName,
-              dateOfBirth = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomDate(),
+              dateOfBirth = randomDate(),
               titleCode = title.value,
               sexCode = sex.value,
             ),
           ),
           addresses = listOf(
-            _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Address(
+            Address(
               noFixedAbode = noFixedAbode,
               startDate = startDate,
               endDate = endDate,
@@ -83,12 +117,12 @@ class LibraApiControllerIntTest : WebTestBase() {
             ),
           ),
           references = listOf(
-            _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Reference(
-              identifierType = uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC,
+            Reference(
+              identifierType = PNC,
               identifierValue = pnc,
             ),
-            _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Reference(
-              identifierType = uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO,
+            Reference(
+              identifierType = CRO,
               identifierValue = cro,
             ),
           ),
@@ -97,29 +131,29 @@ class LibraApiControllerIntTest : WebTestBase() {
 
       val responseBody = webTestClient.get()
         .uri(libraApiUrl(person.cId))
-        .authorised(listOf(uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY))
+        .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord::class.java)
+        .expectBody(CanonicalRecord::class.java)
         .returnResult()
         .responseBody!!
       val canonicalAlias =
-        _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias(
+        CanonicalAlias(
           firstName = firstName,
           lastName = lastName,
           middleNames = middleNames,
-          title = uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle.Companion.from(title.value),
-          sex = uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex.Companion.from(sex.value),
+          title = CanonicalTitle.from(title.value),
+          sex = CanonicalSex.from(sex.value),
         )
       val canonicalNationality = listOf(
-        _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality(
+        CanonicalNationality(
           nationality.name,
           nationality.description,
         ),
       )
       val canonicalAddress =
-        _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress(
+        CanonicalAddress(
           noFixedAbode = noFixedAbode,
           startDate = startDate.toString(),
           endDate = endDate.toString(),
@@ -131,51 +165,51 @@ class LibraApiControllerIntTest : WebTestBase() {
           postTown = postTown,
         )
       val canonicalReligion =
-        _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReligion(
+        CanonicalReligion(
           code = religion,
           description = religion,
         )
-      val canonicalEthnicity = uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity.Companion.from(
-        uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.fromCommonPlatform(ethnicity),
+      val canonicalEthnicity = CanonicalEthnicity.from(
+        EthnicityCode.fromCommonPlatform(ethnicity),
       )
-      org.assertj.core.api.Assertions.assertThat(responseBody.cprUUID).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
-      org.assertj.core.api.Assertions.assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
-      org.assertj.core.api.Assertions.assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
-      org.assertj.core.api.Assertions.assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
-      org.assertj.core.api.Assertions.assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().titleCode?.name)
-      org.assertj.core.api.Assertions.assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().titleCode?.description)
-      org.assertj.core.api.Assertions.assertThat(responseBody.aliases.first().title.code).isEqualTo(person.getAliases().first().titleCode?.name)
-      org.assertj.core.api.Assertions.assertThat(responseBody.aliases.first().title.description).isEqualTo(
+      assertThat(responseBody.cprUUID).isNull()
+      assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
+      assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
+      assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
+      assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
+      assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().titleCode?.name)
+      assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().titleCode?.description)
+      assertThat(responseBody.aliases.first().title.code).isEqualTo(person.getAliases().first().titleCode?.name)
+      assertThat(responseBody.aliases.first().title.description).isEqualTo(
         person.getAliases().first().titleCode?.description,
       )
-      org.assertj.core.api.Assertions.assertThat(responseBody.aliases.first().sex.code).isEqualTo(person.getAliases().first().sexCode?.name)
-      org.assertj.core.api.Assertions.assertThat(responseBody.aliases.first().sex.description).isEqualTo(person.getAliases().first().sexCode?.description)
-      org.assertj.core.api.Assertions.assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
-      org.assertj.core.api.Assertions.assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
-      org.assertj.core.api.Assertions.assertThat(responseBody.sex.code).isEqualTo(sex.value.name)
-      org.assertj.core.api.Assertions.assertThat(responseBody.sex.description).isEqualTo(sex.value.description)
-      org.assertj.core.api.Assertions.assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
-      org.assertj.core.api.Assertions.assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
-      org.assertj.core.api.Assertions.assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
-      org.assertj.core.api.Assertions.assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity.description)
-      org.assertj.core.api.Assertions.assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
-      org.assertj.core.api.Assertions.assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
+      assertThat(responseBody.aliases.first().sex.code).isEqualTo(person.getAliases().first().sexCode?.name)
+      assertThat(responseBody.aliases.first().sex.description).isEqualTo(person.getAliases().first().sexCode?.description)
+      assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
+      assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
+      assertThat(responseBody.sex.code).isEqualTo(sex.value.name)
+      assertThat(responseBody.sex.description).isEqualTo(sex.value.description)
+      assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
+      assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
+      assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
+      assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity.description)
+      assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
+      assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
+      assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
+      assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
+      assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
+      assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
+      assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
+      assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     fun `should return nulls when values are null or empty`() {
-      val cId = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomCId()
+      val cId = randomCId()
 
       val person = createPersonWithNewKey(
-        _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Person(
-          sourceSystem = uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA,
+        Person(
+          sourceSystem = LIBRA,
           cId = cId,
         ),
 
@@ -183,61 +217,61 @@ class LibraApiControllerIntTest : WebTestBase() {
 
       val responseBody = webTestClient.get()
         .uri(libraApiUrl(person.cId))
-        .authorised(listOf(uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY))
+        .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord::class.java)
+        .expectBody(CanonicalRecord::class.java)
         .returnResult()
         .responseBody!!
 
-      org.assertj.core.api.Assertions.assertThat(responseBody.firstName).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.middleNames).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.lastName).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.dateOfBirth).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.title.code).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.title.description).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.ethnicity.code).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.ethnicity.description).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.sex.code).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.sex.description).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.religion.code).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.religion.description).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.title.code).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.title.description).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.ethnicity.code).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.ethnicity.description).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.sex.code).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.sex.description).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.religion.code).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.religion.description).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.nationalities).isEmpty()
-      org.assertj.core.api.Assertions.assertThat(responseBody.aliases).isEmpty()
-      org.assertj.core.api.Assertions.assertThat(responseBody.addresses).isEmpty()
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.crns).isEmpty()
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.defendantIds).isEmpty()
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cId))
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.prisonNumbers).isEmpty()
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.pncs).isEmpty()
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.cros).isEmpty()
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.nationalInsuranceNumbers).isEmpty()
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.driverLicenseNumbers).isEmpty()
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.arrestSummonsNumbers).isEmpty()
+      assertThat(responseBody.firstName).isNull()
+      assertThat(responseBody.middleNames).isNull()
+      assertThat(responseBody.lastName).isNull()
+      assertThat(responseBody.dateOfBirth).isNull()
+      assertThat(responseBody.title.code).isNull()
+      assertThat(responseBody.title.description).isNull()
+      assertThat(responseBody.ethnicity.code).isNull()
+      assertThat(responseBody.ethnicity.description).isNull()
+      assertThat(responseBody.sex.code).isNull()
+      assertThat(responseBody.sex.description).isNull()
+      assertThat(responseBody.religion.code).isNull()
+      assertThat(responseBody.religion.description).isNull()
+      assertThat(responseBody.title.code).isNull()
+      assertThat(responseBody.title.description).isNull()
+      assertThat(responseBody.ethnicity.code).isNull()
+      assertThat(responseBody.ethnicity.description).isNull()
+      assertThat(responseBody.sex.code).isNull()
+      assertThat(responseBody.sex.description).isNull()
+      assertThat(responseBody.religion.code).isNull()
+      assertThat(responseBody.religion.description).isNull()
+      assertThat(responseBody.nationalities).isEmpty()
+      assertThat(responseBody.aliases).isEmpty()
+      assertThat(responseBody.addresses).isEmpty()
+      assertThat(responseBody.identifiers.crns).isEmpty()
+      assertThat(responseBody.identifiers.defendantIds).isEmpty()
+      assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cId))
+      assertThat(responseBody.identifiers.prisonNumbers).isEmpty()
+      assertThat(responseBody.identifiers.pncs).isEmpty()
+      assertThat(responseBody.identifiers.cros).isEmpty()
+      assertThat(responseBody.identifiers.nationalInsuranceNumbers).isEmpty()
+      assertThat(responseBody.identifiers.driverLicenseNumbers).isEmpty()
+      assertThat(responseBody.identifiers.arrestSummonsNumbers).isEmpty()
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     fun `should return nulls when some data (eg alias and address) values are null or empty`() {
-      val cId = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomCId()
+      val cId = randomCId()
 
-      val aliasFirstName = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName()
-      val postcode = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode()
+      val aliasFirstName = randomName()
+      val postcode = randomPostcode()
       val person = createPersonWithNewKey(
-        _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Person(
-          sourceSystem = uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA,
+        Person(
+          sourceSystem = LIBRA,
           cId = cId,
-          aliases = listOf(_root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Alias(firstName = aliasFirstName)),
+          aliases = listOf(Alias(firstName = aliasFirstName)),
           addresses = listOf(
-            _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Address(
+            Address(
               postcode = postcode,
             ),
           ),
@@ -247,90 +281,90 @@ class LibraApiControllerIntTest : WebTestBase() {
 
       val responseBody = webTestClient.get()
         .uri(libraApiUrl(person.cId))
-        .authorised(listOf(uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY))
+        .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord::class.java)
+        .expectBody(CanonicalRecord::class.java)
         .returnResult()
         .responseBody!!
 
-      org.assertj.core.api.Assertions.assertThat(responseBody.aliases.first().firstName).isEqualTo(aliasFirstName)
-      org.assertj.core.api.Assertions.assertThat(responseBody.aliases.first().lastName).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.aliases.first().middleNames).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.aliases.first().title.code).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.aliases.first().title.description).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.addresses.first().postcode).isEqualTo(postcode)
-      org.assertj.core.api.Assertions.assertThat(responseBody.addresses.first().startDate).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.addresses.first().endDate).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.addresses.first().noFixedAbode).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.addresses.first().buildingName).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.addresses.first().buildingNumber).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.addresses.first().thoroughfareName).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.addresses.first().dependentLocality).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.addresses.first().postTown).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.addresses.first().county).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.addresses.first().country).isNull()
-      org.assertj.core.api.Assertions.assertThat(responseBody.addresses.first().uprn).isNull()
+      assertThat(responseBody.aliases.first().firstName).isEqualTo(aliasFirstName)
+      assertThat(responseBody.aliases.first().lastName).isNull()
+      assertThat(responseBody.aliases.first().middleNames).isNull()
+      assertThat(responseBody.aliases.first().title.code).isNull()
+      assertThat(responseBody.aliases.first().title.description).isNull()
+      assertThat(responseBody.addresses.first().postcode).isEqualTo(postcode)
+      assertThat(responseBody.addresses.first().startDate).isNull()
+      assertThat(responseBody.addresses.first().endDate).isNull()
+      assertThat(responseBody.addresses.first().noFixedAbode).isNull()
+      assertThat(responseBody.addresses.first().buildingName).isNull()
+      assertThat(responseBody.addresses.first().buildingNumber).isNull()
+      assertThat(responseBody.addresses.first().thoroughfareName).isNull()
+      assertThat(responseBody.addresses.first().dependentLocality).isNull()
+      assertThat(responseBody.addresses.first().postTown).isNull()
+      assertThat(responseBody.addresses.first().county).isNull()
+      assertThat(responseBody.addresses.first().country).isNull()
+      assertThat(responseBody.addresses.first().uprn).isNull()
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     fun `should add list of additional identifiers off two people`() {
-      val personOneCro = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomCro()
-      val personTwoCro = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomCro()
+      val personOneCro = randomCro()
+      val personTwoCro = randomCro()
 
-      val personTwoCrn = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomCrn()
+      val personTwoCrn = randomCrn()
 
-      val personOnePnc = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc()
-      val personTwoPnc = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc()
+      val personOnePnc = randomLongPnc()
+      val personTwoPnc = randomLongPnc()
 
       val personOneNationalInsuranceNumber =
-        _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber()
+        randomNationalInsuranceNumber()
       val personTwoNationalInsuranceNumber =
-        _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber()
+        randomNationalInsuranceNumber()
 
       val personOneArrestSummonNumber =
-        _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber()
+        randomArrestSummonNumber()
       val personTwoArrestSummonNumber =
-        _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber()
+        randomArrestSummonNumber()
 
       val personOneDriversLicenseNumber =
-        _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber()
+        randomDriverLicenseNumber()
       val personTwoDriversLicenseNumber =
-        _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber()
+        randomDriverLicenseNumber()
 
-      val personOneCId = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomCId()
+      val personOneCId = randomCId()
 
       val personOne = createPerson(
-        _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Person(
-          firstName = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName(),
-          lastName = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName(),
-          middleNames = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName(),
-          dateOfBirth = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomDate(),
-          sourceSystem = uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA,
-          nationalities = listOf(_root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode()),
-          religion = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomReligion(),
+        Person(
+          firstName = randomName(),
+          lastName = randomName(),
+          middleNames = randomName(),
+          dateOfBirth = randomDate(),
+          sourceSystem = LIBRA,
+          nationalities = listOf(randomNationalityCode()),
+          religion = randomReligion(),
 
           cId = personOneCId,
           references = listOf(
-            _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Reference(
-              identifierType = uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO,
+            Reference(
+              identifierType = CRO,
               identifierValue = personOneCro,
             ),
-            _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Reference(
-              identifierType = uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC,
+            Reference(
+              identifierType = PNC,
               identifierValue = personOnePnc,
             ),
-            _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Reference(
-              identifierType = uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER,
+            Reference(
+              identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
               identifierValue = personOneNationalInsuranceNumber,
             ),
-            _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Reference(
-              identifierType = uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER,
+            Reference(
+              identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
               identifierValue = personOneArrestSummonNumber,
             ),
-            _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Reference(
-              identifierType = uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER,
+            Reference(
+              identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
               identifierValue = personOneDriversLicenseNumber,
             ),
           ),
@@ -338,34 +372,34 @@ class LibraApiControllerIntTest : WebTestBase() {
       )
 
       val personTwo = createPerson(
-        _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Person(
-          firstName = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName(),
-          lastName = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName(),
-          middleNames = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName(),
-          dateOfBirth = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomDate(),
-          sourceSystem = uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS,
+        Person(
+          firstName = randomName(),
+          lastName = randomName(),
+          middleNames = randomName(),
+          dateOfBirth = randomDate(),
+          sourceSystem = SourceSystemType.DELIUS,
           crn = personTwoCrn,
-          nationalities = listOf(_root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode()),
-          religion = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomReligion(),
+          nationalities = listOf(randomNationalityCode()),
+          religion = randomReligion(),
           references = listOf(
-            _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Reference(
-              identifierType = uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO,
+            Reference(
+              identifierType = CRO,
               identifierValue = personTwoCro,
             ),
-            _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Reference(
-              identifierType = uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC,
+            Reference(
+              identifierType = PNC,
               identifierValue = personTwoPnc,
             ),
-            _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Reference(
-              identifierType = uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER,
+            Reference(
+              identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
               identifierValue = personTwoNationalInsuranceNumber,
             ),
-            _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Reference(
-              identifierType = uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER,
+            Reference(
+              identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
               identifierValue = personTwoArrestSummonNumber,
             ),
-            _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Reference(
-              identifierType = uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER,
+            Reference(
+              identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
               identifierValue = personTwoDriversLicenseNumber,
             ),
           ),
@@ -375,43 +409,43 @@ class LibraApiControllerIntTest : WebTestBase() {
 
       val responseBody = webTestClient.get()
         .uri(libraApiUrl(personOne.cId))
-        .authorised(listOf(uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY))
+        .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord::class.java)
+        .expectBody(CanonicalRecord::class.java)
         .returnResult()
         .responseBody!!
 
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.cros).containsExactly(personOneCro)
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.pncs).containsExactly(personOnePnc)
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.nationalInsuranceNumbers).containsExactly(personOneNationalInsuranceNumber)
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.arrestSummonsNumbers).containsExactly(personOneArrestSummonNumber)
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.driverLicenseNumbers).containsExactly(personOneDriversLicenseNumber)
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrderElementsOf(
+      assertThat(responseBody.identifiers.cros).containsExactly(personOneCro)
+      assertThat(responseBody.identifiers.pncs).containsExactly(personOnePnc)
+      assertThat(responseBody.identifiers.nationalInsuranceNumbers).containsExactly(personOneNationalInsuranceNumber)
+      assertThat(responseBody.identifiers.arrestSummonsNumbers).containsExactly(personOneArrestSummonNumber)
+      assertThat(responseBody.identifiers.driverLicenseNumbers).containsExactly(personOneDriversLicenseNumber)
+      assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrderElementsOf(
         listOf(
           personTwo.crn,
         ),
       )
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.cids).containsExactlyInAnyOrderElementsOf(
+      assertThat(responseBody.identifiers.cids).containsExactlyInAnyOrderElementsOf(
         listOf(
           personOne.cId,
         ),
       )
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     fun `should return linked crn`() {
-      val cId = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomCId()
-      val crn = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomCrn()
+      val cId = randomCId()
+      val crn = randomCrn()
 
-      val person = createPersonWithNewKey(
-        _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.model.person.Person(
-          firstName = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName(),
-          lastName = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName(),
-          middleNames = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomName(),
-          dateOfBirth = _root_ide_package_.uk.gov.justice.digital.hmpps.personrecord.test.randomDate(),
-          sourceSystem = uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA,
+      createPersonWithNewKey(
+        Person(
+          firstName = randomName(),
+          lastName = randomName(),
+          middleNames = randomName(),
+          dateOfBirth = randomDate(),
+          sourceSystem = LIBRA,
           crn = crn,
           cId = cId,
         ),
@@ -419,31 +453,31 @@ class LibraApiControllerIntTest : WebTestBase() {
 
       val responseBody = webTestClient.get()
         .uri(libraApiUrl(cId))
-        .authorised(listOf(uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY))
+        .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord::class.java)
+        .expectBody(CanonicalRecord::class.java)
         .returnResult()
         .responseBody!!
 
       println("responseBody = $responseBody")
 
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.crns.size).isEqualTo(1)
-      org.assertj.core.api.Assertions.assertThat(responseBody.identifiers.crns.first()).isEqualTo(crn)
+      assertThat(responseBody.identifiers.crns.size).isEqualTo(1)
+      assertThat(responseBody.identifiers.crns.first()).isEqualTo(crn)
     }
   }
 
-  @org.junit.jupiter.api.Nested
+  @Nested
   inner class ErrorScenarios {
 
-    @org.junit.jupiter.api.Test
+    @Test
     fun `should return not found 404 with userMessage to show that the c_Id is not found`() {
-      val nonExistentCId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+      val nonExistentCId = "123456"
       val expectedErrorMessage = "Not found: $nonExistentCId"
       webTestClient.get()
         .uri(libraApiUrl(nonExistentCId))
-        .authorised(listOf(uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY))
+        .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isNotFound
@@ -452,7 +486,7 @@ class LibraApiControllerIntTest : WebTestBase() {
         .isEqualTo(expectedErrorMessage)
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     fun `should return Access Denied 403 when role is wrong`() {
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.get()
@@ -466,7 +500,7 @@ class LibraApiControllerIntTest : WebTestBase() {
         .isEqualTo(expectedErrorMessage)
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       webTestClient.get()
         .uri(libraApiUrl("unauthorised"))

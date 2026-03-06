@@ -3,7 +3,8 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.court
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
@@ -21,9 +22,14 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
@@ -87,7 +93,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
           dateOfBirth = randomDate(),
           disability = randomBoolean(),
           immigrationStatus = randomBoolean(),
-          sourceSystem = SourceSystemType.COMMON_PLATFORM,
+          sourceSystem = COMMON_PLATFORM,
           titleCode = title.value,
           crn = crn,
           sexCode = sex.value,
@@ -96,7 +102,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
           nationalities = listOf(nationality),
           religion = religion,
           cId = cid,
-          ethnicityCode = EthnicityCode.Companion.fromCommonPlatform(ethnicity),
+          ethnicityCode = EthnicityCode.fromCommonPlatform(ethnicity),
           defendantId = defendantId,
           aliases = listOf(
             Alias(
@@ -122,15 +128,15 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
             ),
           ),
           references = listOf(
-            Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
-            Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
+            Reference(identifierType = PNC, identifierValue = pnc),
+            Reference(identifierType = CRO, identifierValue = cro),
           ),
         ),
       )
 
       val responseBody = webTestClient.get()
         .uri(commonPlatformApiUrl(person.defendantId))
-        .authorised(listOf(Roles.API_READ_ONLY))
+        .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
@@ -141,8 +147,8 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
         firstName = firstName,
         lastName = lastName,
         middleNames = middleNames,
-        title = CanonicalTitle.Companion.from(title.value),
-        sex = CanonicalSex.Companion.from(sex.value),
+        title = CanonicalTitle.from(title.value),
+        sex = CanonicalSex.from(sex.value),
       )
       val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
       val canonicalAddress = CanonicalAddress(
@@ -157,7 +163,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
         postTown = postTown,
       )
       val canonicalReligion = CanonicalReligion(code = religion, description = religion)
-      val canonicalEthnicity = CanonicalEthnicity.Companion.from(EthnicityCode.Companion.fromCommonPlatform(ethnicity))
+      val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromCommonPlatform(ethnicity))
       Assertions.assertThat(responseBody.cprUUID).isNull()
       Assertions.assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
       Assertions.assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
@@ -199,7 +205,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
 
       val person = createPersonWithNewKey(
         Person(
-          sourceSystem = SourceSystemType.COMMON_PLATFORM,
+          sourceSystem = COMMON_PLATFORM,
           defendantId = defendantId,
         ),
 
@@ -207,7 +213,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
 
       val responseBody = webTestClient.get()
         .uri(commonPlatformApiUrl(person.defendantId))
-        .authorised(listOf(Roles.API_READ_ONLY))
+        .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
@@ -257,7 +263,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
       val postcode = randomPostcode()
       val person = createPersonWithNewKey(
         Person(
-          sourceSystem = SourceSystemType.COMMON_PLATFORM,
+          sourceSystem = COMMON_PLATFORM,
           defendantId = defendantId,
           aliases = listOf(Alias(firstName = aliasFirstName)),
           addresses = listOf(Address(postcode = postcode)),
@@ -267,7 +273,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
 
       val responseBody = webTestClient.get()
         .uri(commonPlatformApiUrl(person.defendantId))
-        .authorised(listOf(Roles.API_READ_ONLY))
+        .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
@@ -321,24 +327,24 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
           lastName = randomName(),
           middleNames = randomName(),
           dateOfBirth = randomDate(),
-          sourceSystem = SourceSystemType.COMMON_PLATFORM,
+          sourceSystem = COMMON_PLATFORM,
           nationalities = listOf(randomNationalityCode()),
           religion = randomReligion(),
           defendantId = personOneDefendantId,
           masterDefendantId = personOneDefendantId,
           references = listOf(
-            Reference(identifierType = IdentifierType.CRO, identifierValue = personOneCro),
-            Reference(identifierType = IdentifierType.PNC, identifierValue = personOnePnc),
+            Reference(identifierType = CRO, identifierValue = personOneCro),
+            Reference(identifierType = PNC, identifierValue = personOnePnc),
             Reference(
-              identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+              identifierType = NATIONAL_INSURANCE_NUMBER,
               identifierValue = personOneNationalInsuranceNumber,
             ),
             Reference(
-              identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
+              identifierType = ARREST_SUMMONS_NUMBER,
               identifierValue = personOneArrestSummonNumber,
             ),
             Reference(
-              identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
+              identifierType = DRIVER_LICENSE_NUMBER,
               identifierValue = personOneDriversLicenseNumber,
             ),
           ),
@@ -351,23 +357,23 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
           lastName = randomName(),
           middleNames = randomName(),
           dateOfBirth = randomDate(),
-          sourceSystem = SourceSystemType.DELIUS,
+          sourceSystem = DELIUS,
           crn = personTwoCrn,
           nationalities = listOf(randomNationalityCode()),
           religion = randomReligion(),
           references = listOf(
-            Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
-            Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
+            Reference(identifierType = CRO, identifierValue = personTwoCro),
+            Reference(identifierType = PNC, identifierValue = personTwoPnc),
             Reference(
-              identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+              identifierType = NATIONAL_INSURANCE_NUMBER,
               identifierValue = personTwoNationalInsuranceNumber,
             ),
             Reference(
-              identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
+              identifierType = ARREST_SUMMONS_NUMBER,
               identifierValue = personTwoArrestSummonNumber,
             ),
             Reference(
-              identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
+              identifierType = DRIVER_LICENSE_NUMBER,
               identifierValue = personTwoDriversLicenseNumber,
             ),
           ),
@@ -377,7 +383,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
 
       val responseBody = webTestClient.get()
         .uri(commonPlatformApiUrl(personOne.defendantId))
-        .authorised(listOf(Roles.API_READ_ONLY))
+        .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
@@ -419,20 +425,20 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
 
       webTestClient.put()
         .uri("/person/probation/$defendantId")
-        .authorised(listOf(Roles.PROBATION_API_READ_WRITE))
+        .authorised(listOf(PROBATION_API_READ_WRITE))
         .bodyValue(probationCase)
         .exchange()
         .expectStatus()
         .isOk
 
       checkTelemetry(
-        TelemetryEventType.CPR_RECORD_CREATED,
+        CPR_RECORD_CREATED,
         mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
       )
 
       val responseBody = webTestClient.get()
         .uri(commonPlatformApiUrl(defendantId))
-        .authorised(listOf(Roles.API_READ_ONLY))
+        .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
@@ -448,13 +454,13 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
   @Nested
   inner class ErrorScenarios {
 
-    @org.junit.jupiter.api.Test
+    @Test
     fun `should return not found 404 with userMessage to show that the defendantId is not found`() {
       val nonExistentDefendantId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
       val expectedErrorMessage = "Not found: $nonExistentDefendantId"
       webTestClient.get()
         .uri(commonPlatformApiUrl(nonExistentDefendantId))
-        .authorised(listOf(uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY))
+        .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isNotFound
@@ -463,7 +469,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
         .isEqualTo(expectedErrorMessage)
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     fun `should return Access Denied 403 when role is wrong`() {
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.get()
@@ -477,7 +483,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
         .isEqualTo(expectedErrorMessage)
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       webTestClient.get()
         .uri(commonPlatformApiUrl("unauthorised"))
