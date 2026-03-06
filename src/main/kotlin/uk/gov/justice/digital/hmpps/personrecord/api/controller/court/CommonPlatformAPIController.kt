@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 @Tag(name = "HMPPS Person API")
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
-class CourtAPIController(
+class CommonPlatformAPIController(
   private val personRepository: PersonRepository,
 ) {
   @Operation(

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller.libra
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.court
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -49,7 +49,7 @@ class LibraAPIController(
     val personEntity = personRepository.findByCId(cID)
     return when {
       personEntity == null -> throw ResourceNotFoundException(cID)
-      else -> ResponseEntity.ok(CanonicalRecord.Companion.from(personEntity))
+      else -> ResponseEntity.ok(CanonicalRecord.from(personEntity))
     }
   }
 }

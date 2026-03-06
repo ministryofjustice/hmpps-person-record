@@ -1,10 +1,9 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller.person
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.court
 
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
@@ -23,9 +22,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
@@ -47,7 +45,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientat
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 
-class CourtApiCommonPlatformIntTest : WebTestBase() {
+class CommonPlatformApiControllerIntTest : WebTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
@@ -89,7 +87,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
           dateOfBirth = randomDate(),
           disability = randomBoolean(),
           immigrationStatus = randomBoolean(),
-          sourceSystem = COMMON_PLATFORM,
+          sourceSystem = SourceSystemType.COMMON_PLATFORM,
           titleCode = title.value,
           crn = crn,
           sexCode = sex.value,
@@ -98,7 +96,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
           nationalities = listOf(nationality),
           religion = religion,
           cId = cid,
-          ethnicityCode = EthnicityCode.fromCommonPlatform(ethnicity),
+          ethnicityCode = EthnicityCode.Companion.fromCommonPlatform(ethnicity),
           defendantId = defendantId,
           aliases = listOf(
             Alias(
@@ -132,7 +130,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
 
       val responseBody = webTestClient.get()
         .uri(commonPlatformApiUrl(person.defendantId))
-        .authorised(listOf(API_READ_ONLY))
+        .authorised(listOf(Roles.API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
@@ -143,8 +141,8 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
         firstName = firstName,
         lastName = lastName,
         middleNames = middleNames,
-        title = CanonicalTitle.from(title.value),
-        sex = CanonicalSex.from(sex.value),
+        title = CanonicalTitle.Companion.from(title.value),
+        sex = CanonicalSex.Companion.from(sex.value),
       )
       val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
       val canonicalAddress = CanonicalAddress(
@@ -159,40 +157,40 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
         postTown = postTown,
       )
       val canonicalReligion = CanonicalReligion(code = religion, description = religion)
-      val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromCommonPlatform(ethnicity))
-      assertThat(responseBody.cprUUID).isNull()
-      assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
-      assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
-      assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
-      assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
-      assertThat(responseBody.disability).isEqualTo(person.disability)
-      assertThat(responseBody.interestToImmigration).isEqualTo(person.immigrationStatus)
-      assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().titleCode?.name)
-      assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().titleCode?.description)
-      assertThat(responseBody.aliases.first().title.code).isEqualTo(person.getAliases().first().titleCode?.name)
-      assertThat(responseBody.aliases.first().title.description).isEqualTo(
+      val canonicalEthnicity = CanonicalEthnicity.Companion.from(EthnicityCode.Companion.fromCommonPlatform(ethnicity))
+      Assertions.assertThat(responseBody.cprUUID).isNull()
+      Assertions.assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
+      Assertions.assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
+      Assertions.assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
+      Assertions.assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
+      Assertions.assertThat(responseBody.disability).isEqualTo(person.disability)
+      Assertions.assertThat(responseBody.interestToImmigration).isEqualTo(person.immigrationStatus)
+      Assertions.assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().titleCode?.name)
+      Assertions.assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().titleCode?.description)
+      Assertions.assertThat(responseBody.aliases.first().title.code).isEqualTo(person.getAliases().first().titleCode?.name)
+      Assertions.assertThat(responseBody.aliases.first().title.description).isEqualTo(
         person.getAliases().first().titleCode?.description,
       )
-      assertThat(responseBody.aliases.first().sex.code).isEqualTo(person.getAliases().first().sexCode?.name)
-      assertThat(responseBody.aliases.first().sex.description).isEqualTo(person.getAliases().first().sexCode?.description)
-      assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
-      assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
-      assertThat(responseBody.sex.code).isEqualTo(sex.value.name)
-      assertThat(responseBody.sex.description).isEqualTo(sex.value.description)
-      assertThat(responseBody.sexualOrientation.code).isEqualTo(sexualOrientation.name)
-      assertThat(responseBody.sexualOrientation.description).isEqualTo(sexualOrientation.description)
-      assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
-      assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
-      assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
-      assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity.description)
-      assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
-      assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
-      assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
-      assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
-      assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
-      assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
-      assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
-      assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
+      Assertions.assertThat(responseBody.aliases.first().sex.code).isEqualTo(person.getAliases().first().sexCode?.name)
+      Assertions.assertThat(responseBody.aliases.first().sex.description).isEqualTo(person.getAliases().first().sexCode?.description)
+      Assertions.assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
+      Assertions.assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
+      Assertions.assertThat(responseBody.sex.code).isEqualTo(sex.value.name)
+      Assertions.assertThat(responseBody.sex.description).isEqualTo(sex.value.description)
+      Assertions.assertThat(responseBody.sexualOrientation.code).isEqualTo(sexualOrientation.name)
+      Assertions.assertThat(responseBody.sexualOrientation.description).isEqualTo(sexualOrientation.description)
+      Assertions.assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
+      Assertions.assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
+      Assertions.assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
+      Assertions.assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity.description)
+      Assertions.assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
+      Assertions.assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
+      Assertions.assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
+      Assertions.assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
+      Assertions.assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
+      Assertions.assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
+      Assertions.assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
+      Assertions.assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
     }
 
     @Test
@@ -201,7 +199,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
 
       val person = createPersonWithNewKey(
         Person(
-          sourceSystem = COMMON_PLATFORM,
+          sourceSystem = SourceSystemType.COMMON_PLATFORM,
           defendantId = defendantId,
         ),
 
@@ -209,7 +207,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
 
       val responseBody = webTestClient.get()
         .uri(commonPlatformApiUrl(person.defendantId))
-        .authorised(listOf(API_READ_ONLY))
+        .authorised(listOf(Roles.API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
@@ -217,38 +215,38 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
         .returnResult()
         .responseBody!!
 
-      assertThat(responseBody.firstName).isNull()
-      assertThat(responseBody.middleNames).isNull()
-      assertThat(responseBody.lastName).isNull()
-      assertThat(responseBody.dateOfBirth).isNull()
-      assertThat(responseBody.title.code).isNull()
-      assertThat(responseBody.title.description).isNull()
-      assertThat(responseBody.ethnicity.code).isNull()
-      assertThat(responseBody.ethnicity.description).isNull()
-      assertThat(responseBody.sex.code).isNull()
-      assertThat(responseBody.sex.description).isNull()
-      assertThat(responseBody.religion.code).isNull()
-      assertThat(responseBody.religion.description).isNull()
-      assertThat(responseBody.title.code).isNull()
-      assertThat(responseBody.title.description).isNull()
-      assertThat(responseBody.ethnicity.code).isNull()
-      assertThat(responseBody.ethnicity.description).isNull()
-      assertThat(responseBody.sex.code).isNull()
-      assertThat(responseBody.sex.description).isNull()
-      assertThat(responseBody.religion.code).isNull()
-      assertThat(responseBody.religion.description).isNull()
-      assertThat(responseBody.nationalities).isEmpty()
-      assertThat(responseBody.aliases).isEmpty()
-      assertThat(responseBody.addresses).isEmpty()
-      assertThat(responseBody.identifiers.crns).isEmpty()
-      assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
-      assertThat(responseBody.identifiers.prisonNumbers).isEmpty()
-      assertThat(responseBody.identifiers.cids).isEmpty()
-      assertThat(responseBody.identifiers.pncs).isEmpty()
-      assertThat(responseBody.identifiers.cros).isEmpty()
-      assertThat(responseBody.identifiers.nationalInsuranceNumbers).isEmpty()
-      assertThat(responseBody.identifiers.driverLicenseNumbers).isEmpty()
-      assertThat(responseBody.identifiers.arrestSummonsNumbers).isEmpty()
+      Assertions.assertThat(responseBody.firstName).isNull()
+      Assertions.assertThat(responseBody.middleNames).isNull()
+      Assertions.assertThat(responseBody.lastName).isNull()
+      Assertions.assertThat(responseBody.dateOfBirth).isNull()
+      Assertions.assertThat(responseBody.title.code).isNull()
+      Assertions.assertThat(responseBody.title.description).isNull()
+      Assertions.assertThat(responseBody.ethnicity.code).isNull()
+      Assertions.assertThat(responseBody.ethnicity.description).isNull()
+      Assertions.assertThat(responseBody.sex.code).isNull()
+      Assertions.assertThat(responseBody.sex.description).isNull()
+      Assertions.assertThat(responseBody.religion.code).isNull()
+      Assertions.assertThat(responseBody.religion.description).isNull()
+      Assertions.assertThat(responseBody.title.code).isNull()
+      Assertions.assertThat(responseBody.title.description).isNull()
+      Assertions.assertThat(responseBody.ethnicity.code).isNull()
+      Assertions.assertThat(responseBody.ethnicity.description).isNull()
+      Assertions.assertThat(responseBody.sex.code).isNull()
+      Assertions.assertThat(responseBody.sex.description).isNull()
+      Assertions.assertThat(responseBody.religion.code).isNull()
+      Assertions.assertThat(responseBody.religion.description).isNull()
+      Assertions.assertThat(responseBody.nationalities).isEmpty()
+      Assertions.assertThat(responseBody.aliases).isEmpty()
+      Assertions.assertThat(responseBody.addresses).isEmpty()
+      Assertions.assertThat(responseBody.identifiers.crns).isEmpty()
+      Assertions.assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
+      Assertions.assertThat(responseBody.identifiers.prisonNumbers).isEmpty()
+      Assertions.assertThat(responseBody.identifiers.cids).isEmpty()
+      Assertions.assertThat(responseBody.identifiers.pncs).isEmpty()
+      Assertions.assertThat(responseBody.identifiers.cros).isEmpty()
+      Assertions.assertThat(responseBody.identifiers.nationalInsuranceNumbers).isEmpty()
+      Assertions.assertThat(responseBody.identifiers.driverLicenseNumbers).isEmpty()
+      Assertions.assertThat(responseBody.identifiers.arrestSummonsNumbers).isEmpty()
     }
 
     @Test
@@ -259,7 +257,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
       val postcode = randomPostcode()
       val person = createPersonWithNewKey(
         Person(
-          sourceSystem = COMMON_PLATFORM,
+          sourceSystem = SourceSystemType.COMMON_PLATFORM,
           defendantId = defendantId,
           aliases = listOf(Alias(firstName = aliasFirstName)),
           addresses = listOf(Address(postcode = postcode)),
@@ -269,7 +267,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
 
       val responseBody = webTestClient.get()
         .uri(commonPlatformApiUrl(person.defendantId))
-        .authorised(listOf(API_READ_ONLY))
+        .authorised(listOf(Roles.API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
@@ -277,23 +275,23 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
         .returnResult()
         .responseBody!!
 
-      assertThat(responseBody.aliases.first().firstName).isEqualTo(aliasFirstName)
-      assertThat(responseBody.aliases.first().lastName).isNull()
-      assertThat(responseBody.aliases.first().middleNames).isNull()
-      assertThat(responseBody.aliases.first().title.code).isNull()
-      assertThat(responseBody.aliases.first().title.description).isNull()
-      assertThat(responseBody.addresses.first().postcode).isEqualTo(postcode)
-      assertThat(responseBody.addresses.first().startDate).isNull()
-      assertThat(responseBody.addresses.first().endDate).isNull()
-      assertThat(responseBody.addresses.first().noFixedAbode).isNull()
-      assertThat(responseBody.addresses.first().buildingName).isNull()
-      assertThat(responseBody.addresses.first().buildingNumber).isNull()
-      assertThat(responseBody.addresses.first().thoroughfareName).isNull()
-      assertThat(responseBody.addresses.first().dependentLocality).isNull()
-      assertThat(responseBody.addresses.first().postTown).isNull()
-      assertThat(responseBody.addresses.first().county).isNull()
-      assertThat(responseBody.addresses.first().country).isNull()
-      assertThat(responseBody.addresses.first().uprn).isNull()
+      Assertions.assertThat(responseBody.aliases.first().firstName).isEqualTo(aliasFirstName)
+      Assertions.assertThat(responseBody.aliases.first().lastName).isNull()
+      Assertions.assertThat(responseBody.aliases.first().middleNames).isNull()
+      Assertions.assertThat(responseBody.aliases.first().title.code).isNull()
+      Assertions.assertThat(responseBody.aliases.first().title.description).isNull()
+      Assertions.assertThat(responseBody.addresses.first().postcode).isEqualTo(postcode)
+      Assertions.assertThat(responseBody.addresses.first().startDate).isNull()
+      Assertions.assertThat(responseBody.addresses.first().endDate).isNull()
+      Assertions.assertThat(responseBody.addresses.first().noFixedAbode).isNull()
+      Assertions.assertThat(responseBody.addresses.first().buildingName).isNull()
+      Assertions.assertThat(responseBody.addresses.first().buildingNumber).isNull()
+      Assertions.assertThat(responseBody.addresses.first().thoroughfareName).isNull()
+      Assertions.assertThat(responseBody.addresses.first().dependentLocality).isNull()
+      Assertions.assertThat(responseBody.addresses.first().postTown).isNull()
+      Assertions.assertThat(responseBody.addresses.first().county).isNull()
+      Assertions.assertThat(responseBody.addresses.first().country).isNull()
+      Assertions.assertThat(responseBody.addresses.first().uprn).isNull()
     }
 
     @Test
@@ -323,7 +321,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
           lastName = randomName(),
           middleNames = randomName(),
           dateOfBirth = randomDate(),
-          sourceSystem = COMMON_PLATFORM,
+          sourceSystem = SourceSystemType.COMMON_PLATFORM,
           nationalities = listOf(randomNationalityCode()),
           religion = randomReligion(),
           defendantId = personOneDefendantId,
@@ -353,7 +351,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
           lastName = randomName(),
           middleNames = randomName(),
           dateOfBirth = randomDate(),
-          sourceSystem = DELIUS,
+          sourceSystem = SourceSystemType.DELIUS,
           crn = personTwoCrn,
           nationalities = listOf(randomNationalityCode()),
           religion = randomReligion(),
@@ -379,7 +377,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
 
       val responseBody = webTestClient.get()
         .uri(commonPlatformApiUrl(personOne.defendantId))
-        .authorised(listOf(API_READ_ONLY))
+        .authorised(listOf(Roles.API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
@@ -387,17 +385,17 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
         .returnResult()
         .responseBody!!
 
-      assertThat(responseBody.identifiers.cros).containsExactly(personOneCro)
-      assertThat(responseBody.identifiers.pncs).containsExactly(personOnePnc)
-      assertThat(responseBody.identifiers.nationalInsuranceNumbers).containsExactly(personOneNationalInsuranceNumber)
-      assertThat(responseBody.identifiers.arrestSummonsNumbers).containsExactly(personOneArrestSummonNumber)
-      assertThat(responseBody.identifiers.driverLicenseNumbers).containsExactly(personOneDriversLicenseNumber)
-      assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrderElementsOf(
+      Assertions.assertThat(responseBody.identifiers.cros).containsExactly(personOneCro)
+      Assertions.assertThat(responseBody.identifiers.pncs).containsExactly(personOnePnc)
+      Assertions.assertThat(responseBody.identifiers.nationalInsuranceNumbers).containsExactly(personOneNationalInsuranceNumber)
+      Assertions.assertThat(responseBody.identifiers.arrestSummonsNumbers).containsExactly(personOneArrestSummonNumber)
+      Assertions.assertThat(responseBody.identifiers.driverLicenseNumbers).containsExactly(personOneDriversLicenseNumber)
+      Assertions.assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrderElementsOf(
         listOf(
           personTwo.crn,
         ),
       )
-      assertThat(responseBody.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(
+      Assertions.assertThat(responseBody.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(
         listOf(
           personOne.defendantId,
         ),
@@ -421,20 +419,20 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
 
       webTestClient.put()
         .uri("/person/probation/$defendantId")
-        .authorised(listOf(PROBATION_API_READ_WRITE))
+        .authorised(listOf(Roles.PROBATION_API_READ_WRITE))
         .bodyValue(probationCase)
         .exchange()
         .expectStatus()
         .isOk
 
       checkTelemetry(
-        CPR_RECORD_CREATED,
+        TelemetryEventType.CPR_RECORD_CREATED,
         mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
       )
 
       val responseBody = webTestClient.get()
         .uri(commonPlatformApiUrl(defendantId))
-        .authorised(listOf(API_READ_ONLY))
+        .authorised(listOf(Roles.API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
@@ -442,21 +440,21 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
         .returnResult()
         .responseBody!!
 
-      assertThat(responseBody.identifiers.crns.size).isEqualTo(1)
-      assertThat(responseBody.identifiers.crns.first()).isEqualTo(crn)
+      Assertions.assertThat(responseBody.identifiers.crns.size).isEqualTo(1)
+      Assertions.assertThat(responseBody.identifiers.crns.first()).isEqualTo(crn)
     }
   }
 
   @Nested
   inner class ErrorScenarios {
 
-    @Test
+    @org.junit.jupiter.api.Test
     fun `should return not found 404 with userMessage to show that the defendantId is not found`() {
       val nonExistentDefendantId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
       val expectedErrorMessage = "Not found: $nonExistentDefendantId"
       webTestClient.get()
         .uri(commonPlatformApiUrl(nonExistentDefendantId))
-        .authorised(listOf(API_READ_ONLY))
+        .authorised(listOf(uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isNotFound
@@ -465,7 +463,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
         .isEqualTo(expectedErrorMessage)
     }
 
-    @Test
+    @org.junit.jupiter.api.Test
     fun `should return Access Denied 403 when role is wrong`() {
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.get()
@@ -479,7 +477,7 @@ class CourtApiCommonPlatformIntTest : WebTestBase() {
         .isEqualTo(expectedErrorMessage)
     }
 
-    @Test
+    @org.junit.jupiter.api.Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       webTestClient.get()
         .uri(commonPlatformApiUrl("unauthorised"))
