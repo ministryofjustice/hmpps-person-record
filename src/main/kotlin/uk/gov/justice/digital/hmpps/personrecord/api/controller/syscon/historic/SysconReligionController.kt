@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.syscon.historic
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -32,7 +31,7 @@ class SysconReligionController(private val sysconReligionInsertHandler: SysconRe
     ),
   )
   fun savePrisonerReligions(
-    @PathVariable @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true) prisonNumber: String,
+    @PathVariable prisonNumber: String,
     @Valid @RequestBody religionRequest: PrisonReligionRequest,
   ): ResponseEntity<SysconReligionResponseBody> {
     val cprReligionIdByNomisId = sysconReligionInsertHandler.handleInsert(prisonNumber, religionRequest)
