@@ -73,49 +73,49 @@ class LibraApiCommonPlatformIntTest : WebTestBase() {
       val cid = randomCId()
 
       val person = createPersonWithNewKey(
-          Person(
-              firstName = randomName(),
-              lastName = randomName(),
-              middleNames = randomName(),
+        Person(
+          firstName = randomName(),
+          lastName = randomName(),
+          middleNames = randomName(),
+          dateOfBirth = randomDate(),
+          sourceSystem = SourceSystemType.LIBRA,
+          titleCode = title.value,
+          crn = crn,
+          sexCode = sex.value,
+          prisonNumber = prisonNumber,
+          nationalities = listOf(nationality),
+          religion = religion,
+          cId = cid,
+          ethnicityCode = EthnicityCode.Companion.fromCommonPlatform(ethnicity),
+          defendantId = defendantId,
+          aliases = listOf(
+            Alias(
+              firstName = firstName,
+              middleNames = middleNames,
+              lastName = lastName,
               dateOfBirth = randomDate(),
-              sourceSystem = SourceSystemType.LIBRA,
               titleCode = title.value,
-              crn = crn,
               sexCode = sex.value,
-              prisonNumber = prisonNumber,
-              nationalities = listOf(nationality),
-              religion = religion,
-              cId = cid,
-              ethnicityCode = EthnicityCode.Companion.fromCommonPlatform(ethnicity),
-              defendantId = defendantId,
-              aliases = listOf(
-                  Alias(
-                      firstName = firstName,
-                      middleNames = middleNames,
-                      lastName = lastName,
-                      dateOfBirth = randomDate(),
-                      titleCode = title.value,
-                      sexCode = sex.value,
-                  ),
-              ),
-              addresses = listOf(
-                  Address(
-                      noFixedAbode = noFixedAbode,
-                      startDate = startDate,
-                      endDate = endDate,
-                      postcode = postcode,
-                      buildingName = buildingName,
-                      buildingNumber = buildingNumber,
-                      thoroughfareName = thoroughfareName,
-                      dependentLocality = dependentLocality,
-                      postTown = postTown,
-                  ),
-              ),
-              references = listOf(
-                  Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
-                  Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
-              ),
+            ),
           ),
+          addresses = listOf(
+            Address(
+              noFixedAbode = noFixedAbode,
+              startDate = startDate,
+              endDate = endDate,
+              postcode = postcode,
+              buildingName = buildingName,
+              buildingNumber = buildingNumber,
+              thoroughfareName = thoroughfareName,
+              dependentLocality = dependentLocality,
+              postTown = postTown,
+            ),
+          ),
+          references = listOf(
+            Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
+            Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
+          ),
+        ),
       )
 
       val responseBody = webTestClient.get()
@@ -128,23 +128,23 @@ class LibraApiCommonPlatformIntTest : WebTestBase() {
         .returnResult()
         .responseBody!!
       val canonicalAlias = CanonicalAlias(
-          firstName = firstName,
-          lastName = lastName,
-          middleNames = middleNames,
-          title = CanonicalTitle.Companion.from(title.value),
-          sex = CanonicalSex.Companion.from(sex.value),
+        firstName = firstName,
+        lastName = lastName,
+        middleNames = middleNames,
+        title = CanonicalTitle.Companion.from(title.value),
+        sex = CanonicalSex.Companion.from(sex.value),
       )
       val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
       val canonicalAddress = CanonicalAddress(
-          noFixedAbode = noFixedAbode,
-          startDate = startDate.toString(),
-          endDate = endDate.toString(),
-          postcode = postcode,
-          buildingName = buildingName,
-          buildingNumber = buildingNumber,
-          thoroughfareName = thoroughfareName,
-          dependentLocality = dependentLocality,
-          postTown = postTown,
+        noFixedAbode = noFixedAbode,
+        startDate = startDate.toString(),
+        endDate = endDate.toString(),
+        postcode = postcode,
+        buildingName = buildingName,
+        buildingNumber = buildingNumber,
+        thoroughfareName = thoroughfareName,
+        dependentLocality = dependentLocality,
+        postTown = postTown,
       )
       val canonicalReligion = CanonicalReligion(code = religion, description = religion)
       val canonicalEthnicity = CanonicalEthnicity.Companion.from(EthnicityCode.Companion.fromCommonPlatform(ethnicity))
@@ -184,10 +184,10 @@ class LibraApiCommonPlatformIntTest : WebTestBase() {
       val cId = randomCId()
 
       val person = createPersonWithNewKey(
-          Person(
-              sourceSystem = SourceSystemType.LIBRA,
-              cId = cId,
-          ),
+        Person(
+          sourceSystem = SourceSystemType.LIBRA,
+          cId = cId,
+        ),
 
       )
 
@@ -242,12 +242,12 @@ class LibraApiCommonPlatformIntTest : WebTestBase() {
       val aliasFirstName = randomName()
       val postcode = randomPostcode()
       val person = createPersonWithNewKey(
-          Person(
-              sourceSystem = SourceSystemType.LIBRA,
-              cId = cId,
-              aliases = listOf(Alias(firstName = aliasFirstName)),
-              addresses = listOf(Address(postcode = postcode)),
-          ),
+        Person(
+          sourceSystem = SourceSystemType.LIBRA,
+          cId = cId,
+          aliases = listOf(Alias(firstName = aliasFirstName)),
+          addresses = listOf(Address(postcode = postcode)),
+        ),
 
       )
 
@@ -302,62 +302,62 @@ class LibraApiCommonPlatformIntTest : WebTestBase() {
       val personOneCId = randomCId()
 
       val personOne = createPerson(
-          Person(
-              firstName = randomName(),
-              lastName = randomName(),
-              middleNames = randomName(),
-              dateOfBirth = randomDate(),
-              sourceSystem = SourceSystemType.LIBRA,
-              nationalities = listOf(randomNationalityCode()),
-              religion = randomReligion(),
+        Person(
+          firstName = randomName(),
+          lastName = randomName(),
+          middleNames = randomName(),
+          dateOfBirth = randomDate(),
+          sourceSystem = SourceSystemType.LIBRA,
+          nationalities = listOf(randomNationalityCode()),
+          religion = randomReligion(),
 
-              cId = personOneCId,
-              references = listOf(
-                  Reference(identifierType = IdentifierType.CRO, identifierValue = personOneCro),
-                  Reference(identifierType = IdentifierType.PNC, identifierValue = personOnePnc),
-                  Reference(
-                      identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
-                      identifierValue = personOneNationalInsuranceNumber,
-                  ),
-                  Reference(
-                      identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
-                      identifierValue = personOneArrestSummonNumber,
-                  ),
-                  Reference(
-                      identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
-                      identifierValue = personOneDriversLicenseNumber,
-                  ),
-              ),
+          cId = personOneCId,
+          references = listOf(
+            Reference(identifierType = IdentifierType.CRO, identifierValue = personOneCro),
+            Reference(identifierType = IdentifierType.PNC, identifierValue = personOnePnc),
+            Reference(
+              identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+              identifierValue = personOneNationalInsuranceNumber,
+            ),
+            Reference(
+              identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
+              identifierValue = personOneArrestSummonNumber,
+            ),
+            Reference(
+              identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
+              identifierValue = personOneDriversLicenseNumber,
+            ),
           ),
+        ),
       )
 
       val personTwo = createPerson(
-          Person(
-              firstName = randomName(),
-              lastName = randomName(),
-              middleNames = randomName(),
-              dateOfBirth = randomDate(),
-              sourceSystem = SourceSystemType.DELIUS,
-              crn = personTwoCrn,
-              nationalities = listOf(randomNationalityCode()),
-              religion = randomReligion(),
-              references = listOf(
-                  Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
-                  Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
-                  Reference(
-                      identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
-                      identifierValue = personTwoNationalInsuranceNumber,
-                  ),
-                  Reference(
-                      identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
-                      identifierValue = personTwoArrestSummonNumber,
-                  ),
-                  Reference(
-                      identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
-                      identifierValue = personTwoDriversLicenseNumber,
-                  ),
-              ),
+        Person(
+          firstName = randomName(),
+          lastName = randomName(),
+          middleNames = randomName(),
+          dateOfBirth = randomDate(),
+          sourceSystem = SourceSystemType.DELIUS,
+          crn = personTwoCrn,
+          nationalities = listOf(randomNationalityCode()),
+          religion = randomReligion(),
+          references = listOf(
+            Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
+            Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
+            Reference(
+              identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+              identifierValue = personTwoNationalInsuranceNumber,
+            ),
+            Reference(
+              identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
+              identifierValue = personTwoArrestSummonNumber,
+            ),
+            Reference(
+              identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
+              identifierValue = personTwoDriversLicenseNumber,
+            ),
           ),
+        ),
       )
       createPersonKey().addPerson(personOne).addPerson(personTwo)
 
@@ -394,15 +394,15 @@ class LibraApiCommonPlatformIntTest : WebTestBase() {
       val crn = randomCrn()
 
       val person = createPersonWithNewKey(
-          Person(
-              firstName = randomName(),
-              lastName = randomName(),
-              middleNames = randomName(),
-              dateOfBirth = randomDate(),
-              sourceSystem = SourceSystemType.LIBRA,
-              crn = crn,
-              cId = cId
-          ),
+        Person(
+          firstName = randomName(),
+          lastName = randomName(),
+          middleNames = randomName(),
+          dateOfBirth = randomDate(),
+          sourceSystem = SourceSystemType.LIBRA,
+          crn = crn,
+          cId = cId,
+        ),
       )
 
       val responseBody = webTestClient.get()
