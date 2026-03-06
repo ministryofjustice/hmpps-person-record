@@ -35,7 +35,7 @@ class PrisonReligionGetResponseTest {
 
     val expected = PrisonReligionGetResponse(
       prisonNumber = prisonNumber,
-      religion = PrisonReligion(
+      religion = PrisonReligionGet(
         religionCode = prisonReligionEntity.code,
         changeReasonKnown = prisonReligionEntity.changeReasonKnown,
         comments = prisonReligionEntity.comments,
