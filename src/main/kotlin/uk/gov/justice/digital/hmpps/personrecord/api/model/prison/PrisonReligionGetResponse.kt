@@ -28,6 +28,7 @@ data class PrisonReligionGetResponse(
 
 data class PrisonReligionGet(
   val religionCode: String? = null,
+  // TODO: Add description
   val changeReasonKnown: Boolean? = null,
   val comments: String? = null,
   val verified: Boolean? = null,
@@ -36,4 +37,18 @@ data class PrisonReligionGet(
   val modifyDateTime: LocalDateTime? = null,
   val modifyUserId: String? = null,
   val current: Boolean? = null,
-)
+) {
+  companion object {
+    fun from(prisonReligionEntity: PrisonReligionEntity): PrisonReligionGet = PrisonReligionGet(
+      religionCode = prisonReligionEntity.code,
+      changeReasonKnown = prisonReligionEntity.changeReasonKnown,
+      comments = prisonReligionEntity.comments,
+      verified = prisonReligionEntity.verified,
+      startDate = prisonReligionEntity.startDate,
+      endDate = prisonReligionEntity.endDate,
+      modifyDateTime = prisonReligionEntity.modifyDateTime,
+      modifyUserId = prisonReligionEntity.modifyUserId,
+      current = prisonReligionEntity.prisonRecordType.value,
+    )
+  }
+}

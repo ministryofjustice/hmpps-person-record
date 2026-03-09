@@ -3,16 +3,19 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -42,6 +45,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 
 class PrisonAPIControllerIntTest : WebTestBase() {
+
+  @Autowired
+  private lateinit var prisonReligionRepository: PrisonReligionRepository
 
   @Nested
   inner class SuccessfulProcessing {
@@ -122,13 +128,15 @@ class PrisonAPIControllerIntTest : WebTestBase() {
         ),
       )
 
+      val existingPrisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createRandomReligion()))
+
       val responseBody = webTestClient.get()
         .uri(prisonApiUrl(person.prisonNumber))
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java)
+        .expectBody(PrisonCanonicalRecord::class.java)
         .returnResult()
         .responseBody!!
 
@@ -153,36 +161,47 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       )
       val canonicalReligion = CanonicalReligion(code = religion, description = religion)
       val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromPrison(ethnicity))
-      assertThat(responseBody.cprUUID).isNull()
-      assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
-      assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
-      assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
-      assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
-      assertThat(responseBody.disability).isEqualTo(person.disability)
-      assertThat(responseBody.interestToImmigration).isEqualTo(person.immigrationStatus)
-      assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().titleCode?.name)
-      assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().titleCode?.description)
-      assertThat(responseBody.aliases.first().title.code).isEqualTo(person.getAliases().first().titleCode?.name)
-      assertThat(responseBody.aliases.first().title.description).isEqualTo(
+      assertThat(responseBody.record.cprUUID).isNull()
+      assertThat(responseBody.record.firstName).isEqualTo(person.getPrimaryName().firstName)
+      assertThat(responseBody.record.middleNames).isEqualTo(person.getPrimaryName().middleNames)
+      assertThat(responseBody.record.lastName).isEqualTo(person.getPrimaryName().lastName)
+      assertThat(responseBody.record.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
+      assertThat(responseBody.record.disability).isEqualTo(person.disability)
+      assertThat(responseBody.record.interestToImmigration).isEqualTo(person.immigrationStatus)
+      assertThat(responseBody.record.title.code).isEqualTo(person.getPrimaryName().titleCode?.name)
+      assertThat(responseBody.record.title.description).isEqualTo(person.getPrimaryName().titleCode?.description)
+      assertThat(responseBody.record.aliases.first().title.code).isEqualTo(person.getAliases().first().titleCode?.name)
+      assertThat(responseBody.record.aliases.first().title.description).isEqualTo(
         person.getAliases().first().titleCode?.description,
       )
-      assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
-      assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
-      assertThat(responseBody.aliases.first().sex.code).isEqualTo(sex.value.name)
-      assertThat(responseBody.aliases.first().sex.description).isEqualTo(sex.value.description)
+      assertThat(responseBody.record.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
+      assertThat(responseBody.record.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
+      assertThat(responseBody.record.aliases.first().sex.code).isEqualTo(sex.value.name)
+      assertThat(responseBody.record.aliases.first().sex.description).isEqualTo(sex.value.description)
 
-      assertThat(responseBody.sexualOrientation.code).isEqualTo(sexualOrientation.value.name)
-      assertThat(responseBody.sexualOrientation.description).isEqualTo(sexualOrientation.value.description)
-      assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
-      assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
-      assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
-      assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity.description)
-      assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
-      assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
-      assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
-      assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
-      assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
-      assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
+      assertThat(responseBody.record.sexualOrientation.code).isEqualTo(sexualOrientation.value.name)
+      assertThat(responseBody.record.sexualOrientation.description).isEqualTo(sexualOrientation.value.description)
+      assertThat(responseBody.record.religion.code).isEqualTo(canonicalReligion.code)
+      assertThat(responseBody.record.religion.description).isEqualTo(canonicalReligion.description)
+      assertThat(responseBody.record.ethnicity.code).isEqualTo(canonicalEthnicity.code)
+      assertThat(responseBody.record.ethnicity.description).isEqualTo(canonicalEthnicity.description)
+      assertThat(responseBody.record.aliases).isEqualTo(listOf(canonicalAlias))
+      assertThat(responseBody.record.identifiers.cros).isEqualTo(listOf(cro))
+      assertThat(responseBody.record.identifiers.pncs).isEqualTo(listOf(pnc))
+      assertThat(responseBody.record.identifiers.crns).isEqualTo(listOf(crn))
+      assertThat(responseBody.record.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
+      assertThat(responseBody.record.addresses).isEqualTo(listOf(canonicalAddress))
+
+      assertThat(responseBody.religionHistory.size).isEqualTo(1)
+      assertThat(responseBody.religionHistory.first().startDate).isEqualTo(existingPrisonReligionEntity.startDate)
+      assertThat(responseBody.religionHistory.first().endDate).isEqualTo(existingPrisonReligionEntity.endDate)
+      assertThat(responseBody.religionHistory.first().religionCode).isEqualTo(existingPrisonReligionEntity.code)
+      assertThat(responseBody.religionHistory.first().changeReasonKnown).isEqualTo(existingPrisonReligionEntity.changeReasonKnown)
+      assertThat(responseBody.religionHistory.first().verified).isEqualTo(existingPrisonReligionEntity.verified)
+      assertThat(responseBody.religionHistory.first().modifyDateTime).isEqualTo(existingPrisonReligionEntity.modifyDateTime)
+      assertThat(responseBody.religionHistory.first().modifyUserId).isEqualTo(existingPrisonReligionEntity.modifyUserId)
+      assertThat(responseBody.religionHistory.first().current).isEqualTo(existingPrisonReligionEntity.prisonRecordType.value)
+      assertThat(responseBody.religionHistory.first().endDate).isEqualTo(existingPrisonReligionEntity.endDate)
     }
 
     @Test
@@ -282,34 +301,34 @@ class PrisonAPIControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java)
+        .expectBody(PrisonCanonicalRecord::class.java)
         .returnResult()
         .responseBody!!
 
-      assertThat(responseBody.identifiers.cros).containsExactly(personOneCro)
-      assertThat(responseBody.identifiers.pncs).containsExactly(personOnePnc)
-      assertThat(responseBody.identifiers.nationalInsuranceNumbers).containsExactly(personOneNationalInsuranceNumber)
-      assertThat(responseBody.identifiers.arrestSummonsNumbers).containsExactly(personOneArrestSummonNumber)
-      assertThat(responseBody.identifiers.driverLicenseNumbers).containsExactly(personOneDriversLicenseNumber)
-      assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrderElementsOf(
+      assertThat(responseBody.record.identifiers.cros).containsExactly(personOneCro)
+      assertThat(responseBody.record.identifiers.pncs).containsExactly(personOnePnc)
+      assertThat(responseBody.record.identifiers.nationalInsuranceNumbers).containsExactly(personOneNationalInsuranceNumber)
+      assertThat(responseBody.record.identifiers.arrestSummonsNumbers).containsExactly(personOneArrestSummonNumber)
+      assertThat(responseBody.record.identifiers.driverLicenseNumbers).containsExactly(personOneDriversLicenseNumber)
+      assertThat(responseBody.record.identifiers.crns).containsExactlyInAnyOrderElementsOf(
         listOf(
           personOne.crn,
           personTwo.crn,
         ),
       )
-      assertThat(responseBody.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(
+      assertThat(responseBody.record.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(
         listOf(
           personOne.defendantId,
           personTwo.defendantId,
         ),
       )
-      assertThat(responseBody.identifiers.prisonNumbers).containsExactlyInAnyOrderElementsOf(
+      assertThat(responseBody.record.identifiers.prisonNumbers).containsExactlyInAnyOrderElementsOf(
         listOf(
           personOne.prisonNumber,
           personTwo.prisonNumber,
         ),
       )
-      assertThat(responseBody.identifiers.cids).containsExactlyInAnyOrderElementsOf(
+      assertThat(responseBody.record.identifiers.cids).containsExactlyInAnyOrderElementsOf(
         listOf(
           personOne.cId,
           personTwo.cId,

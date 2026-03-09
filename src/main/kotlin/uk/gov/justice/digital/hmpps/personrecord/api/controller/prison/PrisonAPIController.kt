@@ -16,9 +16,10 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import java.net.URI
 
 @Tag(name = "HMPPS Person API")
@@ -26,6 +27,7 @@ import java.net.URI
 @PreAuthorize("hasRole('$API_READ_ONLY')")
 class PrisonAPIController(
   private val personRepository: PersonRepository,
+  private val prisonReligionRepository: PrisonReligionRepository,
 ) {
   @Operation(
     description = """Retrieve person record by Prison Number. Role required is **$API_READ_ONLY** . 
@@ -42,7 +44,7 @@ class PrisonAPIController(
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = CanonicalRecord::class),
+          schema = Schema(implementation = PrisonCanonicalRecord::class),
         ),
       ],
     ),
@@ -57,23 +59,26 @@ class PrisonAPIController(
   fun getRecord(
     @PathVariable(name = "prisonNumber") prisonNumber: String,
   ): ResponseEntity<*> {
-    val prisoner = getPrisoner(personRepository.findByPrisonNumber(prisonNumber))
+    val personEntity = getPersonEntityByPrisonNumber(personRepository.findByPrisonNumber(prisonNumber))
     return when {
-      prisoner == null -> throw ResourceNotFoundException(prisonNumber)
-      isMerged(prisoner, prisonNumber) ->
+      personEntity == null -> throw ResourceNotFoundException(prisonNumber)
+      hasMergedIntoAnother(personEntity, prisonNumber) ->
         ResponseEntity
           .status(MOVED_PERMANENTLY)
-          .location(URI("/person/prison/${prisoner.prisonNumber}"))
-          .build<Void>()
-      else -> ResponseEntity.ok(CanonicalRecord.from(prisoner))
+          .location(URI("/person/prison/${personEntity.prisonNumber}"))
+          .build<Unit>()
+      else -> {
+        val prisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
+        ResponseEntity.ok(PrisonCanonicalRecord.from(personEntity, prisonReligionEntities))
+      }
     }
   }
 
-  fun getPrisoner(person: PersonEntity?): PersonEntity? = person?.mergedTo?.let {
-    getPrisoner(personRepository.findByIdOrNull(id = it))
+  fun getPersonEntityByPrisonNumber(person: PersonEntity?): PersonEntity? = person?.mergedTo?.let {
+    getPersonEntityByPrisonNumber(personRepository.findByIdOrNull(id = it))
   } ?: person
 
-  private fun isMerged(
+  private fun hasMergedIntoAnother(
     personEntity: PersonEntity,
     prisonNumber: String,
   ): Boolean = personEntity.prisonNumber != prisonNumber
