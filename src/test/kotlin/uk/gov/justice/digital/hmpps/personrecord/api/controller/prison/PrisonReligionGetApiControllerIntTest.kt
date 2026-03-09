@@ -17,7 +17,7 @@ class PrisonReligionGetApiControllerIntTest : WebTestBase() {
   private lateinit var prisonReligionRepository: PrisonReligionRepository
 
   @Nested
-  inner class PrisonReligionExists {
+  inner class PrisonReligionsExist {
 
     @Test
     fun `should return all prison religions by prison number`() {
@@ -39,7 +39,7 @@ class PrisonReligionGetApiControllerIntTest : WebTestBase() {
   }
 
   @Nested
-  inner class PrisonReligionDoesNotExists {
+  inner class PrisonReligionsDoNotExist {
 
     @Test
     fun `should return empty list of prison religions for prison number`() {
