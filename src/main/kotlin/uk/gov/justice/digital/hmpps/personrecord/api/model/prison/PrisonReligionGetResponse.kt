@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.prison
 
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.toReligionCodeDescription
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -13,6 +14,7 @@ data class PrisonReligionGetResponse(
       prisonNumber = prisonNumber,
       religion = PrisonReligionGet(
         religionCode = prisonReligionEntity.code,
+        religionDescription = prisonReligionEntity.code.toReligionCodeDescription(),
         changeReasonKnown = prisonReligionEntity.changeReasonKnown,
         comments = prisonReligionEntity.comments,
         verified = prisonReligionEntity.verified,
@@ -28,7 +30,7 @@ data class PrisonReligionGetResponse(
 
 data class PrisonReligionGet(
   val religionCode: String? = null,
-  // TODO: Add description
+  val religionDescription: String? = null,
   val changeReasonKnown: Boolean? = null,
   val comments: String? = null,
   val verified: Boolean? = null,
@@ -41,6 +43,7 @@ data class PrisonReligionGet(
   companion object {
     fun from(prisonReligionEntity: PrisonReligionEntity): PrisonReligionGet = PrisonReligionGet(
       religionCode = prisonReligionEntity.code,
+      religionDescription = prisonReligionEntity.code.toReligionCodeDescription(),
       changeReasonKnown = prisonReligionEntity.changeReasonKnown,
       comments = prisonReligionEntity.comments,
       verified = prisonReligionEntity.verified,
