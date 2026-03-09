@@ -6,22 +6,24 @@ import java.time.LocalDateTime
 
 data class PrisonReligionGetResponse(
   val prisonNumber: String,
-  val religion: PrisonReligionGet,
+  val religionHistory: List<PrisonReligionGet>,
 ) {
   companion object {
-    fun from(prisonNumber: String, prisonReligionEntity: PrisonReligionEntity): PrisonReligionGetResponse = PrisonReligionGetResponse(
+    fun from(prisonNumber: String, prisonReligionEntities: List<PrisonReligionEntity>): PrisonReligionGetResponse = PrisonReligionGetResponse(
       prisonNumber = prisonNumber,
-      religion = PrisonReligionGet(
-        religionCode = prisonReligionEntity.code,
-        changeReasonKnown = prisonReligionEntity.changeReasonKnown,
-        comments = prisonReligionEntity.comments,
-        verified = prisonReligionEntity.verified,
-        startDate = prisonReligionEntity.startDate,
-        endDate = prisonReligionEntity.endDate,
-        modifyDateTime = prisonReligionEntity.modifyDateTime,
-        modifyUserId = prisonReligionEntity.modifyUserId,
-        current = prisonReligionEntity.prisonRecordType.value,
-      ),
+      religionHistory = prisonReligionEntities.map { prisonReligionEntity ->
+        PrisonReligionGet(
+          religionCode = prisonReligionEntity.code,
+          changeReasonKnown = prisonReligionEntity.changeReasonKnown,
+          comments = prisonReligionEntity.comments,
+          verified = prisonReligionEntity.verified,
+          startDate = prisonReligionEntity.startDate,
+          endDate = prisonReligionEntity.endDate,
+          modifyDateTime = prisonReligionEntity.modifyDateTime,
+          modifyUserId = prisonReligionEntity.modifyUserId,
+          current = prisonReligionEntity.prisonRecordType.value,
+        )
+      },
     )
   }
 }

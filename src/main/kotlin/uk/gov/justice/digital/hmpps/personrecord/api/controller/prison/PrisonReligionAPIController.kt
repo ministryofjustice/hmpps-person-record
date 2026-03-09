@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionInsertHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionUpdateHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionGetResponse
@@ -26,7 +25,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionUpdateRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
-import java.util.UUID
 
 @Tag(name = "HMPPS Person API")
 @RestController
@@ -92,7 +90,7 @@ class PrisonReligionAPIController(
   }
 
   @Operation(
-    description = """Get prison religion record by Prison Number. Role required is **${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
+    description = """Get all prison religion records by Prison Number. Role required is **${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
     security = [SecurityRequirement(name = "api-role")],
   )
   @ApiResponses(
@@ -107,13 +105,11 @@ class PrisonReligionAPIController(
       ],
     ),
   )
-  @GetMapping("/{prisonNumber}/religion/{cprReligionId}")
+  @GetMapping("/{prisonNumber}/religion")
   fun get(
     @PathVariable("prisonNumber") prisonNumber: String,
-    @PathVariable("cprReligionId") cprReligionId: String,
   ): ResponseEntity<PrisonReligionGetResponse> {
-    val prisonReligionEntity = prisonReligionRepository.findByUpdateId(UUID.fromString(cprReligionId))
-      ?: throw ResourceNotFoundException("Prison religion with $cprReligionId not found")
-    return ResponseEntity(PrisonReligionGetResponse.from(prisonNumber, prisonReligionEntity), HttpStatus.OK)
+    val prisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
+    return ResponseEntity(PrisonReligionGetResponse.from(prisonNumber, prisonReligionEntities), HttpStatus.OK)
   }
 }

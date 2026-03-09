@@ -31,20 +31,22 @@ class PrisonReligionGetResponseTest {
       prisonRecordType = PrisonRecordType.entries.random(),
     )
 
-    val actual = PrisonReligionGetResponse.from(prisonNumber, prisonReligionEntity)
+    val actual = PrisonReligionGetResponse.from(prisonNumber, listOf(prisonReligionEntity))
 
     val expected = PrisonReligionGetResponse(
       prisonNumber = prisonNumber,
-      religion = PrisonReligionGet(
-        religionCode = prisonReligionEntity.code,
-        changeReasonKnown = prisonReligionEntity.changeReasonKnown,
-        comments = prisonReligionEntity.comments,
-        verified = prisonReligionEntity.verified,
-        startDate = prisonReligionEntity.startDate,
-        endDate = prisonReligionEntity.endDate,
-        modifyDateTime = prisonReligionEntity.modifyDateTime,
-        modifyUserId = prisonReligionEntity.modifyUserId,
-        current = prisonReligionEntity.prisonRecordType.value,
+      religionHistory = listOf(
+        PrisonReligionGet(
+          religionCode = prisonReligionEntity.code,
+          changeReasonKnown = prisonReligionEntity.changeReasonKnown,
+          comments = prisonReligionEntity.comments,
+          verified = prisonReligionEntity.verified,
+          startDate = prisonReligionEntity.startDate,
+          endDate = prisonReligionEntity.endDate,
+          modifyDateTime = prisonReligionEntity.modifyDateTime,
+          modifyUserId = prisonReligionEntity.modifyUserId,
+          current = prisonReligionEntity.prisonRecordType.value,
+        ),
       ),
     )
     assertThat(actual).usingRecursiveComparison().isEqualTo(expected)
