@@ -41,12 +41,6 @@ class PrisonAPIController(
     ApiResponse(
       responseCode = "200",
       description = "OK",
-      content = [
-        Content(
-          mediaType = "application/json",
-          schema = Schema(implementation = PrisonCanonicalRecord::class),
-        ),
-      ],
     ),
     ApiResponse(
       responseCode = "301",
@@ -58,7 +52,7 @@ class PrisonAPIController(
   )
   fun getRecord(
     @PathVariable(name = "prisonNumber") prisonNumber: String,
-  ): ResponseEntity<*> {
+  ): ResponseEntity<PrisonCanonicalRecord> {
     val personEntity = getPersonEntityByPrisonNumber(personRepository.findByPrisonNumber(prisonNumber))
     return when {
       personEntity == null -> throw ResourceNotFoundException(prisonNumber)
@@ -66,7 +60,7 @@ class PrisonAPIController(
         ResponseEntity
           .status(MOVED_PERMANENTLY)
           .location(URI("/person/prison/${personEntity.prisonNumber}"))
-          .build<Unit>()
+          .build()
       else -> {
         val prisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
         ResponseEntity.ok(PrisonCanonicalRecord.from(personEntity, prisonReligionEntities))
