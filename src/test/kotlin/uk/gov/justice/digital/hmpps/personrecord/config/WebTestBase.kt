@@ -36,9 +36,16 @@ abstract class WebTestBase : IntegrationTestBase() {
     sendAuthorised: Boolean = true,
   ): WebTestClient.BodySpec<T, *> = sendRequestAsserted(url, body, roles, expectedStatus, sendAuthorised, HttpMethod.PUT)
 
+  protected final inline fun <reified T : Any> sendGetRequestAsserted(
+    url: String,
+    roles: List<String>,
+    expectedStatus: HttpStatus,
+    sendAuthorised: Boolean = true,
+  ): WebTestClient.BodySpec<T, *> = sendRequestAsserted(url, null, roles, expectedStatus, sendAuthorised, HttpMethod.GET)
+
   protected final inline fun <reified T : Any> sendRequestAsserted(
     url: String,
-    body: Any,
+    body: Any?,
     roles: List<String>,
     expectedStatus: HttpStatus,
     sendAuthorised: Boolean = true,
@@ -47,11 +54,15 @@ abstract class WebTestBase : IntegrationTestBase() {
     val requestSpec = webTestClient
       .method(methodType)
       .uri(url)
-      .bodyValue(body)
+
+    val requestSpecReady = when (methodType) {
+      HttpMethod.GET -> requestSpec
+      else -> requestSpec.bodyValue(body!!)
+    }
 
     val responseSpec = when (sendAuthorised) {
-      true -> requestSpec.authorised(roles).exchange()
-      false -> requestSpec.exchange()
+      true -> requestSpecReady.authorised(roles).exchange()
+      false -> requestSpecReady.exchange()
     }.expectStatus().isEqualTo(expectedStatus.value())
     return responseSpec.expectBody<T>()
   }

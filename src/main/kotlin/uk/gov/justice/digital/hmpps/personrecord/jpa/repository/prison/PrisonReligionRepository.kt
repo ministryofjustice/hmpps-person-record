@@ -7,10 +7,7 @@ import java.util.UUID
 
 @Repository
 interface PrisonReligionRepository : JpaRepository<PrisonReligionEntity, Long> {
-
-  fun deleteByPrisonNumber(prisonNumber: String)
-
+  fun deleteAllByPrisonNumber(prisonNumber: String)
   fun findByPrisonNumber(prisonNumber: String): List<PrisonReligionEntity>
-  fun findAllByPrisonNumber(prisonNumber: String): MutableList<PrisonReligionEntity>
   fun findByUpdateId(updateId: UUID): PrisonReligionEntity?
 }
