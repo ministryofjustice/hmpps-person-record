@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.religion
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.fail
@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionMapping
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionResponseBody
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -31,7 +31,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createRandomReligion()
-      sendPostRequestAsserted<PrisonReligionResponseBody>(
+      sendPostRequestAsserted<PrisonReligionResponse>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
@@ -79,7 +79,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createRandomReligion()
-      val responseBody = sendPostRequestAsserted<PrisonReligionResponseBody>(
+      val responseBody = sendPostRequestAsserted<PrisonReligionResponse>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
@@ -88,7 +88,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
 
       awaitAssert {
         val actualPrisonReligionEntity = prisonReligionRepository.findByPrisonNumber(prisonNumber).first()
-        val expectedResponseBody = PrisonReligionResponseBody(prisonNumber, PrisonReligionMapping(requestBody.nomisReligionId, actualPrisonReligionEntity.updateId.toString()))
+        val expectedResponseBody = PrisonReligionResponse(prisonNumber, PrisonReligionMapping(requestBody.nomisReligionId, actualPrisonReligionEntity.updateId.toString()))
         responseBody.isEqualTo(expectedResponseBody)
       }
     }
