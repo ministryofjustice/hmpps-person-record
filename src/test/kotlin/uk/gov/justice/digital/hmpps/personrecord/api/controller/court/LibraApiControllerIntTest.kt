@@ -6,10 +6,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -17,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
-import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
@@ -26,19 +22,16 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LI
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 
@@ -53,14 +46,11 @@ class LibraApiControllerIntTest : WebTestBase() {
       val lastName = randomName()
       val middleNames = randomName()
       val title = randomTitleCode()
-      val pnc = randomLongPnc()
+
       val noFixedAbode = true
       val startDate = randomDate()
       val endDate = randomDate()
       val postcode = randomPostcode()
-      val nationality = randomNationalityCode()
-      val religion = randomReligion()
-      val ethnicity = randomCommonPlatformEthnicity()
       val sex = randomCommonPlatformSexCode()
 
       val buildingName = randomName()
@@ -70,9 +60,7 @@ class LibraApiControllerIntTest : WebTestBase() {
       val postTown = randomName()
 
       val cro = randomCro()
-      val crn = randomCrn()
-      val defendantId = randomDefendantId()
-      val prisonNumber = randomPrisonNumber()
+      val pnc = randomLongPnc()
       val cid = randomCId()
 
       val person = createPersonWithNewKey(
@@ -83,16 +71,11 @@ class LibraApiControllerIntTest : WebTestBase() {
           dateOfBirth = randomDate(),
           sourceSystem = LIBRA,
           titleCode = title.value,
-          crn = crn,
+
           sexCode = sex.value,
-          prisonNumber = prisonNumber,
-          nationalities = listOf(nationality),
-          religion = religion,
+
           cId = cid,
-          ethnicityCode = EthnicityCode.fromCommonPlatform(
-            ethnicity,
-          ),
-          defendantId = defendantId,
+
           aliases = listOf(
             Alias(
               firstName = firstName,
@@ -146,12 +129,6 @@ class LibraApiControllerIntTest : WebTestBase() {
           title = CanonicalTitle.from(title.value),
           sex = CanonicalSex.from(sex.value),
         )
-      val canonicalNationality = listOf(
-        CanonicalNationality(
-          nationality.name,
-          nationality.description,
-        ),
-      )
       val canonicalAddress =
         CanonicalAddress(
           noFixedAbode = noFixedAbode,
@@ -164,14 +141,7 @@ class LibraApiControllerIntTest : WebTestBase() {
           dependentLocality = dependentLocality,
           postTown = postTown,
         )
-      val canonicalReligion =
-        CanonicalReligion(
-          code = religion,
-          description = religion,
-        )
-      val canonicalEthnicity = CanonicalEthnicity.from(
-        EthnicityCode.fromCommonPlatform(ethnicity),
-      )
+
       assertThat(responseBody.cprUUID).isNull()
       assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
       assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
@@ -185,20 +155,11 @@ class LibraApiControllerIntTest : WebTestBase() {
       )
       assertThat(responseBody.aliases.first().sex.code).isEqualTo(person.getAliases().first().sexCode?.name)
       assertThat(responseBody.aliases.first().sex.description).isEqualTo(person.getAliases().first().sexCode?.description)
-      assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
-      assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
       assertThat(responseBody.sex.code).isEqualTo(sex.value.name)
       assertThat(responseBody.sex.description).isEqualTo(sex.value.description)
-      assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
-      assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
-      assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
-      assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity.description)
       assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
       assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
       assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
-      assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
-      assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
-      assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
       assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
       assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
     }
@@ -318,18 +279,12 @@ class LibraApiControllerIntTest : WebTestBase() {
       val personOnePnc = randomLongPnc()
       val personTwoPnc = randomLongPnc()
 
-      val personOneNationalInsuranceNumber =
-        randomNationalInsuranceNumber()
       val personTwoNationalInsuranceNumber =
         randomNationalInsuranceNumber()
 
-      val personOneArrestSummonNumber =
-        randomArrestSummonNumber()
       val personTwoArrestSummonNumber =
         randomArrestSummonNumber()
 
-      val personOneDriversLicenseNumber =
-        randomDriverLicenseNumber()
       val personTwoDriversLicenseNumber =
         randomDriverLicenseNumber()
 
@@ -354,18 +309,6 @@ class LibraApiControllerIntTest : WebTestBase() {
             Reference(
               identifierType = PNC,
               identifierValue = personOnePnc,
-            ),
-            Reference(
-              identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
-              identifierValue = personOneNationalInsuranceNumber,
-            ),
-            Reference(
-              identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
-              identifierValue = personOneArrestSummonNumber,
-            ),
-            Reference(
-              identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
-              identifierValue = personOneDriversLicenseNumber,
             ),
           ),
         ),
@@ -419,9 +362,6 @@ class LibraApiControllerIntTest : WebTestBase() {
 
       assertThat(responseBody.identifiers.cros).containsExactly(personOneCro)
       assertThat(responseBody.identifiers.pncs).containsExactly(personOnePnc)
-      assertThat(responseBody.identifiers.nationalInsuranceNumbers).containsExactly(personOneNationalInsuranceNumber)
-      assertThat(responseBody.identifiers.arrestSummonsNumbers).containsExactly(personOneArrestSummonNumber)
-      assertThat(responseBody.identifiers.driverLicenseNumbers).containsExactly(personOneDriversLicenseNumber)
       assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrderElementsOf(
         listOf(
           personTwo.crn,
