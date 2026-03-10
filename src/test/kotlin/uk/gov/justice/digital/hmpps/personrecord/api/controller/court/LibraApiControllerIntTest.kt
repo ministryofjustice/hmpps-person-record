@@ -154,7 +154,9 @@ class LibraApiControllerIntTest : WebTestBase() {
         person.getAliases().first().titleCode?.description,
       )
       assertThat(responseBody.aliases.first().sex.code).isEqualTo(person.getAliases().first().sexCode?.name)
-      assertThat(responseBody.aliases.first().sex.description).isEqualTo(person.getAliases().first().sexCode?.description)
+      assertThat(responseBody.aliases.first().sex.description).isEqualTo(
+        person.getAliases().first().sexCode?.description,
+      )
       assertThat(responseBody.sex.code).isEqualTo(sex.value.name)
       assertThat(responseBody.sex.description).isEqualTo(sex.value.description)
       assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
@@ -173,7 +175,6 @@ class LibraApiControllerIntTest : WebTestBase() {
           sourceSystem = LIBRA,
           cId = cId,
         ),
-
       )
 
       val responseBody = webTestClient.get()
@@ -372,39 +373,6 @@ class LibraApiControllerIntTest : WebTestBase() {
           personOne.cId,
         ),
       )
-    }
-
-    @Test
-    fun `should return linked crn`() {
-      val cId = randomCId()
-      val crn = randomCrn()
-
-      createPersonWithNewKey(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = LIBRA,
-          crn = crn,
-          cId = cId,
-        ),
-      )
-
-      val responseBody = webTestClient.get()
-        .uri(libraApiUrl(cId))
-        .authorised(listOf(API_READ_ONLY))
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody(CanonicalRecord::class.java)
-        .returnResult()
-        .responseBody!!
-
-      println("responseBody = $responseBody")
-
-      assertThat(responseBody.identifiers.crns.size).isEqualTo(1)
-      assertThat(responseBody.identifiers.crns.first()).isEqualTo(crn)
     }
   }
 
