@@ -14,9 +14,11 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import java.time.LocalDate
+import java.util.UUID
 
 @Entity
 @Table(name = "address")
@@ -25,6 +27,15 @@ class AddressEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
+
+  @Column(
+    name = "update_id",
+    insertable = false,
+    updatable = false,
+    nullable = false,
+  )
+  @Generated
+  var updateId: UUID? = null,
 
   @ManyToOne(optional = false)
   @JoinColumn(

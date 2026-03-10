@@ -233,6 +233,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
 
       assertThat(personEntity.addresses.size).isEqualTo(2)
+      val populatedAddressUpdateIdCount = personEntity.addresses.count { it.updateId != null }
+      assertThat(populatedAddressUpdateIdCount).isEqualTo(2)
       assertThat(personEntity.addresses[0].noFixedAbode).isEqualTo(true)
       assertThat(personEntity.addresses[0].startDate).isEqualTo(addressStartDate)
       assertThat(personEntity.addresses[0].endDate).isEqualTo(addressEndDate)
