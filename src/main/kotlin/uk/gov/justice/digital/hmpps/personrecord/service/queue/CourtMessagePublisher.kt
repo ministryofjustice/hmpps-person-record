@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.queue
 
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
@@ -17,6 +18,7 @@ import java.util.concurrent.CompletableFuture
 
 const val LARGE_CASE_EVENT_TYPE = "commonplatform.large.case.received"
 
+@Profile("!webtest")
 @Component
 class CourtMessagePublisher(
   s3AsyncClient: S3AsyncClient,
