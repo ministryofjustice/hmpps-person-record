@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
 import com.jayway.jsonpath.JsonPath
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.readValue
@@ -11,7 +10,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.CourtMessagePublisher
 
-@Profile("!webtest")
 @Component
 class LibraEventProcessor(
   private val jsonMapper: JsonMapper,

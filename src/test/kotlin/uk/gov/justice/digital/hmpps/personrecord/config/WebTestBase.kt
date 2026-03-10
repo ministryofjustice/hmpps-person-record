@@ -5,9 +5,11 @@ import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTest
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.QUEUE_ADMIN
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.CourtMessagePublisher
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
 @AutoConfigureWebTestClient
@@ -19,6 +21,9 @@ abstract class WebTestBase : IntegrationTestBase() {
 
   @Autowired
   internal lateinit var jwtAuthorisationHelper: JwtAuthorisationHelper
+
+  @MockitoBean
+  private lateinit var courtMessagePublisher: CourtMessagePublisher
 
   protected fun WebTestClient.RequestHeadersSpec<*>.authorised(roles: List<String> = listOf(QUEUE_ADMIN)): WebTestClient.RequestBodySpec = headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = roles)) as WebTestClient.RequestBodySpec
 
