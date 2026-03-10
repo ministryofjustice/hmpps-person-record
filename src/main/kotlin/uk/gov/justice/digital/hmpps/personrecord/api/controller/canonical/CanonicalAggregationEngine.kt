@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.canonical
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
@@ -14,13 +14,10 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import java.time.LocalDate
 
 @Component
-class CanonicalAggregationEngine(
-  private val personRepository: PersonRepository,
-) {
+class CanonicalAggregationEngine {
 
   fun get(personKeyEntity: PersonKeyEntity): CanonicalRecordView {
     val canonicalRecord = fromAggregation(personKeyEntity)
