@@ -34,3 +34,9 @@ enum class ReligionCode(val description: String) {
   TPNTS("They prefer not to say"),
   ZORO("Zoroastrian"),
 }
+
+fun String?.toReligionCodeDescription(): String? = try {
+  this?.let { ReligionCode.valueOf(it).description }
+} catch (_: Exception) {
+  null
+}

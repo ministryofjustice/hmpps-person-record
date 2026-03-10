@@ -37,7 +37,6 @@ dependencies {
 
   implementation("software.amazon.sns:sns-extended-client:2.1.0")
   implementation("com.jayway.jsonpath:json-path:2.10.0")
-  implementation("io.swagger.core.v3:swagger-annotations:2.2.44")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
