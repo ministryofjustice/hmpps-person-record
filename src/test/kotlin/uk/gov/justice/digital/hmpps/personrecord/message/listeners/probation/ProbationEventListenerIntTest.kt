@@ -234,6 +234,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
 
       assertThat(personEntity.addresses.size).isEqualTo(2)
+      val populatedAddressUpdateIdCount = personEntity.addresses.count { it.updateId != null }
+      assertThat(populatedAddressUpdateIdCount).isEqualTo(2)
       assertThat(personEntity.addresses[0].noFixedAbode).isEqualTo(true)
       assertThat(personEntity.addresses[0].startDate).isEqualTo(addressStartDate)
       assertThat(personEntity.addresses[0].endDate).isEqualTo(addressEndDate)
@@ -252,11 +254,14 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.addresses[1].noFixedAbode).isNull()
       assertThat(personEntity.addresses[1].postcode).isEqualTo("M21 9LX")
       assertThat(personEntity.addresses[1].fullAddress).isEqualTo("abc street")
-      assertThat(personEntity.addresses[1].updateId).isNotNull()
+
       assertThat(personEntity.contacts.size).isEqualTo(3)
+      val populatedContactUpdateIdCount = personEntity.contacts.count { it.updateId != null }
+      assertThat(populatedContactUpdateIdCount).isEqualTo(3)
       assertThat(personEntity.contacts.getHome()?.contactValue).isEqualTo(homePhoneNumber)
       assertThat(personEntity.contacts.getMobile()?.contactValue).isEqualTo(mobilePhoneNumber)
       assertThat(personEntity.contacts.getEmail()?.contactValue).isEqualTo(email)
+
       assertThat(personEntity.matchId).isNotNull()
       assertThat(personEntity.lastModified).isNotNull()
       assertThat(personEntity.sexualOrientation).isEqualTo(sexualOrientation.value)
