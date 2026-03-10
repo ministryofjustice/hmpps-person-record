@@ -60,8 +60,8 @@ jobs:
       upload-build-artifacts: ${{ github.ref == 'refs/heads/main' }}
       java-options: "${{ inputs.java_options }}"
       java-version: '25'
-      postgres-tag: '16.1'
-      localstack-tag: '3.0'
+      postgres-tag: '17.4'
+      localstack-tag: '4'
       postgres-username: 'root'
       postgres-password: 'dev'
       localstack-services: 'sqs,sns,s3'
