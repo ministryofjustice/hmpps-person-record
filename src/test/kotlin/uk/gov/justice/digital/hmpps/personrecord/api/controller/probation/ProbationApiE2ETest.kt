@@ -495,6 +495,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.addresses[0].postcode).isEqualTo(probationCase.addresses[0].postcode)
         assertThat(offender.addresses[0].fullAddress).isEqualTo(probationCase.addresses[0].fullAddress)
         assertThat(offender.contacts.size).isEqualTo(3)
+        val populatedContactUpdateIdCount = offender.contacts.count { it.updateId != null }
+        assertThat(populatedContactUpdateIdCount).isEqualTo(3)
         assertThat(offender.contacts.getHome()?.contactValue).isEqualTo(probationCase.contactDetails?.telephone)
         assertThat(offender.contacts.getMobile()?.contactValue).isEqualTo(probationCase.contactDetails?.mobile)
         assertThat(offender.contacts.getEmail()?.contactValue).isEqualTo(probationCase.contactDetails?.email)
