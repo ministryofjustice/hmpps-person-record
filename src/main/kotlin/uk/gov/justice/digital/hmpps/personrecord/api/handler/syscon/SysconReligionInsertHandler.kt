@@ -1,8 +1,7 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.handler
+package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ConflictException
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
@@ -23,6 +22,7 @@ class SysconReligionInsertHandler(
   @Transactional
   fun handleInsert(prisonNumber: String, prisonReligionRequest: PrisonReligionRequest): Map<String, String> {
     val (personEntity, currentPrisonReligion) = validateRequest(prisonNumber, prisonReligionRequest)
+    prisonReligionRepository.deleteAllByPrisonNumber(prisonNumber).also { prisonReligionRepository.flush() }
     val cprReligionIdByNomisId = saveReligionsMapped(prisonNumber, prisonReligionRequest).also {
       personEntity.religion = currentPrisonReligion.religionCode
       personService.processPerson(Person.from(personEntity)) { personEntity }
@@ -41,7 +41,6 @@ class SysconReligionInsertHandler(
     }
 
     val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException(prisonNumber)
-    if (prisonReligionRepository.findByPrisonNumber(prisonNumber).isNotEmpty()) throw ConflictException("Religion(s) already exists for $prisonNumber")
     return personEntity to currentPrisonReligion
   }
 

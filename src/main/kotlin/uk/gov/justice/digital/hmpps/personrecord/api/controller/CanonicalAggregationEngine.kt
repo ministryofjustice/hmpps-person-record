@@ -1,0 +1,78 @@
+package uk.gov.justice.digital.hmpps.personrecord.api.controller
+
+import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifiers
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecordView
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReligion
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSexualOrientation
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import java.time.LocalDate
+
+@Component
+class CanonicalAggregationEngine(
+  private val personRepository: PersonRepository,
+) {
+
+  fun get(personKeyEntity: PersonKeyEntity): CanonicalRecordView {
+    val canonicalRecord = fromAggregation(personKeyEntity)
+    return canonicalRecord
+  }
+
+  fun fromAggregation(personKey: PersonKeyEntity): CanonicalRecordView {
+    val latestPerson = personKey.personEntities.sortedByDescending { it.lastModified }.first()
+    return CanonicalRecordView(
+      canonicalRecord = CanonicalRecord(
+        cprUUID = personKey.personUUID.toString(),
+        firstName = latestPerson.getPrimaryName().firstName,
+        middleNames = latestPerson.getPrimaryName().middleNames,
+        lastName = latestPerson.getPrimaryName().lastName,
+        dateOfBirth = latestPerson.getPrimaryName().dateOfBirth?.toString(),
+        disability = latestPerson.disability,
+        interestToImmigration = latestPerson.immigrationStatus,
+        title = CanonicalTitle.from(latestPerson.getPrimaryName().titleCode),
+        sex = CanonicalSex.from(latestPerson.getPrimaryName().sexCode),
+        sexualOrientation = CanonicalSexualOrientation.from(latestPerson.sexualOrientation),
+        religion = CanonicalReligion.from(latestPerson.religion),
+        ethnicity = CanonicalEthnicity.from(latestPerson.ethnicityCode),
+        aliases = getAliases(latestPerson).toList(),
+        addresses = getAddresses(latestPerson).toList(),
+        identifiers = CanonicalIdentifiers.from(personKey.personEntities),
+        nationalities = CanonicalNationality.from(latestPerson),
+      ),
+      sentences = getSentences(latestPerson),
+    )
+  }
+
+  private fun getAddresses(person: PersonEntity): Set<CanonicalAddress> {
+    val addresses = mutableSetOf<CanonicalAddress>()
+    person.personKey!!.personEntities.forEach {
+      addresses.addAll(CanonicalAddress.fromAddressEntityList(it.addresses))
+    }
+    return addresses
+  }
+
+  private fun getAliases(person: PersonEntity): Set<CanonicalAlias> {
+    val aliases = mutableSetOf<CanonicalAlias>()
+    person.personKey!!.personEntities.forEach {
+      aliases.addAll(CanonicalAlias.from(it) ?: emptyList())
+    }
+    return aliases
+  }
+
+  private fun getSentences(person: PersonEntity): Set<LocalDate> {
+    val sentences = mutableSetOf<LocalDate>()
+    person.personKey!!.personEntities.forEach {
+      sentences.addAll(it.sentenceInfo.mapNotNull { it.sentenceDate })
+    }
+    return sentences
+  }
+}
