@@ -11,8 +11,10 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import java.util.UUID
 
 @Entity
 @Table(name = "reference")
@@ -21,6 +23,15 @@ class ReferenceEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
+
+  @Column(
+    name = "update_id",
+    insertable = false,
+    updatable = false,
+    nullable = false,
+  )
+  @Generated
+  var updateId: UUID? = null,
 
   @ManyToOne(optional = false)
   @JoinColumn(
