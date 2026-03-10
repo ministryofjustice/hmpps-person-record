@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_ADMIN_READ_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.CanonicalAggregationEngine
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -19,13 +18,13 @@ import java.util.UUID
 @Hidden
 @RestController
 @PreAuthorize("hasRole('$PERSON_RECORD_ADMIN_READ_ONLY')")
-class CanonicalAggreationApiController(
+class CanonicalAggregationApiController(
   private val personKeyRepository: PersonKeyRepository,
   private val canonicalAggregationEngine: CanonicalAggregationEngine,
 ) {
 
   @GetMapping("/canonical-record/{uuid}")
-  fun getCanonicalRecordSpike(
+  fun getCanonicalRecord(
     @PathVariable(name = "uuid") uuid: UUID,
   ): ResponseEntity<*> {
     val personKeyEntity = getCorrectPersonKeyEntity(personKeyRepository.findByPersonUUID(uuid), mutableSetOf())
@@ -42,8 +41,7 @@ class CanonicalAggreationApiController(
   private fun getCorrectPersonKeyEntity(personKeyEntity: PersonKeyEntity?, existingMergeChain: MutableSet<UUID?>): PersonKeyEntity? = personKeyEntity?.mergedTo?.let {
     existingMergeChain.add(personKeyEntity.personUUID)
     getCorrectPersonKeyEntity(personKeyRepository.findByIdOrNull(it), existingMergeChain)
-  }
-    ?: personKeyEntity
+  } ?: personKeyEntity
 
   private fun PersonKeyEntity.isNotRequestedUuid(uuid: UUID): Boolean = this.personUUID != uuid
 }

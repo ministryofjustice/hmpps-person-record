@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin
 
 import io.swagger.v3.oas.annotations.Hidden
 import org.springframework.web.bind.annotation.PostMapping
