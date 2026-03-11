@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 data class DemographicAttributes(
   @Schema(description = "The person's birth place", example = "Milton Keynes")
   val birthPlace: String? = null,
-  @Schema(description = "The person's birth country code", example = "UK")
+  @Schema(description = "The person's birth country code", example = "GBR")
   val birthCountryCode: CountryCode? = null,
   @Schema(description = "The person's ethnicity code", example = "W1")
   val ethnicityCode: String? = null,
