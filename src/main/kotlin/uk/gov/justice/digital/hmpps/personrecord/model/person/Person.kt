@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner.
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -60,7 +61,7 @@ data class Person(
   val disability: Boolean? = null,
   val immigrationStatus: Boolean? = null,
   val birthplace: String? = null,
-  val birthCountryCode: String? = null,
+  val birthCountryCode: CountryCode? = null,
   val behaviour: Behaviour = Behaviour(),
 ) {
 
@@ -246,6 +247,7 @@ data class Person(
         religion = prisoner.demographicAttributes.religionCode.nullIfBlank(),
         sentences = prisoner.sentences.map { SentenceInfo(it.sentenceDate) },
         sexCode = prisoner.demographicAttributes.sexCode,
+        birthCountryCode = prisoner.demographicAttributes.birthCountryCode,
       )
     }
 

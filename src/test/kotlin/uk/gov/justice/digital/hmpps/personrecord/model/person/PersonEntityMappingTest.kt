@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.Nationa
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
@@ -114,7 +115,7 @@ class PersonEntityMappingTest {
     masterDefendantId = randomDefendantId(),
     prisonNumber = randomPrisonNumber(),
     birthplace = randomName(),
-    birthCountryCode = randomName(),
+    birthCountryCode = randomCountryCode(),
     nationalities = mutableListOf(NationalityEntity(nationalityCode = NationalityCode.CDR)),
     nationalityNotes = randomName(),
     religion = randomReligion(),
@@ -162,6 +163,6 @@ class PersonEntityMappingTest {
     disability = randomBoolean(),
     immigrationStatus = randomBoolean(),
     birthplace = randomName(),
-    birthCountryCode = randomName(),
+    birthCountryCode = randomCountryCode(),
   )
 }
