@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow
 import io.swagger.v3.oas.annotations.Hidden
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Profile
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod.POST
@@ -15,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import java.time.LocalDateTime
 import java.util.UUID
 
-@Profile("!prod")
 @RestController
 class ServiceNowMergeRequestController(
   private val personRepository: PersonRepository,
