@@ -4,8 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
-import org.springframework.test.web.reactive.server.WebTestClient
-import reactor.core.publisher.Mono
+import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Address
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.AddressUsage
@@ -16,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Identifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Sentence
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconUpdatePersonResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDate
 
 class SysconSyncControllerIntTest : WebTestBase() {
@@ -50,15 +51,14 @@ class SysconSyncControllerIntTest : WebTestBase() {
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val updatedPrisonerRequest = buildRequestBody()
-      webTestClient
-        .put()
-        .uri("/syscon-sync/person/$prisonNumber")
-        .body(Mono.just(updatedPrisonerRequest), Prisoner::class.java)
-        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .assertDatabase(prisonNumber, updatedPrisonerRequest)
-        .expectStatus()
-        .isOk
+      sendPutRequestAsserted<SysconUpdatePersonResponse>(
+        url = "/syscon-sync/person/$prisonNumber",
+        body = updatedPrisonerRequest,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.OK,
+      )
+
+      assertDatabase(prisonNumber, updatedPrisonerRequest)
     }
   }
 
@@ -67,17 +67,16 @@ class SysconSyncControllerIntTest : WebTestBase() {
     @Test
     fun `person record does not exists - does not insert - returns correct response`() {
       val prisonNumber = randomPrisonNumber()
-      val prisonerRequest = buildRequestBody()
+      val updatedPrisonerRequest = buildRequestBody()
 
-      webTestClient
-        .put()
-        .uri("/syscon-sync/person/$prisonNumber")
-        .body(Mono.just(prisonerRequest), Prisoner::class.java)
-        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .assertDatabase(prisonNumber, prisonerRequest, write = false)
-        .expectStatus()
-        .isNotFound
+      sendPutRequestAsserted<Unit>(
+        url = "/syscon-sync/person/$prisonNumber",
+        body = updatedPrisonerRequest,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.NOT_FOUND,
+      )
+
+      assertDatabase(prisonNumber, updatedPrisonerRequest, isWriteExpected = false)
     }
 
     @Test
@@ -85,18 +84,14 @@ class SysconSyncControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
       val originalPerson = createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-      val requestBody = buildRequestBody().copy(aliases = buildAliasList(false))
-      webTestClient
-        .put()
-        .uri("/syscon-sync/person/$prisonNumber")
-        .body(Mono.just(requestBody), Prisoner::class.java)
-        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
-        .isBadRequest
-        .expectBody()
-        .jsonPath("userMessage")
-        .isEqualTo("Bad request: No primary alias was found for update on prisoner $prisonNumber")
+      val updatedPrisonerRequest = buildRequestBody().copy(aliases = buildAliasList(false))
+      val responseBody = sendPutRequestAsserted<ErrorResponse>(
+        url = "/syscon-sync/person/$prisonNumber",
+        body = updatedPrisonerRequest,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.BAD_REQUEST,
+      )
+      responseBody.isEqualTo(ErrorResponse(status = 400, userMessage = "Bad request: No primary alias was found for update on prisoner $prisonNumber"))
 
       val actualPerson = personRepository.findByPrisonNumber(prisonNumber)?.let { Person.from(it) } ?: fail { "Person not found for update on prisoner $prisonNumber" }
       val expectedPerson = Person.from(originalPerson)
@@ -109,45 +104,43 @@ class SysconSyncControllerIntTest : WebTestBase() {
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
       val prisonNumber = randomPrisonNumber()
-      val prisonerRequest = buildRequestBody()
-      val expectedErrorMessage = "Forbidden: Access Denied"
-      webTestClient.put()
-        .uri("/syscon-sync/person/$prisonNumber")
-        .body(Mono.just(prisonerRequest), Prisoner::class.java)
-        .authorised(listOf("UNSUPPORTED-ROLE"))
-        .exchange()
-        .assertDatabase(prisonNumber, prisonerRequest, write = false)
-        .expectStatus()
-        .isForbidden
-        .expectBody()
-        .jsonPath("userMessage")
-        .isEqualTo(expectedErrorMessage)
+      val updatedPrisonerRequest = buildRequestBody()
+
+      sendPutRequestAsserted<Unit>(
+        url = "/syscon-sync/person/$prisonNumber",
+        body = updatedPrisonerRequest,
+        roles = listOf("UNSUPPORTED-ROLE"),
+        expectedStatus = HttpStatus.FORBIDDEN,
+      )
+
+      assertDatabase(prisonNumber, updatedPrisonerRequest, isWriteExpected = false)
     }
 
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       val prisonNumber = randomPrisonNumber()
-      val prisonerRequest = buildRequestBody()
-      webTestClient.put()
-        .uri("/syscon-sync/person/$prisonNumber")
-        .body(Mono.just(prisonerRequest), Prisoner::class.java)
-        .exchange()
-        .assertDatabase(prisonNumber, prisonerRequest, write = false)
-        .expectStatus()
-        .isUnauthorized
+      val updatedPrisonerRequest = buildRequestBody()
+      sendPutRequestAsserted<Unit>(
+        url = "/syscon-sync/person/$prisonNumber",
+        body = updatedPrisonerRequest,
+        roles = emptyList(),
+        expectedStatus = HttpStatus.UNAUTHORIZED,
+        sendAuthorised = false,
+      )
+
+      assertDatabase(prisonNumber, updatedPrisonerRequest, isWriteExpected = false)
     }
   }
 
-  private fun WebTestClient.ResponseSpec.assertDatabase(prisonNumber: String, request: Prisoner, write: Boolean = true): WebTestClient.ResponseSpec {
-    if (write) {
+  private fun assertDatabase(prisonNumber: String, updatedPrisonerRequest: Prisoner, isWriteExpected: Boolean = true) {
+    if (isWriteExpected) {
       val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail { "Prisoner record was expected to be found" }
       val actualPerson = Person.from(actualPersonEntity)
-      val expectedPerson = Person.from(request, prisonNumber).copy(personId = actualPerson.personId)
+      val expectedPerson = Person.from(updatedPrisonerRequest, prisonNumber).copy(personId = actualPerson.personId)
       assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
     } else {
       assertThat(personRepository.findByPrisonNumber(prisonNumber)).isNull()
     }
-    return this
   }
 
   companion object {
