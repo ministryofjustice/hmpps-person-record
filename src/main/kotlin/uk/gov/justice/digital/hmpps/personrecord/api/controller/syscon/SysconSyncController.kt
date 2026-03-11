@@ -2,8 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.syscon
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
-import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -21,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconPersonUpdateHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconUpdatePersonResponse
-import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @Tag(name = "Syscon Sync")
 @RestController
@@ -37,15 +34,6 @@ class SysconSyncController(
     ApiResponse(
       responseCode = "200",
       description = "Data updated in CPR",
-    ),
-    ApiResponse(
-      responseCode = "404",
-      description = "Person not found",
-    ),
-    ApiResponse(
-      responseCode = "500",
-      description = "Unrecoverable error occurred whilst processing request.",
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
     ),
   )
   @Transactional
