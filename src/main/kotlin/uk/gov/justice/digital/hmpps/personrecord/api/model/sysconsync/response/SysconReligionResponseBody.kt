@@ -12,6 +12,7 @@ data class SysconReligionResponseBody(
   }
 }
 
+// TODO: remove and share PrisonReligionMapping
 data class SysconReligionMapping(
   val nomisReligionId: String,
   val cprReligionId: String,

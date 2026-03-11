@@ -118,6 +118,8 @@ fun randomFullAddress(): String = randomDigit(2) + " " + randomLowerCaseString(8
 
 fun randomPrisonNumber(): String = randomLowerCaseString(2).uppercase() + randomDigit(4) + randomLowerCaseString(1).uppercase()
 
+fun generateUUIDString(): String = UUID.randomUUID().toString()
+
 fun randomDefendantId(): String = UUID.randomUUID().toString()
 
 fun randomCrn(): String = randomLowerCaseString(1).uppercase() + randomDigit(6)

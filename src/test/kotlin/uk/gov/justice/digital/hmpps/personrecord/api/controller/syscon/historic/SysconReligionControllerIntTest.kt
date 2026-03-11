@@ -14,11 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
-import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
 
@@ -81,6 +77,29 @@ class SysconReligionControllerIntTest : WebTestBase() {
       postReligions(prisonNumber, religions)
       assertCorrectValuesSaved(prisonNumber, religions)
     }
+
+    @Test
+    fun `when existing religions do exist by prisoner number - should replace existing religions`() {
+      val prisonNumber = randomPrisonNumber()
+      val originalReligions = createRandomReligions()
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+
+      postReligions(prisonNumber, originalReligions)
+      assertCorrectValuesSaved(prisonNumber, originalReligions)
+
+      val updateReligions = createRandomReligions()
+      webTestClient
+        .post()
+        .uri(religionUrl(prisonNumber))
+        .bodyValue(PrisonReligionRequest(updateReligions))
+        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .value { HttpStatus.CREATED }
+        .expectBody()
+
+      assertCorrectValuesSaved(prisonNumber, updateReligions)
+    }
   }
 
   @Nested
@@ -104,31 +123,6 @@ class SysconReligionControllerIntTest : WebTestBase() {
 
       assertThat(prisonReligionRepository.findByPrisonNumber(prisonNumber)).isEmpty()
       assertThat(personRepository.findByPrisonNumber(prisonNumber)!!.religion).isNull()
-    }
-
-    @Test
-    fun `when existing religions do exist by prisoner number - should not replace existing religions`() {
-      val prisonNumber = randomPrisonNumber()
-      val originalReligions = createRandomReligions()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
-
-      postReligions(prisonNumber, originalReligions)
-      assertCorrectValuesSaved(prisonNumber, originalReligions)
-
-      val updateReligions = createRandomReligions()
-      webTestClient
-        .post()
-        .uri(religionUrl(prisonNumber))
-        .bodyValue(PrisonReligionRequest(updateReligions))
-        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
-        .value { HttpStatus.CONFLICT }
-        .expectBody()
-        .jsonPath("userMessage")
-        .isEqualTo("Conflict: Religion(s) already exists for $prisonNumber")
-
-      assertCorrectValuesSaved(prisonNumber, originalReligions)
     }
 
     @Test
@@ -237,23 +231,6 @@ class SysconReligionControllerIntTest : WebTestBase() {
       .expectStatus()
       .isCreated
   }
-
-  private fun createRandomReligions(): List<PrisonReligion> = List((4..20).random()) { index ->
-    if (index == 0) createRandomReligion(randomReligionCode(), true) else createRandomReligion(randomReligionCode(), false)
-  }
-
-  private fun createRandomReligion(code: String? = randomReligionCode(), current: Boolean = true) = PrisonReligion(
-    nomisReligionId = randomPrisonNumber(),
-    changeReasonKnown = randomBoolean(),
-    comments = randomName(),
-    verified = randomBoolean(),
-    religionCode = code,
-    startDate = randomDate(),
-    endDate = randomDate(),
-    modifyDateTime = randomDateTime(),
-    modifyUserId = randomName(),
-    current = current,
-  )
 
   private fun assertCorrectValuesSaved(
     prisonNumber: String,

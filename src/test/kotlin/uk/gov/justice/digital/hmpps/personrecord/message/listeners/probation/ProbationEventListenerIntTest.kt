@@ -203,21 +203,20 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(personEntity.personKey).isNotNull()
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
-      assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.crn).isEqualTo(crn)
       assertThat(personEntity.dateOfDeath).isEqualTo(dateOfDeath)
-
       assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(ethnicity))
 
+      val populatedReferencesUpdateIdCount = personEntity.references.count { it.updateId != null }
+      assertThat(populatedReferencesUpdateIdCount).isEqualTo(6)
+      assertThat(personEntity.getPnc()).isEqualTo(pnc)
+      assertThat(personEntity.getCro()).isEqualTo(cro)
       assertThat(personEntity.references.getType(additionalIdentifierCodeOne).first()).isEqualTo(additionalIdentifierValueOne)
-
       assertThat(personEntity.references.getType(IdentifierType.UNKNOWN).first()).isEqualTo("2222")
-
       assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(identifierNinoValue)
       assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER)[1]).isEqualTo(additionalIdentifierNinoValue)
 
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
-      assertThat(personEntity.getCro()).isEqualTo(cro)
       assertThat(personEntity.getAliases().size).isEqualTo(1)
       assertThat(personEntity.getAliases()[0].firstName).isEqualTo(aliasFirstName)
       assertThat(personEntity.getAliases()[0].middleNames).isEqualTo(aliasMiddleName)
@@ -234,6 +233,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
 
       assertThat(personEntity.addresses.size).isEqualTo(2)
+      val populatedAddressUpdateIdCount = personEntity.addresses.count { it.updateId != null }
+      assertThat(populatedAddressUpdateIdCount).isEqualTo(2)
       assertThat(personEntity.addresses[0].noFixedAbode).isEqualTo(true)
       assertThat(personEntity.addresses[0].startDate).isEqualTo(addressStartDate)
       assertThat(personEntity.addresses[0].endDate).isEqualTo(addressEndDate)
@@ -251,10 +252,14 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.addresses[1].noFixedAbode).isNull()
       assertThat(personEntity.addresses[1].postcode).isEqualTo("M21 9LX")
       assertThat(personEntity.addresses[1].fullAddress).isEqualTo("abc street")
+
       assertThat(personEntity.contacts.size).isEqualTo(3)
+      val populatedContactUpdateIdCount = personEntity.contacts.count { it.updateId != null }
+      assertThat(populatedContactUpdateIdCount).isEqualTo(3)
       assertThat(personEntity.contacts.getHome()?.contactValue).isEqualTo(homePhoneNumber)
       assertThat(personEntity.contacts.getMobile()?.contactValue).isEqualTo(mobilePhoneNumber)
       assertThat(personEntity.contacts.getEmail()?.contactValue).isEqualTo(email)
+
       assertThat(personEntity.matchId).isNotNull()
       assertThat(personEntity.lastModified).isNotNull()
       assertThat(personEntity.sexualOrientation).isEqualTo(sexualOrientation.value)
