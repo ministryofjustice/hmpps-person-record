@@ -11,6 +11,7 @@ import software.amazon.sns.AmazonSNSExtendedAsyncClient
 import software.amazon.sns.SNSExtendedAsyncClientConfiguration
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.MissingTopicException
 import uk.gov.justice.hmpps.sqs.publish
 import java.util.concurrent.CompletableFuture
 
@@ -24,11 +25,17 @@ class CourtMessagePublisher(
 ) {
   private val topic =
     hmppsQueueService.findByTopicId("cprcourtcasestopic")
+      ?: throw MissingTopicException("Could not find topic ")
 
   private val snsExtendedAsyncClientConfiguration: SNSExtendedAsyncClientConfiguration =
     SNSExtendedAsyncClientConfiguration()
       .withPayloadSupportEnabled(s3AsyncClient, bucketName)
       .withAlwaysThroughS3(true)
+
+  private val snsExtendedClient = AmazonSNSExtendedAsyncClient(
+    topic.snsClient,
+    snsExtendedAsyncClientConfiguration,
+  )
 
   fun publishLargeMessage(
     sqsMessage: SQSMessage,
@@ -42,12 +49,9 @@ class CourtMessagePublisher(
     )
 
     attributes.addHearingEventType(sqsMessage)
-    val snsExtendedClient = AmazonSNSExtendedAsyncClient(
-      topic!!.snsClient,
-      snsExtendedAsyncClientConfiguration,
-    )
+
     snsExtendedClient.publish(
-      PublishRequest.builder().topicArn(topic!!.arn).messageAttributes(
+      PublishRequest.builder().topicArn(topic.arn).messageAttributes(
         attributes,
       ).message(updatedMessage)
         .build(),
@@ -67,7 +71,7 @@ class CourtMessagePublisher(
 
     attributes.addHearingEventType(sqsMessage)
 
-    topic!!.publish(
+    topic.publish(
       eventType = sqsMessage.getEventType()!!,
       event = updatedMessage,
       attributes = attributes,
