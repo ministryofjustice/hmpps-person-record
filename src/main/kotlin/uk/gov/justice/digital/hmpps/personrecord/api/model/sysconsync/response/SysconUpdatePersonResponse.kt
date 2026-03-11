@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response
 
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 
-data class SysconUpsertResponse(
+data class SysconUpdatePersonResponse(
   val prisonerId: String?,
   val addressMappings: List<AddressMapping>,
   val personContactMappings: List<PersonContactMapping>,
@@ -10,11 +10,11 @@ data class SysconUpsertResponse(
 ) {
 
   companion object {
-    fun from(personEntity: PersonEntity): SysconUpsertResponse = SysconUpsertResponse(
-      prisonerId = TODO(),
-      addressMappings = TODO(),
-      personContactMappings = TODO(),
-      pseudonymMappings = TODO(),
+    fun from(personEntity: PersonEntity): SysconUpdatePersonResponse = SysconUpdatePersonResponse(
+      prisonerId = personEntity.prisonNumber,
+      addressMappings = emptyList(),
+      personContactMappings = emptyList(),
+      pseudonymMappings = emptyList(),
     )
   }
 }
