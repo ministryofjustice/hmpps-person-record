@@ -433,8 +433,11 @@ class ProbationApiE2ETest : E2ETestBase() {
             ProbationCaseAlias(
               name = ProbationCaseName(
                 firstName = randomName(),
+                middleNames = randomName(),
                 lastName = randomName(),
               ),
+              dateOfBirth = randomDate(),
+              gender = Value("M"),
             ),
           ),
           addresses = listOf(
@@ -505,6 +508,23 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.nationalities.size).isEqualTo(1)
         assertThat(offender.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.name)
         assertThat(offender.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.description)
+
+        assertThat(offender.pseudonyms.size).isEqualTo(2)
+        val actualPseudonyms = offender.pseudonyms.sortedBy { it.nameType }
+        val alias = actualPseudonyms[0]
+        assertThat(alias.updateId).isNotNull()
+        assertThat(alias.firstName).isEqualTo(probationCase.aliases!!.first().name.firstName)
+        assertThat(alias.middleNames).isEqualTo(probationCase.aliases!!.first().name.middleNames)
+        assertThat(alias.lastName).isEqualTo(probationCase.aliases!!.first().name.lastName)
+        assertThat(alias.dateOfBirth).isEqualTo(probationCase.aliases!!.first().dateOfBirth)
+        assertThat(alias.sexCode!!.name).isEqualTo(probationCase.aliases!!.first().gender!!.value)
+        val primary = actualPseudonyms[1]
+        assertThat(primary.updateId).isNotNull()
+        assertThat(primary.firstName).isEqualTo(probationCase.name.firstName)
+        assertThat(primary.middleNames).isEqualTo(probationCase.name.middleNames)
+        assertThat(primary.lastName).isEqualTo(probationCase.name.lastName)
+        assertThat(primary.dateOfBirth).isEqualTo(probationCase.dateOfBirth)
+        assertThat(primary.sexCode!!.name).isEqualTo(probationCase.gender!!.value)
 
         checkTelemetry(
           CPR_RECORD_CREATED,
