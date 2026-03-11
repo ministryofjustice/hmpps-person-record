@@ -18,12 +18,9 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconPersonUpdateHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconUpsertResponse
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconUpdatePersonResponse
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @Tag(name = "Syscon Sync")
@@ -31,8 +28,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @Profile("!preprod & !prod")
 @PreAuthorize("hasRole('${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 class SysconSyncController(
-  private val personRepository: PersonRepository,
-  private val personService: PersonService,
+  private val sysconPersonUpdateHandler: SysconPersonUpdateHandler,
 ) {
 
   @Operation(description = "Update a prison record by prison number")
@@ -59,9 +55,8 @@ class SysconSyncController(
     @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true)
     prisonNumber: String,
     @RequestBody prisoner: Prisoner,
-  ): ResponseEntity<SysconUpsertResponse> = personRepository.findByPrisonNumber(prisonNumber)?.let {
-    val updatedPersonEntity = personService.processPerson(Person.from(prisoner, prisonNumber)) { it }
-    val responseBody = SysconUpsertResponse.from(updatedPersonEntity)
-    ResponseEntity.status(HttpStatus.OK).body(responseBody)
-  } ?: throw ResourceNotFoundException("Prisoner not found $prisonNumber")
+  ): ResponseEntity<SysconUpdatePersonResponse> {
+    val responseBody = sysconPersonUpdateHandler.handle(prisonNumber, prisoner)
+    return ResponseEntity.status(HttpStatus.OK).body(responseBody)
+  }
 }
