@@ -4,16 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
-import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.QUEUE_ADMIN
-import uk.gov.justice.digital.hmpps.personrecord.service.queue.CourtMessagePublisher
+import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
 @AutoConfigureWebTestClient
-@ActiveProfiles("test", "webtest")
+@TestPropertySource(properties = ["spring.autoconfigure.exclude=uk.gov.justice.hmpps.sqs.HmppsSqsConfiguration"])
 abstract class WebTestBase : IntegrationTestBase() {
 
   @Autowired
@@ -23,7 +23,7 @@ abstract class WebTestBase : IntegrationTestBase() {
   internal lateinit var jwtAuthorisationHelper: JwtAuthorisationHelper
 
   @MockitoBean
-  private lateinit var courtMessagePublisher: CourtMessagePublisher
+  private lateinit var hmppsQueueService: HmppsQueueService
 
   protected fun WebTestClient.RequestHeadersSpec<*>.authorised(roles: List<String> = listOf(QUEUE_ADMIN)): WebTestClient.RequestBodySpec = headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = roles)) as WebTestClient.RequestBodySpec
 
