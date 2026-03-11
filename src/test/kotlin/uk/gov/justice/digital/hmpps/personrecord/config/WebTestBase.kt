@@ -1,19 +1,26 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
+import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.TestPropertySource
-import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
+import software.amazon.awssdk.services.sns.SnsAsyncClient
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.QUEUE_ADMIN
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.HmppsTopic
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
 @AutoConfigureWebTestClient
 @TestPropertySource(properties = ["spring.autoconfigure.exclude=uk.gov.justice.hmpps.sqs.HmppsSqsConfiguration"])
+@Import(WebTestBase.WebTestConfig::class)
 abstract class WebTestBase : IntegrationTestBase() {
 
   @Autowired
@@ -22,10 +29,7 @@ abstract class WebTestBase : IntegrationTestBase() {
   @Autowired
   internal lateinit var jwtAuthorisationHelper: JwtAuthorisationHelper
 
-  @MockitoBean
-  private lateinit var hmppsQueueService: HmppsQueueService
-
-  protected fun WebTestClient.RequestHeadersSpec<*>.authorised(roles: List<String> = listOf(QUEUE_ADMIN)): WebTestClient.RequestBodySpec = headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = roles)) as WebTestClient.RequestBodySpec
+  fun WebTestClient.RequestHeadersSpec<*>.authorised(roles: List<String> = listOf(QUEUE_ADMIN)): WebTestClient.RequestBodySpec = headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = roles)) as WebTestClient.RequestBodySpec
 
   protected final inline fun <reified T : Any> sendPostRequestAsserted(
     url: String,
@@ -72,5 +76,22 @@ abstract class WebTestBase : IntegrationTestBase() {
       false -> requestSpecReady.exchange()
     }.expectStatus().isEqualTo(expectedStatus.value())
     return responseSpec.expectBody<T>()
+  }
+
+  @TestConfiguration
+  class WebTestConfig {
+    @Bean
+    fun hmppsQueueService(): HmppsQueueService {
+      val hmppsQueueService = Mockito.mock(HmppsQueueService::class.java)
+      val mockClient = Mockito.mock(SnsAsyncClient::class.java)
+      whenever(hmppsQueueService.findByTopicId("cprcourtcasestopic")).thenReturn(
+        HmppsTopic(
+          id = "mock",
+          arn = "mock",
+          mockClient,
+        ),
+      )
+      return hmppsQueueService
+    }
   }
 }
