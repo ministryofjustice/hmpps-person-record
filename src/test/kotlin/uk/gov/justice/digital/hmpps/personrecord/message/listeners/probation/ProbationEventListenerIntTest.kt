@@ -224,6 +224,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getAliases()[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
       assertThat(personEntity.getAliases()[0].nameType).isEqualTo(NameType.ALIAS)
       assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(aliasGender.value)
+      assertThat(personEntity.pseudonyms.size).isEqualTo(2)
+      val populatedPseudonymsUpdateIdCount = personEntity.pseudonyms.count { it.updateId != null }
+      assertThat(populatedPseudonymsUpdateIdCount).isEqualTo(2)
+
       assertThat(personEntity.getPrimaryName().firstName).isEqualTo(firstName)
       assertThat(personEntity.getPrimaryName().middleNames).isEqualTo(middleName)
       assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)

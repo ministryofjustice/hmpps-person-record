@@ -132,6 +132,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.references.getType(DRIVER_LICENSE_NUMBER).first()).isEqualTo(driverLicenseNumber)
 
         assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(personDateOfBirth)
+
         assertThat(personEntity.getAliases().size).isEqualTo(1)
         assertThat(personEntity.getAliases()[0].titleCode).isEqualTo(title.value)
         assertThat(personEntity.getAliases()[0].firstName).isEqualTo(aliasFirstName)
@@ -139,6 +140,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getAliases()[0].lastName).isEqualTo(aliasLastName)
         assertThat(personEntity.getAliases()[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
         assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(aliasGender.value)
+        assertThat(personEntity.pseudonyms.size).isEqualTo(2)
+        val populatedPseudonymsUpdateIdCount = personEntity.pseudonyms.count { it.updateId != null }
+        assertThat(populatedPseudonymsUpdateIdCount).isEqualTo(2)
 
         assertThat(personEntity.addresses.size).isEqualTo(1)
         assertThat(personEntity.addresses[0].updateId).isNotNull()
