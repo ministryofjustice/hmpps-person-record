@@ -433,8 +433,11 @@ class ProbationApiE2ETest : E2ETestBase() {
             ProbationCaseAlias(
               name = ProbationCaseName(
                 firstName = randomName(),
+                middleNames = randomName(),
                 lastName = randomName(),
               ),
+              dateOfBirth = randomDate(),
+              gender = Value("M"),
             ),
           ),
           addresses = listOf(
@@ -505,6 +508,13 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.nationalities.size).isEqualTo(1)
         assertThat(offender.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.name)
         assertThat(offender.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.description)
+
+        assertThat(offender.pseudonyms.size).isEqualTo(2)
+        val actualPseudonyms = offender.pseudonyms.sortedBy { it.nameType }
+        val alias = actualPseudonyms[0]
+        assertThat(alias.updateId).isNotNull()
+        val primary = actualPseudonyms[1]
+        assertThat(primary.updateId).isNotNull()
 
         checkTelemetry(
           CPR_RECORD_CREATED,
