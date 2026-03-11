@@ -89,12 +89,10 @@ class PersonMatchService(
 
   private fun collectPersonScores(personEntity: PersonEntity): List<PersonMatchScore> = runBlocking {
     getPersonScores(personEntity).fold(
-      onSuccess = { it.removeSelf(personEntity) },
+      onSuccess = { it },
       onFailure = { throw it },
     )
   }
-
-  private fun List<PersonMatchScore>.removeSelf(personEntity: PersonEntity): List<PersonMatchScore> = this.filterNot { score -> score.candidateMatchId == personEntity.matchId.toString() }
 
   private fun List<PersonMatchResult>.getClustersThatItCanJoin(): List<PersonMatchResult> = this.filter { it.shouldJoin }
 
