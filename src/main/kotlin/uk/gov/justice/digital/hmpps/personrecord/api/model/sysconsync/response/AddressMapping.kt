@@ -13,6 +13,6 @@ data class AddressUsageMapping(
 )
 
 data class AddressContactMapping(
-  val nomisAddressContactId: Long,
-  val cprAddressContactId: Long?,
+  val nomisContactId: Long,
+  val cprContactId: Long?,
 )
