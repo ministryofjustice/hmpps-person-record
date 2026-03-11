@@ -123,10 +123,14 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
         assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
         assertThat(personEntity.religion).isEqualTo(religion)
+
+        val populatedReferencesUpdateIdCount = personEntity.references.count { it.updateId != null }
+        assertThat(populatedReferencesUpdateIdCount).isEqualTo(4)
         assertThat(personEntity.getPnc()).isEqualTo(PNCIdentifier.from(pnc).pncId)
         assertThat(personEntity.getCro()).isEqualTo(cro)
         assertThat(personEntity.references.getType(NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(nationalInsuranceNumber)
         assertThat(personEntity.references.getType(DRIVER_LICENSE_NUMBER).first()).isEqualTo(driverLicenseNumber)
+
         assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(personDateOfBirth)
         assertThat(personEntity.getAliases().size).isEqualTo(1)
         assertThat(personEntity.getAliases()[0].titleCode).isEqualTo(title.value)
