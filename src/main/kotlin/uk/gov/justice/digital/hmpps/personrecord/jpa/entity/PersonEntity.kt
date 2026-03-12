@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ContactBuild
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBuilder.buildReferences
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.SentenceInfoBuilder.buildSentenceInfo
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
@@ -95,7 +96,8 @@ class PersonEntity(
   var birthplace: String? = null,
 
   @Column(name = "birth_country_code")
-  var birthCountryCode: String? = null,
+  @Enumerated(STRING)
+  var birthCountryCode: CountryCode? = null,
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
