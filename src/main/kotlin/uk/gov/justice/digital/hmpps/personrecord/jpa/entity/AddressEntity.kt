@@ -135,5 +135,11 @@ class AddressEntity(
       usages = address.usages.map { AddressUsageEntity.from(it) }.toMutableList(),
       contacts = address.contacts.map { ContactEntity.from(it) }.toMutableList(),
     )
+
+    fun from(personEntity: PersonEntity, address: Address): AddressEntity {
+      val addressEntity = from(address)
+      addressEntity.person = personEntity
+      return addressEntity
+    }
   }
 }

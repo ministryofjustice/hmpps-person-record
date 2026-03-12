@@ -66,5 +66,18 @@ class ContactEntity(
   companion object {
 
     fun from(contact: Contact): ContactEntity = ContactEntity(contactType = contact.contactType, contactValue = contact.contactValue, extension = contact.extension)
+
+    fun from(personEntity: PersonEntity, addressEntity: AddressEntity, contact: Contact): ContactEntity {
+      val contactEntity = from(contact)
+      contactEntity.person = personEntity
+      contactEntity.address = addressEntity
+      return contactEntity
+    }
+
+    fun from(personEntity: PersonEntity, contact: Contact): ContactEntity {
+      val contactEntity = from(contact)
+      contactEntity.person = personEntity
+      return contactEntity
+    }
   }
 }

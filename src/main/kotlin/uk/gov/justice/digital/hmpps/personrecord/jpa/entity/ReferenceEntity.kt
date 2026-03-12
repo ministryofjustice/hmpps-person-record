@@ -61,5 +61,11 @@ class ReferenceEntity(
       identifierValue = reference.identifierValue,
       comment = reference.comment,
     )
+
+    fun from(person: PersonEntity, reference: Reference): ReferenceEntity {
+      val referenceEntity = from(reference)
+      referenceEntity.person = person
+      return referenceEntity
+    }
   }
 }
