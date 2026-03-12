@@ -11,12 +11,14 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import java.time.LocalDate
+import java.util.UUID
 
 @Entity
 @Table(name = "pseudonym")
@@ -25,6 +27,15 @@ class PseudonymEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
+
+  @Column(
+    name = "update_id",
+    insertable = false,
+    updatable = false,
+    nullable = false,
+  )
+  @Generated
+  var updateId: UUID? = null,
 
   @ManyToOne(optional = false)
   @JoinColumn(
