@@ -123,11 +123,16 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
         assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
         assertThat(personEntity.religion).isEqualTo(religion)
+
+        val populatedReferencesUpdateIdCount = personEntity.references.count { it.updateId != null }
+        assertThat(populatedReferencesUpdateIdCount).isEqualTo(4)
         assertThat(personEntity.getPnc()).isEqualTo(PNCIdentifier.from(pnc).pncId)
         assertThat(personEntity.getCro()).isEqualTo(cro)
         assertThat(personEntity.references.getType(NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(nationalInsuranceNumber)
         assertThat(personEntity.references.getType(DRIVER_LICENSE_NUMBER).first()).isEqualTo(driverLicenseNumber)
+
         assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(personDateOfBirth)
+
         assertThat(personEntity.getAliases().size).isEqualTo(1)
         assertThat(personEntity.getAliases()[0].titleCode).isEqualTo(title.value)
         assertThat(personEntity.getAliases()[0].firstName).isEqualTo(aliasFirstName)
@@ -135,8 +140,12 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getAliases()[0].lastName).isEqualTo(aliasLastName)
         assertThat(personEntity.getAliases()[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
         assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(aliasGender.value)
+        assertThat(personEntity.pseudonyms.size).isEqualTo(2)
+        val populatedPseudonymsUpdateIdCount = personEntity.pseudonyms.count { it.updateId != null }
+        assertThat(populatedPseudonymsUpdateIdCount).isEqualTo(2)
 
         assertThat(personEntity.addresses.size).isEqualTo(1)
+        assertThat(personEntity.addresses[0].updateId).isNotNull()
         assertThat(personEntity.addresses[0].postcode).isEqualTo(postcode)
         assertThat(personEntity.addresses[0].fullAddress).isEqualTo(fullAddress)
         assertThat(personEntity.addresses[0].startDate).isEqualTo(LocalDate.of(1970, 1, 1))
