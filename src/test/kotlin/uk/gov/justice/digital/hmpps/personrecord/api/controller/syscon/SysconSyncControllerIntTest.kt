@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -181,7 +180,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
           dependentLocality = randomName(),
           postTown = randomName(),
           county = randomName(),
-          countryCode = CountryCode.entries.random().name,
+          countryCode = randomCountryCode(),
           comment = randomName(),
           isPrimary = randomBoolean(),
           isMail = randomBoolean(),

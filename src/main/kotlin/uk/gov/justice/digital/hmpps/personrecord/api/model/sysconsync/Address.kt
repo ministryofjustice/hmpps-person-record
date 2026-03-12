@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import java.time.LocalDate
 
 data class Address(
@@ -30,8 +31,8 @@ data class Address(
   val postTown: String? = null,
   @Schema(description = "The address building number", example = "Greater London")
   val county: String? = null,
-  @Schema(description = "The address country code", example = "UK")
-  val countryCode: String? = null,
+  @Schema(description = "The address country code", example = "GBR")
+  val countryCode: CountryCode? = null,
   @Schema(description = "The address comment", example = "String")
   val comment: String? = null,
   @Schema(description = "Is this the primary address", example = "true")
