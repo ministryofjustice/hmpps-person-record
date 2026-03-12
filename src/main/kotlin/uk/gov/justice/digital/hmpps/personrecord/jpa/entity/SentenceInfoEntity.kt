@@ -36,14 +36,9 @@ class SentenceInfoEntity(
 
 ) {
   companion object {
-    fun from(sentenceInfo: SentenceInfo): SentenceInfoEntity? {
-      val isPrimarySentencePresent = sentenceInfo.sentenceDate != null && sentenceInfo.primarySentence == true
-      return when {
-        isPrimarySentencePresent -> SentenceInfoEntity(sentenceDate = sentenceInfo.sentenceDate)
-        else -> null
-      }
+    fun from(sentenceInfo: SentenceInfo): SentenceInfoEntity? = when {
+      sentenceInfo.sentenceDate != null -> SentenceInfoEntity(sentenceDate = sentenceInfo.sentenceDate)
+      else -> null
     }
-
-    fun fromList(sentenceInfo: List<SentenceInfo>): List<SentenceInfoEntity> = sentenceInfo.mapNotNull { from(it) }
   }
 }
