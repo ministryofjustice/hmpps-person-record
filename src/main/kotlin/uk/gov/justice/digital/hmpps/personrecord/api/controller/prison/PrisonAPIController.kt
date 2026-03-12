@@ -52,28 +52,24 @@ class PrisonAPIController(
   )
   fun getRecord(
     @PathVariable(name = "prisonNumber") prisonNumber: String,
-  ): ResponseEntity<PrisonCanonicalRecord> {
-    val personEntity = getPersonEntityByPrisonNumber(personRepository.findByPrisonNumber(prisonNumber))
-    return when {
-      personEntity == null -> throw ResourceNotFoundException(prisonNumber)
-      hasMergedIntoAnother(personEntity, prisonNumber) ->
-        ResponseEntity
-          .status(MOVED_PERMANENTLY)
-          .location(URI("/person/prison/${personEntity.prisonNumber}"))
-          .build()
-      else -> {
-        val prisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
-        ResponseEntity.ok(PrisonCanonicalRecord.from(personEntity, prisonReligionEntities))
-      }
+  ): ResponseEntity<PrisonCanonicalRecord> = getPersonEntityByPrisonNumber(personRepository.findByPrisonNumber(prisonNumber))?.let { personEntity ->
+    when (hasMergedIntoAnotherPerson(personEntity, prisonNumber)) {
+      true -> respondWithRedirect(personEntity)
+      false -> ResponseEntity.ok(PrisonCanonicalRecord.from(personEntity, prisonReligionRepository.findByPrisonNumber(prisonNumber)))
     }
-  }
+  } ?: throw ResourceNotFoundException(prisonNumber)
 
   fun getPersonEntityByPrisonNumber(person: PersonEntity?): PersonEntity? = person?.mergedTo?.let {
     getPersonEntityByPrisonNumber(personRepository.findByIdOrNull(id = it))
   } ?: person
 
-  private fun hasMergedIntoAnother(
+  private fun hasMergedIntoAnotherPerson(
     personEntity: PersonEntity,
     prisonNumber: String,
   ): Boolean = personEntity.prisonNumber != prisonNumber
+
+  fun respondWithRedirect(personEntity: PersonEntity): ResponseEntity<PrisonCanonicalRecord> = ResponseEntity
+    .status(MOVED_PERMANENTLY)
+    .location(URI("/person/prison/${personEntity.prisonNumber}"))
+    .build()
 }
