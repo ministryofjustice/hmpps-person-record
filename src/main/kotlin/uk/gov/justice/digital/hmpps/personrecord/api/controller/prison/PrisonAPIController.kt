@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus.MOVED_PERMANENTLY
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -15,20 +14,15 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionGetAllHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import java.net.URI
 
 @Tag(name = "HMPPS Person API")
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
-class PrisonAPIController(
-  private val personRepository: PersonRepository,
-  private val prisonReligionRepository: PrisonReligionRepository,
-) {
+class PrisonAPIController(private val prisonReligionGetAllHandler: PrisonReligionGetAllHandler) {
+
   @Operation(
     description = """Retrieve person record by Prison Number. Role required is **$API_READ_ONLY** . 
       For Identifiers the crn, prisonNumber, defendantId, cids come from all records related to this person.
@@ -50,26 +44,16 @@ class PrisonAPIController(
       ],
     ),
   )
-  fun getRecord(
-    @PathVariable(name = "prisonNumber") prisonNumber: String,
-  ): ResponseEntity<PrisonCanonicalRecord> = getPersonEntityByPrisonNumber(personRepository.findByPrisonNumber(prisonNumber))?.let { personEntity ->
-    when (hasMergedIntoAnotherPerson(personEntity, prisonNumber)) {
-      true -> respondWithRedirect(personEntity)
-      false -> ResponseEntity.ok(PrisonCanonicalRecord.from(personEntity, prisonReligionRepository.findByPrisonNumber(prisonNumber)))
+  fun getAllByPrisonNumber(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<PrisonCanonicalRecord> {
+    val (prisonCanonicalRecord, targetPrisonNumber) = prisonReligionGetAllHandler.get(prisonNumber)
+    return when (targetPrisonNumber == null) {
+      true -> ResponseEntity.ok(prisonCanonicalRecord)
+      false -> respondWithRedirect(targetPrisonNumber)
     }
-  } ?: throw ResourceNotFoundException(prisonNumber)
+  }
 
-  fun getPersonEntityByPrisonNumber(person: PersonEntity?): PersonEntity? = person?.mergedTo?.let {
-    getPersonEntityByPrisonNumber(personRepository.findByIdOrNull(id = it))
-  } ?: person
-
-  private fun hasMergedIntoAnotherPerson(
-    personEntity: PersonEntity,
-    prisonNumber: String,
-  ): Boolean = personEntity.prisonNumber != prisonNumber
-
-  fun respondWithRedirect(personEntity: PersonEntity): ResponseEntity<PrisonCanonicalRecord> = ResponseEntity
+  private fun respondWithRedirect(targetPrisonNumber: String): ResponseEntity<PrisonCanonicalRecord> = ResponseEntity
     .status(MOVED_PERMANENTLY)
-    .location(URI("/person/prison/${personEntity.prisonNumber}"))
+    .location(URI("/person/prison/$targetPrisonNumber"))
     .build()
 }
