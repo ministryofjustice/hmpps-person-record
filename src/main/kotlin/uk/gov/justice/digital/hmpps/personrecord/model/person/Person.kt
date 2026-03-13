@@ -236,7 +236,7 @@ data class Person(
         middleNames = primaryAlias.middleNames?.nullIfBlank(),
         lastName = primaryAlias.lastName.nullIfBlank(),
         dateOfBirth = primaryAlias.dateOfBirth,
-        ethnicityCode = EthnicityCode.fromPrison(prisoner.demographicAttributes.ethnicityCode),
+        ethnicityCode = prisoner.demographicAttributes.ethnicityCode,
         aliases = prisoner.aliases.map { Alias.from(it) },
         contacts = prisoner.personContacts.map { contact -> Contact(contact.type, contact.value) },
         addresses = prisoner.addresses.map { Address.from(it) },

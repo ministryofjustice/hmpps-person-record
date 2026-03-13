@@ -30,7 +30,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
@@ -155,7 +155,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       demographicAttributes = DemographicAttributes(
         birthPlace = randomName(),
         birthCountryCode = randomCountryCode(),
-        ethnicityCode = randomPrisonEthnicity(),
+        ethnicityCode = randomPrisonEthnicityCode(),
         sexCode = randomPrisonSexCode().value,
         sexualOrientation = randomPrisonSexualOrientation().value.name,
         disability = randomBoolean(),
