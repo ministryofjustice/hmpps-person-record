@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 
 data class DemographicAttributes(
@@ -10,7 +11,7 @@ data class DemographicAttributes(
   @Schema(description = "The person's birth country code", example = "GBR")
   val birthCountryCode: CountryCode? = null,
   @Schema(description = "The person's ethnicity code", example = "W1")
-  val ethnicityCode: String? = null,
+  val ethnicityCode: EthnicityCode? = null,
   @Schema(description = "The person's sex code", example = "M")
   val sexCode: SexCode? = null,
   @Schema(description = "The person's sexual orientation code", example = "HET")
