@@ -219,7 +219,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
     fun buildAliasList(hasPrimary: Boolean = true): List<Alias> = listOf(
       Alias(
         nomisAliasId = randomCId().toLong(),
-        titleCode = randomTitleCode().value.name,
+        titleCode = randomTitleCode().value,
         firstName = randomName(),
         middleNames = randomName(),
         lastName = randomName(),

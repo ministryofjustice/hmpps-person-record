@@ -54,7 +54,7 @@ data class Alias(
     )
 
     fun from(alias: SysconAlias) = Alias(
-      titleCode = TitleCode.from(alias.titleCode),
+      titleCode = alias.titleCode,
       firstName = alias.firstName,
       middleNames = alias.middleNames,
       lastName = alias.lastName,
