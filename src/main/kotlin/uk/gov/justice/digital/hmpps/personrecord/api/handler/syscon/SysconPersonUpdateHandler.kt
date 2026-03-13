@@ -32,6 +32,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 
 @Component
 class SysconPersonUpdateHandler(
@@ -121,7 +122,19 @@ class SysconPersonUpdateHandler(
       val coreAlias = Alias.from(sysconAlias)
       val pseudonymEntity = if (sysconAlias.isPrimary == true) coreAlias.primaryNameFrom(personEntity) else PseudonymEntity.aliasFrom(personEntity, coreAlias)
       if (pseudonymEntity == null) return@forEach // TODO: may break reconciliations
-      val aliasesEntity = pseudonymRepository.save(pseudonymEntity)
+
+      val aliasesEntity = if (pseudonymEntity.nameType == NameType.PRIMARY) {
+        val existing = pseudonymRepository.findById(personEntity.pseudonyms.first().id!!).orElseThrow()
+        existing.firstName = sysconAlias.firstName
+        existing.middleNames = sysconAlias.middleNames
+        existing.lastName = sysconAlias.lastName
+        existing.titleCode = TitleCode.from(sysconAlias.titleCode)
+        existing.dateOfBirth = sysconAlias.dateOfBirth
+        existing.sexCode = prisoner.demographicAttributes.sexCode
+        pseudonymRepository.save(existing)
+      } else {
+        pseudonymRepository.save(pseudonymEntity)
+      }
 
       val referenceMappings = mutableListOf<IdentifierMapping>()
       sysconAlias.identifiers.forEach { sysconIdentifier ->

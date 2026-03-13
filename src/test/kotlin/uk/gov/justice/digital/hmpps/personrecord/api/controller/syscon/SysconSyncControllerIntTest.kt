@@ -57,7 +57,6 @@ class SysconSyncControllerIntTest : WebTestBase() {
     @Test
     fun `updates person record & overwrites child tables`() {
       val prisonNumber = randomPrisonNumber()
-      // TODO: address.contacts and address.usages is empty still here
       val person = createRandomPrisonPersonDetails(prisonNumber).copy(
         contacts = listOf(
           Contact(
@@ -163,8 +162,9 @@ class SysconSyncControllerIntTest : WebTestBase() {
 
   private fun assertDatabase(prisonNumber: String, updatedPrisonerRequest: Prisoner, isWriteExpected: Boolean = true) {
     if (isWriteExpected) {
-      // TODO: 3 psydonames?!?
       val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail { "Prisoner record was expected to be found" }
+      assertThat(actualPersonEntity.pseudonyms.size).isEqualTo(updatedPrisonerRequest.aliases.size)
+
       val actualPerson = Person.from(actualPersonEntity)
       val expectedPerson = Person.from(updatedPrisonerRequest, prisonNumber).copy(
         personId = actualPerson.personId,
