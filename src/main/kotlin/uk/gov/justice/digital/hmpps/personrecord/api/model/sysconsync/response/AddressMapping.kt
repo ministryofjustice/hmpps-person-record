@@ -1,18 +1,18 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response
 
 data class AddressMapping(
-  val nomisAddressId: Long,
-  val cprAddressId: Long?,
+  val nomisAddressId: String,
+  val cprAddressId: String?,
   val addressUsageMappings: List<AddressUsageMapping>,
   val addressContactMappings: List<AddressContactMapping>,
 )
 
 data class AddressUsageMapping(
-  val nomisAddressUsageId: Long,
-  val cprAddressUsageid: Long?,
+  val nomisAddressUsageId: String,
+  val cprAddressUsageid: String?,
 )
 
 data class AddressContactMapping(
-  val nomisAddressContactId: Long,
-  val cprAddressContactId: Long?,
+  val nomisContactId: String,
+  val cprContactId: String?,
 )
