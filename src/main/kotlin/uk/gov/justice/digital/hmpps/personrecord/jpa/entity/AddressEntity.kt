@@ -91,6 +91,7 @@ class AddressEntity(
   val county: String? = null,
 
   @Column(name = "country_code")
+  @Enumerated(STRING)
   val countryCode: CountryCode? = null,
 
   @Column(name = "comment")
