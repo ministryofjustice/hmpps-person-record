@@ -70,6 +70,12 @@ hmpps.sqs:
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":[ "prison-offender-events.prisoner.merged"] }'
       dlqMaxReceiveCount: 2
+    testpersonrecorddomaineventsqueue:
+      queueName: test_only_person_record_domain_events_queue
+      subscribeTopicId: domainevents
+      subscribeFilter: '{"eventType":[ "core-person-record.person.updated", "core-person-record.person.created", "core-person-record.person.deleted"] }'
+      dlqName: test_only_person_record_domain_events_queue_dlq
+      dlqMaxReceiveCount: 2
   topics:
     courtcasestopic:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}.fifo

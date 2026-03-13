@@ -95,6 +95,9 @@ management:
 retry:
   timeout: 10000
 
+core-person-record:
+  base-url: ${SERVER_URL:http://localhost:8080}
+
 aws:
   region-name: eu-west-2
 

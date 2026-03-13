@@ -1,3 +1,6 @@
+core-person-record:
+  base-url: http://localhost:8080
+
 person-match:
   base-url: http://localhost:5000
   client-secret: clientsecret
