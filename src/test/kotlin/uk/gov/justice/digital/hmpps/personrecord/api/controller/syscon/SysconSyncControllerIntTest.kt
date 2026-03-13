@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -151,7 +152,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
     fun buildRequestBody(): Prisoner = Prisoner(
       demographicAttributes = DemographicAttributes(
         birthPlace = randomName(),
-        birthCountryCode = randomName(),
+        birthCountryCode = randomCountryCode(),
         ethnicityCode = randomPrisonEthnicity(),
         sexCode = randomPrisonSexCode().value,
         sexualOrientation = randomPrisonSexualOrientation().value.name,
