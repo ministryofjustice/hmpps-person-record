@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import java.time.LocalDate
 import kotlin.reflect.full.memberProperties
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Address as SysconAddress
@@ -25,7 +26,7 @@ data class Address(
   val dependentLocality: String? = null,
   val postTown: String? = null,
   val county: String? = null,
-  val countryCode: String? = null,
+  val countryCode: CountryCode? = null,
   val uprn: String? = null,
   val comment: String? = null,
   val contacts: List<Contact> = emptyList(),
