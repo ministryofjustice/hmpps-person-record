@@ -2,10 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 
 @Repository
-interface PseudonymRepository : JpaRepository<PseudonymEntity, Long> {
-  fun deleteAllByPerson(personEntity: PersonEntity)
-}
+interface PseudonymRepository : JpaRepository<PseudonymEntity, Long>

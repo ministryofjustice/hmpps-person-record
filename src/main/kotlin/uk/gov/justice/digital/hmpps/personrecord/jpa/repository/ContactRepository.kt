@@ -3,9 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 
 @Repository
-interface ContactRepository : JpaRepository<ContactEntity, Long> {
-  fun deleteAllByPerson(personEntity: PersonEntity)
-}
+interface ContactRepository : JpaRepository<ContactEntity, Long>

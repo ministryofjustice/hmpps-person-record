@@ -29,13 +29,12 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
 class SysconPersonUpdateHandler(
-  private val personService: PersonService,
   private val personRepository: PersonRepository,
   private val addressRepository: AddressRepository,
   private val addressUsageRepository: AddressUsageRepository,
@@ -47,7 +46,8 @@ class SysconPersonUpdateHandler(
 
   @Transactional
   fun handle(prisonNumber: String, prisoner: Prisoner): SysconUpdatePersonResponse = personRepository.findByPrisonNumber(prisonNumber)?.let { personEntity ->
-    val result = SysconUpdatePersonResponse(
+    deletePersonChildTables(personEntity)
+    val updateResult = SysconUpdatePersonResponse(
       prisonerId = prisonNumber,
       addressMappings = overwriteAddresses(personEntity, prisoner),
       personContactMappings = overwriteContacts(personEntity, prisoner),
@@ -59,12 +59,10 @@ class SysconPersonUpdateHandler(
 
       // trigger person match, recluster, telemetry?!?
     }
-    result
+    updateResult
   } ?: throw ResourceNotFoundException("Prisoner not found $prisonNumber")
 
   fun overwriteAddresses(personEntity: PersonEntity, prisoner: Prisoner): List<AddressMapping> {
-    addressRepository.deleteAllByPerson(personEntity)
-
     val addressMappings = mutableListOf<AddressMapping>()
     prisoner.addresses.forEach { sysconAddress ->
       val coreAddress = Address.from(sysconAddress).copy(usages = emptyList(), contacts = emptyList())
@@ -105,7 +103,6 @@ class SysconPersonUpdateHandler(
   }
 
   private fun overwriteContacts(personEntity: PersonEntity, prisoner: Prisoner): List<PersonContactMapping> {
-    contactRepository.deleteAllByPerson(personEntity) // TODO: may not be needed here
     val contactMappings = mutableListOf<PersonContactMapping>()
     prisoner.personContacts.forEach { sysconContact ->
       val coreContact = Contact.from(sysconContact) ?: return@forEach // TODO: may break reconciliations
@@ -121,8 +118,6 @@ class SysconPersonUpdateHandler(
   }
 
   private fun overwritePseudonym(personEntity: PersonEntity, prisoner: Prisoner): List<AliasMapping> {
-    pseudonymRepository.deleteAllByPerson(personEntity)
-    referenceRepository.deleteAllByPerson(personEntity)
     val aliasMappings = mutableListOf<AliasMapping>()
     prisoner.aliases.forEach { sysconAlias ->
       val coreAlias = Alias.from(sysconAlias)
@@ -154,7 +149,6 @@ class SysconPersonUpdateHandler(
   }
 
   private fun overwriteSentenceInfo(personEntity: PersonEntity, prisoner: Prisoner) {
-    sentenceInfoRepository.deleteAllByPerson(personEntity)
     prisoner.sentences.forEach { sysconSentence ->
       // TODO: may break reconciliations
       val sentenceInfoEntity = sysconSentence.sentenceDate?.let { SentenceInfoEntity.from(personEntity, it) } ?: return@forEach
@@ -173,11 +167,10 @@ class SysconPersonUpdateHandler(
     sexCode = this.sexCode,
   )
 
-//  private fun deletePersonChildTables(personEntity: PersonEntity) {
-//    val person = Person.from(personEntity)
-//      .copy(addresses = emptyList(), contacts = emptyList(), aliases = emptyList(), references = emptyList())
-//
-//    // TODO: would trigger premature telemetry event at this point
-//    personService.processPerson(person) { personEntity }
-//  }
+  private fun deletePersonChildTables(personEntity: PersonEntity) {
+    val person = Person.from(personEntity)
+      .copy(addresses = emptyList(), contacts = emptyList(), aliases = emptyList(), references = emptyList(), sentences = emptyList())
+    personEntity.update(person)
+    personRepository.save(personEntity)
+  }
 }

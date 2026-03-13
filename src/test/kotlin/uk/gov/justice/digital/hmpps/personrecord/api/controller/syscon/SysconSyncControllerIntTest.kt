@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Address
@@ -17,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Sentence
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconUpdatePersonResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.SentenceInfoRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
@@ -42,29 +44,34 @@ import java.time.LocalDate
 
 class SysconSyncControllerIntTest : WebTestBase() {
 
+  @Autowired
+  private lateinit var sentenceInfoRepository: SentenceInfoRepository
+
   @Nested
   inner class SuccessfulUpdate {
     @Test
     fun `updates root level person record`() {
     }
-  }
 
-  @Test
-  fun `overwrites child records`() {
-    val prisonNumber = randomPrisonNumber()
-    createPerson(createRandomPrisonPersonDetails(prisonNumber))
+    @Test
+    fun `overwrites child records`() {
+      val prisonNumber = randomPrisonNumber()
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-    val updatedPrisonerRequest = buildRequestBody()
-    sendPutRequestAsserted<SysconUpdatePersonResponse>(
-      url = "/syscon-sync/person/$prisonNumber",
-      body = updatedPrisonerRequest,
-      roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-      expectedStatus = HttpStatus.OK,
-    )
-  }
+      val updatePrisonerRequestBody = buildRequestBody()
+      sendPutRequestAsserted<SysconUpdatePersonResponse>(
+        url = "/syscon-sync/person/$prisonNumber",
+        body = updatePrisonerRequestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.OK,
+      )
 
-  @Test
-  fun `returns correct response`() {
+      assertDatabase(prisonNumber, updatePrisonerRequestBody)
+    }
+
+    @Test
+    fun `returns correct response`() {
+    }
   }
 
   @Nested
