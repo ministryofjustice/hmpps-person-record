@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionGetAllHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonGetHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
 
 @Tag(name = "HMPPS Person API")
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
-class PrisonAPIController(private val prisonReligionGetAllHandler: PrisonReligionGetAllHandler) {
+class PrisonAPIController(private val prisonGetHandler: PrisonGetHandler) {
 
   @Operation(
     description = """Retrieve person record by Prison Number. Role required is **$API_READ_ONLY** . 
@@ -42,5 +42,5 @@ class PrisonAPIController(private val prisonReligionGetAllHandler: PrisonReligio
       ],
     ),
   )
-  fun getAllByPrisonNumber(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<PrisonCanonicalRecord> = prisonReligionGetAllHandler.get(prisonNumber)
+  fun getByPrisonNumber(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<PrisonCanonicalRecord> = prisonGetHandler.get(prisonNumber)
 }

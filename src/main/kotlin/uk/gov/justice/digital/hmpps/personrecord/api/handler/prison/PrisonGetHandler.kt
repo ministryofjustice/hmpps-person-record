@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonRel
 import java.net.URI
 
 @Component
-class PrisonReligionGetAllHandler(
+class PrisonGetHandler(
   private val personRepository: PersonRepository,
   private val prisonReligionRepository: PrisonReligionRepository,
 ) {
@@ -22,12 +22,12 @@ class PrisonReligionGetAllHandler(
     val personEntity = personRepository.findByPrisonNumber(prisonNumber)
     return when {
       personEntity == null -> throw ResourceNotFoundException(prisonNumber)
-      personEntity.hasMergedIntoAnotherPerson() -> respondWithRedirect(getMergedTo(personEntity))
+      personEntity.hasMergedIntoAnotherPerson() -> respondWithRedirect(getMergedToPrisonNumber(personEntity))
       else -> ResponseEntity.ok((PrisonCanonicalRecord.from(personEntity, getPrisonReligionsSorted(prisonNumber))))
     }
   }
 
-  private fun getMergedTo(personEntity: PersonEntity): String = personRepository.findByIdOrNull(personEntity.mergedTo!!)!!.prisonNumber!!
+  private fun getMergedToPrisonNumber(personEntity: PersonEntity): String = personRepository.findByIdOrNull(personEntity.mergedTo!!)!!.prisonNumber!!
 
   private fun PersonEntity.hasMergedIntoAnotherPerson() = !this.isNotMerged()
 
