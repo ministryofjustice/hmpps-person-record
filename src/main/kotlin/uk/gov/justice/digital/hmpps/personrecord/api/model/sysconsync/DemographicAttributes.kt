@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 
 data class DemographicAttributes(
   @Schema(description = "The person's birth place", example = "Milton Keynes")
@@ -23,8 +24,8 @@ data class DemographicAttributes(
   val interestToImmigration: Boolean? = null,
   @Schema(description = "The person's religion code", example = "MOS")
   val religionCode: String? = null,
-  @Schema(description = "The person's nationality code", example = "GB")
-  val nationalityCode: String? = null,
+  @Schema(description = "The person's nationality code", example = "BRIT")
+  val nationalityCode: NationalityCode? = null,
   @Schema(description = "The person's nationality notes", example = "Possibly Finnish")
   val nationalityNote: String? = null,
 )
