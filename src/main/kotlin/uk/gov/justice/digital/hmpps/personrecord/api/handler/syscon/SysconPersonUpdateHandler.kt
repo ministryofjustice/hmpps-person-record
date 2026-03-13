@@ -46,7 +46,7 @@ class SysconPersonUpdateHandler(
 
   @Transactional
   fun handle(prisonNumber: String, prisoner: Prisoner): SysconUpdatePersonResponse = personRepository.findByPrisonNumber(prisonNumber)?.let { personEntity ->
-    deletePersonChildTables(personEntity)
+    updateRootPersonOnlyAndDeletePersonChildTables(personEntity, prisoner)
     val updateResult = SysconUpdatePersonResponse(
       prisonerId = prisonNumber,
       addressMappings = overwriteAddresses(personEntity, prisoner),
@@ -54,8 +54,6 @@ class SysconPersonUpdateHandler(
       pseudonymMappings = overwritePseudonym(personEntity, prisoner),
     ).also {
       overwriteSentenceInfo(personEntity, prisoner)
-
-      // update root level person details only
 
       // trigger person match, recluster, telemetry?!?
     }
@@ -82,7 +80,7 @@ class SysconPersonUpdateHandler(
       val addressContactMappings = mutableListOf<AddressContactMapping>()
       sysconAddress.contacts.forEach { sysconContact ->
         val coreContact = Contact.from(sysconContact) ?: return@forEach // TODO: may break reconciliations
-        val contactEntity = contactRepository.save(ContactEntity.from(personEntity, addressEntity, coreContact))
+        val contactEntity = contactRepository.save(ContactEntity.from(addressEntity, coreContact))
         addressContactMappings.add(
           AddressContactMapping(
             nomisContactId = sysconContact.nomisContactId.toString(),
@@ -167,8 +165,8 @@ class SysconPersonUpdateHandler(
     sexCode = this.sexCode,
   )
 
-  private fun deletePersonChildTables(personEntity: PersonEntity) {
-    val person = Person.from(personEntity)
+  private fun updateRootPersonOnlyAndDeletePersonChildTables(personEntity: PersonEntity, prisoner: Prisoner) {
+    val person = Person.from(prisoner, personEntity.prisonNumber!!)
       .copy(addresses = emptyList(), contacts = emptyList(), aliases = emptyList(), references = emptyList(), sentences = emptyList())
     personEntity.update(person)
     personRepository.save(personEntity)

@@ -7,28 +7,25 @@ import org.junit.jupiter.api.fail
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Address
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.AddressUsage
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Alias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Contact
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.DemographicAttributes
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Identifier
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Sentence
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconUpdatePersonResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.SentenceInfoRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
@@ -41,6 +38,14 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDate
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Address as SysconAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.AddressUsage as SysconAddressUsage
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Alias as SysconAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Contact as SysconContact
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.DemographicAttributes as SysconDemographicAttributes
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Identifier as SysconIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.IdentifierType as SysconIdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Sentence as SysconSentence
 
 class SysconSyncControllerIntTest : WebTestBase() {
 
@@ -50,13 +55,25 @@ class SysconSyncControllerIntTest : WebTestBase() {
   @Nested
   inner class SuccessfulUpdate {
     @Test
-    fun `updates root level person record`() {
-    }
-
-    @Test
-    fun `overwrites child records`() {
+    fun `updates person record & overwrites child tables`() {
       val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      // TODO: address.contacts and address.usages is empty still here
+      val person = createRandomPrisonPersonDetails(prisonNumber).copy(
+        contacts = listOf(
+          Contact(
+            contactType = ContactType.entries.random(),
+            contactValue = randomLowerCaseString(),
+          ),
+        ),
+        references = listOf(
+          Reference(
+            identifierType = IdentifierType.entries.random(),
+            identifierValue = randomLowerCaseString(),
+            comment = randomLowerCaseString(),
+          ),
+        ),
+      )
+      createPerson(person)
 
       val updatePrisonerRequestBody = buildRequestBody()
       sendPutRequestAsserted<SysconUpdatePersonResponse>(
@@ -146,9 +163,13 @@ class SysconSyncControllerIntTest : WebTestBase() {
 
   private fun assertDatabase(prisonNumber: String, updatedPrisonerRequest: Prisoner, isWriteExpected: Boolean = true) {
     if (isWriteExpected) {
+      // TODO: 3 psydonames?!?
       val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail { "Prisoner record was expected to be found" }
       val actualPerson = Person.from(actualPersonEntity)
-      val expectedPerson = Person.from(updatedPrisonerRequest, prisonNumber).copy(personId = actualPerson.personId)
+      val expectedPerson = Person.from(updatedPrisonerRequest, prisonNumber).copy(
+        personId = actualPerson.personId,
+        aliases = updatedPrisonerRequest.aliases.filter { it.isPrimary == false }.map { Alias.from(it) },
+      )
       assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
     } else {
       assertThat(personRepository.findByPrisonNumber(prisonNumber)).isNull()
@@ -157,7 +178,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
 
   companion object {
     fun buildRequestBody(): Prisoner = Prisoner(
-      demographicAttributes = DemographicAttributes(
+      demographicAttributes = SysconDemographicAttributes(
         birthPlace = randomName(),
         birthCountryCode = randomCountryCode(),
         ethnicityCode = randomPrisonEthnicity(),
@@ -171,7 +192,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       ),
       aliases = buildAliasList(),
       addresses = listOf(
-        Address(
+        SysconAddress(
           nomisAddressId = randomCId().toLong(),
           fullAddress = randomFullAddress(),
           noFixedAbode = randomBoolean(),
@@ -190,14 +211,14 @@ class SysconSyncControllerIntTest : WebTestBase() {
           isPrimary = randomBoolean(),
           isMail = randomBoolean(),
           addressUsage = listOf(
-            AddressUsage(
+            SysconAddressUsage(
               nomisAddressUsageId = randomCId().toLong(),
               addressUsageCode = AddressUsageCode.HOME,
               isActive = true,
             ),
           ),
           contacts = listOf(
-            Contact(
+            SysconContact(
               nomisContactId = randomCId().toLong(),
               value = randomPhoneNumber(),
               type = ContactType.entries.random(),
@@ -207,7 +228,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
         ),
       ),
       personContacts = listOf(
-        Contact(
+        SysconContact(
           nomisContactId = randomCId().toLong(),
           value = randomPhoneNumber(),
           type = ContactType.entries.random(),
@@ -215,14 +236,14 @@ class SysconSyncControllerIntTest : WebTestBase() {
         ),
       ),
       sentences = listOf(
-        Sentence(
+        SysconSentence(
           sentenceDate = randomDate(),
         ),
       ),
     )
 
-    fun buildAliasList(hasPrimary: Boolean = true): List<Alias> = listOf(
-      Alias(
+    fun buildAliasList(hasPrimary: Boolean = true): List<SysconAlias> = listOf(
+      SysconAlias(
         nomisAliasId = randomCId().toLong(),
         titleCode = randomTitleCode().value.name,
         firstName = randomName(),
@@ -232,9 +253,27 @@ class SysconSyncControllerIntTest : WebTestBase() {
         sexCode = SexCode.entries.random(),
         isPrimary = hasPrimary,
         identifiers = listOf(
-          Identifier(
+          SysconIdentifier(
             nomisIdentifierId = randomCId().toLong(),
-            type = IdentifierType.PNC,
+            type = SysconIdentifierType.PNC,
+            value = randomName(),
+            comment = randomName(),
+          ),
+        ),
+      ),
+      SysconAlias(
+        nomisAliasId = randomCId().toLong(),
+        titleCode = randomTitleCode().value.name,
+        firstName = randomName(),
+        middleNames = randomName(),
+        lastName = randomName(),
+        dateOfBirth = LocalDate.now().minusYears((30..70).random().toLong()),
+        sexCode = SexCode.entries.random(),
+        isPrimary = false,
+        identifiers = listOf(
+          SysconIdentifier(
+            nomisIdentifierId = randomCId().toLong(),
+            type = SysconIdentifierType.PNC,
             value = randomName(),
             comment = randomName(),
           ),

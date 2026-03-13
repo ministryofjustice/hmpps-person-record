@@ -67,9 +67,8 @@ class ContactEntity(
 
     fun from(contact: Contact): ContactEntity = ContactEntity(contactType = contact.contactType, contactValue = contact.contactValue, extension = contact.extension)
 
-    fun from(personEntity: PersonEntity, addressEntity: AddressEntity, contact: Contact): ContactEntity {
+    fun from(addressEntity: AddressEntity, contact: Contact): ContactEntity {
       val contactEntity = from(contact)
-      contactEntity.person = personEntity
       contactEntity.address = addressEntity
       return contactEntity
     }
