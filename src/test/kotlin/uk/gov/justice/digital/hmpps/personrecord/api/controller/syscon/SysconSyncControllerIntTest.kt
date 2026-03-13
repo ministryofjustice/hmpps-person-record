@@ -57,22 +57,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
     @Test
     fun `updates person record & overwrites child tables`() {
       val prisonNumber = randomPrisonNumber()
-      val person = createRandomPrisonPersonDetails(prisonNumber).copy(
-        contacts = listOf(
-          Contact(
-            contactType = ContactType.entries.random(),
-            contactValue = randomLowerCaseString(),
-          ),
-        ),
-        references = listOf(
-          Reference(
-            identifierType = IdentifierType.entries.random(),
-            identifierValue = randomLowerCaseString(),
-            comment = randomLowerCaseString(),
-          ),
-        ),
-      )
-      createPerson(person)
+      createRandomPrisonPerson(prisonNumber)
 
       val updatePrisonerRequestBody = buildRequestBody()
       sendPutRequestAsserted<SysconUpdatePersonResponse>(
@@ -158,6 +143,26 @@ class SysconSyncControllerIntTest : WebTestBase() {
 
       assertDatabase(prisonNumber, updatedPrisonerRequest, isWriteExpected = false)
     }
+  }
+
+  fun createRandomPrisonPerson(prisonNumber: String): Person {
+    val person = createRandomPrisonPersonDetails(prisonNumber).copy(
+      contacts = listOf(
+        Contact(
+          contactType = ContactType.entries.random(),
+          contactValue = randomLowerCaseString(),
+        ),
+      ),
+      references = listOf(
+        Reference(
+          identifierType = IdentifierType.entries.random(),
+          identifierValue = randomLowerCaseString(),
+          comment = randomLowerCaseString(),
+        ),
+      ),
+    )
+    createPerson(person)
+    return person
   }
 
   private fun assertDatabase(prisonNumber: String, updatedPrisonerRequest: Prisoner, isWriteExpected: Boolean = true) {
