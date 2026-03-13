@@ -59,6 +59,7 @@ class ProbationAPIController(
     @PathVariable(name = "crn") crn: String,
   ): ResponseEntity<*> {
     val personEntity = personRepository.findByCrn(crn)
+    // TODO what about merged records?
     return when {
       personEntity == null -> throw ResourceNotFoundException(crn)
       else -> ResponseEntity.ok(CanonicalRecord.from(personEntity))

@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.http.HttpStatus.MOVED_PERMANENTLY
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionGetAllHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
-import java.net.URI
 
 @Tag(name = "HMPPS Person API")
 @RestController
@@ -44,16 +42,5 @@ class PrisonAPIController(private val prisonReligionGetAllHandler: PrisonReligio
       ],
     ),
   )
-  fun getAllByPrisonNumber(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<PrisonCanonicalRecord> {
-    val (prisonCanonicalRecord, targetPrisonNumber) = prisonReligionGetAllHandler.get(prisonNumber)
-    return when (targetPrisonNumber == null) {
-      true -> ResponseEntity.ok(prisonCanonicalRecord)
-      false -> respondWithRedirect(targetPrisonNumber)
-    }
-  }
-
-  private fun respondWithRedirect(targetPrisonNumber: String): ResponseEntity<PrisonCanonicalRecord> = ResponseEntity
-    .status(MOVED_PERMANENTLY)
-    .location(URI("/person/prison/$targetPrisonNumber"))
-    .build()
+  fun getAllByPrisonNumber(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<PrisonCanonicalRecord> = prisonReligionGetAllHandler.get(prisonNumber)
 }
