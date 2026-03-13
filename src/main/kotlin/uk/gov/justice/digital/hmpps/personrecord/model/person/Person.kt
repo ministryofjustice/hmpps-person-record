@@ -242,7 +242,7 @@ data class Person(
         addresses = prisoner.addresses.map { Address.from(it) },
         references = references,
         sourceSystem = NOMIS,
-        nationalities = listOf(NationalityCode.fromPrisonCode(prisoner.demographicAttributes.nationalityCode)).mapNotNull { it },
+        nationalities = listOf(prisoner.demographicAttributes.nationalityCode).mapNotNull { it },
         nationalityNotes = prisoner.demographicAttributes.nationalityNote.nullIfBlank(),
         religion = prisoner.demographicAttributes.religionCode.nullIfBlank(),
         sentences = prisoner.sentences.map { SentenceInfo(it.sentenceDate) },
