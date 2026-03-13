@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 
 data class DemographicAttributes(
   @Schema(description = "The person's birth place", example = "Milton Keynes")
@@ -15,7 +16,7 @@ data class DemographicAttributes(
   @Schema(description = "The person's sex code", example = "M")
   val sexCode: SexCode? = null,
   @Schema(description = "The person's sexual orientation code", example = "HET")
-  val sexualOrientation: String? = null,
+  val sexualOrientation: SexualOrientation? = null,
   @Schema(description = "Does the person have a disability", example = "false")
   val disability: Boolean? = null,
   @Schema(description = "Is the person of interest to immigration", example = "false")

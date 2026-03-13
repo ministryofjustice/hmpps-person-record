@@ -247,6 +247,7 @@ data class Person(
         religion = prisoner.demographicAttributes.religionCode.nullIfBlank(),
         sentences = prisoner.sentences.map { SentenceInfo(it.sentenceDate) },
         sexCode = prisoner.demographicAttributes.sexCode,
+        sexualOrientation = prisoner.demographicAttributes.sexualOrientation,
         birthCountryCode = prisoner.demographicAttributes.birthCountryCode,
       )
     }
