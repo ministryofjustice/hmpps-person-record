@@ -231,7 +231,7 @@ data class Person(
 
       return Person(
         prisonNumber = prisonNumber,
-        titleCode = TitleCode.from(primaryAlias.titleCode),
+        titleCode = primaryAlias.titleCode,
         firstName = primaryAlias.firstName.nullIfBlank(),
         middleNames = primaryAlias.middleNames?.nullIfBlank(),
         lastName = primaryAlias.lastName.nullIfBlank(),
