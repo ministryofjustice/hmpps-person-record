@@ -161,7 +161,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
         disability = randomBoolean(),
         interestToImmigration = randomBoolean(),
         religionCode = randomReligionCode(),
-        nationalityCode = randomNationalityCode().name,
+        nationalityCode = randomNationalityCode(),
         nationalityNote = randomName(),
       ),
       aliases = buildAliasList(),
