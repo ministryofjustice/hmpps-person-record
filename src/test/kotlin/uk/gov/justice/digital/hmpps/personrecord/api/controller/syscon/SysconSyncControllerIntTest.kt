@@ -4,8 +4,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import reactor.core.publisher.Mono
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.node.ObjectNode
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Address
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.AddressUsage
@@ -97,6 +100,35 @@ class SysconSyncControllerIntTest : WebTestBase() {
         .expectBody()
         .jsonPath("userMessage")
         .isEqualTo("Bad request: No primary alias was found for update on prisoner $prisonNumber")
+
+      val actualPerson = personRepository.findByPrisonNumber(prisonNumber)?.let { Person.from(it) } ?: fail { "Person not found for update on prisoner $prisonNumber" }
+      val expectedPerson = Person.from(originalPerson)
+      assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
+    }
+
+    @Test
+    fun `invalid enum code is sent - does not update - returns correct response`() {
+      val prisonNumber = randomPrisonNumber()
+      val originalPerson = createPerson(createRandomPrisonPersonDetails(prisonNumber))
+
+      val json = ObjectMapper().valueToTree<ObjectNode>(buildRequestBody())
+      (json.get("demographicAttributes") as ObjectNode).put("ethnicityCode", "TEST")
+
+      webTestClient
+        .put()
+        .uri("/syscon-sync/person/$prisonNumber")
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(json)
+        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isBadRequest
+        .expectBody()
+        .jsonPath("userMessage").value<String> { msg ->
+          assertThat(msg)
+            .contains("Bad request: JSON parse error")
+            .contains("\"TEST\": not one of the values accepted for Enum class")
+        }
 
       val actualPerson = personRepository.findByPrisonNumber(prisonNumber)?.let { Person.from(it) } ?: fail { "Person not found for update on prisoner $prisonNumber" }
       val expectedPerson = Person.from(originalPerson)
