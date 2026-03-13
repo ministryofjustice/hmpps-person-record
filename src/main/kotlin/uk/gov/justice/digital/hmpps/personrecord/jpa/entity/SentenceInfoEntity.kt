@@ -40,5 +40,10 @@ class SentenceInfoEntity(
       sentenceInfo.sentenceDate != null -> SentenceInfoEntity(sentenceDate = sentenceInfo.sentenceDate)
       else -> null
     }
+
+    fun from(person: PersonEntity, sentenceDate: LocalDate): SentenceInfoEntity = SentenceInfoEntity(
+      sentenceDate = sentenceDate,
+      person = person,
+    )
   }
 }

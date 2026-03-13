@@ -42,24 +42,28 @@ import java.time.LocalDate
 class SysconSyncControllerIntTest : WebTestBase() {
 
   @Nested
-  inner class Update {
+  inner class SuccessfulUpdate {
     @Test
-    fun `person record does exists - updates record - returns correct response`() {
-      stubPersonMatchUpsert()
-
-      val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
-
-      val updatedPrisonerRequest = buildRequestBody()
-      sendPutRequestAsserted<SysconUpdatePersonResponse>(
-        url = "/syscon-sync/person/$prisonNumber",
-        body = updatedPrisonerRequest,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.OK,
-      )
-
-      assertDatabase(prisonNumber, updatedPrisonerRequest)
+    fun `updates root level person record`() {
     }
+  }
+
+  @Test
+  fun `overwrites child records`() {
+    val prisonNumber = randomPrisonNumber()
+    createPerson(createRandomPrisonPersonDetails(prisonNumber))
+
+    val updatedPrisonerRequest = buildRequestBody()
+    sendPutRequestAsserted<SysconUpdatePersonResponse>(
+      url = "/syscon-sync/person/$prisonNumber",
+      body = updatedPrisonerRequest,
+      roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+      expectedStatus = HttpStatus.OK,
+    )
+  }
+
+  @Test
+  fun `returns correct response`() {
   }
 
   @Nested
@@ -79,7 +83,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       assertDatabase(prisonNumber, updatedPrisonerRequest, isWriteExpected = false)
     }
 
-    @Test
+    @Test // TODO: do we really want this?!?
     fun `no primary alias is sent - does not update - returns correct response`() {
       val prisonNumber = randomPrisonNumber()
       val originalPerson = createPerson(createRandomPrisonPersonDetails(prisonNumber))

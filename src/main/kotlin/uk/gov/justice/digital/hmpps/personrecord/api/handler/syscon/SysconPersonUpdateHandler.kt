@@ -17,12 +17,14 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.SentenceInfoEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressUsageRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PseudonymRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReferenceRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.SentenceInfoRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
@@ -33,13 +35,14 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
 class SysconPersonUpdateHandler(
-  private val personRepository: PersonRepository,
   private val personService: PersonService,
+  private val personRepository: PersonRepository,
   private val addressRepository: AddressRepository,
   private val addressUsageRepository: AddressUsageRepository,
   private val contactRepository: ContactRepository,
   private val pseudonymRepository: PseudonymRepository,
   private val referenceRepository: ReferenceRepository,
+  private val sentenceInfoRepository: SentenceInfoRepository,
 ) {
 
   @Transactional
@@ -49,7 +52,13 @@ class SysconPersonUpdateHandler(
       addressMappings = overwriteAddresses(personEntity, prisoner),
       personContactMappings = overwriteContacts(personEntity, prisoner),
       pseudonymMappings = overwritePseudonym(personEntity, prisoner),
-    )
+    ).also {
+      overwriteSentenceInfo(personEntity, prisoner)
+
+      // update root level person details only
+
+      // trigger person match, recluster, telemetry?!?
+    }
     result
   } ?: throw ResourceNotFoundException("Prisoner not found $prisonNumber")
 
@@ -142,6 +151,15 @@ class SysconPersonUpdateHandler(
       )
     }
     return aliasMappings
+  }
+
+  private fun overwriteSentenceInfo(personEntity: PersonEntity, prisoner: Prisoner) {
+    sentenceInfoRepository.deleteAllByPerson(personEntity)
+    prisoner.sentences.forEach { sysconSentence ->
+      // TODO: may break reconciliations
+      val sentenceInfoEntity = sysconSentence.sentenceDate?.let { SentenceInfoEntity.from(personEntity, it) } ?: return@forEach
+      sentenceInfoRepository.save(sentenceInfoEntity)
+    }
   }
 
   fun Alias.primaryNameFrom(personEntity: PersonEntity): PseudonymEntity = PseudonymEntity(
