@@ -1,0 +1,744 @@
+openapi: 3.0.1
+info:
+  title: Person Create / Delete / Sync / Merge API
+  version: 1.0.0
+  description: API for creating, updating, and retrieving prisoner religion details and CPR/NOMIS mappings.
+
+tags:
+  - name: Person
+    description: Endpoints for person in prison
+
+paths:
+  /person/prison/{prisonNumber}:
+    post:
+      summary: Create a person into CPR from NOMIS
+      description: >
+        Creates a prisoner's demographics, contacts, pseudonyms, addresses and sentences
+        from NOMIS into the CPR using the prisoner’s prison number as the key. Returns mappings between NOMIS IDs and CPR IDs.
+      operationId: createPerson
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prison number of the person to synchronise (e.g. A1234BC).
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Person data to be synchronised from NOMIS to CPR.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncPersonRequest'
+            examples:
+              default:
+                summary: Example person sync request
+                value:
+                  demographicAttributes:
+                    birthPlace: "Milton Keynes"
+                    birthCountryCode: "UK"
+                    ethnicityCode: "W1"
+                    sexualOrientation: "HET"
+                    disability: false
+                    interestToImmigration: false
+                    religionCode: "MOS"
+                    nationalityCode: "GB"
+                    nationalityNote: "Possibly Finnish"
+                  personContacts:
+                    - nomisPersonContactId: "1234"
+                      value: "01234567890"
+                      type: "HOME"
+                      extension: "235"
+                    - nomisPersonContactId: "1235"
+                      value: "abc@def.xyz"
+                      type: "EMAIL"
+                      extension: null
+                  pseudonym:
+                    - nomisPseudonymId: "2378"
+                      titleCode: "MR"
+                      firstName: "John"
+                      middleNames: "Jimmy Jane"
+                      lastName: "Smith"
+                      dateOfBirth: "1980-01-01"
+                      sexCode: "M"
+                      isPrimary: true
+                      identifiers:
+                        - nomisIdentifierId: "2333"
+                          type: "PNC"
+                          value: "2000/1234567A"
+                          comment: "Test comment"
+                    - nomisPseudonymId: "2379"
+                      titleCode: "MR"
+                      firstName: "Jon"
+                      middleNames: "James"
+                      lastName: "Smythe"
+                      dateOfBirth: "1980-01-01"
+                      sexCode: "M"
+                      isPrimary: false
+                      identifiers:
+                        - nomisIdentifierId: "2478"
+                          type: "PNC"
+                          value: "2000/1234567A"
+                          comment: "Test comment2"
+                        - nomisIdentifierId: "2479"
+                          type: "NINO"
+                          value: "SC344857F"
+                          comment: "Test comment3"
+                  addresses:
+                    - nomisAddressId: "5677"
+                      fullAddress: "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ"
+                      noFixedAbode: false
+                      startDate: "2020-02-26"
+                      endDate: "2023-07-15"
+                      postcode: "SW1H 9AJ"
+                      subBuildingName: "Sub building 2"
+                      buildingName: "Main Building"
+                      buildingNumber: "102"
+                      thoroughfareName: "Petty France"
+                      dependentLocality: "Westminster"
+                      postTown: "London"
+                      county: "Greater London"
+                      countryCode: "UK"
+                      comment: "String"
+                      isPrimary: true
+                      isMail: true
+                      addressUsage:
+                        - nomisAddressUsageId: "5678"
+                          addressUsageCode: "DSH"
+                          isActive: true
+                      contacts:
+                        - nomisAddressContactId: "5679"
+                          type: "PHONE"
+                          value: "+44 20 7946 0000"
+                          extension: "1234"
+                  sentences:
+                    - sentenceDate: "1980-01-01"
+      responses:
+        '200':
+          description: Person data synchronised successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncPersonResponse'
+              examples:
+                default:
+                  summary: Example person sync response
+                  value:
+                    prisonNumber: "A6443EG"
+                    addressMappings:
+                      - nomisAddressId: "5677"
+                        cprAddressId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+                        addressUsageMappings:
+                          - nomisAddressUsageId: "5678"
+                            cprAddressUsageid: "d4ae7071-58ae-42f0-bf5d-c69289fb1e6d"
+                        addressContactMappings:
+                          - nomisContactId: "5679"
+                            cprContactId: "e34a39e9-c22a-44c3-87ae-ab5017f465c3"
+                    personContactMappings:
+                      - nomisContactId: "1234"
+                        cprContactId: "88ce729e-34b5-401c-a4fc-8ca94df9f24a"
+                      - nomisContactId: "1235"
+                        cprContactId: "7c168caf-013e-482c-a0dc-79d378b248f0"
+                    pseudonymMappings:
+                      - nomisPseudonymId: "2378"
+                        cprPseudonymId: "be3fb82f-fe3f-474c-8cbe-2170dec7d422"
+                        identifierMappings:
+                          - nomisIdentifierId: "2477"
+                            cprIdentifierId: "684125bb-49dc-491b-a185-3d0f706f4541"
+                      - nomisPseudonymId: "2379"
+                        cprPseudonymId: "ff41fec8-65e2-476d-a5eb-d209869d72c2"
+                        identifierMappings:
+                          - nomisIdentifierId: "2478"
+                            cprIdentifierId: "b7bb703f-d55e-419d-9126-b37ceb6e1b9d"
+                          - nomisIdentifierId: "2479"
+                            cprIdentifierId: "cfa14df6-9044-4532-8590-96f1589ebfaf"
+        '400':
+          description: Invalid request payload.
+        '404':
+          description: Prisoner not found.
+        '500':
+          description: Unexpected server error.
+
+    # /person/prison/{prisonNumber}:
+    delete:
+      summary: Delete a person from CPR using NOMIS id
+      description: >
+        Deletes a person from CPR using the NOMIS id
+      operationId: deletePerson
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prison number of the person to synchronise (e.g. A1234BC).
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Person data deleted successfully.
+        '400':
+          description: Invalid request payload.
+        '404':
+          description: Prisoner not found.
+        '500':
+          description: Unexpected server error.
+
+
+  /syscon-sync/person/{prisonNumber}:
+    put:
+      summary: Sync person data into CPR from NOMIS
+      description: >
+        Synchronises a prisoner's demographics, contacts, pseudonyms, addresses and sentences from NOMIS into the CPR using the prisoner’s prison number as the key. Returns mappings between NOMIS IDs and CPR IDs.
+      operationId: syncPerson
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prison number of the person to synchronise (e.g. A1234BC).
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Person data to be synchronised from NOMIS to CPR.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncPersonRequest'
+            examples:
+              default:
+                summary: Example person sync request
+                value:
+                  demographicAttributes:
+                    birthPlace: "Milton Keynes"
+                    birthCountryCode: "UK"
+                    ethnicityCode: "W1"
+                    sexualOrientation: "HET"
+                    disability: false
+                    interestToImmigration: false
+                    religionCode: "MOS"
+                    nationalityCode: "GB"
+                    nationalityNote: "Possibly Finnish"
+                  personContacts:
+                    - nomisPersonContactId: "1234"
+                      value: "01234567890"
+                      type: "HOME"
+                      extension: "235"
+                    - nomisPersonContactId: "1235"
+                      value: "abc@def.xyz"
+                      type: "EMAIL"
+                      extension: null
+                  pseudonym:
+                    - nomisPseudonymId: "2378"
+                      titleCode: "MR"
+                      firstName: "John"
+                      middleNames: "Jimmy Jane"
+                      lastName: "Smith"
+                      dateOfBirth: "1980-01-01"
+                      sexCode: "M"
+                      isPrimary: true
+                      identifiers:
+                        - nomisIdentifierId: "2333"
+                          type: "PNC"
+                          value: "2000/1234567A"
+                          comment: "Test comment"
+                    - nomisPseudonymId: "2379"
+                      titleCode: "MR"
+                      firstName: "Jon"
+                      middleNames: "James"
+                      lastName: "Smythe"
+                      dateOfBirth: "1980-01-01"
+                      sexCode: "M"
+                      isPrimary: false
+                      identifiers:
+                        - nomisIdentifierId: "2478"
+                          type: "PNC"
+                          value: "2000/1234567A"
+                          comment: "Test comment2"
+                        - nomisIdentifierId: "2479"
+                          type: "NINO"
+                          value: "SC344857F"
+                          comment: "Test comment3"
+                  addresses:
+                    - nomisAddressId: "5677"
+                      fullAddress: "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ"
+                      noFixedAbode: false
+                      startDate: "2020-02-26"
+                      endDate: "2023-07-15"
+                      postcode: "SW1H 9AJ"
+                      subBuildingName: "Sub building 2"
+                      buildingName: "Main Building"
+                      buildingNumber: "102"
+                      thoroughfareName: "Petty France"
+                      dependentLocality: "Westminster"
+                      postTown: "London"
+                      county: "Greater London"
+                      countryCode: "UK"
+                      comment: "String"
+                      isPrimary: true
+                      isMail: true
+                      addressUsage:
+                        - nomisAddressUsageId: "5678"
+                          addressUsageCode: "DSH"
+                          isActive: true
+                      contacts:
+                        - nomisAddressContactId: "5679"
+                          type: "PHONE"
+                          value: "+44 20 7946 0000"
+                          extension: "1234"
+                  sentences:
+                    - sentenceDate: "1980-01-01"
+      responses:
+        '200':
+          description: Person data synchronised successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncPersonResponse'
+              examples:
+                default:
+                  summary: Example person sync response
+                  value:
+                    prisonNumber: "A6443EG"
+                    addressMappings:
+                      - nomisAddressId: "5677"
+                        cprAddressId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+                        addressUsageMappings:
+                          - nomisAddressUsageId: "5678"
+                            cprAddressUsageid: "d4ae7071-58ae-42f0-bf5d-c69289fb1e6d"
+                        addressContactMappings:
+                          - nomisContactId: "5679"
+                            cprContactId: "e34a39e9-c22a-44c3-87ae-ab5017f465c3"
+                    personContactMappings:
+                      - nomisContactId: "1234"
+                        cprContactId: "88ce729e-34b5-401c-a4fc-8ca94df9f24a"
+                      - nomisContactId: "1235"
+                        cprContactId: "7c168caf-013e-482c-a0dc-79d378b248f0"
+                    pseudonymMappings:
+                      - nomisPseudonymId: "2378"
+                        cprPseudonymId: "be3fb82f-fe3f-474c-8cbe-2170dec7d422"
+                        identifierMappings:
+                          - nomisIdentifierId: "2477"
+                            cprIdentifierId: "684125bb-49dc-491b-a185-3d0f706f4541"
+                      - nomisPseudonymId: "2379"
+                        cprPseudonymId: "ff41fec8-65e2-476d-a5eb-d209869d72c2"
+                        identifierMappings:
+                          - nomisIdentifierId: "2478"
+                            cprIdentifierId: "b7bb703f-d55e-419d-9126-b37ceb6e1b9d"
+                          - nomisIdentifierId: "2479"
+                            cprIdentifierId: "cfa14df6-9044-4532-8590-96f1589ebfaf"
+        '400':
+          description: Invalid request payload.
+        '404':
+          description: Prisoner not found.
+        '500':
+          description: Unexpected server error.
+
+  /person/prison/{toPrisonNumber}/merge:
+    post:
+      summary: Sync person data into CPR from NOMIS
+      description: >
+        Synchronises a prisoner's demographics, contacts, pseudonyms, addresses and sentences from NOMIS into the CPR using the prisoner’s prison number as the key. Returns mappings between NOMIS IDs and CPR IDs.
+      operationId: mergePerson
+      parameters:
+        - name: toPrisonNumber
+          in: path
+          required: true
+          description: Prison number of the person to merge (e.g. A1234BC).
+          schema:
+            type: string
+            format: "A1234BC"
+      requestBody:
+        required: true
+        description: Person data to be synchronised from NOMIS to CPR.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MergePersonRequest'
+            examples:
+              default:
+                summary: Example person sync request
+                value:
+                  mergeFromPrisonNumber: "A6443EG"
+                  demographicAttributes:
+                    birthPlace: "Milton Keynes"
+                    birthCountryCode: "UK"
+                    ethnicityCode: "W1"
+                    sexualOrientation: "HET"
+                    disability: false
+                    interestToImmigration: false
+                    religionCode: "MOS"
+                    nationalityCode: "GB"
+                    nationalityNote: "Possibly Finnish"
+                  personContacts:
+                    - nomisPersonContactId: "1234"
+                      value: "01234567890"
+                      type: "HOME"
+                      extension: "235"
+                    - nomisPersonContactId: "1235"
+                      value: "abc@def.xyz"
+                      type: "EMAIL"
+                      extension: null
+                  pseudonym:
+                    - nomisPseudonymId: "2378"
+                      titleCode: "MR"
+                      firstName: "John"
+                      middleNames: "Jimmy Jane"
+                      lastName: "Smith"
+                      dateOfBirth: "1980-01-01"
+                      sexCode: "M"
+                      isPrimary: true
+                      identifiers:
+                        - nomisIdentifierId: "2333"
+                          type: "PNC"
+                          value: "2000/1234567A"
+                          comment: "Test comment"
+                    - nomisPseudonymId: "2379"
+                      titleCode: "MR"
+                      firstName: "Jon"
+                      middleNames: "James"
+                      lastName: "Smythe"
+                      dateOfBirth: "1980-01-01"
+                      sexCode: "M"
+                      isPrimary: false
+                      identifiers:
+                        - nomisIdentifierId: "2478"
+                          type: "PNC"
+                          value: "2000/1234567A"
+                          comment: "Test comment2"
+                        - nomisIdentifierId: "2479"
+                          type: "NINO"
+                          value: "SC344857F"
+                          comment: "Test comment3"
+                  addresses:
+                    - nomisAddressId: "5677"
+                      fullAddress: "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ"
+                      noFixedAbode: false
+                      startDate: "2020-02-26"
+                      endDate: "2023-07-15"
+                      postcode: "SW1H 9AJ"
+                      subBuildingName: "Sub building 2"
+                      buildingName: "Main Building"
+                      buildingNumber: "102"
+                      thoroughfareName: "Petty France"
+                      dependentLocality: "Westminster"
+                      postTown: "London"
+                      county: "Greater London"
+                      countryCode: "UK"
+                      comment: "String"
+                      isPrimary: true
+                      isMail: true
+                      addressUsage:
+                        - nomisAddressUsageId: "5678"
+                          addressUsageCode: "DSH"
+                          isActive: true
+                      contacts:
+                        - nomisAddressContactId: "5679"
+                          type: "PHONE"
+                          value: "+44 20 7946 0000"
+                          extension: "1234"
+                  sentences:
+                    - sentenceDate: "1980-01-01"
+
+
+      responses:
+        '200':
+          description: Person data merged successfully.
+        '400':
+          description: Invalid request payload.
+        '404':
+          description: Prisoner not found.
+        '500':
+          description: Unexpected server error.
+
+components:
+  schemas:
+    MergePersonRequest:
+      type: object
+      properties:
+        mergeFromPrisonNumber:
+          type: string
+          format: "A1234BC"
+        syncPersonRequest:
+          $ref: '#/components/schemas/SyncPersonRequest'
+
+    SyncPersonRequest:
+      type: object
+      properties:
+        demographicAttributes:
+          $ref: '#/components/schemas/DemographicAttributes'
+        personContacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonContact'
+        pseudonym:
+          type: array
+          description: List of pseudonyms for the person.
+          items:
+            $ref: '#/components/schemas/Pseudonym'
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+        sentences:
+          type: array
+          items:
+            $ref: '#/components/schemas/Sentence'
+      required:
+      # - demographicAttributes
+
+    DemographicAttributes:
+      type: object
+      properties:
+        birthPlace:
+          type: string
+        birthCountryCode:
+          type: string
+        ethnicityCode:
+          type: string
+        sexualOrientation:
+          type: string
+        disability:
+          type: boolean
+        interestToImmigration:
+          type: boolean
+        religionCode:
+          type: string
+        nationalityCode:
+          type: string
+        nationalityNote:
+          type: string
+
+    PersonContact:
+      type: object
+      properties:
+        nomisPersonContactId:
+          type: string
+        value:
+          type: string
+        type:
+          type: string
+          description: Contact type (e.g. HOME, EMAIL, PHONE).
+        extension:
+          type: string
+          nullable: true
+      required:
+        - nomisPersonContactId
+        - value
+        - type
+
+    Pseudonym:
+      type: object
+      properties:
+        nomisPseudonymId:
+          type: string
+        titleCode:
+          type: string
+        firstName:
+          type: string
+        middleNames:
+          type: string
+        lastName:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        sexCode:
+          type: string
+        isPrimary:
+          type: boolean
+        identifiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Identifier'
+      required:
+        - nomisPseudonymId
+        - firstName
+        - lastName
+        - dateOfBirth
+        - sexCode
+        - isPrimary
+
+    Identifier:
+      type: object
+      properties:
+        nomisIdentifierId:
+          type: string
+        type:
+          type: string
+        value:
+          type: string
+        comment:
+          type: string
+
+    Address:
+      type: object
+      properties:
+        nomisAddressId:
+          type: string
+        fullAddress:
+          type: string
+        noFixedAbode:
+          type: boolean
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+          nullable: true
+        postcode:
+          type: string
+        subBuildingName:
+          type: string
+        buildingName:
+          type: string
+        buildingNumber:
+          type: string
+        thoroughfareName:
+          type: string
+        dependentLocality:
+          type: string
+        postTown:
+          type: string
+        county:
+          type: string
+        countryCode:
+          type: string
+        comment:
+          type: string
+        isPrimary:
+          type: boolean
+        isMail:
+          type: boolean
+        addressUsage:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressUsage'
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressContact'
+      required:
+        - nomisAddressId
+        - noFixedAbode
+        - isPrimary
+        - isMail
+
+    AddressUsage:
+      type: object
+      properties:
+        nomisAddressUsageId:
+          type: string
+        addressUsageCode:
+          type: string
+        isActive:
+          type: boolean
+
+    AddressContact:
+      type: object
+      properties:
+        nomisAddressContactId:
+          type: string
+        type:
+          type: string
+        value:
+          type: string
+        extension:
+          type: string
+
+    Sentence:
+      type: object
+      properties:
+        sentenceDate:
+          type: string
+          format: date
+
+    SyncPersonResponse:
+      type: object
+      properties:
+        prisonNumber:
+          type: string
+        addressMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressMapping'
+        personContactMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonContactMapping'
+        pseudonymMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/PseudonymMapping'
+      required:
+        - prisonNumber
+
+    AddressMapping:
+      type: object
+      properties:
+        nomisAddressId:
+          type: string
+        cprAddressId:
+          type: string
+          format: uuid
+        addressUsageMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressUsageMapping'
+        addressContactMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressContactMapping'
+
+    AddressUsageMapping:
+      type: object
+      properties:
+        nomisAddressUsageId:
+          type: string
+        cprAddressUsageid:
+          type: string
+          format: uuid
+
+    AddressContactMapping:
+      type: object
+      properties:
+        nomisContactId:
+          type: string
+        cprContactId:
+          type: string
+          format: uuid
+
+    PersonContactMapping:
+      type: object
+      properties:
+        nomisContactId:
+          type: string
+        cprContactId:
+          type: string
+          format: uuid
+
+    PseudonymMapping:
+      type: object
+      properties:
+        nomisPseudonymId:
+          type: string
+        cprPseudonymId:
+          type: string
+          format: uuid
+        identifierMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/IdentifierMapping'
+
+    IdentifierMapping:
+      type: object
+      properties:
+        nomisIdentifierId:
+          type: string
+        cprIdentifierId:
+          type: string
+          format: uuid
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/ftl/Syscon-sync/1.0.0
