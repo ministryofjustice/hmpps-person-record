@@ -123,7 +123,7 @@ class SysconPersonUpdateHandler(
       val pseudonymEntity = if (sysconAlias.isPrimary == true) coreAlias.primaryNameFrom(personEntity) else PseudonymEntity.aliasFrom(personEntity, coreAlias)
       if (pseudonymEntity == null) return@forEach // TODO: may break reconciliations
 
-      val aliasesEntity = if (pseudonymEntity.nameType == NameType.PRIMARY) {
+      val aliasEntity = if (pseudonymEntity.nameType == NameType.PRIMARY) {
         val existing = pseudonymRepository.findById(personEntity.pseudonyms.first().id!!).orElseThrow()
         existing.firstName = sysconAlias.firstName
         existing.middleNames = sysconAlias.middleNames
@@ -151,7 +151,7 @@ class SysconPersonUpdateHandler(
       aliasMappings.add(
         AliasMapping(
           nomisPseudonymId = sysconAlias.nomisAliasId.toString(),
-          cprPseudonymId = aliasesEntity.updateId.toString(),
+          cprPseudonymId = aliasEntity.updateId.toString(),
           identifierMappings = referenceMappings,
         ),
       )

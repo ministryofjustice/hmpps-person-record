@@ -8,6 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.AddressContactMapping
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.AddressMapping
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.AddressUsageMapping
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.AliasMapping
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.PersonContactMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconUpdatePersonResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.SentenceInfoRepository
@@ -72,6 +77,69 @@ class SysconSyncControllerIntTest : WebTestBase() {
 
     @Test
     fun `returns correct response`() {
+      val prisonNumber = randomPrisonNumber()
+      createRandomPrisonPerson(prisonNumber)
+
+      val updatePrisonerRequestBody = buildRequestBody()
+      val responseBody = sendPutRequestAsserted<SysconUpdatePersonResponse>(
+        url = "/syscon-sync/person/$prisonNumber",
+        body = updatePrisonerRequestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.OK,
+      )
+
+      val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("Expected to find Person")
+
+      val personAddressEntity = personEntity.addresses.first()
+      val addressUsageEntityUpdateId = personAddressEntity.usages.first().updateId.toString()
+      val addressContactEntityUpdateId = personAddressEntity.contacts.first().updateId.toString()
+
+      val personContactEntityUpdateId = personEntity.contacts.first().updateId.toString()
+
+      val pseudonymEntities = personEntity.pseudonyms.first()
+
+      val personReferenceEntities = personEntity.references.first()
+
+      val expectedAddressNomisId = updatePrisonerRequestBody.addresses.first().nomisAddressId.toString()
+      val expectedAddressUsageNomisId = updatePrisonerRequestBody.addresses.first().addressUsage.first().nomisAddressUsageId.toString()
+      val expectedAddressContactNomisId = updatePrisonerRequestBody.addresses.first().contacts.first().nomisContactId.toString()
+      val expectedPersonContactNomisId = updatePrisonerRequestBody.personContacts.first().nomisContactId.toString()
+      val expectedResponseBody = SysconUpdatePersonResponse(
+        prisonerId = prisonNumber,
+        addressMappings = listOf(
+          AddressMapping(
+            nomisAddressId = expectedAddressNomisId,
+            cprAddressId = personAddressEntity.updateId.toString(),
+            addressUsageMappings = listOf(
+              AddressUsageMapping(
+                nomisAddressUsageId = expectedAddressUsageNomisId,
+                cprAddressUsageid = addressUsageEntityUpdateId,
+              ),
+            ),
+            addressContactMappings = listOf(
+              AddressContactMapping(
+                nomisContactId = expectedAddressContactNomisId,
+                cprContactId = addressContactEntityUpdateId,
+              ),
+            ),
+          ),
+        ),
+        personContactMappings = listOf(
+          PersonContactMapping(
+            nomisContactId = expectedPersonContactNomisId,
+            cprContactId = personContactEntityUpdateId,
+          ),
+        ),
+        pseudonymMappings = listOf(
+          AliasMapping(
+            nomisPseudonymId = TODO(),
+            cprPseudonymId = TODO(),
+            identifierMappings = TODO(),
+          ),
+        ),
+      )
+
+      responseBody.isEqualTo(expectedResponseBody)
     }
   }
 
@@ -257,24 +325,6 @@ class SysconSyncControllerIntTest : WebTestBase() {
         dateOfBirth = LocalDate.now().minusYears((30..70).random().toLong()),
         sexCode = SexCode.entries.random(),
         isPrimary = hasPrimary,
-        identifiers = listOf(
-          SysconIdentifier(
-            nomisIdentifierId = randomCId().toLong(),
-            type = SysconIdentifierType.PNC,
-            value = randomName(),
-            comment = randomName(),
-          ),
-        ),
-      ),
-      SysconAlias(
-        nomisAliasId = randomCId().toLong(),
-        titleCode = randomTitleCode().value.name,
-        firstName = randomName(),
-        middleNames = randomName(),
-        lastName = randomName(),
-        dateOfBirth = LocalDate.now().minusYears((30..70).random().toLong()),
-        sexCode = SexCode.entries.random(),
-        isPrimary = false,
         identifiers = listOf(
           SysconIdentifier(
             nomisIdentifierId = randomCId().toLong(),
