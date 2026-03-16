@@ -60,110 +60,98 @@ class SysconPersonUpdateHandler(
     updateResult
   } ?: throw ResourceNotFoundException("Prisoner not found $prisonNumber")
 
-  fun overwriteAddresses(personEntity: PersonEntity, prisoner: Prisoner): List<AddressMapping> {
-    val addressMappings = mutableListOf<AddressMapping>()
-    prisoner.addresses.forEach { sysconAddress ->
-      val coreAddress = Address.from(sysconAddress).copy(usages = emptyList(), contacts = emptyList())
-      val addressEntity = addressRepository.save(AddressEntity.from(personEntity, coreAddress))
+  fun overwriteAddresses(personEntity: PersonEntity, prisoner: Prisoner): List<AddressMapping> = prisoner.addresses.map { sysconAddress ->
+    val coreAddress = Address.from(sysconAddress).copy(usages = emptyList(), contacts = emptyList())
+    val addressEntity = addressRepository.save(AddressEntity.from(personEntity, coreAddress))
 
-      val addressUsageMappings = mutableListOf<AddressUsageMapping>()
-      sysconAddress.addressUsage.forEach { sysconAddressUsage ->
-        val coreAddressUsage = AddressUsage.from(sysconAddressUsage)
-        val addressUsageEntity = addressUsageRepository.save(AddressUsageEntity.from(addressEntity, coreAddressUsage))
-        addressUsageMappings.add(
-          AddressUsageMapping(
-            nomisAddressUsageId = sysconAddressUsage.nomisAddressUsageId.toString(),
-            cprAddressUsageid = addressUsageEntity.updateId.toString(),
-          ),
-        )
-      }
-      val addressContactMappings = mutableListOf<AddressContactMapping>()
-      sysconAddress.contacts.forEach { sysconContact ->
-        val coreContact = Contact.from(sysconContact) ?: return@forEach
+    val addressUsageMappings = sysconAddress.addressUsage.map { sysconAddressUsage ->
+      val coreAddressUsage = AddressUsage.from(sysconAddressUsage)
+      val addressUsageEntity = addressUsageRepository.save(AddressUsageEntity.from(addressEntity, coreAddressUsage))
+      AddressUsageMapping(
+        nomisAddressUsageId = sysconAddressUsage.nomisAddressUsageId.toString(),
+        cprAddressUsageid = addressUsageEntity.updateId.toString(),
+      )
+    }
+
+    val addressContactMappings = sysconAddress.contacts
+      .mapNotNull { sysconAddressContact -> Contact.from(sysconAddressContact)?.let { sysconAddressContact.nomisContactId!!.toString() to it } }
+      .map { (nomisAddressContactId, coreContact) ->
         val contactEntity = contactRepository.save(ContactEntity.from(addressEntity, coreContact))
-        addressContactMappings.add(
-          AddressContactMapping(
-            nomisContactId = sysconContact.nomisContactId.toString(),
-            cprContactId = contactEntity.updateId.toString(),
-          ),
+        AddressContactMapping(
+          nomisContactId = nomisAddressContactId,
+          cprContactId = contactEntity.updateId.toString(),
         )
       }
-      addressMappings.add(
-        AddressMapping(
-          nomisAddressId = sysconAddress.nomisAddressId.toString(),
-          cprAddressId = addressEntity.updateId.toString(),
-          addressUsageMappings = addressUsageMappings,
-          addressContactMappings = addressContactMappings,
-        ),
-      )
-    }
-    return addressMappings
+
+    AddressMapping(
+      nomisAddressId = sysconAddress.nomisAddressId.toString(),
+      cprAddressId = addressEntity.updateId.toString(),
+      addressUsageMappings = addressUsageMappings,
+      addressContactMappings = addressContactMappings,
+    )
   }
 
-  private fun overwriteContacts(personEntity: PersonEntity, prisoner: Prisoner): List<PersonContactMapping> {
-    val contactMappings = mutableListOf<PersonContactMapping>()
-    prisoner.personContacts.forEach { sysconContact ->
-      val coreContact = Contact.from(sysconContact) ?: return@forEach
+  private fun overwriteContacts(personEntity: PersonEntity, prisoner: Prisoner): List<PersonContactMapping> = prisoner.personContacts
+    .mapNotNull { sysconContact -> Contact.from(sysconContact)?.let { sysconContact.nomisContactId!!.toString() to it } }
+    .map { (nomisPersonContactId, coreContact) ->
       val contactEntity = contactRepository.save(ContactEntity.from(personEntity, coreContact))
-      contactMappings.add(
-        PersonContactMapping(
-          nomisContactId = sysconContact.nomisContactId.toString(),
-          cprContactId = contactEntity.updateId.toString(),
-        ),
+      PersonContactMapping(
+        nomisContactId = nomisPersonContactId,
+        cprContactId = contactEntity.updateId.toString(),
       )
     }
-    return contactMappings
-  }
 
   private fun overwritePseudonym(personEntity: PersonEntity, prisoner: Prisoner): List<AliasMapping> {
     val aliasMappings = mutableListOf<AliasMapping>()
-    prisoner.aliases.forEach { sysconAlias ->
-      val coreAlias = Alias.from(sysconAlias)
-      val pseudonymEntity = if (sysconAlias.isPrimary == true) coreAlias.primaryNameFromElseNull(personEntity) else PseudonymEntity.aliasFrom(personEntity, coreAlias)
-      if (pseudonymEntity == null) return@forEach
+    prisoner.aliases
+      .forEach { sysconAlias ->
+        val coreAlias = Alias.from(sysconAlias)
+        val pseudonymEntity = if (sysconAlias.isPrimary == true) coreAlias.primaryNameFromElseNull(personEntity) else PseudonymEntity.aliasFrom(personEntity, coreAlias)
+        if (pseudonymEntity == null) return@forEach
 
-      val aliasEntity = if (pseudonymEntity.nameType == NameType.PRIMARY) {
-        val hardCodedPrimary = pseudonymRepository.findById(personEntity.pseudonyms.first().id!!).orElseThrow()
-        hardCodedPrimary.firstName = sysconAlias.firstName
-        hardCodedPrimary.middleNames = sysconAlias.middleNames
-        hardCodedPrimary.lastName = sysconAlias.lastName
-        hardCodedPrimary.titleCode = sysconAlias.titleCode
-        hardCodedPrimary.dateOfBirth = sysconAlias.dateOfBirth
-        hardCodedPrimary.sexCode = prisoner.demographicAttributes.sexCode
-        pseudonymRepository.save(hardCodedPrimary)
-      } else {
-        pseudonymRepository.save(pseudonymEntity)
-      }
+        val aliasEntity = if (pseudonymEntity.nameType == NameType.PRIMARY) {
+          val hardCodedPrimary = pseudonymRepository.findById(personEntity.pseudonyms.first().id!!).orElseThrow()
+          hardCodedPrimary.firstName = sysconAlias.firstName
+          hardCodedPrimary.middleNames = sysconAlias.middleNames
+          hardCodedPrimary.lastName = sysconAlias.lastName
+          hardCodedPrimary.titleCode = sysconAlias.titleCode
+          hardCodedPrimary.dateOfBirth = sysconAlias.dateOfBirth
+          hardCodedPrimary.sexCode = prisoner.demographicAttributes.sexCode
+          pseudonymRepository.save(hardCodedPrimary)
+        } else {
+          pseudonymRepository.save(pseudonymEntity)
+        }
 
-      // TODO: these will need to change to link against pseudonym after 1065. (don't forget to take out of alias loop)
-      val referenceMappings = mutableListOf<IdentifierMapping>()
-      sysconAlias.identifiers.forEach { sysconIdentifier ->
-        val coreReference = Reference.from(sysconIdentifier)
-        val referenceEntity = referenceRepository.save(ReferenceEntity.from(personEntity, coreReference))
-        referenceMappings.add(
-          IdentifierMapping(
-            nomisIdentifierId = sysconIdentifier.nomisIdentifierId.toString(),
-            cprIdentifierId = referenceEntity.updateId.toString(),
+        // TODO: these will need to change to link against pseudonym after 1065. (don't forget to take out of alias loop)
+        val referenceMappings = mutableListOf<IdentifierMapping>()
+        sysconAlias.identifiers.forEach { sysconIdentifier ->
+          val coreReference = Reference.from(sysconIdentifier)
+          val referenceEntity = referenceRepository.save(ReferenceEntity.from(personEntity, coreReference))
+          referenceMappings.add(
+            IdentifierMapping(
+              nomisIdentifierId = sysconIdentifier.nomisIdentifierId.toString(),
+              cprIdentifierId = referenceEntity.updateId.toString(),
+            ),
+          )
+        }
+
+        aliasMappings.add(
+          AliasMapping(
+            nomisPseudonymId = sysconAlias.nomisAliasId.toString(),
+            cprPseudonymId = aliasEntity.updateId.toString(),
+            identifierMappings = referenceMappings,
           ),
         )
       }
-
-      aliasMappings.add(
-        AliasMapping(
-          nomisPseudonymId = sysconAlias.nomisAliasId.toString(),
-          cprPseudonymId = aliasEntity.updateId.toString(),
-          identifierMappings = referenceMappings,
-        ),
-      )
-    }
     return aliasMappings
   }
 
   private fun overwriteSentenceInfo(personEntity: PersonEntity, prisoner: Prisoner) {
-    prisoner.sentences.forEach { sysconSentence ->
-      val sentenceInfoEntity = sysconSentence.sentenceDate?.let { SentenceInfoEntity.from(personEntity, it) } ?: return@forEach
-      sentenceInfoRepository.save(sentenceInfoEntity)
-    }
+    prisoner.sentences
+      .mapNotNull { sysconSentence -> sysconSentence.sentenceDate?.let { SentenceInfoEntity.from(personEntity, it) } }
+      .forEach { sentenceInfoEntity ->
+        sentenceInfoRepository.save(sentenceInfoEntity)
+      }
   }
 
   private fun Alias.primaryNameFromElseNull(personEntity: PersonEntity) = when {
