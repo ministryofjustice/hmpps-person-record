@@ -150,6 +150,45 @@ class SysconSyncControllerIntTest : WebTestBase() {
 
       responseBody.isEqualTo(expectedResponseBody)
     }
+
+    @Test
+    fun `sending 2 syscon alias - one is primary & one is not - saves two pseudonyms records - returns two alias mappings`() {
+      val prisonNumber = randomPrisonNumber()
+      createRandomPrisonPerson(prisonNumber)
+
+      val request = buildRequestBody()
+      val aliasList = request.aliases + SysconAlias(
+        nomisAliasId = randomCId().toLong(),
+        titleCode = randomTitleCode().value.name,
+        firstName = randomName(),
+        middleNames = randomName(),
+        lastName = randomName(),
+        dateOfBirth = LocalDate.now().minusYears((30..70).random().toLong()),
+        sexCode = SexCode.entries.random(),
+        isPrimary = false,
+        identifiers = listOf(
+          SysconIdentifier(
+            nomisIdentifierId = randomCId().toLong(),
+            type = SysconIdentifierType.PNC,
+            value = randomName(),
+            comment = randomName(),
+          ),
+        ),
+      )
+      val updatePrisonerRequestBody = request.copy(aliases = aliasList)
+
+      val responseBody = sendPutRequestAsserted<SysconUpdatePersonResponse>(
+        url = "/syscon-sync/person/$prisonNumber",
+        body = updatePrisonerRequestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.OK,
+      ).returnResult().responseBody!!
+
+      assertThat(responseBody.pseudonymMappings.size).isEqualTo(2)
+
+      val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail { "Prisoner record was expected to be found" }
+      assertThat(actualPersonEntity.pseudonyms.size).isEqualTo(2)
+    }
   }
 
   @Nested
@@ -245,7 +284,6 @@ class SysconSyncControllerIntTest : WebTestBase() {
   private fun assertDatabase(prisonNumber: String, updatedPrisonerRequest: Prisoner, isWriteExpected: Boolean = true) {
     if (isWriteExpected) {
       val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail { "Prisoner record was expected to be found" }
-      assertThat(actualPersonEntity.pseudonyms.size).isEqualTo(updatedPrisonerRequest.aliases.size)
 
       val actualPerson = Person.from(actualPersonEntity)
       val expectedPerson = Person.from(updatedPrisonerRequest, prisonNumber).copy(

@@ -124,14 +124,14 @@ class SysconPersonUpdateHandler(
       if (pseudonymEntity == null) return@forEach // TODO: may break reconciliations
 
       val aliasEntity = if (pseudonymEntity.nameType == NameType.PRIMARY) {
-        val existing = pseudonymRepository.findById(personEntity.pseudonyms.first().id!!).orElseThrow()
-        existing.firstName = sysconAlias.firstName
-        existing.middleNames = sysconAlias.middleNames
-        existing.lastName = sysconAlias.lastName
-        existing.titleCode = TitleCode.from(sysconAlias.titleCode)
-        existing.dateOfBirth = sysconAlias.dateOfBirth
-        existing.sexCode = prisoner.demographicAttributes.sexCode
-        pseudonymRepository.save(existing)
+        val hardCodedPrimary = pseudonymRepository.findById(personEntity.pseudonyms.first().id!!).orElseThrow()
+        hardCodedPrimary.firstName = sysconAlias.firstName
+        hardCodedPrimary.middleNames = sysconAlias.middleNames
+        hardCodedPrimary.lastName = sysconAlias.lastName
+        hardCodedPrimary.titleCode = TitleCode.from(sysconAlias.titleCode)
+        hardCodedPrimary.dateOfBirth = sysconAlias.dateOfBirth
+        hardCodedPrimary.sexCode = prisoner.demographicAttributes.sexCode
+        pseudonymRepository.save(hardCodedPrimary)
       } else {
         pseudonymRepository.save(pseudonymEntity)
       }

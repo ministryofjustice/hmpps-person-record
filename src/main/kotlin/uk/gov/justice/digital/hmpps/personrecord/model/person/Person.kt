@@ -226,7 +226,7 @@ data class Person(
       val primaryAlias = prisoner.aliases.firstOrNull { it.isPrimary == true } ?: throw IllegalArgumentException("No primary alias was found for update on prisoner $prisonNumber")
 
       val references = prisoner.aliases
-        .flatMap { it.identifiers?.toList() ?: emptyList() }
+        .flatMap { it.identifiers.toList() }
         .map { Reference.from(it) }
 
       return Person(
