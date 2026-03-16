@@ -90,58 +90,40 @@ class SysconSyncControllerIntTest : WebTestBase() {
       )
 
       val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("Expected to find Person")
-
-      val personAddressEntity = personEntity.addresses.first()
-      val addressUsageEntityUpdateId = personAddressEntity.usages.first().updateId.toString()
-      val addressContactEntityUpdateId = personAddressEntity.contacts.first().updateId.toString()
-
-      val personContactEntityUpdateId = personEntity.contacts.first().updateId.toString()
-
-      val pseudonymEntityUpdateId = personEntity.pseudonyms.first().updateId.toString()
-
-      val personReferenceEntityUpdateId = personEntity.references.first().updateId.toString()
-
-      val expectedAddressNomisId = updatePrisonerRequestBody.addresses.first().nomisAddressId.toString()
-      val expectedAddressUsageNomisId = updatePrisonerRequestBody.addresses.first().addressUsage.first().nomisAddressUsageId.toString()
-      val expectedAddressContactNomisId = updatePrisonerRequestBody.addresses.first().contacts.first().nomisContactId.toString()
-      val expectedPersonContactNomisId = updatePrisonerRequestBody.personContacts.first().nomisContactId.toString()
-      val expectedPseudonymNomisId = updatePrisonerRequestBody.aliases.first().nomisAliasId.toString()
-      val expectedReferenceNomisId = updatePrisonerRequestBody.aliases.first().identifiers.first().nomisIdentifierId.toString()
-
       val expectedResponseBody = SysconUpdatePersonResponse(
         prisonerId = prisonNumber,
         addressMappings = listOf(
           AddressMapping(
-            nomisAddressId = expectedAddressNomisId,
-            cprAddressId = personAddressEntity.updateId.toString(),
+            nomisAddressId = updatePrisonerRequestBody.addresses.first().nomisAddressId.toString(),
+            cprAddressId = personEntity.addresses.first().updateId.toString(),
             addressUsageMappings = listOf(
               AddressUsageMapping(
-                nomisAddressUsageId = expectedAddressUsageNomisId,
-                cprAddressUsageid = addressUsageEntityUpdateId,
+                nomisAddressUsageId = updatePrisonerRequestBody.addresses.first().addressUsage.first().nomisAddressUsageId.toString(),
+                cprAddressUsageid = personEntity.addresses.first().usages.first().updateId.toString(),
               ),
             ),
             addressContactMappings = listOf(
               AddressContactMapping(
-                nomisContactId = expectedAddressContactNomisId,
-                cprContactId = addressContactEntityUpdateId,
+                nomisContactId = updatePrisonerRequestBody.addresses.first().contacts.first().nomisContactId.toString(),
+                cprContactId = personEntity.addresses.first().contacts.first().updateId.toString(),
               ),
             ),
           ),
         ),
         personContactMappings = listOf(
           PersonContactMapping(
-            nomisContactId = expectedPersonContactNomisId,
-            cprContactId = personContactEntityUpdateId,
+            nomisContactId = updatePrisonerRequestBody.personContacts.first().nomisContactId.toString(),
+            cprContactId = personEntity.contacts.first().updateId.toString(),
           ),
         ),
         pseudonymMappings = listOf(
           AliasMapping(
-            nomisPseudonymId = expectedPseudonymNomisId,
-            cprPseudonymId = pseudonymEntityUpdateId,
+            nomisPseudonymId = updatePrisonerRequestBody.aliases.first().nomisAliasId.toString(),
+            cprPseudonymId = personEntity.pseudonyms.first().updateId.toString(),
             identifierMappings = listOf(
               IdentifierMapping(
-                nomisIdentifierId = expectedReferenceNomisId,
-                cprIdentifierId = personReferenceEntityUpdateId,
+                nomisIdentifierId = updatePrisonerRequestBody.aliases.first().identifiers.first().nomisIdentifierId.toString(),
+                cprIdentifierId = personEntity.references.first().updateId.toString(),
               ),
             ),
           ),
