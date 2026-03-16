@@ -231,22 +231,23 @@ data class Person(
 
       return Person(
         prisonNumber = prisonNumber,
-        titleCode = TitleCode.from(primaryAlias.titleCode),
+        titleCode = primaryAlias.titleCode,
         firstName = primaryAlias.firstName.nullIfBlank(),
         middleNames = primaryAlias.middleNames?.nullIfBlank(),
         lastName = primaryAlias.lastName.nullIfBlank(),
         dateOfBirth = primaryAlias.dateOfBirth,
-        ethnicityCode = EthnicityCode.fromPrison(prisoner.demographicAttributes.ethnicityCode),
+        ethnicityCode = prisoner.demographicAttributes.ethnicityCode,
         aliases = prisoner.aliases.map { Alias.from(it) },
         contacts = prisoner.personContacts.map { contact -> Contact(contact.type, contact.value) },
         addresses = prisoner.addresses.map { Address.from(it) },
         references = references,
         sourceSystem = NOMIS,
-        nationalities = listOf(NationalityCode.fromPrisonCode(prisoner.demographicAttributes.nationalityCode)).mapNotNull { it },
+        nationalities = listOf(prisoner.demographicAttributes.nationalityCode).mapNotNull { it },
         nationalityNotes = prisoner.demographicAttributes.nationalityNote.nullIfBlank(),
         religion = prisoner.demographicAttributes.religionCode.nullIfBlank(),
         sentences = prisoner.sentences.map { SentenceInfo(it.sentenceDate) },
         sexCode = prisoner.demographicAttributes.sexCode,
+        sexualOrientation = prisoner.demographicAttributes.sexualOrientation,
         birthCountryCode = prisoner.demographicAttributes.birthCountryCode,
       )
     }

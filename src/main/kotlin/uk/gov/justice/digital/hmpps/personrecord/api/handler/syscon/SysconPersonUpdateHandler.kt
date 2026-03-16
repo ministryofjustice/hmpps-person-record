@@ -32,7 +32,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 
 @Component
 class SysconPersonUpdateHandler(
@@ -128,7 +127,7 @@ class SysconPersonUpdateHandler(
         hardCodedPrimary.firstName = sysconAlias.firstName
         hardCodedPrimary.middleNames = sysconAlias.middleNames
         hardCodedPrimary.lastName = sysconAlias.lastName
-        hardCodedPrimary.titleCode = TitleCode.from(sysconAlias.titleCode)
+        hardCodedPrimary.titleCode = sysconAlias.titleCode
         hardCodedPrimary.dateOfBirth = sysconAlias.dateOfBirth
         hardCodedPrimary.sexCode = prisoner.demographicAttributes.sexCode
         pseudonymRepository.save(hardCodedPrimary)
