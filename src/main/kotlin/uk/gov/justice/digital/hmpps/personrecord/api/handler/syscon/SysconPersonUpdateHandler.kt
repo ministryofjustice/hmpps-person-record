@@ -79,7 +79,7 @@ class SysconPersonUpdateHandler(
       }
       val addressContactMappings = mutableListOf<AddressContactMapping>()
       sysconAddress.contacts.forEach { sysconContact ->
-        val coreContact = Contact.from(sysconContact) ?: return@forEach // TODO: may break reconciliations
+        val coreContact = Contact.from(sysconContact) ?: return@forEach
         val contactEntity = contactRepository.save(ContactEntity.from(addressEntity, coreContact))
         addressContactMappings.add(
           AddressContactMapping(
@@ -103,7 +103,7 @@ class SysconPersonUpdateHandler(
   private fun overwriteContacts(personEntity: PersonEntity, prisoner: Prisoner): List<PersonContactMapping> {
     val contactMappings = mutableListOf<PersonContactMapping>()
     prisoner.personContacts.forEach { sysconContact ->
-      val coreContact = Contact.from(sysconContact) ?: return@forEach // TODO: may break reconciliations
+      val coreContact = Contact.from(sysconContact) ?: return@forEach
       val contactEntity = contactRepository.save(ContactEntity.from(personEntity, coreContact))
       contactMappings.add(
         PersonContactMapping(
@@ -120,7 +120,7 @@ class SysconPersonUpdateHandler(
     prisoner.aliases.forEach { sysconAlias ->
       val coreAlias = Alias.from(sysconAlias)
       val pseudonymEntity = if (sysconAlias.isPrimary == true) coreAlias.primaryNameFrom(personEntity) else PseudonymEntity.aliasFrom(personEntity, coreAlias)
-      if (pseudonymEntity == null) return@forEach // TODO: may break reconciliations
+      if (pseudonymEntity == null) return@forEach
 
       val aliasEntity = if (pseudonymEntity.nameType == NameType.PRIMARY) {
         val hardCodedPrimary = pseudonymRepository.findById(personEntity.pseudonyms.first().id!!).orElseThrow()
@@ -160,7 +160,6 @@ class SysconPersonUpdateHandler(
 
   private fun overwriteSentenceInfo(personEntity: PersonEntity, prisoner: Prisoner) {
     prisoner.sentences.forEach { sysconSentence ->
-      // TODO: may break reconciliations
       val sentenceInfoEntity = sysconSentence.sentenceDate?.let { SentenceInfoEntity.from(personEntity, it) } ?: return@forEach
       sentenceInfoRepository.save(sentenceInfoEntity)
     }

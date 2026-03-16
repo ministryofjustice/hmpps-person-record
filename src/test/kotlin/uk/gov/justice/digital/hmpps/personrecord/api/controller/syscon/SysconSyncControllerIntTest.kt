@@ -170,6 +170,31 @@ class SysconSyncControllerIntTest : WebTestBase() {
       val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail { "Prisoner record was expected to be found" }
       assertThat(actualPersonEntity.pseudonyms.size).isEqualTo(2)
     }
+
+    @Test
+    fun `an empty value for contact is sent - does not save contact`() {
+      val prisonNumber = randomPrisonNumber()
+      createRandomPrisonPerson(prisonNumber)
+
+      val updatePrisonerRequestBody = buildRequestBody().copy(
+        personContacts = listOf(
+          SysconContact(
+            nomisContactId = randomCId().toLong(),
+            value = null, // <--- null value
+            type = ContactType.entries.random(),
+            extension = null,
+          ),
+        ),
+      )
+      sendPutRequestAsserted<SysconUpdatePersonResponse>(
+        url = "/syscon-sync/person/$prisonNumber",
+        body = updatePrisonerRequestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.OK,
+      )
+
+      assertDatabase(prisonNumber, updatePrisonerRequestBody.copy(personContacts = emptyList()))
+    }
   }
 
   @Nested
