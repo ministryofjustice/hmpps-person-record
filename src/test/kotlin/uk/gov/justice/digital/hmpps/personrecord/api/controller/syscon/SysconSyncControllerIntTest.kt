@@ -190,7 +190,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       assertDatabase(prisonNumber, updatedPrisonerRequest, isWriteExpected = false)
     }
 
-    @Test // TODO: do we really want this?!?
+    @Test
     fun `no primary alias is sent - does not update - returns correct response`() {
       val prisonNumber = randomPrisonNumber()
       val originalPerson = createPerson(createRandomPrisonPersonDetails(prisonNumber))
