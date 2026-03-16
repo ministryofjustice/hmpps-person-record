@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.I
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.PersonContactMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconUpdatePersonResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.SentenceInfoRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
@@ -170,31 +171,6 @@ class SysconSyncControllerIntTest : WebTestBase() {
       val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail { "Prisoner record was expected to be found" }
       assertThat(actualPersonEntity.pseudonyms.size).isEqualTo(2)
     }
-
-    @Test
-    fun `an empty value for contact is sent - does not save contact`() {
-      val prisonNumber = randomPrisonNumber()
-      createRandomPrisonPerson(prisonNumber)
-
-      val updatePrisonerRequestBody = buildRequestBody().copy(
-        personContacts = listOf(
-          SysconContact(
-            nomisContactId = randomCId().toLong(),
-            value = null, // <--- null value
-            type = ContactType.entries.random(),
-            extension = null,
-          ),
-        ),
-      )
-      sendPutRequestAsserted<SysconUpdatePersonResponse>(
-        url = "/syscon-sync/person/$prisonNumber",
-        body = updatePrisonerRequestBody,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.OK,
-      )
-
-      assertDatabase(prisonNumber, updatePrisonerRequestBody.copy(personContacts = emptyList()))
-    }
   }
 
   @Nested
@@ -231,6 +207,91 @@ class SysconSyncControllerIntTest : WebTestBase() {
       val actualPerson = personRepository.findByPrisonNumber(prisonNumber)?.let { Person.from(it) } ?: fail { "Person not found for update on prisoner $prisonNumber" }
       val expectedPerson = Person.from(originalPerson)
       assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
+    }
+  }
+
+  @Nested
+  inner class RubbishData {
+    @Test
+    fun `empty value for person contact is sent - does not save contact`() {
+      val prisonNumber = randomPrisonNumber()
+      createRandomPrisonPerson(prisonNumber)
+
+      val updatePrisonerRequestBody = buildRequestBody().copy(
+        personContacts = listOf(
+          SysconContact(
+            nomisContactId = randomCId().toLong(),
+            value = " ", // <--- blank contact value
+            type = ContactType.entries.random(),
+            extension = null,
+          ),
+        ),
+      )
+      val actualResponseBody = sendPutRequestAsserted<SysconUpdatePersonResponse>(
+        url = "/syscon-sync/person/$prisonNumber",
+        body = updatePrisonerRequestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.OK,
+      ).returnResult().responseBody!!
+
+      val actualPersonEntity = assertDatabase(prisonNumber, updatePrisonerRequestBody.copy(personContacts = emptyList()))!!
+      assertThat(actualPersonEntity.contacts.size).isEqualTo(0)
+      assertThat(actualResponseBody.personContactMappings.size).isEqualTo(0)
+    }
+
+    @Test
+    fun `empty value for address contact is sent - does not save contact`() {
+    }
+
+    @Test
+    fun `no identifiable names sent for alias - does not save pseudonym`() {
+//      val prisonNumber = randomPrisonNumber()
+//      createRandomPrisonPerson(prisonNumber)
+//
+//      val updatePrisonerRequestBody = buildRequestBody().copy(
+//        aliases = listOf(
+//            buildAliasList().first().copy(
+//              isPrimary = true,
+//              firstName = " ",
+//              middleNames = "",
+//              lastName = " ",
+//          ),
+//          buildAliasList(hasPrimary = false).first()
+//        )
+//      )
+//      val actualResponseBody = sendPutRequestAsserted<SysconUpdatePersonResponse>(
+//        url = "/syscon-sync/person/$prisonNumber",
+//        body = updatePrisonerRequestBody,
+//        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+//        expectedStatus = HttpStatus.OK,
+//      ).returnResult().responseBody!!
+//
+//      val actualPersonEntity = assertDatabase(prisonNumber, updatePrisonerRequestBody)!!
+//      assertThat(actualPersonEntity.pseudonyms.size).isEqualTo(0)
+//      assertThat(actualResponseBody.pseudonymMappings.size).isEqualTo(0)
+    }
+
+    @Test
+    fun `no sentence date sent for sentence info - does not save sentence info`() {
+      val prisonNumber = randomPrisonNumber()
+      createRandomPrisonPerson(prisonNumber)
+
+      val updatePrisonerRequestBody = buildRequestBody().copy(
+        sentences = listOf(
+          SysconSentence(
+            sentenceDate = null,
+          ),
+        ),
+      )
+      sendPutRequestAsserted<SysconUpdatePersonResponse>(
+        url = "/syscon-sync/person/$prisonNumber",
+        body = updatePrisonerRequestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.OK,
+      )
+
+      val actualPersonEntity = assertDatabase(prisonNumber, updatePrisonerRequestBody.copy(sentences = emptyList()))!!
+      assertThat(actualPersonEntity.sentenceInfo.size).isEqualTo(0)
     }
   }
 
@@ -287,19 +348,20 @@ class SysconSyncControllerIntTest : WebTestBase() {
     return person
   }
 
-  private fun assertDatabase(prisonNumber: String, updatedPrisonerRequest: Prisoner, isWriteExpected: Boolean = true) {
-    if (isWriteExpected) {
-      val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail { "Prisoner record was expected to be found" }
+  private fun assertDatabase(prisonNumber: String, updatedPrisonerRequest: Prisoner, isWriteExpected: Boolean = true): PersonEntity? = if (isWriteExpected) {
+    val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail { "Prisoner record was expected to be found" }
 
-      val actualPerson = Person.from(actualPersonEntity)
-      val expectedPerson = Person.from(updatedPrisonerRequest, prisonNumber).copy(
-        personId = actualPerson.personId,
-        aliases = updatedPrisonerRequest.aliases.filter { it.isPrimary == false }.map { Alias.from(it) },
-      )
-      assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
-    } else {
-      assertThat(personRepository.findByPrisonNumber(prisonNumber)).isNull()
-    }
+    val actualPerson = Person.from(actualPersonEntity)
+    val expectedPerson = Person.from(updatedPrisonerRequest, prisonNumber).copy(
+      personId = actualPerson.personId,
+      aliases = updatedPrisonerRequest.aliases.filter { it.isPrimary == false }.map { Alias.from(it) },
+    )
+    assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
+    actualPersonEntity
+  } else {
+    val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber)
+    assertThat(actualPersonEntity).isNull()
+    null
   }
 
   companion object {

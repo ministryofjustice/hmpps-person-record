@@ -119,7 +119,7 @@ class SysconPersonUpdateHandler(
     val aliasMappings = mutableListOf<AliasMapping>()
     prisoner.aliases.forEach { sysconAlias ->
       val coreAlias = Alias.from(sysconAlias)
-      val pseudonymEntity = if (sysconAlias.isPrimary == true) coreAlias.primaryNameFrom(personEntity) else PseudonymEntity.aliasFrom(personEntity, coreAlias)
+      val pseudonymEntity = if (sysconAlias.isPrimary == true) coreAlias.primaryNameFromElseNull(personEntity) else PseudonymEntity.aliasFrom(personEntity, coreAlias)
       if (pseudonymEntity == null) return@forEach
 
       val aliasEntity = if (pseudonymEntity.nameType == NameType.PRIMARY) {
@@ -135,6 +135,7 @@ class SysconPersonUpdateHandler(
         pseudonymRepository.save(pseudonymEntity)
       }
 
+      // TODO: these will need to change to link against pseudonym after 1065. (don't forget to take out of alias loop)
       val referenceMappings = mutableListOf<IdentifierMapping>()
       sysconAlias.identifiers.forEach { sysconIdentifier ->
         val coreReference = Reference.from(sysconIdentifier)
@@ -165,16 +166,19 @@ class SysconPersonUpdateHandler(
     }
   }
 
-  fun Alias.primaryNameFrom(personEntity: PersonEntity): PseudonymEntity = PseudonymEntity(
-    person = personEntity,
-    firstName = this.firstName,
-    middleNames = this.middleNames,
-    lastName = this.lastName,
-    dateOfBirth = this.dateOfBirth,
-    nameType = NameType.PRIMARY,
-    titleCode = this.titleCode,
-    sexCode = this.sexCode,
-  )
+  private fun Alias.primaryNameFromElseNull(personEntity: PersonEntity) = when {
+    sequenceOf(this.firstName, this.middleNames, this.lastName).filterNotNull().any { it.isNotBlank() } -> PseudonymEntity(
+      person = personEntity,
+      firstName = this.firstName,
+      middleNames = this.middleNames,
+      lastName = this.lastName,
+      dateOfBirth = this.dateOfBirth,
+      nameType = NameType.PRIMARY,
+      titleCode = this.titleCode,
+      sexCode = this.sexCode,
+    )
+    else -> null
+  }
 
   private fun updateRootPersonOnlyAndDeletePersonChildTables(personEntity: PersonEntity, prisoner: Prisoner) {
     val person = Person.from(prisoner, personEntity.prisonNumber!!)
