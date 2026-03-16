@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.A
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.AddressMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.AddressUsageMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.AliasMapping
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.IdentifierMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.PersonContactMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconUpdatePersonResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -96,14 +97,17 @@ class SysconSyncControllerIntTest : WebTestBase() {
 
       val personContactEntityUpdateId = personEntity.contacts.first().updateId.toString()
 
-      val pseudonymEntities = personEntity.pseudonyms.first()
+      val pseudonymEntityUpdateId = personEntity.pseudonyms.first().updateId.toString()
 
-      val personReferenceEntities = personEntity.references.first()
+      val personReferenceEntityUpdateId = personEntity.references.first().updateId.toString()
 
       val expectedAddressNomisId = updatePrisonerRequestBody.addresses.first().nomisAddressId.toString()
       val expectedAddressUsageNomisId = updatePrisonerRequestBody.addresses.first().addressUsage.first().nomisAddressUsageId.toString()
       val expectedAddressContactNomisId = updatePrisonerRequestBody.addresses.first().contacts.first().nomisContactId.toString()
       val expectedPersonContactNomisId = updatePrisonerRequestBody.personContacts.first().nomisContactId.toString()
+      val expectedPseudonymNomisId = updatePrisonerRequestBody.aliases.first().nomisAliasId.toString()
+      val expectedReferenceNomisId = updatePrisonerRequestBody.aliases.first().identifiers.first().nomisIdentifierId.toString()
+
       val expectedResponseBody = SysconUpdatePersonResponse(
         prisonerId = prisonNumber,
         addressMappings = listOf(
@@ -132,9 +136,14 @@ class SysconSyncControllerIntTest : WebTestBase() {
         ),
         pseudonymMappings = listOf(
           AliasMapping(
-            nomisPseudonymId = TODO(),
-            cprPseudonymId = TODO(),
-            identifierMappings = TODO(),
+            nomisPseudonymId = expectedPseudonymNomisId,
+            cprPseudonymId = pseudonymEntityUpdateId,
+            identifierMappings = listOf(
+              IdentifierMapping(
+                nomisIdentifierId = expectedReferenceNomisId,
+                cprIdentifierId = personReferenceEntityUpdateId,
+              ),
+            ),
           ),
         ),
       )

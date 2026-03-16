@@ -73,7 +73,7 @@ class SysconPersonUpdateHandler(
         val addressUsageEntity = addressUsageRepository.save(AddressUsageEntity.from(addressEntity, coreAddressUsage))
         addressUsageMappings.add(
           AddressUsageMapping(
-            nomisAddressUsageId = sysconAddress.nomisAddressId.toString(),
+            nomisAddressUsageId = sysconAddressUsage.nomisAddressUsageId.toString(),
             cprAddressUsageid = addressUsageEntity.updateId.toString(),
           ),
         )
