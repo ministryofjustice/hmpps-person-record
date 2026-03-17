@@ -123,7 +123,7 @@ class SysconPersonUpdateHandler(
           pseudonymRepository.save(pseudonymEntity)
         }
 
-        // TODO: these will need to change to link against pseudonym after 1065. (don't forget to take out of alias loop)
+        // TODO: these will need to change to link against pseudonym after 1065.
         val referenceMappings = mutableListOf<IdentifierMapping>()
         sysconAlias.identifiers.forEach { sysconIdentifier ->
           val coreReference = Reference.from(sysconIdentifier)
