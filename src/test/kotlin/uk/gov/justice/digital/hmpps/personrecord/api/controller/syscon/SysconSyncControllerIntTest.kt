@@ -213,7 +213,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
   @Nested
   inner class RubbishData {
     @Test
-    fun `empty value for person contact is sent - does not save contact`() {
+    fun `empty value for person contact is sent - does not save contact - saves everything else`() {
       val prisonNumber = randomPrisonNumber()
       createRandomPrisonPerson(prisonNumber)
 
@@ -240,23 +240,27 @@ class SysconSyncControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `empty value for address contact is sent - does not save contact`() {
+    fun `empty value for address contact is sent - does not save contact - saves everything else`() {
     }
 
-    @Test
-    fun `no identifiable names sent for alias - does not save pseudonym`() {
+    // TODO: update after 1064
+//    @Test
+//    fun `no identifiable names sent for alias - does not save pseudonym - saves everything else`() {
 //      val prisonNumber = randomPrisonNumber()
 //      createRandomPrisonPerson(prisonNumber)
 //
+//      val onlyExpectedAlias = buildAliasList(hasPrimary = false).first()
+//      val onlyExpectedReferences = onlyExpectedAlias.identifiers
 //      val updatePrisonerRequestBody = buildRequestBody().copy(
 //        aliases = listOf(
-//            buildAliasList().first().copy(
-//              isPrimary = true,
-//              firstName = " ",
-//              middleNames = "",
-//              lastName = " ",
+//          buildAliasList(hasPrimary = true).first(),
+//          buildAliasList().first().copy(
+//            isPrimary = false,
+//            firstName = " ",
+//            middleNames = "",
+//            lastName = " ",
 //          ),
-//          buildAliasList(hasPrimary = false).first()
+//          onlyExpectedAlias,
 //        )
 //      )
 //      val actualResponseBody = sendPutRequestAsserted<SysconUpdatePersonResponse>(
@@ -266,13 +270,20 @@ class SysconSyncControllerIntTest : WebTestBase() {
 //        expectedStatus = HttpStatus.OK,
 //      ).returnResult().responseBody!!
 //
-//      val actualPersonEntity = assertDatabase(prisonNumber, updatePrisonerRequestBody)!!
+//      val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail { "Prisoner record was expected to be found" }
+//      val actualPerson = Person.from(actualPersonEntity)
+//      val expectedPerson = Person.from(updatePrisonerRequestBody, prisonNumber).copy(
+//        personId = actualPerson.personId,
+//        aliases = listOf(Alias.from(onlyExpectedAlias)),
+//        references = onlyExpectedReferences.map { Reference.from(it) }
+//      )
+//      assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
 //      assertThat(actualPersonEntity.pseudonyms.size).isEqualTo(0)
 //      assertThat(actualResponseBody.pseudonymMappings.size).isEqualTo(0)
-    }
+//    }
 
     @Test
-    fun `no sentence date sent for sentence info - does not save sentence info`() {
+    fun `no sentence date sent for sentence info - does not save sentence info - saves evertyhing else`() {
       val prisonNumber = randomPrisonNumber()
       createRandomPrisonPerson(prisonNumber)
 

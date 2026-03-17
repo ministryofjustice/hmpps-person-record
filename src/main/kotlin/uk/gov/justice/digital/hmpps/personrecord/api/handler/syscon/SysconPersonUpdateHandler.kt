@@ -56,7 +56,7 @@ class SysconPersonUpdateHandler(
     ).also {
       overwriteSentenceInfo(personEntity, prisoner)
 
-      // trigger person match, recluster, telemetry?!?
+      // TODO: trigger person match, recluster, telemetry?!?
     }
     updateResult
   } ?: throw ResourceNotFoundException("Prisoner not found $prisonNumber")
@@ -123,7 +123,7 @@ class SysconPersonUpdateHandler(
           pseudonymRepository.save(pseudonymEntity)
         }
 
-        // TODO: these will need to change to link against pseudonym after 1065.
+        // TODO: these will need to change to link against pseudonym after 1064.
         val referenceMappings = mutableListOf<IdentifierMapping>()
         sysconAlias.identifiers.forEach { sysconIdentifier ->
           val coreReference = Reference.from(sysconIdentifier)
