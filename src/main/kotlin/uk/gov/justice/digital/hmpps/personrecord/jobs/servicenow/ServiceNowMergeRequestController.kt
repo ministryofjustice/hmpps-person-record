@@ -31,7 +31,6 @@ class ServiceNowMergeRequestController(
   @Transactional
   @RequestMapping(method = [POST], value = ["/jobs/service-now/generate-delius-merge-requests"])
   fun collectAndReport(): String {
-    // TODO ignore merged records
     getClustersForMergeRequests().forEach {
       val payload = ServiceNowMergeRequestPayload(
         sysParmId = sysParmId,
@@ -50,28 +49,28 @@ class ServiceNowMergeRequestController(
   fun getClustersForMergeRequests(): List<MergeRequestItem> {
     log.info("starting")
     val thisTimeYesterday = LocalDateTime.now().minusDays(1)
-    val findByLastModifiedAfter = personRepository.findByLastModifiedBetween(
+    val recordsModifiedYesterday = personRepository.findByLastModifiedBetween(
       thisTimeYesterday,
       thisTimeYesterday.plusHours(HOURS_TO_CHOOSE_FROM),
     )
-    log.info("finished getting modified clusters for ${findByLastModifiedAfter.size}")
-    val distinctBy = findByLastModifiedAfter
+    log.info("finished getting modified clusters for ${recordsModifiedYesterday.size}")
+    val clusters = recordsModifiedYesterday
       .distinctBy { it.personKey }
 
-    log.info("Got distinct ${distinctBy.size}")
+    log.info("Got distinct ${clusters.size}")
 
-    val dupes = distinctBy.filter { hasMoreThanOneProbationRecord(it) }
-    log.info("Got duplicates ${dupes.size}")
+    val clustersWithMoreThanOneProbationRecord = clusters.filter { hasMoreThanOneProbationRecord(it) }
+    log.info("Found ${clustersWithMoreThanOneProbationRecord.size} clusters with more than one probation record")
 
-    val noDoubles = dupes.filterNot { mergeRequestAlreadyMade(it.personKey!!.personUUID!!) }
-    log.info("removed requests already made ${noDoubles.size}")
-    val five = noDoubles.take(CLUSTER_TO_PROCESS_COUNT)
-    log.info("taken five ${five.size}")
-    val mapped = five.map {
+    val clustersWithNoExistingMergeRequest = clustersWithMoreThanOneProbationRecord.filterNot { mergeRequestAlreadyMade(it.personKey!!.personUUID!!) }
+    log.info("removed ${clustersWithNoExistingMergeRequest.size} requests already made")
+    val mergeRequestItems = clustersWithNoExistingMergeRequest.take(CLUSTER_TO_PROCESS_COUNT).map {
       log.info(
-        " probation records ${it.personKey!!.personEntities.filter { person ->
-          person.isProbationRecord()
-        }.size}",
+        "probation records on cluster: ${
+          it.personKey!!.personEntities.filter { person ->
+            person.isProbationRecord()
+          }.size
+        }",
       )
       MergeRequestItem(
         it.personKey!!.personUUID!!,
@@ -80,8 +79,8 @@ class ServiceNowMergeRequestController(
         }.map { person -> MergeRequestDetails.from(person) },
       )
     }
-    log.info("mapped ${mapped.size}")
-    return mapped
+    log.info("Merge requests to be made:  ${mergeRequestItems.size}")
+    return mergeRequestItems
   }
 
   private fun hasMoreThanOneProbationRecord(person: PersonEntity): Boolean = person.personKey!!.personEntities.count { it.isProbationRecord() } > 1
