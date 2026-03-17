@@ -5,10 +5,13 @@ import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -28,6 +31,9 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
 
   @Value($$"${service-now.requested-for}")
   lateinit var requestedFor: String
+
+  @Autowired
+  lateinit var serviceNowMergeRequestRepository: ServiceNowMergeRequestRepository
 
   var serviceNowStub: StubMapping? = null
 
@@ -109,7 +115,7 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
     createPersonKey()
       .addPerson(person7)
       .addPerson(person8)
-    createPersonKey()
+    val fifthPerson = createPersonKey()
       .addPerson(person9)
       .addPerson(person10)
     createPersonKey()
@@ -134,6 +140,7 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
+    awaitAssert { assertThat(serviceNowMergeRequestRepository.existsByPersonUUID(fifthPerson.personUUID!!)).isTrue() }
     wiremock.verify(5, RequestPatternBuilder.like(serviceNowStub?.request))
   }
 
@@ -145,7 +152,7 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
 
     val person1 = createRandomProbationPersonDetails(crn1)
     val person2 = createRandomProbationPersonDetails(crn2)
-    createPersonKey()
+    val cluster = createPersonKey()
       .addPerson(person1)
       .addPerson(person2)
 
@@ -157,7 +164,7 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
-
+    awaitAssert { assertThat(serviceNowMergeRequestRepository.existsByPersonUUID(cluster.personUUID!!)).isTrue() }
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)
       .exchange()
