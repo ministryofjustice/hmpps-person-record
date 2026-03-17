@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.math.min
 
 @Profile("!prod")
 @Component
@@ -47,23 +48,25 @@ class ServiceNowMergeRequestService(
       thisTimeYesterday,
       thisTimeYesterday.plusHours(HOURS_TO_CHOOSE_FROM),
     )
-    log.info("finished getting modified clusters for ${recordsModifiedYesterday.size}")
+    log.info("finished getting ${recordsModifiedYesterday.size} modified clusters")
     val clusters = recordsModifiedYesterday
       .distinctBy { it.personKey }
 
-    log.info("Got distinct ${clusters.size}")
+    log.info("Got ${clusters.size} distinct clusters")
 
     val clustersWithMoreThanOneProbationRecord = clusters.filter { hasMoreThanOneProbationRecord(it) }
     log.info("Found ${clustersWithMoreThanOneProbationRecord.size} clusters with more than one probation record")
 
     val clustersWithNoExistingMergeRequest = clustersWithMoreThanOneProbationRecord.filterNot { mergeRequestAlreadyMade(it.personKey!!.personUUID!!) }
-    log.info("removed ${clustersWithNoExistingMergeRequest.size} requests already made")
-    val mergeRequestItems = clustersWithNoExistingMergeRequest.take(CLUSTER_TO_PROCESS_COUNT).map {
+    log.info("Removed ${clustersWithMoreThanOneProbationRecord.size - clustersWithNoExistingMergeRequest.size} requests already made")
+    val requestsCount = min(CLUSTER_TO_PROCESS_COUNT, clustersWithNoExistingMergeRequest.size)
+    log.info("Sending $requestsCount requests")
+    return clustersWithNoExistingMergeRequest.take(CLUSTER_TO_PROCESS_COUNT).map {
       log.info(
-        "probation records on cluster: ${
-          it.personKey!!.personEntities.filter { person ->
+        "Number of probation records on cluster: ${
+          it.personKey!!.personEntities.count { person ->
             person.isProbationRecord()
-          }.size
+          }
         }",
       )
       MergeRequestItem(
@@ -73,8 +76,6 @@ class ServiceNowMergeRequestService(
         }.map { person -> MergeRequestDetails.from(person) },
       )
     }
-    log.info("Merge requests to be made:  ${mergeRequestItems.size}")
-    return mergeRequestItems
   }
 
   private fun hasMoreThanOneProbationRecord(person: PersonEntity): Boolean = person.personKey!!.personEntities.count { it.isProbationRecord() } > 1
