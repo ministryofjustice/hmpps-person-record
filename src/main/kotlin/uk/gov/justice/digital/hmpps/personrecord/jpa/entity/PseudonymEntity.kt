@@ -97,12 +97,6 @@ class PseudonymEntity(
       else -> null
     }
 
-    fun aliasFrom(personEntity: PersonEntity, alias: Alias): PseudonymEntity? {
-      val aliasEntity = aliasFrom(alias)
-      aliasEntity?.let { it.person = personEntity }
-      return aliasEntity
-    }
-
     private fun isAliasPresent(firstName: String?, middleNames: String?, surname: String?): Boolean = sequenceOf(firstName, middleNames, surname)
       .filterNotNull().any { it.isNotBlank() }
   }

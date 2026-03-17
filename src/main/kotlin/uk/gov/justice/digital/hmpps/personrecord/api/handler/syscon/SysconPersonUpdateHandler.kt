@@ -32,6 +32,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
+import java.time.LocalDate
 
 @Component
 class SysconPersonUpdateHandler(
@@ -62,11 +63,11 @@ class SysconPersonUpdateHandler(
 
   fun overwriteAddresses(personEntity: PersonEntity, prisoner: Prisoner): List<AddressMapping> = prisoner.addresses.map { sysconAddress ->
     val coreAddress = Address.from(sysconAddress).copy(usages = emptyList(), contacts = emptyList())
-    val addressEntity = addressRepository.save(AddressEntity.from(personEntity, coreAddress))
+    val addressEntity = addressRepository.save(coreAddress.toEntity(personEntity))
 
     val addressUsageMappings = sysconAddress.addressUsage.map { sysconAddressUsage ->
       val coreAddressUsage = AddressUsage.from(sysconAddressUsage)
-      val addressUsageEntity = addressUsageRepository.save(AddressUsageEntity.from(addressEntity, coreAddressUsage))
+      val addressUsageEntity = addressUsageRepository.save(coreAddressUsage.toEntity(addressEntity))
       AddressUsageMapping(
         nomisAddressUsageId = sysconAddressUsage.nomisAddressUsageId.toString(),
         cprAddressUsageid = addressUsageEntity.updateId.toString(),
@@ -76,7 +77,7 @@ class SysconPersonUpdateHandler(
     val addressContactMappings = sysconAddress.contacts
       .mapNotNull { sysconAddressContact -> Contact.from(sysconAddressContact)?.let { sysconAddressContact.nomisContactId!!.toString() to it } }
       .map { (nomisAddressContactId, coreContact) ->
-        val contactEntity = contactRepository.save(ContactEntity.from(addressEntity, coreContact))
+        val contactEntity = contactRepository.save(coreContact.toEntity(addressEntity))
         AddressContactMapping(
           nomisContactId = nomisAddressContactId,
           cprContactId = contactEntity.updateId.toString(),
@@ -94,7 +95,7 @@ class SysconPersonUpdateHandler(
   private fun overwriteContacts(personEntity: PersonEntity, prisoner: Prisoner): List<PersonContactMapping> = prisoner.personContacts
     .mapNotNull { sysconContact -> Contact.from(sysconContact)?.let { sysconContact.nomisContactId!!.toString() to it } }
     .map { (nomisPersonContactId, coreContact) ->
-      val contactEntity = contactRepository.save(ContactEntity.from(personEntity, coreContact))
+      val contactEntity = contactRepository.save(coreContact.toEntity(personEntity))
       PersonContactMapping(
         nomisContactId = nomisPersonContactId,
         cprContactId = contactEntity.updateId.toString(),
@@ -106,7 +107,7 @@ class SysconPersonUpdateHandler(
     prisoner.aliases
       .forEach { sysconAlias ->
         val coreAlias = Alias.from(sysconAlias)
-        val pseudonymEntity = if (sysconAlias.isPrimary == true) coreAlias.primaryNameFromElseNull(personEntity) else PseudonymEntity.aliasFrom(personEntity, coreAlias)
+        val pseudonymEntity = if (sysconAlias.isPrimary == true) coreAlias.primaryNameFromElseNull(personEntity) else coreAlias.toEntity(personEntity)
         if (pseudonymEntity == null) return@forEach
 
         val aliasEntity = if (pseudonymEntity.nameType == NameType.PRIMARY) {
@@ -126,7 +127,7 @@ class SysconPersonUpdateHandler(
         val referenceMappings = mutableListOf<IdentifierMapping>()
         sysconAlias.identifiers.forEach { sysconIdentifier ->
           val coreReference = Reference.from(sysconIdentifier)
-          val referenceEntity = referenceRepository.save(ReferenceEntity.from(personEntity, coreReference))
+          val referenceEntity = referenceRepository.save(coreReference.toEntity(personEntity))
           referenceMappings.add(
             IdentifierMapping(
               nomisIdentifierId = sysconIdentifier.nomisIdentifierId.toString(),
@@ -148,10 +149,40 @@ class SysconPersonUpdateHandler(
 
   private fun overwriteSentenceInfo(personEntity: PersonEntity, prisoner: Prisoner) {
     prisoner.sentences
-      .mapNotNull { sysconSentence -> sysconSentence.sentenceDate?.let { SentenceInfoEntity.from(personEntity, it) } }
+      .mapNotNull { sysconSentence -> sysconSentence.sentenceDate?.let { sentenceDate -> sentenceDate.toSentenceInfoEntity(personEntity) } }
       .forEach { sentenceInfoEntity ->
         sentenceInfoRepository.save(sentenceInfoEntity)
       }
+  }
+
+  fun Address.toEntity(personEntity: PersonEntity): AddressEntity {
+    val addressEntity = AddressEntity.from(this)
+    addressEntity.person = personEntity
+    return addressEntity
+  }
+
+  fun AddressUsage.toEntity(addressEntity: AddressEntity): AddressUsageEntity {
+    val addressUsageEntity = AddressUsageEntity.from(this)
+    addressUsageEntity.address = addressEntity
+    return addressUsageEntity
+  }
+
+  fun Contact.toEntity(personEntity: PersonEntity): ContactEntity {
+    val contactEntity = ContactEntity.from(this)
+    contactEntity.person = personEntity
+    return contactEntity
+  }
+
+  fun Contact.toEntity(addressEntity: AddressEntity): ContactEntity {
+    val contactEntity = ContactEntity.from(this)
+    contactEntity.address = addressEntity
+    return contactEntity
+  }
+
+  fun Alias.toEntity(personEntity: PersonEntity): PseudonymEntity? {
+    val aliasEntity = PseudonymEntity.aliasFrom(this)
+    aliasEntity?.let { it.person = personEntity }
+    return aliasEntity
   }
 
   private fun Alias.primaryNameFromElseNull(personEntity: PersonEntity) = when {
@@ -167,6 +198,17 @@ class SysconPersonUpdateHandler(
     )
     else -> null
   }
+
+  fun Reference.toEntity(person: PersonEntity): ReferenceEntity {
+    val referenceEntity = ReferenceEntity.from(this)
+    referenceEntity.person = person
+    return referenceEntity
+  }
+
+  fun LocalDate.toSentenceInfoEntity(person: PersonEntity): SentenceInfoEntity = SentenceInfoEntity(
+    sentenceDate = this,
+    person = person,
+  )
 
   private fun updateRootPersonOnlyAndDeletePersonChildTables(personEntity: PersonEntity, prisoner: Prisoner) {
     val person = Person.from(prisoner, personEntity.prisonNumber!!)

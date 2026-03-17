@@ -55,11 +55,5 @@ class AddressUsageEntity(
       usageCode = addressUsage.addressUsageCode,
       active = addressUsage.isActive,
     )
-
-    fun from(addressEntity: AddressEntity, addressUsage: AddressUsage): AddressUsageEntity {
-      val addressUsageEntity = from(addressUsage)
-      addressUsageEntity.address = addressEntity
-      return addressUsageEntity
-    }
   }
 }
