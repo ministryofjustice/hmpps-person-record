@@ -433,8 +433,11 @@ class ProbationApiE2ETest : E2ETestBase() {
             ProbationCaseAlias(
               name = ProbationCaseName(
                 firstName = randomName(),
+                middleNames = randomName(),
                 lastName = randomName(),
               ),
+              dateOfBirth = randomDate(),
+              gender = Value("M"),
             ),
           ),
           addresses = listOf(
@@ -495,6 +498,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.addresses[0].postcode).isEqualTo(probationCase.addresses[0].postcode)
         assertThat(offender.addresses[0].fullAddress).isEqualTo(probationCase.addresses[0].fullAddress)
         assertThat(offender.contacts.size).isEqualTo(3)
+        val populatedContactUpdateIdCount = offender.contacts.count { it.updateId != null }
+        assertThat(populatedContactUpdateIdCount).isEqualTo(3)
         assertThat(offender.contacts.getHome()?.contactValue).isEqualTo(probationCase.contactDetails?.telephone)
         assertThat(offender.contacts.getMobile()?.contactValue).isEqualTo(probationCase.contactDetails?.mobile)
         assertThat(offender.contacts.getEmail()?.contactValue).isEqualTo(probationCase.contactDetails?.email)
@@ -503,6 +508,13 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.nationalities.size).isEqualTo(1)
         assertThat(offender.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.name)
         assertThat(offender.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.description)
+
+        assertThat(offender.pseudonyms.size).isEqualTo(2)
+        val actualPseudonyms = offender.pseudonyms.sortedBy { it.nameType }
+        val alias = actualPseudonyms[0]
+        assertThat(alias.updateId).isNotNull()
+        val primary = actualPseudonyms[1]
+        assertThat(primary.updateId).isNotNull()
 
         checkTelemetry(
           CPR_RECORD_CREATED,

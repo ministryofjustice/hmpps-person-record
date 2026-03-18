@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.test
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.VALID_LETTERS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.commonPlatformEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.prisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.probationEthnicity
@@ -91,6 +93,8 @@ fun randomCommonPlatformEthnicity(): String = commonPlatformEthnicity.keys.rando
 
 fun randomPrisonEthnicity(): String = prisonEthnicity.keys.random()
 
+fun randomPrisonEthnicityCode(): EthnicityCode = prisonEthnicity.values.random()
+
 fun randomNationalityCode(): NationalityCode = NationalityCode.entries.random()
 
 fun randomPrisonNationalityCode(): String = PRISON_NATIONALITY_MAPPING.entries.random().key
@@ -102,6 +106,8 @@ fun randomCommonPlatformNationalityCode(): String = COMMON_PLATFORM_NATIONALITY_
 fun randomReligionCode(): String = ReligionCode.entries.random().name
 
 fun randomReligion(): String = ReligionCode.entries.random().description
+
+fun randomCountryCode(): CountryCode = CountryCode.entries.random()
 
 fun randomDriverLicenseNumber(): String {
   fun randomString(length: Int, source: String) = (1..length).map { source.random() }.joinToString("")
@@ -117,6 +123,8 @@ fun randomDriverLicenseNumber(): String {
 fun randomFullAddress(): String = randomDigit(2) + " " + randomLowerCaseString(8) + ", " + randomLowerCaseString(10) + ", " + randomPostcode()
 
 fun randomPrisonNumber(): String = randomLowerCaseString(2).uppercase() + randomDigit(4) + randomLowerCaseString(1).uppercase()
+
+fun generateUUIDString(): String = UUID.randomUUID().toString()
 
 fun randomDefendantId(): String = UUID.randomUUID().toString()
 
@@ -138,7 +146,7 @@ fun randomLowerCaseString(length: Int = 7): String = (1..length).map {
   ('a' + (Math.random() * 26).toInt())
 }.joinToString("")
 
-private fun randomDigit(length: Int = 7): String = (1..length).map {
+fun randomDigit(length: Int = 7): String = (1..length).map {
   (0..9).random()
 }.joinToString("")
 

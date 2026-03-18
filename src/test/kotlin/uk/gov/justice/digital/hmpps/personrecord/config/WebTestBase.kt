@@ -1,19 +1,33 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
-import org.springframework.test.web.reactive.server.WebTestClient
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.QUEUE_ADMIN
-import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
+import org.mockito.Mockito
+import org.mockito.kotlin.whenever
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
+import org.springframework.test.context.TestPropertySource
+import software.amazon.awssdk.services.sns.SnsAsyncClient
+import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.HmppsTopic
 
-@AutoConfigureWebTestClient
-abstract class WebTestBase : IntegrationTestBase() {
+@TestPropertySource(properties = ["spring.autoconfigure.exclude=uk.gov.justice.hmpps.sqs.HmppsSqsConfiguration"])
+@Import(WebTestBase.WebTestConfig::class)
+abstract class WebTestBase : WebTestSetup() {
 
-  @Autowired
-  lateinit var webTestClient: WebTestClient
-
-  @Autowired
-  internal lateinit var jwtAuthorisationHelper: JwtAuthorisationHelper
-
-  internal fun WebTestClient.RequestHeadersSpec<*>.authorised(roles: List<String> = listOf(QUEUE_ADMIN)): WebTestClient.RequestBodySpec = headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = roles)) as WebTestClient.RequestBodySpec
+  @TestConfiguration
+  class WebTestConfig {
+    @Bean
+    fun hmppsQueueService(): HmppsQueueService {
+      val hmppsQueueService = Mockito.mock(HmppsQueueService::class.java)
+      val mockClient = Mockito.mock(SnsAsyncClient::class.java)
+      whenever(hmppsQueueService.findByTopicId("cprcourtcasestopic")).thenReturn(
+        HmppsTopic(
+          id = "mock",
+          arn = "mock",
+          mockClient,
+        ),
+      )
+      return hmppsQueueService
+    }
+  }
 }

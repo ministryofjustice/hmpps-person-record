@@ -30,6 +30,7 @@ class CourtMessagePublisher(
   private val snsExtendedAsyncClientConfiguration: SNSExtendedAsyncClientConfiguration =
     SNSExtendedAsyncClientConfiguration()
       .withPayloadSupportEnabled(s3AsyncClient, bucketName)
+      .withAlwaysThroughS3(true)
 
   private val snsExtendedClient = AmazonSNSExtendedAsyncClient(
     topic.snsClient,
@@ -41,8 +42,8 @@ class CourtMessagePublisher(
     updatedMessage: String,
   ): CompletableFuture<PublishResponse> = runBlocking {
     val attributes = mutableMapOf(
-      "messageType" to MessageAttributeValue.builder().dataType("String").stringValue(sqsMessage.getMessageType())
-        .build(),
+      "messageType" to MessageAttributeValue.builder().dataType("String")
+        .stringValue(sqsMessage.getMessageType()).build(),
       "eventType" to MessageAttributeValue.builder().dataType("String")
         .stringValue(LARGE_CASE_EVENT_TYPE).build(), // to enum
     )

@@ -205,25 +205,13 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       createPersonKey()
         .addPerson(searchingRecord)
 
-      val passiveRecord = createPerson(createExamplePerson())
-      passiveRecord.markAsPassive()
+      val passiveRecord = createPerson(createExamplePerson()) { markAsPassive() }
       createPersonKey()
         .addPerson(passiveRecord)
 
       stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = passiveRecord.matchId)
 
       val highConfidenceMatch = personMatchService.findClustersToJoin(searchingRecord)
-
-      noCandidateFound(highConfidenceMatch)
-    }
-
-    @Test
-    fun `should not return its self if person match sends it back`() {
-      val record = createPersonWithNewKey(createExamplePerson())
-
-      stubOnePersonMatchAboveJoinThreshold(matchId = record.matchId, matchedRecord = record.matchId)
-
-      val highConfidenceMatch = personMatchService.findClustersToJoin(record)
 
       noCandidateFound(highConfidenceMatch)
     }

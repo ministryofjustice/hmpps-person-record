@@ -33,6 +33,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.test.context.ActiveProfiles
 import tools.jackson.databind.json.JsonMapper
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
@@ -46,7 +47,10 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Address
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.AllConvictedOffences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAlias
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
@@ -72,11 +76,14 @@ import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -87,6 +94,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationality
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
@@ -200,7 +208,39 @@ class IntegrationTestBase {
   )
 
   internal fun createRandomPrisonPersonDetails(prisonNumber: String = randomPrisonNumber()): Person = Person.from(
-    Prisoner(prisonNumber = prisonNumber, firstName = randomName(), lastName = randomName(), dateOfBirth = randomDate()),
+    Prisoner(
+      prisonNumber = prisonNumber,
+      firstName = randomName(),
+      lastName = randomName(),
+      dateOfBirth = randomDate(),
+      aliases = listOf(
+        PrisonerAlias(
+          firstName = randomName(),
+          middleNames = randomName(),
+          lastName = randomName(),
+        ),
+      ),
+      addresses = listOf(
+        Address(
+          postcode = randomPostcode(),
+          fullAddress = randomFullAddress(),
+          noFixedAbode = randomBoolean(),
+          startDate = randomDate(),
+        ),
+        Address(
+          postcode = randomPostcode(),
+          fullAddress = randomFullAddress(),
+          noFixedAbode = randomBoolean(),
+          startDate = randomDate(),
+        ),
+      ),
+      allConvictedOffences = listOf(
+        AllConvictedOffences(
+          sentenceStartDate = randomDate(),
+          primarySentence = true,
+        ),
+      ),
+    ),
   )
 
   internal fun createRandomLibraPersonDetails(cId: String = randomCId()): Person = Person.from(LibraHearingEvent(name = LibraName(firstName = randomName(), lastName = randomName()), cId = cId))
@@ -220,6 +260,23 @@ class IntegrationTestBase {
       pncId = PNCIdentifier.from(randomLongPnc()),
       cro = CROIdentifier.from(randomCro()),
     ),
+  )
+
+  internal fun createRandomReligions(): List<PrisonReligion> = List((4..20).random()) { index ->
+    if (index == 0) createRandomReligion(randomReligionCode(), true) else createRandomReligion(randomReligionCode(), false)
+  }
+
+  internal fun createRandomReligion(code: String? = randomReligionCode(), current: Boolean = true) = PrisonReligion(
+    nomisReligionId = randomPrisonNumber(),
+    changeReasonKnown = randomBoolean(),
+    comments = randomName(),
+    verified = randomBoolean(),
+    religionCode = code,
+    startDate = randomDate(),
+    endDate = randomDate(),
+    modifyDateTime = randomDateTime(),
+    modifyUserId = randomName(),
+    current = current,
   )
 
   internal fun checkTelemetry(
@@ -282,14 +339,18 @@ class IntegrationTestBase {
 
   internal fun PersonKeyEntity.addPerson(person: Person): PersonKeyEntity = this.addPerson(createPerson(person))
 
-  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonEntity {
-    val personEntity = createPerson(person)
+  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null, configure: PersonEntity.() -> Unit = {}): PersonEntity {
+    val personEntity = createPerson(person, configure)
     createPersonKey(status, reason).addPerson(personEntity)
     return personRepository.findByMatchId(personEntity.matchId)!!
   }
 
-  internal fun createPerson(person: Person): PersonEntity = personRepository.saveAndFlush(PersonEntity.new(person))
+  internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(person)
+    .apply(configure)
+    .let(personRepository::saveAndFlush)
 
+  // TODO the personKey of the merged record is still set here
+  // TODO ideally replace this with full merge processing
   internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity): PersonEntity {
     val source = personRepository.findByMatchId(sourcePersonEntity.matchId)!!
     val target = personRepository.findByMatchId(targetPersonEntity.matchId)!!

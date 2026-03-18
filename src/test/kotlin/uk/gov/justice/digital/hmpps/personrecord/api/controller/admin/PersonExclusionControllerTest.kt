@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin
 
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -10,16 +10,16 @@ class PersonExclusionControllerTest : WebTestBase() {
   fun `person exists - returns OK`() {
     stubDeletePersonMatch()
 
-    val prisonerNumberOne = randomPrisonNumber()
-    val prisonerNumberTwo = randomPrisonNumber()
+    val prisonNumberOne = randomPrisonNumber()
+    val prisonNumberTwo = randomPrisonNumber()
     createPersonKey()
-      .addPerson(createRandomPrisonPersonDetails(prisonerNumberOne))
-      .addPerson(createRandomPrisonPersonDetails(prisonerNumberTwo))
+      .addPerson(createRandomPrisonPersonDetails(prisonNumberOne))
+      .addPerson(createRandomPrisonPersonDetails(prisonNumberTwo))
 
     webTestClient
       .post()
       .uri("/admin/exclusion/prisoner")
-      .bodyValue(PersonExclusionController.ExclusionRequest(prisonerNumberTwo))
+      .bodyValue(PersonExclusionController.ExclusionRequest(prisonNumberTwo))
       .exchange()
       .expectStatus()
       .isOk
@@ -27,11 +27,11 @@ class PersonExclusionControllerTest : WebTestBase() {
 
   @Test
   fun `person does not exist - returns NOT_FOUND`() {
-    val prisonerNumberOne = randomPrisonNumber()
-    val prisonerNumberTwo = randomPrisonNumber()
+    val prisonNumberOne = randomPrisonNumber()
+    val prisonNumberTwo = randomPrisonNumber()
     createPersonKey()
-      .addPerson(createRandomPrisonPersonDetails(prisonerNumberOne))
-      .addPerson(createRandomPrisonPersonDetails(prisonerNumberTwo))
+      .addPerson(createRandomPrisonPersonDetails(prisonNumberOne))
+      .addPerson(createRandomPrisonPersonDetails(prisonNumberTwo))
 
     webTestClient
       .post()
@@ -47,15 +47,13 @@ class PersonExclusionControllerTest : WebTestBase() {
 
   @Test
   fun `person already in passive state - returns OK`() {
-    val prisonerNumberOne = randomPrisonNumber()
-    val personEntity = createPerson(createRandomPrisonPersonDetails(prisonerNumberOne))
-    personEntity.markAsPassive()
-    createPersonKey().addPerson(personEntity)
+    val prisonNumberOne = randomPrisonNumber()
+    createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumberOne)) { markAsPassive() }
 
     webTestClient
       .post()
       .uri("/admin/exclusion/prisoner")
-      .bodyValue(PersonExclusionController.ExclusionRequest(prisonerNumberOne))
+      .bodyValue(PersonExclusionController.ExclusionRequest(prisonNumberOne))
       .exchange()
       .expectStatus()
       .isOk

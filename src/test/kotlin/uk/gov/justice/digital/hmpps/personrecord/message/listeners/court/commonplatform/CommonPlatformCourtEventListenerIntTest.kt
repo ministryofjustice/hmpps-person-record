@@ -47,6 +47,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformMessage
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeThresholdCommonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformNationalityCode
@@ -482,6 +483,30 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(sqsMessage.message.contains("pncId")).isTrue()
     assertThat(sqsMessage.message.contains("croNumber")).isTrue()
     assertThat(commonPlatformHearingAttributes?.messageType?.value).isEqualTo(COMMON_PLATFORM_HEARING.name)
+
+    checkTelemetry(
+      CPR_RECORD_CREATED,
+      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
+    )
+  }
+
+  @Test
+  fun `should publish large message to CPR court topic for message just over size threshold`() {
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+
+    val defendantId = randomDefendantId()
+
+    val (messageBody, sqsMessage) = publishAndReceiveLargeMessage(largeThresholdCommonPlatformHearing(defendantId))
+    val person = awaitNotNull {
+      personRepository.findByDefendantId(defendantId)
+    }
+
+    assertThat(sqsMessage?.messageAttributes?.eventType).isEqualTo(MessageAttribute(LARGE_CASE_EVENT_TYPE))
+    assertThat(sqsMessage?.messageAttributes?.hearingEventType).isEqualTo(MessageAttribute("ConfirmedOrUpdated"))
+    assertThat(messageBody.contains(defendantId)).isEqualTo(true)
+    assertThat(messageBody.contains("cprUUID")).isEqualTo(true)
+    assertThat(messageBody.contains(person.personKey?.personUUID.toString())).isEqualTo(true)
 
     checkTelemetry(
       CPR_RECORD_CREATED,

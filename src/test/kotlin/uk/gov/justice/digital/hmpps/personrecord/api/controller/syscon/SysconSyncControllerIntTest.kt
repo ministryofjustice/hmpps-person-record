@@ -20,17 +20,17 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
@@ -108,15 +108,15 @@ class SysconSyncControllerIntTest : WebTestBase() {
   inner class Auth {
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
-      val prisonerNumber = randomPrisonNumber()
+      val prisonNumber = randomPrisonNumber()
       val prisonerRequest = buildRequestBody()
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.put()
-        .uri("/syscon-sync/person/$prisonerNumber")
+        .uri("/syscon-sync/person/$prisonNumber")
         .body(Mono.just(prisonerRequest), Prisoner::class.java)
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
-        .assertDatabase(prisonerNumber, prisonerRequest, write = false)
+        .assertDatabase(prisonNumber, prisonerRequest, write = false)
         .expectStatus()
         .isForbidden
         .expectBody()
@@ -126,26 +126,26 @@ class SysconSyncControllerIntTest : WebTestBase() {
 
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
-      val prisonerNumber = randomPrisonNumber()
+      val prisonNumber = randomPrisonNumber()
       val prisonerRequest = buildRequestBody()
       webTestClient.put()
-        .uri("/syscon-sync/person/$prisonerNumber")
+        .uri("/syscon-sync/person/$prisonNumber")
         .body(Mono.just(prisonerRequest), Prisoner::class.java)
         .exchange()
-        .assertDatabase(prisonerNumber, prisonerRequest, write = false)
+        .assertDatabase(prisonNumber, prisonerRequest, write = false)
         .expectStatus()
         .isUnauthorized
     }
   }
 
-  private fun WebTestClient.ResponseSpec.assertDatabase(prisonerNumber: String, request: Prisoner, write: Boolean = true): WebTestClient.ResponseSpec {
+  private fun WebTestClient.ResponseSpec.assertDatabase(prisonNumber: String, request: Prisoner, write: Boolean = true): WebTestClient.ResponseSpec {
     if (write) {
-      val actualPersonEntity = personRepository.findByPrisonNumber(prisonerNumber) ?: fail { "Prisoner record was expected to be found" }
+      val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail { "Prisoner record was expected to be found" }
       val actualPerson = Person.from(actualPersonEntity)
-      val expectedPerson = Person.from(request, prisonerNumber).copy(personId = actualPerson.personId)
+      val expectedPerson = Person.from(request, prisonNumber).copy(personId = actualPerson.personId)
       assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
     } else {
-      assertThat(personRepository.findByPrisonNumber(prisonerNumber)).isNull()
+      assertThat(personRepository.findByPrisonNumber(prisonNumber)).isNull()
     }
     return this
   }
@@ -154,14 +154,14 @@ class SysconSyncControllerIntTest : WebTestBase() {
     fun buildRequestBody(): Prisoner = Prisoner(
       demographicAttributes = DemographicAttributes(
         birthPlace = randomName(),
-        birthCountryCode = randomName(),
-        ethnicityCode = randomPrisonEthnicity(),
+        birthCountryCode = randomCountryCode(),
+        ethnicityCode = randomPrisonEthnicityCode(),
         sexCode = randomPrisonSexCode().value,
-        sexualOrientation = randomPrisonSexualOrientation().value.name,
+        sexualOrientation = randomPrisonSexualOrientation().value,
         disability = randomBoolean(),
         interestToImmigration = randomBoolean(),
         religionCode = randomReligionCode(),
-        nationalityCode = randomNationalityCode().name,
+        nationalityCode = randomNationalityCode(),
         nationalityNote = randomName(),
       ),
       aliases = buildAliasList(),
@@ -180,7 +180,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
           dependentLocality = randomName(),
           postTown = randomName(),
           county = randomName(),
-          countryCode = CountryCode.entries.random().name,
+          countryCode = randomCountryCode(),
           comment = randomName(),
           isPrimary = randomBoolean(),
           isMail = randomBoolean(),
@@ -219,7 +219,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
     fun buildAliasList(hasPrimary: Boolean = true): List<Alias> = listOf(
       Alias(
         nomisAliasId = randomCId().toLong(),
-        titleCode = randomTitleCode().value.name,
+        titleCode = randomTitleCode().value,
         firstName = randomName(),
         middleNames = randomName(),
         lastName = randomName(),

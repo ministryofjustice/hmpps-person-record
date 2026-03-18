@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner.
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -60,7 +61,7 @@ data class Person(
   val disability: Boolean? = null,
   val immigrationStatus: Boolean? = null,
   val birthplace: String? = null,
-  val birthCountryCode: String? = null,
+  val birthCountryCode: CountryCode? = null,
   val behaviour: Behaviour = Behaviour(),
 ) {
 
@@ -216,7 +217,7 @@ data class Person(
         sourceSystem = NOMIS,
         nationalities = nationalities,
         religion = prisoner.religion.nullIfBlank(),
-        sentences = prisoner.allConvictedOffences?.map { SentenceInfo.from(it) } ?: emptyList(),
+        sentences = prisoner.allConvictedOffences?.mapNotNull { SentenceInfo.from(it) } ?: emptyList(),
         sexCode = SexCode.from(prisoner),
       )
     }
@@ -230,22 +231,24 @@ data class Person(
 
       return Person(
         prisonNumber = prisonNumber,
-        titleCode = TitleCode.from(primaryAlias.titleCode),
+        titleCode = primaryAlias.titleCode,
         firstName = primaryAlias.firstName.nullIfBlank(),
         middleNames = primaryAlias.middleNames?.nullIfBlank(),
         lastName = primaryAlias.lastName.nullIfBlank(),
         dateOfBirth = primaryAlias.dateOfBirth,
-        ethnicityCode = EthnicityCode.fromPrison(prisoner.demographicAttributes.ethnicityCode),
+        ethnicityCode = prisoner.demographicAttributes.ethnicityCode,
         aliases = prisoner.aliases.map { Alias.from(it) },
         contacts = prisoner.personContacts.map { contact -> Contact(contact.type, contact.value) },
         addresses = prisoner.addresses.map { Address.from(it) },
         references = references,
         sourceSystem = NOMIS,
-        nationalities = listOf(NationalityCode.fromPrisonCode(prisoner.demographicAttributes.nationalityCode)).mapNotNull { it },
+        nationalities = listOf(prisoner.demographicAttributes.nationalityCode).mapNotNull { it },
         nationalityNotes = prisoner.demographicAttributes.nationalityNote.nullIfBlank(),
         religion = prisoner.demographicAttributes.religionCode.nullIfBlank(),
         sentences = prisoner.sentences.map { SentenceInfo(it.sentenceDate) },
         sexCode = prisoner.demographicAttributes.sexCode,
+        sexualOrientation = prisoner.demographicAttributes.sexualOrientation,
+        birthCountryCode = prisoner.demographicAttributes.birthCountryCode,
       )
     }
 

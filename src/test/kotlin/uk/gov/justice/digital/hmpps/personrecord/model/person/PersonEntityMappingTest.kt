@@ -24,13 +24,14 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.Nationa
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
@@ -114,12 +115,12 @@ class PersonEntityMappingTest {
     masterDefendantId = randomDefendantId(),
     prisonNumber = randomPrisonNumber(),
     birthplace = randomName(),
-    birthCountryCode = randomName(),
+    birthCountryCode = randomCountryCode(),
     nationalities = mutableListOf(NationalityEntity(nationalityCode = NationalityCode.CDR)),
     nationalityNotes = randomName(),
     religion = randomReligion(),
     sexualOrientation = SexualOrientation.fromPrison(randomPrisonSexualOrientation().key),
-    ethnicityCode = EthnicityCode.fromPrison(randomPrisonEthnicity()),
+    ethnicityCode = randomPrisonEthnicityCode(),
     genderIdentity = GenderIdentityCode.GISD,
     selfDescribedGenderIdentity = randomName(),
     disability = randomBoolean(),
@@ -162,6 +163,6 @@ class PersonEntityMappingTest {
     disability = randomBoolean(),
     immigrationStatus = randomBoolean(),
     birthplace = randomName(),
-    birthCountryCode = randomName(),
+    birthCountryCode = randomCountryCode(),
   )
 }

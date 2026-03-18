@@ -31,7 +31,7 @@ class CommonPlatformEventProcessor(
 ) {
 
   companion object {
-    const val MAX_MESSAGE_SIZE = 256 * 1024
+    const val MAX_MESSAGE_SIZE = 245 * 1024
   }
 
   fun processEvent(sqsMessage: SQSMessage) {

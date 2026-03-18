@@ -6,11 +6,13 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchDetailsResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.visualisecluster.VisualiseCluster
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.discardNotFoundException
 
 @Component
@@ -38,6 +40,13 @@ class PersonMatchClient(private val personMatchWebClient: WebClient) {
     .uri("/person/score/{id}", matchId)
     .retrieve()
     .bodyToMono<List<PersonMatchScore>>()
+    .block()!!
+
+  fun getPersonBestMatch(matchId: String, sourceSystem: SourceSystemType): PersonMatchDetailsResponse = personMatchWebClient
+    .get()
+    .uri("/person/best-match/{sourceSystemName}/{id}", sourceSystem.name, matchId)
+    .retrieve()
+    .bodyToMono<PersonMatchDetailsResponse>()
     .block()!!
 
   fun postPerson(personMatchRecord: PersonMatchRecord) = personMatchWebClient

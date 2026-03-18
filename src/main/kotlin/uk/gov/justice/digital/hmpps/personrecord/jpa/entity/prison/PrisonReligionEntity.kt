@@ -8,10 +8,12 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Entity
 @Table(name = "prison_religion")
@@ -20,6 +22,15 @@ class PrisonReligionEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
+
+  @Column(
+    name = "update_id",
+    insertable = false,
+    updatable = false,
+    nullable = false,
+  )
+  @Generated
+  var updateId: UUID? = null,
 
   @Column(name = "prison_number", nullable = false)
   val prisonNumber: String,
@@ -53,18 +64,6 @@ class PrisonReligionEntity(
   var prisonRecordType: PrisonRecordType,
 
 ) {
-
-  fun update(prisonReligion: PrisonReligion) {
-    this.code = prisonReligion.religionCode
-    this.startDate = prisonReligion.startDate
-    this.endDate = prisonReligion.endDate
-    this.modifyUserId = prisonReligion.modifyUserId
-    this.modifyDateTime = prisonReligion.modifyDateTime
-    this.prisonRecordType = PrisonRecordType.from(prisonReligion.current)
-    this.comments = prisonReligion.comments
-    this.changeReasonKnown = prisonReligion.changeReasonKnown
-    this.verified = prisonReligion.verified
-  }
 
   companion object {
     fun from(prisonNumber: String, prisonReligion: PrisonReligion) = PrisonReligionEntity(
