@@ -48,7 +48,7 @@ class ServiceNowMergeRequestService(
       thisTimeYesterday,
       thisTimeYesterday.plusHours(HOURS_TO_CHOOSE_FROM),
     )
-    log.info("finished getting ${recordsModifiedYesterday.size} modified clusters")
+    log.info("finished getting ${recordsModifiedYesterday.size} modified records")
     val clusters = recordsModifiedYesterday
       .distinctBy { it.personKey }
 
@@ -78,7 +78,7 @@ class ServiceNowMergeRequestService(
     }
   }
 
-  private fun hasMoreThanOneProbationRecord(person: PersonEntity): Boolean = person.personKey!!.personEntities.count { it.isProbationRecord() } > 1
+  private fun hasMoreThanOneProbationRecord(person: PersonEntity): Boolean = person.personKey?.let { personKeyEntity -> personKeyEntity.personEntities.count { it.isProbationRecord() } > 1 } ?: false
 
   private fun PersonEntity.isProbationRecord(): Boolean = this.sourceSystem == DELIUS
 
