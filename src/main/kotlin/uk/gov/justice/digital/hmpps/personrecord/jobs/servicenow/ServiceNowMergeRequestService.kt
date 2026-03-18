@@ -49,12 +49,12 @@ class ServiceNowMergeRequestService(
       thisTimeYesterday.plusHours(HOURS_TO_CHOOSE_FROM),
     )
     log.info("finished getting modified clusters for ${recordsModifiedYesterday.size}")
-    val clusters = recordsModifiedYesterday
+    val records = recordsModifiedYesterday
       .distinctBy { it.personKey }
 
-    log.info("Got ${clusters.size} distinct clusters")
+    log.info("Got ${records.size} distinct clusters")
 
-    val clustersWithMoreThanOneProbationRecord = clusters.filter { hasMoreThanOneProbationRecord(it) }
+    val clustersWithMoreThanOneProbationRecord = records.filter { hasMoreThanOneProbationRecord(it) }
     log.info("Found ${clustersWithMoreThanOneProbationRecord.size} clusters with more than one probation record")
 
     val clustersWithNoExistingMergeRequest = clustersWithMoreThanOneProbationRecord.filterNot { mergeRequestAlreadyMade(it.personKey!!.personUUID!!) }
