@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import java.lang.Thread.sleep
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -202,19 +201,16 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
     "record_a_details_cpr_ndelius":"[{\"full_name_b\":\"${person1.firstName} ${person1.middleNames} ${person1.lastName}\",\"date_of_birth_b\":\"${person1.dateOfBirth}\",\"case_reference_number_crn_a\":\"$crn1\",\"police_national_computer_pnc_reference_b\":\"${person1.getPnc()}\"},{\"full_name_b\":\"${person2.firstName} ${person2.middleNames} ${person2.lastName}\",\"date_of_birth_b\":\"${person2.dateOfBirth}\",\"case_reference_number_crn_a\":\"$crn2\",\"police_national_computer_pnc_reference_b\":\"${person2.getPnc()}\"}]"
   }
       }"""
-    waitOneSecondForAsynchronousProcessingToComplete()
-    wiremock.verify(
-      1,
-      RequestPatternBuilder.like(serviceNowStub?.request).withRequestBody(
-        equalToJson(
-          body,
+    awaitAssert {
+      wiremock.verify(
+        1,
+        RequestPatternBuilder.like(serviceNowStub?.request).withRequestBody(
+          equalToJson(
+            body,
+          ),
         ),
-      ),
-    )
-  }
-
-  private fun waitOneSecondForAsynchronousProcessingToComplete() {
-    sleep(1000)
+      )
+    }
   }
 
   @Test
@@ -273,8 +269,8 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
       .exchange()
       .expectStatus()
       .isOk
-    waitOneSecondForAsynchronousProcessingToComplete()
-    wiremock.verify(1, RequestPatternBuilder.like(serviceNowStub?.request))
+
+    awaitAssert { wiremock.verify(1, RequestPatternBuilder.like(serviceNowStub?.request)) }
   }
 
   private fun PersonRepository.updateLastModifiedDate(crn: String, lastModified: LocalDateTime) {
