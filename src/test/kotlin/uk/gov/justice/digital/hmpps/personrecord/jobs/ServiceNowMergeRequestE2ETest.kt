@@ -5,11 +5,17 @@ import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
+import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDateTime
@@ -18,7 +24,7 @@ import java.time.temporal.ChronoUnit
 
 private const val GENERATE_MERGE_REQUESTS = "/jobs/service-now/generate-delius-merge-requests"
 
-class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
+class ServiceNowMergeRequestE2ETest : E2ETestBase() {
 
   @Value($$"${service-now.sysparm-id}")
   lateinit var sysParmId: String
@@ -29,10 +35,15 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
   @Value($$"${service-now.requested-for}")
   lateinit var requestedFor: String
 
+  @Autowired
+  lateinit var serviceNowMergeRequestRepository: ServiceNowMergeRequestRepository
+
   var serviceNowStub: StubMapping? = null
 
   @BeforeEach
   fun beforeEach() {
+    personKeyRepository.deleteAll()
+    personRepository.deleteAll()
     serviceNowStub = wiremock.stubFor(
       WireMock.post(
         "/api/sn_sc/servicecatalog/items/$sysParmId/order_now",
@@ -61,6 +72,11 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
     serviceNowAuthSetup()
   }
 
+  @AfterEach
+  fun afterEach() {
+    wiremock.removeStub(serviceNowStub?.uuid)
+  }
+
   fun serviceNowAuthSetup() {
     wiremock.stubFor(
       WireMock.post("/oauth_token.do")
@@ -83,57 +99,58 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
 
   @Test
   fun `should pick five clusters where each cluster has more than one probation record`() {
-    val crn1 = randomCrn()
-    val crn2 = randomCrn()
-    val crn3 = randomCrn()
-    val crn4 = randomCrn()
-    val crn5 = randomCrn()
-    val crn6 = randomCrn()
-    val crn7 = randomCrn()
-    val crn8 = randomCrn()
-    val crn9 = randomCrn()
-    val crn10 = randomCrn()
-    val crn11 = randomCrn()
-    val crn12 = randomCrn()
+    val person1 = createRandomProbationPersonDetails()
+    val person2 = person1.copy(crn = randomCrn())
+    val person3 = createRandomProbationPersonDetails()
+    val person4 = person3.copy(crn = randomCrn())
+    val person5 = createRandomProbationPersonDetails()
+    val person6 = person5.copy(crn = randomCrn())
+    val person7 = createRandomProbationPersonDetails()
+    val person8 = person7.copy(crn = randomCrn())
+    val person9 = createRandomProbationPersonDetails()
+    val person10 = person9.copy(crn = randomCrn())
+    val person11 = createRandomProbationPersonDetails()
+    val person12 = person11.copy(crn = randomCrn())
 
     val thisTimeYesterday = LocalDateTime.now().minusDays(1)
     createPersonKey()
-      .addPerson(createRandomProbationPersonDetails(crn1).copy(references = emptyList()))
-      .addPerson(createRandomProbationPersonDetails(crn2))
+      .addPerson(person1)
+      .addPerson(person2)
     createPersonKey()
-      .addPerson(createRandomProbationPersonDetails(crn3))
-      .addPerson(createRandomProbationPersonDetails(crn4))
+      .addPerson(person3)
+      .addPerson(person4)
     createPersonKey()
-      .addPerson(createRandomProbationPersonDetails(crn5))
-      .addPerson(createRandomProbationPersonDetails(crn6))
+      .addPerson(person5)
+      .addPerson(person6)
     createPersonKey()
-      .addPerson(createRandomProbationPersonDetails(crn7))
-      .addPerson(createRandomProbationPersonDetails(crn8))
+      .addPerson(person7)
+      .addPerson(person8)
+    val fifthPerson = createPersonKey()
+      .addPerson(person9)
+      .addPerson(person10)
     createPersonKey()
-      .addPerson(createRandomProbationPersonDetails(crn9))
-      .addPerson(createRandomProbationPersonDetails(crn10))
-    createPersonKey()
-      .addPerson(createRandomProbationPersonDetails(crn11))
-      .addPerson(createRandomProbationPersonDetails(crn12))
+      .addPerson(person11)
+      .addPerson(person12)
 
-    personRepository.updateLastModifiedDate(crn1, thisTimeYesterday.plusMinutes(1))
-    personRepository.updateLastModifiedDate(crn2, thisTimeYesterday.plusMinutes(2))
-    personRepository.updateLastModifiedDate(crn3, thisTimeYesterday.plusMinutes(3))
-    personRepository.updateLastModifiedDate(crn4, thisTimeYesterday.plusMinutes(4))
-    personRepository.updateLastModifiedDate(crn5, thisTimeYesterday.plusMinutes(5))
-    personRepository.updateLastModifiedDate(crn6, thisTimeYesterday.plusMinutes(6))
-    personRepository.updateLastModifiedDate(crn7, thisTimeYesterday.plusMinutes(7))
-    personRepository.updateLastModifiedDate(crn8, thisTimeYesterday.plusMinutes(8))
-    personRepository.updateLastModifiedDate(crn9, thisTimeYesterday.plusMinutes(9))
-    personRepository.updateLastModifiedDate(crn10, thisTimeYesterday.plusMinutes(10))
-    personRepository.updateLastModifiedDate(crn11, thisTimeYesterday.plusMinutes(11))
-    personRepository.updateLastModifiedDate(crn12, thisTimeYesterday.plusMinutes(12))
+    personRepository.updateLastModifiedDate(person1.crn!!, thisTimeYesterday.plusMinutes(1))
+    personRepository.updateLastModifiedDate(person2.crn!!, thisTimeYesterday.plusMinutes(2))
+    personRepository.updateLastModifiedDate(person3.crn!!, thisTimeYesterday.plusMinutes(3))
+    personRepository.updateLastModifiedDate(person4.crn!!, thisTimeYesterday.plusMinutes(4))
+    personRepository.updateLastModifiedDate(person5.crn!!, thisTimeYesterday.plusMinutes(5))
+    personRepository.updateLastModifiedDate(person6.crn!!, thisTimeYesterday.plusMinutes(6))
+    personRepository.updateLastModifiedDate(person7.crn!!, thisTimeYesterday.plusMinutes(7))
+    personRepository.updateLastModifiedDate(person8.crn!!, thisTimeYesterday.plusMinutes(8))
+    personRepository.updateLastModifiedDate(person9.crn!!, thisTimeYesterday.plusMinutes(9))
+    personRepository.updateLastModifiedDate(person10.crn!!, thisTimeYesterday.plusMinutes(10))
+    personRepository.updateLastModifiedDate(person11.crn!!, thisTimeYesterday.plusMinutes(11))
+    personRepository.updateLastModifiedDate(person12.crn!!, thisTimeYesterday.plusMinutes(12))
 
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)
       .exchange()
       .expectStatus()
       .isOk
+    awaitAssert { assertThat(serviceNowMergeRequestRepository.existsByPersonUUID(fifthPerson.personUUID!!)).isTrue() }
     wiremock.verify(5, RequestPatternBuilder.like(serviceNowStub?.request))
   }
 
@@ -145,7 +162,7 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
 
     val person1 = createRandomProbationPersonDetails(crn1)
     val person2 = createRandomProbationPersonDetails(crn2)
-    createPersonKey()
+    val cluster = createPersonKey()
       .addPerson(person1)
       .addPerson(person2)
 
@@ -157,6 +174,7 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
+    awaitAssert { assertThat(serviceNowMergeRequestRepository.existsByPersonUUID(cluster.personUUID!!)).isTrue() }
 
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)
@@ -183,20 +201,20 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
     "record_a_details_cpr_ndelius":"[{\"full_name_b\":\"${person1.firstName} ${person1.middleNames} ${person1.lastName}\",\"date_of_birth_b\":\"${person1.dateOfBirth}\",\"case_reference_number_crn_a\":\"$crn1\",\"police_national_computer_pnc_reference_b\":\"${person1.getPnc()}\"},{\"full_name_b\":\"${person2.firstName} ${person2.middleNames} ${person2.lastName}\",\"date_of_birth_b\":\"${person2.dateOfBirth}\",\"case_reference_number_crn_a\":\"$crn2\",\"police_national_computer_pnc_reference_b\":\"${person2.getPnc()}\"}]"
   }
       }"""
-
-    wiremock.verify(
-      1,
-      RequestPatternBuilder.like(serviceNowStub?.request).withRequestBody(
-        equalToJson(
-          body,
+    awaitAssert {
+      wiremock.verify(
+        1,
+        RequestPatternBuilder.like(serviceNowStub?.request).withRequestBody(
+          equalToJson(
+            body,
+          ),
         ),
-      ),
-    )
+      )
+    }
   }
 
   @Test
   fun `should not send a merge request for a cluster which has two prison records but no probation records`() {
-    personKeyRepository.deleteAll()
     val prisonNumber1 = randomPrisonNumber()
     val prisonNumber2 = randomPrisonNumber()
     val thisTimeYesterday = LocalDateTime.now().minusDays(1)
@@ -214,7 +232,45 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
       .isOk
 
     wiremock.verify(0, RequestPatternBuilder.like(serviceNowStub?.request))
-    wiremock.removeStub(serviceNowStub?.uuid)
+  }
+
+  @Test
+  fun `should ignore merged records`() {
+    val person1 = createPerson(createRandomProbationPersonDetails())
+    val person2 = createPerson(createRandomProbationPersonDetails())
+    createPersonKey()
+      .addPerson(person1)
+    createPersonKey()
+      .addPerson(person2)
+
+    val person3 = createRandomProbationPersonDetails()
+    val person4 = createRandomProbationPersonDetails()
+    createPersonKey()
+      .addPerson(person3)
+      .addPerson(person4)
+    probationMergeEventAndResponseSetup(OFFENDER_MERGED, person1.crn!!, person2.crn!!)
+
+    checkTelemetry(
+      CPR_RECORD_MERGED,
+      mapOf(
+        "TO_SOURCE_SYSTEM_ID" to person2.crn,
+        "SOURCE_SYSTEM" to "DELIUS",
+      ),
+    )
+    val thisTimeYesterday = LocalDateTime.now().minusDays(1)
+
+    personRepository.updateLastModifiedDate(person1.crn!!, thisTimeYesterday.plusMinutes(1))
+    personRepository.updateLastModifiedDate(person2.crn!!, thisTimeYesterday.plusMinutes(2))
+    personRepository.updateLastModifiedDate(person3.crn!!, thisTimeYesterday.plusMinutes(2))
+    personRepository.updateLastModifiedDate(person4.crn!!, thisTimeYesterday.plusMinutes(2))
+
+    webTestClient.post()
+      .uri(GENERATE_MERGE_REQUESTS)
+      .exchange()
+      .expectStatus()
+      .isOk
+
+    awaitAssert { wiremock.verify(1, RequestPatternBuilder.like(serviceNowStub?.request)) }
   }
 
   private fun PersonRepository.updateLastModifiedDate(crn: String, lastModified: LocalDateTime) {
@@ -222,6 +278,7 @@ class ServiceNowMergeRequestControllerIntTest : WebTestBase() {
     personEntity.lastModified = lastModified
     saveAndFlush(personEntity)
   }
+
   private fun PersonRepository.updatePrisonerLastModifiedDate(prisonNumber: String, lastModified: LocalDateTime) {
     val personEntity = findByPrisonNumber(prisonNumber)!!
     personEntity.lastModified = lastModified
