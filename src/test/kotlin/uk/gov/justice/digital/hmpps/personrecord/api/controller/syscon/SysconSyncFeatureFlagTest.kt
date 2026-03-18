@@ -18,7 +18,6 @@ class SysconSyncFeatureFlagTest : WebTestBase() {
 
     @Test
     fun `is available in dev`() {
-      stubPersonMatchUpsert()
       val prisonNumber = randomPrisonNumber()
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
