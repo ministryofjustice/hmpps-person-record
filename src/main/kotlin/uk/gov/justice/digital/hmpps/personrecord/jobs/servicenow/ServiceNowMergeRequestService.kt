@@ -48,7 +48,7 @@ class ServiceNowMergeRequestService(
       thisTimeYesterday,
       thisTimeYesterday.plusHours(HOURS_TO_CHOOSE_FROM),
     )
-    log.info("finished getting ${recordsModifiedYesterday.size} modified records")
+    log.info("finished getting modified clusters for ${recordsModifiedYesterday.size}")
     val clusters = recordsModifiedYesterday
       .distinctBy { it.personKey }
 
