@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -30,6 +31,16 @@ class ExceptionHandler {
   @ExceptionHandler(IllegalArgumentException::class)
   fun handleBadRequest(e: IllegalArgumentException): ResponseEntity<ErrorResponse> = ResponseEntity
     .status(BAD_REQUEST)
+    .body(
+      ErrorResponse(
+        status = BAD_REQUEST,
+        userMessage = "Bad request: ${e.message}",
+      ),
+    )
+
+  @ExceptionHandler(HttpMessageNotReadableException::class)
+  fun handleBadRequest(e: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> = ResponseEntity
+    .badRequest()
     .body(
       ErrorResponse(
         status = BAD_REQUEST,
