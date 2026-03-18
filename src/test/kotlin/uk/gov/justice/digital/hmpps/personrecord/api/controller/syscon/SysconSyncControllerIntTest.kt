@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -31,7 +30,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
@@ -156,13 +155,13 @@ class SysconSyncControllerIntTest : WebTestBase() {
       demographicAttributes = DemographicAttributes(
         birthPlace = randomName(),
         birthCountryCode = randomCountryCode(),
-        ethnicityCode = randomPrisonEthnicity(),
+        ethnicityCode = randomPrisonEthnicityCode(),
         sexCode = randomPrisonSexCode().value,
-        sexualOrientation = randomPrisonSexualOrientation().value.name,
+        sexualOrientation = randomPrisonSexualOrientation().value,
         disability = randomBoolean(),
         interestToImmigration = randomBoolean(),
         religionCode = randomReligionCode(),
-        nationalityCode = randomNationalityCode().name,
+        nationalityCode = randomNationalityCode(),
         nationalityNote = randomName(),
       ),
       aliases = buildAliasList(),
@@ -181,7 +180,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
           dependentLocality = randomName(),
           postTown = randomName(),
           county = randomName(),
-          countryCode = CountryCode.entries.random().name,
+          countryCode = randomCountryCode(),
           comment = randomName(),
           isPrimary = randomBoolean(),
           isMail = randomBoolean(),
@@ -220,7 +219,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
     fun buildAliasList(hasPrimary: Boolean = true): List<Alias> = listOf(
       Alias(
         nomisAliasId = randomCId().toLong(),
-        titleCode = randomTitleCode().value.name,
+        titleCode = randomTitleCode().value,
         firstName = randomName(),
         middleNames = randomName(),
         lastName = randomName(),

@@ -13,7 +13,6 @@ data class Alias(
   val firstName: String? = null,
   val lastName: String? = null,
   val middleNames: String? = null,
-  val title: String? = null,
   val titleCode: TitleCode? = null,
   val dateOfBirth: LocalDate? = null,
   val sexCode: SexCode? = null,
@@ -35,7 +34,6 @@ data class Alias(
     )
 
     fun from(alias: PrisonerAlias) = Alias(
-      title = alias.title,
       titleCode = TitleCode.from(alias.title),
       firstName = alias.firstName,
       middleNames = alias.middleNames,
@@ -54,7 +52,7 @@ data class Alias(
     )
 
     fun from(alias: SysconAlias) = Alias(
-      titleCode = TitleCode.from(alias.titleCode),
+      titleCode = alias.titleCode,
       firstName = alias.firstName,
       middleNames = alias.middleNames,
       lastName = alias.lastName,

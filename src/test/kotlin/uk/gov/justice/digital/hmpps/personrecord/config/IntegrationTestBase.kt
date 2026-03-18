@@ -349,6 +349,8 @@ class IntegrationTestBase {
     .apply(configure)
     .let(personRepository::saveAndFlush)
 
+  // TODO the personKey of the merged record is still set here
+  // TODO ideally replace this with full merge processing
   internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity): PersonEntity {
     val source = personRepository.findByMatchId(sourcePersonEntity.matchId)!!
     val target = personRepository.findByMatchId(targetPersonEntity.matchId)!!

@@ -2,13 +2,14 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import java.time.LocalDate
 
 data class Alias(
   @Schema(description = "The nomis alias id", example = "2378")
   val nomisAliasId: Long,
   @Schema(description = "The alias title code", example = "MR")
-  val titleCode: String? = null,
+  val titleCode: TitleCode? = null,
   @Schema(description = "The alias first name", example = "Jon")
   val firstName: String? = null,
   @Schema(description = "The alias middles name", example = "James")
