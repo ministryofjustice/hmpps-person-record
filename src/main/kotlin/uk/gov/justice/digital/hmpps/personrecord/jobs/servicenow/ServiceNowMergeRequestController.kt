@@ -23,7 +23,7 @@ class ServiceNowMergeRequestController(
   }
 
   private suspend fun process() {
-    CoroutineScope(Dispatchers.IO).launch {
+    CoroutineScope(Dispatchers.Default).launch {
       serviceNowMergeRequestService.process()
     }
   }
