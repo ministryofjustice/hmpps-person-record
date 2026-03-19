@@ -45,8 +45,10 @@ paths:
                     verified: true
                     startDate: "1980-01-01"
                     endDate: "2000-01-01"
-                    modifyDateTime: "2000-01-01 12:00:00"
+                    modifyDateTime: "2001-01-01 12:00:00"
                     modifyUserId: "12345"
+                    createDateTime: "2000-01-01 12:00:00"
+                    createUserId: "56789"
                     current: true
       responses:
         "201":
@@ -99,18 +101,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ReligionWithoutNomisId"
+              $ref: "#/components/schemas/ReligionPutWithoutNomisId"
             examples:
               sample:
                 value:
                   prisonNumber: "A6443EG"
                   religion:
                     # nomisReligionId: "3456"
-                    religionCode: "AGNO"
+                    # religionCode: "AGNO"
                     changeReasonKnown: true
                     comments: "Foo Bar"
                     verified: true
-                    startDate: "1980-01-01"
+                    # startDate: "1980-01-01"
                     endDate: "2000-01-01"
                     modifyDateTime: "2000-01-01 12:00:00"
                     modifyUserId: "12345"
@@ -179,8 +181,10 @@ paths:
                       verified: true
                       startDate: "1980-01-01"
                       endDate: "2000-01-01"
-                      modifyDateTime: "2000-01-01 12:00:00"
+                      modifyDateTime: "2001-01-01 12:00:00"
                       modifyUserId: "12345"
+                      createDateTime: "2000-01-01 12:00:00"
+                      createUserId: "156789"
                       current: true
         "404":
           description: CPR religion not found
@@ -208,6 +212,8 @@ components:
         - changeReasonKnown
         - verified
         - startDate
+        - createDateTime
+        - createUserId
         - modifyDateTime
         - modifyUserId
         - current
@@ -235,14 +241,21 @@ components:
           type: string
           format: date
           nullable: true
-          example: "2000-01-01"
+          example: "2001-01-01"
         modifyDateTime:
           type: string
           description: "Non-ISO timestamp in 'yyyy-MM-dd HH:mm:ss' format"
-          example: "2000-01-01 12:00:00"
+          example: "2001-01-01 12:00:00"
         modifyUserId:
           type: string
           example: "12345"
+        createDateTime:
+          type: string
+          description: "Non-ISO timestamp in 'yyyy-MM-dd HH:mm:ss' format"
+          example: "2000-01-01 12:00:00"
+        createUserId:
+          type: string
+          example: "56789"
         current:
           type: boolean
           example: true
@@ -269,6 +282,53 @@ components:
           type: string
           example: "0b6f8655-278a-4cb8-81c6-21364a91c466"
 
+    # ---------- PUT Request ----------
+    ReligionPutRequest:
+      type: object
+      description: Religion details returned
+      required: [prisonNumber, religion]
+      properties:
+        prisonNumber:
+          type: string
+          example: "A6443EG"
+        religion:
+          $ref: "#/components/schemas/ReligionPutWithoutNomisId"
+
+    ReligionPutWithoutNomisId:
+      type: object
+      required:
+        - changeReasonKnown
+        - verified
+        - modifyDateTime
+        - modifyUserId
+        - current
+      properties:
+        changeReasonKnown:
+          type: boolean
+          example: true
+        comments:
+          type: string
+          example: "Foo Bar"
+        verified:
+          type: boolean
+          example: true
+        endDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2000-01-01"
+        modifyDateTime:
+          type: string
+          description: "Non-ISO timestamp in 'yyyy-MM-dd HH:mm:ss' format"
+          example: "2000-01-01 12:00:00"
+        modifyUserId:
+          type: string
+          example: "12345"
+        current:
+          type: boolean
+          example: true
+
+
     # ---------- GET Response (without NOMIS ID) ----------
     ReligionGetResponse:
       type: object
@@ -279,9 +339,9 @@ components:
           type: string
           example: "A6443EG"
         religion:
-          $ref: "#/components/schemas/ReligionWithoutNomisId"
+          $ref: "#/components/schemas/ReligionGetResponseSchema"
 
-    ReligionWithoutNomisId:
+    ReligionGetResponseSchema:
       type: object
       required:
         - religionCode
@@ -290,6 +350,8 @@ components:
         - startDate
         - modifyDateTime
         - modifyUserId
+        - createDateTime
+        - createUserId
         - current
       properties:
         religionCode:
@@ -316,10 +378,17 @@ components:
         modifyDateTime:
           type: string
           description: "Non-ISO timestamp in 'yyyy-MM-dd HH:mm:ss' format"
-          example: "2000-01-01 12:00:00"
+          example: "2001-01-01 12:00:00"
         modifyUserId:
           type: string
           example: "12345"
+        createDateTime:
+          type: string
+          description: "Non-ISO timestamp in 'yyyy-MM-dd HH:mm:ss' format"
+          example: "2000-01-01 12:00:00"
+        createUserId:
+          type: string
+          example: "56789"
         current:
           type: boolean
           example: true
