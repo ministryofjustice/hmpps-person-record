@@ -2,8 +2,6 @@ openapi: 3.0.1
 info:
   title: Proposed Design of Syscon Migration API
   version: 1.0.0
-security:
-  - hmpps-auth-token: []
 
 paths:
   /syscon-sync/person/{number}:
@@ -52,7 +50,7 @@ paths:
             schema:
               $ref: "#/components/schemas/PersonSyncRequest"
       responses:
-        "200":
+        "201":
           description: Successfully synced person data
           content:
             application/json:
@@ -95,8 +93,10 @@ paths:
                       verified: true
                       startDate: "1980-01-01"
                       endDate: "2000-01-01"
-                      modifyDateTime: "2000-01-01 12:00:00"
+                      modifyDateTime: "2001-01-01 12:00:00"
                       modifyUserId: "12345"
+                      createDateTime: "2000-01-01 12:00:00"
+                      createUserId: "556789"
                       current: true
                     - nomisReligionId: "3457"
                       religionCode: "AGNO"
@@ -105,11 +105,13 @@ paths:
                       verified: true
                       startDate: "1980-01-01"
                       endDate: "2000-01-01"
-                      modifyDateTime: "2000-01-01 12:00:00"
-                      modifyUserId: "12345"
-                      current: true
+                      modifyDateTime: "2010-01-01 12:00:00"
+                      modifyUserId: "556789"
+                      createDateTime: "2009-01-01 12:00:00"
+                      createUserId: "98765"
+                      current: false
       responses:
-        '200':
+        '201':
           description: Religion mappings successfully created/returned
           content:
             application/json:
@@ -170,14 +172,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+      # security:
+      #   - bearerAuth: []
 
 components:
   schemas:
     securitySchemes:
-      hmpps-auth-token:
+      bearerAuth:
         type: http
-        name: Authorization
-        in: header
         scheme: bearer
         bearerFormat: JWT
 
@@ -394,6 +396,8 @@ components:
         - startDate
         - modifyDateTime
         - modifyUserId
+        - createDateTime
+        - createUserId
         - current
       properties:
         nomisReligionId:
@@ -434,13 +438,22 @@ components:
           type: string
           description: >
             Last modification timestamp in **'yyyy-MM-dd HH:mm:ss'** (24h) format.
-            Note: This is not ISO 8601; avoid timezone suffixes.
-          example: "2000-01-01 12:00:00"
+          example: "2001-01-01 12:00:00"
         modifyUserId:
           type: string
           description: Identifier of the user who made the modification.
           maxLength: 100
           example: "12345"
+        createDateTime:
+          type: string
+          description: >
+            Creation timestamp in **'yyyy-MM-dd HH:mm:ss'** (24h) format.
+          example: "2000-01-01 12:00:00"
+        createUserId:
+          type: string
+          description: Identifier of the user who made the modification.
+          maxLength: 100
+          example: "56789"
         current:
           type: boolean
           description: Whether this entry is the current religion record.
