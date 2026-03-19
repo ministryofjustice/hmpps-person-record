@@ -71,7 +71,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `should save religions against a new prison number when an entry has a null code`() {
       val prisonNumber = randomPrisonNumber()
-      val religions = createRandomReligions() + createRandomReligion(null, false)
+      val religions = createRandomReligions() + createRandomReligion(current = false)
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       postReligions(prisonNumber, religions)
@@ -140,7 +140,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     fun `should return a 404 when the person does not exist`() {
       val prisonNumber = randomPrisonNumber()
       val expectedErrorMessage = "Not found: $prisonNumber"
-      val religions = createRandomReligions() + createRandomReligion(null, false)
+      val religions = createRandomReligions() + createRandomReligion(current = false)
 
       webTestClient.post()
         .uri(religionUrl(prisonNumber))

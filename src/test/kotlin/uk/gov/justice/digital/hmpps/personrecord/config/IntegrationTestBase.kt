@@ -266,7 +266,7 @@ class IntegrationTestBase {
     if (index == 0) createRandomReligion(randomReligionCode(), true) else createRandomReligion(randomReligionCode(), false)
   }
 
-  internal fun createRandomReligion(code: String? = randomReligionCode(), current: Boolean = true) = PrisonReligion(
+  internal fun createRandomReligion(code: String = randomReligionCode(), current: Boolean = true) = PrisonReligion(
     nomisReligionId = randomPrisonNumber(),
     changeReasonKnown = randomBoolean(),
     comments = randomName(),
