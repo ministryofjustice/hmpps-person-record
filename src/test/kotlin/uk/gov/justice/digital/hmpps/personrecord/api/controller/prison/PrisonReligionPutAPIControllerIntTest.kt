@@ -59,6 +59,8 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
         assertThat(actualPrisonReligion.modifyUserId).isEqualTo(requestBody.modifyUserId)
         assertThat(actualPrisonReligion.endDate).isEqualTo(requestBody.endDate)
         assertThat(actualPrisonReligion.prisonRecordType).isEqualTo(PrisonRecordType.from(requestBody.current))
+        assertThat(actualPrisonReligion.createDateTime).isEqualTo(existingReligionEntity.createDateTime)
+        assertThat(actualPrisonReligion.createUserId).isEqualTo(existingReligionEntity.createUserId)
 
         val expectedResponseBody = PrisonReligionResponse(prisonNumber, PrisonReligionMapping(requestBody.nomisReligionId, existingReligionEntity.updateId.toString()))
         responseBody.isEqualTo(expectedResponseBody)

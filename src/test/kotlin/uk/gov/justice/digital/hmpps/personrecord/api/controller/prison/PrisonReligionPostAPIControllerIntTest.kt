@@ -158,6 +158,9 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
     assertThat(actual.endDate).isEqualTo(expected.endDate)
     assertThat(actual.modifyDateTime).isEqualTo(expected.modifyDateTime)
     assertThat(actual.prisonRecordType).isEqualTo(PrisonRecordType.from(expected.current))
+    assertThat(actual.createDateTime).isEqualTo(expected.createDateTime)
+    assertThat(actual.createUserId).isEqualTo(expected.createUserId)
+    assertThat(actual.modifyUserId).isEqualTo(expected.modifyUserId)
   }
 
   private fun prisonReligionPostEndpoint(prisonNumber: String) = "/person/prison/$prisonNumber/religion"

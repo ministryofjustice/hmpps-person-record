@@ -253,6 +253,8 @@ class SysconReligionControllerIntTest : WebTestBase() {
       assertThat(storedReligion.modifyDateTime).isEqualTo(sentReligion.modifyDateTime)
       assertThat(storedReligion.modifyUserId).isEqualTo(sentReligion.modifyUserId)
       assertThat(storedReligion.prisonRecordType).isEqualTo(PrisonRecordType.from(sentReligion.current))
+      assertThat(storedReligion.createDateTime).isEqualTo(sentReligion.createDateTime)
+      assertThat(storedReligion.createUserId).isEqualTo(sentReligion.createUserId)
     }
   }
 
