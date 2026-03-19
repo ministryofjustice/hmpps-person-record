@@ -55,7 +55,7 @@ class PrisonReligionAPIController(
     ),
   )
   @PostMapping("/{prisonNumber}/religion")
-  fun save(
+  fun savePrisonReligion(
     @PathVariable("prisonNumber") prisonNumber: String,
     @RequestBody prisonReligionRequest: PrisonReligion,
   ): ResponseEntity<PrisonReligionResponse> {

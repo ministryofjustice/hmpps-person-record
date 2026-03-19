@@ -51,10 +51,10 @@ class PrisonReligionEntity(
   var endDate: LocalDate? = null,
 
   @Column(name = "modify_date_time", nullable = true)
-  var modifyDateTime: LocalDateTime,
+  var modifyDateTime: LocalDateTime? = null,
 
   @Column(name = "modify_user_id", nullable = true)
-  var modifyUserId: String,
+  var modifyUserId: String? = null,
 
   @Column(name = "record_type", nullable = false)
   @Enumerated(STRING)
