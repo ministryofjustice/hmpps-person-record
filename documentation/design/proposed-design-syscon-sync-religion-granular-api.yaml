@@ -45,8 +45,6 @@ paths:
                     verified: true
                     startDate: "1980-01-01"
                     endDate: "2000-01-01"
-                    modifyDateTime: "2001-01-01 12:00:00"
-                    modifyUserId: "12345"
                     createDateTime: "2000-01-01 12:00:00"
                     createUserId: "56789"
                     current: true
@@ -214,8 +212,8 @@ components:
         - startDate
         - createDateTime
         - createUserId
-        - modifyDateTime
-        - modifyUserId
+        # - modifyDateTime
+        # - modifyUserId
         - current
       properties:
         nomisReligionId:
@@ -242,13 +240,13 @@ components:
           format: date
           nullable: true
           example: "2001-01-01"
-        modifyDateTime:
-          type: string
-          description: "Non-ISO timestamp in 'yyyy-MM-dd HH:mm:ss' format"
-          example: "2001-01-01 12:00:00"
-        modifyUserId:
-          type: string
-          example: "12345"
+        # modifyDateTime:
+        #   type: string
+        #   description: "Non-ISO timestamp in 'yyyy-MM-dd HH:mm:ss' format"
+        #   example: "2001-01-01 12:00:00"
+        # modifyUserId:
+        #   type: string
+        #   example: "12345"
         createDateTime:
           type: string
           description: "Non-ISO timestamp in 'yyyy-MM-dd HH:mm:ss' format"
