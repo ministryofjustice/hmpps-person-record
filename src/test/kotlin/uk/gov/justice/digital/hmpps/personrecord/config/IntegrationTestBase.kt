@@ -270,13 +270,14 @@ class IntegrationTestBase {
     nomisReligionId = randomPrisonNumber(),
     changeReasonKnown = randomBoolean(),
     comments = randomName(),
-    verified = randomBoolean(),
     religionCode = code,
     startDate = randomDate(),
     endDate = randomDate(),
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),
     current = current,
+    createDateTime = randomDateTime(),
+    createUserId = randomName(),
   )
 
   internal fun checkTelemetry(

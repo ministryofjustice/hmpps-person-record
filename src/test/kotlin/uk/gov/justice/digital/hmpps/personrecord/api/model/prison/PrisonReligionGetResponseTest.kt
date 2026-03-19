@@ -25,12 +25,13 @@ class PrisonReligionGetResponseTest {
       code = randomReligionCode(),
       changeReasonKnown = randomBoolean(),
       comments = randomLowerCaseString(),
-      verified = randomBoolean(),
       startDate = randomDate(),
       endDate = randomDate(),
       modifyDateTime = randomDateTime(),
       modifyUserId = randomLowerCaseString(),
       prisonRecordType = PrisonRecordType.entries.random(),
+      createDateTime = randomDateTime(),
+      createUserId = randomLowerCaseString(),
     )
 
     val actual = PrisonReligionGetResponse.from(prisonNumber, prisonReligionEntity)
@@ -42,12 +43,13 @@ class PrisonReligionGetResponseTest {
         religionDescription = ReligionCode.valueOf(prisonReligionEntity.code!!).description,
         changeReasonKnown = prisonReligionEntity.changeReasonKnown,
         comments = prisonReligionEntity.comments,
-        verified = prisonReligionEntity.verified,
         startDate = prisonReligionEntity.startDate,
         endDate = prisonReligionEntity.endDate,
         modifyDateTime = prisonReligionEntity.modifyDateTime,
         modifyUserId = prisonReligionEntity.modifyUserId,
         current = prisonReligionEntity.prisonRecordType.value,
+        createDateTime = prisonReligionEntity.createDateTime,
+        createUserId = prisonReligionEntity.createUserId,
       ),
     )
     assertThat(actual).usingRecursiveComparison().isEqualTo(expected)

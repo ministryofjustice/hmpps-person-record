@@ -10,12 +10,13 @@ data class PrisonReligionGet(
   val religionDescription: String? = null,
   val changeReasonKnown: Boolean? = null,
   val comments: String? = null,
-  val verified: Boolean? = null,
   val startDate: LocalDate? = null,
   val endDate: LocalDate? = null,
   val modifyDateTime: LocalDateTime? = null,
   val modifyUserId: String? = null,
   val current: Boolean? = null,
+  val createDateTime: LocalDateTime,
+  val createUserId: String,
 ) {
   companion object {
     fun from(prisonReligionEntity: PrisonReligionEntity): PrisonReligionGet = PrisonReligionGet(
@@ -23,12 +24,13 @@ data class PrisonReligionGet(
       religionDescription = prisonReligionEntity.code.toReligionCodeDescription(),
       changeReasonKnown = prisonReligionEntity.changeReasonKnown,
       comments = prisonReligionEntity.comments,
-      verified = prisonReligionEntity.verified,
       startDate = prisonReligionEntity.startDate,
       endDate = prisonReligionEntity.endDate,
       modifyDateTime = prisonReligionEntity.modifyDateTime,
       modifyUserId = prisonReligionEntity.modifyUserId,
       current = prisonReligionEntity.prisonRecordType.value,
+      createDateTime = prisonReligionEntity.createDateTime,
+      createUserId = prisonReligionEntity.createUserId,
     )
   }
 }
