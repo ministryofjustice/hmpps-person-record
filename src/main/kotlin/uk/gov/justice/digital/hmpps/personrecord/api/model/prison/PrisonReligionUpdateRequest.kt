@@ -10,5 +10,4 @@ data class PrisonReligionUpdateRequest(
   val modifyDateTime: LocalDateTime,
   val endDate: LocalDate? = null,
   val comments: String? = null,
-  val verified: Boolean? = null,
 )

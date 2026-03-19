@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonRel
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.generateUUIDString
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -167,7 +166,6 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
   private fun createRandomReligionUpdateRequest(current: Boolean = true) = PrisonReligionUpdateRequest(
     nomisReligionId = randomPrisonNumber(),
     comments = randomName(),
-    verified = randomBoolean(),
     endDate = randomDate(),
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),
