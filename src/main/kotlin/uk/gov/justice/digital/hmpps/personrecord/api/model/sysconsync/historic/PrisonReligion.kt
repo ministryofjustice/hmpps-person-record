@@ -7,14 +7,14 @@ import java.time.LocalDateTime
 data class PrisonReligion(
   @Schema(description = "The nomis religion id", example = "1234", required = true)
   val nomisReligionId: String,
-  @Schema(description = "The religion code", example = "AGNO")
-  val religionCode: String? = null,
+  @Schema(description = "The religion code", example = "AGNO", required = true)
+  val religionCode: String,
   @Schema(description = "The religion change reason known", example = "true")
   val changeReasonKnown: Boolean? = null,
   @Schema(description = "The religion comments", example = "Foo Bar")
   val comments: String? = null,
-  @Schema(description = "The religion start date", example = "1980-01-01")
-  val startDate: LocalDate? = null,
+  @Schema(description = "The religion start date", example = "1980-01-01", required = true)
+  val startDate: LocalDate,
   @Schema(description = "The religion end date", example = "2000-01-01")
   val endDate: LocalDate? = null,
   @Schema(description = "The religion modify date and time", example = "2000-01-01 12:00:00", required = false)
