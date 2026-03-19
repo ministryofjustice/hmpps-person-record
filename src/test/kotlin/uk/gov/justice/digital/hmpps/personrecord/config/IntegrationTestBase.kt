@@ -270,7 +270,6 @@ class IntegrationTestBase {
     nomisReligionId = randomPrisonNumber(),
     changeReasonKnown = randomBoolean(),
     comments = randomName(),
-    verified = randomBoolean(),
     religionCode = code,
     startDate = randomDate(),
     endDate = randomDate(),

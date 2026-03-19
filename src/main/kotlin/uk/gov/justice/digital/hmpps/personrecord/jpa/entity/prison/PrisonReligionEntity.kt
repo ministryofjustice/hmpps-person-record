@@ -44,9 +44,6 @@ class PrisonReligionEntity(
   @Column
   var comments: String? = null,
 
-  @Column
-  var verified: Boolean? = null,
-
   @Column(name = "start_date")
   var startDate: LocalDate? = null,
 
@@ -77,7 +74,6 @@ class PrisonReligionEntity(
       code = prisonReligion.religionCode,
       changeReasonKnown = prisonReligion.changeReasonKnown,
       comments = prisonReligion.comments,
-      verified = prisonReligion.verified,
       startDate = prisonReligion.startDate,
       endDate = prisonReligion.endDate,
       modifyDateTime = prisonReligion.modifyDateTime,

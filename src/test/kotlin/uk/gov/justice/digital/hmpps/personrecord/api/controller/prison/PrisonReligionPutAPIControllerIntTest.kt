@@ -55,7 +55,6 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
 
         assertThat(actualPrisonReligion.updateId).isEqualTo(existingReligionEntity.updateId)
         assertThat(actualPrisonReligion.comments).isEqualTo(requestBody.comments)
-        assertThat(actualPrisonReligion.verified).isEqualTo(requestBody.verified)
         assertThat(actualPrisonReligion.modifyDateTime).isEqualTo(requestBody.modifyDateTime)
         assertThat(actualPrisonReligion.modifyUserId).isEqualTo(requestBody.modifyUserId)
         assertThat(actualPrisonReligion.endDate).isEqualTo(requestBody.endDate)

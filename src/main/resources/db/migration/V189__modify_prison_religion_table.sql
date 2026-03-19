@@ -4,6 +4,9 @@ BEGIN;
 truncate table personrecordservice.prison_religion;
 
 ALTER TABLE IF EXISTS personrecordservice.prison_religion
+    DROP COLUMN IF EXISTS verified;
+
+ALTER TABLE IF EXISTS personrecordservice.prison_religion
     ADD COLUMN IF NOT EXISTS create_user_id TEXT NOT NULL;
 
 ALTER TABLE IF EXISTS personrecordservice.prison_religion

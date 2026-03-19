@@ -154,7 +154,6 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
     assertThat(actual.prisonNumber).isEqualTo(prisonNumber)
     assertThat(actual.changeReasonKnown).isEqualTo(expected.changeReasonKnown)
     assertThat(actual.comments).isEqualTo(expected.comments)
-    assertThat(actual.verified).isEqualTo(expected.verified)
     assertThat(actual.startDate).isEqualTo(expected.startDate)
     assertThat(actual.endDate).isEqualTo(expected.endDate)
     assertThat(actual.modifyDateTime).isEqualTo(expected.modifyDateTime)
