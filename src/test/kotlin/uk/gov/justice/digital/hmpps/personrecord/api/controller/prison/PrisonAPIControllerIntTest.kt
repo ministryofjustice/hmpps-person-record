@@ -199,9 +199,10 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.religionHistory.first().religionCode).isEqualTo(existingPrisonReligionEntity.code)
       assertThat(responseBody.religionHistory.first().religionDescription).isEqualTo(ReligionCode.valueOf(existingPrisonReligionEntity.code!!).description)
       assertThat(responseBody.religionHistory.first().changeReasonKnown).isEqualTo(existingPrisonReligionEntity.changeReasonKnown)
-      assertThat(responseBody.religionHistory.first().verified).isEqualTo(existingPrisonReligionEntity.verified)
       assertThat(responseBody.religionHistory.first().modifyDateTime).isEqualTo(existingPrisonReligionEntity.modifyDateTime)
       assertThat(responseBody.religionHistory.first().modifyUserId).isEqualTo(existingPrisonReligionEntity.modifyUserId)
+      assertThat(responseBody.religionHistory.first().createDateTime).isEqualTo(existingPrisonReligionEntity.createDateTime)
+      assertThat(responseBody.religionHistory.first().createUserId).isEqualTo(existingPrisonReligionEntity.createUserId)
       assertThat(responseBody.religionHistory.first().current).isEqualTo(existingPrisonReligionEntity.prisonRecordType.value)
       assertThat(responseBody.religionHistory.first().endDate).isEqualTo(existingPrisonReligionEntity.endDate)
     }
