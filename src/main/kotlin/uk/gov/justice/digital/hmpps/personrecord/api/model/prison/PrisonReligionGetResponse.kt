@@ -20,6 +20,8 @@ data class PrisonReligionGetResponse(
         modifyDateTime = prisonReligionEntity.modifyDateTime,
         modifyUserId = prisonReligionEntity.modifyUserId,
         current = prisonReligionEntity.prisonRecordType.value,
+        createDateTime = prisonReligionEntity.createDateTime,
+        createUserId = prisonReligionEntity.createUserId,
       ),
     )
   }

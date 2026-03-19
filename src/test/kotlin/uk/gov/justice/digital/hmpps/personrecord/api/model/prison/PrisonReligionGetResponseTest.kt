@@ -48,6 +48,8 @@ class PrisonReligionGetResponseTest {
         modifyDateTime = prisonReligionEntity.modifyDateTime,
         modifyUserId = prisonReligionEntity.modifyUserId,
         current = prisonReligionEntity.prisonRecordType.value,
+        createDateTime = prisonReligionEntity.createDateTime,
+        createUserId = prisonReligionEntity.createUserId,
       ),
     )
     assertThat(actual).usingRecursiveComparison().isEqualTo(expected)
