@@ -277,6 +277,8 @@ class IntegrationTestBase {
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),
     current = current,
+    createDateTime = randomDateTime(),
+    createUserId = randomName(),
   )
 
   internal fun checkTelemetry(

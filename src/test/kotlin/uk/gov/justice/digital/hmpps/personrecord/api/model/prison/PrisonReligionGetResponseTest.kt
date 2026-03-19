@@ -31,6 +31,8 @@ class PrisonReligionGetResponseTest {
       modifyDateTime = randomDateTime(),
       modifyUserId = randomLowerCaseString(),
       prisonRecordType = PrisonRecordType.entries.random(),
+      createDateTime = randomDateTime(),
+      createUserId = randomLowerCaseString(),
     )
 
     val actual = PrisonReligionGetResponse.from(prisonNumber, prisonReligionEntity)

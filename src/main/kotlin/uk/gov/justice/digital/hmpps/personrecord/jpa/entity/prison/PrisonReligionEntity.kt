@@ -53,15 +53,21 @@ class PrisonReligionEntity(
   @Column(name = "end_date")
   var endDate: LocalDate? = null,
 
-  @Column(name = "modify_date_time", nullable = false)
+  @Column(name = "modify_date_time", nullable = true)
   var modifyDateTime: LocalDateTime,
 
-  @Column(name = "modify_user_id", nullable = false)
+  @Column(name = "modify_user_id", nullable = true)
   var modifyUserId: String,
 
   @Column(name = "record_type", nullable = false)
   @Enumerated(STRING)
   var prisonRecordType: PrisonRecordType,
+
+  @Column(name = "create_date_time", nullable = false)
+  var createDateTime: LocalDateTime,
+
+  @Column(name = "create_user_id", nullable = false)
+  var createUserId: String,
 
 ) {
 
@@ -77,6 +83,8 @@ class PrisonReligionEntity(
       modifyDateTime = prisonReligion.modifyDateTime,
       modifyUserId = prisonReligion.modifyUserId,
       prisonRecordType = PrisonRecordType.from(prisonReligion.current),
+      createDateTime = prisonReligion.createDateTime,
+      createUserId = prisonReligion.createUserId,
     )
   }
 }

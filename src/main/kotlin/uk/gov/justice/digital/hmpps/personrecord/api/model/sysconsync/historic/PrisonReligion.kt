@@ -19,10 +19,14 @@ data class PrisonReligion(
   val startDate: LocalDate? = null,
   @Schema(description = "The religion end date", example = "2000-01-01")
   val endDate: LocalDate? = null,
-  @Schema(description = "The religion modify date and time", example = "2000-01-01 12:00:00", required = true)
+  @Schema(description = "The religion modify date and time", example = "2000-01-01 12:00:00", required = false)
   val modifyDateTime: LocalDateTime,
-  @Schema(description = "The religion modify user id", example = "12345", required = true)
+  @Schema(description = "The religion modify user id", example = "12345", required = false)
   val modifyUserId: String,
   @Schema(description = "Flag indicating the current religion", example = "true", required = true)
   val current: Boolean,
+  @Schema(description = "The religion create date and time", example = "2000-01-01 12:00:00", required = true)
+  val createDateTime: LocalDateTime,
+  @Schema(description = "The religion create user id", example = "12345", required = true)
+  val createUserId: String,
 )
