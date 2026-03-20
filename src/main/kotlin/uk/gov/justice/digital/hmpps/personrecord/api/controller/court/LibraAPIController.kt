@@ -43,7 +43,7 @@ class LibraAPIController(
       ],
     ),
   )
-  fun getRecord(
+  fun getLibraPerson(
     @PathVariable(name = "cId") cID: String,
   ): ResponseEntity<*> {
     val personEntity = personRepository.findByCId(cID)
