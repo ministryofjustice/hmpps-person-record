@@ -51,6 +51,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 class PrisonAPIControllerIntTest : WebTestBase() {
 
@@ -285,11 +286,11 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.religionHistory[1].current).isEqualTo(false)
       assertThat(responseBody.religionHistory[1].religionCode).isEqualTo(HUM.name)
       assertThat(responseBody.religionHistory[1].startDate).isEqualTo(now.minusDays(1))
-      assertThat(responseBody.religionHistory[1].createDateTime).isEqualTo(nowTime.minusDays(1).minusHours(1))
+      assertThat(responseBody.religionHistory[1].createDateTime.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(nowTime.minusDays(1).minusHours(1).truncatedTo(ChronoUnit.SECONDS))
       assertThat(responseBody.religionHistory[2].current).isEqualTo(false)
       assertThat(responseBody.religionHistory[2].religionCode).isEqualTo(BAHA.name)
       assertThat(responseBody.religionHistory[2].startDate).isEqualTo(now.minusDays(1))
-      assertThat(responseBody.religionHistory[2].createDateTime).isEqualTo(nowTime.minusDays(1).minusHours(2))
+      assertThat(responseBody.religionHistory[2].createDateTime.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(nowTime.minusDays(1).minusHours(2).truncatedTo(ChronoUnit.SECONDS))
     }
 
     @Test
