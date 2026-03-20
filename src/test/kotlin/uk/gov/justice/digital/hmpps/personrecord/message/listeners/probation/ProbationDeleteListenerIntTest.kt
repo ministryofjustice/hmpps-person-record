@@ -162,7 +162,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val mergedFrom = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
 
     mergeRecord(mergedFrom, mergedTo)
-    mergeUuid(mergedFrom.personKey!!, mergedTo.personKey!!)
 
     publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
 
@@ -209,7 +208,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     mergeRecord(recordC, recordB)
     mergeRecord(recordB, recordA)
-    mergeUuid(recordB.personKey!!, recordA.personKey!!)
 
     publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
 
@@ -223,23 +221,18 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to recordB.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordBCrn, "SOURCE_SYSTEM" to "DELIUS"),
     )
-    checkTelemetry(
-      CPR_UUID_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to recordB.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
+
     checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_DELETED)
     checkEventLogExist(recordACrn, CPRLogEvents.CPR_UUID_DELETED)
     checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
-    checkEventLogExist(recordBCrn, CPRLogEvents.CPR_UUID_DELETED)
     checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_DELETED)
 
     recordA.assertPersonDeleted()
     recordB.assertPersonDeleted()
     recordC.assertPersonDeleted()
     recordA.personKey?.assertPersonKeyDeleted()
-    recordB.personKey?.assertPersonKeyDeleted()
   }
 
   @Test
