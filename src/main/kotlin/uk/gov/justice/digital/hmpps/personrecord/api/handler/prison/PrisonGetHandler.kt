@@ -22,15 +22,19 @@ class PrisonGetHandler(
     return when {
       personEntity == null -> throw ResourceNotFoundException(prisonNumber)
       personEntity.hasMergedIntoAnotherPerson() -> respondWithRedirect(getMergedToPrisonNumber(personEntity))
-      else -> ResponseEntity.ok(
-        (
-          PrisonCanonicalRecord.from(
-            personEntity,
-            prisonReligionRepository
-              .findByPrisonNumber(prisonNumber),
-          )
-          ),
-      )
+      else -> {
+        val prisonReligionEntities = prisonReligionRepository
+          .findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
+
+        ResponseEntity.ok(
+          (
+            PrisonCanonicalRecord.from(
+              personEntity,
+              prisonReligionEntities,
+            )
+            ),
+        )
+      }
     }
   }
 

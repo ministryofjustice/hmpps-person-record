@@ -8,6 +8,6 @@ import java.util.UUID
 @Repository
 interface PrisonReligionRepository : JpaRepository<PrisonReligionEntity, Long> {
   fun deleteAllByPrisonNumber(prisonNumber: String)
-  fun findByPrisonNumber(prisonNumber: String): List<PrisonReligionEntity>
+  fun findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber: String): List<PrisonReligionEntity>
   fun findByUpdateId(updateId: UUID): PrisonReligionEntity?
 }
