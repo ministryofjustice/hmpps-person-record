@@ -6,17 +6,18 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconReligionMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconReligionResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
+import java.util.UUID
 
 class SysconReligionControllerIntTest : WebTestBase() {
 
@@ -66,16 +67,6 @@ class SysconReligionControllerIntTest : WebTestBase() {
       val expectedAnotherReligionMapping = SysconReligionMapping(anotherReligion.nomisReligionId, actualAnotherReligionEntity!!.updateId.toString())
       assertThat(actualCurrentReligionMapping).isEqualTo(expectedCurrentReligionMapping)
       assertThat(actualAnotherReligionMapping).isEqualTo(expectedAnotherReligionMapping)
-    }
-
-    @Test
-    fun `should save religions against a new prison number when an entry has a null code`() {
-      val prisonNumber = randomPrisonNumber()
-      val religionsInsertRequest = createRandomReligions() + createRandomReligion(current = false)
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
-
-      val actualResponseBody = postReligions(prisonNumber, religionsInsertRequest)
-      assertCorrectValuesSaved(prisonNumber, religionsInsertRequest, actualResponseBody)
     }
 
     @Test
@@ -212,7 +203,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     }
   }
 
-  private fun postReligions(prisonNumber: String, religionsInsertRequest: List<PrisonReligion>): PrisonReligionResponse = sendPostRequestAsserted<PrisonReligionResponse>(
+  private fun postReligions(prisonNumber: String, religionsInsertRequest: List<PrisonReligion>): SysconReligionResponseBody = sendPostRequestAsserted<SysconReligionResponseBody>(
     url = religionUrl(prisonNumber),
     body = PrisonReligionRequest(religionsInsertRequest),
     roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
@@ -222,7 +213,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
   private fun assertCorrectValuesSaved(
     prisonNumber: String,
     requestBody: List<PrisonReligion>,
-    actualResponseBody: PrisonReligionResponse,
+    actualResponseBody: SysconReligionResponseBody,
   ) {
     val actualReligionEntities = awaitNotNull { prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber) }
     val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
@@ -231,20 +222,21 @@ class SysconReligionControllerIntTest : WebTestBase() {
     assertThat(personEntity.religion).isEqualTo(expectedCurrReligion!!.religionCode)
     assertThat(actualReligionEntities.size).isEqualTo(requestBody.size)
 
-//    religions.zip(actualReligionEntities).forEachIndexed { _, (sentReligion, storedReligion) ->
-//      assertThat(storedReligion.updateId).isNotNull()
-//      assertThat(storedReligion.prisonNumber).isEqualTo(prisonNumber)
-//      assertThat(storedReligion.comments).isEqualTo(sentReligion.comments)
-//      assertThat(storedReligion.changeReasonKnown).isEqualTo(sentReligion.changeReasonKnown)
-//      assertThat(storedReligion.code).isEqualTo(sentReligion.religionCode)
-//      assertThat(storedReligion.startDate).isEqualTo(sentReligion.startDate)
-//      assertThat(storedReligion.endDate).isEqualTo(sentReligion.endDate)
-//      assertThat(storedReligion.modifyDateTime).isEqualTo(sentReligion.modifyDateTime)
-//      assertThat(storedReligion.modifyUserId).isEqualTo(sentReligion.modifyUserId)
-//      assertThat(storedReligion.prisonRecordType).isEqualTo(PrisonRecordType.from(sentReligion.current))
-//      assertThat(storedReligion.createDateTime).isEqualTo(sentReligion.createDateTime)
-//      assertThat(storedReligion.createUserId).isEqualTo(sentReligion.createUserId)
-//    }
+    actualResponseBody.religionMappings.forEach { res ->
+      val storedReligion = prisonReligionRepository.findByUpdateId(UUID.fromString(res.cprReligionId))!!
+      val sentReligion = requestBody.find { it.nomisReligionId == res.nomisReligionId }!!
+      assertThat(storedReligion.prisonNumber).isEqualTo(prisonNumber)
+      assertThat(storedReligion.comments).isEqualTo(sentReligion.comments)
+      assertThat(storedReligion.changeReasonKnown).isEqualTo(sentReligion.changeReasonKnown)
+      assertThat(storedReligion.code).isEqualTo(sentReligion.religionCode)
+      assertThat(storedReligion.startDate).isEqualTo(sentReligion.startDate)
+      assertThat(storedReligion.endDate).isEqualTo(sentReligion.endDate)
+      assertThat(storedReligion.modifyDateTime).isEqualTo(sentReligion.modifyDateTime)
+      assertThat(storedReligion.modifyUserId).isEqualTo(sentReligion.modifyUserId)
+      assertThat(storedReligion.prisonRecordType).isEqualTo(PrisonRecordType.from(sentReligion.current))
+      assertThat(storedReligion.createDateTime).isEqualTo(sentReligion.createDateTime)
+      assertThat(storedReligion.createUserId).isEqualTo(sentReligion.createUserId)
+    }
   }
 
   private fun religionUrl(prisonNumber: String) = "/syscon-sync/religion/$prisonNumber"
