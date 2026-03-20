@@ -46,7 +46,6 @@ class ReclusterApiIntTest : WebTestBase() {
 
       mergeRecord(mergedPerson, person)
 
-      mergedPerson.assertHasLinkToCluster()
       mergedPerson.assertMergedTo(person)
 
       val request = listOf(AdminReclusterRecord(DELIUS, mergedPerson.crn!!))

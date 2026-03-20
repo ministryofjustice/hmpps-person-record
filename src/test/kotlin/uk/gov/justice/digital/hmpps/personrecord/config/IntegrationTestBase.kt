@@ -73,6 +73,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.model.types.review.ClusterType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
@@ -114,6 +115,9 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var jsonMapper: JsonMapper
+
+  @Autowired
+  lateinit var mergeService: MergeService
 
   @Autowired
   lateinit var personKeyRepository: PersonKeyRepository
@@ -353,19 +357,17 @@ class IntegrationTestBase {
 
   // TODO the personKey of the merged record is still set here
   // TODO ideally replace this with full merge processing
-  internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity): PersonEntity {
-    val source = personRepository.findByMatchId(sourcePersonEntity.matchId)!!
-    val target = personRepository.findByMatchId(targetPersonEntity.matchId)!!
-    source.mergedTo = target.id
-    return personRepository.save(source)
+  internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
+    stubDeletePersonMatch()
+    mergeService.processMerge(sourcePersonEntity, targetPersonEntity)
   }
 
-  internal fun mergeUuid(sourcePersonKey: PersonKeyEntity, targetPersonKeyEntity: PersonKeyEntity): PersonKeyEntity {
+  internal fun mergeUuid(sourcePersonKey: PersonKeyEntity, targetPersonKeyEntity: PersonKeyEntity) {
     val source = personKeyRepository.findByPersonUUID(sourcePersonKey.personUUID)!!
     val target = personKeyRepository.findByPersonUUID(targetPersonKeyEntity.personUUID)!!
     source.mergedTo = target.id
     source.status = MERGED
-    return personKeyRepository.saveAndFlush(source)
+    personKeyRepository.saveAndFlush(source)
   }
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
