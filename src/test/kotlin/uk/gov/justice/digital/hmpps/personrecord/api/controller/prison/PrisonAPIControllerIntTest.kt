@@ -216,7 +216,9 @@ class PrisonAPIControllerIntTest : WebTestBase() {
     @Test
     fun `should sort religions by start date and created date newest first`() {
       val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber = prisonNumber))
+      val person = createPerson(createRandomPrisonPersonDetails(prisonNumber = prisonNumber))
+      createPersonKey()
+        .addPerson(person)
       val now = LocalDate.now()
       val nowTime = LocalDateTime.now()
       val currentPrisonReligion = PrisonReligion(
