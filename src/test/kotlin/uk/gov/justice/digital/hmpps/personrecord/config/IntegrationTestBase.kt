@@ -70,7 +70,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.model.types.review.ClusterType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
@@ -358,14 +357,6 @@ class IntegrationTestBase {
   internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
     stubDeletePersonMatch()
     mergeService.processMerge(personRepository.findByMatchId(sourcePersonEntity.matchId), personRepository.findByMatchId(targetPersonEntity.matchId)!!)
-  }
-
-  internal fun mergeUuid(sourcePersonKey: PersonKeyEntity, targetPersonKeyEntity: PersonKeyEntity) {
-    val source = personKeyRepository.findByPersonUUID(sourcePersonKey.personUUID)!!
-    val target = personKeyRepository.findByPersonUUID(targetPersonKeyEntity.personUUID)!!
-    source.mergedTo = target.id
-    source.status = MERGED
-    personKeyRepository.saveAndFlush(source)
   }
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
