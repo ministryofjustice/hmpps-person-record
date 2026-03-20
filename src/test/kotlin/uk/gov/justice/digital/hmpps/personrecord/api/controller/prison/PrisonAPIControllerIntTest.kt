@@ -4,7 +4,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
@@ -13,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
@@ -221,20 +222,23 @@ class PrisonAPIControllerIntTest : WebTestBase() {
         .addPerson(person)
       val now = LocalDate.now()
       val nowTime = LocalDateTime.now()
-      val currentPrisonReligion = PrisonReligion(
-        nomisReligionId = randomPrisonNumber(),
-        changeReasonKnown = randomBoolean(),
-        comments = randomName(),
-        religionCode = AGNO.name,
-        startDate = now,
-        endDate = null,
-        modifyDateTime = null,
-        modifyUserId = null,
-        current = true,
-        createDateTime = nowTime,
-        createUserId = randomName(),
+
+      val anotherReligionSameStartDate = createRandomReligion().copy(
+        religionCode = BAHA.name,
+        startDate = now.minusDays(1),
+        endDate = now.minusDays(1),
+        current = false,
+        modifyDateTime = nowTime,
+        createDateTime = nowTime.minusDays(1).minusHours(2),
       )
-      val previousReligion = currentPrisonReligion.copy(
+      sendPostRequestAsserted<Unit>(
+        url = "/person/prison/$prisonNumber/religion",
+        body = anotherReligionSameStartDate,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+      )
+
+      val anotherReligion = createRandomReligion().copy(
         religionCode = HUM.name,
         startDate = now.minusDays(1),
         endDate = now,
@@ -242,33 +246,27 @@ class PrisonAPIControllerIntTest : WebTestBase() {
         modifyDateTime = nowTime,
         createDateTime = nowTime.minusDays(1).minusHours(1),
       )
-      val previousReligionSameStartDate = currentPrisonReligion.copy(
-        religionCode = BAHA.name,
-        startDate = now.minusDays(1),
-        endDate = now.minusDays(1),
-        current = false,
-        modifyDateTime = nowTime.minusDays(1).minusHours(1),
-        createDateTime = nowTime.minusDays(1).minusHours(2),
+      sendPostRequestAsserted<Unit>(
+        url = "/person/prison/$prisonNumber/religion",
+        body = anotherReligion,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
       )
 
-      val previousSameStartDateReligionEntity = prisonReligionRepository.save(
-        PrisonReligionEntity.from(
-          prisonNumber,
-          previousReligionSameStartDate,
-        ),
+      val currentReligion = createRandomReligion().copy(
+        religionCode = AGNO.name,
+        startDate = now,
+        endDate = null,
+        modifyDateTime = null,
+        modifyUserId = null,
+        current = true,
+        createDateTime = nowTime,
       )
-      val previousReligionEntity = prisonReligionRepository.save(
-        PrisonReligionEntity.from(
-          prisonNumber,
-          previousReligion,
-        ),
-      )
-
-      val currentReligionEntity = prisonReligionRepository.save(
-        PrisonReligionEntity.from(
-          prisonNumber,
-          currentPrisonReligion,
-        ),
+      sendPostRequestAsserted<Unit>(
+        url = "/person/prison/$prisonNumber/religion",
+        body = currentReligion,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
       )
 
       val responseBody = webTestClient.get()
