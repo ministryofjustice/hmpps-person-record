@@ -324,7 +324,7 @@ class IntegrationTestBase {
     }
   }
 
-  internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(12)) untilAsserted function
+  internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(5)) untilAsserted function
 
   internal fun <T> awaitNotNull(function: () -> T?): T = await atMost (Duration.ofSeconds(3)) untilNotNull function
 
@@ -355,11 +355,9 @@ class IntegrationTestBase {
     .apply(configure)
     .let(personRepository::saveAndFlush)
 
-  // TODO the personKey of the merged record is still set here
-  // TODO ideally replace this with full merge processing
   internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
     stubDeletePersonMatch()
-    mergeService.processMerge(sourcePersonEntity, targetPersonEntity)
+    mergeService.processMerge(personRepository.findByMatchId(sourcePersonEntity.matchId), personRepository.findByMatchId(targetPersonEntity.matchId)!!)
   }
 
   internal fun mergeUuid(sourcePersonKey: PersonKeyEntity, targetPersonKeyEntity: PersonKeyEntity) {

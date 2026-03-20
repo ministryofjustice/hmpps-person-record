@@ -139,14 +139,14 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordBCrn, "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordACrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
-    checkEventLogExist(recordBCrn, CPRLogEvents.CPR_UUID_DELETED)
+    checkEventLogExist(recordACrn, CPRLogEvents.CPR_UUID_DELETED)
 
     recordA.assertPersonDeleted()
     recordB.assertPersonDeleted()
@@ -309,7 +309,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordBCrn, "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_DELETED)
     checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
