@@ -223,48 +223,45 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       val now = LocalDate.now()
       val nowTime = LocalDateTime.now()
 
-      val anotherReligionSameStartDate = createRandomReligion().copy(
-        religionCode = BAHA.name,
-        startDate = now.minusDays(1),
-        endDate = now.minusDays(1),
-        current = false,
-        modifyDateTime = nowTime,
-        createDateTime = nowTime.minusDays(1).minusHours(2),
-      )
       sendPostRequestAsserted<Unit>(
         url = "/person/prison/$prisonNumber/religion",
-        body = anotherReligionSameStartDate,
+        body = createRandomReligion().copy( // <- first in history to be written
+          religionCode = BAHA.name,
+          startDate = now.minusDays(1),
+          endDate = now.minusDays(1),
+          current = false,
+          modifyDateTime = nowTime,
+          createDateTime = nowTime.minusDays(1).minusHours(2),
+        ),
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.CREATED,
       )
 
-      val anotherReligion = createRandomReligion().copy(
-        religionCode = HUM.name,
-        startDate = now.minusDays(1),
-        endDate = now,
-        current = false,
-        modifyDateTime = nowTime,
-        createDateTime = nowTime.minusDays(1).minusHours(1),
-      )
       sendPostRequestAsserted<Unit>(
         url = "/person/prison/$prisonNumber/religion",
-        body = anotherReligion,
+        body = createRandomReligion().copy( // <- second in history to be written
+          religionCode = HUM.name,
+          startDate = now.minusDays(1),
+          endDate = now,
+          current = false,
+          modifyDateTime = nowTime,
+          createDateTime = nowTime.minusDays(1).minusHours(1),
+        ),
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.CREATED,
       )
 
-      val currentReligion = createRandomReligion().copy(
-        religionCode = AGNO.name,
-        startDate = now,
-        endDate = null,
-        modifyDateTime = null,
-        modifyUserId = null,
-        current = true,
-        createDateTime = nowTime,
-      )
       sendPostRequestAsserted<Unit>(
         url = "/person/prison/$prisonNumber/religion",
-        body = currentReligion,
+        body = createRandomReligion().copy( // <- most recent in history to be written
+          religionCode = AGNO.name,
+          startDate = now,
+          endDate = null,
+          modifyDateTime = null,
+          modifyUserId = null,
+          current = true,
+          createDateTime = nowTime,
+        ),
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.CREATED,
       )
