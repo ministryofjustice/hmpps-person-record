@@ -287,14 +287,14 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.religionHistory.first().modifyDateTime).isNull()
       assertThat(responseBody.religionHistory.first().modifyUserId).isNull()
 
+      assertThat(responseBody.religionHistory[1].current).isEqualTo(false)
+      assertThat(responseBody.religionHistory[1].religionCode).isEqualTo(HUM.name)
+      assertThat(responseBody.religionHistory[1].startDate).isEqualTo(now.minusDays(1))
+      assertThat(responseBody.religionHistory[1].createDateTime).isEqualTo(nowTime.minusDays(1).minusHours(1))
       assertThat(responseBody.religionHistory[2].current).isEqualTo(false)
-      assertThat(responseBody.religionHistory[2].religionCode).isEqualTo(HUM.name)
+      assertThat(responseBody.religionHistory[2].religionCode).isEqualTo(BAHA.name)
       assertThat(responseBody.religionHistory[2].startDate).isEqualTo(now.minusDays(1))
-      assertThat(responseBody.religionHistory[2].createDateTime).isEqualTo(nowTime.minusDays(1).minusHours(1))
-      assertThat(responseBody.religionHistory[3].current).isEqualTo(false)
-      assertThat(responseBody.religionHistory[3].religionCode).isEqualTo(BAHA.name)
-      assertThat(responseBody.religionHistory[3].startDate).isEqualTo(now.minusDays(1))
-      assertThat(responseBody.religionHistory[3].createDateTime).isEqualTo(nowTime.minusDays(1).minusHours(2))
+      assertThat(responseBody.religionHistory[2].createDateTime).isEqualTo(nowTime.minusDays(1).minusHours(2))
     }
 
     @Test

@@ -55,7 +55,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
         .returnResult()
         .responseBody!!
 
-      val actualReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber).associateBy { it.code }
+      val actualReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber).associateBy { it.code }
       val actualCurrentReligionEntity = actualReligionEntities[currentReligion.religionCode]
       val actualAnotherReligionEntity = actualReligionEntities[anotherReligion.religionCode]
 
@@ -121,7 +121,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
         .expectStatus()
         .isBadRequest
 
-      assertThat(prisonReligionRepository.findByPrisonNumber(prisonNumber)).isEmpty()
+      assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)).isEmpty()
       assertThat(personRepository.findByPrisonNumber(prisonNumber)!!.religion).isNull()
     }
 
@@ -236,7 +236,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     prisonNumber: String,
     religions: List<PrisonReligion>,
   ) {
-    val actualReligionEntities = awaitNotNull { prisonReligionRepository.findByPrisonNumber(prisonNumber) }
+    val actualReligionEntities = awaitNotNull { prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber) }
     val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
     val expectedCurrReligion = religions.find { it.current }
     assertThat(expectedCurrReligion!!.religionCode).isEqualTo(personEntity.religion)

@@ -42,7 +42,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
         assertThat(personEntity.religion).isEqualTo(requestBody.religionCode)
 
-        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
+        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
         assertThat(actualPrisonReligionEntities).hasSize(1)
         assertPrisonReligionEntityColumns(prisonNumber, actualPrisonReligionEntities.first(), requestBody)
       }
@@ -68,7 +68,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
         val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
         assertThat(actualPersonEntity.religion).isEqualTo(actualPersonEntity.religion)
 
-        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
+        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
         assertThat(actualPrisonReligionEntities).hasSize(1)
       }
     }
@@ -87,7 +87,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
       )
 
       awaitAssert {
-        val actualPrisonReligionEntity = prisonReligionRepository.findByPrisonNumber(prisonNumber).first()
+        val actualPrisonReligionEntity = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber).first()
         val expectedResponseBody = PrisonReligionResponse(prisonNumber, PrisonReligionMapping(requestBody.nomisReligionId, actualPrisonReligionEntity.updateId.toString()))
         responseBody.isEqualTo(expectedResponseBody)
       }
@@ -114,7 +114,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
         assertThat(personEntity.religion).isEqualTo(null)
 
-        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
+        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
         assertThat(actualPrisonReligionEntities).hasSize(0)
       }
     }
