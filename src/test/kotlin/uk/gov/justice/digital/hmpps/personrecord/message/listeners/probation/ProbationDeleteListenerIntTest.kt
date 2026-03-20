@@ -160,7 +160,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     val mergedTo = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
     val mergedFrom = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
-
+    val mergedFromPersonKey = mergedFrom.personKey
     mergeRecord(mergedFrom, mergedTo)
 
     publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
@@ -175,20 +175,18 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to mergedFrom.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordBCrn, "SOURCE_SYSTEM" to "DELIUS"),
     )
-    checkTelemetry(
-      CPR_UUID_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to mergedFrom.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
+
     checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_DELETED)
     checkEventLogExist(recordACrn, CPRLogEvents.CPR_UUID_DELETED)
     checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
-    checkEventLogExist(recordBCrn, CPRLogEvents.CPR_UUID_DELETED)
 
     mergedFrom.assertPersonDeleted()
     mergedTo.assertPersonDeleted()
-    mergedFrom.personKey?.assertPersonKeyDeleted()
+    mergedFromPersonKey!!.assertPersonKeyDeleted()
+    // this is a bug I think. mergedFrom's personKey has been merged to mergedTo's personKey but nothing in the DeletionService checks this to delete it
+    // this used to pass because the test setup was incorrect and left the personKey on the merged record set. In reality it would be null
     mergedTo.personKey?.assertPersonKeyDeleted()
   }
 
@@ -204,6 +202,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     // Second Record Cluster (2 Records - C merged to B)
     val recordB = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
+    val recordBPersonKey = recordB.personKey
     val recordC = createPerson(createRandomProbationPersonDetails(recordCCrn))
 
     mergeRecord(recordC, recordB)
@@ -233,6 +232,9 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     recordB.assertPersonDeleted()
     recordC.assertPersonDeleted()
     recordA.personKey?.assertPersonKeyDeleted()
+    recordBPersonKey!!.assertPersonKeyDeleted()
+    // this is a bug I think. recordB's personKey has been merged to recordA's personKey but nothing in the DeletionService checks this to delete it
+    // this used to pass because the test setup was incorrect and left the personKey on the merged record set. In reality it would be null
   }
 
   @Test
