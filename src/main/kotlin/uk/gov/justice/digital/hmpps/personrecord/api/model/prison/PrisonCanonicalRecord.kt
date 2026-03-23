@@ -9,11 +9,17 @@ data class PrisonCanonicalRecord(
   @JsonUnwrapped
   val record: CanonicalRecord,
   val religionHistory: List<PrisonReligionGet>,
+  val prisonAliases: List<PrisonAlias>,
 ) {
   companion object {
-    fun from(personEntity: PersonEntity, prisonReligionEntities: List<PrisonReligionEntity>): PrisonCanonicalRecord = PrisonCanonicalRecord(
+    fun from(
+      personEntity: PersonEntity,
+      prisonReligionEntities: List<PrisonReligionEntity>,
+      prisonAlias: List<PrisonAlias>,
+    ): PrisonCanonicalRecord = PrisonCanonicalRecord(
       record = CanonicalRecord.from(personEntity),
       religionHistory = prisonReligionEntities.map { PrisonReligionGet.from(it) },
+      prisonAliases = prisonAlias,
     )
   }
 }

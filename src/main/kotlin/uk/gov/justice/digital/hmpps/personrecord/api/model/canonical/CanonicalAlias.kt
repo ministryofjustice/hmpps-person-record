@@ -18,7 +18,7 @@ data class CanonicalAlias(
 ) {
   companion object {
 
-    private fun from(pseudonymEntity: PseudonymEntity): CanonicalAlias = CanonicalAlias(
+    fun from(pseudonymEntity: PseudonymEntity): CanonicalAlias = CanonicalAlias(
       firstName = pseudonymEntity.firstName,
       middleNames = pseudonymEntity.middleNames,
       lastName = pseudonymEntity.lastName,

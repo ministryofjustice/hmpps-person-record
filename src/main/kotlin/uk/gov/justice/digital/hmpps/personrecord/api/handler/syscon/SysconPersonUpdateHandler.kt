@@ -15,6 +15,7 @@ class SysconPersonUpdateHandler(
 ) {
 
   fun handle(prisonNumber: String, prisoner: Prisoner): SysconUpdatePersonResponse = personRepository.findByPrisonNumber(prisonNumber)?.let {
+    // most of logic already in draft PR
     val updatedPersonEntity = personService.processPerson(Person.from(prisoner, prisonNumber)) { it }
     SysconUpdatePersonResponse.from(updatedPersonEntity)
   } ?: throw ResourceNotFoundException("Prisoner not found $prisonNumber")
