@@ -142,7 +142,7 @@ jobs:
           retention-days: 1
       - name: publish test report
         if: ${{ inputs.upload-test-artifacts && !cancelled() && github.event.repository.visibility == 'public' }}
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         with:
           artifact: ${{ inputs.artifact-name }}
           name: Test Report
