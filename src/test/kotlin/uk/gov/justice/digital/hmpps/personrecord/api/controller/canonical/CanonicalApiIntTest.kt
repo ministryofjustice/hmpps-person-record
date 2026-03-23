@@ -427,13 +427,28 @@ class CanonicalApiIntTest : WebTestBase() {
     val sourcePersonFirstName = randomName()
     val targetPersonFirstName = randomName()
 
-    val sourcePersonKey = createPersonKey()
-      .addPerson(Person.from(ProbationCase(name = ProbationCaseName(firstName = sourcePersonFirstName), identifiers = Identifiers())))
-    val targetPersonKey = createPersonKey().addPerson(
-      Person.from(ProbationCase(name = ProbationCaseName(firstName = targetPersonFirstName), identifiers = Identifiers())),
+    val sourcePerson = createPerson(
+      Person.from(
+        ProbationCase(
+          name = ProbationCaseName(firstName = sourcePersonFirstName),
+          identifiers = Identifiers(),
+        ),
+      ),
     )
-
-    mergeUuid(sourcePersonKey, targetPersonKey)
+    val sourcePersonKey = createPersonKey()
+      .addPerson(sourcePerson)
+    val targetPerson = createPerson(
+      Person.from(
+        ProbationCase(
+          name = ProbationCaseName(firstName = targetPersonFirstName),
+          identifiers = Identifiers(),
+        ),
+      ),
+    )
+    val targetPersonKey = createPersonKey().addPerson(
+      targetPerson,
+    )
+    mergeRecord(sourcePerson, targetPerson)
 
     webTestClient.get()
       .uri(canonicalAPIUrl(sourcePersonKey.personUUID.toString()))
@@ -451,21 +466,44 @@ class CanonicalApiIntTest : WebTestBase() {
     val targetPersonFirstName = randomName()
     val newTargetPersonFirstName = randomName()
 
+    val sourcePerson = createPerson(
+      Person.from(
+        ProbationCase(
+          name = ProbationCaseName(firstName = sourcePersonFirstName),
+          identifiers = Identifiers(),
+        ),
+      ),
+    )
     val sourcePersonKey = createPersonKey()
       .addPerson(
-        Person.from(ProbationCase(name = ProbationCaseName(firstName = sourcePersonFirstName), identifiers = Identifiers())),
+        sourcePerson,
       )
-    val targetPersonKey = createPersonKey()
+    val targetPerson = createPerson(
+      Person.from(
+        ProbationCase(
+          name = ProbationCaseName(firstName = targetPersonFirstName),
+          identifiers = Identifiers(),
+        ),
+      ),
+    )
+    createPersonKey()
       .addPerson(
-        Person.from(ProbationCase(name = ProbationCaseName(firstName = targetPersonFirstName), identifiers = Identifiers())),
+        targetPerson,
       )
+    val newTargetPerson = createPerson(
+      Person.from(
+        ProbationCase(
+          name = ProbationCaseName(firstName = newTargetPersonFirstName),
+          identifiers = Identifiers(),
+        ),
+      ),
+    )
     val newTargetPersonKey = createPersonKey()
       .addPerson(
-        Person.from(ProbationCase(name = ProbationCaseName(firstName = newTargetPersonFirstName), identifiers = Identifiers())),
+        newTargetPerson,
       )
-
-    mergeUuid(sourcePersonKey, targetPersonKey)
-    mergeUuid(targetPersonKey, newTargetPersonKey)
+    mergeRecord(sourcePerson, targetPerson)
+    mergeRecord(targetPerson, newTargetPerson)
 
     webTestClient.get()
       .uri(canonicalAPIUrl(sourcePersonKey.personUUID.toString()))
