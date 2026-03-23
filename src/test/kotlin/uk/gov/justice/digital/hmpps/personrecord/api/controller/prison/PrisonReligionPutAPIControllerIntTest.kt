@@ -48,7 +48,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
         val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
         assertThat(actualPersonEntity.religion).isEqualTo(existingPersonEntity.religion)
 
-        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
+        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
         assertThat(actualPrisonReligionEntities).hasSize(1)
         val actualPrisonReligion = actualPrisonReligionEntities.first()
 
@@ -85,7 +85,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
         val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
         assertThat(actualPersonEntity.religion).isEqualTo(existingPersonEntity.religion)
 
-        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
+        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
         assertThat(actualPrisonReligionEntities.first().prisonRecordType).isEqualTo(PrisonRecordType.HISTORIC)
       }
     }
@@ -114,7 +114,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
         val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
         assertThat(actualPersonEntity.religion).isEqualTo(existingPersonEntity.religion)
 
-        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber).associateBy { it.id }
+        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber).associateBy { it.id }
         assertThat(actualPrisonReligionEntities.keys).hasSize(2)
         assertThat(actualPrisonReligionEntities[existingCurrentReligionEntity.id]).usingRecursiveComparison().isEqualTo(existingCurrentReligionEntity)
         assertThat(actualPrisonReligionEntities[existingNonCurrentReligionEntity.id]).usingRecursiveComparison().isEqualTo(existingNonCurrentReligionEntity)
@@ -133,7 +133,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
       )
 
       awaitAssert {
-        assertThat(prisonReligionRepository.findByPrisonNumber(prisonNumber)).isEmpty()
+        assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)).isEmpty()
       }
     }
   }

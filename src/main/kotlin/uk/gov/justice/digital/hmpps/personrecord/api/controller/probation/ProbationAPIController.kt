@@ -55,7 +55,7 @@ class ProbationAPIController(
     ),
   )
   @PreAuthorize("hasRole('$API_READ_ONLY')")
-  fun getRecord(
+  fun getProbationPerson(
     @PathVariable(name = "crn") crn: String,
   ): ResponseEntity<*> {
     val personEntity = personRepository.findByCrn(crn)
@@ -80,7 +80,7 @@ class ProbationAPIController(
   )
   @PreAuthorize("hasRole('$PROBATION_API_READ_WRITE')")
   @Transactional(isolation = REPEATABLE_READ)
-  fun createProbationRecord(
+  fun createProbationPerson(
     @PathVariable(name = "defendantId") defendantId: String,
     @RequestBody probationCase: ProbationCase,
   ) {
