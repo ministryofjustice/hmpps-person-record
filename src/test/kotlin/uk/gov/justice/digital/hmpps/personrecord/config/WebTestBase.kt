@@ -6,13 +6,18 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import software.amazon.awssdk.services.sns.SnsAsyncClient
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.PersonRecordPublisher
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsTopic
 
 @TestPropertySource(properties = ["spring.autoconfigure.exclude=uk.gov.justice.hmpps.sqs.HmppsSqsConfiguration"])
 @Import(WebTestBase.WebTestConfig::class)
 abstract class WebTestBase : WebTestSetup() {
+
+  @MockitoBean
+  lateinit var personRecordPublisher: PersonRecordPublisher
 
   @TestConfiguration
   class WebTestConfig {

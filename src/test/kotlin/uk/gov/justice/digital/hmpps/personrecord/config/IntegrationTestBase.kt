@@ -153,6 +153,8 @@ class IntegrationTestBase {
     )
   }
 
+  protected open fun skipDeletePersonMatchVerification(): Boolean = false
+
   @AfterEach
   fun after() {
     wiremock.stubMappings.forEach {
@@ -165,7 +167,11 @@ class IntegrationTestBase {
         POST -> if (it.request.url != "/auth/oauth/token" && it.request.url != "/oauth_token.do") {
           wiremock.verify(postRequestedFor(urlEqualTo(it.request.url)))
         }
-        DELETE -> wiremock.verify(deleteRequestedFor(urlEqualTo(it.request.url)))
+        DELETE -> {
+          if (!skipDeletePersonMatchVerification() || it.request.url != "/person") {
+            wiremock.verify(deleteRequestedFor(urlEqualTo(it.request.url)))
+          }
+        }
         PUT -> wiremock.verify(putRequestedFor(urlEqualTo(it.request.url)))
         else -> fail()
       }

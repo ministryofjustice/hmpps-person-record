@@ -12,6 +12,9 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonProcessingCompleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PublishPersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PublishPersonDeleted
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PublishPersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordPersonTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -26,6 +29,7 @@ class PersonEventListener(
   fun onPersonCreated(personCreated: PersonCreated) {
     publisher.publishEvent(RecordPersonTelemetry(TelemetryEventType.CPR_RECORD_CREATED, personCreated.personEntity))
     publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_CREATED, personCreated.personEntity))
+    publisher.publishEvent(PublishPersonCreated(personCreated.personEntity))
   }
 
   @EventListener
@@ -33,6 +37,7 @@ class PersonEventListener(
     publisher.publishEvent(RecordPersonTelemetry(TelemetryEventType.CPR_RECORD_UPDATED, personUpdated.personEntity))
     if (personUpdated.matchingFieldsHaveChanged) {
       publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_UPDATED, personUpdated.personEntity))
+      publisher.publishEvent(PublishPersonUpdated(personUpdated.personEntity))
     }
   }
 
@@ -48,6 +53,7 @@ class PersonEventListener(
       ),
     )
     publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_DELETED, personDeleted.personEntity))
+    publisher.publishEvent(PublishPersonDeleted(personDeleted.personEntity))
   }
 
   @EventListener
