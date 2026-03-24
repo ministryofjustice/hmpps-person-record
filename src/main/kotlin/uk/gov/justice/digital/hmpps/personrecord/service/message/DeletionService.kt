@@ -54,6 +54,10 @@ class DeletionService(
   }
 
   private fun deletePersonKey(personKeyEntity: PersonKeyEntity, personEntity: PersonEntity) {
+    personKeyRepository.findByMergedTo(personKeyEntity.id)?.let {
+      personKeyRepository.delete(it) // TODO merge chains? Do they even exist??
+      // TODO possibly emit a PersonKeyDeleted event here?
+    }
     personKeyRepository.delete(personKeyEntity)
     publisher.publishEvent(PersonKeyDeleted(personEntity, personKeyEntity))
   }

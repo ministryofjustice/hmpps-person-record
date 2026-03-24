@@ -12,5 +12,7 @@ import java.util.UUID
 interface PersonKeyRepository : JpaRepository<PersonKeyEntity, Long> {
   fun findByPersonUUID(personUUID: UUID?): PersonKeyEntity?
 
+  fun findByMergedTo(mergedTo: Long?): PersonKeyEntity?
+
   fun findAllByStatusOrderById(uuidStatus: UUIDStatusType, pageable: Pageable): Page<PersonKeyEntity>
 }
