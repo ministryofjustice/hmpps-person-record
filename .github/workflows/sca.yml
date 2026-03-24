@@ -1,0 +1,35 @@
+name: SCA
+run-name: Security Scanning ⚡️
+
+on:
+  schedule:
+    - cron: "20 6 * * 1-5" # Every weekday
+  push:
+    branches: [ "devsecops-actions-sca-action" ]
+  workflow_dispatch:
+
+permissions: {} # Top-level permissions set to none (explicit security)
+
+jobs:
+  sca:
+    name: Software Composition Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: SCA
+        uses: ministryofjustice/devsecops-actions/sca@f965eb1771ec66cfc41d7d57dc607fa6dfbc10ed # v1.4.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          codeql-upload-findings: "always"
+          docker-images-file: ${{ github.workspace }}/docker-images.json
