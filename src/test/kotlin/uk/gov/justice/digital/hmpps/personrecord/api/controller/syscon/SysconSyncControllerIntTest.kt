@@ -88,7 +88,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
       val originalPerson = createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-      val requestBody = buildRequestBody().copy(aliases = buildAliasList(false))
+      val requestBody = buildRequestBody().copy(pseudonyms = buildAliasList(false))
       webTestClient
         .put()
         .uri("/syscon-sync/person/$prisonNumber")
@@ -196,7 +196,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
         nationalityCode = randomNationalityCode(),
         nationalityNote = randomName(),
       ),
-      aliases = buildAliasList(),
+      pseudonyms = buildAliasList(),
       addresses = listOf(
         Address(
           nomisAddressId = randomCId().toLong(),
