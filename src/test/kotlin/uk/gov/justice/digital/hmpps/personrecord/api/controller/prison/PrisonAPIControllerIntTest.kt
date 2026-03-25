@@ -61,7 +61,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
   @Autowired
   private lateinit var prisonReferenceRepository: PrisonReferenceRepository
 
-  // TODO: once syscon post endpoint is ready, use it here instead of manually setting up data?
+  // TODO: once POST /person/prison endpoint is ready, use it here instead of manually setting up data?
   @Nested
   inner class SuccessfulProcessing {
 
