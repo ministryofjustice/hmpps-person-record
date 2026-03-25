@@ -9,8 +9,10 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ON
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifiers
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReference
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionGet
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PrisonReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
@@ -59,20 +61,63 @@ class PrisonAPIControllerIntTest : WebTestBase() {
   @Autowired
   private lateinit var prisonReferenceRepository: PrisonReferenceRepository
 
+  // TODO: once syscon post endpoint is ready, use it here instead of manually setting up data?
   @Nested
   inner class SuccessfulProcessing {
 
     @Test
-    fun `person exists with all child data - returns correct response body`() {
+    fun `person and core child data exists - returns correct response for canonical record`() {
       val prisonNumber = randomPrisonNumber()
       val prisonPerson = createRandomPrisonPersonDetails(prisonNumber)
         .copy(
-          references = listOf(Reference(identifierType = IdentifierType.PNC, identifierValue = randomLongPnc(), comment = randomLowerCaseString())),
+          references = listOf(Reference(identifierType = PNC, identifierValue = randomLongPnc(), comment = randomLowerCaseString())),
           contacts = listOf(Contact(ContactType.MOBILE, randomPhoneNumber(), "+44")),
         )
       val cluster = createPersonKey()
         .addPerson(prisonPerson)
+
+      val actualPeronEntity = cluster.personEntities.first()
+      val actualResponseBody = sendGetRequestAsserted<PrisonCanonicalRecord>(
+        url = prisonApiUrl(prisonNumber),
+        roles = listOf(API_READ_ONLY),
+        expectedStatus = HttpStatus.OK,
+      ).returnResult().responseBody!!
+
+      assertThat(actualResponseBody.record).usingRecursiveComparison().isEqualTo(CanonicalRecord.from(actualPeronEntity))
+    }
+
+    @Test
+    fun `prison religion data exists - returns correct response for religion history`() {
+      val prisonNumber = randomPrisonNumber()
+      val prisonPerson = createRandomPrisonPersonDetails(prisonNumber)
+        .copy(
+          references = listOf(Reference(identifierType = PNC, identifierValue = randomLongPnc(), comment = randomLowerCaseString())),
+          contacts = listOf(Contact(ContactType.MOBILE, randomPhoneNumber(), "+44")),
+        )
+      createPersonKey()
+        .addPerson(prisonPerson)
         .also { prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createRandomReligion())) }
+
+      val actualPrisonReligionEntity = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber).first()
+      val actualResponseBody = sendGetRequestAsserted<PrisonCanonicalRecord>(
+        url = prisonApiUrl(prisonNumber),
+        roles = listOf(API_READ_ONLY),
+        expectedStatus = HttpStatus.OK,
+      ).returnResult().responseBody!!
+
+      assertThat(actualResponseBody.religionHistory).usingRecursiveComparison().isEqualTo(listOf(actualPrisonReligionEntity).map { PrisonReligionGet.from(it) })
+    }
+
+    @Test
+    fun `prison specific references exist - returns correct response for prison references`() {
+      val prisonNumber = randomPrisonNumber()
+      val prisonPerson = createRandomPrisonPersonDetails(prisonNumber)
+        .copy(
+          references = listOf(Reference(identifierType = PNC, identifierValue = randomLongPnc(), comment = randomLowerCaseString())),
+          contacts = listOf(Contact(ContactType.MOBILE, randomPhoneNumber(), "+44")),
+        )
+      val cluster = createPersonKey()
+        .addPerson(prisonPerson)
         .also { cluster ->
           val personEntity = cluster.personEntities.first()
           personEntity.pseudonyms.forEach { pseudonymEntity ->
@@ -86,14 +131,13 @@ class PrisonAPIControllerIntTest : WebTestBase() {
         }
 
       val actualPeronEntity = cluster.personEntities.first()
-      val actualPrisonReligionEntity = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber).first()
       val actualResponseBody = sendGetRequestAsserted<PrisonCanonicalRecord>(
         url = prisonApiUrl(prisonNumber),
         roles = listOf(API_READ_ONLY),
         expectedStatus = HttpStatus.OK,
-      )
+      ).returnResult().responseBody!!
 
-      val expectedPrisonAliasReferences = actualPeronEntity.pseudonyms
+      val expectedPrisonReferenceReferences = actualPeronEntity.pseudonyms
         .filter { pseudonymEntity -> pseudonymEntity.nameType == NameType.ALIAS }
         .map { pseudonymEntity ->
           val referencesForPseudonym = prisonReferenceRepository.findAllByPseudonym(pseudonymEntity)
@@ -103,7 +147,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
                 prisonReferenceEntity.identifierValue
               }
             }
-          PrisonAlias(
+          PrisonReference(
             alias = CanonicalAlias.from(pseudonymEntity),
             identifiers = CanonicalIdentifiers(
               crns = listOfNotNull(actualPeronEntity.crn),
@@ -118,12 +162,8 @@ class PrisonAPIControllerIntTest : WebTestBase() {
             ),
           )
         }
-      val expectedResponseBody = PrisonCanonicalRecord.from(
-        personEntity = actualPeronEntity,
-        prisonReligionEntities = listOf(actualPrisonReligionEntity),
-        prisonAlias = expectedPrisonAliasReferences,
-      )
-      actualResponseBody.isEqualTo(expectedResponseBody)
+
+      assertThat(actualResponseBody.prisonReferences).usingRecursiveComparison().isEqualTo(expectedPrisonReferenceReferences)
     }
 
     @Test

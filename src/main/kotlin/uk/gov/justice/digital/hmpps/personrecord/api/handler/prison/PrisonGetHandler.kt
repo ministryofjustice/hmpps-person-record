@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifiers
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReference
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PrisonReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
@@ -40,7 +40,7 @@ class PrisonGetHandler(
           PrisonCanonicalRecord.from(
             personEntity = personEntity,
             prisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber),
-            prisonAlias = getPrisonSpecificReferences(personEntity, personEntity.pseudonyms),
+            prisonReferences = getPrisonSpecificReferences(personEntity, personEntity.pseudonyms),
           ),
         )
       }
@@ -63,7 +63,7 @@ class PrisonGetHandler(
     .associateWith { pseudonymEntity -> prisonReferenceRepository.findAllByPseudonym(pseudonymEntity) }
     .filter { it.key.nameType == NameType.ALIAS }
     .map { referenceEntitiesByPseudonymEntity ->
-      PrisonAlias(
+      PrisonReference(
         alias = CanonicalAlias.from(referenceEntitiesByPseudonymEntity.key),
         identifiers = referenceEntitiesByPseudonymEntity.value.toCanonicalReferences(personEntity),
       )
