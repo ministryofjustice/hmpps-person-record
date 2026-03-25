@@ -27,24 +27,6 @@ jobs:
       actions: read
 
     steps:
-      - name: Repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Java
-        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
-        with:
-          distribution: temurin
-          java-version: 25
-
-      - name: Gradle
-        uses: gradle/actions/setup-gradle@39e147cb9de83bb9910b8ef8bd7fff0ee20fcd6f # v6.0.1
-
-      - name: Build
-        shell: bash
-        run: |
-          export JAVA_OPTS="${{ env.JAVA_OPTS }}"
-          ./gradlew clean assemble
-
       - name: SCA
         uses: ministryofjustice/devsecops-actions/sca@f965eb1771ec66cfc41d7d57dc607fa6dfbc10ed # v1.4.0
         env:
