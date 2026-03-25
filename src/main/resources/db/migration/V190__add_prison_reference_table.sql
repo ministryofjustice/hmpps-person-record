@@ -4,7 +4,7 @@ BEGIN;
 CREATE TABLE IF NOT EXISTS personrecordservice.prison_reference
 (
     id                                      SERIAL      PRIMARY KEY,
-    update_id                               UUID        NOT NULL,
+    update_id                               UUID        DEFAULT gen_random_uuid() NOT NULL,
     fk_pseudonym_id                         BIGINT      NOT NULL,
     identifier_type                         TEXT        DEFAULT NULL,
     identifier_value                        TEXT        DEFAULT NULL,

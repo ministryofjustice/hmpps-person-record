@@ -36,19 +36,12 @@ class PrisonGetHandler(
       personEntity == null -> throw ResourceNotFoundException(prisonNumber)
       personEntity.hasMergedIntoAnotherPerson() -> respondWithRedirect(getMergedToPrisonNumber(personEntity))
       else -> {
-        val prisonReligionEntities = prisonReligionRepository
-          .findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
-
-        val prisonAliases = getPrisonSpecificReferences(personEntity, personEntity.pseudonyms)
-
         ResponseEntity.ok(
-          (
-            PrisonCanonicalRecord.from(
-              personEntity,
-              prisonReligionEntities,
-              prisonAliases,
-            )
-            ),
+          PrisonCanonicalRecord.from(
+            personEntity = personEntity,
+            prisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber),
+            prisonAlias = getPrisonSpecificReferences(personEntity, personEntity.pseudonyms),
+          ),
         )
       }
     }
