@@ -10,6 +10,9 @@ on:
 
 permissions: {} # Top-level permissions set to none (explicit security)
 
+env:
+  JAVA_OPTS: '-Xmx4096m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=true -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.workers.max=1'
+
 jobs:
   sca:
     name: Software Composition Analysis
@@ -33,12 +36,20 @@ jobs:
           distribution: temurin
           java-version: 25
 
+      - name: Gradle
+        uses: gradle/actions/setup-gradle@39e147cb9de83bb9910b8ef8bd7fff0ee20fcd6f # v6.0.1
+
+      - name: Build
+        shell: bash
+        run: |
+          export JAVA_OPTS="${{ env.JAVA_OPTS }}"
+          ./gradlew clean assemble
+
       - name: SCA
         uses: ministryofjustice/devsecops-actions/sca@f965eb1771ec66cfc41d7d57dc607fa6dfbc10ed # v1.4.0
         env:
           JAVA_HOME: /opt/jdk
           JAVA_HOME_25_X64: ''
-          JAVA_TOOL_OPTIONS: '-Xmx4096m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=true -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.workers.max=1'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
