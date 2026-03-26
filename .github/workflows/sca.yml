@@ -45,7 +45,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          export JAVA_OPTS="${{ env.JAVA_OPTS }}"
+          export _JAVA_OPTIONS="${{ env.JAVA_OPTS }}"
           ./gradlew clean assemble
 
       - name: SCA
