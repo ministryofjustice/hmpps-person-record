@@ -1,0 +1,58 @@
+name: SCA
+run-name: Security Scanning ⚡️
+
+on:
+  schedule:
+    - cron: "20 6 * * 1-5" # Every weekday
+  workflow_dispatch:
+
+permissions: {} # Top-level permissions set to none (explicit security)
+
+env:
+  JAVA_OPTS: '-Xmx4096m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=true -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.workers.max=1'
+
+jobs:
+  sca:
+    name: Software Composition Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Java
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Gradle
+        uses: gradle/actions/setup-gradle@39e147cb9de83bb9910b8ef8bd7fff0ee20fcd6f # v6.0.1
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@5d4e8d1aca955e8d8589aabd499c5cae939e33c7
+
+      - name: Build
+        shell: bash
+        run: |
+          export _JAVA_OPTIONS="${{ env.JAVA_OPTS }}"
+          ./gradlew clean assemble
+
+      - name: SCA
+        uses: ministryofjustice/devsecops-actions/sca@f965eb1771ec66cfc41d7d57dc607fa6dfbc10ed # v1.4.0
+        env:
+          JAVA_HOME: /opt/jdk
+          JAVA_HOME_25_X64: ''
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          codeql-upload-findings: "always"
+          docker-images-file: ${{ github.workspace }}/docker-images.json
