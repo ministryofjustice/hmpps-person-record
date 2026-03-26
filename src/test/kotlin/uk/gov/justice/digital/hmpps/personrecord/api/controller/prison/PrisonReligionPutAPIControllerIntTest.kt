@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonRel
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.generateUUIDString
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -49,17 +48,18 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
         val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
         assertThat(actualPersonEntity.religion).isEqualTo(existingPersonEntity.religion)
 
-        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
+        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
         assertThat(actualPrisonReligionEntities).hasSize(1)
         val actualPrisonReligion = actualPrisonReligionEntities.first()
 
         assertThat(actualPrisonReligion.updateId).isEqualTo(existingReligionEntity.updateId)
         assertThat(actualPrisonReligion.comments).isEqualTo(requestBody.comments)
-        assertThat(actualPrisonReligion.verified).isEqualTo(requestBody.verified)
         assertThat(actualPrisonReligion.modifyDateTime).isEqualTo(requestBody.modifyDateTime)
         assertThat(actualPrisonReligion.modifyUserId).isEqualTo(requestBody.modifyUserId)
         assertThat(actualPrisonReligion.endDate).isEqualTo(requestBody.endDate)
         assertThat(actualPrisonReligion.prisonRecordType).isEqualTo(PrisonRecordType.from(requestBody.current))
+        assertThat(actualPrisonReligion.createDateTime).isEqualTo(existingReligionEntity.createDateTime)
+        assertThat(actualPrisonReligion.createUserId).isEqualTo(existingReligionEntity.createUserId)
 
         val expectedResponseBody = PrisonReligionResponse(prisonNumber, PrisonReligionMapping(requestBody.nomisReligionId, existingReligionEntity.updateId.toString()))
         responseBody.isEqualTo(expectedResponseBody)
@@ -85,7 +85,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
         val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
         assertThat(actualPersonEntity.religion).isEqualTo(existingPersonEntity.religion)
 
-        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber)
+        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
         assertThat(actualPrisonReligionEntities.first().prisonRecordType).isEqualTo(PrisonRecordType.HISTORIC)
       }
     }
@@ -114,7 +114,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
         val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
         assertThat(actualPersonEntity.religion).isEqualTo(existingPersonEntity.religion)
 
-        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumber(prisonNumber).associateBy { it.id }
+        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber).associateBy { it.id }
         assertThat(actualPrisonReligionEntities.keys).hasSize(2)
         assertThat(actualPrisonReligionEntities[existingCurrentReligionEntity.id]).usingRecursiveComparison().isEqualTo(existingCurrentReligionEntity)
         assertThat(actualPrisonReligionEntities[existingNonCurrentReligionEntity.id]).usingRecursiveComparison().isEqualTo(existingNonCurrentReligionEntity)
@@ -133,7 +133,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
       )
 
       awaitAssert {
-        assertThat(prisonReligionRepository.findByPrisonNumber(prisonNumber)).isEmpty()
+        assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)).isEmpty()
       }
     }
   }
@@ -166,7 +166,6 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
   private fun createRandomReligionUpdateRequest(current: Boolean = true) = PrisonReligionUpdateRequest(
     nomisReligionId = randomPrisonNumber(),
     comments = randomName(),
-    verified = randomBoolean(),
     endDate = randomDate(),
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),

@@ -40,7 +40,6 @@ class PrisonReligionUpdateHandler(private val prisonReligionRepository: PrisonRe
 
   fun updatePrisonReligion(updateRequest: PrisonReligionUpdateRequest, existingPrisonReligion: PrisonReligionEntity): PrisonReligionEntity {
     existingPrisonReligion.comments = updateRequest.comments
-    existingPrisonReligion.verified = updateRequest.verified
     existingPrisonReligion.modifyDateTime = updateRequest.modifyDateTime
     existingPrisonReligion.modifyUserId = updateRequest.modifyUserId
     existingPrisonReligion.endDate = updateRequest.endDate

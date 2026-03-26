@@ -79,8 +79,6 @@ class PersonKeyEntity(
 
   fun getScopes(): List<UUID> = this.personEntities.flatMap { person -> person.getScopes() }
 
-  fun isNotMerged() = this.mergedTo == null
-
   companion object {
     val empty: PersonKeyEntity? = null
 

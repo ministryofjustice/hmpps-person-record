@@ -55,7 +55,7 @@ class PrisonReligionAPIController(
     ),
   )
   @PostMapping("/{prisonNumber}/religion")
-  fun save(
+  fun savePrisonReligion(
     @PathVariable("prisonNumber") prisonNumber: String,
     @RequestBody prisonReligionRequest: PrisonReligion,
   ): ResponseEntity<PrisonReligionResponse> {
@@ -81,7 +81,7 @@ class PrisonReligionAPIController(
     ),
   )
   @PutMapping("/{prisonNumber}/religion/{cprReligionId}")
-  fun update(
+  fun updatePrisonReligion(
     @PathVariable("prisonNumber") prisonNumber: String,
     @PathVariable("cprReligionId") cprReligionId: String,
     @RequestBody requestBody: PrisonReligionUpdateRequest,
@@ -108,7 +108,7 @@ class PrisonReligionAPIController(
     ),
   )
   @GetMapping("/{prisonNumber}/religion/{cprReligionId}")
-  fun get(
+  fun getPrisonReligion(
     @PathVariable("prisonNumber") prisonNumber: String,
     @PathVariable("cprReligionId") cprReligionId: String,
   ): ResponseEntity<PrisonReligionGetResponse> {

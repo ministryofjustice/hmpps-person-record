@@ -43,7 +43,7 @@ class CommonPlatformAPIController(
       ],
     ),
   )
-  fun getRecord(
+  fun getCommonPlatformPerson(
     @PathVariable(name = "defendantId") defendantID: String,
   ): ResponseEntity<*> {
     val personEntity = personRepository.findByDefendantId(defendantID)

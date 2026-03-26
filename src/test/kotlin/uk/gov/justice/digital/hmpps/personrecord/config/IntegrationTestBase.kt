@@ -83,6 +83,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -266,17 +267,18 @@ class IntegrationTestBase {
     if (index == 0) createRandomReligion(randomReligionCode(), true) else createRandomReligion(randomReligionCode(), false)
   }
 
-  internal fun createRandomReligion(code: String? = randomReligionCode(), current: Boolean = true) = PrisonReligion(
-    nomisReligionId = randomPrisonNumber(),
+  internal fun createRandomReligion(code: String = randomReligionCode(), current: Boolean = true) = PrisonReligion(
+    nomisReligionId = randomDigit(10),
     changeReasonKnown = randomBoolean(),
     comments = randomName(),
-    verified = randomBoolean(),
     religionCode = code,
     startDate = randomDate(),
     endDate = randomDate(),
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),
     current = current,
+    createDateTime = randomDateTime(),
+    createUserId = randomName(),
   )
 
   internal fun checkTelemetry(
@@ -349,6 +351,8 @@ class IntegrationTestBase {
     .apply(configure)
     .let(personRepository::saveAndFlush)
 
+  // TODO the personKey of the merged record is still set here
+  // TODO ideally replace this with full merge processing
   internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity): PersonEntity {
     val source = personRepository.findByMatchId(sourcePersonEntity.matchId)!!
     val target = personRepository.findByMatchId(targetPersonEntity.matchId)!!

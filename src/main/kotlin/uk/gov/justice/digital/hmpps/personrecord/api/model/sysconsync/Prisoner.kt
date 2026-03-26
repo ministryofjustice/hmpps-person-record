@@ -6,7 +6,7 @@ data class Prisoner(
   @Schema(description = "The demographic attributes of the person")
   val demographicAttributes: DemographicAttributes,
   @Schema(description = "The aliases of the person")
-  val aliases: List<Alias> = emptyList(),
+  val pseudonyms: List<Alias> = emptyList(),
   @Schema(description = "The addresses of the person")
   val addresses: List<Address> = emptyList(),
   @Schema(description = "The contacts of the person")

@@ -15,12 +15,13 @@ data class PrisonReligionGetResponse(
         religionDescription = prisonReligionEntity.code.toReligionCodeDescription(),
         changeReasonKnown = prisonReligionEntity.changeReasonKnown,
         comments = prisonReligionEntity.comments,
-        verified = prisonReligionEntity.verified,
         startDate = prisonReligionEntity.startDate,
         endDate = prisonReligionEntity.endDate,
         modifyDateTime = prisonReligionEntity.modifyDateTime,
         modifyUserId = prisonReligionEntity.modifyUserId,
         current = prisonReligionEntity.prisonRecordType.value,
+        createDateTime = prisonReligionEntity.createDateTime,
+        createUserId = prisonReligionEntity.createUserId,
       ),
     )
   }

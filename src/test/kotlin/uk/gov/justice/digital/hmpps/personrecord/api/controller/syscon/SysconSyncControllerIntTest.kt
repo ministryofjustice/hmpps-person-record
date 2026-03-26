@@ -6,6 +6,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.node.ObjectNode
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.AddressContactMapping
@@ -118,11 +121,11 @@ class SysconSyncControllerIntTest : WebTestBase() {
         ),
         pseudonymMappings = listOf(
           AliasMapping(
-            nomisPseudonymId = updatePrisonerRequestBody.aliases.first().nomisAliasId.toString(),
+            nomisPseudonymId = updatePrisonerRequestBody.pseudonyms.first().nomisAliasId.toString(),
             cprPseudonymId = personEntity.pseudonyms.first().updateId.toString(),
             identifierMappings = listOf(
               IdentifierMapping(
-                nomisIdentifierId = updatePrisonerRequestBody.aliases.first().identifiers.first().nomisIdentifierId.toString(),
+                nomisIdentifierId = updatePrisonerRequestBody.pseudonyms.first().identifiers.first().nomisIdentifierId.toString(),
                 cprIdentifierId = personEntity.references.first().updateId.toString(),
               ),
             ),
@@ -139,7 +142,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       createRandomPrisonPerson(prisonNumber)
 
       val request = buildRequestBody()
-      val aliasList = request.aliases + SysconAlias(
+      val aliasList = request.pseudonyms + SysconAlias(
         nomisAliasId = randomCId().toLong(),
         titleCode = randomTitleCode().value,
         firstName = randomName(),
@@ -157,7 +160,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
           ),
         ),
       )
-      val updatePrisonerRequestBody = request.copy(aliases = aliasList)
+      val updatePrisonerRequestBody = request.copy(pseudonyms = aliasList)
 
       val responseBody = sendPutRequestAsserted<SysconUpdatePersonResponse>(
         url = "/syscon-sync/person/$prisonNumber",
@@ -195,7 +198,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
       val originalPerson = createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-      val updatedPrisonerRequest = buildRequestBody().copy(aliases = buildAliasList(false))
+      val updatedPrisonerRequest = buildRequestBody().copy(pseudonyms = buildAliasList(false))
       val responseBody = sendPutRequestAsserted<ErrorResponse>(
         url = "/syscon-sync/person/$prisonNumber",
         body = updatedPrisonerRequest,
@@ -203,6 +206,35 @@ class SysconSyncControllerIntTest : WebTestBase() {
         expectedStatus = HttpStatus.BAD_REQUEST,
       )
       responseBody.isEqualTo(ErrorResponse(status = 400, userMessage = "Bad request: No primary alias was found for update on prisoner $prisonNumber"))
+
+      val actualPerson = personRepository.findByPrisonNumber(prisonNumber)?.let { Person.from(it) } ?: fail { "Person not found for update on prisoner $prisonNumber" }
+      val expectedPerson = Person.from(originalPerson)
+      assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
+    }
+
+    @Test
+    fun `invalid enum code is sent - does not update - returns correct response`() {
+      val prisonNumber = randomPrisonNumber()
+      val originalPerson = createPerson(createRandomPrisonPersonDetails(prisonNumber))
+
+      val json = ObjectMapper().valueToTree<ObjectNode>(buildRequestBody())
+      (json.get("demographicAttributes") as ObjectNode).put("ethnicityCode", "TEST")
+
+      webTestClient
+        .put()
+        .uri("/syscon-sync/person/$prisonNumber")
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(json)
+        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isBadRequest
+        .expectBody()
+        .jsonPath("userMessage").value<String> { msg ->
+          assertThat(msg)
+            .contains("Bad request: JSON parse error")
+            .contains("\"TEST\": not one of the values accepted for Enum class")
+        }
 
       val actualPerson = personRepository.findByPrisonNumber(prisonNumber)?.let { Person.from(it) } ?: fail { "Person not found for update on prisoner $prisonNumber" }
       val expectedPerson = Person.from(originalPerson)
@@ -365,7 +397,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
     val actualPerson = Person.from(actualPersonEntity)
     val expectedPerson = Person.from(updatedPrisonerRequest, prisonNumber).copy(
       personId = actualPerson.personId,
-      aliases = updatedPrisonerRequest.aliases.filter { it.isPrimary == false }.map { Alias.from(it) },
+      aliases = updatedPrisonerRequest.pseudonyms.filter { it.isPrimary == false }.map { Alias.from(it) },
     )
     assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
     actualPersonEntity
@@ -389,7 +421,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
         nationalityCode = randomNationalityCode(),
         nationalityNote = randomName(),
       ),
-      aliases = buildAliasList(),
+      pseudonyms = buildAliasList(),
       addresses = listOf(
         SysconAddress(
           nomisAddressId = randomCId().toLong(),

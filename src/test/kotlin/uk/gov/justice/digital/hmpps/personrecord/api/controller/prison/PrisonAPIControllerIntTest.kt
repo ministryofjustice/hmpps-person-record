@@ -4,7 +4,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
@@ -23,6 +25,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.AGNO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.BAHA
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.HUM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
@@ -44,6 +49,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 class PrisonAPIControllerIntTest : WebTestBase() {
 
@@ -199,11 +207,90 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.religionHistory.first().religionCode).isEqualTo(existingPrisonReligionEntity.code)
       assertThat(responseBody.religionHistory.first().religionDescription).isEqualTo(ReligionCode.valueOf(existingPrisonReligionEntity.code!!).description)
       assertThat(responseBody.religionHistory.first().changeReasonKnown).isEqualTo(existingPrisonReligionEntity.changeReasonKnown)
-      assertThat(responseBody.religionHistory.first().verified).isEqualTo(existingPrisonReligionEntity.verified)
       assertThat(responseBody.religionHistory.first().modifyDateTime).isEqualTo(existingPrisonReligionEntity.modifyDateTime)
       assertThat(responseBody.religionHistory.first().modifyUserId).isEqualTo(existingPrisonReligionEntity.modifyUserId)
+      assertThat(responseBody.religionHistory.first().createDateTime).isEqualTo(existingPrisonReligionEntity.createDateTime)
+      assertThat(responseBody.religionHistory.first().createUserId).isEqualTo(existingPrisonReligionEntity.createUserId)
       assertThat(responseBody.religionHistory.first().current).isEqualTo(existingPrisonReligionEntity.prisonRecordType.value)
       assertThat(responseBody.religionHistory.first().endDate).isEqualTo(existingPrisonReligionEntity.endDate)
+    }
+
+    @Test
+    fun `should sort religions by start date and created date newest first`() {
+      val prisonNumber = randomPrisonNumber()
+      val person = createPerson(createRandomPrisonPersonDetails(prisonNumber = prisonNumber))
+      createPersonKey()
+        .addPerson(person)
+      val now = LocalDate.now()
+      val nowTime = LocalDateTime.now()
+
+      sendPostRequestAsserted<Unit>(
+        url = "/person/prison/$prisonNumber/religion",
+        body = createRandomReligion().copy( // <- first in history to be written
+          religionCode = BAHA.name,
+          startDate = now.minusDays(1),
+          endDate = now.minusDays(1),
+          current = false,
+          modifyDateTime = nowTime,
+          createDateTime = nowTime.minusDays(1).minusHours(2),
+        ),
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+      )
+
+      sendPostRequestAsserted<Unit>(
+        url = "/person/prison/$prisonNumber/religion",
+        body = createRandomReligion().copy( // <- second in history to be written
+          religionCode = HUM.name,
+          startDate = now.minusDays(1),
+          endDate = now,
+          current = false,
+          modifyDateTime = nowTime,
+          createDateTime = nowTime.minusDays(1).minusHours(1),
+        ),
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+      )
+
+      sendPostRequestAsserted<Unit>(
+        url = "/person/prison/$prisonNumber/religion",
+        body = createRandomReligion().copy( // <- most recent in history to be written
+          religionCode = AGNO.name,
+          startDate = now,
+          endDate = null,
+          modifyDateTime = null,
+          modifyUserId = null,
+          current = true,
+          createDateTime = nowTime,
+        ),
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+      )
+
+      val responseBody = webTestClient.get()
+        .uri(prisonApiUrl(prisonNumber))
+        .authorised(listOf(API_READ_ONLY))
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody(PrisonCanonicalRecord::class.java)
+        .returnResult()
+        .responseBody!!
+
+      assertThat(responseBody.religionHistory.size).isEqualTo(3)
+      assertThat(responseBody.religionHistory.first().current).isEqualTo(true)
+      assertThat(responseBody.religionHistory.first().endDate).isNull()
+      assertThat(responseBody.religionHistory.first().modifyDateTime).isNull()
+      assertThat(responseBody.religionHistory.first().modifyUserId).isNull()
+
+      assertThat(responseBody.religionHistory[1].current).isEqualTo(false)
+      assertThat(responseBody.religionHistory[1].religionCode).isEqualTo(HUM.name)
+      assertThat(responseBody.religionHistory[1].startDate).isEqualTo(now.minusDays(1))
+      assertThat(responseBody.religionHistory[1].createDateTime.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(nowTime.minusDays(1).minusHours(1).truncatedTo(ChronoUnit.SECONDS))
+      assertThat(responseBody.religionHistory[2].current).isEqualTo(false)
+      assertThat(responseBody.religionHistory[2].religionCode).isEqualTo(BAHA.name)
+      assertThat(responseBody.religionHistory[2].startDate).isEqualTo(now.minusDays(1))
+      assertThat(responseBody.religionHistory[2].createDateTime.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(nowTime.minusDays(1).minusHours(2).truncatedTo(ChronoUnit.SECONDS))
     }
 
     @Test

@@ -55,10 +55,11 @@ class ProbationAPIController(
     ),
   )
   @PreAuthorize("hasRole('$API_READ_ONLY')")
-  fun getRecord(
+  fun getProbationPerson(
     @PathVariable(name = "crn") crn: String,
   ): ResponseEntity<*> {
     val personEntity = personRepository.findByCrn(crn)
+    // TODO what about merged records?
     return when {
       personEntity == null -> throw ResourceNotFoundException(crn)
       else -> ResponseEntity.ok(CanonicalRecord.from(personEntity))
@@ -79,7 +80,7 @@ class ProbationAPIController(
   )
   @PreAuthorize("hasRole('$PROBATION_API_READ_WRITE')")
   @Transactional(isolation = REPEATABLE_READ)
-  fun createProbationRecord(
+  fun createProbationPerson(
     @PathVariable(name = "defendantId") defendantId: String,
     @RequestBody probationCase: ProbationCase,
   ) {
