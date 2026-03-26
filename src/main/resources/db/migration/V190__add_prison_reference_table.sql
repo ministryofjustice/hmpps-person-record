@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS personrecordservice.prison_reference
     identifier_comment                      TEXT        DEFAULT NULL,
     version                                 int4        NOT NULL DEFAULT 0
 );
-ALTER TABLE IF EXISTS prison_reference add constraint fk_pseudonym_reference_id foreign key (fk_pseudonym_id) references pseudonym;
+ALTER TABLE IF EXISTS prison_reference add constraint fk_pseudonym_reference_id foreign key (fk_pseudonym_id) references pseudonym ON DELETE CASCADE;
 
 -----------------------------------------------------
 COMMIT;
