@@ -10,7 +10,7 @@ data class PrisonAlias(
   val titleCode: TitleCode? = null,
   @Schema(description = "The alias first name", example = "Jon")
   val firstName: String? = null,
-  @Schema(description = "The alias middles name", example = "James")
+  @Schema(description = "The alias middle names", example = "James")
   val middleNames: String? = null,
   @Schema(description = "The alias last name", example = "Smythe")
   val lastName: String? = null,
