@@ -5,8 +5,8 @@ import org.springframework.http.HttpStatus.MOVED_PERMANENTLY
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.Alias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.Identifier
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
@@ -52,7 +52,7 @@ class PrisonGetHandler(
   private fun MutableList<PseudonymEntity>.toPrisonAliases() = this
     .associateWith { pseudonymEntity -> prisonReferenceRepository.findAllByPseudonym(pseudonymEntity) }
     .map { (pseudonymEntity, prisonReferenceEntities) ->
-      Alias(
+      PrisonAlias(
         titleCode = pseudonymEntity.titleCode,
         firstName = pseudonymEntity.firstName,
         middleNames = pseudonymEntity.middleNames,

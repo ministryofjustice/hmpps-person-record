@@ -8,8 +8,8 @@ import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.Alias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.Identifier
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionGet
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -123,7 +123,6 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       val expectedCanonicalRecord = CanonicalRecord.from(actualNewestPeronEntity)
       assertThat(actualResponseBody.record).usingRecursiveComparison().isEqualTo(expectedCanonicalRecord)
 
-      // TODO: is this the correct behaviour we want?
       assertThat(actualResponseBody.record.identifiers.cros).containsExactly(prisonPerson2.getCro())
       assertThat(actualResponseBody.record.identifiers.pncs).containsExactly(prisonPerson2.getPnc())
       assertThat(actualResponseBody.record.identifiers.nationalInsuranceNumbers).containsExactly(
@@ -218,7 +217,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       val expectedPrisonAliases = actualPeronEntity.pseudonyms
         .map { pseudonymEntity ->
           val referencesForPseudonym = prisonReferenceRepository.findAllByPseudonym(pseudonymEntity)
-          Alias(
+          PrisonAlias(
             titleCode = pseudonymEntity.titleCode,
             firstName = pseudonymEntity.firstName,
             middleNames = pseudonymEntity.middleNames,

@@ -25,7 +25,10 @@ class PrisonAPIController(private val prisonGetHandler: PrisonGetHandler) {
     description = """Retrieve person record by Prison Number. Role required is **$API_READ_ONLY** . 
       For Identifiers the crn, prisonNumber, defendantId, cids come from all records related to this person.
       The other Identifiers come from just this person
-      **cprUUID is not supplied on this endpoint.**""",
+      **cprUUID is not supplied on this endpoint.**
+      In addition to the person data being returned, the response also includes a list of the prison religions associated with the person
+      and a prison specific representation of alias & identifiers.
+      """,
     security = [SecurityRequirement(name = "api-role")],
   )
   @GetMapping("/person/prison/{prisonNumber}")
