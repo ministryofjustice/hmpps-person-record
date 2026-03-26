@@ -26,7 +26,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
-import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.AGNO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.BAHA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.HUM
@@ -218,7 +217,6 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       ).returnResult().responseBody!!
 
       val expectedPrisonReferenceReferences = actualPeronEntity.pseudonyms
-        .filter { pseudonymEntity -> pseudonymEntity.nameType == NameType.ALIAS }
         .map { pseudonymEntity ->
           val referencesForPseudonym = prisonReferenceRepository.findAllByPseudonym(pseudonymEntity)
           val identifierValuesByType = referencesForPseudonym.groupBy { prisonReferenceEntity -> prisonReferenceEntity.identifierType }

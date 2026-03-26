@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
-import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import java.net.URI
 
 @Component
@@ -61,7 +60,6 @@ class PrisonGetHandler(
     pseudonymEntities: List<PseudonymEntity>,
   ) = pseudonymEntities
     .associateWith { pseudonymEntity -> prisonReferenceRepository.findAllByPseudonym(pseudonymEntity) }
-    .filter { it.key.nameType == NameType.ALIAS }
     .map { referenceEntitiesByPseudonymEntity ->
       PrisonReference(
         alias = CanonicalAlias.from(referenceEntitiesByPseudonymEntity.key),
