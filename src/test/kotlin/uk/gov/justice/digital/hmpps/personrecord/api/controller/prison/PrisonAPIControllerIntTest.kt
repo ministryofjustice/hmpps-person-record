@@ -235,7 +235,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
           )
         }
 
-      assertThat(actualResponseBody.prisonAliases).usingRecursiveComparison().isEqualTo(expectedPrisonAliases)
+      assertThat(actualResponseBody.prisonPseudonyms).usingRecursiveComparison().isEqualTo(expectedPrisonAliases)
     }
 
     @Test
