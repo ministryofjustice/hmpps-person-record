@@ -8,9 +8,9 @@ import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.Identifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionGet
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PrisonReferenceEntity
@@ -226,7 +226,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
             sexCode = pseudonymEntity.sexCode,
             isPrimary = pseudonymEntity.nameType == NameType.PRIMARY,
             identifiers = referencesForPseudonym.map {
-              Identifier(
+              PrisonIdentifier(
                 type = it.identifierType,
                 value = it.identifierValue,
                 comment = it.comment,
