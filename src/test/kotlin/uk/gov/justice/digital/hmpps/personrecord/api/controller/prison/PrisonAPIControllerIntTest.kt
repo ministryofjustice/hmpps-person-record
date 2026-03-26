@@ -7,11 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.Alias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.Identifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReference
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionGet
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PrisonReferenceEntity
@@ -26,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.AGNO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.BAHA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.HUM
@@ -44,7 +44,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import kotlin.collections.groupBy
 
 class PrisonAPIControllerIntTest : WebTestBase() {
 
@@ -216,32 +215,28 @@ class PrisonAPIControllerIntTest : WebTestBase() {
         expectedStatus = HttpStatus.OK,
       ).returnResult().responseBody!!
 
-      val expectedPrisonReferenceReferences = actualPeronEntity.pseudonyms
+      val expectedPrisonAliases = actualPeronEntity.pseudonyms
         .map { pseudonymEntity ->
           val referencesForPseudonym = prisonReferenceRepository.findAllByPseudonym(pseudonymEntity)
-          val identifierValuesByType = referencesForPseudonym.groupBy { prisonReferenceEntity -> prisonReferenceEntity.identifierType }
-            .mapValues { prisonReferenceEntitiesByType ->
-              prisonReferenceEntitiesByType.value.mapNotNull { prisonReferenceEntity ->
-                prisonReferenceEntity.identifierValue
-              }
-            }
-          PrisonReference(
-            alias = CanonicalAlias.from(pseudonymEntity),
-            identifiers = CanonicalIdentifiers(
-              crns = listOfNotNull(actualPeronEntity.crn),
-              prisonNumbers = listOfNotNull(actualPeronEntity.prisonNumber),
-              defendantIds = listOfNotNull(actualPeronEntity.defendantId),
-              cids = listOfNotNull(actualPeronEntity.cId),
-              cros = identifierValuesByType[CRO] ?: emptyList(),
-              pncs = identifierValuesByType[PNC] ?: emptyList(),
-              nationalInsuranceNumbers = identifierValuesByType[NATIONAL_INSURANCE_NUMBER] ?: emptyList(),
-              arrestSummonsNumbers = identifierValuesByType[ARREST_SUMMONS_NUMBER] ?: emptyList(),
-              driverLicenseNumbers = identifierValuesByType[DRIVER_LICENSE_NUMBER] ?: emptyList(),
-            ),
+          Alias(
+            titleCode = pseudonymEntity.titleCode,
+            firstName = pseudonymEntity.firstName,
+            middleNames = pseudonymEntity.middleNames,
+            lastName = pseudonymEntity.lastName,
+            dateOfBirth = pseudonymEntity.dateOfBirth,
+            sexCode = pseudonymEntity.sexCode,
+            isPrimary = pseudonymEntity.nameType == NameType.PRIMARY,
+            identifiers = referencesForPseudonym.map {
+              Identifier(
+                type = it.identifierType,
+                value = it.identifierValue,
+                comment = it.comment,
+              )
+            },
           )
         }
 
-      assertThat(actualResponseBody.prisonReferences).usingRecursiveComparison().isEqualTo(expectedPrisonReferenceReferences)
+      assertThat(actualResponseBody.prisonAliases).usingRecursiveComparison().isEqualTo(expectedPrisonAliases)
     }
 
     @Test

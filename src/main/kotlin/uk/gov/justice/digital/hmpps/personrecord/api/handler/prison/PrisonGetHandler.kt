@@ -5,21 +5,15 @@ import org.springframework.http.HttpStatus.MOVED_PERMANENTLY
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifiers
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.Alias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.Identifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReference
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PrisonReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReferenceRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import java.net.URI
 
 @Component
@@ -39,7 +33,7 @@ class PrisonGetHandler(
           PrisonCanonicalRecord.from(
             personEntity = personEntity,
             prisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber),
-            prisonReferences = getPrisonSpecificReferences(personEntity, personEntity.pseudonyms),
+            prisonAliases = personEntity.pseudonyms.toPrisonAliases(),
           ),
         )
       }
@@ -55,36 +49,24 @@ class PrisonGetHandler(
     .location(URI("/person/prison/$targetPrisonNumber"))
     .build()
 
-  private fun getPrisonSpecificReferences(
-    personEntity: PersonEntity,
-    pseudonymEntities: List<PseudonymEntity>,
-  ) = pseudonymEntities
+  private fun MutableList<PseudonymEntity>.toPrisonAliases() = this
     .associateWith { pseudonymEntity -> prisonReferenceRepository.findAllByPseudonym(pseudonymEntity) }
-    .map { referenceEntitiesByPseudonymEntity ->
-      PrisonReference(
-        alias = CanonicalAlias.from(referenceEntitiesByPseudonymEntity.key),
-        identifiers = referenceEntitiesByPseudonymEntity.value.toCanonicalReferences(personEntity),
+    .map { (pseudonymEntity, prisonReferenceEntities) ->
+      Alias(
+        titleCode = pseudonymEntity.titleCode,
+        firstName = pseudonymEntity.firstName,
+        middleNames = pseudonymEntity.middleNames,
+        lastName = pseudonymEntity.lastName,
+        dateOfBirth = pseudonymEntity.dateOfBirth,
+        sexCode = pseudonymEntity.sexCode,
+        isPrimary = pseudonymEntity.nameType == NameType.PRIMARY,
+        identifiers = prisonReferenceEntities.map {
+          Identifier(
+            type = it.identifierType,
+            value = it.identifierValue,
+            comment = it.comment,
+          )
+        },
       )
     }
-
-  private fun List<PrisonReferenceEntity>.toCanonicalReferences(personEntity: PersonEntity): CanonicalIdentifiers {
-    val identifierValuesByType = this.groupBy { prisonReferenceEntity -> prisonReferenceEntity.identifierType }
-      .mapValues { prisonReferenceEntitiesByType ->
-        prisonReferenceEntitiesByType.value.mapNotNull { prisonReferenceEntity ->
-          prisonReferenceEntity.identifierValue
-        }
-      }
-
-    return CanonicalIdentifiers(
-      crns = listOfNotNull(personEntity.crn),
-      prisonNumbers = listOfNotNull(personEntity.prisonNumber),
-      defendantIds = listOfNotNull(personEntity.defendantId),
-      cids = listOfNotNull(personEntity.cId),
-      cros = identifierValuesByType[CRO] ?: emptyList(),
-      pncs = identifierValuesByType[PNC] ?: emptyList(),
-      nationalInsuranceNumbers = identifierValuesByType[NATIONAL_INSURANCE_NUMBER] ?: emptyList(),
-      arrestSummonsNumbers = identifierValuesByType[ARREST_SUMMONS_NUMBER] ?: emptyList(),
-      driverLicenseNumbers = identifierValuesByType[DRIVER_LICENSE_NUMBER] ?: emptyList(),
-    )
-  }
 }
