@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligio
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReferenceRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
@@ -31,22 +30,18 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.AGNO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.BAHA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.HUM
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
-import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -62,10 +57,10 @@ class PrisonAPIControllerIntTest : WebTestBase() {
 
   // TODO: once POST /person/prison endpoint is ready, use it here instead of manually setting up data?
   @Nested
-  inner class SuccessfulProcessing {
+  inner class CanonicalBehaviour {
 
     @Test
-    fun `person and core child data exists - returns correct response for canonical record`() {
+    fun `cluster size 1 - returns correct response for canonical record`() {
       val prisonNumber = randomPrisonNumber()
       val prisonPerson = createRandomPrisonPersonDetails(prisonNumber)
         .copy(
@@ -86,135 +81,66 @@ class PrisonAPIControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should add list of additional identifiers to the prison record`() {
-      val personOneCro = randomCro()
-      val personTwoCro = randomCro()
-
-      val personOneCrn = randomCrn()
-      val personTwoCrn = randomCrn()
-
-      val personOnePnc = randomLongPnc()
-      val personTwoPnc = randomLongPnc()
-
-      val personOneNationalInsuranceNumber = randomNationalInsuranceNumber()
-      val personTwoNationalInsuranceNumber = randomNationalInsuranceNumber()
-
-      val personOneArrestSummonNumber = randomArrestSummonNumber()
-      val personTwoArrestSummonNumber = randomArrestSummonNumber()
-
-      val personOneDriversLicenseNumber = randomDriverLicenseNumber()
-      val personTwoDriversLicenseNumber = randomDriverLicenseNumber()
-
-      val personOneDefendantId = randomDefendantId()
-      val personTwoDefendantId = randomDefendantId()
-
-      val personOne = createPerson(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = NOMIS,
-          crn = personOneCrn,
-          prisonNumber = randomPrisonNumber(),
-          nationalities = listOf(randomNationalityCode()),
-          religion = randomReligion(),
+    fun `cluster size 2 - returns specified person in canonical record format - along with all known identifiers across cluster`() {
+      val prisonPerson1 = createRandomPrisonPersonDetails(randomPrisonNumber())
+        .copy(
+          crn = randomCrn(),
+          defendantId = randomDefendantId(),
           cId = randomCId(),
-          defendantId = personOneDefendantId,
-          masterDefendantId = personOneDefendantId,
           references = listOf(
-            Reference(identifierType = CRO, identifierValue = personOneCro),
-            Reference(identifierType = PNC, identifierValue = personOnePnc),
-            Reference(
-              identifierType = NATIONAL_INSURANCE_NUMBER,
-              identifierValue = personOneNationalInsuranceNumber,
-            ),
-            Reference(
-              identifierType = ARREST_SUMMONS_NUMBER,
-              identifierValue = personOneArrestSummonNumber,
-            ),
-            Reference(
-              identifierType = DRIVER_LICENSE_NUMBER,
-              identifierValue = personOneDriversLicenseNumber,
-            ),
+            Reference(identifierType = CRO, identifierValue = randomCro()),
+            Reference(identifierType = PNC, identifierValue = randomLongPnc()),
+            Reference(identifierType = NATIONAL_INSURANCE_NUMBER, identifierValue = randomNationalInsuranceNumber()),
+            Reference(identifierType = ARREST_SUMMONS_NUMBER, identifierValue = randomArrestSummonNumber()),
+            Reference(identifierType = DRIVER_LICENSE_NUMBER, identifierValue = randomDriverLicenseNumber()),
           ),
-        ),
-      )
-
-      val personTwo = createPerson(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = NOMIS,
-          crn = personTwoCrn,
-          prisonNumber = randomPrisonNumber(),
-          nationalities = listOf(randomNationalityCode()),
-          religion = randomReligion(),
+          contacts = listOf(Contact(ContactType.MOBILE, randomPhoneNumber(), "+44")),
+        )
+      val prisonNumber2 = randomPrisonNumber()
+      val prisonPerson2 = createRandomPrisonPersonDetails(prisonNumber2)
+        .copy(
+          crn = randomCrn(),
+          defendantId = randomDefendantId(),
           cId = randomCId(),
-          defendantId = personTwoDefendantId,
-          masterDefendantId = personTwoDefendantId,
           references = listOf(
-            Reference(identifierType = CRO, identifierValue = personTwoCro),
-            Reference(identifierType = PNC, identifierValue = personTwoPnc),
-            Reference(
-              identifierType = NATIONAL_INSURANCE_NUMBER,
-              identifierValue = personTwoNationalInsuranceNumber,
-            ),
-            Reference(
-              identifierType = ARREST_SUMMONS_NUMBER,
-              identifierValue = personTwoArrestSummonNumber,
-            ),
-            Reference(
-              identifierType = DRIVER_LICENSE_NUMBER,
-              identifierValue = personTwoDriversLicenseNumber,
-            ),
+            Reference(identifierType = CRO, identifierValue = randomCro()),
+            Reference(identifierType = PNC, identifierValue = randomLongPnc()),
+            Reference(identifierType = NATIONAL_INSURANCE_NUMBER, identifierValue = randomNationalInsuranceNumber()),
+            Reference(identifierType = ARREST_SUMMONS_NUMBER, identifierValue = randomArrestSummonNumber()),
+            Reference(identifierType = DRIVER_LICENSE_NUMBER, identifierValue = randomDriverLicenseNumber()),
           ),
-        ),
-      )
+          contacts = listOf(Contact(ContactType.EMAIL, randomEmail())),
+        )
+      val cluster = createPersonKey()
+        .addPerson(prisonPerson1)
+        .addPerson(prisonPerson2)
 
-      createPersonKey().addPerson(personOne).addPerson(personTwo)
+      val actualNewestPeronEntity = cluster.personEntities.first { it.prisonNumber == prisonNumber2 }
+      val actualResponseBody = sendGetRequestAsserted<PrisonCanonicalRecord>(
+        url = prisonApiUrl(prisonNumber2),
+        roles = listOf(API_READ_ONLY),
+        expectedStatus = HttpStatus.OK,
+      ).returnResult().responseBody!!
 
-      val responseBody = webTestClient.get()
-        .uri(prisonApiUrl(personOne.prisonNumber))
-        .authorised(listOf(API_READ_ONLY))
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody(PrisonCanonicalRecord::class.java)
-        .returnResult()
-        .responseBody!!
+      val expectedCanonicalRecord = CanonicalRecord.from(actualNewestPeronEntity)
+      assertThat(actualResponseBody.record).usingRecursiveComparison().isEqualTo(expectedCanonicalRecord)
 
-      assertThat(responseBody.record.identifiers.cros).containsExactly(personOneCro)
-      assertThat(responseBody.record.identifiers.pncs).containsExactly(personOnePnc)
-      assertThat(responseBody.record.identifiers.nationalInsuranceNumbers).containsExactly(personOneNationalInsuranceNumber)
-      assertThat(responseBody.record.identifiers.arrestSummonsNumbers).containsExactly(personOneArrestSummonNumber)
-      assertThat(responseBody.record.identifiers.driverLicenseNumbers).containsExactly(personOneDriversLicenseNumber)
-      assertThat(responseBody.record.identifiers.crns).containsExactlyInAnyOrderElementsOf(
-        listOf(
-          personOne.crn,
-          personTwo.crn,
-        ),
+      // TODO: is this the correct behaviour we want?
+      assertThat(actualResponseBody.record.identifiers.cros).containsExactly(prisonPerson2.getCro())
+      assertThat(actualResponseBody.record.identifiers.pncs).containsExactly(prisonPerson2.getPnc())
+      assertThat(actualResponseBody.record.identifiers.nationalInsuranceNumbers).containsExactly(
+        prisonPerson2.references.filter { it.identifierType == NATIONAL_INSURANCE_NUMBER }.map { it.identifierValue }.first(),
       )
-      assertThat(responseBody.record.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(
-        listOf(
-          personOne.defendantId,
-          personTwo.defendantId,
-        ),
+      assertThat(actualResponseBody.record.identifiers.arrestSummonsNumbers).containsExactly(
+        prisonPerson2.references.filter { it.identifierType == ARREST_SUMMONS_NUMBER }.map { it.identifierValue }.first(),
       )
-      assertThat(responseBody.record.identifiers.prisonNumbers).containsExactlyInAnyOrderElementsOf(
-        listOf(
-          personOne.prisonNumber,
-          personTwo.prisonNumber,
-        ),
+      assertThat(actualResponseBody.record.identifiers.driverLicenseNumbers).containsExactly(
+        prisonPerson2.references.filter { it.identifierType == DRIVER_LICENSE_NUMBER }.map { it.identifierValue }.first(),
       )
-      assertThat(responseBody.record.identifiers.cids).containsExactlyInAnyOrderElementsOf(
-        listOf(
-          personOne.cId,
-          personTwo.cId,
-        ),
-      )
+      assertThat(actualResponseBody.record.identifiers.crns).containsExactlyInAnyOrderElementsOf(cluster.personEntities.map { it.crn })
+      assertThat(actualResponseBody.record.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(cluster.personEntities.map { it.defendantId })
+      assertThat(actualResponseBody.record.identifiers.prisonNumbers).containsExactlyInAnyOrderElementsOf(cluster.personEntities.map { it.prisonNumber })
+      assertThat(actualResponseBody.record.identifiers.cids).containsExactlyInAnyOrderElementsOf(cluster.personEntities.map { it.cId })
     }
 
     @Test
