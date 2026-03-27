@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
@@ -52,13 +51,13 @@ class PrisonAPIControllerIntTest : WebTestBase() {
         .addPerson(prisonPerson)
 
       val actualPeronEntity = cluster.personEntities.first()
-      val actualResponseBody = sendGetRequestAsserted<PrisonCanonicalRecord>(
+      val actualResponseBody = sendGetRequestAsserted<CanonicalRecord>(
         url = prisonApiUrl(prisonNumber),
         roles = listOf(API_READ_ONLY),
         expectedStatus = HttpStatus.OK,
       ).returnResult().responseBody!!
 
-      assertThat(actualResponseBody.record).usingRecursiveComparison().isEqualTo(CanonicalRecord.from(actualPeronEntity))
+      assertThat(actualResponseBody).usingRecursiveComparison().isEqualTo(CanonicalRecord.from(actualPeronEntity))
     }
 
     @Test
@@ -97,30 +96,30 @@ class PrisonAPIControllerIntTest : WebTestBase() {
         .addPerson(prisonPerson2)
 
       val actualNewestPeronEntity = cluster.personEntities.first { it.prisonNumber == prisonNumber2 }
-      val actualResponseBody = sendGetRequestAsserted<PrisonCanonicalRecord>(
+      val actualResponseBody = sendGetRequestAsserted<CanonicalRecord>(
         url = prisonApiUrl(prisonNumber2),
         roles = listOf(API_READ_ONLY),
         expectedStatus = HttpStatus.OK,
       ).returnResult().responseBody!!
 
       val expectedCanonicalRecord = CanonicalRecord.from(actualNewestPeronEntity)
-      assertThat(actualResponseBody.record).usingRecursiveComparison().isEqualTo(expectedCanonicalRecord)
+      assertThat(actualResponseBody).usingRecursiveComparison().isEqualTo(expectedCanonicalRecord)
 
-      assertThat(actualResponseBody.record.identifiers.cros).containsExactly(prisonPerson2.getCro())
-      assertThat(actualResponseBody.record.identifiers.pncs).containsExactly(prisonPerson2.getPnc())
-      assertThat(actualResponseBody.record.identifiers.nationalInsuranceNumbers).containsExactly(
+      assertThat(actualResponseBody.identifiers.cros).containsExactly(prisonPerson2.getCro())
+      assertThat(actualResponseBody.identifiers.pncs).containsExactly(prisonPerson2.getPnc())
+      assertThat(actualResponseBody.identifiers.nationalInsuranceNumbers).containsExactly(
         prisonPerson2.references.filter { it.identifierType == NATIONAL_INSURANCE_NUMBER }.map { it.identifierValue }.first(),
       )
-      assertThat(actualResponseBody.record.identifiers.arrestSummonsNumbers).containsExactly(
+      assertThat(actualResponseBody.identifiers.arrestSummonsNumbers).containsExactly(
         prisonPerson2.references.filter { it.identifierType == ARREST_SUMMONS_NUMBER }.map { it.identifierValue }.first(),
       )
-      assertThat(actualResponseBody.record.identifiers.driverLicenseNumbers).containsExactly(
+      assertThat(actualResponseBody.identifiers.driverLicenseNumbers).containsExactly(
         prisonPerson2.references.filter { it.identifierType == DRIVER_LICENSE_NUMBER }.map { it.identifierValue }.first(),
       )
-      assertThat(actualResponseBody.record.identifiers.crns).containsExactlyInAnyOrderElementsOf(cluster.personEntities.map { it.crn })
-      assertThat(actualResponseBody.record.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(cluster.personEntities.map { it.defendantId })
-      assertThat(actualResponseBody.record.identifiers.prisonNumbers).containsExactlyInAnyOrderElementsOf(cluster.personEntities.map { it.prisonNumber })
-      assertThat(actualResponseBody.record.identifiers.cids).containsExactlyInAnyOrderElementsOf(cluster.personEntities.map { it.cId })
+      assertThat(actualResponseBody.identifiers.crns).containsExactlyInAnyOrderElementsOf(cluster.personEntities.map { it.crn })
+      assertThat(actualResponseBody.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(cluster.personEntities.map { it.defendantId })
+      assertThat(actualResponseBody.identifiers.prisonNumbers).containsExactlyInAnyOrderElementsOf(cluster.personEntities.map { it.prisonNumber })
+      assertThat(actualResponseBody.identifiers.cids).containsExactlyInAnyOrderElementsOf(cluster.personEntities.map { it.cId })
     }
 
     @Test
