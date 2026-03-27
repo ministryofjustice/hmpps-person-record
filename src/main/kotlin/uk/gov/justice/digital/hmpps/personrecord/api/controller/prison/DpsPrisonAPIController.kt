@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonGetHandler
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.DpsPrisonGetHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.DpsPrisonRecord
 
 @Tag(name = "HMPPS Person API")
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
-class DpsPrisonAPIController(private val prisonGetHandler: PrisonGetHandler) {
+class DpsPrisonAPIController(private val dpsPrisonGetHandler: DpsPrisonGetHandler) {
 
   @Operation(
     description = """Retrieve person record by Prison Number. Role required is **$API_READ_ONLY** . 
@@ -46,5 +46,5 @@ class DpsPrisonAPIController(private val prisonGetHandler: PrisonGetHandler) {
       ],
     ),
   )
-  fun getByPrisonNumberDps(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<PrisonCanonicalRecord> = prisonGetHandler.get(prisonNumber)
+  fun getByPrisonNumberDps(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<DpsPrisonRecord> = dpsPrisonGetHandler.get(prisonNumber)
 }
