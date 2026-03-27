@@ -28,7 +28,7 @@ class CanonicalAPIController(
   private val personKeyRepository: PersonKeyRepository,
 ) {
   @Operation(
-    description = "Note: This API endpoint is scheduled for deprecation." +
+    description = "Note: This API endpoint is scheduled for deprecation. " +
       "Retrieve person record by UUID. Role required is **$API_READ_ONLY**",
     security = [io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "api-role")],
   )
