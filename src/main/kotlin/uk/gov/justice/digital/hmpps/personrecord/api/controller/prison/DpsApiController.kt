@@ -7,19 +7,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonGetHandler
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.DpsPrisonGetHandler
 
 @Tag(name = "HMPPS Person API")
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
-class PrisonSpecificApiController(private val prisonGetHandler: PrisonGetHandler) {
+class DpsApiController(private val dpsPrisonGetHandler: DpsPrisonGetHandler) {
 
   @Operation(
     description = """Retrieve person record by Prison Number. Role required is **$API_READ_ONLY** . 
@@ -31,7 +29,7 @@ class PrisonSpecificApiController(private val prisonGetHandler: PrisonGetHandler
       """,
     security = [SecurityRequirement(name = "api-role")],
   )
-  @GetMapping("/person/prison/specific/{prisonNumber}")
+  @GetMapping("/person/prison/dps/{prisonNumber}")
   @ApiResponses(
     ApiResponse(
       responseCode = "200",
@@ -45,8 +43,5 @@ class PrisonSpecificApiController(private val prisonGetHandler: PrisonGetHandler
       ],
     ),
   )
-  fun getByPrisonNumberPrisonSpecific(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<PrisonCanonicalRecord> {
-    val result = prisonGetHandler.get(prisonNumber)
-    return TODO()
-  }
+  fun getByPrisonNumberForDps(@PathVariable(name = "prisonNumber") prisonNumber: String) = dpsPrisonGetHandler.get(prisonNumber)
 }

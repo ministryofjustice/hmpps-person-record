@@ -7,8 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.DpsPrisonRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonAlias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionGet
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -32,7 +32,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-class PrisonSpecificApiControllerIntTest : WebTestBase() {
+class DpsApiControllerIntTest : WebTestBase() {
 
   @Autowired
   private lateinit var prisonReligionRepository: PrisonReligionRepository
@@ -55,8 +55,8 @@ class PrisonSpecificApiControllerIntTest : WebTestBase() {
         .also { prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createRandomReligion())) }
 
       val actualPrisonReligionEntity = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber).first()
-      val actualResponseBody = sendGetRequestAsserted<PrisonCanonicalRecord>(
-        url = prisonSpecificApiUrl(prisonNumber),
+      val actualResponseBody = sendGetRequestAsserted<DpsPrisonRecord>(
+        url = prisonDpsApiUrl(prisonNumber),
         roles = listOf(API_READ_ONLY),
         expectedStatus = HttpStatus.OK,
       ).returnResult().responseBody!!
@@ -65,7 +65,7 @@ class PrisonSpecificApiControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `prison specific references exist - returns correct response for prison references`() {
+    fun `prison references exist - returns correct response for prison references`() {
       val prisonNumber = randomPrisonNumber()
       val prisonPerson = createRandomPrisonPersonDetails(prisonNumber)
         .copy(
@@ -87,8 +87,8 @@ class PrisonSpecificApiControllerIntTest : WebTestBase() {
         }
 
       val actualPeronEntity = cluster.personEntities.first()
-      val actualResponseBody = sendGetRequestAsserted<PrisonCanonicalRecord>(
-        url = prisonSpecificApiUrl(prisonNumber),
+      val actualResponseBody = sendGetRequestAsserted<DpsPrisonRecord>(
+        url = prisonDpsApiUrl(prisonNumber),
         roles = listOf(API_READ_ONLY),
         expectedStatus = HttpStatus.OK,
       ).returnResult().responseBody!!
@@ -170,12 +170,12 @@ class PrisonSpecificApiControllerIntTest : WebTestBase() {
       )
 
       val responseBody = webTestClient.get()
-        .uri(prisonSpecificApiUrl(prisonNumber))
+        .uri(prisonDpsApiUrl(prisonNumber))
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(PrisonCanonicalRecord::class.java)
+        .expectBody(DpsPrisonRecord::class.java)
         .returnResult()
         .responseBody!!
 
@@ -204,7 +204,7 @@ class PrisonSpecificApiControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
       val expectedErrorMessage = "Not found: $prisonNumber"
       webTestClient.get()
-        .uri(prisonSpecificApiUrl(prisonNumber))
+        .uri(prisonDpsApiUrl(prisonNumber))
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
@@ -218,7 +218,7 @@ class PrisonSpecificApiControllerIntTest : WebTestBase() {
     fun `should return Access Denied 403 when role is wrong`() {
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.get()
-        .uri(prisonSpecificApiUrl("accessdenied"))
+        .uri(prisonDpsApiUrl("accessdenied"))
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
         .expectStatus()
@@ -231,12 +231,12 @@ class PrisonSpecificApiControllerIntTest : WebTestBase() {
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       webTestClient.get()
-        .uri(prisonSpecificApiUrl("unauthorised"))
+        .uri(prisonDpsApiUrl("unauthorised"))
         .exchange()
         .expectStatus()
         .isUnauthorized
     }
   }
 
-  private fun prisonSpecificApiUrl(prisonNumber: String?) = "/person/prison/specific/$prisonNumber"
+  private fun prisonDpsApiUrl(prisonNumber: String?) = "/person/prison/dps/$prisonNumber"
 }
