@@ -8,11 +8,11 @@ kotlin {
 }
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.1.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.1.1"
   kotlin("plugin.spring") version "2.3.20"
   kotlin("jvm") version "2.3.20"
   kotlin("plugin.jpa") version "2.3.20"
-  id("org.jetbrains.kotlinx.kover") version "0.9.7"
+  id("org.jetbrains.kotlinx.kover") version "0.9.8"
   id("org.owasp.dependencycheck") version "12.2.0"
 }
 
@@ -26,7 +26,7 @@ configurations {
 
 dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.1.0")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.2.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.3.0")
   implementation("org.springframework.boot:spring-boot-starter-webclient")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
