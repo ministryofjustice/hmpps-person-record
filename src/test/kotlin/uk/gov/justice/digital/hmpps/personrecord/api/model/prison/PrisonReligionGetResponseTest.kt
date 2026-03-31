@@ -34,9 +34,9 @@ class PrisonReligionGetResponseTest {
       createUserId = randomLowerCaseString(),
     )
 
-    val actual = PrisonReligionGetResponse.from(prisonNumber, prisonReligionEntity)
+    val actual = PrisonReligionReadResponse.from(prisonNumber, prisonReligionEntity)
 
-    val expected = PrisonReligionGetResponse(
+    val expected = PrisonReligionReadResponse(
       prisonNumber = prisonNumber,
       religion = PrisonReligionGet(
         religionCode = prisonReligionEntity.code,
