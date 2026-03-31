@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionGetResponse
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionReadResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
@@ -26,13 +26,13 @@ class PrisonReligionGetApiControllerIntTest : WebTestBase() {
       val prisonReligion = createRandomReligion()
       val existingReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, prisonReligion))
 
-      val responseBody = sendGetRequestAsserted<PrisonReligionGetResponse>(
+      val responseBody = sendGetRequestAsserted<PrisonReligionReadResponse>(
         url = prisonReligionGetEndpoint(prisonNumber, existingReligionEntity.updateId.toString()),
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.OK,
       )
 
-      val expectedResponseBody = PrisonReligionGetResponse.from(prisonNumber, existingReligionEntity)
+      val expectedResponseBody = PrisonReligionReadResponse.from(prisonNumber, existingReligionEntity)
       responseBody.isEqualTo(expectedResponseBody)
     }
   }

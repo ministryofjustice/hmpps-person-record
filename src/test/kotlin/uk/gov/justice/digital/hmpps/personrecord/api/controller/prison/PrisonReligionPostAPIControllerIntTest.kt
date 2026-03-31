@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionMapping
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionResponse
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionSaveResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -31,7 +31,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createRandomReligion()
-      sendPostRequestAsserted<PrisonReligionResponse>(
+      sendPostRequestAsserted<PrisonReligionSaveResponse>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
@@ -79,7 +79,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createRandomReligion()
-      val responseBody = sendPostRequestAsserted<PrisonReligionResponse>(
+      val responseBody = sendPostRequestAsserted<PrisonReligionSaveResponse>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
@@ -88,7 +88,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
 
       awaitAssert {
         val actualPrisonReligionEntity = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber).first()
-        val expectedResponseBody = PrisonReligionResponse(prisonNumber, PrisonReligionMapping(requestBody.nomisReligionId, actualPrisonReligionEntity.updateId.toString()))
+        val expectedResponseBody = PrisonReligionSaveResponse(prisonNumber, PrisonReligionMapping(requestBody.nomisReligionId, actualPrisonReligionEntity.updateId.toString()))
         responseBody.isEqualTo(expectedResponseBody)
       }
     }
