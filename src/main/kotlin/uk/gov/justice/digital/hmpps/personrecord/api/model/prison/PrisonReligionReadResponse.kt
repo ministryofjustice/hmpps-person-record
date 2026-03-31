@@ -4,12 +4,12 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligio
 
 data class PrisonReligionReadResponse(
   val prisonNumber: String,
-  val religion: PrisonReligionGet,
+  val religion: PrisonReligion,
 ) {
   companion object {
     fun from(prisonNumber: String, prisonReligionEntity: PrisonReligionEntity): PrisonReligionReadResponse = PrisonReligionReadResponse(
       prisonNumber = prisonNumber,
-      religion = PrisonReligionGet.from(prisonReligionEntity),
+      religion = PrisonReligion.from(prisonReligionEntity),
     )
   }
 }
