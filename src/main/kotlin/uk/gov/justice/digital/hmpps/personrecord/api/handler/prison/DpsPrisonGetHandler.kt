@@ -7,11 +7,11 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonRel
 
 @Component
 class DpsPrisonGetHandler(
-  private val prisonerGetHelper: PrisonerGetHelper,
+  private val prisonGetHelper: PrisonGetHelper,
   private val prisonReligionRepository: PrisonReligionRepository,
 ) {
 
-  fun get(prisonNumber: String): ResponseEntity<PrisonCanonicalRecord> = prisonerGetHelper.get(prisonNumber) { personEntity ->
+  fun get(prisonNumber: String): ResponseEntity<PrisonCanonicalRecord> = prisonGetHelper.get(prisonNumber) { personEntity ->
     val prisonReligionEntities =
       prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
 

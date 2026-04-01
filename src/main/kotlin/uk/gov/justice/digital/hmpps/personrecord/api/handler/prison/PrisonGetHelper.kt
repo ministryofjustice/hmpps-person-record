@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import java.net.URI
 
 @Component
-class PrisonerGetHelper(
+class PrisonGetHelper(
   private val personRepository: PersonRepository,
 ) {
 
