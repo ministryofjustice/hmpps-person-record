@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.http.HttpStatus.OK
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
@@ -13,11 +14,10 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
-import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
@@ -25,8 +25,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
@@ -37,13 +35,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
-import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 
 class PrisonAPIControllerIntTest : WebTestBase() {
 
@@ -51,112 +45,59 @@ class PrisonAPIControllerIntTest : WebTestBase() {
   inner class SuccessfulProcessing {
 
     @Test
-    fun `should return ok for get`() {
-      val firstName = randomName()
-      val lastName = randomName()
-      val middleNames = randomName()
-      val title = randomTitleCode()
-      val disability = randomBoolean()
-      val interestToImmigration = randomBoolean()
-      val pnc = randomLongPnc()
-      val noFixedAbode = true
-      val startDate = randomDate()
-      val endDate = randomDate()
-      val postcode = randomPostcode()
-      val nationality = randomNationalityCode()
-      val religion = randomReligion()
-      val ethnicity = randomPrisonEthnicity()
-      val sex = randomPrisonSexCode()
-      val sexualOrientation = randomPrisonSexualOrientation()
-
-      val buildingName = randomName()
-      val buildingNumber = randomBuildingNumber()
-      val thoroughfareName = randomName()
-      val dependentLocality = randomName()
-      val postTown = randomName()
-
-      val cro = randomCro()
-      val crn = randomCrn()
+    fun `cluster size 1 - returns correct response for canonical record`() {
       val prisonNumber = randomPrisonNumber()
+      val prisonPerson = createRandomPrisonPersonDetails(prisonNumber)
+        .copy(
+          contacts = listOf(Contact(MOBILE, randomPhoneNumber(), "+44")),
+          nationalities = listOf(randomNationalityCode()),
+        )
+      val cluster = createPersonKey()
+        .addPerson(prisonPerson)
 
-      val person = createPersonWithNewKey(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = NOMIS,
-          disability = disability,
-          immigrationStatus = interestToImmigration,
-          titleCode = title.value,
-          crn = crn,
-          sexCode = sex.value,
-          sexualOrientation = sexualOrientation.value,
-          prisonNumber = prisonNumber,
-          nationalities = listOf(nationality),
-          religion = religion,
-          ethnicityCode = EthnicityCode.fromPrison(ethnicity),
-          aliases = listOf(
-            Alias(
-              firstName = firstName,
-              middleNames = middleNames,
-              lastName = lastName,
-              dateOfBirth = randomDate(),
-              titleCode = title.value,
-              sexCode = sex.value,
-            ),
-          ),
-          addresses = listOf(
-            Address(
-              noFixedAbode = noFixedAbode,
-              startDate = startDate,
-              endDate = endDate,
-              postcode = postcode,
-              buildingName = buildingName,
-              buildingNumber = buildingNumber,
-              thoroughfareName = thoroughfareName,
-              dependentLocality = dependentLocality,
-              postTown = postTown,
-            ),
-          ),
-          references = listOf(
-            Reference(identifierType = PNC, identifierValue = pnc),
-            Reference(identifierType = CRO, identifierValue = cro),
-          ),
-        ),
-      )
-
-      val responseBody = webTestClient.get()
-        .uri(prisonApiUrl(person.prisonNumber))
-        .authorised(listOf(API_READ_ONLY))
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody(CanonicalRecord::class.java)
-        .returnResult()
-        .responseBody!!
-
+      val person = cluster.personEntities.first()
+      val responseBody = sendGetRequestAsserted<CanonicalRecord>(
+        url = prisonApiUrl(prisonNumber),
+        roles = listOf(API_READ_ONLY),
+        expectedStatus = OK,
+      ).returnResult().responseBody!!
+      val alias = prisonPerson.aliases.first()
       val canonicalAlias = CanonicalAlias(
-        firstName = firstName,
-        lastName = lastName,
-        middleNames = middleNames,
-        title = CanonicalTitle.from(title.value),
-        sex = CanonicalSex.from(sex.value),
+        firstName = alias.firstName,
+        lastName = alias.lastName,
+        middleNames = alias.middleNames,
+        title = CanonicalTitle.from(alias.titleCode),
+        sex = CanonicalSex.from(alias.sexCode),
       )
+      val nationality = prisonPerson.nationalities.first()
       val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
+      val address = prisonPerson.addresses.first()
       val canonicalAddress = CanonicalAddress(
-        noFixedAbode = noFixedAbode,
-        startDate = startDate.toString(),
-        endDate = endDate.toString(),
-        postcode = postcode,
-        buildingName = buildingName,
-        buildingNumber = buildingNumber,
-        thoroughfareName = thoroughfareName,
-        dependentLocality = dependentLocality,
-        postTown = postTown,
+        noFixedAbode = address.noFixedAbode,
+        startDate = address.startDate.toString(),
+        endDate = address.endDate?.toString(),
+        postcode = address.postcode,
+        buildingName = address.buildingName,
+        buildingNumber = address.buildingNumber,
+        thoroughfareName = address.thoroughfareName,
+        dependentLocality = address.dependentLocality,
+        postTown = address.postTown,
       )
-      val canonicalReligion = CanonicalReligion(code = religion, description = religion)
-      val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromPrison(ethnicity))
+      val address2 = prisonPerson.addresses.get(1)
+      val canonicalAddress2 = CanonicalAddress(
+        noFixedAbode = address2.noFixedAbode,
+        startDate = address2.startDate.toString(),
+        endDate = address2.endDate?.toString(),
+        postcode = address2.postcode,
+        buildingName = address2.buildingName,
+        buildingNumber = address2.buildingNumber,
+        thoroughfareName = address2.thoroughfareName,
+        dependentLocality = address2.dependentLocality,
+        postTown = address2.postTown,
+      )
+
+      val canonicalReligion = CanonicalReligion(code = prisonPerson.religion, description = prisonPerson.religion)
+      val canonicalEthnicity = CanonicalEthnicity.from(prisonPerson.ethnicityCode)
       assertThat(responseBody.cprUUID).isNull()
       assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
       assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
@@ -172,21 +113,20 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       )
       assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
       assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
-      assertThat(responseBody.aliases.first().sex.code).isEqualTo(sex.value.name)
-      assertThat(responseBody.aliases.first().sex.description).isEqualTo(sex.value.description)
+      assertThat(responseBody.aliases.first().sex.code).isEqualTo(canonicalAlias.sex.code)
+      assertThat(responseBody.aliases.first().sex.description).isEqualTo(canonicalAlias.sex.description)
 
-      assertThat(responseBody.sexualOrientation.code).isEqualTo(sexualOrientation.value.name)
-      assertThat(responseBody.sexualOrientation.description).isEqualTo(sexualOrientation.value.description)
+      assertThat(responseBody.sexualOrientation.code).isEqualTo(prisonPerson.sexualOrientation?.name)
+      assertThat(responseBody.sexualOrientation.description).isEqualTo(prisonPerson.sexualOrientation?.description)
       assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
       assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
       assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
       assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity.description)
       assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
-      assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
-      assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
-      assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
+      assertThat(responseBody.identifiers.cros).isEqualTo(listOf(prisonPerson.getCro()))
+      assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(prisonPerson.getPnc()))
       assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
-      assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
+      assertThat(responseBody.addresses).usingRecursiveComparison().isEqualTo(listOf(canonicalAddress, canonicalAddress2))
     }
 
     @Test
