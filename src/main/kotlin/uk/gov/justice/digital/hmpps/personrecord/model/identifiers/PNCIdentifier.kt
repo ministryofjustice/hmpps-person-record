@@ -70,7 +70,7 @@ data class PNCIdentifier(val pncId: String) {
   }
 }
 
-class PNC(private val checkChar: String, serialNum: String, private val yearDigits: String) {
+private class PNC(private val checkChar: String, serialNum: String, private val yearDigits: String) {
 
   private val paddedSerialNum: String = padSerialNumber(serialNum)
 
