@@ -2,11 +2,11 @@ name: Publish deployment metrics to Plandek
 description: 'Action to publish deployment metrics to Plandek'
 
 inputs:
-  plandek_client_id:
-    description: 'Plandek client id'
+  plandek_client_key:
+    description: 'Plandek client key'
     required: true
-  plandek_client_secret:
-    description: 'Plandek client secret'
+  plandek_token:
+    description: 'Plandek access token'
     required: true
   plandek_deployment_url:
     description: 'Plandek deployment api url'
@@ -18,7 +18,7 @@ inputs:
     description: 'The name of the repository - usually github.repository'
     required: true
   deployment_status:
-    description: 'The status of the deployment - one of: success, failure, rollback, aborted'
+    description: 'The status of the deployment'
     required: true
   commit_sha:
     description: 'The SHA of the commit that is being deployed'
@@ -44,6 +44,22 @@ runs:
       run: |
         echo "Preparing payload"
         
+        deployment_status="${{ inputs.deployment_status }}"
+        case "$deployment_status" in
+          success)
+          deployment_status="success"
+          ;;
+          failure)
+          deployment_status="failure"
+          ;;
+          cancelled)
+          deployment_status="aborted"
+          ;;
+          *)
+          deployment_status="aborted"
+          ;;
+        esac
+        
         environment_name="${{ inputs.environment_name }}"
         environment_name="${environment_name:-production}"
         
@@ -53,7 +69,7 @@ runs:
         postBody="{
           \"client_key\": \"${{ inputs.plandek_client_id }}\",
           \"pipeline\": \"${{ inputs.repository_name }}\",
-          \"status\": \"${{ inputs.deployment_status }}\",
+          \"status\": \"${deployment_status}\",
           \"build\": \"${{ inputs.build_number }}\",
           \"commits\": \"${{ inputs.commit_sha }}\",
           \"calculate_commits_in_build\": true,

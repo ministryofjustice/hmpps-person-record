@@ -160,3 +160,22 @@ jobs:
      environment: 'prod'
      app_version: '${{ needs.build.outputs.app_version }}'
      slack_notification: true
+  publish_deployment_metrics:
+    name: Publish deployment metrics to Plandek
+    uses: ./.github/actions/plandek-deployment
+    if: always()
+    needs:
+      - build
+      - deploy_prod
+    with:
+      plandek_client_key: ${{ secrets.PLANDEK_CLIENT_KEY }}
+      plandek_token: ${{ secrets.PLANDEK_TOKEN }}
+      plandek_deployment_url: ${{ secrets.PLANDEK_DEPLOYMENT_URL }}
+      app_version: ${{ needs.build.outputs.app_version }}
+      repository_name: ${{ github.repository }}
+      deployment_status: ${{ steps.deploy_prod.outcome }}
+      commit_sha: ${{ github.sha }}
+      build_number: ${{ needs.build.outputs.app_version }}
+      deployment_commenced_at: ${{ steps.deploy.outputs.start }} # todo: get from deploy_prod step somehow
+      deployment_completed_at: ${{ steps.deploy.outputs.end }} # todo: get from deploy_prod step somehow
+      environment_name: "production"
