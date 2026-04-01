@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionMapping
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionResponse
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionSaveResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionUpdateRequest
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -37,7 +37,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
       val existingPersonEntity = personRepository.saveAndFlush(PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = existingReligionEntity.code)))
 
       val requestBody = createRandomReligionUpdateRequest()
-      val responseBody = sendPutRequestAsserted<PrisonReligionResponse>(
+      val responseBody = sendPutRequestAsserted<PrisonReligionSaveResponse>(
         url = prisonReligionPutEndpoint(prisonNumber, existingReligionEntity.updateId.toString()),
         body = requestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
@@ -61,7 +61,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
         assertThat(actualPrisonReligion.createDateTime).isEqualTo(existingReligionEntity.createDateTime)
         assertThat(actualPrisonReligion.createUserId).isEqualTo(existingReligionEntity.createUserId)
 
-        val expectedResponseBody = PrisonReligionResponse(prisonNumber, PrisonReligionMapping(requestBody.nomisReligionId, existingReligionEntity.updateId.toString()))
+        val expectedResponseBody = PrisonReligionSaveResponse(prisonNumber, PrisonReligionMapping(requestBody.nomisReligionId, existingReligionEntity.updateId.toString()))
         responseBody.isEqualTo(expectedResponseBody)
       }
     }
@@ -74,7 +74,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
       personRepository.saveAndFlush(existingPersonEntity)
 
       val requestBody = createRandomReligionUpdateRequest(current = false)
-      sendPutRequestAsserted<PrisonReligionResponse>(
+      sendPutRequestAsserted<PrisonReligionSaveResponse>(
         url = prisonReligionPutEndpoint(prisonNumber, existingCurrentReligionEntity.updateId.toString()),
         body = requestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),

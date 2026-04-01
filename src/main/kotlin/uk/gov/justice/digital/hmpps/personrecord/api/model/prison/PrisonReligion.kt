@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.toReligionCodeDescr
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class PrisonReligionGet(
+data class PrisonReligion(
   val religionCode: String? = null,
   val religionDescription: String? = null,
   val changeReasonKnown: Boolean? = null,
@@ -19,7 +19,7 @@ data class PrisonReligionGet(
   val createUserId: String,
 ) {
   companion object {
-    fun from(prisonReligionEntity: PrisonReligionEntity): PrisonReligionGet = PrisonReligionGet(
+    fun from(prisonReligionEntity: PrisonReligionEntity): PrisonReligion = PrisonReligion(
       religionCode = prisonReligionEntity.code,
       religionDescription = prisonReligionEntity.code.toReligionCodeDescription(),
       changeReasonKnown = prisonReligionEntity.changeReasonKnown,
