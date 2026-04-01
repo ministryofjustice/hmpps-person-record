@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatus.CREATED
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
@@ -23,7 +23,11 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.AGNO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.BAHA
@@ -131,8 +135,8 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
             ),
           ),
           references = listOf(
-            Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
-            Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
+            Reference(identifierType = PNC, identifierValue = pnc),
+            Reference(identifierType = CRO, identifierValue = cro),
           ),
         ),
       )
@@ -235,7 +239,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
           createDateTime = nowTime.minusDays(1).minusHours(2),
         ),
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.CREATED,
+        expectedStatus = CREATED,
       )
 
       sendPostRequestAsserted<Unit>(
@@ -249,7 +253,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
           createDateTime = nowTime.minusDays(1).minusHours(1),
         ),
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.CREATED,
+        expectedStatus = CREATED,
       )
 
       sendPostRequestAsserted<Unit>(
@@ -264,7 +268,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
           createDateTime = nowTime,
         ),
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.CREATED,
+        expectedStatus = CREATED,
       )
 
       val responseBody = webTestClient.get()
@@ -331,18 +335,18 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
           defendantId = personOneDefendantId,
           masterDefendantId = personOneDefendantId,
           references = listOf(
-            Reference(identifierType = IdentifierType.CRO, identifierValue = personOneCro),
-            Reference(identifierType = IdentifierType.PNC, identifierValue = personOnePnc),
+            Reference(identifierType = CRO, identifierValue = personOneCro),
+            Reference(identifierType = PNC, identifierValue = personOnePnc),
             Reference(
-              identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+              identifierType = NATIONAL_INSURANCE_NUMBER,
               identifierValue = personOneNationalInsuranceNumber,
             ),
             Reference(
-              identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
+              identifierType = ARREST_SUMMONS_NUMBER,
               identifierValue = personOneArrestSummonNumber,
             ),
             Reference(
-              identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
+              identifierType = DRIVER_LICENSE_NUMBER,
               identifierValue = personOneDriversLicenseNumber,
             ),
           ),
@@ -364,18 +368,18 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
           defendantId = personTwoDefendantId,
           masterDefendantId = personTwoDefendantId,
           references = listOf(
-            Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
-            Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
+            Reference(identifierType = CRO, identifierValue = personTwoCro),
+            Reference(identifierType = PNC, identifierValue = personTwoPnc),
             Reference(
-              identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+              identifierType = NATIONAL_INSURANCE_NUMBER,
               identifierValue = personTwoNationalInsuranceNumber,
             ),
             Reference(
-              identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
+              identifierType = ARREST_SUMMONS_NUMBER,
               identifierValue = personTwoArrestSummonNumber,
             ),
             Reference(
-              identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
+              identifierType = DRIVER_LICENSE_NUMBER,
               identifierValue = personTwoDriversLicenseNumber,
             ),
           ),
