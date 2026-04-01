@@ -28,10 +28,10 @@ inputs:
     required: true
   deployment_commenced_at:
     description: 'The ISO datetime the deployment was started'
-    required: false
+    required: true
   deployment_completed_at:
     description: 'The ISO datetime the deployment was completed'
-    required: false
+    required: true
   environment_name:
     description: 'The environment where the deployment is taking place - a blank value is considered production'
     required: false
