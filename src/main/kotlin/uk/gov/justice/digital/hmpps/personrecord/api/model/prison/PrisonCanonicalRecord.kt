@@ -8,12 +8,12 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligio
 data class PrisonCanonicalRecord(
   @JsonUnwrapped
   val record: CanonicalRecord,
-  val religionHistory: List<PrisonReligionGet>,
+  val religionHistory: List<PrisonReligion>,
 ) {
   companion object {
     fun from(personEntity: PersonEntity, prisonReligionEntities: List<PrisonReligionEntity>): PrisonCanonicalRecord = PrisonCanonicalRecord(
       record = CanonicalRecord.from(personEntity),
-      religionHistory = prisonReligionEntities.map { PrisonReligionGet.from(it) },
+      religionHistory = prisonReligionEntities.map { PrisonReligion.from(it) },
     )
   }
 }
