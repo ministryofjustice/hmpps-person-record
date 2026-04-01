@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNa
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.DpsPrisonRecord
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
@@ -145,7 +145,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(PrisonCanonicalRecord::class.java)
+        .expectBody(DpsPrisonRecord::class.java)
         .returnResult()
         .responseBody!!
 
@@ -273,7 +273,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(PrisonCanonicalRecord::class.java)
+        .expectBody(DpsPrisonRecord::class.java)
         .returnResult()
         .responseBody!!
 
@@ -390,7 +390,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(PrisonCanonicalRecord::class.java)
+        .expectBody(DpsPrisonRecord::class.java)
         .returnResult()
         .responseBody!!
 
