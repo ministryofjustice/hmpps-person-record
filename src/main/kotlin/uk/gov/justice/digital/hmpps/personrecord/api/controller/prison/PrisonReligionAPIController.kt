@@ -21,8 +21,8 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionInsertHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionUpdateHandler
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionGetResponse
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionResponse
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionReadResponse
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionSaveResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionUpdateRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
@@ -49,7 +49,7 @@ class PrisonReligionAPIController(
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = PrisonReligionResponse::class),
+          schema = Schema(implementation = PrisonReligionSaveResponse::class),
         ),
       ],
     ),
@@ -58,9 +58,9 @@ class PrisonReligionAPIController(
   fun savePrisonReligion(
     @PathVariable("prisonNumber") prisonNumber: String,
     @RequestBody prisonReligionRequest: PrisonReligion,
-  ): ResponseEntity<PrisonReligionResponse> {
+  ): ResponseEntity<PrisonReligionSaveResponse> {
     val prisonReligionMapping = prisonReligionInsertHandler.handleInsert(prisonNumber, prisonReligionRequest)
-    val responseBody = PrisonReligionResponse(prisonNumber, prisonReligionMapping)
+    val responseBody = PrisonReligionSaveResponse(prisonNumber, prisonReligionMapping)
     return ResponseEntity(responseBody, HttpStatus.CREATED)
   }
 
@@ -75,7 +75,7 @@ class PrisonReligionAPIController(
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = PrisonReligionResponse::class),
+          schema = Schema(implementation = PrisonReligionSaveResponse::class),
         ),
       ],
     ),
@@ -85,9 +85,9 @@ class PrisonReligionAPIController(
     @PathVariable("prisonNumber") prisonNumber: String,
     @PathVariable("cprReligionId") cprReligionId: String,
     @RequestBody requestBody: PrisonReligionUpdateRequest,
-  ): ResponseEntity<PrisonReligionResponse> {
+  ): ResponseEntity<PrisonReligionSaveResponse> {
     val prisonReligionMapping = prisonReligionUpdateHandler.handleUpdate(cprReligionId, requestBody)
-    val responseBody = PrisonReligionResponse(prisonNumber, prisonReligionMapping)
+    val responseBody = PrisonReligionSaveResponse(prisonNumber, prisonReligionMapping)
     return ResponseEntity(responseBody, HttpStatus.OK)
   }
 
@@ -102,7 +102,7 @@ class PrisonReligionAPIController(
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = PrisonReligionGetResponse::class),
+          schema = Schema(implementation = PrisonReligionReadResponse::class),
         ),
       ],
     ),
@@ -111,9 +111,9 @@ class PrisonReligionAPIController(
   fun getPrisonReligion(
     @PathVariable("prisonNumber") prisonNumber: String,
     @PathVariable("cprReligionId") cprReligionId: String,
-  ): ResponseEntity<PrisonReligionGetResponse> {
+  ): ResponseEntity<PrisonReligionReadResponse> {
     val prisonReligionEntity = prisonReligionRepository.findByUpdateId(UUID.fromString(cprReligionId))
       ?: throw ResourceNotFoundException("Prison religion with $cprReligionId not found")
-    return ResponseEntity(PrisonReligionGetResponse.from(prisonNumber, prisonReligionEntity), HttpStatus.OK)
+    return ResponseEntity(PrisonReligionReadResponse.from(prisonNumber, prisonReligionEntity), HttpStatus.OK)
   }
 }
