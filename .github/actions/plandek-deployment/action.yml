@@ -1,0 +1,83 @@
+name: Publish deployment metrics to Plandek
+description: 'Action to publish deployment metrics to Plandek'
+
+inputs:
+  plandek_client_id:
+    description: 'Plandek client id'
+    required: true
+  plandek_client_secret:
+    description: 'Plandek client secret'
+    required: true
+  plandek_deployment_url:
+    description: 'Plandek deployment api url'
+    required: true
+  app_version:
+    description: 'The version number of the application being deployed'
+    required: true
+  repository_name:
+    description: 'The name of the repository - usually github.repository'
+    required: true
+  deployment_status:
+    description: 'The status of the deployment - one of: success, failure, rollback, aborted'
+    required: true
+  commit_sha:
+    description: 'The SHA of the commit that is being deployed'
+    required: true
+  build_number:
+    description: 'The build number of the deployment'
+    required: true
+  deployment_commenced_at:
+    description: 'The ISO datetime the deployment was started'
+    required: false
+  deployment_completed_at:
+    description: 'The ISO datetime the deployment was completed'
+    required: false
+  environment_name:
+    description: 'The environment where the deployment is taking place - a blank value is considered production'
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Publish Plandek deployment metrics
+      shell: bash
+      run: |
+        echo "Preparing payload"
+        
+        environment_name="${{ inputs.environment_name }}"
+        environment_name="${environment_name:-production}"
+        
+        is_prod=false
+        [ "$environment_name" = "production" ] && is_prod=true
+        
+        postBody="{
+          \"client_key\": \"${{ inputs.plandek_client_id }}\",
+          \"pipeline\": \"${{ inputs.repository_name }}\",
+          \"status\": \"${{ inputs.deployment_status }}\",
+          \"build\": \"${{ inputs.build_number }}\",
+          \"commits\": \"${{ inputs.commit_sha }}\",
+          \"calculate_commits_in_build\": true,
+          \"commenced_at\": \"${{ inputs.deployment_commenced_at }}\",
+          \"deployed_at\": \"${{ inputs.deployment_completed_at }}\",
+          \"environment_name\": \"${environment_name}\",
+          \"is_prod_environment\": ${is_prod}
+        }"
+        
+        echo "Payload: $postBody"
+        
+        echo "Posting to ${{ inputs.plandek_deployment_url }}"
+        
+        response=$(curl -s -o /dev/null -w "%{http_code}" -X 'POST' "${{ inputs.plandek_deployment_url }}" \
+          -H 'accept: application/json' \
+          -H 'Content-Type: application/json' \
+          -H "Authorization: Bearer ${{ inputs.plandek_client_secret }}" \
+          -d "$postBody")
+        
+        echo "Response: $response"
+        
+        if [[ "$response" -ge 200 && "$response" -lt 300 ]]; then
+          echo "Deployment metrics published successfully"
+        else
+          echo "Failed to publish deployment metrics"
+          exit 1
+        fi
