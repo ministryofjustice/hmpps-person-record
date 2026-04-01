@@ -149,24 +149,46 @@ jobs:
     with:
       environment: 'preprod'
       app_version: '${{ needs.build.outputs.app_version }}'
+  deploy_prod_start:
+    runs-on: ubuntu-latest
+    needs:
+      - deploy_preprod
+    outputs:
+      deploy_start_time: ${{ steps.calc_date.outputs.deploy_start_time }}
+    steps:
+      - id: calc_date
+        run: echo "deploy_start_time=$(date +%Y-%m-%dT%H:%M:%S%:z)" >> $GITHUB_OUTPUT
   deploy_prod:
    name: Deploy to production environment
    needs:
      - build
      - deploy_preprod
+     - deploy_prod_start
    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
    secrets: inherit
    with:
      environment: 'prod'
      app_version: '${{ needs.build.outputs.app_version }}'
      slack_notification: true
+  deploy_prod_end:
+    runs-on: ubuntu-latest
+    needs:
+      - deploy_prod
+    if: always()
+    outputs:
+      deploy_end_time: ${{ steps.calc_date.outputs.deploy_end_time }}
+    steps:
+      - id: calc_date
+        run: echo "deploy_end_time=$(date +%Y-%m-%dT%H:%M:%S%:z)" >> $GITHUB_OUTPUT
   publish_deployment_metrics:
     name: Publish deployment metrics to Plandek
     uses: ./.github/actions/plandek-deployment
     if: always()
     needs:
       - build
+      - deploy_prod_start
       - deploy_prod
+      - deploy_prod_end
     with:
       plandek_client_key: ${{ secrets.PLANDEK_CLIENT_KEY }}
       plandek_token: ${{ secrets.PLANDEK_TOKEN }}
@@ -176,6 +198,6 @@ jobs:
       deployment_status: ${{ steps.deploy_prod.outcome }}
       commit_sha: ${{ github.sha }}
       build_number: ${{ needs.build.outputs.app_version }}
-      deployment_commenced_at: ${{ steps.deploy.outputs.start }} # todo: get from deploy_prod step somehow
-      deployment_completed_at: ${{ steps.deploy.outputs.end }} # todo: get from deploy_prod step somehow
+      deployment_commenced_at: ${{ needs.deploy_prod_start.outputs.deploy_start_time }}
+      deployment_completed_at: ${{ needs.deploy_prod_end.outputs.deploy_end_time }}
       environment_name: "production"
