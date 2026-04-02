@@ -24,7 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligi
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionReadResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionSaveResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionUpdateRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import java.util.UUID
 
@@ -57,9 +57,9 @@ class PrisonReligionAPIController(
   @PostMapping("/{prisonNumber}/religion")
   fun savePrisonReligion(
     @PathVariable("prisonNumber") prisonNumber: String,
-    @RequestBody prisonReligionRequest: PrisonReligion,
+    @RequestBody prisonReligionHistoryRequest: PrisonReligionHistory,
   ): ResponseEntity<PrisonReligionSaveResponse> {
-    val prisonReligionMapping = prisonReligionInsertHandler.handleInsert(prisonNumber, prisonReligionRequest)
+    val prisonReligionMapping = prisonReligionInsertHandler.handleInsert(prisonNumber, prisonReligionHistoryRequest)
     val responseBody = PrisonReligionSaveResponse(prisonNumber, prisonReligionMapping)
     return ResponseEntity(responseBody, HttpStatus.CREATED)
   }

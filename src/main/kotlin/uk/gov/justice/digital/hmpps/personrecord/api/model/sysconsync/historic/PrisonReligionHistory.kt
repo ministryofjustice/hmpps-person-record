@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class PrisonReligion(
+data class PrisonReligionHistory(
   @Schema(description = "The nomis religion id", example = "1234", required = true)
   val nomisReligionId: String,
   @Schema(description = "The religion code", example = "AGNO", required = true)
