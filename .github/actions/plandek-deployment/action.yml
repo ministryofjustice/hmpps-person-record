@@ -30,8 +30,8 @@ inputs:
     description: 'The ISO datetime the deployment was started'
     required: true
   deployment_completed_at:
-    description: 'The ISO datetime the deployment was completed'
-    required: true
+    description: 'The ISO datetime the deployment was completed - a blank value will use the current date/time'
+    required: false
   environment_name:
     description: 'The environment where the deployment is taking place - a blank value is considered production'
     required: false
@@ -66,6 +66,9 @@ runs:
         is_prod=false
         [ "$environment_name" = "production" ] && is_prod=true
         
+        deployed_at="${{ inputs.deployment_completed_at }}"
+        deployed_at="${deployed_at:-$(date +%Y-%m-%dT%H:%M:%S%:z)}"
+        
         postBody="{
           \"client_key\": \"${{ inputs.plandek_client_id }}\",
           \"pipeline\": \"${{ inputs.repository_name }}\",
@@ -74,7 +77,7 @@ runs:
           \"commits\": \"${{ inputs.commit_sha }}\",
           \"calculate_commits_in_build\": true,
           \"commenced_at\": \"${{ inputs.deployment_commenced_at }}\",
-          \"deployed_at\": \"${{ inputs.deployment_completed_at }}\",
+          \"deployed_at\": \"${deployed_at}\",
           \"environment_name\": \"${environment_name}\",
           \"is_prod_environment\": ${is_prod}
         }"
