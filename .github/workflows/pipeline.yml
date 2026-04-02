@@ -150,30 +150,13 @@ jobs:
       environment: 'preprod'
       app_version: '${{ needs.build.outputs.app_version }}'
   deploy_prod:
-   name: Deploy to production environment
-   needs:
-     - build
-     - deploy_preprod
-   uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
-   secrets: inherit
-   with:
-     environment: 'prod'
-     app_version: '${{ needs.build.outputs.app_version }}'
-     slack_notification: true
-  publish_deployment_metrics:
-    name: Publish deployment metrics to Plandek
-    uses: ./.github/actions/plandek-deployment
-    if: always()
+    name: Deploy to production environment
     needs:
       - build
-      - deploy_prod
+      - deploy_preprod
+    uses: ./.github/workflows/deploy_env.yml
+    secrets: inherit
     with:
-      plandek_client_key: ${{ secrets.PLANDEK_CLIENT_KEY }}
-      plandek_token: ${{ secrets.PLANDEK_TOKEN }}
-      plandek_deployment_url: ${{ secrets.PLANDEK_DEPLOYMENT_URL }}
-      app_version: ${{ needs.build.outputs.app_version }}
-      repository_name: ${{ github.repository }}
-      deployment_status: ${{ steps.deploy_prod.outcome }}
-      commit_sha: ${{ github.sha }}
-      build_number: ${{ needs.build.outputs.app_version }}
-      environment_name: "production"
+      environment: 'prod'
+      app_version: '${{ needs.build.outputs.app_version }}'
+      slack_notification: true

@@ -21,7 +21,7 @@ inputs:
     description: 'The status of the deployment'
     required: true
   commit_sha:
-    description: 'The SHA of the commit that is being deployed'
+    description: 'The HEAD commit SHA'
     required: true
   build_number:
     description: 'The build number of the deployment'
@@ -33,7 +33,7 @@ inputs:
     description: 'The ISO datetime the deployment was completed - defaults to the current datetime if not supplied'
     required: false
   environment_name:
-    description: 'The environment where the deployment is taking place - defaults to production if not supplied'
+    description: 'The environment where the deployment is taking place - defaults to prod if not supplied'
     required: false
 
 runs:
@@ -61,10 +61,10 @@ runs:
         esac
         
         environment_name="${{ inputs.environment_name }}"
-        environment_name="${environment_name:-production}"
+        environment_name="${environment_name:-prod}"
         
         is_prod=false
-        [ "$environment_name" = "production" ] && is_prod=true
+        [ "$environment_name" = "prod" ] && is_prod=true
         
         commenced_at="${{ inputs.deployment_commenced_at }}"
         commenced_at="${commenced_at:-$(git log -1 --format="%cI")}"
