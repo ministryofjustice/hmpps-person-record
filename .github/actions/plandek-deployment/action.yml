@@ -27,13 +27,13 @@ inputs:
     description: 'The build number of the deployment'
     required: true
   deployment_commenced_at:
-    description: 'The ISO datetime the deployment was started'
-    required: true
+    description: 'The ISO datetime the deployment was started - defaults to the datetime of the latest commit if not supplied'
+    required: false
   deployment_completed_at:
-    description: 'The ISO datetime the deployment was completed - a blank value will use the current date/time'
+    description: 'The ISO datetime the deployment was completed - defaults to the current datetime if not supplied'
     required: false
   environment_name:
-    description: 'The environment where the deployment is taking place - a blank value is considered production'
+    description: 'The environment where the deployment is taking place - defaults to production if not supplied'
     required: false
 
 runs:
@@ -66,6 +66,9 @@ runs:
         is_prod=false
         [ "$environment_name" = "production" ] && is_prod=true
         
+        commenced_at="${{ inputs.deployment_commenced_at }}"
+        commenced_at="${commenced_at:-$(git log -1 --format="%cI")}"
+        
         deployed_at="${{ inputs.deployment_completed_at }}"
         deployed_at="${deployed_at:-$(date +%Y-%m-%dT%H:%M:%S%:z)}"
         
@@ -76,7 +79,7 @@ runs:
           \"build\": \"${{ inputs.build_number }}\",
           \"commits\": \"${{ inputs.commit_sha }}\",
           \"calculate_commits_in_build\": true,
-          \"commenced_at\": \"${{ inputs.deployment_commenced_at }}\",
+          \"commenced_at\": \"${commenced_at}\",
           \"deployed_at\": \"${deployed_at}\",
           \"environment_name\": \"${environment_name}\",
           \"is_prod_environment\": ${is_prod}
