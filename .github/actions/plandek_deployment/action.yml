@@ -47,17 +47,14 @@ runs:
         deployment_status="${{ inputs.deployment_status }}"
         case "$deployment_status" in
           success)
-          deployment_status="success"
-          ;;
+            deployment_status="success"
+            ;;
           failure)
-          deployment_status="failure"
-          ;;
-          cancelled)
-          deployment_status="aborted"
-          ;;
+            deployment_status="failure"
+            ;;
           *)
-          deployment_status="aborted"
-          ;;
+            deployment_status="aborted"
+            ;;
         esac
         
         environment_name="${{ inputs.environment_name }}"
