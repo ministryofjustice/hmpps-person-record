@@ -70,7 +70,7 @@ runs:
         deployed_at="${deployed_at:-$(date +%Y-%m-%dT%H:%M:%S%:z)}"
         
         postBody="{
-          \"client_key\": \"${{ inputs.plandek_client_id }}\",
+          \"client_key\": \"${{ inputs.plandek_client_key }}\",
           \"pipeline\": \"${{ inputs.repository_name }}\",
           \"status\": \"${deployment_status}\",
           \"build\": \"${{ inputs.build_number }}\",
@@ -89,7 +89,7 @@ runs:
         response=$(curl -s -o /dev/null -w "%{http_code}" -X 'POST' "${{ inputs.plandek_deployment_url }}" \
           -H 'accept: application/json' \
           -H 'Content-Type: application/json' \
-          -H "Authorization: Bearer ${{ inputs.plandek_client_secret }}" \
+          -H "Authorization: Bearer ${{ inputs.plandek_token }}" \
           -d "$postBody")
         
         echo "Response: $response"
