@@ -150,13 +150,13 @@ jobs:
       environment: 'preprod'
       app_version: '${{ needs.build.outputs.app_version }}'
   deploy_prod:
-   name: Deploy to production environment
-   needs:
-     - build
-     - deploy_preprod
-   uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
-   secrets: inherit
-   with:
-     environment: 'prod'
-     app_version: '${{ needs.build.outputs.app_version }}'
-     slack_notification: true
+    name: Deploy to production environment
+    needs:
+      - build
+      - deploy_preprod
+    uses: ./.github/workflows/deploy_env.yml
+    secrets: inherit
+    with:
+      environment: 'prod'
+      app_version: '${{ needs.build.outputs.app_version }}'
+      slack_notification: true
