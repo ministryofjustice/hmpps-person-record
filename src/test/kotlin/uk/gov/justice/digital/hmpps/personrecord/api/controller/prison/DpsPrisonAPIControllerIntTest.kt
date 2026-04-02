@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 
-import io.swagger.v3.oas.annotations.media.Schema
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -440,38 +439,23 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
 }
 
 // JsonUnwrapped annotation on DpsPrisonRecord produces this structure so we cannot use DpsPrisonRecord directly to mimic return value
+// this is a copy/paste of CanonicalRecord with the additional properties of DpsPrisonRecord
 data class DpsPrisonRecordTest(
-  @Schema(description = "Person CPR uuid. **If the record has been merged, this will be the CPR uuid of the record it has been merged to**", example = "f91ef118-a51f-4874-9409-c0538b4ca6fd")
   val cprUUID: String? = null,
-  @Schema(description = "Person first name", example = "John")
   val firstName: String? = null,
-  @Schema(description = "Person middle names", example = "Morgan")
   val middleNames: String? = null,
-  @Schema(description = "Person last name", example = "Doe")
   val lastName: String? = null,
-  @Schema(description = "Person date of birth", example = "1990-08-21")
   val dateOfBirth: String? = null,
-  @Schema(description = "Person disability", example = "true")
   val disability: Boolean? = null,
-  @Schema(description = "Person interest to immigration", example = "true")
   val interestToImmigration: Boolean? = null,
-  @Schema(description = "Person title")
   val title: CanonicalTitle,
-  @Schema(description = "Person sex")
   val sex: CanonicalSex,
-  @Schema(description = "Person sexual orientation")
   val sexualOrientation: CanonicalSexualOrientation,
-  @Schema(description = "Person religion")
   val religion: CanonicalReligion,
-  @Schema(description = "Person ethnicity")
   val ethnicity: CanonicalEthnicity,
-  @Schema(description = "List of person aliases")
   val aliases: List<CanonicalAlias> = emptyList(),
-  @Schema(description = "List of person nationalities")
   var nationalities: List<CanonicalNationality> = emptyList(),
-  @Schema(description = "List of person addresses")
   val addresses: List<CanonicalAddress> = emptyList(),
-  @Schema(description = "Person identifiers")
   val identifiers: CanonicalIdentifiers,
   val religionHistory: List<PrisonReligion>,
 )
