@@ -211,6 +211,8 @@ class IntegrationTestBase {
   internal fun createRandomPrisonPersonDetails(prisonNumber: String = randomPrisonNumber()): Person = Person.from(
     Prisoner(
       prisonNumber = prisonNumber,
+      pnc = PNCIdentifier.from(randomLongPnc()),
+      cro = CROIdentifier.from(randomCro()),
       firstName = randomName(),
       lastName = randomName(),
       dateOfBirth = randomDate(),

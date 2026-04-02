@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.DpsPrisonGetHandler
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCanonicalRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.DpsPrisonRecord
 
 @Tag(name = "HMPPS Person API")
 @RestController
@@ -45,5 +45,5 @@ class DpsPrisonAPIController(private val dpsPrisonGetHandler: DpsPrisonGetHandle
       ],
     ),
   )
-  fun getByPrisonNumberDps(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<PrisonCanonicalRecord> = dpsPrisonGetHandler.get(prisonNumber)
+  fun getByPrisonNumberDps(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<DpsPrisonRecord> = dpsPrisonGetHandler.get(prisonNumber)
 }
