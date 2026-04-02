@@ -7,11 +7,11 @@ import jakarta.validation.constraints.NotEmpty
 data class PrisonReligionRequest(
   @Valid
   @NotEmpty
-  val religions: List<PrisonReligion>,
+  val religions: List<PrisonReligionHistory>,
 ) {
 
   @Hidden
-  fun getCurrentReligion(): PrisonReligion? {
+  fun getCurrentReligion(): PrisonReligionHistory? {
     val currentReligionCount = this.religions.filter { it.current }
     return when {
       currentReligionCount.size != 1 -> null

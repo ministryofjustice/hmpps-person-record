@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
@@ -30,7 +30,7 @@ class SysconReligionInsertHandler(
     return cprReligionIdByNomisId
   }
 
-  private fun validateRequest(prisonNumber: String, prisonReligionRequest: PrisonReligionRequest): Pair<PersonEntity, PrisonReligion> {
+  private fun validateRequest(prisonNumber: String, prisonReligionRequest: PrisonReligionRequest): Pair<PersonEntity, PrisonReligionHistory> {
     val currentPrisonReligion = prisonReligionRequest.getCurrentReligion() ?: throw IllegalArgumentException("Exactly one current prison religion must be sent for $prisonNumber")
     val nomisIdSet = hashSetOf<String>()
     prisonReligionRequest.religions.forEach {
