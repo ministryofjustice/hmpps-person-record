@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
@@ -23,21 +22,14 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonsNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
-import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 
 class PrisonAPIControllerIntTest : WebTestBase() {
 
@@ -132,40 +124,13 @@ class PrisonAPIControllerIntTest : WebTestBase() {
     @Test
     fun `should add list of additional identifiers to the prison record`() {
       val personOneCro = randomCro()
-      val personTwoCro = randomCro()
-
-      val personOneCrn = randomCrn()
-      val personTwoCrn = randomCrn()
-
       val personOnePnc = randomLongPnc()
-      val personTwoPnc = randomLongPnc()
-
       val personOneNationalInsuranceNumber = randomNationalInsuranceNumber()
-      val personTwoNationalInsuranceNumber = randomNationalInsuranceNumber()
-
-      val personOneArrestSummonNumber = randomArrestSummonNumber()
-      val personTwoArrestSummonNumber = randomArrestSummonNumber()
-
+      val personOneArrestSummonNumber = randomArrestSummonsNumber()
       val personOneDriversLicenseNumber = randomDriverLicenseNumber()
-      val personTwoDriversLicenseNumber = randomDriverLicenseNumber()
 
-      val personOneDefendantId = randomDefendantId()
-      val personTwoDefendantId = randomDefendantId()
-
-      val personOne = createPerson(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = NOMIS,
-          crn = personOneCrn,
-          prisonNumber = randomPrisonNumber(),
-          nationalities = listOf(randomNationalityCode()),
-          religion = randomReligion(),
-          cId = randomCId(),
-          defendantId = personOneDefendantId,
-          masterDefendantId = personOneDefendantId,
+      val personOnePrison = createPerson(
+        createRandomPrisonPersonDetails().copy(
           references = listOf(
             Reference(identifierType = CRO, identifierValue = personOneCro),
             Reference(identifierType = PNC, identifierValue = personOnePnc),
@@ -185,43 +150,57 @@ class PrisonAPIControllerIntTest : WebTestBase() {
         ),
       )
 
-      val personTwo = createPerson(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = NOMIS,
-          crn = personTwoCrn,
-          prisonNumber = randomPrisonNumber(),
-          nationalities = listOf(randomNationalityCode()),
-          religion = randomReligion(),
-          cId = randomCId(),
-          defendantId = personTwoDefendantId,
-          masterDefendantId = personTwoDefendantId,
-          references = listOf(
-            Reference(identifierType = CRO, identifierValue = personTwoCro),
-            Reference(identifierType = PNC, identifierValue = personTwoPnc),
-            Reference(
-              identifierType = NATIONAL_INSURANCE_NUMBER,
-              identifierValue = personTwoNationalInsuranceNumber,
-            ),
-            Reference(
-              identifierType = ARREST_SUMMONS_NUMBER,
-              identifierValue = personTwoArrestSummonNumber,
-            ),
-            Reference(
-              identifierType = DRIVER_LICENSE_NUMBER,
-              identifierValue = personTwoDriversLicenseNumber,
-            ),
-          ),
+      val personTwoProbation = createPerson(
+        createRandomProbationPersonDetails().copy(
+          references = randomFullSetOfReferences(),
         ),
       )
 
-      createPersonKey().addPerson(personOne).addPerson(personTwo)
+      val personThreeCommonPlatform = createPerson(
+        createRandomCommonPlatformPersonDetails().copy(
+          references = randomFullSetOfReferences(),
+        ),
+      )
+      val personFourLibra = createPerson(
+        createRandomLibraPersonDetails().copy(
+          references = randomFullSetOfReferences(),
+        ),
+      )
+      val personFivePrison = createPerson(
+        createRandomPrisonPersonDetails().copy(
+          references = randomFullSetOfReferences(),
+        ),
+      )
+
+      val personSixProbation = createPerson(
+        createRandomProbationPersonDetails().copy(
+          references = randomFullSetOfReferences(),
+        ),
+      )
+
+      val personSevenCommonPlatform = createPerson(
+        createRandomCommonPlatformPersonDetails().copy(
+          references = randomFullSetOfReferences(),
+        ),
+      )
+      val personEightLibra = createPerson(
+        createRandomLibraPersonDetails().copy(
+          references = randomFullSetOfReferences(),
+        ),
+      )
+
+      createPersonKey()
+        .addPerson(personOnePrison)
+        .addPerson(personTwoProbation)
+        .addPerson(personThreeCommonPlatform)
+        .addPerson(personFourLibra)
+        .addPerson(personFivePrison)
+        .addPerson(personSixProbation)
+        .addPerson(personSevenCommonPlatform)
+        .addPerson(personEightLibra)
 
       val responseBody = webTestClient.get()
-        .uri(prisonApiUrl(personOne.prisonNumber))
+        .uri(prisonApiUrl(personOnePrison.prisonNumber))
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
@@ -235,31 +214,28 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.nationalInsuranceNumbers).containsExactly(personOneNationalInsuranceNumber)
       assertThat(responseBody.identifiers.arrestSummonsNumbers).containsExactly(personOneArrestSummonNumber)
       assertThat(responseBody.identifiers.driverLicenseNumbers).containsExactly(personOneDriversLicenseNumber)
-      assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrderElementsOf(
-        listOf(
-          personOne.crn,
-          personTwo.crn,
-        ),
-      )
-      assertThat(responseBody.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(
-        listOf(
-          personOne.defendantId,
-          personTwo.defendantId,
-        ),
-      )
-      assertThat(responseBody.identifiers.prisonNumbers).containsExactlyInAnyOrderElementsOf(
-        listOf(
-          personOne.prisonNumber,
-          personTwo.prisonNumber,
-        ),
-      )
-      assertThat(responseBody.identifiers.cids).containsExactlyInAnyOrderElementsOf(
-        listOf(
-          personOne.cId,
-          personTwo.cId,
-        ),
-      )
+      assertThat(responseBody.identifiers.crns).containsExactly(personTwoProbation.crn, personSixProbation.crn)
+      assertThat(responseBody.identifiers.defendantIds).containsExactly(personThreeCommonPlatform.defendantId, personSevenCommonPlatform.defendantId)
+      assertThat(responseBody.identifiers.prisonNumbers).containsExactly(personOnePrison.prisonNumber, personFivePrison.prisonNumber)
+      assertThat(responseBody.identifiers.cids).containsExactly(personFourLibra.cId, personEightLibra.cId)
     }
+
+    private fun randomFullSetOfReferences(): List<Reference> = listOf(
+      Reference(identifierType = CRO, identifierValue = randomCro()),
+      Reference(identifierType = PNC, identifierValue = randomLongPnc()),
+      Reference(
+        identifierType = NATIONAL_INSURANCE_NUMBER,
+        identifierValue = randomNationalInsuranceNumber(),
+      ),
+      Reference(
+        identifierType = ARREST_SUMMONS_NUMBER,
+        identifierValue = randomArrestSummonsNumber(),
+      ),
+      Reference(
+        identifierType = DRIVER_LICENSE_NUMBER,
+        identifierValue = randomDriverLicenseNumber(),
+      ),
+    )
 
     @Test
     fun `should return redirect when the requested prison record has been merged`() {

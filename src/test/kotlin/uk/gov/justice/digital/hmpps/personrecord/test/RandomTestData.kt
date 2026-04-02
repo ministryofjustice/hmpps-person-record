@@ -134,7 +134,7 @@ fun randomNationalInsuranceNumber(): String = randomLowerCaseString(2).uppercase
 
 fun randomPostcode(): String = randomLowerCaseString(2).uppercase() + randomDigit(1) + " " + randomDigit(1) + randomLowerCaseString(2).uppercase()
 
-fun randomArrestSummonNumber(): String = randomDigit(19) + randomLowerCaseString(1).uppercase()
+fun randomArrestSummonsNumber(): String = randomDigit(19) + randomLowerCaseString(1).uppercase()
 
 fun randomHearingId(): String = UUID.randomUUID().toString()
 
