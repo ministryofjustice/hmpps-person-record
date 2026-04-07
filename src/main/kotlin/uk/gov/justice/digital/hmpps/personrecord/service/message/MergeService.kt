@@ -4,11 +4,9 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.ClusterMerged
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.PersonMerged
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
@@ -22,17 +20,16 @@ class MergeService(
 
   fun processMerge(from: PersonEntity?, to: PersonEntity) {
     when {
-      fromClusterHasOneRecord(from) -> markClusterAsMerged(from, to)
+      fromClusterHasOneRecord(from) -> deleteSingleRecordCluster(from)
     }
     merge(from, to)
   }
 
-  private fun markClusterAsMerged(from: PersonEntity?, to: PersonEntity) {
+  private fun deleteSingleRecordCluster(from: PersonEntity?) {
     from?.personKey?.let {
-      it.throwIfCircularMerge(to.personKey!!)
-      it.markAsMerged(to.personKey!!)
-      personKeyRepository.save(it)
-      publisher.publishEvent(ClusterMerged(from, to, it))
+      from.removePersonKeyLink()
+      personKeyRepository.deleteById(it.id!!)
+      personKeyRepository.flush()
     }
   }
 
@@ -40,18 +37,12 @@ class MergeService(
     val fromClusterDetail = EventLogClusterDetail.from(from?.personKey)
     from?.let {
       it.throwIfCircularMerge(to)
-      it.removePersonKeyLink()
+      it.removePersonKeyLink() // todo: remove?
       it.mergeTo(to)
       personRepository.save(it)
       personMatchService.deleteFromPersonMatch(it)
     }
     publisher.publishEvent(PersonMerged(from, fromClusterDetail, to))
-  }
-
-  private fun PersonKeyEntity.throwIfCircularMerge(to: PersonKeyEntity) {
-    if (to.mergedTo == this.id) {
-      throw CircularMergeException()
-    }
   }
 
   private fun PersonEntity.throwIfCircularMerge(to: PersonEntity) {
