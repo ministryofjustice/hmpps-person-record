@@ -49,3 +49,6 @@ generic-prometheus-alerts:
     - "hmpps-person-record-prod-cpr_nomis_merge_events_dlq"
   rdsAlertsDatabases:
     cloud-platform-325c1d58e0fe99fe: "hmpps-person-record-database"
+
+  cron:
+    generateDeliusMergeRequestsJob: "0 7 * * 2-6"
