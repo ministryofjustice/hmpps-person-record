@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconReligionMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconReligionResponseBody
@@ -203,7 +203,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     }
   }
 
-  private fun postReligions(prisonNumber: String, religionsInsertRequest: List<PrisonReligion>): SysconReligionResponseBody = sendPostRequestAsserted<SysconReligionResponseBody>(
+  private fun postReligions(prisonNumber: String, religionsInsertRequest: List<PrisonReligionHistory>): SysconReligionResponseBody = sendPostRequestAsserted<SysconReligionResponseBody>(
     url = religionUrl(prisonNumber),
     body = PrisonReligionRequest(religionsInsertRequest),
     roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
@@ -212,7 +212,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
 
   private fun assertCorrectValuesSaved(
     prisonNumber: String,
-    requestBody: List<PrisonReligion>,
+    requestBody: List<PrisonReligionHistory>,
     actualResponseBody: SysconReligionResponseBody,
   ) {
     val actualReligionEntities = awaitNotNull { prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber) }

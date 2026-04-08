@@ -9,7 +9,7 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.Generated
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -69,18 +69,18 @@ class PrisonReligionEntity(
 ) {
 
   companion object {
-    fun from(prisonNumber: String, prisonReligion: PrisonReligion) = PrisonReligionEntity(
+    fun from(prisonNumber: String, prisonReligionHistory: PrisonReligionHistory) = PrisonReligionEntity(
       prisonNumber = prisonNumber,
-      code = prisonReligion.religionCode,
-      changeReasonKnown = prisonReligion.changeReasonKnown,
-      comments = prisonReligion.comments,
-      startDate = prisonReligion.startDate,
-      endDate = prisonReligion.endDate,
-      modifyDateTime = prisonReligion.modifyDateTime,
-      modifyUserId = prisonReligion.modifyUserId,
-      prisonRecordType = PrisonRecordType.from(prisonReligion.current),
-      createDateTime = prisonReligion.createDateTime,
-      createUserId = prisonReligion.createUserId,
+      code = prisonReligionHistory.religionCode,
+      changeReasonKnown = prisonReligionHistory.changeReasonKnown,
+      comments = prisonReligionHistory.comments,
+      startDate = prisonReligionHistory.startDate,
+      endDate = prisonReligionHistory.endDate,
+      modifyDateTime = prisonReligionHistory.modifyDateTime,
+      modifyUserId = prisonReligionHistory.modifyUserId,
+      prisonRecordType = PrisonRecordType.from(prisonReligionHistory.current),
+      createDateTime = prisonReligionHistory.createDateTime,
+      createUserId = prisonReligionHistory.createUserId,
     )
   }
 }
