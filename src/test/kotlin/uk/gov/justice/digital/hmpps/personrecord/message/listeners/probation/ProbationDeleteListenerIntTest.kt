@@ -290,6 +290,57 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       recordC.assertPersonDeleted()
       recordA.personKey?.assertPersonKeyDeleted()
     }
+
+    @Test
+    fun `when record d is merged to c and c is merged to a and b is merged to a - deleting record a - deletes all`() {
+      val recordACrn = randomCrn()
+      val recordBCrn = randomCrn()
+      val recordCCrn = randomCrn()
+      val recordDCrn = randomCrn()
+
+      val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
+      val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
+      val recordC = createPerson(createRandomProbationPersonDetails(recordCCrn))
+      val recordD = createPerson(createRandomProbationPersonDetails(recordDCrn))
+
+      mergeRecord(recordD, recordC)
+      mergeRecord(recordC, recordA)
+      mergeRecord(recordB, recordA)
+
+      publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
+
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_UUID_DELETED,
+        mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordBCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordCCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordDCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(recordDCrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_UUID_DELETED)
+
+      recordA.assertPersonDeleted()
+      recordB.assertPersonDeleted()
+      recordC.assertPersonDeleted()
+      recordD.assertPersonDeleted()
+      recordA.personKey?.assertPersonKeyDeleted()
+    }
   }
 
   @Test
