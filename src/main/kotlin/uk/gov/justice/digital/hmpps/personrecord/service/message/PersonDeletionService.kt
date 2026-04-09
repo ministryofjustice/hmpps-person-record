@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
-class DeletionService(
+class PersonDeletionService(
   private val personRepository: PersonRepository,
   private val personKeyRepository: PersonKeyRepository,
   private val personMatchService: PersonMatchService,
@@ -22,9 +22,7 @@ class DeletionService(
   @Transactional
   fun processDelete(personCallback: () -> PersonEntity?) = fetchRecordAndDelete(personCallback)
 
-  private fun fetchRecordAndDelete(personCallback: () -> PersonEntity?) = personCallback()?.let { handleDeletion(it) }
-
-  private fun handleDeletion(personEntity: PersonEntity) {
+  private fun fetchRecordAndDelete(personCallback: () -> PersonEntity?) = personCallback()?.let { personEntity ->
     handlePersonKeyDeletion(personEntity)
     deletePersonRecord(personEntity)
     personMatchService.deleteFromPersonMatch(personEntity)
