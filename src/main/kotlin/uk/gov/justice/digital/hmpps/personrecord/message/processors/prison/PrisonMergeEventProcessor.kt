@@ -7,13 +7,13 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.PersonMergeService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
 class PrisonMergeEventProcessor(
   private val personRepository: PersonRepository,
-  private val mergeService: MergeService,
+  private val personMergeService: PersonMergeService,
   private val prisonerSearchClient: PrisonerSearchClient,
   private val personService: PersonService,
 ) {
@@ -27,7 +27,7 @@ class PrisonMergeEventProcessor(
       val to: PersonEntity = personService.processPerson(
         it.doNotReclusterOnUpdate(),
       ) { personRepository.findByPrisonNumber(prisonNumber) }
-      mergeService.processMerge(from, to)
+      personMergeService.processMerge(from, to)
     }
   }
 }
