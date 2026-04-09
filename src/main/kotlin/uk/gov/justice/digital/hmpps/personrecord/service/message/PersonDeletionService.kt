@@ -20,9 +20,7 @@ class PersonDeletionService(
 ) {
 
   @Transactional
-  fun processDelete(personCallback: () -> PersonEntity?) = fetchRecordAndDelete(personCallback)
-
-  private fun fetchRecordAndDelete(personCallback: () -> PersonEntity?) = personCallback()?.let { personEntity ->
+  fun processDelete(personCallback: () -> PersonEntity?) = personCallback()?.let { personEntity ->
     personEntity.deleteClusterIfNoRecordsLeft()
     personEntity.delete()
     personEntity.deleteFromPersonMatch()
@@ -56,8 +54,6 @@ class PersonDeletionService(
   }
 
   private fun PersonEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively() {
-    personRepository.findByMergedTo(this.id!!)?.forEach { personEntity ->
-      fetchRecordAndDelete { personEntity }
-    }
+    personRepository.findByMergedTo(this.id!!)?.forEach { personEntity -> processDelete { personEntity } }
   }
 }
