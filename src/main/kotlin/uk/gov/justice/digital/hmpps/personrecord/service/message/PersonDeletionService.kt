@@ -23,33 +23,27 @@ class PersonDeletionService(
   fun processDelete(personCallback: () -> PersonEntity?) = fetchRecordAndDelete(personCallback)
 
   private fun fetchRecordAndDelete(personCallback: () -> PersonEntity?) = personCallback()?.let { personEntity ->
-    handlePersonKeyDeletion(personEntity)
-    deletePersonRecord(personEntity)
-    personMatchService.deleteFromPersonMatch(personEntity)
-    handleMergedRecords(personEntity)
+    personEntity.deleteClusterIfNoRecordsLeft()
+    personEntity.delete()
+    personEntity.deleteFromPersonMatch()
+    personEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively()
   }
 
-  private fun handleMergedRecords(personEntity: PersonEntity) {
-    personEntity.id?.let { id ->
-      personRepository.findByMergedTo(id).forEach {
-        fetchRecordAndDelete { it }
-      }
-    }
-  }
-
-  private fun deletePersonRecord(personEntity: PersonEntity) {
-    personRepository.delete(personEntity)
-    publisher.publishEvent(PersonDeleted(personEntity))
-  }
-
-  private fun handlePersonKeyDeletion(personEntity: PersonEntity) {
-    personEntity.personKey?.let {
+  private fun PersonEntity.deleteClusterIfNoRecordsLeft() {
+    this.personKey?.let { cluster ->
       when {
-        it.personEntities.size == 1 -> deletePersonKey(it, personEntity)
-        else -> removeLinkToRecord(it, personEntity)
+        cluster.hasOneRecord() -> deletePersonKey(cluster, this)
+        else -> removeLinkToRecord(cluster, this)
       }
     }
   }
+
+  private fun PersonEntity.delete() {
+    personRepository.delete(this)
+    publisher.publishEvent(PersonDeleted(this))
+  }
+
+  private fun PersonEntity.deleteFromPersonMatch() = personMatchService.deleteFromPersonMatch(this)
 
   private fun deletePersonKey(personKeyEntity: PersonKeyEntity, personEntity: PersonEntity) {
     personKeyRepository.delete(personKeyEntity)
@@ -59,5 +53,11 @@ class PersonDeletionService(
   private fun removeLinkToRecord(personKeyEntity: PersonKeyEntity, personEntity: PersonEntity) {
     personKeyEntity.personEntities.remove(personEntity)
     personKeyRepository.save(personKeyEntity)
+  }
+
+  private fun PersonEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively() {
+    personRepository.findByMergedTo(this.id!!)?.forEach { personEntity ->
+      fetchRecordAndDelete { personEntity }
+    }
   }
 }
