@@ -31,7 +31,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
-class PrisonAPIControllerIntTest : WebTestBase() {
+class PrisonAPIGetControllerIntTest : WebTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {

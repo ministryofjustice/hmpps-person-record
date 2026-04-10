@@ -53,7 +53,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-class DpsPrisonAPIControllerIntTest : WebTestBase() {
+class DpsPrisonAPIGetControllerIntTest : WebTestBase() {
 
   @Autowired
   private lateinit var prisonReligionRepository: PrisonReligionRepository
