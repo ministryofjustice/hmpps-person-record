@@ -80,9 +80,10 @@ private fun alias(alias: ApiResponseSetupAlias) =
           }
         }
   """.trimIndent()
-private fun address(address: ApiResponseSetupAddress) =
+fun address(address: ApiResponseSetupAddress) =
   """
     {
+      ${address.addressId?.let { """ "addressId": "${address.addressId}", """.trimIndent() } ?: ""}
       ${address.startDate?.let { """ "startDate": "${address.startDate}", """.trimIndent() } ?: ""}
       ${address.endDate?.let { """ "endDate": "${address.endDate}", """.trimIndent() } ?: ""}
       ${address.noFixedAbode?.let { """ "noFixedAbode": "${address.noFixedAbode}", """.trimIndent() } ?: ""}

@@ -108,7 +108,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
         "comment": "Skull and crossbones covering chest"
       }
     ],
-    "addresses": [${responseSetup.addresses.joinToString { address(it) }}],
+    "addresses": [${responseSetup.addresses.joinToString { prisonAddress(it) }}],
     "emailAddresses": [
         ${responseSetup.email?.let { """ {"email": "${responseSetup.email}" }""".trimIndent() } ?: "" }
     ],
@@ -154,7 +154,7 @@ private fun identifier(identifier: ApiResponseSetupIdentifier) =
     }
   """.trimIndent()
 
-private fun address(address: ApiResponseSetupAddress) =
+private fun prisonAddress(address: ApiResponseSetupAddress) =
   """
     {
       ${address.fullAddress?.let { """ "fullAddress": "${address.fullAddress}", """.trimIndent() } ?: "" }

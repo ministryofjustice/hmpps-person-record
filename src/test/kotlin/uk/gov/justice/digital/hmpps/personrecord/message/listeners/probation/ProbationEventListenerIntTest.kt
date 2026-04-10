@@ -4,7 +4,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
@@ -13,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
@@ -32,6 +35,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
@@ -40,11 +44,15 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAdditionalIdentifierCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
@@ -64,9 +72,13 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupContact
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.address
 import java.util.UUID
 
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
+
+  @Autowired
+  private lateinit var addressRepository: AddressRepository
 
   @Nested
   inner class SuccessfulProcessing {
@@ -673,6 +685,50 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     stub5xxResponse(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
     publishProbationDomainEvent(NEW_OFFENDER_CREATED, crn)
     expectOneMessageOnDlq(probationEventsQueue)
+  }
+
+  @Nested
+  inner class AddressCreate {
+    @Test
+    fun `should create address for probation address created`() {
+      val crn = randomCrn()
+      val addressId = randomDigit()
+      val address = ApiResponseSetupAddress(
+        addressId = addressId,
+        noFixedAbode = true,
+        startDate = randomDate(),
+        postcode = randomPostcode(),
+        fullAddress = randomFullAddress(),
+        buildingName = randomBuildingNumber(),
+        addressNumber = randomAddressNumber(),
+        streetName = randomLowerCaseString(),
+        district = randomName(),
+        townCity = randomName(),
+        county = randomName(),
+        uprn = randomUprn(),
+        notes = randomName(),
+        telephoneNumber = randomPhoneNumber(),
+      )
+
+      stubGetRequest(
+        url = "/person/address/${address.addressId}",
+        body = address(address),
+      )
+
+      createPersonWithNewKey(createRandomProbationPersonDetails(crn = crn).copy(addresses = emptyList()))
+
+      publishProbationDomainEvent(
+        OFFENDER_ADDRESS_CREATED,
+        crn,
+        additionalInformation = AdditionalInformation(
+          addressId = addressId,
+        ),
+      )
+
+      awaitAssert {
+        assertThat(personRepository.findByCrn(crn)!!.addresses.size).isEqualTo(1)
+      }
+    }
   }
 
   @Nested
