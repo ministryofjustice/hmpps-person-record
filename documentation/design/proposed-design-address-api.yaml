@@ -1,0 +1,309 @@
+openapi: 3.0.3
+info:
+  title: Address API
+  version: 1.0.0
+  description: >
+    API for creating, and retrieving  address details.
+
+servers:
+  # Added by API Auto Mocking Plugin
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/ftl/CPR-Address-API/1.0.0
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/ftl/Granular-Sync-Endpoints/1.0.0
+  - url: https://api.yourdomain.tld
+
+tags:
+  - name: Address
+    description: Endpoints for person address management
+
+paths:
+  /person/probation/{crn}/address:
+    post:
+      summary: Create address records
+      description: Creates an address for a person.
+      tags: [Address]
+      parameters:
+        - name: crn
+          in: path
+          required: true
+          description: Case reference number
+          schema:
+            type: string
+            example: X313886
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressPostRequest'
+            examples:
+              sample:
+                value:
+                  addresses:
+                    noFixedAbode: false
+                    startDate: "2020-02-26"
+                    endDate: "2023-07-15"
+                    postcode: "SW1H 9AJ"
+                    uprn: "string"
+                    subBuildingName: "Sub building 2"
+                    buildingName: "Main Building"
+                    buildingNumber: "102"
+                    thoroughfareName: "Petty France"
+                    dependentLocality: "Westminster"
+                    postTown: "London"
+                    county: "Greater London"
+                    countryCode: "UK"
+                    comment: "String"
+                    isPrimary: true
+                    isMail: true
+                    addressUsage:
+                      - addressUsageCode: "DSH"
+                        isActive: true
+
+      responses:
+        '200':
+          description: Address records created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressPostResponse'
+              examples:
+                sample:
+                  value:
+                    crn: "X313886"
+                    addressMappings:
+                      cprAddressId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+                      addressUsageMappings:
+                        - cprAddressUsageid: "d4ae7071-58ae-42f0-bf5d-c69289fb1e6d"
+        '400':
+          description: Invalid data supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: CRN not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+
+  /person/probation/{crn}/address/{cprAddressId}:
+    get:
+      summary: Retrieve address details for a CPR address id
+      description: Returns address JSON.
+      tags: [Address]
+      parameters:
+        - name: crn
+          in: path
+          required: true
+          description: Case reference number
+          schema:
+            type: string
+            example: X313886
+        - name: cprAddressId
+          in: path
+          required: true
+          description: CPR Address ID
+          schema:
+            type: string
+            format: uuid
+            example: d4ae7071-58ae-42f0-bf5d-c69289fb1e6d
+      responses:
+        '200':
+          description: Address details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressGetResponse'
+              examples:
+                sample:
+                  value:
+                    crn: "X313886"
+                    addresses:
+                      cprAddressId: "d4ae7071-58ae-42f0-bf5d-c69289fb1e6d"
+                      noFixedAbode: false
+                      startDate: "2020-02-26"
+                      endDate: "2023-07-15"
+                      postcode: "SW1H 9AJ"
+                      uprn: "string"
+                      subBuildingName: "Sub building 2"
+                      buildingName: "Main Building"
+                      buildingNumber: "102"
+                      thoroughfareName: "Petty France"
+                      dependentLocality: "Westminster"
+                      postTown: "London"
+                      county: "Greater London"
+                      countryCode: "UK"
+                      comment: "String"
+                      isPrimary: true
+                      isMail: true
+                      addressUsage:
+                        - addressUsageCode: "DSH"
+                          isActive: true
+        '404':
+          description: Address usage not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+
+components:
+  schemas:
+    # ---- Requests ----
+    AddressPostRequest:
+      type: object
+      required: [addresses]
+      properties:
+        addresses:
+          $ref: '#/components/schemas/AddressItemPost'
+
+
+    AddressItemPost:
+      type: object
+      properties:
+        noFixedAbode:
+          type: boolean
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+          nullable: true
+        postcode:
+          type: string
+        uprn:
+          type: string
+          description: Unique Property Reference Number
+          example: "string"
+        subBuildingName:
+          type: string
+        buildingName:
+          type: string
+        buildingNumber:
+          type: string
+        thoroughfareName:
+          type: string
+        dependentLocality:
+          type: string
+        postTown:
+          type: string
+        county:
+          type: string
+        countryCode:
+          type: string
+        comment:
+          type: string
+        isPrimary:
+          type: boolean
+        isMail:
+          type: boolean
+        addressUsage:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressUsageItem'
+
+
+
+    AddressUsageItem:
+      type: object
+      properties:
+        addressUsageCode:
+          type: string
+          example: "DSH"
+        isActive:
+          type: boolean
+
+
+    # ---- Responses ----
+    AddressPostResponse:
+      type: object
+      properties:
+        crn:
+          type: string
+          example: "X313886"
+        cprAddressId:
+          type: string
+          format: uuid
+
+    AddressGetResponse:
+      type: object
+      description: Address information for the provided cpr address id.
+      properties:
+        addresses:
+          $ref: '#/components/schemas/AddressGetResponseObject'
+
+    AddressGetResponseObject:
+      type: object
+      description: Same structure as AddressItemPost.
+      properties:
+        crn:
+          type: string
+          example: "X313886"
+        noFixedAbode:
+          type: boolean
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+          nullable: true
+        postcode:
+          type: string
+        uprn:
+          type: string
+          description: Unique Property Reference Number
+          example: "string"
+        subBuildingName:
+          type: string
+        buildingName:
+          type: string
+        buildingNumber:
+          type: string
+        thoroughfareName:
+          type: string
+        dependentLocality:
+          type: string
+        postTown:
+          type: string
+        county:
+          type: string
+        countryCode:
+          type: string
+        comment:
+          type: string
+        isPrimary:
+          type: boolean
+        isMail:
+          type: boolean
+        addressUsage:
+          type: array
+          items:
+            type: object
+            properties:
+              addressUsageCode:
+                type: string
+              isActive:
+                type: boolean
+
+    # ---- Common error ----
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 404
+        error:
+          type: string
+          example: Not Found
+        message:
+          type: string
+          example: "CRN not found"
