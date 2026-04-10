@@ -41,11 +41,8 @@ class ServiceNowMergeRequestService(
 
   fun getClustersForMergeRequests(): List<MergeRequestItem> {
     log.info("starting")
-    val thisTimeYesterday = LocalDateTime.now().minusDays(1)
-    val recordsModifiedYesterday = personRepository.findByLastModifiedBetween(
-      thisTimeYesterday,
-      thisTimeYesterday.plusHours(HOURS_TO_CHOOSE_FROM),
-    )
+    val tenHoursAgo = LocalDateTime.now().minusHours(HOURS_TO_CHOOSE_FROM)
+    val recordsModifiedYesterday = personRepository.findByLastModifiedAfter(tenHoursAgo)
     log.info("finished getting modified clusters for ${recordsModifiedYesterday.size}")
     val records = recordsModifiedYesterday
       .distinctBy { it.personKey }
@@ -89,7 +86,7 @@ class ServiceNowMergeRequestService(
 
   companion object {
     private const val CLUSTER_TO_PROCESS_COUNT = 5
-    private const val HOURS_TO_CHOOSE_FROM = 10L
+    const val HOURS_TO_CHOOSE_FROM = 10L
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
