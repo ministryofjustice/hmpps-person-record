@@ -91,6 +91,57 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 
 
+    # /person/probation/{crn}/address:
+    get:
+      summary: Retrieve address history for a CRN
+      description: Returns address JSON.
+      tags: [Address]
+      parameters:
+        - name: crn
+          in: path
+          required: true
+          description: Case reference number
+          schema:
+            type: string
+            example: X313886
+      responses:
+        '200':
+          description: Address details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressHistoryGetResponse'
+              examples:
+                sample:
+                  value:
+                    crn: "X313886"
+                    addresses:
+                      - cprAddressId: "d4ae7071-58ae-42f0-bf5d-c69289fb1e6d"
+                        noFixedAbode: false
+                        startDate: "2020-02-26"
+                        endDate: "2023-07-15"
+                        postcode: "SW1H 9AJ"
+                        uprn: "string"
+                        subBuildingName: "Sub building 2"
+                        buildingName: "Main Building"
+                        buildingNumber: "102"
+                        thoroughfareName: "Petty France"
+                        dependentLocality: "Westminster"
+                        postTown: "London"
+                        county: "Greater London"
+                        countryCode: "UK"
+                        comment: "String"
+                        isPrimary: true
+                        isMail: true
+                        addressUsage:
+                          - addressUsageCode: "DSH"
+                            isActive: true
+        '404':
+          description: Address usage not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /person/probation/{crn}/address/{cprAddressId}:
     get:
@@ -151,8 +202,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
-
 
 components:
   schemas:
@@ -232,6 +281,15 @@ components:
         cprAddressId:
           type: string
           format: uuid
+
+    AddressHistoryGetResponse:
+      type: object
+      description: Address information for the provided cpr address id.
+      properties:
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressGetResponseObject'
 
     AddressGetResponse:
       type: object
