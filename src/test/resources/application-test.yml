@@ -40,6 +40,12 @@ hmpps.sqs:
       subscribeTopicId: cprcourtcasestopic
       dlqName: test_only_cpr_court_cases_queue_dlq
       dlqMaxReceiveCount: 2
+    testcpreventsqueue:
+      queueName: test_only_cpr_events_queue
+      subscribeTopicId: domainevents
+      dlqName: test_only_cpr_events_queue_dlq
+      subscribeFilter: '{"eventType":[ "core-person-record.probation.address.created"] }'
+      dlqMaxReceiveCount: 2
     cprdeliusoffendereventsqueue:
       queueName: cpr_delius_offender_events_queue
       dlqName: cpr_delius_offender_events_queue_dlq

@@ -46,6 +46,10 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId("testcourtcasesqueue")
   }
 
+  val testOnlyCPREventsQueue by lazy {
+    hmppsQueueService.findByQueueId("testcpreventsqueue")
+  }
+
   val probationEventsQueue by lazy {
     hmppsQueueService.findByQueueId(Queues.PROBATION_EVENT_QUEUE_ID)
   }
@@ -285,6 +289,7 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     purgeQueueAndDlq(prisonEventsQueue)
     purgeQueueAndDlq(prisonMergeEventsQueue)
     purgeQueueAndDlq(testOnlyCourtEventsQueue)
+    purgeQueueAndDlq(testOnlyCPREventsQueue)
   }
 
   fun purgeQueueAndDlq(hmppsQueue: HmppsQueue?) {

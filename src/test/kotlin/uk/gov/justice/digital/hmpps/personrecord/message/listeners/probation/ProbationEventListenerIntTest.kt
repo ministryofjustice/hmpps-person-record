@@ -5,8 +5,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
+import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
@@ -728,6 +732,16 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       awaitAssert {
         assertThat(personRepository.findByCrn(crn)!!.addresses.size).isEqualTo(1)
       }
+      expectOneMessageOn(testOnlyCPREventsQueue)
+
+      val message = testOnlyCPREventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCPREventsQueue?.queueUrl).build())
+
+      val sqsMessage = message?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
+      val domainEvent = jsonMapper.readValue<DomainEvent>(sqsMessage.message)
+
+      assertThat(domainEvent.personReference?.identifiers?.first()?.value).isEqualTo(crn)
+      assertThat(domainEvent.additionalInformation?.deliusAddressId).isEqualTo(addressId)
+      assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(personRepository.findByCrn(crn)!!.addresses.first().updateId.toString())
     }
   }
 

@@ -22,4 +22,7 @@ data class AdditionalInformation(
   val sourcePrisonNumber: String? = null,
 
   val addressId: String? = null,
+
+  val cprAddressId: String? = null,
+  val deliusAddressId: String? = null,
 )
