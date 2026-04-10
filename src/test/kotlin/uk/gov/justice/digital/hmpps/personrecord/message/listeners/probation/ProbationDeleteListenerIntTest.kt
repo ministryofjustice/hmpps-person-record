@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -19,305 +20,327 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     stubDeletePersonMatch()
   }
 
-  @Test
-  fun `should process offender GDPR delete`() {
-    val crn = randomCrn()
-    val person = createPerson(createRandomProbationPersonDetails(crn))
-    val personKey = createPersonKey()
-      .addPerson(person)
-      .addPerson(createRandomProbationPersonDetails())
+  @Nested
+  inner class NonMergeScenarios {
+    @Test
+    fun `deletes person with a GDPR event`() {
+      val crn = randomCrn()
+      val person = createPerson(createRandomProbationPersonDetails(crn))
+      val personKey = createPersonKey()
+        .addPerson(person)
+        .addPerson(createRandomProbationPersonDetails())
 
-    publishProbationDomainEvent(OFFENDER_GDPR_DELETION, crn)
+      publishProbationDomainEvent(OFFENDER_GDPR_DELETION, crn)
 
-    checkTelemetry(
-      CPR_RECORD_DELETED,
-      mapOf("CRN" to crn, "UUID" to personKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to crn, "UUID" to personKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_DELETED)
 
-    person.assertPersonDeleted()
-    personKey.assertClusterStatus(UUIDStatusType.ACTIVE)
-    personKey.assertClusterIsOfSize(1)
-  }
-
-  @Test
-  fun `should process offender delete with 1 record on single UUID`() {
-    val crn = randomCrn()
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
-    publishProbationDomainEvent(OFFENDER_DELETION, crn)
-
-    checkTelemetry(
-      CPR_RECORD_DELETED,
-      mapOf("CRN" to crn, "UUID" to person.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UUID_DELETED,
-      mapOf("CRN" to crn, "UUID" to person.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkEventLog(crn, CPRLogEvents.CPR_UUID_DELETED) { eventLogs ->
-      assertThat(eventLogs).hasSize(1)
-      val eventLog = eventLogs.first()
-      assertThat(eventLog.personUUID).isEqualTo(person.personKey?.personUUID)
-    }
-    checkEventLog(crn, CPRLogEvents.CPR_RECORD_DELETED) { eventLogs ->
-      assertThat(eventLogs).hasSize(1)
-      val eventLog = eventLogs.first()
-      assertThat(eventLog.personUUID).isEqualTo(person.personKey?.personUUID)
+      person.assertPersonDeleted()
+      personKey.assertClusterStatus(UUIDStatusType.ACTIVE)
+      personKey.assertClusterIsOfSize(1)
     }
 
-    person.assertPersonDeleted()
-    person.personKey?.assertPersonKeyDeleted()
+    @Test
+    fun `when cluster has one person - deletes person and cluster`() {
+      val crn = randomCrn()
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
+      publishProbationDomainEvent(OFFENDER_DELETION, crn)
+
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to crn, "UUID" to person.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_UUID_DELETED,
+        mapOf("CRN" to crn, "UUID" to person.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkEventLog(crn, CPRLogEvents.CPR_UUID_DELETED) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.personUUID).isEqualTo(person.personKey?.personUUID)
+      }
+      checkEventLog(crn, CPRLogEvents.CPR_RECORD_DELETED) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.personUUID).isEqualTo(person.personKey?.personUUID)
+      }
+
+      person.assertPersonDeleted()
+      person.personKey?.assertPersonKeyDeleted()
+    }
+
+    @Test
+    fun `when cluster has more than one person - delete person only`() {
+      val crn = randomCrn()
+
+      val person = createPerson(createRandomProbationPersonDetails(crn))
+      val personKey = createPersonKey()
+        .addPerson(person)
+        .addPerson(createRandomProbationPersonDetails())
+
+      publishProbationDomainEvent(OFFENDER_DELETION, crn)
+
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to crn, "UUID" to personKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_DELETED)
+
+      person.assertPersonDeleted()
+      personKey.assertClusterStatus(UUIDStatusType.ACTIVE)
+      personKey.assertClusterIsOfSize(1)
+    }
   }
 
-  @Test
-  fun `should process offender delete with multiple records on single UUID`() {
-    val crn = randomCrn()
+  @Nested
+  inner class MergeScenarios {
+    @Test
+    fun `deleting a merged from person does not delete the merged to person`() {
+      val recordACrn = randomCrn()
+      val recordBCrn = randomCrn()
 
-    val person = createPerson(createRandomProbationPersonDetails(crn))
-    val personKey = createPersonKey()
-      .addPerson(person)
-      .addPerson(createRandomProbationPersonDetails())
+      // Record Cluster (2 Records - B merged to A)
+      val recordA = createPerson(createRandomProbationPersonDetails(recordACrn))
+      val cluster = createPersonKey()
+        .addPerson(recordA)
+      val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
 
-    publishProbationDomainEvent(OFFENDER_DELETION, crn)
+      mergeRecord(recordB, recordA)
 
-    checkTelemetry(
-      CPR_RECORD_DELETED,
-      mapOf("CRN" to crn, "UUID" to personKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_DELETED)
+      publishProbationDomainEvent(OFFENDER_DELETION, recordBCrn)
 
-    person.assertPersonDeleted()
-    personKey.assertClusterStatus(UUIDStatusType.ACTIVE)
-    personKey.assertClusterIsOfSize(1)
-  }
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordBCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
 
-  @Test
-  fun `should process offender delete with a merged record on single UUID`() {
-    val recordACrn = randomCrn()
-    val recordBCrn = randomCrn()
+      recordB.assertPersonDeleted()
+      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster.assertClusterIsOfSize(1)
+    }
 
-    // Record Cluster (2 Records - B merged to A)
-    val recordA = createPerson(createRandomProbationPersonDetails(recordACrn))
-    val cluster = createPersonKey()
-      .addPerson(recordA)
-    val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
+    @Test
+    fun `deleting a merged to person does delete a merged from person`() {
+      val recordACrn = randomCrn()
+      val recordBCrn = randomCrn()
 
-    mergeRecord(recordB, recordA)
+      // Record Cluster (1 Record - B merged to A)
+      val recordA = createPerson(createRandomProbationPersonDetails(recordACrn))
+      val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
+      val cluster = createPersonKey()
+        .addPerson(recordA)
+        .addPerson(recordB)
 
-    publishProbationDomainEvent(OFFENDER_DELETION, recordBCrn)
+      mergeRecord(recordB, recordA)
 
-    checkTelemetry(
-      CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
+      publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
 
-    recordB.assertPersonDeleted()
-    cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
-    cluster.assertClusterIsOfSize(1)
-  }
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordACrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordBCrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_UUID_DELETED,
+        mapOf("CRN" to recordBCrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_UUID_DELETED)
 
-  @Test
-  fun `should process offender delete with 2 records which have merged on a single UUID`() {
-    val recordACrn = randomCrn()
-    val recordBCrn = randomCrn()
+      recordA.assertPersonDeleted()
+      recordB.assertPersonDeleted()
+      cluster.assertPersonKeyDeleted()
+    }
 
-    // Record Cluster (1 Record - B merged to A)
-    val recordA = createPerson(createRandomProbationPersonDetails(recordACrn))
-    val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
-    val cluster = createPersonKey()
-      .addPerson(recordA)
-      .addPerson(recordB)
+    @Test // TODO: ???
+    fun `should process offender delete with 2 records which have merged on different UUIDs`() {
+      val recordACrn = randomCrn()
+      val recordBCrn = randomCrn()
 
-    mergeRecord(recordB, recordA)
+      val mergedTo = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
+      val mergedFrom = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
 
-    publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
+      mergeRecord(mergedFrom, mergedTo)
+      mergeUuid(mergedFrom.personKey!!, mergedTo.personKey!!)
 
-    checkTelemetry(
-      CPR_RECORD_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UUID_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
-    checkEventLogExist(recordBCrn, CPRLogEvents.CPR_UUID_DELETED)
+      publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
 
-    recordA.assertPersonDeleted()
-    recordB.assertPersonDeleted()
-    cluster.assertPersonKeyDeleted()
-  }
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordACrn, "UUID" to mergedTo.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_UUID_DELETED,
+        mapOf("CRN" to recordACrn, "UUID" to mergedTo.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordBCrn, "UUID" to mergedFrom.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_UUID_DELETED,
+        mapOf("CRN" to recordBCrn, "UUID" to mergedFrom.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_UUID_DELETED)
+      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_UUID_DELETED)
 
-  @Test
-  fun `should process offender delete with 2 records which have merged on different UUIDs`() {
-    val recordACrn = randomCrn()
-    val recordBCrn = randomCrn()
+      mergedFrom.assertPersonDeleted()
+      mergedTo.assertPersonDeleted()
+      mergedFrom.personKey?.assertPersonKeyDeleted()
+      mergedTo.personKey?.assertPersonKeyDeleted()
+    }
 
-    val mergedTo = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
-    val mergedFrom = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
+    @Test
+    fun `when record c is merged to record b and record b is merged to a - deleting record a - deletes all`() {
+      // Merged Record Chain: C -> B -> A
+      val recordACrn = randomCrn()
+      val recordBCrn = randomCrn()
+      val recordCCrn = randomCrn()
 
-    mergeRecord(mergedFrom, mergedTo)
-    mergeUuid(mergedFrom.personKey!!, mergedTo.personKey!!)
+      // First Record Cluster (1 Record)
+      val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
 
-    publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
+      // Second Record Cluster (2 Records - C merged to B)
+      val recordB = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
+      val recordC = createPerson(createRandomProbationPersonDetails(recordCCrn))
 
-    checkTelemetry(
-      CPR_RECORD_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to mergedTo.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UUID_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to mergedTo.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to mergedFrom.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UUID_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to mergedFrom.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_DELETED)
-    checkEventLogExist(recordACrn, CPRLogEvents.CPR_UUID_DELETED)
-    checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
-    checkEventLogExist(recordBCrn, CPRLogEvents.CPR_UUID_DELETED)
+      mergeRecord(recordC, recordB)
+      mergeRecord(recordB, recordA)
+      mergeUuid(recordB.personKey!!, recordA.personKey!!)
 
-    mergedFrom.assertPersonDeleted()
-    mergedTo.assertPersonDeleted()
-    mergedFrom.personKey?.assertPersonKeyDeleted()
-    mergedTo.personKey?.assertPersonKeyDeleted()
-  }
+      publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
 
-  @Test
-  fun `should process offender delete with 3 records which have merged on different UUIDs`() {
-    // Merged Record Chain: C -> B -> A
-    val recordACrn = randomCrn()
-    val recordBCrn = randomCrn()
-    val recordCCrn = randomCrn()
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_UUID_DELETED,
+        mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordBCrn, "UUID" to recordB.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_UUID_DELETED,
+        mapOf("CRN" to recordBCrn, "UUID" to recordB.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_UUID_DELETED)
+      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_UUID_DELETED)
+      checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_DELETED)
 
-    // First Record Cluster (1 Record)
-    val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
+      recordA.assertPersonDeleted()
+      recordB.assertPersonDeleted()
+      recordC.assertPersonDeleted()
+      recordA.personKey?.assertPersonKeyDeleted()
+      recordB.personKey?.assertPersonKeyDeleted()
+    }
 
-    // Second Record Cluster (2 Records - C merged to B)
-    val recordB = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
-    val recordC = createPerson(createRandomProbationPersonDetails(recordCCrn))
+    @Test
+    fun `when record b is merged to a and record c is merged to a - deleting record a - deletes all`() {
+      val recordACrn = randomCrn()
+      val recordBCrn = randomCrn()
+      val recordCCrn = randomCrn()
 
-    mergeRecord(recordC, recordB)
-    mergeRecord(recordB, recordA)
-    mergeUuid(recordB.personKey!!, recordA.personKey!!)
+      // Record Cluster (3 Records - B -> A <- C)
+      val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
+      val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
+      val recordC = createPerson(createRandomProbationPersonDetails(recordCCrn))
 
-    publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
+      mergeRecord(recordB, recordA)
+      mergeRecord(recordC, recordA)
 
-    checkTelemetry(
-      CPR_RECORD_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UUID_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to recordB.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UUID_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to recordB.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_DELETED)
-    checkEventLogExist(recordACrn, CPRLogEvents.CPR_UUID_DELETED)
-    checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
-    checkEventLogExist(recordBCrn, CPRLogEvents.CPR_UUID_DELETED)
-    checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_DELETED)
+      publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
 
-    recordA.assertPersonDeleted()
-    recordB.assertPersonDeleted()
-    recordC.assertPersonDeleted()
-    recordA.personKey?.assertPersonKeyDeleted()
-    recordB.personKey?.assertPersonKeyDeleted()
-  }
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_UUID_DELETED,
+        mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordBCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordCCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_UUID_DELETED)
 
-  @Test
-  fun `should process offender delete when multiple records merged on single record`() {
-    val recordACrn = randomCrn()
-    val recordBCrn = randomCrn()
-    val recordCCrn = randomCrn()
+      recordA.assertPersonDeleted()
+      recordB.assertPersonDeleted()
+      recordC.assertPersonDeleted()
+      recordA.personKey?.assertPersonKeyDeleted()
+    }
 
-    // Record Cluster (3 Records - B -> A <- C)
-    val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
-    val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
-    val recordC = createPerson(createRandomProbationPersonDetails(recordCCrn))
+    @Test
+    fun `when record d is merged to c and c is merged to a and b is merged to a - deleting record a - deletes all`() {
+      val recordACrn = randomCrn()
+      val recordBCrn = randomCrn()
+      val recordCCrn = randomCrn()
+      val recordDCrn = randomCrn()
 
-    mergeRecord(recordB, recordA)
-    mergeRecord(recordC, recordA)
+      val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
+      val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
+      val recordC = createPerson(createRandomProbationPersonDetails(recordCCrn))
+      val recordD = createPerson(createRandomProbationPersonDetails(recordDCrn))
 
-    publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
+      mergeRecord(recordD, recordC)
+      mergeRecord(recordC, recordA)
+      mergeRecord(recordB, recordA)
 
-    checkTelemetry(
-      CPR_RECORD_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UUID_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_DELETED,
-      mapOf("CRN" to recordCCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_DELETED)
-    checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
-    checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_DELETED)
-    checkEventLogExist(recordACrn, CPRLogEvents.CPR_UUID_DELETED)
+      publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
 
-    recordA.assertPersonDeleted()
-    recordB.assertPersonDeleted()
-    recordC.assertPersonDeleted()
-    recordA.personKey?.assertPersonKeyDeleted()
-  }
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_UUID_DELETED,
+        mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordBCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordCCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordDCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(recordDCrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_UUID_DELETED)
 
-  @Test
-  fun `should process offender delete when 2 records merged on cluster with other active records`() {
-    val recordACrn = randomCrn()
-    val recordBCrn = randomCrn()
-    val recordCCrn = randomCrn()
-
-    // Record Cluster (3 Records - B -> A)
-    val recordA = createPerson(createRandomProbationPersonDetails(recordACrn))
-    val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
-    val cluster = createPersonKey()
-      .addPerson(recordA)
-      .addPerson(recordB)
-      .addPerson(createRandomProbationPersonDetails(recordCCrn))
-
-    mergeRecord(recordB, recordA)
-
-    publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
-
-    checkTelemetry(
-      CPR_RECORD_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_DELETED)
-    checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
-
-    recordA.assertPersonDeleted()
-    recordB.assertPersonDeleted()
-    cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
-    cluster.assertClusterIsOfSize(1)
+      recordA.assertPersonDeleted()
+      recordB.assertPersonDeleted()
+      recordC.assertPersonDeleted()
+      recordD.assertPersonDeleted()
+      recordA.personKey?.assertPersonKeyDeleted()
+    }
   }
 
   @Test
