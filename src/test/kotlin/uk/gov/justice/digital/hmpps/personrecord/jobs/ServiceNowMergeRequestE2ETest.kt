@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestRepository
+import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestService.Companion.HOURS_TO_CHOOSE_FROM
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
@@ -112,7 +113,7 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
     val person11 = createRandomProbationPersonDetails()
     val person12 = person11.copy(crn = randomCrn())
 
-    val thisTimeYesterday = LocalDateTime.now().minusDays(1)
+    val tenHoursAgo = LocalDateTime.now().minusHours(HOURS_TO_CHOOSE_FROM)
     createPersonKey()
       .addPerson(person1)
       .addPerson(person2)
@@ -132,18 +133,18 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
       .addPerson(person11)
       .addPerson(person12)
 
-    personRepository.updateLastModifiedDate(person1.crn!!, thisTimeYesterday.plusMinutes(1))
-    personRepository.updateLastModifiedDate(person2.crn!!, thisTimeYesterday.plusMinutes(2))
-    personRepository.updateLastModifiedDate(person3.crn!!, thisTimeYesterday.plusMinutes(3))
-    personRepository.updateLastModifiedDate(person4.crn!!, thisTimeYesterday.plusMinutes(4))
-    personRepository.updateLastModifiedDate(person5.crn!!, thisTimeYesterday.plusMinutes(5))
-    personRepository.updateLastModifiedDate(person6.crn!!, thisTimeYesterday.plusMinutes(6))
-    personRepository.updateLastModifiedDate(person7.crn!!, thisTimeYesterday.plusMinutes(7))
-    personRepository.updateLastModifiedDate(person8.crn!!, thisTimeYesterday.plusMinutes(8))
-    personRepository.updateLastModifiedDate(person9.crn!!, thisTimeYesterday.plusMinutes(9))
-    personRepository.updateLastModifiedDate(person10.crn!!, thisTimeYesterday.plusMinutes(10))
-    personRepository.updateLastModifiedDate(person11.crn!!, thisTimeYesterday.plusMinutes(11))
-    personRepository.updateLastModifiedDate(person12.crn!!, thisTimeYesterday.plusMinutes(12))
+    personRepository.updateLastModifiedDate(person1.crn!!, tenHoursAgo.plusMinutes(1))
+    personRepository.updateLastModifiedDate(person2.crn!!, tenHoursAgo.plusMinutes(2))
+    personRepository.updateLastModifiedDate(person3.crn!!, tenHoursAgo.plusMinutes(3))
+    personRepository.updateLastModifiedDate(person4.crn!!, tenHoursAgo.plusMinutes(4))
+    personRepository.updateLastModifiedDate(person5.crn!!, tenHoursAgo.plusMinutes(5))
+    personRepository.updateLastModifiedDate(person6.crn!!, tenHoursAgo.plusMinutes(6))
+    personRepository.updateLastModifiedDate(person7.crn!!, tenHoursAgo.plusMinutes(7))
+    personRepository.updateLastModifiedDate(person8.crn!!, tenHoursAgo.plusMinutes(8))
+    personRepository.updateLastModifiedDate(person9.crn!!, tenHoursAgo.plusMinutes(9))
+    personRepository.updateLastModifiedDate(person10.crn!!, tenHoursAgo.plusMinutes(10))
+    personRepository.updateLastModifiedDate(person11.crn!!, tenHoursAgo.plusMinutes(11))
+    personRepository.updateLastModifiedDate(person12.crn!!, tenHoursAgo.plusMinutes(12))
 
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)
@@ -158,7 +159,7 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
   fun `should not send a merge request for a cluster which has already had a merge request`() {
     val crn1 = randomCrn()
     val crn2 = randomCrn()
-    val thisTimeYesterday = LocalDateTime.now().minusDays(1)
+    val tenHoursAgo = LocalDateTime.now().minusHours(HOURS_TO_CHOOSE_FROM)
 
     val person1 = createRandomProbationPersonDetails(crn1)
     val person2 = createRandomProbationPersonDetails(crn2)
@@ -166,8 +167,8 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
       .addPerson(person1)
       .addPerson(person2)
 
-    personRepository.updateLastModifiedDate(crn1, thisTimeYesterday.plusMinutes(1))
-    personRepository.updateLastModifiedDate(crn2, thisTimeYesterday.plusMinutes(2))
+    personRepository.updateLastModifiedDate(crn1, tenHoursAgo.plusMinutes(1))
+    personRepository.updateLastModifiedDate(crn2, tenHoursAgo.plusMinutes(2))
 
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)
@@ -217,13 +218,13 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
   fun `should not send a merge request for a cluster which has two prison records but no probation records`() {
     val prisonNumber1 = randomPrisonNumber()
     val prisonNumber2 = randomPrisonNumber()
-    val thisTimeYesterday = LocalDateTime.now().minusDays(1)
+    val tenHoursAgo = LocalDateTime.now().minusHours(HOURS_TO_CHOOSE_FROM)
     createPersonKey()
       .addPerson(createRandomPrisonPersonDetails(prisonNumber1))
       .addPerson(createRandomPrisonPersonDetails(prisonNumber2))
 
-    personRepository.updatePrisonerLastModifiedDate(prisonNumber1, thisTimeYesterday.plusMinutes(1))
-    personRepository.updatePrisonerLastModifiedDate(prisonNumber2, thisTimeYesterday.plusMinutes(2))
+    personRepository.updatePrisonerLastModifiedDate(prisonNumber1, tenHoursAgo.plusMinutes(1))
+    personRepository.updatePrisonerLastModifiedDate(prisonNumber2, tenHoursAgo.plusMinutes(2))
 
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)
@@ -257,12 +258,12 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
         "SOURCE_SYSTEM" to "DELIUS",
       ),
     )
-    val thisTimeYesterday = LocalDateTime.now().minusDays(1)
+    val tenHoursAgo = LocalDateTime.now().minusHours(HOURS_TO_CHOOSE_FROM)
 
-    personRepository.updateLastModifiedDate(person1.crn!!, thisTimeYesterday.plusMinutes(1))
-    personRepository.updateLastModifiedDate(person2.crn!!, thisTimeYesterday.plusMinutes(2))
-    personRepository.updateLastModifiedDate(person3.crn!!, thisTimeYesterday.plusMinutes(2))
-    personRepository.updateLastModifiedDate(person4.crn!!, thisTimeYesterday.plusMinutes(2))
+    personRepository.updateLastModifiedDate(person1.crn!!, tenHoursAgo.plusMinutes(1))
+    personRepository.updateLastModifiedDate(person2.crn!!, tenHoursAgo.plusMinutes(2))
+    personRepository.updateLastModifiedDate(person3.crn!!, tenHoursAgo.plusMinutes(2))
+    personRepository.updateLastModifiedDate(person4.crn!!, tenHoursAgo.plusMinutes(2))
 
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)
