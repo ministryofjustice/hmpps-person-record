@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import io.awspring.cloud.sqs.annotation.SqsListener
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
@@ -28,9 +29,9 @@ class ProbationEventListener(
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   private val addressRepository: AddressRepository,
   private val personRepository: PersonRepository,
-  private val hmppsQueueService: HmppsQueueService,
+  hmppsQueueService: HmppsQueueService,
   private val jsonMapper: JsonMapper,
-
+  @Value($$"${core-person-record.base-url}") val baseUrl: String,
 ) {
 
   private val topic =
@@ -60,8 +61,9 @@ class ProbationEventListener(
           jsonMapper.writeValueAsString(
             DomainEvent(
               "core-person-record.probation.address.created",
-              PersonReference(listOf(PersonIdentifier(type = "CRN", value = crn))),
-              AdditionalInformation(cprAddressId = addressEntity.updateId.toString(), deliusAddressId = event.additionalInformation?.addressId),
+              personReference = PersonReference(listOf(PersonIdentifier(type = "CRN", value = crn))),
+              additionalInformation = AdditionalInformation(cprAddressId = addressEntity.updateId.toString(), deliusAddressId = event.additionalInformation?.addressId),
+              detailUrl = "$baseUrl/person/probation/$crn/address/${addressEntity.updateId}",
             ),
           ),
         )

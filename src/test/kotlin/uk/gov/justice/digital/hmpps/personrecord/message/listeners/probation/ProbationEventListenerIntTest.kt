@@ -4,13 +4,13 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
@@ -80,9 +79,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.address
 import java.util.UUID
 
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
-
-  @Autowired
-  private lateinit var addressRepository: AddressRepository
 
   @Nested
   inner class SuccessfulProcessing {
@@ -739,9 +735,12 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sqsMessage = message?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
       val domainEvent = jsonMapper.readValue<DomainEvent>(sqsMessage.message)
 
-      assertThat(domainEvent.personReference?.identifiers?.first()?.value).isEqualTo(crn)
+      assertThat(domainEvent.getCrn()).isEqualTo(crn)
+      val addressEntity = personRepository.findByCrn(crn)!!.addresses.first()
+      assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn/address/${addressEntity.updateId}")
+
       assertThat(domainEvent.additionalInformation?.deliusAddressId).isEqualTo(addressId)
-      assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(personRepository.findByCrn(crn)!!.addresses.first().updateId.toString())
+      assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(addressEntity.updateId.toString())
     }
   }
 
