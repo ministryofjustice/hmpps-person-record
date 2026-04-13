@@ -24,12 +24,7 @@ on:
 jobs:
   gatling-run:
     name: Run Gatling simulations
-    runs-on: self-hosted
-    permissions:
-      contents: read
-      actions: read
-    timeout-minutes: 60
-
+    runs-on: ubuntu-latest
     env:
       GATLING_DEV_CLIENT_ID: ${{ secrets.GATLING_DEV_CLIENT_ID }}
       GATLING_DEV_CLIENT_SECRET: ${{ secrets.GATLING_DEV_CLIENT_SECRET }}
