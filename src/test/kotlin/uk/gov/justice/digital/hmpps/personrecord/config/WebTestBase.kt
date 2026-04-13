@@ -27,6 +27,13 @@ abstract class WebTestBase : WebTestSetup() {
           mockClient,
         ),
       )
+      whenever(hmppsQueueService.findByTopicId("domainevents")).thenReturn(
+        HmppsTopic(
+          id = "mock",
+          arn = "mock",
+          mockClient,
+        ),
+      )
       return hmppsQueueService
     }
   }
