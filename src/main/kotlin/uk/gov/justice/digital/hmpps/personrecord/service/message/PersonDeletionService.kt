@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.message
 import jakarta.transaction.Transactional
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -25,7 +26,7 @@ class PersonDeletionService(
     personEntity.delete()
     personEntity.deleteFromPersonMatch()
     personEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively()
-  }
+  } ?: throw ResourceNotFoundException("Person does not exist")
 
   private fun PersonEntity.deleteClusterIfNoRecordsLeft() {
     this.personKey?.let { cluster ->
