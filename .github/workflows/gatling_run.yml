@@ -1,0 +1,88 @@
+name: Gatling performance test run
+
+on:
+  workflow_dispatch:
+    inputs:
+      envName:
+        description: "Which API should this run against"
+        required: false
+        default: "dev"
+        type: choice
+        options:
+          - dev
+      profile:
+        description: "Optional fully-qualified simulation class to run."
+        required: false
+        default: "happypath"
+        type: choice
+        options:
+          - local
+          - smoke
+          - happypath
+jobs:
+  gatling-run:
+    name: Run Gatling simulations
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      actions: read
+    timeout-minutes: 60
+
+    env:
+      GATLING_DEV_CLIENT_ID: ${{ secrets.GATLING_DEV_CLIENT_ID }}
+      GATLING_DEV_CLIENT_SECRET: ${{ secrets.GATLING_DEV_CLIENT_SECRET }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: gradle
+
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
+
+      - name: Touch env file
+        run: touch ./gatling/.env
+
+      - name: Start Gatling
+        env:
+          GATLING_DEV_CLIENT_ID: ${{ secrets.GATLING_DEV_CLIENT_ID }}
+          GATLING_DEV_CLIENT_SECRET: ${{ secrets.GATLING_DEV_CLIENT_SECRET }}
+        run: |
+          export PROFILE_FQN="${{ github.event.inputs.profile }}"
+          export ENV_NAME="${{ github.event.inputs.envName }}"
+          
+          ENV_NAME="${ENV_NAME:-dev}"
+          
+          set -eo pipefail
+          ARGS=("--no-daemon")
+          ARGS+=("--stacktrace")
+          ARGS+=("gatlingRunCi")
+          
+          if [ -n "${{ github.event.inputs.profile }}" ]; then
+              ARGS+=("-Pprofile=$PROFILE_FQN")
+          fi
+          ARGS+=("-Penv=$ENV_NAME")
+          
+          
+          echo "Setting dev client credentials"
+          ARGS+=("-PCLIENT_ID=${{ secrets.GATLING_DEV_CLIENT_ID }}")
+          ARGS+=("-PCLIENT_SECRET=${{ secrets.GATLING_DEV_CLIENT_SECRET }}")
+      
+          echo "Running: ./gradlew ${ARGS[*]}"
+          ./gradlew "${ARGS[@]}"
+
+      - name: Upload Gatling reports
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        with:
+          name: gatling-reports
+          path: |
+            gatling/build/reports/gatling/**
+            **/build/reports/gatling/**
+          if-no-files-found: warn
