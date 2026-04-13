@@ -9,7 +9,7 @@ import uk.gov.justice.hmpps.sqs.publish
 
 @Component
 class PersonDomainEventPublisher(
-  private val hmppsQueueService: HmppsQueueService,
+  hmppsQueueService: HmppsQueueService,
   private val jsonMapper: JsonMapper,
 ) {
   private val topic =

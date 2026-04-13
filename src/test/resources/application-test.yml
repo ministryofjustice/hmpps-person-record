@@ -42,7 +42,7 @@ hmpps.sqs:
       dlqMaxReceiveCount: 2
     testcprdomaineventsqueue:
       queueName: test_only_cpr_domain_events_queue
-      subscribeTopicId:   domainevents
+      subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":[ "core-person-record.prison.record.created", "core-person-record.probation.record.created", "core-person-record.court.record.created"] }'
       dlqName: test_only_cpr_domain_events_queue_dlq
       dlqMaxReceiveCount: 2
