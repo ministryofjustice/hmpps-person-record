@@ -128,7 +128,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
       sendPostRequestAsserted<Unit>(
         url = prisonReligionPostEndpoint(randomPrisonNumber()),
         body = createRandomReligion(),
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        roles = listOf(),
         expectedStatus = HttpStatus.UNAUTHORIZED,
         sendAuthorised = false,
       )

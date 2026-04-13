@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
 class PrisonAPIDeleteControllerIntTest : WebTestBase() {
 
@@ -131,7 +132,26 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
   }
 
   @Nested
-  inner class Authorisation
+  inner class Authorisation {
+    @Test
+    fun `should return UNAUTHORIZED 401 when role is not set`() {
+      sendDeleteRequestAsserted<Unit>(
+        url = prisonPersonDeleteUrl(randomPrisonNumber()),
+        roles = listOf(),
+        expectedStatus = HttpStatus.UNAUTHORIZED,
+        sendAuthorised = false,
+      )
+    }
+
+    @Test
+    fun `should return Access Denied 403 when role is wrong`() {
+      sendDeleteRequestAsserted<Unit>(
+        url = prisonPersonDeleteUrl(randomPrisonNumber()),
+        roles = listOf("UNSUPPORTED_ROLE"),
+        expectedStatus = HttpStatus.FORBIDDEN,
+      )
+    }
+  }
 
   private fun prisonPersonDeleteUrl(prisonNumber: String) = "/person/prison/$prisonNumber"
 }
