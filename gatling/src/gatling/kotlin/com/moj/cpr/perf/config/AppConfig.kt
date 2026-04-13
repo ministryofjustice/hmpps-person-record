@@ -3,8 +3,8 @@ package com.moj.cpr.perf.config
 import com.typesafe.config.ConfigFactory
 
 object AppConfig {
-    val clientId: String = System.getProperty("CLIENT_ID")
-    val clientSecret: String = System.getProperty("CLIENT_SECRET")
+    val clientId: String = System.getenv("CLIENT_ID")
+    val clientSecret: String = System.getenv("CLIENT_SECRET")
 
     private val config = ConfigFactory.load()
         .withFallback(ConfigFactory.load("application.conf"))
