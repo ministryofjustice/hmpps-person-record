@@ -32,13 +32,6 @@ tasks.register<Exec>("gatlingRunCi") {
   group = "gatling"
   description = "Run un-attended in github ci"
 
-  val clientId = (project.findProperty("CLIENT_ID") as String?)
-  val clientSecret = (project.findProperty("CLIENT_SECRET") as String?)
-
-
-  environment("CLIENT_ID", clientId ?: "")
-  environment("CLIENT_SECRET", clientSecret ?: "")
-
   val args = mutableListOf("gatlingRun")
   args += listOf("--all")
 
