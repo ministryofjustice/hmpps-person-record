@@ -25,10 +25,9 @@ jobs:
   gatling-run:
     name: Run Gatling simulations
     runs-on: ubuntu-latest
-    environment: dev
     env:
-      CLIENT_ID: ${{ secrets.GATLING_DEV_CLIENT_ID }}
-      CLIENT_SECRET: ${{ secrets.GATLING_DEV_CLIENT_SECRET }}
+      CLIENT_ID: ${{ secrets.GATLING_CLIENT_ID }}
+      CLIENT_SECRET: ${{ secrets.GATLING_CLIENT_SECRET }}
 
     steps:
       - name: Checkout
@@ -49,8 +48,8 @@ jobs:
 
       - name: Start Gatling
         env:
-          CLIENT_ID: ${{ secrets.GATLING_DEV_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.GATLING_DEV_CLIENT_SECRET }}
+          CLIENT_ID: ${{ secrets.GATLING_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.GATLING_CLIENT_SECRET }}
         run: |
           export PROFILE_FQN="${{ github.event.inputs.profile }}"
           export ENV_NAME="${{ github.event.inputs.envName }}"
