@@ -33,7 +33,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.test.context.ActiveProfiles
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligion
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
@@ -214,6 +214,8 @@ class IntegrationTestBase {
   internal fun createRandomPrisonPersonDetails(prisonNumber: String = randomPrisonNumber()): Person = Person.from(
     Prisoner(
       prisonNumber = prisonNumber,
+      pnc = PNCIdentifier.from(randomLongPnc()),
+      cro = CROIdentifier.from(randomCro()),
       firstName = randomName(),
       lastName = randomName(),
       dateOfBirth = randomDate(),
@@ -266,11 +268,11 @@ class IntegrationTestBase {
     ),
   )
 
-  internal fun createRandomReligions(): List<PrisonReligion> = List((4..20).random()) { index ->
+  internal fun createRandomReligions(): List<PrisonReligionHistory> = List((4..20).random()) { index ->
     if (index == 0) createRandomReligion(randomReligionCode(), true) else createRandomReligion(randomReligionCode(), false)
   }
 
-  internal fun createRandomReligion(code: String = randomReligionCode(), current: Boolean = true) = PrisonReligion(
+  internal fun createRandomReligion(code: String = randomReligionCode(), current: Boolean = true) = PrisonReligionHistory(
     nomisReligionId = randomDigit(10),
     changeReasonKnown = randomBoolean(),
     comments = randomName(),

@@ -14,9 +14,9 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
+import kotlin.jvm.optionals.getOrNull
 
 class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -113,7 +113,9 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         CPR_RECORD_MERGED,
         mapOf(
           "FROM_SOURCE_SYSTEM_ID" to sourceCrn,
+          "FROM_UUID" to sourcePerson.personKey?.personUUID.toString(),
           "TO_SOURCE_SYSTEM_ID" to targetCrn,
+          "TO_UUID" to targetPerson.personKey?.personUUID.toString(),
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
@@ -162,6 +164,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes offender merge event with different UUIDs where source has a single record`() {
       val sourcePerson = createPersonWithNewKey(createRandomProbationPersonDetails())
       val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+      val sourceClusterId = sourcePerson.personKey?.id
 
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourcePerson.crn!!, targetPerson.crn!!)
 
@@ -169,31 +172,18 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         CPR_RECORD_MERGED,
         mapOf(
           "FROM_SOURCE_SYSTEM_ID" to sourcePerson.crn,
-          "TO_SOURCE_SYSTEM_ID" to targetPerson.crn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
-      checkTelemetry(
-        CPR_UUID_MERGED,
-        mapOf(
           "FROM_UUID" to sourcePerson.personKey?.personUUID.toString(),
+          "TO_SOURCE_SYSTEM_ID" to targetPerson.crn,
           "TO_UUID" to targetPerson.personKey?.personUUID.toString(),
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
       checkEventLogExist(targetPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourcePerson.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
-      checkEventLog(sourcePerson.crn!!, CPRLogEvents.CPR_UUID_MERGED) { eventLogs ->
-        assertThat(eventLogs).hasSize(1)
-        val event = eventLogs.first()
-        assertThat(event.personUUID).isEqualTo(sourcePerson.personKey?.personUUID)
-        assertThat(event.uuidStatusType).isEqualTo(UUIDStatusType.MERGED)
-      }
 
       sourcePerson.assertMergedTo(targetPerson)
-      sourcePerson.personKey?.assertMergedTo(targetPerson.personKey!!)
-      sourcePerson.personKey?.assertClusterStatus(UUIDStatusType.MERGED)
-      sourcePerson.personKey?.assertClusterIsOfSize(0)
+      val sourceClusterPostMerge = personKeyRepository.findById(sourceClusterId!!).getOrNull()
+      assertThat(sourceClusterPostMerge).isNull()
 
       targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       targetPerson.personKey?.assertClusterIsOfSize(1)

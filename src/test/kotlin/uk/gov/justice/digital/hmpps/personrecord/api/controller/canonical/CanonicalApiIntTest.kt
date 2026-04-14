@@ -22,7 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonsNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -315,8 +315,8 @@ class CanonicalApiIntTest : WebTestBase() {
     val personOneNationalInsuranceNumber = randomNationalInsuranceNumber()
     val personTwoNationalInsuranceNumber = randomNationalInsuranceNumber()
 
-    val personOneArrestSummonNumber = randomArrestSummonNumber()
-    val personTwoArrestSummonNumber = randomArrestSummonNumber()
+    val personOneArrestSummonNumber = randomArrestSummonsNumber()
+    val personTwoArrestSummonNumber = randomArrestSummonsNumber()
 
     val personOneDriversLicenseNumber = randomDriverLicenseNumber()
     val personTwoDriversLicenseNumber = randomDriverLicenseNumber()

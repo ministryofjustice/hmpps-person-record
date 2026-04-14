@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
-import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonsNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformSexCode
@@ -284,7 +284,7 @@ class LibraApiControllerIntTest : WebTestBase() {
         randomNationalInsuranceNumber()
 
       val personTwoArrestSummonNumber =
-        randomArrestSummonNumber()
+        randomArrestSummonsNumber()
 
       val personTwoDriversLicenseNumber =
         randomDriverLicenseNumber()

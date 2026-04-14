@@ -42,7 +42,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREAT
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonsNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -253,8 +253,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         val personOneNationalInsuranceNumber = randomNationalInsuranceNumber()
         val personTwoNationalInsuranceNumber = randomNationalInsuranceNumber()
 
-        val personOneArrestSummonNumber = randomArrestSummonNumber()
-        val personTwoArrestSummonNumber = randomArrestSummonNumber()
+        val personOneArrestSummonNumber = randomArrestSummonsNumber()
+        val personTwoArrestSummonNumber = randomArrestSummonsNumber()
 
         val personOneDriversLicenseNumber = randomDriverLicenseNumber()
         val personTwoDriversLicenseNumber = randomDriverLicenseNumber()

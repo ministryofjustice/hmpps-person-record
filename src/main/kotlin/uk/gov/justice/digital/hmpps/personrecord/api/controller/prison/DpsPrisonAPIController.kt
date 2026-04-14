@@ -13,22 +13,25 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonGetHelper
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.DpsPrisonGetHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.DpsPrisonRecord
 
 @Tag(name = "HMPPS Person API")
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
-class PrisonAPIController(private val prisonGetHelper: PrisonGetHelper) {
+class DpsPrisonAPIController(private val dpsPrisonGetHandler: DpsPrisonGetHandler) {
 
   @Operation(
-    description = """Retrieve person record by Prison Number. Role required is **$API_READ_ONLY** . 
-      For Identifiers the crn, prisonNumber, defendantId, cids come from all records related to this person.
-      The other Identifiers come from just this person
-      **cprUUID is not supplied on this endpoint.**""",
+    description = "**NOTE: Use this only if you want to retrieve Prison Religion history & Alias References.**\n\n" +
+      "Retrieve person record by Prison Number. Role required is **$API_READ_ONLY** . " +
+      "For Identifiers the crn, prisonNumber, defendantId, cids come from all records related to this person. " +
+      "The other Identifiers come from just this person " +
+      "**cprUUID is not supplied on this endpoint.** " +
+      "In addition to the person data being returned, the response also includes a list of the prison religions associated with the person " +
+      "and a prison specific representation of alias & identifiers.",
     security = [SecurityRequirement(name = "api-role")],
   )
-  @GetMapping("/person/prison/{prisonNumber}")
+  @GetMapping("/person/prison/dps/{prisonNumber}")
   @ApiResponses(
     ApiResponse(
       responseCode = "200",
@@ -42,7 +45,5 @@ class PrisonAPIController(private val prisonGetHelper: PrisonGetHelper) {
       ],
     ),
   )
-  fun getByPrisonNumber(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<CanonicalRecord> = prisonGetHelper.get(prisonNumber) { personEntity ->
-    CanonicalRecord.from(personEntity)
-  }
+  fun getByPrisonNumberDps(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<DpsPrisonRecord> = dpsPrisonGetHandler.get(prisonNumber)
 }

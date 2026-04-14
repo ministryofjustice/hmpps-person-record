@@ -6,7 +6,6 @@ import jakarta.persistence.Entity
 import jakarta.persistence.EnumType.STRING
 import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType.EAGER
-import jakarta.persistence.FetchType.LAZY
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
@@ -45,7 +44,7 @@ class PersonEntity(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   var id: Long? = null,
 
-  @ManyToOne(fetch = LAZY)
+  @ManyToOne
   @JoinColumn(name = "fk_person_key_id", referencedColumnName = "id", nullable = true)
   var personKey: PersonKeyEntity? = null,
 

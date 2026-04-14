@@ -40,7 +40,9 @@ class MergeEventListener(
         TelemetryEventType.CPR_RECORD_MERGED,
         mapOf(
           EventKeys.FROM_SOURCE_SYSTEM_ID to personMerged.from?.extractSourceSystemId(),
+          EventKeys.FROM_UUID to personMerged.fromClusterDetail.personUUID.toString(),
           EventKeys.TO_SOURCE_SYSTEM_ID to personMerged.to.extractSourceSystemId(),
+          EventKeys.TO_UUID to personMerged.to.personKey?.personUUID.toString(),
           EventKeys.SOURCE_SYSTEM to personMerged.to.sourceSystem.name,
         ),
       ),

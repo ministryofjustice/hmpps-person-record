@@ -1,0 +1,58 @@
+name: Deploy and publish metrics
+
+on:
+  workflow_call:
+    inputs:
+      app_version:
+        description: App version
+        required: true
+        type: string
+      environment:
+        description: Environment
+        required: true
+        type: string
+      slack_notification:
+        description: Slack notification
+        default: "false"
+        required: false
+        type: string
+    secrets:
+      PLANDEK_CLIENT_KEY:
+        required: true
+      PLANDEK_TOKEN:
+        required: true
+      PLANDEK_DEPLOYMENT_URL:
+        required: true
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2
+    secrets: inherit
+    with:
+      environment: ${{ inputs.environment }}
+      app_version: ${{ inputs.app_version }}
+      slack_notification: ${{ inputs.slack_notification }}
+
+  publish_deployment_metrics:
+    name: Publish deployment metrics to Plandek
+    if: always()
+    runs-on: ubuntu-latest
+    needs:
+      - deploy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Publish deployment metrics
+        uses: ./.github/actions/plandek_deployment
+        with:
+          plandek_client_key: ${{ secrets.PLANDEK_CLIENT_KEY }}
+          plandek_token: ${{ secrets.PLANDEK_TOKEN }}
+          plandek_deployment_url: ${{ secrets.PLANDEK_DEPLOYMENT_URL }}
+          app_version: ${{ inputs.app_version }}
+          repository_name: ${{ github.repository }}
+          deployment_status: ${{ needs.deploy.result }}
+          commit_sha: ${{ github.sha }}
+          build_number: ${{ inputs.app_version }}
+          environment_name: ${{ inputs.environment }}
