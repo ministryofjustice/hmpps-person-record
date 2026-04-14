@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
@@ -13,7 +12,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.math.min
 
-@Profile("!prod")
 @Component
 class ServiceNowMergeRequestService(
   private val personRepository: PersonRepository,
@@ -43,11 +41,8 @@ class ServiceNowMergeRequestService(
 
   fun getClustersForMergeRequests(): List<MergeRequestItem> {
     log.info("starting")
-    val thisTimeYesterday = LocalDateTime.now().minusDays(1)
-    val recordsModifiedYesterday = personRepository.findByLastModifiedBetween(
-      thisTimeYesterday,
-      thisTimeYesterday.plusHours(HOURS_TO_CHOOSE_FROM),
-    )
+    val tenHoursAgo = LocalDateTime.now().minusHours(HOURS_TO_CHOOSE_FROM)
+    val recordsModifiedYesterday = personRepository.findByLastModifiedAfter(tenHoursAgo)
     log.info("finished getting modified clusters for ${recordsModifiedYesterday.size}")
     val records = recordsModifiedYesterday
       .distinctBy { it.personKey }
@@ -91,7 +86,7 @@ class ServiceNowMergeRequestService(
 
   companion object {
     private const val CLUSTER_TO_PROCESS_COUNT = 5
-    private const val HOURS_TO_CHOOSE_FROM = 10L
+    const val HOURS_TO_CHOOSE_FROM = 10L
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
