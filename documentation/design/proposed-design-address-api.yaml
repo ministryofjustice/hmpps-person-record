@@ -132,6 +132,7 @@ paths:
                         comment: "String"
                         isPrimary: true
                         isMail: true
+                        addressType: "CAS3"
                         addressUsage:
                           - addressUsageCode: "B"
                             addressUsageDescription: "Bail"
@@ -193,6 +194,7 @@ paths:
                       comment: "String"
                       isPrimary: true
                       isMail: true
+                      addressType: "CAS3"
                       addressUsage:
                         - addressUsageCode: "B"
                           addressUsageDescription: "Bail"
@@ -261,8 +263,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AddressUsageItem'
-
-
 
     AddressUsageItem:
       type: object
