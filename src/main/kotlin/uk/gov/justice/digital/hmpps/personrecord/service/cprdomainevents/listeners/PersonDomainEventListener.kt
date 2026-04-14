@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listeners
 
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
+import org.springframework.transaction.event.TransactionalEventListener
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonDomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
@@ -24,7 +24,7 @@ class PersonDomainEventListener(
   @Value("\${core-person-record.base-url}") private val baseUrl: String,
 ) {
 
-  @EventListener
+  @TransactionalEventListener
   fun onPersonCreated(personCreated: PersonCreated) {
     val personEntity = personCreated.personEntity
     val config = buildPersonCreatedDomainEventConfig(personEntity.sourceSystem) ?: return
