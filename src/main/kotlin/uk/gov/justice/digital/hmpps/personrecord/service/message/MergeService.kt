@@ -37,7 +37,7 @@ class MergeService(
     val fromClusterDetail = EventLogClusterDetail.from(from?.personKey)
     from?.let {
       it.throwIfCircularMerge(to)
-      it.removePersonKeyLink() // todo: remove?
+      it.removePersonKeyLink()
       it.mergeTo(to)
       personRepository.save(it)
       personMatchService.deleteFromPersonMatch(it)
