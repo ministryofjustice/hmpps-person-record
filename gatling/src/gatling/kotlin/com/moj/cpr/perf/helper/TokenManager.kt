@@ -28,7 +28,8 @@ object TokenManager {
       }
       val basicAuth =
         Base64.getEncoder().encodeToString("${AppConfig.clientId.trim()}:${AppConfig.clientSecret.trim()}".toByteArray())
-      println(basicAuth)
+      println(AppConfig.clientId.trim())
+      println(AppConfig.clientSecret.trim())
       println(AppConfig.tokenUrl)
 
       val request = HttpRequest.newBuilder().uri(URI.create(AppConfig.tokenUrl))
