@@ -58,8 +58,9 @@ paths:
                     comment: "String"
                     isPrimary: true
                     isMail: true
+                    addessType: "CAS3"
                     addressUsage:
-                      - addressUsageCode: "DSH"
+                      - addressUsageCode: "B"
                         isActive: true
 
       responses:
@@ -73,10 +74,8 @@ paths:
                 sample:
                   value:
                     crn: "X313886"
-                    addressMappings:
-                      cprAddressId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
-                      addressUsageMappings:
-                        - cprAddressUsageid: "d4ae7071-58ae-42f0-bf5d-c69289fb1e6d"
+                    cprAddressId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+
         '400':
           description: Invalid data supplied
           content:
@@ -134,7 +133,8 @@ paths:
                         isPrimary: true
                         isMail: true
                         addressUsage:
-                          - addressUsageCode: "DSH"
+                          - addressUsageCode: "B"
+                            addressUsageDescription: "Bail"
                             isActive: true
         '404':
           description: Address usage not found
@@ -194,7 +194,8 @@ paths:
                       isPrimary: true
                       isMail: true
                       addressUsage:
-                        - addressUsageCode: "DSH"
+                        - addressUsageCode: "B"
+                          addressUsageDescription: "Bail"
                           isActive: true
         '404':
           description: Address usage not found
@@ -254,6 +255,8 @@ components:
           type: boolean
         isMail:
           type: boolean
+        addressType:
+          type: string
         addressUsage:
           type: array
           items:
@@ -266,7 +269,7 @@ components:
       properties:
         addressUsageCode:
           type: string
-          example: "DSH"
+          example: "B"
         isActive:
           type: boolean
 
@@ -342,12 +345,16 @@ components:
           type: boolean
         isMail:
           type: boolean
+        addressType:
+          type: string
         addressUsage:
           type: array
           items:
             type: object
             properties:
               addressUsageCode:
+                type: string
+              addressUsageDescription:
                 type: string
               isActive:
                 type: boolean
