@@ -29,7 +29,6 @@ class MergeService(
     from?.personKey?.let {
       from.removePersonKeyLink()
       personKeyRepository.deleteById(it.id!!)
-      personKeyRepository.flush()
     }
   }
 
