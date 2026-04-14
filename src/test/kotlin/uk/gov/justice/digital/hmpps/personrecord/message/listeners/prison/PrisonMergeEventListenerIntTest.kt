@@ -211,6 +211,8 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber)
 
       sourcePerson.assertMergedTo(targetPerson)
+      sourcePerson.assertNotLinkedToCluster()
+
       val sourceClusterPostMerge = personKeyRepository.findById(sourceClusterId!!).getOrNull()
       assertThat(sourceClusterPostMerge).isNull()
 
@@ -229,7 +231,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkEventLog(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         assertThat(eventLogs.first().recordMergedTo).isEqualTo(targetPerson.id)
-        assertThat(eventLogs.first().personUUID).isNull()
+        assertThat(eventLogs.first().personUUID).isEqualTo(sourcePerson.personKey!!.personUUID)
       }
     }
 
