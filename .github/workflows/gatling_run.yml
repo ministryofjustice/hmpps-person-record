@@ -70,8 +70,8 @@ jobs:
           fi
           ARGS+=("-Denv=$ENV_NAME")
           
-          echo "CLIENT_ID length: ${#CLIENT_ID}"
-          echo "CLIENT_SECRET length: ${#CLIENT_SECRET}"
+          echo "CLIENT_ID length: ${CLIENT_ID}"
+          echo "CLIENT_SECRET length: ${CLIENT_SECRET}"
         
           echo "Running: ./gradlew ${ARGS[*]}"
           ./gradlew "${ARGS[@]}"
