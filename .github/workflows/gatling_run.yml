@@ -25,6 +25,7 @@ jobs:
   gatling-run:
     name: Run Gatling simulations
     runs-on: ubuntu-latest
+    environment: dev
     env:
       CLIENT_ID: ${{ secrets.GATLING_DEV_CLIENT_ID }}
       CLIENT_SECRET: ${{ secrets.GATLING_DEV_CLIENT_SECRET }}
