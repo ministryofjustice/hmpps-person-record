@@ -27,7 +27,9 @@ object TokenManager {
         throw IllegalStateException("Client credentials not configured - clientId and clientSecret must be provided")
       }
       val basicAuth =
-        Base64.getEncoder().encodeToString("${AppConfig.clientId}:${AppConfig.clientSecret}".toByteArray())
+        Base64.getEncoder().encodeToString("${AppConfig.clientId.trim()}:${AppConfig.clientSecret.trim()}".toByteArray())
+      println(basicAuth)
+      println(AppConfig.tokenUrl)
 
       val request = HttpRequest.newBuilder().uri(URI.create(AppConfig.tokenUrl))
             .header("Authorization", "Basic $basicAuth")
