@@ -12,9 +12,6 @@ object TokenManager {
     private var cacheToken: String = ""
     private var expiryTime: Long = 0
     private val client = HttpClient.newHttpClient()
-    private val basicAuth =
-        Base64.getEncoder().encodeToString("${AppConfig.clientId}:${AppConfig.clientSecret}".toByteArray())
-
 
     @Synchronized
     fun getToken(): String {
@@ -26,7 +23,13 @@ object TokenManager {
     }
 
     private fun fetchToken() {
-        val request = HttpRequest.newBuilder().uri(URI.create(AppConfig.tokenUrl))
+      if (AppConfig.clientId.isBlank() || AppConfig.clientSecret.isBlank()) {
+        throw IllegalStateException("Client credentials not configured - clientId and clientSecret must be provided")
+      }
+      val basicAuth =
+        Base64.getEncoder().encodeToString("${AppConfig.clientId}:${AppConfig.clientSecret}".toByteArray())
+
+      val request = HttpRequest.newBuilder().uri(URI.create(AppConfig.tokenUrl))
             .header("Authorization", "Basic $basicAuth")
             .header("Content-Type", "application/x-www-form-urlencoded")
             .POST(HttpRequest.BodyPublishers.ofString("grant_type=client_credentials"))
