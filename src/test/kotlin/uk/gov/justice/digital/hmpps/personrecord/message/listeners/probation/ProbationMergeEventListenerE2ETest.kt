@@ -103,7 +103,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     checkEventLog(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED) { eventLogs ->
       assertThat(eventLogs).hasSize(1)
       assertThat(eventLogs.first().recordMergedTo).isEqualTo(targetPerson.id)
-      assertThat(eventLogs.first().personUUID).isNull()
+      assertThat(eventLogs.first().personUUID).isEqualTo(sourceCluster.personUUID)
     }
   }
 }

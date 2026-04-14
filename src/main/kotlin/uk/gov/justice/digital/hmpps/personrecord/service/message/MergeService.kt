@@ -19,10 +19,11 @@ class MergeService(
 ) {
 
   fun processMerge(from: PersonEntity?, to: PersonEntity) {
+    val fromClusterDetail = EventLogClusterDetail.from(from?.personKey)
     when {
       fromClusterHasOneRecord(from) -> deleteSingleRecordCluster(from)
     }
-    merge(from, to)
+    merge(from, to, fromClusterDetail)
   }
 
   private fun deleteSingleRecordCluster(from: PersonEntity?) {
@@ -32,8 +33,7 @@ class MergeService(
     }
   }
 
-  private fun merge(from: PersonEntity?, to: PersonEntity) {
-    val fromClusterDetail = EventLogClusterDetail.from(from?.personKey)
+  private fun merge(from: PersonEntity?, to: PersonEntity, fromClusterDetail: EventLogClusterDetail) {
     from?.let {
       it.throwIfCircularMerge(to)
       it.removePersonKeyLink()

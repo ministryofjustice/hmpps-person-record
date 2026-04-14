@@ -113,7 +113,9 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         CPR_RECORD_MERGED,
         mapOf(
           "FROM_SOURCE_SYSTEM_ID" to sourceCrn,
+          "FROM_UUID" to sourcePerson.personKey?.personUUID.toString(),
           "TO_SOURCE_SYSTEM_ID" to targetCrn,
+          "TO_UUID" to targetPerson.personKey?.personUUID.toString(),
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
@@ -170,7 +172,9 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         CPR_RECORD_MERGED,
         mapOf(
           "FROM_SOURCE_SYSTEM_ID" to sourcePerson.crn,
+          "FROM_UUID" to sourcePerson.personKey?.personUUID.toString(),
           "TO_SOURCE_SYSTEM_ID" to targetPerson.crn,
+          "TO_UUID" to targetPerson.personKey?.personUUID.toString(),
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
