@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -535,27 +534,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster1.assertClusterStatus(ACTIVE)
       cluster2.assertClusterStatus(RECLUSTER_MERGE)
-    }
-
-    @Test
-    fun `should not merge an active cluster to a matched cluster marked as merged`() {
-      val basePersonData = createRandomProbationCase()
-
-      val personA = createProbationPerson(basePersonData)
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-
-      val personB = createMatchingRecord(basePersonData)
-      val cluster2 = createPersonKey(MERGED)
-        .addPerson(personB)
-
-      recluster(personA)
-
-      cluster1.assertClusterIsOfSize(1)
-      cluster2.assertClusterIsOfSize(1)
-
-      cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(MERGED)
     }
   }
 

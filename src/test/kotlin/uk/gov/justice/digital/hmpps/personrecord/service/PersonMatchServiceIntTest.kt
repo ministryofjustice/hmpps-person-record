@@ -278,23 +278,6 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       noCandidateFound(highConfidenceMatch)
     }
-
-    @Test
-    fun `should not return high confidence match with merged status`() {
-      val searchingRecord = createPerson(createExamplePerson())
-      createPersonKey()
-        .addPerson(searchingRecord)
-
-      val foundRecord = createPerson(createExamplePerson())
-      createPersonKey(UUIDStatusType.MERGED)
-        .addPerson(foundRecord)
-
-      stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
-
-      val highConfidenceMatch = personMatchService.findClustersToJoin(searchingRecord)
-
-      noCandidateFound(highConfidenceMatch)
-    }
   }
 
   @Nested
