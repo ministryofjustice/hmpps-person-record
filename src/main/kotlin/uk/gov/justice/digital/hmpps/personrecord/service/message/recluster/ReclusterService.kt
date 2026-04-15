@@ -104,14 +104,15 @@ class ReclusterService(
       throw CircularMergeException()
     }
 
-    from.personEntities.forEach { personEntity ->
+    val entitiesToMigrate = from.personEntities
+    entitiesToMigrate.forEach { personEntity ->
       personEntity.assignToPersonKey(to)
       publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED, personEntity))
     }
+    personRepository.saveAll(entitiesToMigrate)
 
     from.personEntities.clear()
 
-    personRepository.saveAll(from.personEntities)
     val fromUUID = from.personUUID
     personKeyRepository.delete(from)
 
