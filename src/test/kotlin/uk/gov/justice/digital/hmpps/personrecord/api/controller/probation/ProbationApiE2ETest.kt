@@ -596,8 +596,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
         )
 
-        defendant.personKey?.assertClusterStatus(RECLUSTER_MERGE)
-        defendant.personKey?.assertMergedTo(offender.personKey!!)
+        defendant.personKey?.assertPersonKeyDeleted()
 
         offender.personKey?.assertClusterStatus(ACTIVE)
         offender.personKey?.assertClusterIsOfSize(2)
