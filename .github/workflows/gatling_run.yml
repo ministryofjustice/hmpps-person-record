@@ -74,7 +74,7 @@ jobs:
           echo "CLIENT_SECRET length: ${CLIENT_SECRET}"
         
           echo "Running: ./gradlew ${ARGS[*]}"
-          ./gradlew "${ARGS[@]}"
+          CLIENT_ID=${CLIENT_ID} CLIENT_SECRET=${CLIENT_SECRET} ./gradlew "${ARGS[@]}"
 
       - name: Upload Gatling reports
         if: always()
