@@ -309,9 +309,10 @@ class IntegrationTestBase {
   internal fun checkEventLogExist(
     sourceSystemId: String,
     event: CPRLogEvents,
+    times: Int = 1
   ) {
     checkEventLog(sourceSystemId, event) { logEvents ->
-      assertThat(logEvents).`as`("Missing event log $event and actual data $logEvents").hasSize(1)
+      assertThat(logEvents).`as`("Missing event log $event and actual data $logEvents").hasSize(times)
     }
   }
 

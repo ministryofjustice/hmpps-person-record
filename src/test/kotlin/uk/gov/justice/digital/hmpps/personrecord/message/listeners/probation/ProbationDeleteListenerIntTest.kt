@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -97,18 +98,24 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Nested
   inner class MergeScenarios {
+
+    @BeforeEach
+    fun beforeEach() {
+      stubPersonMatchUpsert()
+    }
+
     @Test
     fun `deleting a merged from person does not delete the merged to person`() {
       val recordACrn = randomCrn()
       val recordBCrn = randomCrn()
 
       // Record Cluster (2 Records - B merged to A)
-      val recordA = createPerson(createRandomProbationPersonDetails(recordACrn))
-      val cluster = createPersonKey()
-        .addPerson(recordA)
-      val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
+      val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
+      val recordB = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
 
-      mergeRecord(recordB, recordA)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordBCrn, recordACrn)
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       publishProbationDomainEvent(OFFENDER_DELETION, recordBCrn)
 
@@ -119,8 +126,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
 
       recordB.assertPersonDeleted()
-      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster.assertClusterIsOfSize(1)
+      recordA.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      recordA.personKey?.assertClusterIsOfSize(1)
     }
 
     @Test
@@ -135,7 +142,9 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
         .addPerson(recordA)
         .addPerson(recordB)
 
-      mergeRecord(recordB, recordA)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordBCrn, recordACrn)
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
 
@@ -159,44 +168,40 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       cluster.assertPersonKeyDeleted()
     }
 
-    @Test // TODO: ???
+    @Test
     fun `should process offender delete with 2 records which have merged on different UUIDs`() {
-      val recordACrn = randomCrn()
-      val recordBCrn = randomCrn()
+      val mergedToCrn = randomCrn()
+      val mergedFromCrn = randomCrn()
 
-      val mergedTo = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
-      val mergedFrom = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
-      val mergedFromPersonKey = mergedFrom.personKey
-      mergeRecord(mergedFrom, mergedTo)
+      val mergedTo = createPersonWithNewKey(createRandomProbationPersonDetails(mergedToCrn))
+      val mergedFrom = createPersonWithNewKey(createRandomProbationPersonDetails(mergedFromCrn))
 
-      publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, mergedFromCrn, mergedToCrn)
+      checkEventLogExist(mergedToCrn, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(mergedFromCrn, CPRLogEvents.CPR_RECORD_MERGED)
+
+      publishProbationDomainEvent(OFFENDER_DELETION, mergedToCrn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
-        mapOf("CRN" to recordACrn, "UUID" to mergedTo.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+        mapOf("CRN" to mergedToCrn, "UUID" to mergedTo.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
       )
       checkTelemetry(
         CPR_UUID_DELETED,
-        mapOf("CRN" to recordACrn, "UUID" to mergedTo.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+        mapOf("CRN" to mergedToCrn, "UUID" to mergedTo.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
       )
       checkTelemetry(
         CPR_RECORD_DELETED,
-        mapOf("CRN" to recordBCrn, "UUID" to mergedFrom.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
-        CPR_UUID_DELETED,
-        mapOf("CRN" to recordBCrn, "UUID" to mergedFrom.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+        mapOf("CRN" to mergedFromCrn, "SOURCE_SYSTEM" to "DELIUS"),
       )
 
-      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_DELETED)
-      checkEventLogExist(recordACrn, CPRLogEvents.CPR_UUID_DELETED)
-      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(mergedToCrn, CPRLogEvents.CPR_RECORD_DELETED)
+      checkEventLogExist(mergedToCrn, CPRLogEvents.CPR_UUID_DELETED)
+      checkEventLogExist(mergedFromCrn, CPRLogEvents.CPR_RECORD_DELETED)
 
       mergedFrom.assertPersonDeleted()
       mergedTo.assertPersonDeleted()
-      mergedFromPersonKey!!.assertPersonKeyDeleted()
-      // this is a bug I think. mergedFrom's personKey has been merged to mergedTo's personKey but nothing in the DeletionService checks this to delete it
-      // this used to pass because the test setup was incorrect and left the personKey on the merged record set. In reality it would be null
+      mergedFrom.personKey?.assertPersonKeyDeleted()
       mergedTo.personKey?.assertPersonKeyDeleted()
     }
 
@@ -207,16 +212,17 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       val recordBCrn = randomCrn()
       val recordCCrn = randomCrn()
 
-      // First Record Cluster (1 Record)
       val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
-
-      // Second Record Cluster (2 Records - C merged to B)
       val recordB = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
-      val recordBPersonKey = recordB.personKey
-      val recordC = createPerson(createRandomProbationPersonDetails(recordCCrn))
+      val recordC = createPersonWithNewKey(createRandomProbationPersonDetails(recordCCrn))
 
-      mergeRecord(recordC, recordB)
-      mergeRecord(recordB, recordA)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordCCrn, recordBCrn)
+      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_MERGED)
+
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordBCrn, recordACrn)
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
 
@@ -242,9 +248,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       recordB.assertPersonDeleted()
       recordC.assertPersonDeleted()
       recordA.personKey?.assertPersonKeyDeleted()
-      recordBPersonKey!!.assertPersonKeyDeleted()
-      // this is a bug I think. recordB's personKey has been merged to recordA's personKey but nothing in the DeletionService checks this to delete it
-      // this used to pass because the test setup was incorrect and left the personKey on the merged record set. In reality it would be null
+      recordB.personKey?.assertPersonKeyDeleted()
     }
 
     @Test
@@ -255,11 +259,16 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
       // Record Cluster (3 Records - B -> A <- C)
       val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
-      val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
-      val recordC = createPerson(createRandomProbationPersonDetails(recordCCrn))
+      val recordB = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
+      val recordC = createPersonWithNewKey(createRandomProbationPersonDetails(recordCCrn))
 
-      mergeRecord(recordB, recordA)
-      mergeRecord(recordC, recordA)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordBCrn, recordACrn)
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
+
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordCCrn, recordACrn)
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED, 2)
+      checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
 
@@ -298,13 +307,21 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       val recordDCrn = randomCrn()
 
       val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
-      val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
-      val recordC = createPerson(createRandomProbationPersonDetails(recordCCrn))
-      val recordD = createPerson(createRandomProbationPersonDetails(recordDCrn))
+      val recordB = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
+      val recordC = createPersonWithNewKey(createRandomProbationPersonDetails(recordCCrn))
+      val recordD = createPersonWithNewKey(createRandomProbationPersonDetails(recordDCrn))
 
-      mergeRecord(recordD, recordC)
-      mergeRecord(recordC, recordA)
-      mergeRecord(recordB, recordA)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordDCrn, recordCCrn)
+      checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(recordDCrn, CPRLogEvents.CPR_RECORD_MERGED)
+
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordCCrn, recordACrn)
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_MERGED)
+
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordBCrn, recordACrn)
+      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED, 2)
+      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
 
