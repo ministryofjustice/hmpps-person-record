@@ -82,7 +82,7 @@ class ReclusterService(
     personMatchService.examineIsClusterMergeValid(clusterDetails.cluster, matchedRecordsClusters).result(
       isValid = {
         matchedRecordsClusters.forEach {
-          mergeClusters(it, clusterDetails.cluster)
+          migratePersonRecordsToDifferentCluster(it, clusterDetails.cluster)
         }
       },
       isNotValid = { handleExclusionsBetweenMatchedClusters(clusterDetails.cluster, matchedRecordsClusters) },
@@ -99,7 +99,7 @@ class ReclusterService(
     publisher.publishEvent(OverrideConflict(cluster, matchedRecords))
   }
 
-  private fun mergeClusters(from: PersonKeyEntity, to: PersonKeyEntity) {
+  private fun migratePersonRecordsToDifferentCluster(from: PersonKeyEntity, to: PersonKeyEntity) {
     if (to.mergedTo == from.id) {
       throw CircularMergeException()
     }
