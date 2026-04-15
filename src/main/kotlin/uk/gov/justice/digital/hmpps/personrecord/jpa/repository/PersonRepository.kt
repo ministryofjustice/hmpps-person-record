@@ -27,8 +27,7 @@ interface PersonRepository : JpaRepository<PersonEntity, Long> {
 
   fun countBySourceSystemAndMergedToIsNullAndPassiveStateFalse(sourceSystem: SourceSystemType): Long
 
-  fun findByLastModifiedBetween(
+  fun findByLastModifiedAfter(
     lastModifiedAfter: LocalDateTime,
-    lastModifiedBefore: LocalDateTime,
   ): MutableList<PersonEntity>
 }
