@@ -12,12 +12,10 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonTyp
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.BrokenCluster
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.OverrideConflict
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.SelfHealed
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -105,22 +103,23 @@ class ReclusterService(
     if (to.mergedTo == from.id) {
       throw CircularMergeException()
     }
-    from.mergedTo = to.id
-    from.status = RECLUSTER_MERGE
-    personKeyRepository.save(from)
-    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, from.personEntities.first(), EventLogClusterDetail.from(from)))
 
     from.personEntities.forEach { personEntity ->
-      personEntity.personKey = to
+      personEntity.assignToPersonKey(to)
       publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED, personEntity))
     }
+
+    from.personEntities.clear()
+
     personRepository.saveAll(from.personEntities)
+    val fromUUID = from.personUUID
+    personKeyRepository.delete(from)
 
     publisher.publishEvent(
       RecordTelemetry(
         TelemetryEventType.CPR_RECLUSTER_MERGE,
         mapOf(
-          EventKeys.FROM_UUID to from.personUUID.toString(),
+          EventKeys.FROM_UUID to fromUUID.toString(),
           EventKeys.TO_UUID to to.personUUID.toString(),
         ),
       ),
