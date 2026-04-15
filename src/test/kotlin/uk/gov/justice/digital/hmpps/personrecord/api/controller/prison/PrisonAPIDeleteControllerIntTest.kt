@@ -78,14 +78,15 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
       val fromPerson = createPerson(createRandomPrisonPersonDetails())
       val toPerson = createPerson(createRandomPrisonPersonDetails())
 
-      val fromCluster = createPersonKey()
+      createPersonKey()
         .addPerson(fromPerson)
 
-      val toCluster = createPersonKey()
+      createPersonKey()
         .addPerson(toPerson)
 
-      stubDeletePersonMatch()
-      mergeService.processMerge(fromPerson, toPerson)
+      mergeRecord(fromPerson, toPerson)
+//      mergeService.processMerge(fromPerson, toPerson)
+//      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber) // better?
 
       sendDeleteRequestAsserted<Unit>(
         url = prisonPersonDeleteUrl(fromPerson.prisonNumber!!),
@@ -95,17 +96,50 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
 
       awaitAssert {
         assertThat(personRepository.findByPrisonNumber(fromPerson.prisonNumber!!)).isNull()
-//        assertThat(personKeyRepository.findByPersonUUID(cluster.personUUID)).isNull()
-//        wiremock.verify(2, deleteRequestedFor(urlEqualTo("/person")))
+        wiremock.verify(0, deleteRequestedFor(urlEqualTo("/person")))
       }
     }
 
     @Test
-    fun `deleting a merged to person - deletes to person - deletes from person`() {
-    }
-
-    @Test
     fun `deleting a merged to person - deletes to person - deletes all from descendants`() {
+      val fromPersonA = createPerson(createRandomPrisonPersonDetails())
+      val fromPersonB = createPerson(createRandomPrisonPersonDetails())
+      val fromPersonC = createPerson(createRandomPrisonPersonDetails())
+      val toPerson = createPerson(createRandomPrisonPersonDetails())
+
+      createPersonKey()
+        .addPerson(fromPersonA)
+
+      createPersonKey()
+        .addPerson(fromPersonB)
+
+      createPersonKey()
+        .addPerson(fromPersonC)
+
+      createPersonKey()
+        .addPerson(toPerson)
+
+      stubDeletePersonMatch()
+
+      mergeRecord(fromPersonA, fromPersonB)
+      mergeRecord(fromPersonB, toPerson)
+      mergeRecord(fromPersonC, toPerson)
+//      mergeService.processMerge(fromPerson, toPerson)
+//      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber) // better?
+
+      sendDeleteRequestAsserted<Unit>(
+        url = prisonPersonDeleteUrl(toPerson.prisonNumber!!),
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.OK,
+      )
+
+      awaitAssert {
+        assertThat(personRepository.findByPrisonNumber(fromPersonA.prisonNumber!!)).isNull()
+        assertThat(personRepository.findByPrisonNumber(fromPersonB.prisonNumber!!)).isNull()
+        assertThat(personRepository.findByPrisonNumber(fromPersonC.prisonNumber!!)).isNull()
+        assertThat(personRepository.findByPrisonNumber(toPerson.prisonNumber!!)).isNull()
+        wiremock.verify(1, deleteRequestedFor(urlEqualTo("/person")))
+      }
     }
   }
 
