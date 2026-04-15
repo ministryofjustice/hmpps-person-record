@@ -70,11 +70,13 @@ jobs:
           fi
           ARGS+=("-Denv=$ENV_NAME")
           
-          echo "CLIENT_ID length: ${CLIENT_ID}"
-          echo "CLIENT_SECRET length: ${CLIENT_SECRET}"
-        
+          echo "CLIENT_ID length: ${#CLIENT_ID}"
+          echo "CLIENT_SECRET length: ${#CLIENT_SECRET}"
+          
+          export CLIENT_ID="${CLIENT_ID}"
+          export CLIENT_SECRET="${CLIENT_SECRET}"
           echo "Running: ./gradlew ${ARGS[*]}"
-          CLIENT_ID=${CLIENT_ID} CLIENT_SECRET=${CLIENT_SECRET} ./gradlew "${ARGS[@]}"
+          CLIENT_ID="${CLIENT_ID}" CLIENT_SECRET="${CLIENT_SECRET}" ./gradlew "${ARGS[@]}"
 
       - name: Upload Gatling reports
         if: always()
