@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 
 import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
@@ -138,7 +139,11 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
         assertThat(personRepository.findByPrisonNumber(fromPersonB.prisonNumber!!)).isNull()
         assertThat(personRepository.findByPrisonNumber(fromPersonC.prisonNumber!!)).isNull()
         assertThat(personRepository.findByPrisonNumber(toPerson.prisonNumber!!)).isNull()
-        wiremock.verify(1, deleteRequestedFor(urlEqualTo("/person")))
+        wiremock.verify(
+          1,
+          deleteRequestedFor(urlEqualTo("/person"))
+            .withRequestBody(equalToJson("""{"matchId":"${toPerson.matchId}"}""")),
+        )
       }
     }
   }
