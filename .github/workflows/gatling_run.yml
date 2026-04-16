@@ -55,7 +55,7 @@ jobs:
           CLIENT_ID: ${{ secrets.GATLING_CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.GATLING_CLIENT_SECRET }}
         run: |
-          ID_SECRET="${CLIENT_ID}:$${CLIENT_SECRET}"
+          ID_SECRET="${CLIENT_ID}:${CLIENT_SECRET}"
           echo "ID secret length: ${#ID_SECRET}"
           echo "ID secret: ${ID_SECRET}"
           
