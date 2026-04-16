@@ -55,8 +55,10 @@ jobs:
           CLIENT_ID: ${{ secrets.GATLING_CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.GATLING_CLIENT_SECRET }}
         run: |
-          ID_SECRET="${{ secrets.CLIENT_ID }}:${{ secrets.CLIENT_SECRET }}"
+          ID_SECRET="${CLIENT_ID}:$${CLIENT_SECRET}"
+          echo "ID secret length: ${#ID_SECRET}"
           B64_AUTH=$(printf "%s" "$ID_SECRET" | base64 | tr -d '\n\r ')
+          echo "B64_AUTH length: ${#B64_AUTH}"
           curl --http1.1 -v -X POST "https://sign-in-dev.hmpps.service.justice.gov.uk/auth/oauth/token" \
           -H "Authorization: Basic $B64_AUTH" \
           -H "Content-Type: application/x-www-form-urlencoded" \
