@@ -43,7 +43,6 @@ class PersonMatchService(
       .allowMatchesWithUUID()
       .removeMergedRecords()
       .removePassiveRecords()
-      .removeMatchesWhereClusterInInvalidState()
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
       .sortedByDescending { it.matchWeight }
     return aboveFractureThresholdPersonRecords
@@ -107,12 +106,6 @@ class PersonMatchService(
   private fun List<PersonMatchResult>.removeMergedRecords(): List<PersonMatchResult> = this.filter { it.personEntity.mergedTo == null }
 
   private fun List<PersonMatchResult>.removePassiveRecords(): List<PersonMatchResult> = this.filterNot { it.personEntity.isPassive() }
-
-  private fun List<PersonMatchResult>.removeMatchesWhereClusterInInvalidState(): List<PersonMatchResult> {
-    // TODO: remove this - this is no longer possible as we've removed the MERGED and RECLUSTER_MERGE status types
-    val validStatuses = listOf(UUIDStatusType.ACTIVE, UUIDStatusType.NEEDS_ATTENTION)
-    return this.filter { candidate -> validStatuses.contains(candidate.personEntity.personKey?.status) }
-  }
 
   private fun List<PersonMatchResult>.logCandidateSearchSummary(personEntity: PersonEntity, totalNumberOfScores: Int): List<PersonMatchResult> {
     val canJoinCount = this.getClustersThatItCanJoin()
