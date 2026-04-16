@@ -55,11 +55,13 @@ jobs:
           CLIENT_ID: ${{ secrets.GATLING_CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.GATLING_CLIENT_SECRET }}
         run: |
-          echo "CLIENT_ID length: ${#CLIENT_ID}"
-          echo "CLIENT_SECRET length: ${#CLIENT_SECRET}"
-          BASIC_AUTH=$(echo -n "$CLIENT_ID:$CLIENT_SECRET" | base64)
-          curl -v -X POST "https://sign-in-dev.hmpps.service.justice.gov.uk/auth/oauth/token" -H "Authorization: Basic $BASIC_AUTH" -H "Content-Type: application/x-www-form-urlencoded" -H "User-Agent: Mozilla/5.0" -d "grant_type=client_credentials"
-
+          ID_SECRET="${{ secrets.CLIENT_ID }}:${{ secrets.CLIENT_SECRET }}"
+          B64_AUTH=$(printf "%s" "$ID_SECRET" | base64 | tr -d '\n\r ')
+          curl --http1.1 -v -X POST "https://sign-in-dev.hmpps.service.justice.gov.uk/auth/oauth/token" \
+          -H "Authorization: Basic $B64_AUTH" \
+          -H "Content-Type: application/x-www-form-urlencoded" \
+          -H "Connection: close" \
+          -d "grant_type=client_credentials"
 
       - name: Start Gatling
         env:
