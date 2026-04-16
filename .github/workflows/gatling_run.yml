@@ -50,6 +50,17 @@ jobs:
       - name: Touch env file
         run: touch ./gatling/.env
 
+      - name: Debug Auth access
+        env:
+          CLIENT_ID: ${{ secrets.GATLING_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.GATLING_CLIENT_SECRET }}
+        run: |
+          echo "CLIENT_ID length: ${#CLIENT_ID}"
+          echo "CLIENT_SECRET length: ${#CLIENT_SECRET}"
+          BASIC_AUTH=$(echo -n "$CLIENT_ID:$CLIENT_SECRET" | base64)
+          curl -v -X POST "https://sign-in-dev.hmpps.service.justice.gov.uk/auth/oauth/token" -H "Authorization: Basic $BASIC_AUTH" -H "Content-Type: application/x-www-form-urlencoded" -H "User-Agent: Mozilla/5.0" -d "grant_type=client_credentials"
+
+
       - name: Start Gatling
         env:
           CLIENT_ID: ${{ secrets.GATLING_CLIENT_ID }}
