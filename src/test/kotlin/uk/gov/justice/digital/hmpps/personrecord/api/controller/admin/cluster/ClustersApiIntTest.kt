@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 
 class ClustersApiIntTest : WebTestBase() {
 
@@ -59,7 +58,6 @@ class ClustersApiIntTest : WebTestBase() {
   @Test
   fun `should not return clusters that are not NEEDS ATTENTION`() {
     createPersonWithNewKey(createRandomProbationPersonDetails(), status = ACTIVE)
-    createPersonWithNewKey(createRandomProbationPersonDetails(), status = RECLUSTER_MERGE)
 
     val responseType = object : ParameterizedTypeReference<PaginatedResponse<AdminCluster>>() {}
     val response = webTestClient.get()

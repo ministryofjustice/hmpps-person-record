@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonTyp
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
@@ -128,7 +127,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster.assertClusterIsOfSize(4)
       cluster.assertClusterStatus(ACTIVE)
-      recordToJoinCluster.personKey?.assertMergedTo(cluster)
+      recordToJoinCluster.personKey?.assertPersonKeyDeleted()
     }
 
     @Test
@@ -199,15 +198,15 @@ class ReclusterServiceE2ETest : E2ETestBase() {
   inner class ClusterWithExclusionOverride {
 
     @Test
-    fun `should merge matched clusters taking into account the exclusion marker`() {
+    fun `should migrate records from matched clusters taking into account the exclusion marker`() {
       /*
       This test uses events to set up data
       Given three person records are created A B C
       And A and C match
       And A is merged into C
       And B is merged into C
-      And B is unmerged from C
-      And A is unmerged from C
+      And B is unmerged from C, therefore B and C are excluded
+      And A is unmerged from C, therefore A and C are excluded
       And B is updated to match A and C
       Then A joins B on the same cluster
       And C does not because it is excluded
@@ -238,8 +237,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(personAData, personBCrn))
 
-      clusterA?.assertClusterStatus(RECLUSTER_MERGE)
-      clusterA?.assertClusterIsOfSize(0)
+      clusterA?.assertPersonKeyDeleted()
 
       val updatedClusterWithPersonB = awaitNotNull { personRepository.findByCrn(personBCrn) }.personKey
       updatedClusterWithPersonB?.assertClusterIsOfSize(2)
@@ -513,60 +511,10 @@ class ReclusterServiceE2ETest : E2ETestBase() {
   }
 
   @Nested
-  inner class RaceConditions {
-
-    @Test
-    fun `should not merge an active cluster to a matched cluster marked as recluster merge`() {
-      val basePersonData = createRandomProbationCase()
-
-      val personA = createProbationPerson(basePersonData)
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-
-      val personB = createMatchingRecord(basePersonData)
-      val cluster2 = createPersonKey(RECLUSTER_MERGE)
-        .addPerson(personB)
-
-      recluster(personA)
-
-      cluster1.assertClusterIsOfSize(1)
-      cluster2.assertClusterIsOfSize(1)
-
-      cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(RECLUSTER_MERGE)
-    }
-  }
-
-  @Nested
   inner class ShouldMergeClusters {
 
     @Test
-    fun `should merge two active clusters`() {
-      val basePersonData = createRandomProbationCase()
-
-      val personA = createProbationPerson(basePersonData)
-      val personB = createMatchingRecord(basePersonData)
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-
-      val personC = createMatchingRecord(basePersonData)
-      val cluster2 = createPersonKey()
-        .addPerson(personC)
-
-      recluster(personA)
-
-      cluster1.assertClusterIsOfSize(3)
-      cluster2.assertClusterIsOfSize(0)
-
-      cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(RECLUSTER_MERGE)
-
-      cluster2.assertMergedTo(cluster1)
-    }
-
-    @Test
-    fun `should merge 3 active clusters`() {
+    fun `should migrate records from 2 clusters to another cluster and delete the original clusters`() {
       val basePersonData = createRandomProbationCase()
 
       val personA = createProbationPerson(basePersonData)
@@ -584,19 +532,14 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       recluster(personA)
 
       cluster1.assertClusterIsOfSize(3)
-      cluster2.assertClusterIsOfSize(0)
-      cluster3.assertClusterIsOfSize(0)
-
       cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(RECLUSTER_MERGE)
-      cluster3.assertClusterStatus(RECLUSTER_MERGE)
 
-      cluster2.assertMergedTo(cluster1)
-      cluster3.assertMergedTo(cluster1)
+      cluster2.assertPersonKeyDeleted()
+      cluster3.assertPersonKeyDeleted()
     }
 
     @Test
-    fun `should merge 2 active clusters when match score returns all records from the matched cluster`() {
+    fun `should migrate records from 1 cluster to another when match score returns all records from the matched cluster, and delete the original cluster`() {
       val basePersonData = createRandomProbationCase()
 
       val personA = createProbationPerson(basePersonData)
@@ -614,16 +557,13 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       recluster(personA)
 
       cluster1.assertClusterIsOfSize(4)
-      cluster2.assertClusterIsOfSize(0)
-
       cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(RECLUSTER_MERGE)
 
-      cluster2.assertMergedTo(cluster1)
+      cluster2.assertPersonKeyDeleted()
     }
 
     @Test
-    fun `should merge 3 active clusters when match score returns multiple clusters with a cluster that contain unmatched records below join threshold`() {
+    fun `should migrate records from 2 active clusters when match score returns multiple clusters with a cluster that contains unmatched records below join threshold, and delete the original cluster`() {
       val basePersonData = createRandomProbationCase()
 
       val personA = createProbationPerson(basePersonData)
@@ -647,19 +587,14 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       recluster(personA)
 
       cluster1.assertClusterIsOfSize(6)
-      cluster2.assertClusterIsOfSize(0)
-      cluster3.assertClusterIsOfSize(0)
-
       cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(RECLUSTER_MERGE)
-      cluster3.assertClusterStatus(RECLUSTER_MERGE)
 
-      cluster2.assertMergedTo(cluster1)
-      cluster3.assertMergedTo(cluster1)
+      cluster2.assertPersonKeyDeleted()
+      cluster3.assertPersonKeyDeleted()
     }
 
     @Test
-    fun `should merge 3 active cluster if matched cluster has a override marker to unrelated record`() {
+    fun `should migrate records from 2 active clusters if matched cluster has a override marker to unrelated record`() {
       val basePersonData = createRandomProbationCase()
 
       val personA = createProbationPerson(basePersonData)
@@ -683,21 +618,17 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       recluster(personA)
 
       cluster1.assertClusterIsOfSize(3)
-      cluster2.assertClusterIsOfSize(0)
-      cluster3.assertClusterIsOfSize(0)
-      cluster4.assertClusterIsOfSize(1)
-
       cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(RECLUSTER_MERGE)
-      cluster3.assertClusterStatus(RECLUSTER_MERGE)
-      cluster4.assertClusterStatus(ACTIVE)
 
-      cluster2.assertMergedTo(cluster1)
-      cluster3.assertMergedTo(cluster1)
+      cluster2.assertPersonKeyDeleted()
+      cluster3.assertPersonKeyDeleted()
+
+      cluster4.assertClusterIsOfSize(1)
+      cluster4.assertClusterStatus(ACTIVE)
     }
 
     @Test
-    fun `should only merge active cluster to active clusters and exclude clusters marked as needs attention`() {
+    fun `should only migrate records from active cluster to active clusters and exclude clusters marked as needs attention`() {
       val basePersonData = createRandomProbationCase()
 
       val personA = createProbationPerson(basePersonData)
@@ -716,17 +647,14 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster1.assertClusterIsOfSize(2)
       cluster2.assertClusterIsOfSize(1)
-      cluster3.assertClusterIsOfSize(0)
+      cluster3.assertPersonKeyDeleted()
 
       cluster1.assertClusterStatus(ACTIVE)
       cluster2.assertClusterStatus(NEEDS_ATTENTION)
-      cluster3.assertClusterStatus(RECLUSTER_MERGE)
-
-      cluster3.assertMergedTo(cluster1)
     }
 
     @Test
-    fun `should merge clusters when record in a cluster only match above fracture threshold and match another cluster above join`() {
+    fun `should migrate records from a cluster when record in a cluster only matches above fracture threshold and matches another cluster above join`() {
       val basePersonData = createRandomProbationCase()
 
       val personA = createProbationPerson(basePersonData)
@@ -744,16 +672,13 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       recluster(personA)
 
       cluster1.assertClusterIsOfSize(4)
-      cluster2.assertClusterIsOfSize(0)
-
       cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(RECLUSTER_MERGE)
 
-      cluster2.assertMergedTo(cluster1)
+      cluster2.assertPersonKeyDeleted()
     }
 
     @Test
-    fun `should merge to active cluster but not a needs attention cluster even if not all records matched but the cluster is valid`() {
+    fun `should migrate records to active cluster but not a needs attention cluster even if not all records matched but the cluster is valid`() {
       val basePersonData = createRandomProbationCase()
 
       val personA = createProbationPerson(basePersonData)
@@ -775,14 +700,12 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       recluster(personA)
 
       cluster1.assertClusterIsOfSize(4)
-      cluster2.assertClusterIsOfSize(0)
-      cluster3.assertClusterIsOfSize(1)
-
       cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(RECLUSTER_MERGE)
-      cluster3.assertClusterStatus(NEEDS_ATTENTION)
 
-      cluster2.assertMergedTo(cluster1)
+      cluster2.assertPersonKeyDeleted()
+
+      cluster3.assertClusterIsOfSize(1)
+      cluster3.assertClusterStatus(NEEDS_ATTENTION)
     }
   }
 
@@ -868,7 +791,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
   inner class EventLog {
 
     @Test
-    fun `should log record merged when 2 active clusters merge on recluster`() {
+    fun `should log record merged when records are migrated from 1 active cluster to another`() {
       val basePersonData = createRandomProbationCase()
 
       val personA = createProbationPerson(basePersonData)
@@ -886,7 +809,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       recluster(personA)
 
       cluster1.assertClusterIsOfSize(4)
-      cluster2.assertMergedTo(cluster1)
+      cluster2.assertPersonKeyDeleted()
 
       checkTelemetry(
         CPR_RECLUSTER_MERGE,
@@ -896,12 +819,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         ),
       )
 
-      checkEventLog(personC.crn!!, CPRLogEvents.CPR_RECLUSTER_UUID_MERGED) { eventLogs ->
-        assertThat(eventLogs).hasSize(1)
-        val eventLog = eventLogs.first()
-        assertThat(eventLog.personUUID).isEqualTo(cluster2.personUUID)
-        assertThat(eventLog.uuidStatusType).isEqualTo(RECLUSTER_MERGE)
-      }
       checkEventLogExist(personC.crn!!, CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED)
       checkEventLogExist(personD.crn!!, CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED)
     }
