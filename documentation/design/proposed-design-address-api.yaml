@@ -58,7 +58,7 @@ paths:
                     comment: "String"
                     isPrimary: true
                     isMail: true
-                    addessType: "CAS3"
+                    addressType: "CAS3"
                     addressUsage:
                       - addressUsageCode: "B"
                         isActive: true
@@ -263,6 +263,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AddressUsageItem'
+
+
 
     AddressUsageItem:
       type: object
