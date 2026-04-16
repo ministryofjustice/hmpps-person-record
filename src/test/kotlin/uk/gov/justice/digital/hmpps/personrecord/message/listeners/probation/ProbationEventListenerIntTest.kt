@@ -216,8 +216,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(
         personEntity.references
           .getType(IdentifierType.NATIONAL_INSURANCE_NUMBER),
-      )
-        .containsExactly(identifierNinoValue, additionalIdentifierNinoValue)
+      ).containsExactly(identifierNinoValue, additionalIdentifierNinoValue)
 
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getAliases().size).isEqualTo(1)
