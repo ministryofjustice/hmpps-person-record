@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -254,27 +253,6 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       assertThat(highConfidenceMatch[0].personUUID).isEqualTo(highScoringRecordTwo.personKey?.personUUID)
       assertThat(highConfidenceMatch[1].personUUID).isEqualTo(highScoringRecordThree.personKey?.personUUID)
       assertThat(highConfidenceMatch[2].personUUID).isEqualTo(highScoringRecordOne.personKey?.personUUID)
-    }
-  }
-
-  @Nested
-  inner class RaceCondition {
-
-    @Test
-    fun `should not return high confidence match with recluster merge status`() {
-      val searchingRecord = createPerson(createExamplePerson())
-      createPersonKey()
-        .addPerson(searchingRecord)
-
-      val foundRecord = createPerson(createExamplePerson())
-      createPersonKey(UUIDStatusType.RECLUSTER_MERGE)
-        .addPerson(foundRecord)
-
-      stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
-
-      val highConfidenceMatch = personMatchService.findClustersToJoin(searchingRecord)
-
-      noCandidateFound(highConfidenceMatch)
     }
   }
 

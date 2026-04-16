@@ -109,6 +109,7 @@ class PersonMatchService(
   private fun List<PersonMatchResult>.removePassiveRecords(): List<PersonMatchResult> = this.filterNot { it.personEntity.isPassive() }
 
   private fun List<PersonMatchResult>.removeMatchesWhereClusterInInvalidState(): List<PersonMatchResult> {
+    // TODO: remove this - this is no longer possible as we've removed the MERGED and RECLUSTER_MERGE status types
     val validStatuses = listOf(UUIDStatusType.ACTIVE, UUIDStatusType.NEEDS_ATTENTION)
     return this.filter { candidate -> validStatuses.contains(candidate.personEntity.personKey?.status) }
   }
