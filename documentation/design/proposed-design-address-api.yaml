@@ -56,8 +56,6 @@ paths:
                     county: "Greater London"
                     countryCode: "UK"
                     comment: "String"
-                    isPrimary: true
-                    isMail: true
                     addressStatus: "Proposed"
                     addressUsage:
                       - addressUsageCode: "A17"
@@ -130,8 +128,6 @@ paths:
                         county: "Greater London"
                         countryCode: "UK"
                         comment: "String"
-                        isPrimary: true
-                        isMail: true
                         addressStatus: "Proposed"
                         addressUsage:
                           - addressUsageCode: "A17"
@@ -192,8 +188,6 @@ paths:
                       county: "Greater London"
                       countryCode: "UK"
                       comment: "String"
-                      isPrimary: true
-                      isMail: true
                       addressStatus: "Proposed"
                       addressUsage:
                         - addressUsageCode: "A17"
@@ -253,18 +247,12 @@ components:
           type: string
         comment:
           type: string
-        isPrimary:
-          type: boolean
-        isMail:
-          type: boolean
         addressStatus:
           type: string
         addressUsage:
           type: array
           items:
             $ref: '#/components/schemas/AddressUsageItem'
-
-
 
     AddressUsageItem:
       type: object
@@ -343,10 +331,6 @@ components:
           type: string
         comment:
           type: string
-        isPrimary:
-          type: boolean
-        isMail:
-          type: boolean
         addressStatus:
           type: string
         addressUsage:
