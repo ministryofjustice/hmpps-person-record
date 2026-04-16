@@ -42,11 +42,8 @@ class ReclusterApiIntTest : WebTestBase() {
     @Test
     fun `should not recluster records that have been merged`() {
       val person = createPersonWithNewKey(createRandomProbationPersonDetails())
-      val mergedPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+      val mergedPerson = createPerson(createRandomProbationPersonDetails()) { mergedTo = person.id }
 
-      mergeRecord(mergedPerson, person)
-
-      mergedPerson.assertHasLinkToCluster()
       mergedPerson.assertMergedTo(person)
 
       val request = listOf(AdminReclusterRecord(DELIUS, mergedPerson.crn!!))
