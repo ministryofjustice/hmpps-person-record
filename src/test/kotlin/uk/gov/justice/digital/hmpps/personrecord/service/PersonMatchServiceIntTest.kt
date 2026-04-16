@@ -184,13 +184,11 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       createPersonKey()
         .addPerson(searchingRecord)
 
-      val foundRecord = createPerson(createExamplePerson())
       val mergedToRecord = createPerson(createExamplePerson())
+      val foundRecord = createPerson(createExamplePerson()) { mergedTo = mergedToRecord.id }
       createPersonKey()
         .addPerson(foundRecord)
         .addPerson(mergedToRecord)
-
-      mergeRecord(sourcePersonEntity = foundRecord, targetPersonEntity = mergedToRecord)
 
       stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 

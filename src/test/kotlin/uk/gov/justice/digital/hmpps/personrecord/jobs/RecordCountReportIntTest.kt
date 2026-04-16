@@ -15,13 +15,11 @@ class RecordCountReportIntTest : WebTestBase() {
 
   @Test
   fun `should not include merged record in telemetry`() {
-    val merged = createPerson(createRandomProbationPersonDetails())
     val active = createPerson(createRandomProbationPersonDetails())
+    val merged = createPerson(createRandomProbationPersonDetails()) { mergedTo = active.id}
     createPerson(createRandomPrisonPersonDetails())
     createPerson(createRandomLibraPersonDetails())
     createPerson(createRandomCommonPlatformPersonDetails())
-
-    mergeRecord(merged, active)
 
     webTestClient.post()
       .uri("/jobs/recordcountreport")

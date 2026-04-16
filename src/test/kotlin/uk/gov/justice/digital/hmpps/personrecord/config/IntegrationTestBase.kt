@@ -357,11 +357,6 @@ class IntegrationTestBase {
     .apply(configure)
     .let(personRepository::saveAndFlush)
 
-  internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
-    stubDeletePersonMatch()
-    mergeService.processMerge(personRepository.findByMatchId(sourcePersonEntity.matchId), personRepository.findByMatchId(targetPersonEntity.matchId)!!)
-  }
-
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
     val source = personRepository.findByMatchId(sourceRecord.matchId)
     val target = personRepository.findByMatchId(excludingRecord.matchId)
