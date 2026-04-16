@@ -243,7 +243,7 @@ class PrisonAPIControllerIntTest : WebTestBase() {
       val targetPrisonNumber = randomPrisonNumber()
 
       val targetPersonEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(targetPrisonNumber))
-      val sourcePersonEntity = createPerson(createRandomPrisonPersonDetails(sourcePrisonNumber)) { mergedTo = targetPersonEntity.id}
+      val sourcePersonEntity = createPerson(createRandomPrisonPersonDetails(sourcePrisonNumber)) { mergedTo = targetPersonEntity.id }
 
       webTestClient.get()
         .uri(prisonApiUrl(sourcePrisonNumber))
