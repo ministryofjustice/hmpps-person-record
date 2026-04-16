@@ -58,9 +58,9 @@ paths:
                     comment: "String"
                     isPrimary: true
                     isMail: true
-                    addressType: "CAS3"
+                    addressStatus: "Proposed"
                     addressUsage:
-                      - addressUsageCode: "B"
+                      - addressUsageCode: "A17"
                         isActive: true
 
       responses:
@@ -132,10 +132,10 @@ paths:
                         comment: "String"
                         isPrimary: true
                         isMail: true
-                        addressType: "CAS3"
+                        addressStatus: "Proposed"
                         addressUsage:
-                          - addressUsageCode: "B"
-                            addressUsageDescription: "Bail"
+                          - addressUsageCode: "A17"
+                            addressUsageDescription: "CAS3"
                             isActive: true
         '404':
           description: Address usage not found
@@ -194,10 +194,10 @@ paths:
                       comment: "String"
                       isPrimary: true
                       isMail: true
-                      addressType: "CAS3"
+                      addressStatus: "Proposed"
                       addressUsage:
-                        - addressUsageCode: "B"
-                          addressUsageDescription: "Bail"
+                        - addressUsageCode: "A17"
+                          addressUsageDescription: "CAS3"
                           isActive: true
         '404':
           description: Address usage not found
@@ -257,7 +257,7 @@ components:
           type: boolean
         isMail:
           type: boolean
-        addressType:
+        addressStatus:
           type: string
         addressUsage:
           type: array
@@ -347,7 +347,7 @@ components:
           type: boolean
         isMail:
           type: boolean
-        addressType:
+        addressStatus:
           type: string
         addressUsage:
           type: array
