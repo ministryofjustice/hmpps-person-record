@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -78,13 +79,18 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should retry on 500 error`() {
+      stubPersonMatchUpsert()
+      stubDeletePersonMatch()
+
       val reactivatedCrn = randomCrn()
       val unmergedCrn = randomCrn()
 
       val unmergedPerson = createPersonWithNewKey(createRandomProbationPersonDetails(unmergedCrn))
       val reactivatedPerson = createPerson(createRandomProbationPersonDetails(reactivatedCrn))
 
-      mergeRecord(reactivatedPerson, unmergedPerson)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmergedCrn)
+      checkEventLogExist(unmergedCrn, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       stub5xxResponse(probationUrl(unmergedCrn), "next request will succeed", "retry")
 

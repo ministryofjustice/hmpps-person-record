@@ -70,7 +70,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.model.types.review.ClusterType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
@@ -306,9 +305,10 @@ class IntegrationTestBase {
   internal fun checkEventLogExist(
     sourceSystemId: String,
     event: CPRLogEvents,
+    times: Int = 1,
   ) {
     checkEventLog(sourceSystemId, event) { logEvents ->
-      assertThat(logEvents).`as`("Missing event log $event and actual data $logEvents").hasSize(1)
+      assertThat(logEvents).`as`("Missing event log $event and actual data $logEvents").hasSize(times)
     }
   }
 
@@ -322,7 +322,7 @@ class IntegrationTestBase {
     }
   }
 
-  internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(12)) untilAsserted function
+  internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(5)) untilAsserted function
 
   internal fun <T> awaitNotNull(function: () -> T?): T = await atMost (Duration.ofSeconds(3)) untilNotNull function
 
@@ -352,23 +352,6 @@ class IntegrationTestBase {
   internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(person)
     .apply(configure)
     .let(personRepository::saveAndFlush)
-
-  // TODO the personKey of the merged record is still set here
-  // TODO ideally replace this with full merge processing
-  internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity): PersonEntity {
-    val source = personRepository.findByMatchId(sourcePersonEntity.matchId)!!
-    val target = personRepository.findByMatchId(targetPersonEntity.matchId)!!
-    source.mergedTo = target.id
-    return personRepository.save(source)
-  }
-
-  internal fun mergeUuid(sourcePersonKey: PersonKeyEntity, targetPersonKeyEntity: PersonKeyEntity): PersonKeyEntity {
-    val source = personKeyRepository.findByPersonUUID(sourcePersonKey.personUUID)!!
-    val target = personKeyRepository.findByPersonUUID(targetPersonKeyEntity.personUUID)!!
-    source.mergedTo = target.id
-    source.status = MERGED
-    return personKeyRepository.saveAndFlush(source)
-  }
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
     val source = personRepository.findByMatchId(sourceRecord.matchId)
@@ -604,9 +587,6 @@ class IntegrationTestBase {
     assertThat(cluster?.statusReason).isEqualTo(reason)
   }
 
-  internal fun PersonKeyEntity.assertMergedTo(mergedCluster: PersonKeyEntity) {
-    awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.mergedTo).isEqualTo(mergedCluster.id) }
-  }
   internal fun PersonKeyEntity.assertNotMergedTo(mergedCluster: PersonKeyEntity) {
     awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.mergedTo).isNotEqualTo(mergedCluster.id) }
   }
