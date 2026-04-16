@@ -6,14 +6,14 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResul
 
 class ClusterDetails(
   val cluster: PersonKeyEntity,
-  val changedRecord: PersonEntity,
+  val changedPerson: PersonEntity,
   matchesToChangeRecord: List<PersonMatchResult>,
 ) {
 
   val matchedRecords: List<PersonEntity> = matchesToChangeRecord.map { it.personEntity }
   val shouldJoinRecords: List<PersonEntity> = matchesToChangeRecord.filter { it.shouldJoin }.map { it.personEntity }
 
-  private val existingRecordsInCluster: List<PersonEntity> = cluster.personEntities.filterNot { it.id == changedRecord.id }
+  private val existingRecordsInCluster: List<PersonEntity> = cluster.personEntities.filterNot { it.id == changedPerson.id }
 
   val relationship = ClusterRelationship(matchedRecords, existingRecordsInCluster)
 
