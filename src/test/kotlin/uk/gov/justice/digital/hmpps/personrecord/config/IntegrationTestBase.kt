@@ -72,7 +72,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.review.ClusterType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
@@ -114,9 +113,6 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var jsonMapper: JsonMapper
-
-  @Autowired
-  lateinit var mergeService: MergeService
 
   @Autowired
   lateinit var personKeyRepository: PersonKeyRepository
@@ -591,9 +587,6 @@ class IntegrationTestBase {
     assertThat(cluster?.statusReason).isEqualTo(reason)
   }
 
-  internal fun PersonKeyEntity.assertMergedTo(mergedCluster: PersonKeyEntity) {
-    awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.mergedTo).isEqualTo(mergedCluster.id) }
-  }
   internal fun PersonKeyEntity.assertNotMergedTo(mergedCluster: PersonKeyEntity) {
     awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.mergedTo).isNotEqualTo(mergedCluster.id) }
   }
