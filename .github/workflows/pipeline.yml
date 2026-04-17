@@ -50,7 +50,7 @@ jobs:
     steps:
       - id: app_version
         name: Application version creators
-        uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/build-test-and-deploy/create_app_version@6ca6653862e916a9221d915216228aee57717570 # v1.0.1
+        uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/build-test-and-deploy/create_app_version@7277152a31c152f8d65ccdea0df7cceca7ab3856 # v1.0.5
   gradle_verify:
     name: Validate the kotlin
     uses: ./.github/workflows/gradle_localstack_postgres_verify.yml
@@ -86,7 +86,7 @@ jobs:
           make e2e-start-containers
           ./gradlew e2eTest
       - name: Upload the test artifacts
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: e2e-test-results
           path: |
@@ -124,7 +124,7 @@ jobs:
         run: |
           export JAVA_OPTS="${{ inputs.java_options }}"
           ./gradlew initialiseDatabase
-      - uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/database_schema_report@6ca6653862e916a9221d915216228aee57717570 # v1.0.1
+      - uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/database_schema_report@7277152a31c152f8d65ccdea0df7cceca7ab3856 # v1.0.5
         with:
           schema: personrecordservice
   deploy_dev:
