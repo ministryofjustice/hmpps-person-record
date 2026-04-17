@@ -64,7 +64,7 @@ jobs:
           echo "B64_AUTH length: ${#B64_AUTH}"
           echo "B64_AUTH: ${B64_AUTH}"
           
-          curl -X POST "https://sign-in-dev.hmpps.service.justice.gov.uk/auth/oauth/token?grant_type=client_credentials" \ -H 'Content-Type: application/json' -H "Authorization: Basic $(echo -n {CLIENT_ID}:{CLIENT_SECRET} | base64)"
+          curl -X POST "https://sign-in-dev.hmpps.service.justice.gov.uk/auth/oauth/token?grant_type=client_credentials" \ -H 'Content-Type: application/json' -H "Authorization: Basic $B64_AUTH"
 
       - name: Start Gatling
         env:
