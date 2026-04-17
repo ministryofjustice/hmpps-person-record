@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.message.recluster
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse.Companion.result
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -101,10 +100,6 @@ class ReclusterService(
   }
 
   private fun migratePersonRecordsToMatchingCluster(fromCluster: PersonKeyEntity, toCluster: PersonKeyEntity) {
-    if (toCluster.mergedTo == fromCluster.id) {
-      throw CircularMergeException()
-    }
-
     val personsToMigrate = fromCluster.personEntities
     personsToMigrate.forEach { personEntity ->
       personEntity.assignToPersonKey(toCluster)
