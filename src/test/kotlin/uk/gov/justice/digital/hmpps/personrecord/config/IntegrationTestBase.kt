@@ -587,10 +587,6 @@ class IntegrationTestBase {
     assertThat(cluster?.statusReason).isEqualTo(reason)
   }
 
-  internal fun PersonKeyEntity.assertNotMergedTo(mergedCluster: PersonKeyEntity) {
-    awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.mergedTo).isNotEqualTo(mergedCluster.id) }
-  }
-
   internal fun PersonEntity.assertNotLinkedToCluster() {
     awaitAssert { assertThat(personRepository.findByMatchId(this.matchId)?.personKey).isNull() }
   }
