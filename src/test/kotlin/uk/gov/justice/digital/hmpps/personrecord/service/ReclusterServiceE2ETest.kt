@@ -505,8 +505,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster1.assertClusterNotChanged(size = 2)
       cluster2.assertClusterNotChanged(size = 1)
-
-      cluster2.assertNotMergedTo(cluster1)
     }
   }
 

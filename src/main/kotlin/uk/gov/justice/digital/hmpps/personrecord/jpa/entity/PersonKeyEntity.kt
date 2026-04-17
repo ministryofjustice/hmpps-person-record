@@ -33,9 +33,6 @@ class PersonKeyEntity(
   @OneToMany(mappedBy = "personKey", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
   var personEntities: MutableList<PersonEntity> = mutableListOf(),
 
-  @Column(name = "merged_to")
-  var mergedTo: Long? = null,
-
   @Column
   @Enumerated(STRING)
   var status: UUIDStatusType = ACTIVE,
