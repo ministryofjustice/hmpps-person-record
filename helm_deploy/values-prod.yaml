@@ -26,7 +26,7 @@ generic-service:
 
   env:
     SPRING_PROFILES_ACTIVE: "prod"
-    CORE_PERSON_RECORD_BASE_URL: https://hmpps-person-record.hmpps.service.justice.gov.uk
+    APP_BASE_URL: https://hmpps-person-record.hmpps.service.justice.gov.uk
     PERSON_MATCH_BASE_URL: https://hmpps-person-match.hmpps.service.justice.gov.uk
     NOMIS_OAUTH_BASE_URL: https://sign-in.hmpps.service.justice.gov.uk
     PRISONER_SEARCH_BASE_URL: https://prisoner-search.prison.service.justice.gov.uk

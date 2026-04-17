@@ -100,7 +100,7 @@ retry:
   timeout: 10000
 
 core-person-record:
-  base-url: ${CORE_PERSON_RECORD_BASE_URL:http://localhost:8080}
+  base-url: ${APP_BASE_URL:http://localhost:8080}
 
 aws:
   region-name: eu-west-2
