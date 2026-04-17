@@ -10,7 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
 class PrisonAPIDeleteControllerIntTest : WebTestBase() {
@@ -39,6 +42,10 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
       awaitAssert {
         assertThat(personRepository.findByPrisonNumber(prisonNumber)).isNull()
         assertThat(personKeyRepository.findByPersonUUID(cluster.personUUID)).isNull()
+        checkTelemetry(CPR_RECORD_DELETED, mapOf("UUID" to cluster.personUUID.toString()))
+        checkTelemetry(CPR_UUID_DELETED, mapOf("UUID" to cluster.personUUID.toString()))
+        checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_DELETED)
+        checkEventLogExist(prisonNumber, CPRLogEvents.CPR_UUID_DELETED)
       }
     }
   }
@@ -67,6 +74,8 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
         assertThat(personRepository.findByPrisonNumber(prisonNumber)).isNull()
         val clusterAfterDelete = personKeyRepository.findByPersonUUID(clusterBeforeDelete.personUUID)!!
         assertThat(clusterAfterDelete.personEntities.size).isEqualTo(1)
+        checkTelemetry(CPR_RECORD_DELETED, mapOf("UUID" to clusterBeforeDelete.personUUID.toString()))
+        checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_DELETED)
       }
     }
   }
@@ -86,6 +95,7 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
       )
 
       awaitAssert {
+        awaitNotNull { assertThat(personRepository.findByPrisonNumber(toPerson.prisonNumber!!)) }
         assertThat(personRepository.findByPrisonNumber(fromPerson.prisonNumber!!)).isNull()
         wiremock.verify(0, deleteRequestedFor(urlEqualTo("/person")))
       }
