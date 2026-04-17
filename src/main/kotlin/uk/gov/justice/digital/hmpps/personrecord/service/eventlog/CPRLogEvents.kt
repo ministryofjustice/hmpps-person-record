@@ -9,10 +9,12 @@ enum class CPRLogEvents {
   CPR_RECORD_UPDATED,
   CPR_UUID_CREATED,
   CPR_UUID_DELETED,
-  CPR_UUID_MERGED,
   CPR_RECORD_SEEDED,
 
   // Deprecated Events. Still kept in enum so we can still decode old events.
+  @Deprecated("Clusters are no longer merged")
+  CPR_UUID_MERGED,
+
   @Deprecated("Clusters are no longer merged")
   CPR_RECLUSTER_UUID_MERGED,
 
