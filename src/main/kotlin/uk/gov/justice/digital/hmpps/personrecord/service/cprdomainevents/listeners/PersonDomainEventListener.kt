@@ -27,7 +27,7 @@ class PersonDomainEventListener(
   @TransactionalEventListener
   fun onPersonCreated(personCreated: PersonCreated) {
     val personEntity = personCreated.personEntity
-    val config = buildPersonCreatedDomainEventConfig(personEntity.sourceSystem) ?: return
+    val config = buildPersonCreatedDomainEventConfig(personEntity.sourceSystem)
     val sourceSystemId = personEntity.extractSourceSystemId()
     val detailUrl = "$baseUrl/person/${config.urlPathSegment}/$sourceSystemId"
 
@@ -50,12 +50,11 @@ class PersonDomainEventListener(
     )
   }
 
-  private fun buildPersonCreatedDomainEventConfig(sourceSystem: SourceSystemType): PersonDomainEventConfig? = when (sourceSystem) {
+  private fun buildPersonCreatedDomainEventConfig(sourceSystem: SourceSystemType): PersonDomainEventConfig = when (sourceSystem) {
     NOMIS -> PersonDomainEventConfig(CPR_PRISON_PERSON_CREATED, "NOMS", "prison", "prison")
     DELIUS -> PersonDomainEventConfig(CPR_PROBATION_PERSON_CREATED, "CRN", "probation", "probation")
     COMMON_PLATFORM -> PersonDomainEventConfig(CPR_COURT_PERSON_CREATED, "DEFENDANT_ID", "commonplatform", "court")
     LIBRA -> PersonDomainEventConfig(CPR_COURT_PERSON_CREATED, "C_ID", "libra", "court")
-    else -> null
   }
 }
 
