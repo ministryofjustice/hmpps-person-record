@@ -17,6 +17,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_C
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
 import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Component
 class PersonDomainEventListener(
@@ -44,7 +46,7 @@ class PersonDomainEventListener(
         eventType = config.eventType,
         description = "A ${config.typeDescription} person record has been created",
         detailUrl = detailUrl,
-        occurredAt = Instant.now().toString(),
+        occurredAt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.of("Europe/London")).format(Instant.now()),
         personReference = personReference,
       ),
     )
