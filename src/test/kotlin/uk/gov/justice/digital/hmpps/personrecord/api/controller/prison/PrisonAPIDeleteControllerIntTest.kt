@@ -76,18 +76,8 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
 
     @Test
     fun `deleting a merged from person - deletes from person - does not delete merged to person`() {
-      val fromPerson = createPerson(createRandomPrisonPersonDetails())
-      val toPerson = createPerson(createRandomPrisonPersonDetails())
-
-      createPersonKey()
-        .addPerson(fromPerson)
-
-      createPersonKey()
-        .addPerson(toPerson)
-
-      mergeRecord(fromPerson, toPerson)
-//      mergeService.processMerge(fromPerson, toPerson)
-//      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber) // better?
+      val toPerson = createPersonWithNewKey(createRandomPrisonPersonDetails())
+      val fromPerson = createPerson(createRandomPrisonPersonDetails()) { mergedTo = toPerson.id }
 
       sendDeleteRequestAsserted<Unit>(
         url = prisonPersonDeleteUrl(fromPerson.prisonNumber!!),
@@ -103,30 +93,12 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
 
     @Test
     fun `deleting a merged to person - deletes to person - deletes all from descendants`() {
-      val fromPersonA = createPerson(createRandomPrisonPersonDetails())
-      val fromPersonB = createPerson(createRandomPrisonPersonDetails())
-      val fromPersonC = createPerson(createRandomPrisonPersonDetails())
-      val toPerson = createPerson(createRandomPrisonPersonDetails())
-
-      createPersonKey()
-        .addPerson(fromPersonA)
-
-      createPersonKey()
-        .addPerson(fromPersonB)
-
-      createPersonKey()
-        .addPerson(fromPersonC)
-
-      createPersonKey()
-        .addPerson(toPerson)
+      val toPerson = createPersonWithNewKey(createRandomPrisonPersonDetails())
+      val fromPersonC = createPerson(createRandomPrisonPersonDetails()) { mergedTo = toPerson.id }
+      val fromPersonB = createPerson(createRandomPrisonPersonDetails()) { mergedTo = toPerson.id }
+      val fromPersonA = createPerson(createRandomPrisonPersonDetails()) { mergedTo = fromPersonB.id }
 
       stubDeletePersonMatch()
-
-      mergeRecord(fromPersonA, fromPersonB)
-      mergeRecord(fromPersonB, toPerson)
-      mergeRecord(fromPersonC, toPerson)
-//      mergeService.processMerge(fromPerson, toPerson)
-//      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber) // better?
 
       sendDeleteRequestAsserted<Unit>(
         url = prisonPersonDeleteUrl(toPerson.prisonNumber!!),
