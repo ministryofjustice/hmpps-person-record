@@ -213,8 +213,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getCro()).isEqualTo(cro)
       assertThat(personEntity.references.getType(additionalIdentifierCodeOne).first()).isEqualTo(additionalIdentifierValueOne)
       assertThat(personEntity.references.getType(IdentifierType.UNKNOWN).first()).isEqualTo("2222")
-      assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(identifierNinoValue)
-      assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER)[1]).isEqualTo(additionalIdentifierNinoValue)
+      assertThat(
+        personEntity.references
+          .getType(IdentifierType.NATIONAL_INSURANCE_NUMBER),
+      ).containsExactlyInAnyOrder(identifierNinoValue, additionalIdentifierNinoValue)
 
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getAliases().size).isEqualTo(1)

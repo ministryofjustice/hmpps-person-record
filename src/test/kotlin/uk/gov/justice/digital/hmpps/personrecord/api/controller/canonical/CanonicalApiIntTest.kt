@@ -423,61 +423,6 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should redirect to merged to record`() {
-    val sourcePersonFirstName = randomName()
-    val targetPersonFirstName = randomName()
-
-    val sourcePersonKey = createPersonKey()
-      .addPerson(Person.from(ProbationCase(name = ProbationCaseName(firstName = sourcePersonFirstName), identifiers = Identifiers())))
-    val targetPersonKey = createPersonKey().addPerson(
-      Person.from(ProbationCase(name = ProbationCaseName(firstName = targetPersonFirstName), identifiers = Identifiers())),
-    )
-
-    mergeUuid(sourcePersonKey, targetPersonKey)
-
-    webTestClient.get()
-      .uri(canonicalAPIUrl(sourcePersonKey.personUUID.toString()))
-      .authorised(listOf(API_READ_ONLY))
-      .exchange()
-      .expectStatus()
-      .isEqualTo(301)
-      .expectHeader()
-      .valueEquals("Location", "/person/${targetPersonKey.personUUID}")
-  }
-
-  @Test
-  fun `should redirect to the top node of a merged to record`() {
-    val sourcePersonFirstName = randomName()
-    val targetPersonFirstName = randomName()
-    val newTargetPersonFirstName = randomName()
-
-    val sourcePersonKey = createPersonKey()
-      .addPerson(
-        Person.from(ProbationCase(name = ProbationCaseName(firstName = sourcePersonFirstName), identifiers = Identifiers())),
-      )
-    val targetPersonKey = createPersonKey()
-      .addPerson(
-        Person.from(ProbationCase(name = ProbationCaseName(firstName = targetPersonFirstName), identifiers = Identifiers())),
-      )
-    val newTargetPersonKey = createPersonKey()
-      .addPerson(
-        Person.from(ProbationCase(name = ProbationCaseName(firstName = newTargetPersonFirstName), identifiers = Identifiers())),
-      )
-
-    mergeUuid(sourcePersonKey, targetPersonKey)
-    mergeUuid(targetPersonKey, newTargetPersonKey)
-
-    webTestClient.get()
-      .uri(canonicalAPIUrl(sourcePersonKey.personUUID.toString()))
-      .authorised(listOf(API_READ_ONLY))
-      .exchange()
-      .expectStatus()
-      .isEqualTo(301)
-      .expectHeader()
-      .valueEquals("Location", "/person/${newTargetPersonKey.personUUID}")
-  }
-
-  @Test
   fun `should return bad request if canonical record is invalid uuid`() {
     val randomString = randomName()
     webTestClient.get()

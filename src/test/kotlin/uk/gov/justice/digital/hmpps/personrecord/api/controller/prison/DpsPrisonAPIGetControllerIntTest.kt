@@ -377,10 +377,8 @@ class DpsPrisonAPIGetControllerIntTest : WebTestBase() {
       val sourcePrisonNumber = randomPrisonNumber()
       val targetPrisonNumber = randomPrisonNumber()
 
-      val sourcePersonEntity = createPerson(createRandomPrisonPersonDetails(sourcePrisonNumber))
       val targetPersonEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(targetPrisonNumber))
-
-      mergeRecord(sourcePersonEntity, targetPersonEntity)
+      createPerson(createRandomPrisonPersonDetails(sourcePrisonNumber)) { mergedTo = targetPersonEntity.id }
 
       webTestClient.get()
         .uri(prisonApiUrl(sourcePrisonNumber))

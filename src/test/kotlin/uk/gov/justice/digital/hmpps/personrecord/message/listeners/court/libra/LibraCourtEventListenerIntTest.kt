@@ -189,6 +189,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
+    secondPersonFromNomis.personKey?.assertPersonKeyDeleted()
     firstPersonFromProbation.personKey?.assertClusterIsOfSize(3)
   }
 
