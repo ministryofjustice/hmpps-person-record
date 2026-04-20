@@ -24,7 +24,7 @@ class PersonDeletionService(
   fun processDelete(personCallback: () -> PersonEntity?) = personCallback()?.let { personEntity ->
     personEntity.deleteClusterIfNoRecordsLeft()
     personEntity.delete()
-    personEntity.deleteFromPersonMatchIfStillExists()
+    personEntity.deleteFromPersonMatch()
     personEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively()
   } ?: throw ResourceNotFoundException("Person does not exist")
 
@@ -42,10 +42,8 @@ class PersonDeletionService(
     publisher.publishEvent(PersonDeleted(this))
   }
 
-  private fun PersonEntity.deleteFromPersonMatchIfStillExists() {
-    if (this.mergedTo == null) {
-      personMatchService.deleteFromPersonMatch(this)
-    }
+  private fun PersonEntity.deleteFromPersonMatch() {
+    personMatchService.deleteFromPersonMatch(this)
   }
 
   private fun deletePersonKey(personKeyEntity: PersonKeyEntity, personEntity: PersonEntity) {

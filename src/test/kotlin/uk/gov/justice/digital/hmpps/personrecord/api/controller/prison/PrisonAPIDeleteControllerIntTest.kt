@@ -87,6 +87,7 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
     fun `deleting a merged from person - deletes from person - does not delete merged to person`() {
       val toPerson = createPersonWithNewKey(createRandomPrisonPersonDetails())
       val fromPerson = createPerson(createRandomPrisonPersonDetails()) { mergedTo = toPerson.id }
+      stubDeletePersonMatch()
 
       sendDeleteRequestAsserted<Unit>(
         url = prisonPersonDeleteUrl(fromPerson.prisonNumber!!),
@@ -97,7 +98,11 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
       awaitAssert {
         awaitNotNull { assertThat(personRepository.findByPrisonNumber(toPerson.prisonNumber!!)) }
         assertThat(personRepository.findByPrisonNumber(fromPerson.prisonNumber!!)).isNull()
-        wiremock.verify(0, deleteRequestedFor(urlEqualTo("/person")))
+        wiremock.verify(
+          1,
+          deleteRequestedFor(urlEqualTo("/person"))
+            .withRequestBody(equalToJson("""{"matchId":"${fromPerson.matchId}"}""")),
+        )
       }
     }
 
