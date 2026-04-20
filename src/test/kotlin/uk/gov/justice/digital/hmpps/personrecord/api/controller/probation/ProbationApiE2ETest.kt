@@ -36,7 +36,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
@@ -596,8 +595,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
         )
 
-        defendant.personKey?.assertClusterStatus(RECLUSTER_MERGE)
-        defendant.personKey?.assertMergedTo(offender.personKey!!)
+        defendant.personKey?.assertPersonKeyDeleted()
 
         offender.personKey?.assertClusterStatus(ACTIVE)
         offender.personKey?.assertClusterIsOfSize(2)
