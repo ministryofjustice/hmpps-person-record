@@ -101,7 +101,7 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
         assertThat(personRepository.findByPrisonNumber(fromPerson.prisonNumber!!)).isNull()
 
         checkEventLogExist(fromPerson.prisonNumber!!, CPRLogEvents.CPR_RECORD_DELETED)
-//        checkTelemetry(CPR_RECORD_DELETED, mapOf("UUID" to null))
+//        checkTelemetry(CPR_RECORD_DELETED, mapOf("UUID" to null)) // can be lots of null values locally!
         wiremock.verify(
           1,
           deleteRequestedFor(urlEqualTo("/person"))
@@ -137,8 +137,8 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
         checkEventLogExist(fromPersonA.prisonNumber!!, CPRLogEvents.CPR_RECORD_DELETED)
         checkEventLogExist(fromPersonB.prisonNumber!!, CPRLogEvents.CPR_RECORD_DELETED)
         checkEventLogExist(fromPersonC.prisonNumber!!, CPRLogEvents.CPR_RECORD_DELETED)
-//        checkTelemetry(CPR_RECORD_DELETED, mapOf("UUID" to toPerson.personKey.toString()))
-//        checkTelemetry(CPR_UUID_DELETED, mapOf("UUID" to toPerson.personKey.toString()))
+        checkTelemetry(CPR_RECORD_DELETED, mapOf("UUID" to toPerson.personKey!!.personUUID.toString()))
+        checkTelemetry(CPR_UUID_DELETED, mapOf("UUID" to toPerson.personKey!!.personUUID.toString()))
         wiremock.verify(
           1,
           deleteRequestedFor(urlEqualTo("/person"))
