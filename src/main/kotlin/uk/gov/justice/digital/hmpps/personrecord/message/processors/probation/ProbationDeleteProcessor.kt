@@ -14,8 +14,6 @@ class ProbationDeleteProcessor(
 
   fun processEvent(domainEvent: DomainEvent) {
     val crn = domainEvent.getCrn()
-    personDeletionService.processDelete {
-      personRepository.findByCrn(crn)
-    }
+    personRepository.findByCrn(crn)?.let { personDeletionService.processDelete(it) }
   }
 }

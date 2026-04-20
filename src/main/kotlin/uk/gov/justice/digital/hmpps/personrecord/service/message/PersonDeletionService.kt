@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.message
 import jakarta.transaction.Transactional
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -21,12 +20,12 @@ class PersonDeletionService(
 ) {
 
   @Transactional
-  fun processDelete(personCallback: () -> PersonEntity?) = personCallback()?.let { personEntity ->
+  fun processDelete(personEntity: PersonEntity) {
     personEntity.deleteClusterIfNoRecordsLeft()
     personEntity.delete()
     personEntity.deleteFromPersonMatch()
     personEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively()
-  } ?: throw ResourceNotFoundException("Person does not exist")
+  }
 
   private fun PersonEntity.deleteClusterIfNoRecordsLeft() {
     this.personKey?.let { cluster ->
@@ -57,6 +56,6 @@ class PersonDeletionService(
   }
 
   private fun PersonEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively() {
-    personRepository.findByMergedTo(this.id!!).forEach { personEntity -> processDelete { personEntity } }
+    personRepository.findByMergedTo(this.id!!).forEach { personEntity -> personEntity?.let { processDelete(it) } }
   }
 }
