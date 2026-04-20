@@ -84,7 +84,7 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
   inner class PersonMergeScenarios {
 
     @Test
-    fun `deleting a merged from person - deletes from person - does not delete merged to person`() {
+    fun `deleting a merged from person - deletes from person - does not delete cluster or merged to person`() {
       val toPerson = createPersonWithNewKey(createRandomPrisonPersonDetails())
       val fromPerson = createPerson(createRandomPrisonPersonDetails()) { mergedTo = toPerson.id }
       stubDeletePersonMatch()
@@ -96,8 +96,12 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
       )
 
       awaitAssert {
-        awaitNotNull { assertThat(personRepository.findByPrisonNumber(toPerson.prisonNumber!!)) }
+        awaitNotNull { personKeyRepository.findByPersonUUID(toPerson.personKey!!.personUUID) }
+        awaitNotNull { personRepository.findByPrisonNumber(toPerson.prisonNumber!!) }
         assertThat(personRepository.findByPrisonNumber(fromPerson.prisonNumber!!)).isNull()
+
+        checkEventLogExist(fromPerson.prisonNumber!!, CPRLogEvents.CPR_RECORD_DELETED)
+//        checkTelemetry(CPR_RECORD_DELETED, mapOf("UUID" to null))
         wiremock.verify(
           1,
           deleteRequestedFor(urlEqualTo("/person"))
@@ -107,7 +111,7 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `deleting a merged to person - deletes to person - deletes all from descendants`() {
+    fun `deleting a merged to person - deletes to person - deletes cluster and all from descendants`() {
       val toPerson = createPersonWithNewKey(createRandomPrisonPersonDetails())
       val fromPersonC = createPerson(createRandomPrisonPersonDetails()) { mergedTo = toPerson.id }
       val fromPersonB = createPerson(createRandomPrisonPersonDetails()) { mergedTo = toPerson.id }
@@ -122,10 +126,19 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
       )
 
       awaitAssert {
+        assertThat(personKeyRepository.findByPersonUUID(toPerson.personKey!!.personUUID)).isNull()
         assertThat(personRepository.findByPrisonNumber(fromPersonA.prisonNumber!!)).isNull()
         assertThat(personRepository.findByPrisonNumber(fromPersonB.prisonNumber!!)).isNull()
         assertThat(personRepository.findByPrisonNumber(fromPersonC.prisonNumber!!)).isNull()
         assertThat(personRepository.findByPrisonNumber(toPerson.prisonNumber!!)).isNull()
+
+        checkEventLogExist(toPerson.prisonNumber!!, CPRLogEvents.CPR_UUID_DELETED)
+        checkEventLogExist(toPerson.prisonNumber!!, CPRLogEvents.CPR_RECORD_DELETED)
+        checkEventLogExist(fromPersonA.prisonNumber!!, CPRLogEvents.CPR_RECORD_DELETED)
+        checkEventLogExist(fromPersonB.prisonNumber!!, CPRLogEvents.CPR_RECORD_DELETED)
+        checkEventLogExist(fromPersonC.prisonNumber!!, CPRLogEvents.CPR_RECORD_DELETED)
+//        checkTelemetry(CPR_RECORD_DELETED, mapOf("UUID" to toPerson.personKey.toString()))
+//        checkTelemetry(CPR_UUID_DELETED, mapOf("UUID" to toPerson.personKey.toString()))
         wiremock.verify(
           1,
           deleteRequestedFor(urlEqualTo("/person"))
