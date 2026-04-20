@@ -13,7 +13,7 @@ on:
         options:
           - dev
       profile:
-        description: "Optional fully-qualified simulation class to run."
+        description: "Optional Which profile to run."
         required: false
         default: "happypath"
         type: choice
@@ -49,47 +49,6 @@ jobs:
 
       - name: Touch env file
         run: touch ./gatling/.env
-
-      - name: Debug Auth access
-        env:
-          CLIENT_ID: ${{ secrets.GATLING_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.GATLING_CLIENT_SECRET }}
-        run: |
-          ID_SECRET="${CLIENT_ID}:${CLIENT_SECRET}"
-          echo "ID secret length: ${#ID_SECRET}"
-          echo "ID secret: ${ID_SECRET}"
-          
-          B64_AUTH=$(printf "%s" "$ID_SECRET" | base64 | tr -d '\n\r ')
-          
-          echo "B64_AUTH length: ${#B64_AUTH}"
-          echo "B64_AUTH: ${B64_AUTH}"
-          
-          curl -i -X POST "https://sign-in-dev.hmpps.service.justice.gov.uk/auth/oauth/token?grant_type=client_credentials" -H 'Content-Type: application/json' -H "Authorization: Basic $B64_AUTH"
-          
-
-
-
-
-      - name: Debug Auth access - auth
-        id: get_token
-        shell: bash
-        env:
-          CLIENT_ID: ${{ secrets.GATLING_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.GATLING_CLIENT_SECRET }}
-        run: |
-          BASIC_AUTH=$(echo -n "$CLIENT_ID:$CLIENT_SECRET" | base64 | tr -d '\n')
-          RESPONSE=$(curl --fail-with-body --verbose -s -X POST "https://sign-in-dev.hmpps.service.justice.gov.uk/auth/oauth/token?grant_type=client_credentials" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Basic $BASIC_AUTH")
-          TOKEN=$(echo "$RESPONSE" | jq -r '.access_token')
-          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
-            echo "Failed to extract access token."
-            echo "Response was: $RESPONSE"
-            exit 1
-          fi
-          echo "::add-mask::$TOKEN"
-          echo "token=$TOKEN" >> $GITHUB_OUTPUT
-
 
       - name: Start Gatling
         env:

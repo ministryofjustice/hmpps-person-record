@@ -26,8 +26,7 @@ object TokenManager {
       if (AppConfig.clientId.isBlank() || AppConfig.clientSecret.isBlank()) {
         throw IllegalStateException("Client credentials not configured - clientId and clientSecret must be provided")
       }
-      println(AppConfig.clientId.length)
-      println(AppConfig.clientSecret.length)
+
       val basicAuth =
         Base64.getEncoder().encodeToString("${AppConfig.clientId.trim()}:${AppConfig.clientSecret.trim()}".toByteArray())
 
