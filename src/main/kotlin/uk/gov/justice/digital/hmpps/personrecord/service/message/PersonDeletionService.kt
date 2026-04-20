@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyReposit
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyDeleted
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
@@ -17,14 +18,20 @@ class PersonDeletionService(
   private val personKeyRepository: PersonKeyRepository,
   private val personMatchService: PersonMatchService,
   private val publisher: ApplicationEventPublisher,
+  private val reclusterService: ReclusterService,
 ) {
 
   @Transactional
   fun processDelete(personEntity: PersonEntity) {
+    processDelete(personEntity, true)
+  }
+
+  private fun processDelete(personEntity: PersonEntity, isRootStackCall: Boolean) {
     personEntity.deleteClusterIfNoRecordsLeft()
     personEntity.delete()
     personEntity.deleteFromPersonMatch()
     personEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively()
+    personEntity.triggerReclusterOfRemainingNonMergedPersonsInCluster(isRootStackCall)
   }
 
   private fun PersonEntity.deleteClusterIfNoRecordsLeft() {
@@ -56,6 +63,13 @@ class PersonDeletionService(
   }
 
   private fun PersonEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively() {
-    personRepository.findByMergedTo(this.id!!).forEach { personEntity -> personEntity?.let { processDelete(it) } }
+    personRepository.findByMergedTo(this.id!!).forEach { personEntity -> personEntity?.let { processDelete(it, false) } }
+  }
+
+  private fun PersonEntity.triggerReclusterOfRemainingNonMergedPersonsInCluster(isRootStackCall: Boolean) {
+    val remainingNonMergedPersonsInCluster = this.personKey?.personEntities?.filter { it.mergedTo == null && this.id != it.id } ?: emptyList()
+    if (isRootStackCall && remainingNonMergedPersonsInCluster.isNotEmpty()) {
+      remainingNonMergedPersonsInCluster.forEach { nonMergedPersonEntity -> reclusterService.recluster(nonMergedPersonEntity) }
+    }
   }
 }
