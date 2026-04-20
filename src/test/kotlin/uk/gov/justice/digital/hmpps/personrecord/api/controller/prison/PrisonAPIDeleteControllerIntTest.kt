@@ -34,7 +34,7 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
   inner class SinglePersonCluster {
 
     @Test
-    fun `deletes person - deletes cluster - deletes from person match`() {
+    fun `deletes person - deletes cluster - deletes from person match - does not trigger recluster`() {
       val person = createRandomPrisonPersonDetails()
       val prisonNumber = person.prisonNumber!!
 
@@ -65,7 +65,7 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
   inner class MultiPersonCluster {
 
     @Test
-    fun `deletes person - does not delete cluster - deletes from person match`() {
+    fun `deletes person - does not delete cluster - deletes from person match - triggers recluster`() {
       val personToBeDeleted = createRandomPrisonPersonDetails()
       val personToStayOnCluster = createRandomPrisonPersonDetails()
       val prisonNumber = personToBeDeleted.prisonNumber!!
