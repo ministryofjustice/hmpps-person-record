@@ -68,8 +68,6 @@ class PersonDeletionService(
 
   private fun PersonEntity.triggerReclusterOfRemainingNonMergedPersonsInCluster() {
     val remainingNonMergedPersonsInCluster = this.personKey?.personEntities?.filter { it.mergedTo == null && this.id != it.id } ?: emptyList()
-    if (remainingNonMergedPersonsInCluster.isNotEmpty()) {
-      remainingNonMergedPersonsInCluster.forEach { nonMergedPersonEntity -> reclusterService.recluster(nonMergedPersonEntity) }
-    }
+    remainingNonMergedPersonsInCluster.forEach { nonMergedPersonEntity -> reclusterService.recluster(nonMergedPersonEntity) }
   }
 }
