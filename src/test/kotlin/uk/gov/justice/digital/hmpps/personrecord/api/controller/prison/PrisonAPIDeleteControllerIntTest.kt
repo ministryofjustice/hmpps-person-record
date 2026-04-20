@@ -117,7 +117,7 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
         assertThat(personRepository.findByPrisonNumber(fromPerson.prisonNumber!!)).isNull()
 
         checkEventLogExist(fromPerson.prisonNumber!!, CPRLogEvents.CPR_RECORD_DELETED)
-//        checkTelemetry(CPR_RECORD_DELETED, mapOf("UUID" to null)) // can be lots of null values locally!
+        checkTelemetry(CPR_RECORD_DELETED, mapOf("PRISON_NUMBER" to fromPerson.prisonNumber))
         wiremock.verify(
           1,
           deleteRequestedFor(urlEqualTo("/person"))

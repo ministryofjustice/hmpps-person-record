@@ -23,15 +23,15 @@ class PersonDeletionService(
 
   @Transactional
   fun processDelete(personEntity: PersonEntity) {
-    processDelete(personEntity, true)
+    deletePerson(personEntity)
+    personEntity.triggerReclusterOfRemainingNonMergedPersonsInCluster()
   }
 
-  private fun processDelete(personEntity: PersonEntity, isRootStackCall: Boolean) {
+  private fun deletePerson(personEntity: PersonEntity) {
     personEntity.deleteClusterIfNoRecordsLeft()
     personEntity.delete()
     personEntity.deleteFromPersonMatch()
     personEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively()
-    personEntity.triggerReclusterOfRemainingNonMergedPersonsInCluster(isRootStackCall)
   }
 
   private fun PersonEntity.deleteClusterIfNoRecordsLeft() {
@@ -63,12 +63,12 @@ class PersonDeletionService(
   }
 
   private fun PersonEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively() {
-    personRepository.findByMergedTo(this.id!!).forEach { personEntity -> personEntity?.let { processDelete(it, false) } }
+    personRepository.findByMergedTo(this.id!!).forEach { personEntity -> personEntity?.let { processDelete(it) } }
   }
 
-  private fun PersonEntity.triggerReclusterOfRemainingNonMergedPersonsInCluster(isRootStackCall: Boolean) {
+  private fun PersonEntity.triggerReclusterOfRemainingNonMergedPersonsInCluster() {
     val remainingNonMergedPersonsInCluster = this.personKey?.personEntities?.filter { it.mergedTo == null && this.id != it.id } ?: emptyList()
-    if (isRootStackCall && remainingNonMergedPersonsInCluster.isNotEmpty()) {
+    if (remainingNonMergedPersonsInCluster.isNotEmpty()) {
       remainingNonMergedPersonsInCluster.forEach { nonMergedPersonEntity -> reclusterService.recluster(nonMergedPersonEntity) }
     }
   }
