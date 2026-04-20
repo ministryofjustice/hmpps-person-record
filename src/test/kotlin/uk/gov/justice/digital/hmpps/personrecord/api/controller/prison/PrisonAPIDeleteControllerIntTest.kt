@@ -155,8 +155,11 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
         checkEventLogExist(fromPersonA.prisonNumber!!, CPRLogEvents.CPR_RECORD_DELETED)
         checkEventLogExist(fromPersonB.prisonNumber!!, CPRLogEvents.CPR_RECORD_DELETED)
         checkEventLogExist(fromPersonC.prisonNumber!!, CPRLogEvents.CPR_RECORD_DELETED)
-        checkTelemetry(CPR_RECORD_DELETED, mapOf("UUID" to toPerson.personKey!!.personUUID.toString()))
         checkTelemetry(CPR_UUID_DELETED, mapOf("UUID" to toPerson.personKey!!.personUUID.toString()))
+        checkTelemetry(CPR_RECORD_DELETED, mapOf("UUID" to toPerson.personKey!!.personUUID.toString()))
+        checkTelemetry(CPR_RECORD_DELETED, mapOf("PRISON_NUMBER" to fromPersonA.prisonNumber))
+        checkTelemetry(CPR_RECORD_DELETED, mapOf("PRISON_NUMBER" to fromPersonB.prisonNumber))
+        checkTelemetry(CPR_RECORD_DELETED, mapOf("PRISON_NUMBER" to fromPersonC.prisonNumber))
         wiremock.verify(
           1,
           deleteRequestedFor(urlEqualTo("/person"))
