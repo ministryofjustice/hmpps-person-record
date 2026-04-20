@@ -291,7 +291,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `check circular merge with 2 different UUIDS`() {
+    fun `should not merge record when circular merge is detected - expect merge request to be put on dlq`() {
       val recordACrn = randomCrn()
       val recordBCrn = randomCrn()
 
@@ -316,7 +316,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       expectOneMessageOnDlq(probationMergeEventsQueue)
 
       awaitAssert {
-        val findRecordB = personKeyRepository.findByPersonUUID(recordB.personKey?.personUUID)
+        val findRecordB = personRepository.findByMatchId(recordB.matchId)
         assertThat(findRecordB?.mergedTo).isNull()
       }
     }

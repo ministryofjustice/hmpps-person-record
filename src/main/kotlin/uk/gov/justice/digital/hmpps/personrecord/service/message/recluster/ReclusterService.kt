@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.message.recluster
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse.Companion.result
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -12,12 +11,10 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonTyp
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.BrokenCluster
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.OverrideConflict
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.SelfHealed
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -43,10 +40,10 @@ class ReclusterService(
     }
   }
 
-  private fun processRecluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
+  private fun processRecluster(cluster: PersonKeyEntity, changedPerson: PersonEntity) {
     val matchesToChangedRecord: List<PersonMatchResult> =
-      personMatchService.findPersonRecordsAboveFractureThresholdByMatchWeightDesc(changedRecord)
-    val clusterDetails = ClusterDetails(cluster, changedRecord, matchesToChangedRecord)
+      personMatchService.findPersonRecordsAboveFractureThresholdByMatchWeightDesc(changedPerson)
+    val clusterDetails = ClusterDetails(cluster, changedPerson, matchesToChangedRecord)
     when {
       clusterDetails.relationship.isDifferent() -> handleClusterChange(clusterDetails)
     }
@@ -54,37 +51,38 @@ class ReclusterService(
 
   private fun handleClusterChange(clusterDetails: ClusterDetails) {
     when {
-      clusterDetails.relationship.isSmaller() -> handleUnmatchedRecords(clusterDetails)
-      else -> handleMergeClusters(clusterDetails)
+      clusterDetails.relationship.isSmaller() -> handleUnmatchedPersons(clusterDetails)
+      else -> migratePersonsToMatchingCluster(clusterDetails)
     }
   }
 
-  private fun handleUnmatchedRecords(clusterDetails: ClusterDetails) {
+  private fun handleUnmatchedPersons(clusterDetails: ClusterDetails) {
     when {
       clusterDetails.relationship.notMatchedToAnyRecord() -> handleInvalidClusterComposition(clusterDetails)
       else -> personMatchService.examineIsClusterValid(clusterDetails.cluster).result(
-        isValid = { handleMergeClusters(clusterDetails) },
+        isValid = { migratePersonsToMatchingCluster(clusterDetails) },
         isNotValid = { handleInvalidClusterComposition(clusterDetails) },
       )
     }
   }
 
-  private fun handleMergeClusters(clusterDetails: ClusterDetails) {
+  private fun migratePersonsToMatchingCluster(clusterDetails: ClusterDetails) {
     val matchedRecordsClusters: List<PersonKeyEntity> =
       clusterDetails.shouldJoinRecords
         .collectDistinctClusters()
         .removeUpdatedCluster(clusterDetails.cluster)
         .getActiveClusters()
     when {
-      matchedRecordsClusters.isNotEmpty() -> checkCombinedClustersIsAValidClusterAndMerge(matchedRecordsClusters, clusterDetails)
+      matchedRecordsClusters.isNotEmpty() -> checkCombinedClustersIsAValidClusterAndMigrate(matchedRecordsClusters, clusterDetails)
     }
   }
 
-  private fun checkCombinedClustersIsAValidClusterAndMerge(matchedRecordsClusters: List<PersonKeyEntity>, clusterDetails: ClusterDetails) {
+  private fun checkCombinedClustersIsAValidClusterAndMigrate(matchedRecordsClusters: List<PersonKeyEntity>, clusterDetails: ClusterDetails) {
     personMatchService.examineIsClusterMergeValid(clusterDetails.cluster, matchedRecordsClusters).result(
       isValid = {
         matchedRecordsClusters.forEach {
-          mergeClusters(it, clusterDetails.cluster)
+          migratePersonRecordsToMatchingCluster(it, clusterDetails.cluster)
+          deleteOriginalCluster(it)
         }
       },
       isNotValid = { handleExclusionsBetweenMatchedClusters(clusterDetails.cluster, matchedRecordsClusters) },
@@ -101,30 +99,29 @@ class ReclusterService(
     publisher.publishEvent(OverrideConflict(cluster, matchedRecords))
   }
 
-  private fun mergeClusters(from: PersonKeyEntity, to: PersonKeyEntity) {
-    if (to.mergedTo == from.id) {
-      throw CircularMergeException()
-    }
-    from.mergedTo = to.id
-    from.status = RECLUSTER_MERGE
-    personKeyRepository.save(from)
-    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, from.personEntities.first(), EventLogClusterDetail.from(from)))
-
-    from.personEntities.forEach { personEntity ->
-      personEntity.personKey = to
+  private fun migratePersonRecordsToMatchingCluster(fromCluster: PersonKeyEntity, toCluster: PersonKeyEntity) {
+    val personsToMigrate = fromCluster.personEntities
+    personsToMigrate.forEach { personEntity ->
+      personEntity.assignToPersonKey(toCluster)
       publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED, personEntity))
     }
-    personRepository.saveAll(from.personEntities)
+    personRepository.saveAll(personsToMigrate)
 
+    val fromClusterUUID = fromCluster.personUUID
     publisher.publishEvent(
       RecordTelemetry(
         TelemetryEventType.CPR_RECLUSTER_MERGE,
         mapOf(
-          EventKeys.FROM_UUID to from.personUUID.toString(),
-          EventKeys.TO_UUID to to.personUUID.toString(),
+          EventKeys.FROM_UUID to fromClusterUUID.toString(),
+          EventKeys.TO_UUID to toCluster.personUUID.toString(),
         ),
       ),
     )
+  }
+
+  private fun deleteOriginalCluster(originalCluster: PersonKeyEntity) {
+    originalCluster.personEntities.clear()
+    personKeyRepository.delete(originalCluster)
   }
 
   private fun PersonKeyEntity.setToNeedsAttention(reason: UUIDStatusReasonType) {
