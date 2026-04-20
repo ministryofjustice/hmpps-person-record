@@ -38,7 +38,11 @@ jobs:
         uses: gradle/actions/setup-gradle@39e147cb9de83bb9910b8ef8bd7fff0ee20fcd6f # v6.0.1
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@c10b8064de6f491fea524254123dbe5e09572f13 # v4.35.1
+        uses: github/codeql-action/init@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4.35.2
+        with:
+          tools: linked
+          queries: +security-extended
+          languages: kotlin
 
       - name: Build
         shell: bash
@@ -47,7 +51,7 @@ jobs:
           ./gradlew clean assemble
 
       - name: SCA
-        uses: ministryofjustice/devsecops-actions/sca@f965eb1771ec66cfc41d7d57dc607fa6dfbc10ed # v1.4.0
+        uses: ministryofjustice/devsecops-actions/sca@8c77d3a65a46d1d4b5416eafae5b84371ecd797d # v1.5.0
         env:
           JAVA_HOME: /opt/jdk
           JAVA_HOME_25_X64: ''

@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonTyp
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import java.util.UUID
 
@@ -33,9 +32,6 @@ class PersonKeyEntity(
   @Column
   @OneToMany(mappedBy = "personKey", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
   var personEntities: MutableList<PersonEntity> = mutableListOf(),
-
-  @Column(name = "merged_to")
-  var mergedTo: Long? = null,
 
   @Column
   @Enumerated(STRING)
@@ -65,13 +61,6 @@ class PersonKeyEntity(
     this.apply {
       this.status = NEEDS_ATTENTION
       this.statusReason = reason
-    }
-  }
-
-  fun markAsMerged(to: PersonKeyEntity) {
-    this.apply {
-      this.mergedTo = to.id
-      this.status = MERGED
     }
   }
 
