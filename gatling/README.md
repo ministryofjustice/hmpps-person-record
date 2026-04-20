@@ -20,7 +20,7 @@ Gatling performance tests for verifying hmpps-person-record endpoints.
 ### Running tests in local
 Port forward to [Access the DEV RDS Database](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/rds-external-access.html#accessing-your-rds-database)
 
-Update CLIENT_ID and CLIENT_SECRET in [run_local.sh](run_local.sh)
+Update GATLING_CLIENT_ID and GATLING_CLIENT_SECRET in [run_local.sh](run_local.sh)
 
 Run [run_local.sh](run_local.sh)
 
