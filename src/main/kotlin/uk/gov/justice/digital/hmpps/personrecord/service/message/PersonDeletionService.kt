@@ -63,7 +63,7 @@ class PersonDeletionService(
   }
 
   private fun PersonEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively() {
-    personRepository.findByMergedTo(this.id!!).forEach { personEntity -> personEntity?.let { processDelete(it) } }
+    personRepository.findByMergedTo(this.id!!).forEach { personEntity -> personEntity?.let { deletePerson(it) } }
   }
 
   private fun PersonEntity.triggerReclusterOfRemainingNonMergedPersonsInCluster() {
