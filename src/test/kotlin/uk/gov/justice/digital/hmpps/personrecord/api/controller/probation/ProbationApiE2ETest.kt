@@ -38,6 +38,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -239,7 +240,7 @@ class ProbationApiE2ETest : E2ETestBase() {
       }
 
       @Test
-      fun `should add list of additional identifiers to the canonical record`() {
+      fun `should add list of additional identifiers`() {
         val personOneCro = randomCro()
         val personTwoCro = randomCro()
 
@@ -366,6 +367,50 @@ class ProbationApiE2ETest : E2ETestBase() {
             personTwo.cId,
           ),
         )
+      }
+
+      @Test
+      fun `should redirect to merged to record when requesting merged from record`() {
+        val sourcePersonDetails = createRandomProbationPersonDetails()
+
+        val sourcePerson = createPerson(sourcePersonDetails)
+        val targetPerson = createPerson(sourcePersonDetails.copy(crn = randomCrn()))
+        val sourceCrn = sourcePerson.crn!!
+        val targetCrn = targetPerson.crn!!
+        createPersonKey()
+          .addPerson(sourcePerson)
+          .addPerson(targetPerson)
+
+        probationMergeEventAndResponseSetup(
+          OFFENDER_MERGED,
+          sourceCrn = sourceCrn,
+          targetCrn = targetCrn,
+        )
+        sourcePerson.assertMergedTo(targetPerson)
+
+        webTestClient
+          .get()
+          .uri(probationApiUrl(sourceCrn))
+          .authorised(listOf(API_READ_ONLY))
+          .exchange()
+          .expectStatus()
+          .is3xxRedirection
+          .expectHeader()
+          .valueEquals("Location", "/person/probation/$targetCrn")
+
+        val responseBody = webTestClient
+          .get()
+          .uri(probationApiUrl(targetCrn))
+          .authorised(listOf(API_READ_ONLY))
+          .exchange()
+          .expectStatus()
+          .isOk
+          .expectBody<CanonicalRecord>()
+          .returnResult()
+          .responseBody!!
+
+        assertThat(responseBody.firstName).isEqualTo(sourcePerson.getPrimaryName().firstName)
+        assertThat(responseBody.identifiers.crns).isEqualTo(listOf(targetCrn))
       }
     }
 
