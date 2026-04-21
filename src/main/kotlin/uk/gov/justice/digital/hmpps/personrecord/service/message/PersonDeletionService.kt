@@ -37,8 +37,8 @@ class PersonDeletionService(
   private fun PersonEntity.deleteClusterIfNoRecordsLeft() {
     this.personKey?.let { cluster ->
       when {
-        cluster.hasOneRecord() -> this.deleteCluster(cluster)
-        else -> this.removePersonFromCluster(cluster)
+        cluster.hasOneRecord() -> deletePersonKey(cluster, this)
+        else -> this.removeSelfFromCluster(cluster)
       }
     }
   }
@@ -52,12 +52,12 @@ class PersonDeletionService(
     personMatchService.deleteFromPersonMatch(this)
   }
 
-  private fun PersonEntity.deleteCluster(personKeyEntity: PersonKeyEntity) {
+  private fun deletePersonKey(personKeyEntity: PersonKeyEntity, personEntity: PersonEntity) {
     personKeyRepository.delete(personKeyEntity)
-    publisher.publishEvent(PersonKeyDeleted(this, personKeyEntity))
+    publisher.publishEvent(PersonKeyDeleted(personEntity, personKeyEntity))
   }
 
-  private fun PersonEntity.removePersonFromCluster(personKeyEntity: PersonKeyEntity) {
+  private fun PersonEntity.removeSelfFromCluster(personKeyEntity: PersonKeyEntity) {
     this.removePersonKeyLink()
     personKeyRepository.save(personKeyEntity)
   }
