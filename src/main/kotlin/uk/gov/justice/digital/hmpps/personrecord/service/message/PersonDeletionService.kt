@@ -28,17 +28,16 @@ class PersonDeletionService(
   }
 
   private fun PersonEntity.deleteClusterIfNoRecordsLeft() {
-    this.personKey?.let { cluster ->
-      when {
-        cluster.hasOneRecord() -> deletePersonKey(cluster, this)
-        else -> this.removePersonKeyLink()
-      }
+    if (this.personKey?.hasOneRecord() == true) {
+      deletePersonKey(this.personKey!!, this)
     }
   }
 
   private fun PersonEntity.delete() {
+    val cluster = this.personKey
+    this.removePersonKeyLink()
     personRepository.delete(this)
-    publisher.publishEvent(PersonDeleted(this))
+    publisher.publishEvent(PersonDeleted(this, cluster))
   }
 
   private fun PersonEntity.deleteFromPersonMatch() = personMatchService.deleteFromPersonMatch(this)
