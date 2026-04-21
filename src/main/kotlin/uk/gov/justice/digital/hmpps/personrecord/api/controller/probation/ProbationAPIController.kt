@@ -70,7 +70,7 @@ class ProbationAPIController(
   ): ResponseEntity<CanonicalRecord> {
     val personEntity = personRepository.findByCrn(crn) ?: throw ResourceNotFoundException(crn)
     return when {
-      !personEntity.isNotMerged() -> respondWithRedirect(getMergedToCrn(personEntity))
+      personEntity.isMerged() -> respondWithRedirect(getMergedToCrn(personEntity))
       else -> ResponseEntity.ok(CanonicalRecord.from(personEntity))
     }
   }
