@@ -184,6 +184,8 @@ class PersonEntity(
     this.mergedTo = null
   }
 
+  fun isMerged() = this.mergedTo != null
+
   fun isNotMerged() = this.mergedTo == null
 
   fun removePersonKeyLink() {

@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.HttpStatus.MOVED_PERMANENTLY
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
@@ -26,6 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import java.net.URI
 
 @Tag(name = "HMPPS Person API")
 @RestController
@@ -53,15 +56,21 @@ class ProbationAPIController(
         ),
       ],
     ),
+    ApiResponse(
+      responseCode = "301",
+      description = "Permanent Redirect",
+      content = [
+        Content(schema = Schema(hidden = true)),
+      ],
+    ),
   )
   @PreAuthorize("hasRole('$API_READ_ONLY')")
   fun getProbationPerson(
     @PathVariable(name = "crn") crn: String,
-  ): ResponseEntity<*> {
-    val personEntity = personRepository.findByCrn(crn)
-    // TODO what about merged records?
+  ): ResponseEntity<CanonicalRecord> {
+    val personEntity = personRepository.findByCrn(crn) ?: throw ResourceNotFoundException(crn)
     return when {
-      personEntity == null -> throw ResourceNotFoundException(crn)
+      personEntity.isMerged() -> respondWithRedirect(getMergedToCrn(personEntity))
       else -> ResponseEntity.ok(CanonicalRecord.from(personEntity))
     }
   }
@@ -97,4 +106,10 @@ class ProbationAPIController(
   }
 
   private fun retrieveDefendant(defendantId: String): PersonEntity = personRepository.findByDefendantId(defendantId) ?: throw ResourceNotFoundException(defendantId)
+
+  private fun getMergedToCrn(personEntity: PersonEntity): String = personRepository.findByIdOrNull(personEntity.mergedTo!!)!!.crn!!
+
+  private fun <T : Any> respondWithRedirect(crn: String): ResponseEntity<T> = ResponseEntity.status(MOVED_PERMANENTLY)
+    .location(URI("/person/probation/$crn"))
+    .build()
 }
