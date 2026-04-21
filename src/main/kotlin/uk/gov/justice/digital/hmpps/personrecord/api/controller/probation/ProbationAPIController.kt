@@ -109,9 +109,7 @@ class ProbationAPIController(
 
   private fun getMergedToCrn(personEntity: PersonEntity): String = personRepository.findByIdOrNull(personEntity.mergedTo!!)!!.crn!!
 
-  private fun <T : Any> respondWithRedirect(crn: String): ResponseEntity<T> {
-    return ResponseEntity.status(MOVED_PERMANENTLY)
-      .location(URI("/person/probation/${crn}"))
-      .build()
-  }
+  private fun <T : Any> respondWithRedirect(crn: String): ResponseEntity<T> = ResponseEntity.status(MOVED_PERMANENTLY)
+    .location(URI("/person/probation/$crn"))
+    .build()
 }

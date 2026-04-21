@@ -384,7 +384,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           OFFENDER_MERGED,
           sourceCrn = sourceCrn,
           targetCrn = targetCrn,
-          apiResponseSetup = ApiResponseSetup.from(targetPersonDetails)
+          apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
         )
         sourcePerson.assertMergedTo(targetPerson)
 
@@ -411,7 +411,6 @@ class ProbationApiE2ETest : E2ETestBase() {
 
         assertThat(responseBody.firstName).isEqualTo(targetPerson.getPrimaryName().firstName)
         assertThat(responseBody.identifiers.crns).isEqualTo(listOf(targetCrn))
-
       }
     }
 
