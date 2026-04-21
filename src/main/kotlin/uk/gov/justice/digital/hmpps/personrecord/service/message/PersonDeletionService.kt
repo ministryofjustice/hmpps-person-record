@@ -38,7 +38,7 @@ class PersonDeletionService(
     this.personKey?.let { cluster ->
       when {
         cluster.hasOneRecord() -> deletePersonKey(cluster, this)
-        else -> this.removeSelfFromCluster(cluster)
+        else -> this.removePersonKeyLink()
       }
     }
   }
@@ -55,11 +55,6 @@ class PersonDeletionService(
   private fun deletePersonKey(personKeyEntity: PersonKeyEntity, personEntity: PersonEntity) {
     personKeyRepository.delete(personKeyEntity)
     publisher.publishEvent(PersonKeyDeleted(personEntity, personKeyEntity))
-  }
-
-  private fun PersonEntity.removeSelfFromCluster(personKeyEntity: PersonKeyEntity) {
-    this.removePersonKeyLink()
-    personKeyRepository.save(personKeyEntity)
   }
 
   private fun PersonEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively() {

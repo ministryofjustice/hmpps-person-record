@@ -687,6 +687,10 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personB)
         .addPerson(personC)
 
+      // This shows the cluster isn't correct to start with
+      recluster(personA)
+      cluster1.assertClusterIsOfSize(3)
+
       val personD = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
         .addPerson(personD)
