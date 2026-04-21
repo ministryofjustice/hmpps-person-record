@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 
-import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -27,20 +25,6 @@ class PrisonAPIDeleteController(
     ApiResponse(
       responseCode = "200",
       description = "OK",
-    ),
-    ApiResponse(
-      responseCode = "400",
-      description = "Bad request",
-      content = [
-        Content(schema = Schema(hidden = true)),
-      ],
-    ),
-    ApiResponse(
-      responseCode = "404",
-      description = "Not Found",
-      content = [
-        Content(schema = Schema(hidden = true)),
-      ],
     ),
   )
   @DeleteMapping("/person/prison/{prisonNumber}")
