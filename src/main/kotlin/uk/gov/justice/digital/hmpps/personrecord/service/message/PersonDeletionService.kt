@@ -49,7 +49,7 @@ class PersonDeletionService(
   }
 
   private fun removeLinkToRecord(personKeyEntity: PersonKeyEntity, personEntity: PersonEntity) {
-    personKeyEntity.personEntities.remove(personEntity)
+    personEntity.removePersonKeyLink()
     personKeyRepository.save(personKeyEntity)
   }
 
