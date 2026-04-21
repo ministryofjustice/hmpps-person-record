@@ -19,14 +19,12 @@ class PrisonGetHelper(
       ?: throw ResourceNotFoundException(prisonNumber)
 
     return when {
-      personEntity.hasMergedIntoAnotherPerson() -> respondWithRedirect(getMergedToPrisonNumber(personEntity))
+      personEntity.isMerged() -> respondWithRedirect(getMergedToPrisonNumber(personEntity))
       else -> ResponseEntity.ok(buildBody(personEntity))
     }
   }
 
   private fun getMergedToPrisonNumber(personEntity: PersonEntity): String = personRepository.findByIdOrNull(personEntity.mergedTo!!)!!.prisonNumber!!
-
-  private fun PersonEntity.hasMergedIntoAnotherPerson(): Boolean = !this.isNotMerged()
 
   private fun <T : Any> respondWithRedirect(targetPrisonNumber: String): ResponseEntity<T> = ResponseEntity.status(MOVED_PERMANENTLY)
     .location(URI("/person/prison/$targetPrisonNumber"))
