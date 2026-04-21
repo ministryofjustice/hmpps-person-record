@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import kotlin.jvm.optionals.getOrNull
 
 class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -205,13 +206,15 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sourcePrisonNumber = randomPrisonNumber()
       val sourcePerson = createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
+      val sourceClusterId = sourcePerson.personKey?.id
 
       prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber)
 
-      sourcePerson.assertNotLinkedToCluster()
       sourcePerson.assertMergedTo(targetPerson)
-      sourcePerson.personKey?.assertClusterStatus(UUIDStatusType.MERGED)
-      sourcePerson.personKey?.assertClusterIsOfSize(0)
+      sourcePerson.assertNotLinkedToCluster()
+
+      val sourceClusterPostMerge = personKeyRepository.findById(sourceClusterId!!).getOrNull()
+      assertThat(sourceClusterPostMerge).isNull()
 
       targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       targetPerson.personKey?.assertClusterIsOfSize(1)
@@ -228,13 +231,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkEventLog(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         assertThat(eventLogs.first().recordMergedTo).isEqualTo(targetPerson.id)
-        assertThat(eventLogs.first().personUUID).isEqualTo(sourcePerson.personKey?.personUUID)
-      }
-      checkEventLog(sourcePrisonNumber, CPRLogEvents.CPR_UUID_MERGED) { eventLogs ->
-        assertThat(eventLogs).hasSize(1)
-        val event = eventLogs.first()
-        assertThat(event.personUUID).isEqualTo(sourcePerson.personKey?.personUUID)
-        assertThat(event.uuidStatusType).isEqualTo(UUIDStatusType.MERGED)
+        assertThat(eventLogs.first().personUUID).isEqualTo(sourcePerson.personKey!!.personUUID)
       }
     }
 

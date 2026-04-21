@@ -49,6 +49,11 @@ hmpps.sqs:
       subscribeTopicId: domainevents
       dlqName: test_only_cpr_events_queue_dlq
       subscribeFilter: '{"eventType":[ "core-person-record.probation.address.created"] }'
+    testcprdomaineventsqueue:
+      queueName: test_only_cpr_domain_events_queue
+      subscribeTopicId: domainevents
+      subscribeFilter: '{"eventType":[ "core-person-record.prison.record.created", "core-person-record.probation.record.created", "core-person-record.court.record.created"] }'
+      dlqName: test_only_cpr_domain_events_queue_dlq
       dlqMaxReceiveCount: 2
     cprdeliusoffendereventsqueue:
       queueName: cpr_delius_offender_events_queue

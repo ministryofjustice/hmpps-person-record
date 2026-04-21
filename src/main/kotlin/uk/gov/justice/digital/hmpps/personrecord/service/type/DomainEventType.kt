@@ -13,3 +13,6 @@ const val OFFENDER_GDPR_DELETION = "probation-case.deleted.gdpr"
 const val OFFENDER_DELETION = "probation-case.engagement.deleted"
 
 const val OFFENDER_ADDRESS_CREATED = "probation-case.address.created"
+const val CPR_PRISON_PERSON_CREATED = "core-person-record.prison.record.created"
+const val CPR_PROBATION_PERSON_CREATED = "core-person-record.probation.record.created"
+const val CPR_COURT_PERSON_CREATED = "core-person-record.court.record.created"

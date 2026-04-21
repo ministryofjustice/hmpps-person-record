@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.visualiseclu
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DiscardableNotFoundException
@@ -43,7 +42,6 @@ class PersonMatchService(
       .allowMatchesWithUUID()
       .removeMergedRecords()
       .removePassiveRecords()
-      .removeMatchesWhereClusterInInvalidState()
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
       .sortedByDescending { it.matchWeight }
     return aboveFractureThresholdPersonRecords
@@ -107,11 +105,6 @@ class PersonMatchService(
   private fun List<PersonMatchResult>.removeMergedRecords(): List<PersonMatchResult> = this.filter { it.personEntity.mergedTo == null }
 
   private fun List<PersonMatchResult>.removePassiveRecords(): List<PersonMatchResult> = this.filterNot { it.personEntity.isPassive() }
-
-  private fun List<PersonMatchResult>.removeMatchesWhereClusterInInvalidState(): List<PersonMatchResult> {
-    val validStatuses = listOf(UUIDStatusType.ACTIVE, UUIDStatusType.NEEDS_ATTENTION)
-    return this.filter { candidate -> validStatuses.contains(candidate.personEntity.personKey?.status) }
-  }
 
   private fun List<PersonMatchResult>.logCandidateSearchSummary(personEntity: PersonEntity, totalNumberOfScores: Int): List<PersonMatchResult> {
     val canJoinCount = this.getClustersThatItCanJoin()
