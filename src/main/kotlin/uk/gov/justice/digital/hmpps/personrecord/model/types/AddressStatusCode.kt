@@ -11,4 +11,14 @@ enum class AddressStatusCode(val description: String) {
   RT("ROTL"),
   S("Secondary"),
   PM("Primary and Mail"),
+  ;
+
+  companion object {
+    fun fromPrison(isPrimary: Boolean, isMail: Boolean): AddressStatusCode? = when {
+      isPrimary && isMail -> PM
+      isPrimary -> M
+      isMail -> MA
+      else -> null
+    }
+  }
 }
