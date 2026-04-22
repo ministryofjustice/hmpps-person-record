@@ -67,8 +67,6 @@ data class Person(
 
   companion object {
 
-    fun List<Reference>.toString(): String = this.joinToString { it.identifierValue.toString() }
-
     fun from(probationCase: ProbationCase): Person {
       val contacts: List<Contact> = listOfNotNull(
         Contact.from(ContactType.HOME, probationCase.contactDetails?.telephone),
@@ -226,7 +224,7 @@ data class Person(
       val primaryAlias = prisoner.pseudonyms.firstOrNull { it.isPrimary == true } ?: throw IllegalArgumentException("No primary alias was found for update on prisoner $prisonNumber")
 
       val references = prisoner.pseudonyms
-        .flatMap { it.identifiers?.toList() ?: emptyList() }
+        .flatMap { it.identifiers.toList() }
         .map { Reference.from(it) }
 
       return Person(

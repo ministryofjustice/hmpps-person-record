@@ -57,7 +57,6 @@ class ReclusterController(
     SourceSystemType.LIBRA -> personRepository.findByCId(record.sourceSystemId)
     SourceSystemType.NOMIS -> personRepository.findByPrisonNumber(record.sourceSystemId)
     SourceSystemType.DELIUS -> personRepository.findByCrn(record.sourceSystemId)
-    else -> null
   }
 
   private fun List<AdminReclusterRecord>.forEachPersonAndLog(processName: String, action: (PersonEntity) -> Unit) {
