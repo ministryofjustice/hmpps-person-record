@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyReposit
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyDeleted
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
@@ -17,10 +18,17 @@ class PersonDeletionService(
   private val personKeyRepository: PersonKeyRepository,
   private val personMatchService: PersonMatchService,
   private val publisher: ApplicationEventPublisher,
+  private val reclusterService: ReclusterService,
 ) {
 
   @Transactional
   fun processDelete(personCallback: () -> PersonEntity?) = personCallback()?.let { personEntity ->
+    val cluster = personEntity.personKey
+    deletePerson(personEntity)
+    triggerReclusterOfRemainingNonMergedPersonsInCluster(personEntity, cluster)
+  }
+
+  fun deletePerson(personEntity: PersonEntity) {
     personEntity.deleteClusterIfNoRecordsLeft()
     personEntity.delete()
     personEntity.deleteFromPersonMatch()
@@ -48,6 +56,11 @@ class PersonDeletionService(
   }
 
   private fun PersonEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively() {
-    personRepository.findByMergedTo(this.id!!).forEach { personEntity -> processDelete { personEntity } }
+    personRepository.findByMergedTo(this.id!!).filterNotNull().forEach { personEntity -> deletePerson(personEntity) }
+  }
+
+  private fun triggerReclusterOfRemainingNonMergedPersonsInCluster(deletedPersonEntity: PersonEntity, cluster: PersonKeyEntity?) {
+    val remainingNonMergedPersonsInCluster = cluster?.personEntities?.filter { it.mergedTo == null && deletedPersonEntity.id != it.id } ?: emptyList()
+    remainingNonMergedPersonsInCluster.forEach { nonMergedPersonEntity -> reclusterService.recluster(nonMergedPersonEntity) }
   }
 }
