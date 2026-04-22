@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyReposit
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyDeleted
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
@@ -18,13 +17,11 @@ class PersonDeletionService(
   private val personKeyRepository: PersonKeyRepository,
   private val personMatchService: PersonMatchService,
   private val publisher: ApplicationEventPublisher,
-  private val reclusterService: ReclusterService,
 ) {
 
   @Transactional
   fun processDelete(personEntity: PersonEntity) {
     deletePerson(personEntity)
-    personEntity.triggerReclusterOfRemainingNonMergedPersonsInCluster()
   }
 
   private fun deletePerson(personEntity: PersonEntity) {
@@ -58,10 +55,5 @@ class PersonDeletionService(
 
   private fun PersonEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively() {
     personRepository.findByMergedTo(this.id!!).forEach { personEntity -> personEntity?.let { deletePerson(it) } }
-  }
-
-  private fun PersonEntity.triggerReclusterOfRemainingNonMergedPersonsInCluster() {
-    val remainingNonMergedPersonsInCluster = this.personKey?.personEntities?.filter { it.mergedTo == null && this.id != it.id } ?: emptyList()
-    remainingNonMergedPersonsInCluster.forEach { nonMergedPersonEntity -> reclusterService.recluster(nonMergedPersonEntity) }
   }
 }
