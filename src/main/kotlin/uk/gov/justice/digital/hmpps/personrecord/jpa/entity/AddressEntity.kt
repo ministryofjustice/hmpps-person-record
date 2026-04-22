@@ -17,6 +17,7 @@ import jakarta.persistence.Version
 import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import java.time.LocalDate
 import java.util.UUID
@@ -110,6 +111,10 @@ class AddressEntity(
   @Column(name = "mail")
   val mail: Boolean? = null,
 
+  @Enumerated(STRING)
+  @Column(name = "status_code")
+  val statusCode: AddressStatusCode? = null,
+
   @Version
   var version: Int = 0,
 ) {
@@ -134,6 +139,7 @@ class AddressEntity(
       comment = address.comment,
       primary = address.isPrimary,
       mail = address.isMail,
+      statusCode = address.statusCode,
       usages = address.usages.map { AddressUsageEntity.from(it) }.toMutableList(),
       contacts = address.contacts.map { ContactEntity.from(it) }.toMutableList(),
     )
