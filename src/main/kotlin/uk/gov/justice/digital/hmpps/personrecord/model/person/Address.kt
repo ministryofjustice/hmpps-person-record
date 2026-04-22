@@ -137,8 +137,6 @@ data class Address(
       uprn = addressEntity.uprn,
       comment = addressEntity.comment,
       recordType = addressEntity.recordType,
-      isPrimary = addressEntity.primary,
-      isMail = addressEntity.mail,
       statusCode = addressEntity.statusCode,
       usages = addressEntity.usages.map { AddressUsage.from(it) },
       contacts = addressEntity.contacts.map { Contact.from(it) },
