@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRe
 @Tag(name = "HMPPS Person API")
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
-class PrisonAPIController(private val prisonGetHelper: PrisonGetHelper) {
+class PrisonAPIGetController(private val prisonGetHelper: PrisonGetHelper) {
 
   @Operation(
     description = """Retrieve person record by Prison Number. Role required is **$API_READ_ONLY** . 
