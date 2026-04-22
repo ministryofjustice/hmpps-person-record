@@ -62,10 +62,7 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
       val clusterBeforeDelete = createPersonKey()
         .addPerson(personToBeDeleted)
         .addPerson(personToStayOnCluster)
-        .also {
-          stubDeletePersonMatch()
-          stubPersonMatchScores()
-        }
+        .also { stubDeletePersonMatch() }
 
       sendDeleteRequestAsserted<Unit>(
         url = prisonPersonDeleteUrl(prisonNumber),

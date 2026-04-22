@@ -25,21 +25,27 @@ class PersonDeletionService(
   }
 
   private fun deletePerson(personEntity: PersonEntity) {
+    val cluster = personEntity.personKey
     personEntity.deleteClusterIfNoRecordsLeft()
-    personEntity.delete()
+    personEntity.delete(cluster)
     personEntity.deleteFromPersonMatch()
     personEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively()
   }
 
   private fun PersonEntity.deleteClusterIfNoRecordsLeft() {
-    if (this.personKey?.hasOneRecord() == true) {
-      deletePersonKey(this.personKey!!, this)
+    val cluster = this.personKey
+    when {
+      cluster?.hasOneRecord() == true -> deletePersonKey(cluster, this)
+      else -> {
+        this.removePersonKeyLink()
+        if (this.mergedTo == null) {
+          personKeyRepository.save(cluster!!)
+        }
+      }
     }
   }
 
-  private fun PersonEntity.delete() {
-    val cluster = this.personKey
-    this.removePersonKeyLink()
+  private fun PersonEntity.delete(cluster: PersonKeyEntity?) {
     personRepository.delete(this)
     publisher.publishEvent(PersonDeleted(this, cluster))
   }
