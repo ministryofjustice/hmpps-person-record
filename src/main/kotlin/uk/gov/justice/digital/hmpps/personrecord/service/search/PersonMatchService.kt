@@ -101,7 +101,7 @@ class PersonMatchService(
 
   private fun List<PersonMatchResult>.allowMatchesWithUUID(): List<PersonMatchResult> = this.filter { it.personEntity.personKey != PersonKeyEntity.empty }
 
-  private fun List<PersonMatchResult>.removePassiveRecords(): List<PersonMatchResult> = this.filterNot { it.personEntity.isPassive() } // TODO delete me
+  private fun List<PersonMatchResult>.removePassiveRecords(): List<PersonMatchResult> = this.filterNot { it.personEntity.isPassive() }
 
   private fun List<PersonMatchResult>.logCandidateSearchSummary(personEntity: PersonEntity, totalNumberOfScores: Int): List<PersonMatchResult> {
     val canJoinCount = this.getClustersThatItCanJoin()
