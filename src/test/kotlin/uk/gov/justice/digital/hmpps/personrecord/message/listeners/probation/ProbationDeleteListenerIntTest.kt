@@ -33,7 +33,10 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
       publishProbationDomainEvent(OFFENDER_GDPR_DELETION, crn)
 
-      checkTelemetry(CPR_RECORD_DELETED, mapOf("CRN" to crn, "SOURCE_SYSTEM" to "DELIUS"))
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to crn, "UUID" to personKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_DELETED)
 
       person.assertPersonDeleted()
