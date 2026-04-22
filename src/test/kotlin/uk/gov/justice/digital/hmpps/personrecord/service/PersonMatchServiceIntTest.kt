@@ -178,25 +178,6 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `should not return high confidence match has been merged to another record`() {
-      val searchingRecord = createPerson(createExamplePerson())
-      createPersonKey()
-        .addPerson(searchingRecord)
-
-      val mergedToRecord = createPerson(createExamplePerson())
-      val foundRecord = createPerson(createExamplePerson()) { mergedTo = mergedToRecord.id }
-      createPersonKey()
-        .addPerson(foundRecord)
-        .addPerson(mergedToRecord)
-
-      stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
-
-      val highConfidenceMatch = personMatchService.findClustersToJoin(searchingRecord)
-
-      noCandidateFound(highConfidenceMatch)
-    }
-
-    @Test
     fun `should not return high confidence match to a passive state record`() {
       val searchingRecord = createPerson(createExamplePerson())
       createPersonKey()

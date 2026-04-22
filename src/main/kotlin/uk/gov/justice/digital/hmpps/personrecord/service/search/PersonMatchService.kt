@@ -40,7 +40,6 @@ class PersonMatchService(
     val personScores = collectPersonScores(personEntity)
     val aboveFractureThresholdPersonRecords = getPersonRecords(personScores.getClustersAboveFractureThreshold())
       .allowMatchesWithUUID()
-      .removeMergedRecords()
       .removePassiveRecords()
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
       .sortedByDescending { it.matchWeight }
@@ -101,8 +100,6 @@ class PersonMatchService(
   }
 
   private fun List<PersonMatchResult>.allowMatchesWithUUID(): List<PersonMatchResult> = this.filter { it.personEntity.personKey != PersonKeyEntity.empty }
-
-  private fun List<PersonMatchResult>.removeMergedRecords(): List<PersonMatchResult> = this.filter { it.personEntity.mergedTo == null }
 
   private fun List<PersonMatchResult>.removePassiveRecords(): List<PersonMatchResult> = this.filterNot { it.personEntity.isPassive() }
 
