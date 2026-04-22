@@ -67,8 +67,6 @@ data class Person(
 
   companion object {
 
-    fun List<Reference>.toString(): String = this.joinToString { it.identifierValue.toString() }
-
     fun from(probationCase: ProbationCase): Person {
       val contacts: List<Contact> = listOfNotNull(
         Contact.from(ContactType.HOME, probationCase.contactDetails?.telephone),
