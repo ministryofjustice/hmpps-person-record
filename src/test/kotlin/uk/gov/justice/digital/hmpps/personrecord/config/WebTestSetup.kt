@@ -43,6 +43,13 @@ open class WebTestSetup : IntegrationTestBase() {
     sendAuthorised: Boolean = true,
   ): WebTestClient.BodySpec<T, *> = sendRequestAsserted(url, null, roles, expectedStatus, sendAuthorised, HttpMethod.GET)
 
+  protected final inline fun <reified T : Any> sendDeleteRequestAsserted(
+    url: String,
+    roles: List<String>,
+    expectedStatus: HttpStatus,
+    sendAuthorised: Boolean = true,
+  ): WebTestClient.BodySpec<T, *> = sendRequestAsserted(url, null, roles, expectedStatus, sendAuthorised, HttpMethod.DELETE)
+
   protected final inline fun <reified T : Any> sendRequestAsserted(
     url: String,
     body: Any?,
