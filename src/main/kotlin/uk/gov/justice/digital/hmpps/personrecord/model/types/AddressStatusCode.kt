@@ -10,16 +10,15 @@ enum class AddressStatusCode(val description: String) {
   RJ("Rejected"),
   RT("ROTL"),
   S("Secondary"),
-  PM("Primary and Mail");
+  PM("Primary and Mail"),
+  ;
 
   companion object {
-    fun fromPrison(isPrimary: Boolean, isMail: Boolean): AddressStatusCode? {
-      return when {
-        isPrimary && isMail -> PM
-        isPrimary -> M
-        isMail -> MA
-        else -> null
-      }
+    fun fromPrison(isPrimary: Boolean, isMail: Boolean): AddressStatusCode? = when {
+      isPrimary && isMail -> PM
+      isPrimary -> M
+      isMail -> MA
+      else -> null
     }
   }
 }
