@@ -63,7 +63,7 @@ open class WebTestSetup : IntegrationTestBase() {
       .uri(url)
 
     val requestSpecReady = when (methodType) {
-      HttpMethod.GET -> requestSpec
+      HttpMethod.GET, HttpMethod.DELETE -> requestSpec
       else -> requestSpec.bodyValue(body!!)
     }
 
