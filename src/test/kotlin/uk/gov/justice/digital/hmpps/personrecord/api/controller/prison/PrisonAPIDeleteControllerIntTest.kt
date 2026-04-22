@@ -6,12 +6,18 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -21,16 +27,19 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
   @Autowired
   private lateinit var mergeService: MergeService
 
+  @MockitoSpyBean
+  private lateinit var spyReclusterService: ReclusterService
+
   @Nested
   inner class SinglePersonCluster {
 
     @Test
-    fun `deletes person - deletes cluster - deletes from person match`() {
-      val person = createRandomPrisonPersonDetails()
-      val prisonNumber = person.prisonNumber!!
+    fun `deletes person - deletes cluster - deletes from person match - does not trigger recluster`() {
+      val personToBeDeleted = createRandomPrisonPersonDetails()
+      val prisonNumber = personToBeDeleted.prisonNumber!!
 
       val cluster = createPersonKey()
-        .addPerson(person)
+        .addPerson(personToBeDeleted)
         .also { stubDeletePersonMatch() }
 
       sendDeleteRequestAsserted<Unit>(
@@ -47,6 +56,8 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
         checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_DELETED)
         checkEventLogExist(prisonNumber, CPRLogEvents.CPR_UUID_DELETED)
       }
+
+      verifyNoInteractions(spyReclusterService)
     }
   }
 
@@ -54,14 +65,13 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
   inner class MultiPersonCluster {
 
     @Test
-    fun `deletes person - does not delete cluster - deletes from person match`() {
-      val personToBeDeleted = createRandomPrisonPersonDetails()
-      val personToStayOnCluster = createRandomPrisonPersonDetails()
+    fun `deletes person - does not delete cluster - deletes from person match - does trigger recluster`() {
+      val personToBeDeleted = createPerson(createRandomPrisonPersonDetails())
       val prisonNumber = personToBeDeleted.prisonNumber!!
 
       val clusterBeforeDelete = createPersonKey()
         .addPerson(personToBeDeleted)
-        .addPerson(personToStayOnCluster)
+        .addPerson(createPerson(createRandomPrisonPersonDetails()))
         .also {
           stubDeletePersonMatch()
           stubPersonMatchScores()
@@ -80,6 +90,8 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
         checkTelemetry(CPR_RECORD_DELETED, mapOf("UUID" to clusterBeforeDelete.personUUID.toString()))
         checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_DELETED)
       }
+
+      verify(spyReclusterService, times(1)).recluster(any())
     }
   }
 
@@ -87,7 +99,7 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
   inner class PersonMergeScenarios {
 
     @Test
-    fun `deleting a merged from person - deletes from person - does not delete cluster or merged to person`() {
+    fun `deleting a merged from person - deletes from person - does not delete cluster or merged to person - does not trigger recluster`() {
       val toPerson = createPersonWithNewKey(createRandomPrisonPersonDetails())
       val fromPerson = createPerson(createRandomPrisonPersonDetails()) { mergedTo = toPerson.id }
       stubDeletePersonMatch()
@@ -111,10 +123,12 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
             .withRequestBody(equalToJson("""{"matchId":"${fromPerson.matchId}"}""")),
         )
       }
+
+      verifyNoInteractions(spyReclusterService)
     }
 
     @Test
-    fun `deleting a merged to person - deletes to person - deletes cluster and all from descendants`() {
+    fun `deleting a merged to person - deletes to person - deletes cluster and all from descendants - does not trigger recluster`() {
       val toPerson = createPersonWithNewKey(createRandomPrisonPersonDetails())
       val fromPersonC = createPerson(createRandomPrisonPersonDetails()) { mergedTo = toPerson.id }
       val fromPersonB = createPerson(createRandomPrisonPersonDetails()) { mergedTo = toPerson.id }
@@ -151,6 +165,8 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
             .withRequestBody(equalToJson("""{"matchId":"${toPerson.matchId}"}""")),
         )
       }
+
+      verifyNoInteractions(spyReclusterService)
     }
   }
 
