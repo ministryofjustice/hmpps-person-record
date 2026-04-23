@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ON
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.DpsPrisonGetHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.DpsPrisonRecord
 
-@Tag(name = "HMPPS Person API")
+@Tag(name = "Prison")
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
 class DpsPrisonAPIController(private val dpsPrisonGetHandler: DpsPrisonGetHandler) {

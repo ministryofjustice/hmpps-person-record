@@ -28,11 +28,6 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
         Server().url("http://localhost:8080").description("Local"),
       ),
     )
-    .tags(
-      listOf(
-        Tag().name("Search").description("APIs for person search"),
-      ),
-    )
     .info(
       Info().title("HMPPS Core Person Record")
         .version(version)

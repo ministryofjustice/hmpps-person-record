@@ -30,7 +30,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.Reclu
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import java.net.URI
 
-@Tag(name = "HMPPS Person API")
+@Tag(name = "Probation")
 @RestController
 class ProbationAPIController(
   private val personRepository: PersonRepository,
