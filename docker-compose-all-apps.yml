@@ -8,8 +8,8 @@ services:
     networks:
       - hmpps
     environment:
-      - POSTGRES_USER=root
-      - POSTGRES_PASSWORD=dev
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: dev
     tmpfs:
       - /var/lib/postgresql
     healthcheck:
@@ -28,11 +28,11 @@ services:
     ports:
       - "4566:4566"
     environment:
-      - SERVICES=sns,sqs,s3
-      - DEBUG=${DEBUG- }
-      - PERSISTENCE=1
-      - DOCKER_HOST=unix:///var/run/docker.sock
-      - LS_LOG=trace
+      SERVICES: sns,sqs,s3
+      DEBUG: ${DEBUG- }
+      PERSISTENCE: 1
+      DOCKER_HOST: unix:///var/run/docker.sock
+      LS_LOG: trace
     volumes:
       - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
@@ -86,8 +86,8 @@ services:
     healthcheck:
       test: [ "CMD", "bash", "-c", "echo > /dev/tcp/localhost/9090" ]
     environment:
-      - SERVER_PORT=9090
-      - SPRING_PROFILES_ACTIVE=dev
+      SERVER_PORT: 9090
+      SPRING_PROFILES_ACTIVE: dev
 
   hmpps-person-record-manage-ui:
     image: ghcr.io/ministryofjustice/hmpps-person-record-manage-ui
@@ -98,21 +98,21 @@ services:
     healthcheck:
       test: [ "CMD", "wget", "-q", "-O", "-", "http://localhost:3000/health" ]
     environment:
-      - PRODUCT_ID=UNASSIGNED
-      - REDIS_ENABLED=false
-      - REDIS_HOST=localhost
-      - HMPPS_AUTH_URL=http://hmpps-auth:9090/auth
-      # These will need to match new creds in the seed auth service auth
-      - AUTH_CODE_CLIENT_ID=hmpps-person-record-manage-ui
-      - AUTH_CODE_CLIENT_SECRET=clientsecret
-      - CLIENT_CREDS_CLIENT_ID=hmpps-person-record-manage-ui-client
-      - CLIENT_CREDS_CLIENT_SECRET=clientsecret
-      - SESSION_SECRET=somesecretvalue
-      - TOKEN_VERIFICATION_API_URL=http://localhost:9090
-      - TOKEN_VERIFICATION_ENABLED=false
-      - INGRESS_URL=http://localhost:3000
-      - PERSON_RECORD_API_URL=http://hmpps-person-record:8080
-      - NO_HTTPS=true
+      PRODUCT_ID: UNASSIGNED
+      REDIS_ENABLED: false
+      REDIS_HOST: localhost
+      HMPPS_AUTH_EXTERNAL_URL: http://localhost:9090/auth
+      HMPPS_AUTH_URL: http://hmpps-auth:9090/auth
+      AUTH_CODE_CLIENT_ID: hmpps-person-record-manage-ui
+      AUTH_CODE_CLIENT_SECRET: clientsecret
+      CLIENT_CREDS_CLIENT_ID: hmpps-person-record-manage-ui-client
+      CLIENT_CREDS_CLIENT_SECRET: clientsecret
+      SESSION_SECRET: somesecretvalue
+      TOKEN_VERIFICATION_API_URL: http://localhost:9090
+      TOKEN_VERIFICATION_ENABLED: false
+      INGRESS_URL: http://localhost:3000
+      PERSON_RECORD_API_URL: http://hmpps-person-record:8080
+      NO_HTTPS: true
 
   hmpps-person-record:
     container_name: hmpps-person-record
@@ -121,22 +121,21 @@ services:
       - hmpps
     ports:
       - "8080:8080"
-    healthcheck:
-      test: [ "CMD", "wget", "-q", "-O", "-", "http://localhost:8080/health" ]
     environment:
-      - SPRING_PROFILES_ACTIVE=local
-      - SERVER_PORT=8080
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-hmpps-person-record:5432/postgres?currentSchema=personrecordservice&stringtype=unspecified
-      - PERSON_MATCH_BASE_URL=http://hmpps-person-match:5000
-      - PRISONER_SEARCH_BASE_URL=http://localhost:9999 # non-existent
-      - CORE_PERSON_RECORD_AND_DELIUS_BASE_URL=http://localhost:9999 # non-existent
-      - SERVICE_NOW_BASE_URL=http://localhost:9999 # non-existent
-      - SERVICE_NOW_SYSPARM_ID=sysparm12345
-      - SERVICE_NOW_REQUESTOR=abcd
-      - SERVICE_NOW_REQUESTED_FOR=efgh
-      - AWS_ENDPOINT=http://localstack-hmpps-person-record:4566
-      - AWS_REGION=eu-west-2
-      - HMPPS_SQS_LOCALSTACK_URL=http://localstack-hmpps-person-record:4566
+      SPRING_PROFILES_ACTIVE: local
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-hmpps-person-record:5432/postgres?currentSchema=personrecordservice&stringtype=unspecified
+      PERSON_MATCH_BASE_URL: http://hmpps-person-match:5000
+      PRISONER_SEARCH_BASE_URL: http://localhost:9999 # non-existent
+      CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: http://localhost:9999 # non-existent
+      SERVICE_NOW_BASE_URL: http://localhost:9999 # non-existent
+      SERVICE_NOW_SYSPARM_ID: sysparm12345
+      SERVICE_NOW_REQUESTOR: abcd
+      SERVICE_NOW_REQUESTED_FOR: efgh
+      AWS_ENDPOINT: http://localstack-hmpps-person-record:4566
+      AWS_REGION: eu-west-2
+      HMPPS_SQS_LOCALSTACK_URL: http://localstack-hmpps-person-record:4566
+      NOMIS_OAUTH_BASE_URL: http://hmpps-auth:9090
 
 networks:
   hmpps:
