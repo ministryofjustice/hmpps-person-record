@@ -1,0 +1,142 @@
+services:
+
+  postgres-hmpps-person-record:
+    container_name: postgres-hmpps-person-record
+    image: postgres:17.4-alpine
+    ports:
+      - "5432:5432"
+    networks:
+      - hmpps
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=dev
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test: pg_isready -U root -d postgres
+      start_period: 5s
+      start_interval: 0.2s
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  localstack-hmpps-person-record:
+    container_name: localstack-hmpps-person-record
+    image: localstack/localstack:4
+    networks:
+      - hmpps
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=sns,sqs,s3
+      - DEBUG=${DEBUG- }
+      - PERSISTENCE=1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - LS_LOG=trace
+    volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "$PWD/src/test/resources/localstack/setup-aws.sh:/etc/localstack/init/ready.d/init-aws.sh"
+
+  hmpps-person-match:
+    container_name: hmpps-person-match
+    image: ghcr.io/ministryofjustice/hmpps-person-match
+    command: |
+      sh -c "/app/.venv/bin/python -m pip install --no-cache-dir debugpy &&
+             python -m debugpy --listen 0.0.0.0:5678 -m uvicorn asgi:app --host 0.0.0.0 --port 5000 --reload --log-level debug"
+    networks:
+      - hmpps
+    environment: &database_config
+      DATABASE_USERNAME: root
+      DATABASE_PASSWORD: dev
+      DATABASE_NAME: postgres
+      DATABASE_PORT: 5432
+      DATABASE_HOST: postgres-hmpps-person-record
+      DB_SSL_ENABLED: False
+      OAUTH_BASE_URL: http://hmpps-auth:9090
+      OAUTH_ISSUER_URL_KEY: http://localhost:9090
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+      hmpps-auth:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+      - "5678:5678"
+
+  migrations:
+    image: ghcr.io/ministryofjustice/hmpps-person-match
+    container_name: db-migrations
+    command: alembic upgrade head
+    networks:
+      - hmpps
+    environment:
+      <<: *database_config
+    depends_on:
+      postgres-hmpps-person-record:
+        condition: service_healthy
+
+  hmpps-auth:
+    image: ghcr.io/ministryofjustice/hmpps-auth:latest
+    container_name: hmpps-auth
+    networks:
+      - hmpps
+    ports:
+      - "9090:9090"
+    healthcheck:
+      test: [ "CMD", "bash", "-c", "echo > /dev/tcp/localhost/9090" ]
+    environment:
+      - SERVER_PORT=9090
+      - SPRING_PROFILES_ACTIVE=dev
+
+  hmpps-person-record-manage-ui:
+    image: ghcr.io/ministryofjustice/hmpps-person-record-manage-ui
+    networks:
+      - hmpps
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "-O", "-", "http://localhost:3000/health" ]
+    environment:
+      - PRODUCT_ID=UNASSIGNED
+      - REDIS_ENABLED=false
+      - REDIS_HOST=localhost
+      - HMPPS_AUTH_URL=http://hmpps-auth:9090/auth
+      # These will need to match new creds in the seed auth service auth
+      - AUTH_CODE_CLIENT_ID=hmpps-person-record-manage-ui
+      - AUTH_CODE_CLIENT_SECRET=clientsecret
+      - CLIENT_CREDS_CLIENT_ID=hmpps-person-record-manage-ui-client
+      - CLIENT_CREDS_CLIENT_SECRET=clientsecret
+      - SESSION_SECRET=somesecretvalue
+      - TOKEN_VERIFICATION_API_URL=http://localhost:9090
+      - TOKEN_VERIFICATION_ENABLED=false
+      - INGRESS_URL=http://localhost:3000
+      - PERSON_RECORD_API_URL=http://hmpps-person-record:8080
+      - NO_HTTPS=true
+
+  hmpps-person-record:
+    container_name: hmpps-person-record
+    image: ghcr.io/ministryofjustice/hmpps-person-record
+    networks:
+      - hmpps
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "-O", "-", "http://localhost:8080/health" ]
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - SERVER_PORT=8080
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-hmpps-person-record:5432/postgres?currentSchema=personrecordservice&stringtype=unspecified
+      - PERSON_MATCH_BASE_URL=http://hmpps-person-match:5000
+      - PRISONER_SEARCH_BASE_URL=http://localhost:9999 # non-existent
+      - CORE_PERSON_RECORD_AND_DELIUS_BASE_URL=http://localhost:9999 # non-existent
+      - SERVICE_NOW_BASE_URL=http://localhost:9999 # non-existent
+      - SERVICE_NOW_SYSPARM_ID=sysparm12345
+      - SERVICE_NOW_REQUESTOR=abcd
+      - SERVICE_NOW_REQUESTED_FOR=efgh
+      - AWS_ENDPOINT=http://localstack-hmpps-person-record:4566
+      - AWS_REGION=eu-west-2
+      - HMPPS_SQS_LOCALSTACK_URL=http://localstack-hmpps-person-record:4566
+
+networks:
+  hmpps:
