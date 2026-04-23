@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.court
 
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -12,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchStatus
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 
+@Tag(name = "Court")
 @RestController
 @RequestMapping("/person/commonplatform")
 @PreAuthorize("hasRole('$API_READ_ONLY')")
