@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.Resou
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 
-@Tag(name = "HMPPS Person API")
+@Tag(name = "Court")
 @RestController
 @PreAuthorize("hasRole('${Roles.API_READ_ONLY}')")
 class LibraAPIController(

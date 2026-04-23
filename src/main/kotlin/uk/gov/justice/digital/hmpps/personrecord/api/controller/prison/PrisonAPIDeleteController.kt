@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.Resou
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.message.PersonDeletionService
 
-@Tag(name = "HMPPS Person API")
+@Tag(name = "Prison")
 @RestController
 @PreAuthorize("hasRole('$PERSON_RECORD_SYSCON_SYNC_WRITE')")
 class PrisonAPIDeleteController(

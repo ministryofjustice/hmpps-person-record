@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonNationality
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -27,7 +28,7 @@ class SysconNationalityController(
   private val personRepository: PersonRepository,
   private val personService: PersonService,
 ) {
-  @Operation(description = "Upserts a nationality record on a matching prison number")
+  @Operation(description = "Upserts a nationality record on a matching prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.")
   @PostMapping("/syscon-sync/nationality/{prisonNumber}")
   @ApiResponses(
     ApiResponse(
