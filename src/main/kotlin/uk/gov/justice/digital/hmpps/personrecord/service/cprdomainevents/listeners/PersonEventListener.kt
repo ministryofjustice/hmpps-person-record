@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.UUID
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.UUID_OF_OVERRIDE_CLUSTER
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
@@ -45,6 +46,7 @@ class PersonEventListener(
         personDeleted.personEntity,
         mapOf(
           UUID to personDeleted.cluster?.personUUID?.toString(),
+          UUID_OF_OVERRIDE_CLUSTER to personDeleted.uuidOfOverrideCluster.toString(),
         ),
       ),
     )

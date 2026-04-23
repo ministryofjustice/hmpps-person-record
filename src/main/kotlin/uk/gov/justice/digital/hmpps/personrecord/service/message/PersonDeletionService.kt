@@ -45,7 +45,7 @@ class PersonDeletionService(
     val cluster = this.personKey
     this.removePersonKeyLink()
     personRepository.delete(this)
-    publisher.publishEvent(PersonDeleted(this, cluster))
+    publisher.publishEvent(PersonDeleted(this, cluster, this.overrideMarker))
   }
 
   private fun PersonEntity.deleteFromPersonMatch() = personMatchService.deleteFromPersonMatch(this)
