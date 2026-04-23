@@ -7,7 +7,6 @@ import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
 import io.swagger.v3.oas.models.servers.Server
-import io.swagger.v3.oas.models.tags.Tag
 import org.springdoc.core.models.GroupedOpenApi
 import org.springframework.boot.info.BuildProperties
 import org.springframework.context.annotation.Bean
@@ -26,11 +25,6 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
         Server().url("https://hmpps-person-record-preprod.hmpps.service.justice.gov.uk").description("Pre-Production"),
         Server().url("https://hmpps-person-record.hmpps.service.justice.gov.uk").description("Production"),
         Server().url("http://localhost:8080").description("Local"),
-      ),
-    )
-    .tags(
-      listOf(
-        Tag().name("Search").description("APIs for person search"),
       ),
     )
     .info(
