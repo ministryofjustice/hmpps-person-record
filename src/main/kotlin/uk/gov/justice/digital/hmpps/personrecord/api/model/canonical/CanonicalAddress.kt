@@ -26,10 +26,16 @@ data class CanonicalAddress(
   val postTown: String? = null,
   @Schema(description = "Person address county", example = "Greater London")
   val county: String? = null,
-  @Schema(description = "Person address country", example = "United Kingdom")
-  val country: String? = null,
+  @Schema(description = "Person address country")
+  val country: CanonicalCountry,
   @Schema(description = "Person address uprn", example = "100120991537")
   val uprn: String? = null,
+  @Schema(description = "Person address status", example = "United Kingdom")
+  val status: CanonicalAddressStatus,
+  @Schema(description = "Person address comment", example = "United Kingdom")
+  val comment: String? = null,
+  @Schema(description = "List of person address usages")
+  val usages: List<CanonicalAddressUsage> = emptyList(),
 ) {
   companion object {
 
@@ -43,7 +49,16 @@ data class CanonicalAddress(
       thoroughfareName = addressEntity.thoroughfareName,
       dependentLocality = addressEntity.dependentLocality,
       postTown = addressEntity.postTown,
+      county = addressEntity.county,
+      country = CanonicalCountry.from(addressEntity.countryCode),
+      uprn = addressEntity.uprn,
+      status = CanonicalAddressStatus.from(addressEntity.statusCode),
+      comment = addressEntity.comment,
+      usages = getUsages(addressEntity),
     )
+
     fun fromAddressEntityList(addressEntity: List<AddressEntity>): List<CanonicalAddress> = addressEntity.map { from(it) }
+
+    private fun getUsages(address: AddressEntity): List<CanonicalAddressUsage> = address.usages.let { CanonicalAddressUsage.fromAddressUsageEntityList(it) }
   }
 }
