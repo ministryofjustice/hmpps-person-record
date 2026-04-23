@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRe
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import java.util.UUID
 
-@Tag(name = "HMPPS Person API")
+@Tag(name = "Canonical")
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
 class CanonicalAPIController(
@@ -27,6 +27,7 @@ class CanonicalAPIController(
     description = "**Note: This API endpoint is scheduled for deprecation.**\n\n " +
       "Retrieve person record by UUID. Role required is **$API_READ_ONLY**",
     security = [io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "api-role")],
+    deprecated = true,
   )
   @GetMapping("/person/{uuid}")
   @ApiResponses(
