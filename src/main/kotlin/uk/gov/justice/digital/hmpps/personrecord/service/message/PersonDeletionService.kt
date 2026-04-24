@@ -24,15 +24,11 @@ class PersonDeletionService(
   @Transactional
   fun processDelete(personCallback: () -> PersonEntity?) = personCallback()?.let { personEntity ->
     val cluster = personEntity.personKey
-    deletePerson(personEntity)
-    reclusterRemainingPeopleInCluster(personEntity, cluster)
-  }
-
-  private fun deletePerson(personEntity: PersonEntity) {
     personEntity.deleteClusterIfNoRecordsLeft()
     personEntity.delete()
     personEntity.deleteFromPersonMatch()
     personEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively()
+    reclusterRemainingPeopleInCluster(personEntity, cluster)
   }
 
   private fun PersonEntity.deleteClusterIfNoRecordsLeft() {
@@ -56,7 +52,10 @@ class PersonDeletionService(
   }
 
   private fun PersonEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively() {
-    personRepository.findByMergedTo(this.id!!).filterNotNull().forEach { personEntity -> deletePerson(personEntity) }
+    personRepository.findByMergedTo(this.id!!).filterNotNull().forEach { personEntity ->
+      personEntity.delete()
+      personEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively()
+    }
   }
 
   private fun reclusterRemainingPeopleInCluster(deletedPersonEntity: PersonEntity, cluster: PersonKeyEntity?) {
