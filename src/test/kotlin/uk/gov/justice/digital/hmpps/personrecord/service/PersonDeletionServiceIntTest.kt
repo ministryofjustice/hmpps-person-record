@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
@@ -46,11 +47,7 @@ class PersonDeletionServiceIntTest : WebTestBase() {
       }
 
       verifyNoInteractions(spyReclusterService)
-      wiremock.verify(
-        1,
-        deleteRequestedFor(urlEqualTo("/person"))
-          .withRequestBody(equalToJson("""{"matchId":"${personToBeDeleted.matchId}"}""")),
-      )
+      verifyDeleteFromPersonMatch(personToBeDeleted)
     }
   }
 
@@ -81,11 +78,7 @@ class PersonDeletionServiceIntTest : WebTestBase() {
       }
 
       verify(spyReclusterService, times(1)).recluster(any())
-      wiremock.verify(
-        1,
-        deleteRequestedFor(urlEqualTo("/person"))
-          .withRequestBody(equalToJson("""{"matchId":"${personToBeDeleted.matchId}"}""")),
-      )
+      verifyDeleteFromPersonMatch(personToBeDeleted)
     }
   }
 
@@ -109,11 +102,7 @@ class PersonDeletionServiceIntTest : WebTestBase() {
       }
 
       verifyNoInteractions(spyReclusterService)
-      wiremock.verify(
-        1,
-        deleteRequestedFor(urlEqualTo("/person"))
-          .withRequestBody(equalToJson("""{"matchId":"${fromPerson.matchId}"}""")),
-      )
+      verifyDeleteFromPersonMatch(fromPerson)
     }
 
     @Test
@@ -146,11 +135,7 @@ class PersonDeletionServiceIntTest : WebTestBase() {
       }
 
       verifyNoInteractions(spyReclusterService)
-      wiremock.verify(
-        1,
-        deleteRequestedFor(urlEqualTo("/person"))
-          .withRequestBody(equalToJson("""{"matchId":"${toPerson.matchId}"}""")),
-      )
+      verifyDeleteFromPersonMatch(toPerson)
     }
   }
 
@@ -202,4 +187,12 @@ class PersonDeletionServiceIntTest : WebTestBase() {
     roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
     expectedStatus = HttpStatus.OK,
   )
+
+  private fun verifyDeleteFromPersonMatch(personEntity: PersonEntity) {
+    wiremock.verify(
+      1,
+      deleteRequestedFor(urlEqualTo("/person"))
+        .withRequestBody(equalToJson("""{"matchId":"${personEntity.matchId}"}""")),
+    )
+  }
 }
