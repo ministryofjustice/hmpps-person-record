@@ -28,7 +28,7 @@ class PersonDeletionService(
     personEntity.delete()
     personEntity.deleteFromPersonMatch()
     personEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively()
-    reclusterRemainingPeopleInCluster(personEntity, cluster)
+    reclusterRemainingPeopleInCluster(cluster)
   }
 
   private fun PersonEntity.deleteClusterIfNoRecordsLeft() {
@@ -58,8 +58,7 @@ class PersonDeletionService(
     }
   }
 
-  private fun reclusterRemainingPeopleInCluster(deletedPersonEntity: PersonEntity, cluster: PersonKeyEntity?) {
-    val remainingPersonsInCluster = cluster?.personEntities?.filter { deletedPersonEntity.id != it.id } ?: emptyList()
-    remainingPersonsInCluster.forEach { nonMergedPersonEntity -> reclusterService.recluster(nonMergedPersonEntity) }
+  private fun reclusterRemainingPeopleInCluster(cluster: PersonKeyEntity?) {
+    cluster?.personEntities?.forEach { reclusterService.recluster(it) }
   }
 }
