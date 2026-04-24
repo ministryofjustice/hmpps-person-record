@@ -42,6 +42,7 @@ enum class EventKeys {
   UUID_COUNT,
   UUID,
   CLUSTER_SIZE,
+  IS_OVERRIDE_MARKER_DELETE,
 }
 
 @Component
