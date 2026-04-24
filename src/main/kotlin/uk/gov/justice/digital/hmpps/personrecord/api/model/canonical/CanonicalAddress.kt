@@ -30,7 +30,7 @@ data class CanonicalAddress(
   val country: CanonicalCountry,
   @Schema(description = "Person address uprn", example = "100120991537")
   val uprn: String? = null,
-  @Schema(description = "Person address status", example = "United Kingdom")
+  @Schema(description = "Person address status")
   val status: CanonicalAddressStatus,
   @Schema(description = "Person address comment", example = "United Kingdom")
   val comment: String? = null,
@@ -54,7 +54,7 @@ data class CanonicalAddress(
       uprn = addressEntity.uprn,
       status = CanonicalAddressStatus.from(addressEntity.statusCode),
       comment = addressEntity.comment,
-      usages = CanonicalAddressUsage.fromAddressUsageEntityList(addressEntity.usages)
+      usages = CanonicalAddressUsage.fromAddressUsageEntityList(addressEntity.usages),
     )
 
     fun fromAddressEntityList(addressEntity: List<AddressEntity>): List<CanonicalAddress> = addressEntity.map { from(it) }
