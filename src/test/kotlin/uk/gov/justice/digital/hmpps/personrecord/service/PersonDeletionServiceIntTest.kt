@@ -142,7 +142,7 @@ class PersonDeletionServiceIntTest : WebTestBase() {
   @Nested
   inner class OverrideMarkerScenarios {
     @Test
-    fun `deletes person with override marker equal to null - does not send event`() {
+    fun `deletes person with override marker equal to null - send events with false`() {
       val personToBeDeleted = createPerson(createRandomPrisonPersonDetails()) { overrideMarker = null }
       val cluster = createPersonKey()
         .addPerson(personToBeDeleted)
@@ -154,13 +154,13 @@ class PersonDeletionServiceIntTest : WebTestBase() {
         CPR_RECORD_DELETED,
         mapOf(
           "UUID" to cluster.personUUID.toString(),
-          "UUID_OF_OVERRIDE_CLUSTER" to "null",
+          "IS_OVERRIDE_MARKER_DELETE" to "false",
         ),
       )
     }
 
     @Test
-    fun `deletes person with override marker present - sends event`() {
+    fun `deletes person with override marker present - sends event with true`() {
       val otherCluster = createPersonKey()
         .addPerson(createPerson(createRandomPrisonPersonDetails()) { overrideMarker = null })
 
@@ -176,7 +176,7 @@ class PersonDeletionServiceIntTest : WebTestBase() {
         CPR_RECORD_DELETED,
         mapOf(
           "UUID" to clusterWithPersonWithOverrideMarker.personUUID.toString(),
-          "UUID_OF_OVERRIDE_CLUSTER" to otherCluster.personUUID.toString(),
+          "IS_OVERRIDE_MARKER_DELETE" to "true",
         ),
       )
     }
