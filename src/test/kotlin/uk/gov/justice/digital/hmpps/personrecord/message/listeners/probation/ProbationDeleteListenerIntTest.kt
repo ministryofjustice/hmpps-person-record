@@ -30,6 +30,9 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       val personKey = createPersonKey()
         .addPerson(person)
         .addPerson(createRandomProbationPersonDetails())
+        .also {
+          stubPersonMatchScores()
+        }
 
       publishProbationDomainEvent(OFFENDER_GDPR_DELETION, crn)
 
@@ -81,6 +84,10 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       val personKey = createPersonKey()
         .addPerson(person)
         .addPerson(createRandomProbationPersonDetails())
+        .also {
+          stubDeletePersonMatch()
+          stubPersonMatchScores()
+        }
 
       publishProbationDomainEvent(OFFENDER_DELETION, crn)
 
