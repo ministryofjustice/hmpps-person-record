@@ -25,7 +25,7 @@ class PersonDeletionService(
   fun processDelete(personCallback: () -> PersonEntity?) = personCallback()?.let { personEntity ->
     val cluster = personEntity.personKey
     deletePerson(personEntity)
-    triggerReclusterOfRemainingNonMergedPersonsInCluster(personEntity, cluster)
+    reclusterRemainingPeopleInCluster(personEntity, cluster)
   }
 
   private fun deletePerson(personEntity: PersonEntity) {
@@ -45,7 +45,7 @@ class PersonDeletionService(
     val cluster = this.personKey
     this.removePersonKeyLink()
     personRepository.delete(this)
-    publisher.publishEvent(PersonDeleted(this, cluster, this.overrideMarker))
+    publisher.publishEvent(PersonDeleted(this, cluster))
   }
 
   private fun PersonEntity.deleteFromPersonMatch() = personMatchService.deleteFromPersonMatch(this)
@@ -59,7 +59,7 @@ class PersonDeletionService(
     personRepository.findByMergedTo(this.id!!).filterNotNull().forEach { personEntity -> deletePerson(personEntity) }
   }
 
-  private fun triggerReclusterOfRemainingNonMergedPersonsInCluster(deletedPersonEntity: PersonEntity, cluster: PersonKeyEntity?) {
+  private fun reclusterRemainingPeopleInCluster(deletedPersonEntity: PersonEntity, cluster: PersonKeyEntity?) {
     val remainingNonMergedPersonsInCluster = cluster?.personEntities?.filter { it.mergedTo == null && deletedPersonEntity.id != it.id } ?: emptyList()
     remainingNonMergedPersonsInCluster.forEach { nonMergedPersonEntity -> reclusterService.recluster(nonMergedPersonEntity) }
   }

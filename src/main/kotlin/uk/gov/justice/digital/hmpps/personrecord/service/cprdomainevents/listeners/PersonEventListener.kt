@@ -46,7 +46,7 @@ class PersonEventListener(
         personDeleted.personEntity,
         mapOf(
           UUID to personDeleted.cluster?.personUUID?.toString(),
-          UUID_OF_OVERRIDE_CLUSTER to personDeleted.uuidOfOverrideCluster.toString(),
+          UUID_OF_OVERRIDE_CLUSTER to personDeleted.personEntity.overrideMarker.toString(),
         ),
       ),
     )
