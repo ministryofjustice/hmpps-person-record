@@ -60,7 +60,7 @@ class PersonDeletionService(
   }
 
   private fun reclusterRemainingPeopleInCluster(deletedPersonEntity: PersonEntity, cluster: PersonKeyEntity?) {
-    val remainingNonMergedPersonsInCluster = cluster?.personEntities?.filter { it.mergedTo == null && deletedPersonEntity.id != it.id } ?: emptyList()
-    remainingNonMergedPersonsInCluster.forEach { nonMergedPersonEntity -> reclusterService.recluster(nonMergedPersonEntity) }
+    val remainingPersonsInCluster = cluster?.personEntities?.filter { it.mergedTo == null && deletedPersonEntity.id != it.id } ?: emptyList()
+    remainingPersonsInCluster.forEach { nonMergedPersonEntity -> reclusterService.recluster(nonMergedPersonEntity) }
   }
 }
