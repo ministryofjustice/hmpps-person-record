@@ -6,24 +6,18 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoInteractions
 import org.springframework.http.HttpStatus
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
 class PersonDeletionServiceIntTest : WebTestBase() {
-
-  @MockitoSpyBean
-  private lateinit var spyReclusterService: ReclusterService
 
   @Nested
   inner class SinglePersonCluster {
@@ -46,7 +40,6 @@ class PersonDeletionServiceIntTest : WebTestBase() {
         checkEventLogExist(personToBeDeleted.prisonNumber!!, CPRLogEvents.CPR_UUID_DELETED)
       }
 
-      verifyNoInteractions(spyReclusterService)
       verifyDeleteFromPersonMatch(personToBeDeleted)
     }
   }
@@ -57,27 +50,36 @@ class PersonDeletionServiceIntTest : WebTestBase() {
     fun `deletes persons but not cluster - correct events occurred`() {
       val personToBeDeleted = createPerson(createRandomPrisonPersonDetails())
       val personToRemain = createPerson(createRandomPrisonPersonDetails())
+      val person = createPerson(Person.from(personToRemain).copy(prisonNumber = randomPrisonNumber()))
 
-      val cluster = createPersonKey()
+      val clusterToBeAddedTo = createPersonKey()
         .addPerson(personToBeDeleted)
         .addPerson(personToRemain)
         .also {
           stubDeletePersonMatch()
-          stubPersonMatchScores()
+          stubOnePersonMatchAboveJoinThreshold(personToRemain.matchId, person.matchId)
+          stubClusterIsValid()
         }
+
+      val clusterWithMatchingRecord = createPersonKey()
+        .addPerson(person)
 
       triggerPersonDeletion(personToBeDeleted.prisonNumber)
 
-      awaitAssert {
-        assertThat(personRepository.findByPrisonNumber(personToBeDeleted.prisonNumber!!)).isNull()
-        val clusterAfterDelete = personKeyRepository.findByPersonUUID(cluster.personUUID)!!
-        assertThat(clusterAfterDelete.personEntities.size).isEqualTo(1)
+      checkTelemetry(CPR_RECORD_DELETED, mapOf("UUID" to clusterToBeAddedTo.personUUID.toString()))
+      checkTelemetry(
+        CPR_RECLUSTER_MERGE,
+        mapOf(
+          "FROM_UUID" to clusterWithMatchingRecord.personUUID.toString(),
+          "TO_UUID" to clusterToBeAddedTo.personUUID.toString(),
+        ),
+      )
 
-        checkTelemetry(CPR_RECORD_DELETED, mapOf("UUID" to cluster.personUUID.toString()))
-        checkEventLogExist(personToBeDeleted.prisonNumber!!, CPRLogEvents.CPR_RECORD_DELETED)
-      }
+      assertThat(personRepository.findByPrisonNumber(personToBeDeleted.prisonNumber!!)).isNull()
+      val clusterAfterDelete = personKeyRepository.findByPersonUUID(clusterToBeAddedTo.personUUID)!!
+      assertThat(clusterAfterDelete.personEntities.size).isEqualTo(2)
 
-      verify(spyReclusterService, times(1)).recluster(any())
+      checkEventLogExist(personToBeDeleted.prisonNumber!!, CPRLogEvents.CPR_RECORD_DELETED)
       verifyDeleteFromPersonMatch(personToBeDeleted)
     }
   }
@@ -101,7 +103,6 @@ class PersonDeletionServiceIntTest : WebTestBase() {
         checkTelemetry(CPR_RECORD_DELETED, mapOf("PRISON_NUMBER" to fromPerson.prisonNumber))
       }
 
-      verifyNoInteractions(spyReclusterService)
       verifyDeleteFromPersonMatch(fromPerson)
     }
 
@@ -134,7 +135,6 @@ class PersonDeletionServiceIntTest : WebTestBase() {
         checkTelemetry(CPR_RECORD_DELETED, mapOf("PRISON_NUMBER" to fromPersonC.prisonNumber))
       }
 
-      verifyNoInteractions(spyReclusterService)
       verifyDeleteFromPersonMatch(toPerson)
     }
   }
