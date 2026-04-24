@@ -54,11 +54,9 @@ data class CanonicalAddress(
       uprn = addressEntity.uprn,
       status = CanonicalAddressStatus.from(addressEntity.statusCode),
       comment = addressEntity.comment,
-      usages = getUsages(addressEntity),
+      usages = CanonicalAddressUsage.fromAddressUsageEntityList(addressEntity.usages)
     )
 
     fun fromAddressEntityList(addressEntity: List<AddressEntity>): List<CanonicalAddress> = addressEntity.map { from(it) }
-
-    private fun getUsages(address: AddressEntity): List<CanonicalAddressUsage> = address.usages.let { CanonicalAddressUsage.fromAddressUsageEntityList(it) }
   }
 }
