@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
-import java.util.UUID
 
 data class CanonicalAddress(
   @Schema(description = "CPR address Id", example = "ec4c7479-218c-4f11-a02d-edd749820679")
