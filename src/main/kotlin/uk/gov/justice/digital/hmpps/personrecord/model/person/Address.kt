@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.person
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import java.time.LocalDate
@@ -30,8 +31,7 @@ data class Address(
   val uprn: String? = null,
   val comment: String? = null,
   val contacts: List<Contact> = emptyList(),
-  var isPrimary: Boolean? = null,
-  var isMail: Boolean? = null,
+  var statusCode: AddressStatusCode? = null,
   var usages: List<AddressUsage> = emptyList(),
   var recordType: AddressRecordType? = null,
 ) {
@@ -107,8 +107,7 @@ data class Address(
       county = address.county,
       countryCode = address.countryCode,
       comment = address.comment,
-      isPrimary = address.isPrimary,
-      isMail = address.isMail,
+      statusCode = AddressStatusCode.fromPrison(address.isPrimary, address.isMail ?: false),
       usages = address.addressUsage.map { AddressUsage.from(it) },
       contacts = address.contacts.mapNotNull { Contact.from(it) },
     )
@@ -134,8 +133,7 @@ data class Address(
       uprn = addressEntity.uprn,
       comment = addressEntity.comment,
       recordType = addressEntity.recordType,
-      isPrimary = addressEntity.primary,
-      isMail = addressEntity.mail,
+      statusCode = addressEntity.statusCode,
       usages = addressEntity.usages.map { AddressUsage.from(it) },
       contacts = addressEntity.contacts.map { Contact.from(it) },
     )

@@ -6,7 +6,9 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.IS_OVERRIDE_MARKER_DELETE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.UUID
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
@@ -43,11 +45,12 @@ class PersonEventListener(
         TelemetryEventType.CPR_RECORD_DELETED,
         personDeleted.personEntity,
         mapOf(
-          UUID to personDeleted.personEntity.personKey?.personUUID?.toString(),
+          UUID to personDeleted.cluster?.personUUID?.toString(),
+          IS_OVERRIDE_MARKER_DELETE to if (personDeleted.personEntity.overrideMarker != null) "true" else "false",
         ),
       ),
     )
-    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_DELETED, personDeleted.personEntity))
+    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_DELETED, personDeleted.personEntity, clusterDetail = EventLogClusterDetail.from(personDeleted.cluster)))
   }
 
   @EventListener

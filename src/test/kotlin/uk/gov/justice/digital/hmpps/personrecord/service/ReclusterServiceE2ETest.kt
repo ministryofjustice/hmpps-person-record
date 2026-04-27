@@ -164,11 +164,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       publishProbationDomainEvent(OFFENDER_DELETION, recordToDelete.crn!!)
 
       cluster.assertClusterIsOfSize(1)
-      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), crn = recordA.crn))
-
-      cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(ACTIVE)
     }
 
@@ -686,6 +681,10 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personA)
         .addPerson(personB)
         .addPerson(personC)
+
+      // This shows the cluster isn't correct to start with
+      recluster(personA)
+      cluster1.assertClusterIsOfSize(3)
 
       val personD = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()

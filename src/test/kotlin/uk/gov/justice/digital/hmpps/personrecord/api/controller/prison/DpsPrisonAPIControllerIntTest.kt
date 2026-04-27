@@ -9,7 +9,11 @@ import org.springframework.http.HttpStatus.OK
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressStatus
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalCountry
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
@@ -102,6 +106,12 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         thoroughfareName = address.thoroughfareName,
         dependentLocality = address.dependentLocality,
         postTown = address.postTown,
+        county = address.county,
+        country = CanonicalCountry.from(address.countryCode),
+        uprn = address.uprn,
+        status = CanonicalAddressStatus.from(address.statusCode),
+        comment = address.comment,
+        usages = address.usages.map { CanonicalAddressUsage(CanonicalAddressUsageCode.from(it.addressUsageCode), it.isActive) },
       )
       val address2 = prisonPerson.addresses[1]
       val canonicalAddress2 = CanonicalAddress(
@@ -114,6 +124,12 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         thoroughfareName = address2.thoroughfareName,
         dependentLocality = address2.dependentLocality,
         postTown = address2.postTown,
+        county = address2.county,
+        country = CanonicalCountry.from(address2.countryCode),
+        uprn = address2.uprn,
+        status = CanonicalAddressStatus.from(address2.statusCode),
+        comment = address2.comment,
+        usages = address2.usages.map { CanonicalAddressUsage(CanonicalAddressUsageCode.from(it.addressUsageCode), it.isActive) },
       )
 
       val canonicalReligion = CanonicalReligion(code = prisonPerson.religion, description = prisonPerson.religion)

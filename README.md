@@ -31,11 +31,24 @@ Mostly runs against dev services, uses localstack for the queues
 
 `$ make run-local`
 
+## Run all applications locally in Docker
+
+`docker compose -f docker-compose-all-apps.yml up`
+
+You can log into the front end via http://localhost:9090
+
+username: CPR_MANAGE_ADMIN
+password: password123456
+
 ### process a Common Platform message when running locally
+
+get the court case topic arn:
+
+`AWS_REGION=eu-west-2 AWS_ACCESS_KEY_ID=key AWS_SECRET_ACCESS_KEY=secret aws --endpoint-url=http://localhost:4566 sns list-topics`
 
 ```shell
 AWS_REGION=eu-west-2 AWS_ACCESS_KEY_ID=key AWS_SECRET_ACCESS_KEY=secret aws --endpoint-url=http://localhost:4566 sns publish \
-    --topic-arn arn:aws:sns:eu-west-2:000000000000:courtcasestopic.fifo \
+    --topic-arn TOPIC_ARN_HERE \
     --message-attributes file://$(pwd)/src/test/resources/examples/commonPlatformMessageAttributes.json \
     --message file://$(pwd)/src/test/resources/examples/commonPlatformMessage.json \
     --message-group-id 123 

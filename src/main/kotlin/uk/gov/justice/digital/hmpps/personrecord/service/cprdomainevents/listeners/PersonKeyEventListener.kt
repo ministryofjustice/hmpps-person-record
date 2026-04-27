@@ -44,6 +44,6 @@ class PersonKeyEventListener(
   @EventListener
   fun onPersonKeyDeleted(personKeyDeleted: PersonKeyDeleted) {
     publisher.publishEvent(RecordPersonTelemetry(CPR_UUID_DELETED, personKeyDeleted.personEntity, mapOf(UUID to personKeyDeleted.personKeyEntity.personUUID.toString())))
-    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_UUID_DELETED, personKeyDeleted.personEntity))
+    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_UUID_DELETED, personKeyDeleted.personEntity, clusterDetail = EventLogClusterDetail.from(personKeyDeleted.personKeyEntity)))
   }
 }

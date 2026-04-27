@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconPersonUpdateHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconUpdatePersonResponse
@@ -28,7 +29,7 @@ class SysconSyncController(
   private val sysconPersonUpdateHandler: SysconPersonUpdateHandler,
 ) {
 
-  @Operation(description = "Update a prison record by prison number")
+  @Operation(description = "Update a prison record by prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.")
   @PutMapping("/syscon-sync/person/{prisonNumber}")
   @ApiResponses(
     ApiResponse(

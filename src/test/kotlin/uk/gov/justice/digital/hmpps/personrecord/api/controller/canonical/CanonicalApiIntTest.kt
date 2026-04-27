@@ -4,7 +4,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressStatus
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalCountry
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
@@ -16,16 +20,20 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonsNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -42,6 +50,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 
 class CanonicalApiIntTest : WebTestBase() {
 
@@ -67,6 +76,13 @@ class CanonicalApiIntTest : WebTestBase() {
     val thoroughfareName = randomName()
     val dependentLocality = randomName()
     val postTown = randomName()
+    val county = randomName()
+    val countryCode = randomCountryCode()
+    val uprn = randomUprn()
+    val addressStatusCode = randomAddressStatusCode()
+    val addressUsageCode = randomAddressUsageCode()
+    val isActive = randomBoolean()
+    val comment = randomName()
 
     val cro = randomCro()
     val crn = randomCrn()
@@ -94,12 +110,18 @@ class CanonicalApiIntTest : WebTestBase() {
         ethnicityCode = EthnicityCode.fromPrison(ethnicity),
         defendantId = defendantId,
         aliases = listOf(Alias(firstName = firstName, middleNames = middleNames, lastName = lastName, dateOfBirth = randomDate(), titleCode = title.value, sexCode = sex.value)),
-        addresses = listOf(Address(noFixedAbode = noFixedAbode, startDate = startDate, endDate = endDate, postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)),
+        addresses = listOf(
+          Address(
+            noFixedAbode = noFixedAbode, startDate = startDate, endDate = endDate, postcode = postcode, buildingName = buildingName,
+            buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown, county = county,
+            countryCode = countryCode, uprn = uprn, statusCode = addressStatusCode, comment = comment,
+            usages = listOf(AddressUsage(addressUsageCode, isActive)),
+          ),
+        ),
         references = listOf(
           Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
           Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
         ),
-
       ),
     )
 
@@ -115,7 +137,13 @@ class CanonicalApiIntTest : WebTestBase() {
 
     val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = CanonicalTitle.from(title.value), sex = CanonicalSex.from(sex.value))
     val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
-    val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
+    val canonicalAddress = CanonicalAddress(
+      noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(),
+      postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName,
+      dependentLocality = dependentLocality, postTown = postTown, county = county, country = CanonicalCountry.from(countryCode),
+      uprn = uprn, status = CanonicalAddressStatus.from(addressStatusCode), comment = comment,
+      usages = listOf(CanonicalAddressUsage(usageCode = CanonicalAddressUsageCode.from(addressUsageCode), isActive = isActive)),
+    )
     val canonicalReligion = CanonicalReligion(code = religion, description = religion)
 
     val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromPrison(ethnicity))
@@ -274,8 +302,14 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.addresses.first().dependentLocality).isNull()
     assertThat(responseBody.addresses.first().postTown).isNull()
     assertThat(responseBody.addresses.first().county).isNull()
-    assertThat(responseBody.addresses.first().country).isNull()
+    assertThat(responseBody.addresses.first().country).isNotNull()
+    assertThat(responseBody.addresses.first().country.code).isNull()
+    assertThat(responseBody.addresses.first().country.description).isNull()
     assertThat(responseBody.addresses.first().uprn).isNull()
+    assertThat(responseBody.addresses.first().status).isNotNull()
+    assertThat(responseBody.addresses.first().status.code).isNull()
+    assertThat(responseBody.addresses.first().status.description).isNull()
+    assertThat(responseBody.addresses.first().usages.size).isEqualTo(0)
   }
 
   @Test

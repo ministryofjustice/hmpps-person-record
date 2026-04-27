@@ -8,12 +8,12 @@ kotlin {
 }
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.1.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.2.1"
   kotlin("plugin.spring") version "2.3.20"
   kotlin("jvm") version "2.3.20"
   kotlin("plugin.jpa") version "2.3.20"
   id("org.jetbrains.kotlinx.kover") version "0.9.8"
-  id("org.owasp.dependencycheck") version "12.2.0"
+  id("org.owasp.dependencycheck") version "12.2.1"
 }
 
 dependencyCheck {
@@ -38,6 +38,9 @@ dependencies {
   implementation("software.amazon.sns:sns-extended-client:2.1.0")
   implementation("com.jayway.jsonpath:json-path:3.0.0")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")
+  constraints {
+    implementation("org.webjars:swagger-ui:5.32.2")
+  }
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
