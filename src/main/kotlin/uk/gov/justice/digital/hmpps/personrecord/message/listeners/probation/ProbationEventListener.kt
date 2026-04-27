@@ -46,6 +46,7 @@ class ProbationEventListener(
         val probationAddress = corePersonRecordAndDeliusClient.getAddress(event.additionalInformation?.addressId)
         val person = personRepository.findByCrn(crn)!!
 
+        // TODO: Once ready, make use of the new AddressService class
         val addressEntity = probationAddress?.let {
           val coreAddress = Address.from(it)
           val addressEntity = coreAddress?.let { AddressEntity.from(coreAddress) }
