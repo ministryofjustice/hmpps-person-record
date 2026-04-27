@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonDomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
-import uk.gov.justice.digital.hmpps.personrecord.service.queue.PersonDomainEventPublisher
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
@@ -24,7 +24,7 @@ import java.time.format.DateTimeFormatter
 @Profile("!preprod & !prod")
 @Component
 class PersonDomainEventListener(
-  private val personDomainEventPublisher: PersonDomainEventPublisher,
+  private val domainEventPublisher: DomainEventPublisher,
   @Value("\${core-person-record.base-url}") private val baseUrl: String,
 ) {
 
@@ -43,8 +43,8 @@ class PersonDomainEventListener(
       },
     )
 
-    personDomainEventPublisher.publish(
-      PersonDomainEvent(
+    domainEventPublisher.publish(
+      DomainEvent(
         eventType = config.eventType,
         description = "A ${config.typeDescription} person record has been created",
         detailUrl = detailUrl,

@@ -8,7 +8,7 @@ import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.PERSON
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonDomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
@@ -54,14 +54,14 @@ class PersonDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
     )
     val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_PERSON_CREATED))
-    val personDomainEvent: PersonDomainEvent = jsonMapper.readValue(sqsMessage.message)
-    assertThat(personDomainEvent.eventType).isEqualTo(CPR_PRISON_PERSON_CREATED)
-    assertThat(personDomainEvent.detailUrl).isEqualTo("http://localhost:8080/person/prison/$prisonNumber")
-    assertThat(personDomainEvent.description).isEqualTo("A prison person record has been created")
-    assertThat(personDomainEvent.occurredAt).isNotNull()
-    assertThat(personDomainEvent.personReference?.identifiers?.size).isEqualTo(1)
-    assertThat(personDomainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("NOMS")
-    assertThat(personDomainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(prisonNumber)
+    val domainEvent: DomainEvent = jsonMapper.readValue(sqsMessage.message)
+    assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_PERSON_CREATED)
+    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/prison/$prisonNumber")
+    assertThat(domainEvent.description).isEqualTo("A prison person record has been created")
+    assertThat(domainEvent.occurredAt).isNotNull()
+    assertThat(domainEvent.personReference?.identifiers?.size).isEqualTo(1)
+    assertThat(domainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("NOMS")
+    assertThat(domainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(prisonNumber)
   }
 
   @Test
@@ -83,14 +83,14 @@ class PersonDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
     )
     val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_CREATED))
-    val personDomainEvent: PersonDomainEvent = jsonMapper.readValue(sqsMessage.message)
-    assertThat(personDomainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_CREATED)
-    assertThat(personDomainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn")
-    assertThat(personDomainEvent.description).isEqualTo("A probation person record has been created")
-    assertThat(personDomainEvent.occurredAt).isNotNull()
-    assertThat(personDomainEvent.personReference?.identifiers?.size).isEqualTo(1)
-    assertThat(personDomainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("CRN")
-    assertThat(personDomainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(crn)
+    val domainEvent: DomainEvent = jsonMapper.readValue(sqsMessage.message)
+    assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_CREATED)
+    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn")
+    assertThat(domainEvent.description).isEqualTo("A probation person record has been created")
+    assertThat(domainEvent.occurredAt).isNotNull()
+    assertThat(domainEvent.personReference?.identifiers?.size).isEqualTo(1)
+    assertThat(domainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("CRN")
+    assertThat(domainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(crn)
   }
 
   @Test
@@ -111,14 +111,14 @@ class PersonDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
     )
     val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_COURT_PERSON_CREATED))
-    val personDomainEvent: PersonDomainEvent = jsonMapper.readValue(sqsMessage.message)
-    assertThat(personDomainEvent.eventType).isEqualTo(CPR_COURT_PERSON_CREATED)
-    assertThat(personDomainEvent.detailUrl).isEqualTo("http://localhost:8080/person/commonplatform/$defendantId")
-    assertThat(personDomainEvent.description).isEqualTo("A court person record has been created")
-    assertThat(personDomainEvent.occurredAt).isNotNull()
-    assertThat(personDomainEvent.personReference?.identifiers?.size).isEqualTo(1)
-    assertThat(personDomainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("DEFENDANT_ID")
-    assertThat(personDomainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(defendantId)
+    val domainEvent: DomainEvent = jsonMapper.readValue(sqsMessage.message)
+    assertThat(domainEvent.eventType).isEqualTo(CPR_COURT_PERSON_CREATED)
+    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/commonplatform/$defendantId")
+    assertThat(domainEvent.description).isEqualTo("A court person record has been created")
+    assertThat(domainEvent.occurredAt).isNotNull()
+    assertThat(domainEvent.personReference?.identifiers?.size).isEqualTo(1)
+    assertThat(domainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("DEFENDANT_ID")
+    assertThat(domainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(defendantId)
   }
 
   @Test
@@ -137,13 +137,13 @@ class PersonDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
     )
     val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_COURT_PERSON_CREATED))
-    val personDomainEvent: PersonDomainEvent = jsonMapper.readValue(sqsMessage.message)
-    assertThat(personDomainEvent.eventType).isEqualTo(CPR_COURT_PERSON_CREATED)
-    assertThat(personDomainEvent.detailUrl).isEqualTo("http://localhost:8080/person/libra/$cid")
-    assertThat(personDomainEvent.description).isEqualTo("A court person record has been created")
-    assertThat(personDomainEvent.occurredAt).isNotNull()
-    assertThat(personDomainEvent.personReference?.identifiers?.size).isEqualTo(1)
-    assertThat(personDomainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("C_ID")
-    assertThat(personDomainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(cid)
+    val domainEvent: DomainEvent = jsonMapper.readValue(sqsMessage.message)
+    assertThat(domainEvent.eventType).isEqualTo(CPR_COURT_PERSON_CREATED)
+    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/libra/$cid")
+    assertThat(domainEvent.description).isEqualTo("A court person record has been created")
+    assertThat(domainEvent.occurredAt).isNotNull()
+    assertThat(domainEvent.personReference?.identifiers?.size).isEqualTo(1)
+    assertThat(domainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("C_ID")
+    assertThat(domainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(cid)
   }
 }
