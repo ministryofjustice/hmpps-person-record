@@ -138,7 +138,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = CanonicalTitle.from(title.value), sex = CanonicalSex.from(sex.value))
     val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
     val canonicalAddress = CanonicalAddress(
-      cprAddressId = person.addresses.first().updateId!!, noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(),
+      cprAddressId = person.addresses.first().updateId!!.toString(), noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(),
       postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName,
       dependentLocality = dependentLocality, postTown = postTown, county = county, country = CanonicalCountry.from(countryCode),
       uprn = uprn, status = CanonicalAddressStatus.from(addressStatusCode), comment = comment,

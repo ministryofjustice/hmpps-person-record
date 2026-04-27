@@ -6,7 +6,7 @@ import java.util.UUID
 
 data class CanonicalAddress(
   @Schema(description = "CPR address Id", example = "ec4c7479-218c-4f11-a02d-edd749820679")
-  val cprAddressId: UUID,
+  val cprAddressId: String,
   @Schema(description = "Person no fixed abode", examples = ["false", "true", "null"])
   val noFixedAbode: Boolean? = null,
   @Schema(description = "Person address start date", example = "2020-02-26")
@@ -43,7 +43,7 @@ data class CanonicalAddress(
 
   companion object {
     fun from(addressEntity: AddressEntity): CanonicalAddress = CanonicalAddress(
-      cprAddressId = addressEntity.updateId!!,
+      cprAddressId = addressEntity.updateId!!.toString(),
       noFixedAbode = addressEntity.noFixedAbode,
       startDate = addressEntity.startDate?.toString(),
       endDate = addressEntity.endDate?.toString(),

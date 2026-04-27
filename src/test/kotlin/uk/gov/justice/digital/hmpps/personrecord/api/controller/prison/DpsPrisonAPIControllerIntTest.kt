@@ -97,7 +97,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
       val address = person.addresses.first()
       val canonicalAddress = CanonicalAddress(
-        cprAddressId = address.updateId!!,
+        cprAddressId = address.updateId!!.toString(),
         noFixedAbode = address.noFixedAbode,
         startDate = address.startDate.toString(),
         endDate = address.endDate?.toString(),
@@ -116,7 +116,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       )
       val address2 = person.addresses[1]
       val canonicalAddress2 = CanonicalAddress(
-        cprAddressId = address2.updateId!!,
+        cprAddressId = address2.updateId!!.toString(),
         noFixedAbode = address2.noFixedAbode,
         startDate = address2.startDate.toString(),
         endDate = address2.endDate?.toString(),

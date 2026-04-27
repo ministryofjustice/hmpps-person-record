@@ -122,7 +122,7 @@ class ProbationAddressAPIControllerTest : WebTestBase() {
 
   private fun assertCanonicalAddress(expectedAddress: AddressEntity, actualAddress: CanonicalAddress) {
     val canonicalAddress = CanonicalAddress(
-      cprAddressId = expectedAddress.updateId!!,
+      cprAddressId = expectedAddress.updateId!!.toString(),
       noFixedAbode = expectedAddress.noFixedAbode,
       startDate = expectedAddress.startDate?.toString(),
       endDate = expectedAddress.endDate?.toString(),
