@@ -2,13 +2,13 @@ package uk.gov.justice.digital.hmpps.personrecord.service.queue
 
 import org.springframework.stereotype.Component
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonDomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import uk.gov.justice.hmpps.sqs.publish
 
 @Component
-class PersonDomainEventPublisher(
+class DomainEventPublisher(
   hmppsQueueService: HmppsQueueService,
   private val jsonMapper: JsonMapper,
 ) {
@@ -16,10 +16,10 @@ class PersonDomainEventPublisher(
     hmppsQueueService.findByTopicId("domainevents")
       ?: throw MissingTopicException("Could not find topic domainevents")
 
-  fun publish(personDomainEvent: PersonDomainEvent) {
+  fun publish(domainEvent: DomainEvent) {
     topic.publish(
-      personDomainEvent.eventType,
-      jsonMapper.writeValueAsString(personDomainEvent),
+      domainEvent.eventType,
+      jsonMapper.writeValueAsString(domainEvent),
     )
   }
 }
