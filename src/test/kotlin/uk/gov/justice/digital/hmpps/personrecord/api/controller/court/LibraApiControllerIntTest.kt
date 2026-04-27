@@ -154,6 +154,7 @@ class LibraApiControllerIntTest : WebTestBase() {
         )
       val canonicalAddress =
         CanonicalAddress(
+          cprAddressId = person.addresses.first().updateId!!,
           noFixedAbode = noFixedAbode,
           startDate = startDate.toString(),
           endDate = endDate.toString(),
