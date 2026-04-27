@@ -17,8 +17,8 @@ generic-service:
 
   scheduledDowntime:
     enabled: true
-    # Start at 6:40am Monday-Friday - 10 minutes after hmpps-person-match
-    startup: '40 6 * * 1-5'
+    # Start at 6:45am Monday-Friday - 10 minutes after hmpps-person-match
+    startup: '45 6 * * 1-5'
     timeZone: Europe/London
 
 generic-prometheus-alerts:
