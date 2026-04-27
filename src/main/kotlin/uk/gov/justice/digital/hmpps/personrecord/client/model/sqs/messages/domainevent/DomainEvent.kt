@@ -9,7 +9,7 @@ data class DomainEvent @JsonCreator constructor(
   @JsonProperty("eventType") val eventType: String,
   @JsonProperty("personReference") val personReference: PersonReference? = null,
   @JsonProperty("additionalInformation") val additionalInformation: AdditionalInformation? = null,
-  @JsonProperty("version") val version: Int? = null,
+  @JsonProperty("version") val version: Int? = 1,
   @JsonProperty("description") val description: String? = null,
   @JsonProperty("detailUrl") val detailUrl: String? = null,
   @JsonProperty("occurredAt") val occurredAt: String? = null,
