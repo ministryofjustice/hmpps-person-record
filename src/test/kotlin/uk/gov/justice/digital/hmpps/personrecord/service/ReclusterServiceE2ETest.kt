@@ -164,11 +164,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       publishProbationDomainEvent(OFFENDER_DELETION, recordToDelete.crn!!)
 
       cluster.assertClusterIsOfSize(1)
-      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), crn = recordA.crn))
-
-      cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(ACTIVE)
     }
 

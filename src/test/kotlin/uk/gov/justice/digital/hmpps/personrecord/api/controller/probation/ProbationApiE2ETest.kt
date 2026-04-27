@@ -7,7 +7,11 @@ import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressStatus
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalCountry
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
@@ -26,6 +30,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
@@ -42,11 +47,14 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonsNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -67,6 +75,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationality
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ProbationApiE2ETest : E2ETestBase() {
@@ -104,6 +113,13 @@ class ProbationApiE2ETest : E2ETestBase() {
         val thoroughfareName = randomName()
         val dependentLocality = randomName()
         val postTown = randomName()
+        val county = randomName()
+        val countryCode = randomCountryCode()
+        val uprn = randomUprn()
+        val addressStatusCode = randomAddressStatusCode()
+        val addressUsageCode = randomAddressUsageCode()
+        val isActive = randomBoolean()
+        val comment = randomName()
 
         val cro = randomCro()
         val crn = randomCrn()
@@ -155,6 +171,12 @@ class ProbationApiE2ETest : E2ETestBase() {
                 thoroughfareName = thoroughfareName,
                 dependentLocality = dependentLocality,
                 postTown = postTown,
+                county = county,
+                countryCode = countryCode,
+                uprn = uprn,
+                statusCode = addressStatusCode,
+                comment = comment,
+                usages = listOf(AddressUsage(addressUsageCode, isActive)),
               ),
             ),
             references = listOf(
@@ -201,6 +223,12 @@ class ProbationApiE2ETest : E2ETestBase() {
           thoroughfareName = thoroughfareName,
           dependentLocality = dependentLocality,
           postTown = postTown,
+          county = county,
+          country = CanonicalCountry.from(countryCode),
+          uprn = uprn,
+          status = CanonicalAddressStatus.from(addressStatusCode),
+          comment = comment,
+          usages = listOf(CanonicalAddressUsage(CanonicalAddressUsageCode.from(addressUsageCode), isActive)),
         )
         val canonicalReligion = CanonicalReligion(code = religion, description = religion)
         val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromProbation(ethnicity))
