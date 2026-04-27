@@ -7,7 +7,6 @@ import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
@@ -23,7 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.address
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationAddress
 import java.util.UUID
 
 class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -66,7 +65,7 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
       uprn = randomUprn(),
       notes = randomName(),
       telephoneNumber = randomPhoneNumber(),
-    ).also { stubGetRequest(url = "/person/address/${it.addressId}", body = address(it)) }
+    ).also { stubGetRequest(url = "/person/address/${it.addressId}", body = probationAddress(it)) }
   }
 
   private fun assertPublishedDomainEvent(crn: String, cprAddressId: UUID, probationAddressId: String) {
@@ -75,10 +74,15 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
     val sqsMessage = actualDomainEvent.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
     val domainEvent = jsonMapper.readValue<DomainEvent>(sqsMessage.message)
 
-    assertThat(domainEvent.getCrn()).isEqualTo(crn)
     assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_ADDRESS_CREATED)
-    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn/address/$cprAddressId")
+    assertThat(domainEvent.personReference!!.identifiers!!.size).isEqualTo(1)
+    assertThat(domainEvent.personReference.identifiers.first().type).isEqualTo("CRN")
+    assertThat(domainEvent.personReference.identifiers.first().value).isEqualTo(crn)
     assertThat(domainEvent.additionalInformation?.deliusAddressId).isEqualTo(probationAddressId)
     assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(cprAddressId.toString())
+    assertThat(domainEvent.version).isEqualTo(1) // TODO
+    assertThat(domainEvent.description).isEqualTo("Address was created in Core Person Record")
+    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn/address/$cprAddressId")
+    assertThat(domainEvent.occurredAt).isNotBlank
   }
 }

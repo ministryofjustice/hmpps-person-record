@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
+import uk.gov.justice.digital.hmpps.personrecord.extensions.nowUtcFormattedUk
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -65,6 +66,8 @@ class ProbationEventListener(
               personReference = PersonReference(listOf(PersonIdentifier(type = "CRN", value = crn))),
               additionalInformation = AdditionalInformation(cprAddressId = addressEntity.updateId.toString(), deliusAddressId = event.additionalInformation?.addressId),
               detailUrl = "$baseUrl/person/probation/$crn/address/${addressEntity.updateId}",
+              description = "Address was created in Core Person Record",
+              occurredAt = nowUtcFormattedUk(),
             ),
           ),
         )
