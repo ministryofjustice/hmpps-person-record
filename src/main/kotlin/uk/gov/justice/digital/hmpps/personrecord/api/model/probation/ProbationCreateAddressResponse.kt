@@ -1,5 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.probation
 
-data class ProbationAddressCreateResponse(
+data class ProbationCreateAddressResponse(
   val cprAddressId: String,
 )

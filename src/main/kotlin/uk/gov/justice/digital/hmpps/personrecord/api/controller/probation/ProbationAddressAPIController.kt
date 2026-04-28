@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ON
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationAddressCreateResponse
+import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -72,12 +72,12 @@ class ProbationAddressAPIController(
   )
   @ApiResponses(
     ApiResponse(
-      responseCode = "200",
-      description = "OK",
+      responseCode = "201",
+      description = "Address created in CPR",
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = CanonicalAddress::class),
+          schema = Schema(implementation = ProbationCreateAddressResponse::class),
         ),
       ],
     ),
@@ -88,7 +88,7 @@ class ProbationAddressAPIController(
   fun createProbationAddress(
     @PathVariable(name = "crn") crn: String,
     @RequestBody probationAddress: ProbationAddress,
-  ): ResponseEntity<ProbationAddressCreateResponse> {
+  ): ResponseEntity<ProbationCreateAddressResponse> {
     val address = Address.from(probationAddress)
 
     val createdAddress: AddressEntity = addressService.processAddress(
@@ -97,7 +97,7 @@ class ProbationAddressAPIController(
       findAddress = { null },
     )
 
-    val responseBody = ProbationAddressCreateResponse(createdAddress.updateId!!.toString())
+    val responseBody = ProbationCreateAddressResponse(createdAddress.updateId!!.toString())
     return ResponseEntity.status(HttpStatus.CREATED).body(responseBody)
   }
 }

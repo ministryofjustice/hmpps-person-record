@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressUsage
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationAddressCreateResponse
+import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
@@ -38,7 +38,7 @@ class ProbationAddressPostAPIControllerTest(@Autowired private val addressReposi
       val newAddress = createRandomAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
-      sendPostRequestAsserted<ProbationAddressCreateResponse>(
+      sendPostRequestAsserted<ProbationCreateAddressResponse>(
         url = probationAddressApiUrl(crn),
         body = newAddress,
         roles = listOf(PROBATION_API_READ_WRITE),
@@ -60,7 +60,7 @@ class ProbationAddressPostAPIControllerTest(@Autowired private val addressReposi
       val newAddress = createRandomAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList())) { this.passiveState = true }
 
-      sendPostRequestAsserted<ProbationAddressCreateResponse>(
+      sendPostRequestAsserted<ProbationCreateAddressResponse>(
         url = probationAddressApiUrl(crn),
         body = newAddress,
         roles = listOf(PROBATION_API_READ_WRITE),
