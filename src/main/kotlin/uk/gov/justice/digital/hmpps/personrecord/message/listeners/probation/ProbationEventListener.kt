@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.AddressCreated
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.PROBATION_EVENT_QUEUE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
@@ -23,6 +24,7 @@ class ProbationEventListener(
   private val addressRepository: AddressRepository,
   private val personRepository: PersonRepository,
   private val publisher: ApplicationEventPublisher,
+  private val reclusterService: ReclusterService,
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
@@ -42,6 +44,8 @@ class ProbationEventListener(
 
         addressRepository.save(addressEntity)
         publisher.publishEvent(AddressCreated(crn, deliusAddressId, addressEntity))
+
+        reclusterService.recluster(personEntity)
       }
       else -> {
         corePersonRecordAndDeliusClient.getPerson(crn).let {

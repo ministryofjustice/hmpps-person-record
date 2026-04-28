@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
@@ -32,16 +33,14 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
     createPersonKey()
       .addPerson(cprPerson)
 
+    stubPersonMatchScores()
     stubGetRequestToProbation(probationAddress)
+
     publishProbationDomainEvent(OFFENDER_ADDRESS_CREATED, cprPerson.crn!!, AdditionalInformation(addressId = probationAddress.addressId))
 
     awaitAssert {
       assertAddressSaved(cprPerson.crn, probationAddress)
       assertPublishedDomainEvent(cprPerson.crn, probationAddress.addressId!!)
-      // recluster triggered
-
-      // telemetry?
-      // event logs?
     }
   }
 
@@ -99,7 +98,7 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
           postcode = probationAddress.postcode,
           fullAddress = probationAddress.fullAddress,
           buildingName = probationAddress.buildingName,
-          addressNumber = probationAddress.addressId,
+          addressNumber = probationAddress.addressNumber,
           streetName = probationAddress.streetName,
           district = probationAddress.district,
           townCity = probationAddress.townCity,
@@ -116,6 +115,8 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
     val actualPersonEntity = personRepository.findByCrn(crn)!!
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
     val actualAddressEntity = actualPersonEntity.addresses.first()
+    assertThat(actualAddressEntity.updateId).isNotNull()
+    assertThat(actualAddressEntity.updateId!!.toString()).isNotBlank
     assertThat(actualAddressEntity.noFixedAbode).isEqualTo(probationAddress.noFixedAbode)
     assertThat(actualAddressEntity.startDate).isEqualTo(probationAddress.startDate)
     assertThat(actualAddressEntity.endDate).isEqualTo(probationAddress.endDate)
@@ -125,12 +126,13 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
     assertThat(actualAddressEntity.postTown).isEqualTo(probationAddress.townCity)
     assertThat(actualAddressEntity.county).isEqualTo(probationAddress.county)
     assertThat(actualAddressEntity.uprn).isEqualTo(probationAddress.uprn)
-//    assertThat(actualAddressEntity.addressNumber)
-//    assertThat(actualAddressEntity.streetName)
-//    assertThat(actualAddressEntity.district)
-//    assertThat(actualAddressEntity.notes)
-//    assertThat(actualAddressEntity.telephoneNumber)
-//    assertThat(actualAddressEntity.addressId)
+
+    assertThat(actualAddressEntity.buildingNumber).isEqualTo(probationAddress.addressNumber)
+    assertThat(actualAddressEntity.thoroughfareName).isEqualTo(probationAddress.streetName)
+    assertThat(actualAddressEntity.dependentLocality).isEqualTo(probationAddress.district)
+    assertThat(actualAddressEntity.comment).isEqualTo(probationAddress.notes)
+    assertThat(actualAddressEntity.contacts.first().contactType).isEqualTo(ContactType.HOME)
+    assertThat(actualAddressEntity.contacts.first().contactValue).isEqualTo(probationAddress.telephoneNumber)
   }
 
   private fun assertPublishedDomainEvent(crn: String, probationAddressId: String) {
@@ -146,7 +148,7 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
     assertThat(domainEvent.personReference.identifiers.first().value).isEqualTo(crn)
     assertThat(domainEvent.additionalInformation?.deliusAddressId).isEqualTo(probationAddressId)
     assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(cprAddressUpdateId)
-    assertThat(domainEvent.version).isEqualTo(1) // TODO
+    assertThat(domainEvent.version).isEqualTo(1)
     assertThat(domainEvent.description).isEqualTo("Address was created in Core Person Record")
     assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn/address/$cprAddressUpdateId")
     assertThat(domainEvent.occurredAt).isNotBlank
