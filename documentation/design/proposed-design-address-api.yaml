@@ -217,15 +217,20 @@ components:
 
     AddressItemPost:
       type: object
+      required:
+        - noFixedAbode
+        - addressUsage
+        - addressStatus
+        - startDate
       properties:
         noFixedAbode:
           type: boolean
         startDate:
           type: string
-          format: date
+          format: date-time
         endDate:
           type: string
-          format: date
+          format: date-time
           nullable: true
         postcode:
           type: string
@@ -323,11 +328,11 @@ components:
           type: boolean
         startDate:
           type: string
-          format: date
+          format: date-time
         endDate:
           type: string
           format: date
-          nullable: true
+          nullable: true-time
         postcode:
           type: string
         uprn:
