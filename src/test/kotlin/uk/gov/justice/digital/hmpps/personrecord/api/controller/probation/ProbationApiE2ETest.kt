@@ -214,6 +214,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         )
         val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
         val canonicalAddress = CanonicalAddress(
+          cprAddressId = person.addresses.first().updateId!!.toString(),
           noFixedAbode = noFixedAbode,
           startDate = startDate.toString(),
           endDate = endDate.toString(),

@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 
 data class CanonicalAddress(
+  @Schema(description = "CPR address Id", example = "ec4c7479-218c-4f11-a02d-edd749820679")
+  val cprAddressId: String,
   @Schema(description = "Person no fixed abode", examples = ["false", "true", "null"])
   val noFixedAbode: Boolean? = null,
   @Schema(description = "Person address start date", example = "2020-02-26")
@@ -37,13 +39,15 @@ data class CanonicalAddress(
   @Schema(description = "List of person address usages")
   val usages: List<CanonicalAddressUsage> = emptyList(),
 ) {
-  companion object {
 
+  companion object {
     fun from(addressEntity: AddressEntity): CanonicalAddress = CanonicalAddress(
-      postcode = addressEntity.postcode,
+      cprAddressId = addressEntity.updateId!!.toString(),
+      noFixedAbode = addressEntity.noFixedAbode,
       startDate = addressEntity.startDate?.toString(),
       endDate = addressEntity.endDate?.toString(),
-      noFixedAbode = addressEntity.noFixedAbode,
+      postcode = addressEntity.postcode,
+      subBuildingName = addressEntity.subBuildingName,
       buildingName = addressEntity.buildingName,
       buildingNumber = addressEntity.buildingNumber,
       thoroughfareName = addressEntity.thoroughfareName,
