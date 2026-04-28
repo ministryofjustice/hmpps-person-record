@@ -1,23 +1,34 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
+import java.util.UUID
 
 class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Nested
   inner class Successful {
+
+    @Test
     fun `updates address - publishes domain event`() {
-      // create cluster with person with an address
+      val personEntity = createPerson(createRandomProbationPersonDetails())
+      createPersonKey()
+        .addPerson(personEntity)
 
-      // stub sas callback
+      val sasAddressId = UUID.randomUUID().toString()
+      stubGetRequestToSas(sasAddressId)
 
-      publishSasEvent()
+      publishSasEvent(personEntity.crn!!, sasAddressId)
 
-      // assert address updated
+      awaitAssert {
+        assertThat(personRepository.findByCrn(personEntity.crn!!)!!.addresses.size).isEqualTo(1)
+      }
+
       // assert domain event published
     }
   }
@@ -40,10 +51,23 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
       DomainEvent(
         eventType = SAS_ADDRESS_UPDATED,
         additionalInformation = AdditionalInformation(
-          sourceCrn = "",
-          sasAddressId = "",
+          sourceCrn = crn,
+          sasAddressId = sasAddressId,
         ),
       ),
+    )
+  }
+
+  private fun stubGetRequestToSas(sasAddressId: String) {
+    stubGetRequest(
+      url = "/proposed-accommodations/$sasAddressId",
+      body = """
+        {
+          "postcode": "dry 123",
+          "addressId": "$sasAddressId",
+        }
+      """.trimIndent(),
+      status = 200,
     )
   }
 }
