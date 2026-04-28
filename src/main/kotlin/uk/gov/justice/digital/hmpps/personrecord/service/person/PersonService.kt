@@ -71,6 +71,4 @@ class PersonService(
     this == null -> no()
     else -> yes(this)
   }
-
-  private fun PersonMatchRecord.matchingFieldsAreDifferent(personEntity: PersonEntity): Boolean = this != PersonMatchRecord.from(personEntity)
 }

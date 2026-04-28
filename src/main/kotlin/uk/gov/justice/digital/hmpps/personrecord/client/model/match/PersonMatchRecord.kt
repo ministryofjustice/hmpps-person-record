@@ -24,6 +24,8 @@ data class PersonMatchRecord(
   val overrideScopes: List<String> = emptyList(),
 ) {
 
+  fun matchingFieldsAreDifferent(personEntity: PersonEntity): Boolean = this != from(personEntity)
+
   companion object {
     fun from(personEntity: PersonEntity): PersonMatchRecord = PersonMatchRecord(
       matchId = personEntity.matchId.toString(),
