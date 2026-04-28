@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address
@@ -12,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressUsag
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
@@ -24,11 +22,10 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 
-class ProbationAddressPostAPIControllerTest(@Autowired private val addressRepository: AddressRepository) : WebTestBase() {
+class ProbationAddressPostAPIControllerTest : WebTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
-
     @Test
     fun `should create a new address and recluster`() {
       stubPersonMatchUpsert()
@@ -38,7 +35,7 @@ class ProbationAddressPostAPIControllerTest(@Autowired private val addressReposi
       val newAddress = createRandomAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
-      sendPostRequestAsserted<ProbationCreateAddressResponse>(
+      val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
         url = probationAddressApiUrl(crn),
         body = newAddress,
         roles = listOf(PROBATION_API_READ_WRITE),
@@ -51,6 +48,9 @@ class ProbationAddressPostAPIControllerTest(@Autowired private val addressReposi
 
         val actualAddress = personEntity.addresses.first()
         assertAddressValues(newAddress, actualAddress)
+
+        assertThat(responseBody.crn).isEqualTo(crn)
+        assertThat(responseBody.cprAddressId).isEqualTo(actualAddress.updateId.toString())
       }
     }
 
@@ -60,7 +60,7 @@ class ProbationAddressPostAPIControllerTest(@Autowired private val addressReposi
       val newAddress = createRandomAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList())) { this.passiveState = true }
 
-      sendPostRequestAsserted<ProbationCreateAddressResponse>(
+      val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
         url = probationAddressApiUrl(crn),
         body = newAddress,
         roles = listOf(PROBATION_API_READ_WRITE),
@@ -73,6 +73,9 @@ class ProbationAddressPostAPIControllerTest(@Autowired private val addressReposi
 
         val actualAddress = personEntity.addresses.first()
         assertAddressValues(newAddress, actualAddress)
+
+        assertThat(responseBody.crn).isEqualTo(crn)
+        assertThat(responseBody.cprAddressId).isEqualTo(actualAddress.updateId.toString())
       }
     }
   }

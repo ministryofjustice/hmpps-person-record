@@ -97,7 +97,7 @@ class ProbationAddressAPIController(
       findAddress = { null },
     )
 
-    val responseBody = ProbationCreateAddressResponse(createdAddress.updateId!!.toString())
+    val responseBody = ProbationCreateAddressResponse(crn, createdAddress.updateId!!.toString())
     return ResponseEntity.status(HttpStatus.CREATED).body(responseBody)
   }
 }
