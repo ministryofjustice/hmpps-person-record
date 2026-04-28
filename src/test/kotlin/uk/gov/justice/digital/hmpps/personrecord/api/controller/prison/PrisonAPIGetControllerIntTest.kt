@@ -6,7 +6,11 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus.OK
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressStatus
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalCountry
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
@@ -63,8 +67,9 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
       )
       val nationality = prisonPerson.nationalities.first()
       val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
-      val address = prisonPerson.addresses.first()
+      val address = person.addresses.first()
       val canonicalAddress = CanonicalAddress(
+        cprAddressId = address.updateId!!.toString(),
         noFixedAbode = address.noFixedAbode,
         startDate = address.startDate.toString(),
         endDate = address.endDate?.toString(),
@@ -74,9 +79,16 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
         thoroughfareName = address.thoroughfareName,
         dependentLocality = address.dependentLocality,
         postTown = address.postTown,
+        county = address.county,
+        country = CanonicalCountry.from(address.countryCode),
+        uprn = address.uprn,
+        status = CanonicalAddressStatus.from(address.statusCode),
+        comment = address.comment,
+        usages = address.usages.map { CanonicalAddressUsage(CanonicalAddressUsageCode.from(it.usageCode), it.active) },
       )
-      val address2 = prisonPerson.addresses.get(1)
+      val address2 = person.addresses[1]
       val canonicalAddress2 = CanonicalAddress(
+        cprAddressId = address2.updateId!!.toString(),
         noFixedAbode = address2.noFixedAbode,
         startDate = address2.startDate.toString(),
         endDate = address2.endDate?.toString(),
@@ -86,6 +98,12 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
         thoroughfareName = address2.thoroughfareName,
         dependentLocality = address2.dependentLocality,
         postTown = address2.postTown,
+        county = address2.county,
+        country = CanonicalCountry.from(address2.countryCode),
+        uprn = address2.uprn,
+        status = CanonicalAddressStatus.from(address2.statusCode),
+        comment = address2.comment,
+        usages = address2.usages.map { CanonicalAddressUsage(CanonicalAddressUsageCode.from(it.usageCode), it.active) },
       )
 
       val canonicalReligion = CanonicalReligion(code = prisonPerson.religion, description = prisonPerson.religion)
