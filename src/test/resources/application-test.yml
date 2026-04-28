@@ -23,6 +23,10 @@ service-now:
   requestor: abcd
   requested-for: efgh
 
+core-person-record:
+  base-url: http://localhost:8080
+
+
 retry:
   timeout: 200
 
@@ -40,6 +44,11 @@ hmpps.sqs:
       subscribeTopicId: cprcourtcasestopic
       dlqName: test_only_cpr_court_cases_queue_dlq
       dlqMaxReceiveCount: 2
+    testcpreventsqueue:
+      queueName: test_only_cpr_events_queue
+      subscribeTopicId: domainevents
+      dlqName: test_only_cpr_events_queue_dlq
+      subscribeFilter: '{"eventType":[ "core-person-record.probation.address.created"] }'
     testcprdomaineventsqueue:
       queueName: test_only_cpr_domain_events_queue
       subscribeTopicId: domainevents
