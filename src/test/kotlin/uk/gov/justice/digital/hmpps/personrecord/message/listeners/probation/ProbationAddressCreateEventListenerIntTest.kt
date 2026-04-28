@@ -59,7 +59,10 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
     )
     publishProbationDomainEvent(OFFENDER_ADDRESS_CREATED, cprPerson.crn!!, AdditionalInformation(addressId = probationAddress.addressId))
 
+    expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
+    expectNoMessagesOn(testOnlyCPREventsQueue)
+    assertThat(personRepository.findByCrn(cprPerson.crn)!!.addresses.size).isEqualTo(0)
   }
 
   private fun randomProbationAddress(): ProbationAddress {
