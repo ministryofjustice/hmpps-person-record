@@ -15,3 +15,5 @@ const val OFFENDER_DELETION = "probation-case.engagement.deleted"
 const val CPR_PRISON_PERSON_CREATED = "core-person-record.prison.record.created"
 const val CPR_PROBATION_PERSON_CREATED = "core-person-record.probation.record.created"
 const val CPR_COURT_PERSON_CREATED = "core-person-record.court.record.created"
+
+const val SAS_ADDRESS_UPDATED = "sas.accommodation.updated"
