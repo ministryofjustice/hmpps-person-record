@@ -60,6 +60,10 @@ paths:
                     addressUsage:
                       - addressUsageCode: "A17"
                         isActive: true
+                    contacts:
+                      - type: "PHONE"
+                        value: "+44 20 7946 0000"
+                        extension: "1234"
 
       responses:
         '200':
@@ -253,6 +257,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AddressUsageItem'
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressContactItem'
 
     AddressUsageItem:
       type: object
@@ -262,6 +270,19 @@ components:
           example: "B"
         isActive:
           type: boolean
+
+    AddressContactItem:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "PHONE"
+        value:
+          type: string
+          example: "+44 20 7946 0000"
+        extension:
+          type: string
+          example: "1234"
 
 
     # ---- Responses ----
