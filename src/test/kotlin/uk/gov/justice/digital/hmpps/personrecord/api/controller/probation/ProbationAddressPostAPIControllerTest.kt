@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address
+import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -15,10 +16,12 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 
@@ -96,7 +99,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
     fun `should return 404 not found when probation record is a merged record`() {
       val mergedCrn = randomCrn()
       val person = createPersonWithNewKey(createRandomProbationPersonDetails())
-      val mergedPerson = createPerson(createRandomProbationPersonDetails(mergedCrn)) { mergedTo = person.id }
+      createPerson(createRandomProbationPersonDetails(mergedCrn)) { mergedTo = person.id }
       sendPostRequestAsserted<Unit>(
         url = probationAddressApiUrl(mergedCrn),
         body = createRandomAddress(),
@@ -146,6 +149,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
     comment = randomName(),
     statusCode = randomAddressStatusCode(),
     usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
+    contacts = listOf(AddressContact(randomContactType(), randomPhoneNumber(), "44")),
   )
 
   private fun assertAddressValues(expectedAddress: Address, actualAddress: AddressEntity) {
@@ -166,9 +170,14 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
     assertThat(actualAddress.comment).isEqualTo(expectedAddress.comment)
     assertThat(actualAddress.statusCode).isEqualTo(expectedAddress.statusCode)
     assertThat(actualAddress.usages.size).isEqualTo(expectedAddress.usages.size)
-    expectedAddress.usages.zip(actualAddress.usages).forEach { (e, a) ->
-      assertThat(a.usageCode).isEqualTo(e.addressUsageCode)
-      assertThat(a.active).isEqualTo(e.isActive)
+    expectedAddress.usages.zip(actualAddress.usages).forEach { (expected, actual) ->
+      assertThat(actual.usageCode).isEqualTo(expected.usageCode)
+      assertThat(actual.active).isEqualTo(expected.isActive)
+    }
+    expectedAddress.contacts.zip(actualAddress.contacts).forEach { (expected, actual) ->
+      assertThat(actual.contactType).isEqualTo(expected.typeCode)
+      assertThat(actual.contactValue).isEqualTo(expected.value)
+      assertThat(actual.extension).isEqualTo(expected.extension)
     }
   }
 }

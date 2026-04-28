@@ -39,4 +39,6 @@ data class Address(
   val statusCode: AddressStatusCode,
   @Schema(description = "List of address usages", required = true)
   val usages: List<AddressUsage> = emptyList(),
+  @Schema(description = "List of address contacts")
+  val contacts: List<AddressContact> = emptyList(),
 )

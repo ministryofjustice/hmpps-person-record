@@ -131,6 +131,7 @@ data class Address(
       comment = address.comment,
       statusCode = address.statusCode,
       usages = address.usages.map { AddressUsage.from(it) },
+      contacts = address.contacts.mapNotNull { Contact.from(it) },
     )
 
     fun fromPrisonerAddressList(addresses: List<PrisonerAddress>): List<Address> = addresses.mapNotNull { from(it) }

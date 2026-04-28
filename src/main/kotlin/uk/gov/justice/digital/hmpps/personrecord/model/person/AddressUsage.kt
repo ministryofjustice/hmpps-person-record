@@ -17,7 +17,7 @@ data class AddressUsage(
 
     fun from(usage: SysconAddressUsage): AddressUsage = AddressUsage(usage.addressUsageCode, usage.isActive)
 
-    fun from(usage: ProbationAddressUsage): AddressUsage = AddressUsage(usage.addressUsageCode, usage.isActive)
+    fun from(usage: ProbationAddressUsage): AddressUsage = AddressUsage(usage.usageCode, usage.isActive)
 
     fun from(usage: AddressUsageEntity): AddressUsage = AddressUsage(usage.usageCode, usage.active)
   }
