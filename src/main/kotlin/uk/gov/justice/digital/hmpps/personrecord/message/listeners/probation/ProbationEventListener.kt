@@ -30,19 +30,15 @@ class ProbationEventListener(
     val crn = event.getCrn()
     when (event.eventType) {
       OFFENDER_ADDRESS_CREATED -> {
-        val deliusAddressId = event.additionalInformation?.addressId
-        val probationAddress = corePersonRecordAndDeliusClient.getAddress(deliusAddressId)
-        val person = personRepository.findByCrn(crn)!!
+        val deliusAddressId = event.additionalInformation?.addressId!!
+        val probationAddress = corePersonRecordAndDeliusClient.getAddress(deliusAddressId)!!
 
         // TODO: Once ready, make use of the new AddressService class
-        val addressEntity = probationAddress?.let {
-          val coreAddress = Address.from(it)
-          val addressEntity = coreAddress?.let { AddressEntity.from(coreAddress) }
-          addressEntity!!.person = person
-          addressEntity.usages.forEach { usage -> usage.address = addressEntity }
-          addressEntity.contacts.forEach { contactEntity -> contactEntity.address = addressEntity }
-          addressEntity
-        }!!
+        val personEntity = personRepository.findByCrn(crn)!!
+        val addressEntity = AddressEntity.from(Address.from(probationAddress)!!)
+        addressEntity.person = personEntity
+        addressEntity.usages.forEach { usage -> usage.address = addressEntity }
+        addressEntity.contacts.forEach { contactEntity -> contactEntity.address = addressEntity }
 
         addressRepository.save(addressEntity)
         publisher.publishEvent(AddressCreated(crn, deliusAddressId, addressEntity))

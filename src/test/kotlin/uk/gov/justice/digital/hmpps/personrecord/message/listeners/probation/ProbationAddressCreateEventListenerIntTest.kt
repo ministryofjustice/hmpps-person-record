@@ -45,6 +45,23 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
     }
   }
 
+  @Test
+  fun `consuming address created event - address not retrieved from probation - pushes message to dead letter queue`() {
+    val probationAddress = randomProbationAddress()
+    val cprPerson = createRandomProbationPersonDetails().copy(addresses = emptyList())
+    createPersonKey()
+      .addPerson(cprPerson)
+
+    stubGetRequest(
+      url = "/person/address/${probationAddress.addressId}",
+      body = "{}",
+      status = 404,
+    )
+    publishProbationDomainEvent(OFFENDER_ADDRESS_CREATED, cprPerson.crn!!, AdditionalInformation(addressId = probationAddress.addressId))
+
+    expectOneMessageOnDlq(probationEventsQueue)
+  }
+
   private fun randomProbationAddress(): ProbationAddress {
     val startDate = randomDate()
     val endDate = startDate.plusYears(10)
