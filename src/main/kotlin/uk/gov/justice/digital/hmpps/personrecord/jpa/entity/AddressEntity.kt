@@ -53,53 +53,53 @@ class AddressEntity(
 
   @Column
   @OneToMany(mappedBy = "address", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
-  val usages: MutableList<AddressUsageEntity> = mutableListOf(),
+  var usages: MutableList<AddressUsageEntity> = mutableListOf(),
 
   @Column(name = "start_date")
-  val startDate: LocalDate? = null,
+  var startDate: LocalDate? = null,
 
   @Column(name = "end_date")
-  val endDate: LocalDate? = null,
+  var endDate: LocalDate? = null,
 
   @Column(name = "no_fixed_abode")
-  val noFixedAbode: Boolean? = null,
+  var noFixedAbode: Boolean? = null,
 
   @Column(name = "address_full")
-  val fullAddress: String? = null,
+  var fullAddress: String? = null,
 
   @Column
-  val postcode: String? = null,
+  var postcode: String? = null,
 
   @Column(name = "sub_building_name")
-  val subBuildingName: String? = null,
+  var subBuildingName: String? = null,
 
   @Column(name = "building_name")
-  val buildingName: String? = null,
+  var buildingName: String? = null,
 
   @Column(name = "building_number")
-  val buildingNumber: String? = null,
+  var buildingNumber: String? = null,
 
   @Column(name = "thoroughfare_name")
-  val thoroughfareName: String? = null,
+  var thoroughfareName: String? = null,
 
   @Column(name = "dependent_locality")
-  val dependentLocality: String? = null,
+  var dependentLocality: String? = null,
 
   @Column(name = "post_town")
-  val postTown: String? = null,
+  var postTown: String? = null,
 
   @Column(name = "county")
-  val county: String? = null,
+  var county: String? = null,
 
   @Column(name = "country_code")
   @Enumerated(STRING)
-  val countryCode: CountryCode? = null,
+  var countryCode: CountryCode? = null,
 
   @Column(name = "comment")
-  val comment: String? = null,
+  var comment: String? = null,
 
   @Column(name = "uprn")
-  val uprn: String? = null,
+  var uprn: String? = null,
 
   @Enumerated(STRING)
   @Column(name = "record_type")
@@ -107,33 +107,36 @@ class AddressEntity(
 
   @Enumerated(STRING)
   @Column(name = "status_code")
-  val statusCode: AddressStatusCode? = null,
+  var statusCode: AddressStatusCode? = null,
 
   @Version
   var version: Int = 0,
 ) {
 
+  fun update(address: Address) {
+    this.noFixedAbode = address.noFixedAbode
+    this.startDate = address.startDate
+    this.endDate = address.endDate
+    this.postcode = address.postcode
+    this.fullAddress = address.fullAddress
+    this.subBuildingName = address.subBuildingName
+    this.buildingName = address.buildingName
+    this.buildingNumber = address.buildingNumber
+    this.thoroughfareName = address.thoroughfareName
+    this.dependentLocality = address.dependentLocality
+    this.postTown = address.postTown
+    this.county = address.county
+    this.countryCode = address.countryCode
+    this.uprn = address.uprn
+    this.comment = address.comment
+    this.contacts = address.contacts.map { ContactEntity.from(it).also { ue -> ue.address = this } }.toMutableList()
+    this.statusCode = address.statusCode
+    this.usages = address.usages.map { AddressUsageEntity.from(it).also { ue -> ue.address = this } }.toMutableList()
+    this.recordType = address.recordType
+    // TODO: determine how best to update the child entities
+  }
+
   companion object {
-    fun from(address: Address): AddressEntity = AddressEntity(
-      startDate = address.startDate,
-      endDate = address.endDate,
-      noFixedAbode = address.noFixedAbode,
-      postcode = address.postcode,
-      fullAddress = address.fullAddress,
-      subBuildingName = address.subBuildingName,
-      buildingName = address.buildingName,
-      buildingNumber = address.buildingNumber,
-      thoroughfareName = address.thoroughfareName,
-      dependentLocality = address.dependentLocality,
-      postTown = address.postTown,
-      county = address.county,
-      countryCode = address.countryCode,
-      uprn = address.uprn,
-      recordType = address.recordType,
-      comment = address.comment,
-      statusCode = address.statusCode,
-      usages = address.usages.map { AddressUsageEntity.from(it) }.toMutableList(),
-      contacts = address.contacts.map { ContactEntity.from(it) }.toMutableList(),
-    )
+    fun from(address: Address): AddressEntity = AddressEntity().also { it.update(address) }
   }
 }
