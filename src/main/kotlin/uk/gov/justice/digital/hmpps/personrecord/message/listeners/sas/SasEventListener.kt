@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.SasClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.SAS_EVENT_QUEUE_ID
@@ -24,10 +25,30 @@ class SasEventListener(
     when (event.eventType) {
       SAS_ADDRESS_UPDATED -> {
         val sasAddressId = event.additionalInformation!!.sasAddressId!!
-        val sasAddress = sasClient.getAddress(sasAddressId)
+        val sasGetAddressResponse = sasClient.getAddress(sasAddressId)!!
+        val crn = sasGetAddressResponse.crn
+        val addressUpdateId = sasGetAddressResponse.cprAddressUpdateId
+        val updatedSasAddress = sasGetAddressResponse.address
 
-        // update address if exists
+        val personEntity = personRepository.findByCrn(crn)!!
+        val addressEntity = personEntity.addresses.first { it.updateId.toString() == addressUpdateId }
+        addressEntity.startDate = sasGetAddressResponse.startDate
+        addressEntity.endDate = sasGetAddressResponse.endDate
+        addressEntity.postcode = updatedSasAddress.postcode
+        addressEntity.subBuildingName = updatedSasAddress.subBuildingName
+        addressEntity.buildingName = updatedSasAddress.buildingName
+        addressEntity.buildingNumber = updatedSasAddress.buildingNumber
+        addressEntity.thoroughfareName = updatedSasAddress.thoroughfareName
+        addressEntity.dependentLocality = updatedSasAddress.dependentLocality
+        addressEntity.postTown = updatedSasAddress.postTown
+        addressEntity.county = updatedSasAddress.county
+        addressEntity.countryCode = updatedSasAddress.country?.let { CountryCode.valueOf(it) }
+        addressEntity.uprn = updatedSasAddress.uprn
+        addressRepository.save(addressEntity)
+
         // recluster
+        reclusterService.recluster(personEntity)
+
         // publish domain event
 
         // event log & telemetry?
