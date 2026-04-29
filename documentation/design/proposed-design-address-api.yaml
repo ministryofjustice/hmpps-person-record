@@ -137,6 +137,10 @@ paths:
                           - addressUsageCode: "A17"
                             addressUsageDescription: "CAS3"
                             isActive: true
+                        contacts:
+                          - type: "PHONE"
+                            value: "+44 20 7946 0000"
+                            extension: "1234"
         '404':
           description: Address usage not found
           content:
@@ -197,6 +201,10 @@ paths:
                         - addressUsageCode: "A17"
                           addressUsageDescription: "CAS3"
                           isActive: true
+                      contacts:
+                        - type: "PHONE"
+                          value: "+44 20 7946 0000"
+                          extension: "1234"
         '404':
           description: Address usage not found
           content:
@@ -331,8 +339,8 @@ components:
           format: date-time
         endDate:
           type: string
-          format: date
-          nullable: true-time
+          format: date-time
+          nullable: true
         postcode:
           type: string
         uprn:
@@ -370,6 +378,10 @@ components:
                 type: string
               isActive:
                 type: boolean
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressContactItem'
 
     # ---- Common error ----
     ErrorResponse:
