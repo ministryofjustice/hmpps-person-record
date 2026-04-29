@@ -24,6 +24,9 @@ on:
       PLANDEK_DEPLOYMENT_URL:
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: Deploy to ${{ inputs.environment }}
