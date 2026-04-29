@@ -301,7 +301,6 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.addresses.first().dependentLocality).isNull()
     assertThat(responseBody.addresses.first().postTown).isNull()
     assertThat(responseBody.addresses.first().county).isNull()
-    assertThat(responseBody.addresses.first().country).isNotNull()
     assertThat(responseBody.addresses.first().country).isNull()
     assertThat(responseBody.addresses.first().countryCode).isNull()
     assertThat(responseBody.addresses.first().uprn).isNull()
