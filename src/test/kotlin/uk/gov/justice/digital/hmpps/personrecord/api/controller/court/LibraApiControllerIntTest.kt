@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAd
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalCountry
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
@@ -165,7 +164,8 @@ class LibraApiControllerIntTest : WebTestBase() {
           dependentLocality = dependentLocality,
           postTown = postTown,
           county = county,
-          country = CanonicalCountry.from(countryCode),
+          country = countryCode.description,
+          countryCode = countryCode.name,
           uprn = uprn,
           status = CanonicalAddressStatus.from(addressStatusCode),
           comment = comment,
@@ -296,9 +296,8 @@ class LibraApiControllerIntTest : WebTestBase() {
       assertThat(responseBody.addresses.first().dependentLocality).isNull()
       assertThat(responseBody.addresses.first().postTown).isNull()
       assertThat(responseBody.addresses.first().county).isNull()
-      assertThat(responseBody.addresses.first().country).isNotNull()
-      assertThat(responseBody.addresses.first().country.code).isNull()
-      assertThat(responseBody.addresses.first().country.description).isNull()
+      assertThat(responseBody.addresses.first().country).isNull()
+      assertThat(responseBody.addresses.first().countryCode).isNull()
       assertThat(responseBody.addresses.first().uprn).isNull()
       assertThat(responseBody.addresses.first().status).isNotNull()
       assertThat(responseBody.addresses.first().status.code).isNull()

@@ -24,17 +24,19 @@ data class CanonicalAddress(
   val thoroughfareName: String? = null,
   @Schema(description = "Person address dependentLocality", example = "Westminster")
   val dependentLocality: String? = null,
-  @Schema(description = "Person address postTown", example = "London")
+  @Schema(description = "Person address post town", example = "London")
   val postTown: String? = null,
   @Schema(description = "Person address county", example = "Greater London")
   val county: String? = null,
-  @Schema(description = "Person address country")
-  val country: CanonicalCountry,
+  @Schema(description = "Person address country", example = "United Kingdom of Great Britain and Northern Ireland (the)")
+  val country: String? = null,
+  @Schema(description = "Person address country code", example = "GBR")
+  val countryCode: String? = null,
   @Schema(description = "Person address uprn", example = "100120991537")
   val uprn: String? = null,
   @Schema(description = "Person address status")
   val status: CanonicalAddressStatus,
-  @Schema(description = "Person address comment", example = "United Kingdom")
+  @Schema(description = "Person address comment", example = "Some comment")
   val comment: String? = null,
   @Schema(description = "List of person address usages")
   val usages: List<CanonicalAddressUsage> = emptyList(),
@@ -54,7 +56,8 @@ data class CanonicalAddress(
       dependentLocality = addressEntity.dependentLocality,
       postTown = addressEntity.postTown,
       county = addressEntity.county,
-      country = CanonicalCountry.from(addressEntity.countryCode),
+      country = addressEntity.countryCode?.description,
+      countryCode = addressEntity.countryCode?.name,
       uprn = addressEntity.uprn,
       status = CanonicalAddressStatus.from(addressEntity.statusCode),
       comment = addressEntity.comment,

@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAd
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalCountry
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -134,7 +133,8 @@ class ProbationAddressGetAPIControllerTest : WebTestBase() {
       dependentLocality = expectedAddress.dependentLocality,
       postTown = expectedAddress.postTown,
       county = expectedAddress.county,
-      country = CanonicalCountry.from(expectedAddress.countryCode),
+      country = expectedAddress.countryCode?.description,
+      countryCode = expectedAddress.countryCode?.name,
       uprn = expectedAddress.uprn,
       status = CanonicalAddressStatus.from(expectedAddress.statusCode),
       comment = expectedAddress.comment,
