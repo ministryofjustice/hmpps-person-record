@@ -22,4 +22,5 @@ data class AdditionalInformation(
   val sourcePrisonNumber: String? = null,
 
   val sasAddressId: String? = null,
+  val cprAddressId: String? = null,
 )

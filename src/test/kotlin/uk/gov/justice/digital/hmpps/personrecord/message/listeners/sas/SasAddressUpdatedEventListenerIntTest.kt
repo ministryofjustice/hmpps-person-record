@@ -3,15 +3,18 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
+import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
@@ -33,14 +36,14 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val sasCallbackResponse = createSasAddressGetResponse(existingPersonEntity.crn, existingAddressEntity.updateId)
 
-      val sasAddressId = randomDigit() // this will be an uuid
+      val sasAddressId = UUID.randomUUID().toString()
       stubGetRequestToSas(sasAddressId, sasCallbackResponse)
         .also { stubPersonMatchScores() }
 
       publishSasAddressUpdateEvent(existingPersonEntity.crn!!, sasAddressId)
 
       assertAddressUpdated(existingPersonEntity.crn, sasCallbackResponse)
-      // assert domain event published
+      assertPublishedDomainEvent(existingPersonEntity.crn)
     }
   }
 
@@ -117,5 +120,23 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(actualAddressEntity.countryCode!!.name).isEqualTo(expected.address.country)
       assertThat(actualAddressEntity.uprn).isEqualTo(expected.address.uprn)
     }
+  }
+
+  private fun assertPublishedDomainEvent(crn: String?) {
+    val cprAddressUpdateId = personRepository.findByCrn(crn!!)!!.addresses.first().updateId!!.toString()
+    expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+    val actualDomainEvent = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build())!!.get()
+    val sqsMessage = actualDomainEvent.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
+    val domainEvent = jsonMapper.readValue<DomainEvent>(sqsMessage.message)
+
+    assertThat(domainEvent.eventType).isEqualTo(CPR_ADDRESS_UPDATED)
+    assertThat(domainEvent.personReference!!.identifiers!!.size).isEqualTo(1)
+    assertThat(domainEvent.personReference.identifiers.first().type).isEqualTo("CRN")
+    assertThat(domainEvent.personReference.identifiers.first().value).isEqualTo(crn)
+    assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(cprAddressUpdateId)
+    assertThat(domainEvent.version).isEqualTo(1)
+    assertThat(domainEvent.description).isEqualTo("Address was updated in Core Person Record")
+    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn/address/$cprAddressUpdateId")
+    assertThat(domainEvent.occurredAt).isNotBlank
   }
 }
