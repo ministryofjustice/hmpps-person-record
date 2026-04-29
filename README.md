@@ -37,8 +37,7 @@ Mostly runs against dev services, uses localstack for the queues
 
 You can log into the front end via http://localhost:9090
 
-username: CPR_MANAGE_ADMIN
-password: password123456
+Credentials can be found [here](https://dsdmoj.atlassian.net/wiki/spaces/PRD/pages/6135579800/Running+Person+Record+Locally)
 
 ### process a Common Platform message when running locally
 
