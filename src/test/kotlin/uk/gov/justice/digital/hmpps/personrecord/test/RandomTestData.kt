@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.test
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.VALID_LETTERS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.commonPlatformEthnicity
@@ -108,6 +110,10 @@ fun randomReligionCode(): String = ReligionCode.entries.random().name
 fun randomReligion(): String = ReligionCode.entries.random().description
 
 fun randomCountryCode(): CountryCode = CountryCode.entries.random()
+
+fun randomAddressStatusCode(): AddressStatusCode = AddressStatusCode.entries.random()
+
+fun randomAddressUsageCode(): AddressUsageCode = AddressUsageCode.entries.random()
 
 fun randomDriverLicenseNumber(): String {
   fun randomString(length: Int, source: String) = (1..length).map { source.random() }.joinToString("")

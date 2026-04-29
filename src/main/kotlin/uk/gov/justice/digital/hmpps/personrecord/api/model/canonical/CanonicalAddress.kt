@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 
 data class CanonicalAddress(
+  @Schema(description = "CPR address Id", example = "ec4c7479-218c-4f11-a02d-edd749820679")
+  val cprAddressId: String,
   @Schema(description = "Person no fixed abode", examples = ["false", "true", "null"])
   val noFixedAbode: Boolean? = null,
   @Schema(description = "Person address start date", example = "2020-02-26")
@@ -22,28 +24,46 @@ data class CanonicalAddress(
   val thoroughfareName: String? = null,
   @Schema(description = "Person address dependentLocality", example = "Westminster")
   val dependentLocality: String? = null,
-  @Schema(description = "Person address postTown", example = "London")
+  @Schema(description = "Person address post town", example = "London")
   val postTown: String? = null,
   @Schema(description = "Person address county", example = "Greater London")
   val county: String? = null,
-  @Schema(description = "Person address country", example = "United Kingdom")
+  @Schema(description = "Person address country", example = "United Kingdom of Great Britain and Northern Ireland (the)")
   val country: String? = null,
+  @Schema(description = "Person address country code", example = "GBR")
+  val countryCode: String? = null,
   @Schema(description = "Person address uprn", example = "100120991537")
   val uprn: String? = null,
+  @Schema(description = "Person address status")
+  val status: CanonicalAddressStatus,
+  @Schema(description = "Person address comment", example = "Some comment")
+  val comment: String? = null,
+  @Schema(description = "List of person address usages")
+  val usages: List<CanonicalAddressUsage> = emptyList(),
 ) {
-  companion object {
 
+  companion object {
     fun from(addressEntity: AddressEntity): CanonicalAddress = CanonicalAddress(
-      postcode = addressEntity.postcode,
+      cprAddressId = addressEntity.updateId!!.toString(),
+      noFixedAbode = addressEntity.noFixedAbode,
       startDate = addressEntity.startDate?.toString(),
       endDate = addressEntity.endDate?.toString(),
-      noFixedAbode = addressEntity.noFixedAbode,
+      postcode = addressEntity.postcode,
+      subBuildingName = addressEntity.subBuildingName,
       buildingName = addressEntity.buildingName,
       buildingNumber = addressEntity.buildingNumber,
       thoroughfareName = addressEntity.thoroughfareName,
       dependentLocality = addressEntity.dependentLocality,
       postTown = addressEntity.postTown,
+      county = addressEntity.county,
+      country = addressEntity.countryCode?.description,
+      countryCode = addressEntity.countryCode?.name,
+      uprn = addressEntity.uprn,
+      status = CanonicalAddressStatus.from(addressEntity.statusCode),
+      comment = addressEntity.comment,
+      usages = CanonicalAddressUsage.fromAddressUsageEntityList(addressEntity.usages),
     )
+
     fun fromAddressEntityList(addressEntity: List<AddressEntity>): List<CanonicalAddress> = addressEntity.map { from(it) }
   }
 }
