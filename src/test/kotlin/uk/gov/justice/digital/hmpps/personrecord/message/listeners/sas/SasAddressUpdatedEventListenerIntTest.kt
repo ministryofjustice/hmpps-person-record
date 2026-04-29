@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
-import java.util.UUID
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 
 class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -20,13 +20,13 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
       createPersonKey()
         .addPerson(personEntity)
 
-      val sasAddressId = UUID.randomUUID().toString()
+      val sasAddressId = randomDigit() // this will be an uuid
       stubGetRequestToSas(sasAddressId)
 
       publishSasEvent(personEntity.crn!!, sasAddressId)
 
       awaitAssert {
-        assertThat(personRepository.findByCrn(personEntity.crn!!)!!.addresses.size).isEqualTo(1)
+        assertThat(personRepository.findByCrn(personEntity.crn!!)!!.addresses.size).isEqualTo(2)
       }
 
       // assert domain event published
@@ -61,12 +61,7 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
   private fun stubGetRequestToSas(sasAddressId: String) {
     stubGetRequest(
       url = "/proposed-accommodations/$sasAddressId",
-      body = """
-        {
-          "postcode": "dry 123",
-          "addressId": "$sasAddressId",
-        }
-      """.trimIndent(),
+      body = """{ "postcode": "er3 123", "addressId": $sasAddressId }""".trimIndent(),
       status = 200,
     )
   }

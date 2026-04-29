@@ -52,7 +52,7 @@ class WebClientConfig(
   )
 
   @Bean
-  fun sasClient(
+  fun sasWebClient(
     authorizedClientManager: OAuth2AuthorizedClientManager,
     builder: WebClient.Builder,
   ): WebClient = builder.authorisedWebClient(

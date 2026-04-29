@@ -79,6 +79,12 @@ hmpps.sqs:
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":[ "prison-offender-events.prisoner.merged"] }'
       dlqMaxReceiveCount: 2
+    cprsaseventsqueue:
+      queueName: cpr_sas_events_queue
+      dlqName: cpr_sas_events_queue_dlq
+      subscribeTopicId: domainevents
+      subscribeFilter: '{"eventType":[ "sas.accommodation.updated"] }'
+      dlqMaxReceiveCount: 2
   topics:
     courtcasestopic:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}.fifo
