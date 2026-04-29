@@ -95,9 +95,8 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       )
       val nationality = prisonPerson.nationalities.first()
       val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
-      val address = person.addresses.first()
+      val address = prisonPerson.addresses.first()
       val canonicalAddress = CanonicalAddress(
-        cprAddressId = address.updateId!!.toString(),
         noFixedAbode = address.noFixedAbode,
         startDate = address.startDate.toString(),
         endDate = address.endDate?.toString(),
@@ -112,11 +111,10 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         uprn = address.uprn,
         status = CanonicalAddressStatus.from(address.statusCode),
         comment = address.comment,
-        usages = address.usages.map { CanonicalAddressUsage(CanonicalAddressUsageCode.from(it.usageCode), it.active) },
+        usages = address.usages.map { CanonicalAddressUsage(CanonicalAddressUsageCode.from(it.addressUsageCode), it.isActive) },
       )
-      val address2 = person.addresses[1]
+      val address2 = prisonPerson.addresses[1]
       val canonicalAddress2 = CanonicalAddress(
-        cprAddressId = address2.updateId!!.toString(),
         noFixedAbode = address2.noFixedAbode,
         startDate = address2.startDate.toString(),
         endDate = address2.endDate?.toString(),
@@ -131,7 +129,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         uprn = address2.uprn,
         status = CanonicalAddressStatus.from(address2.statusCode),
         comment = address2.comment,
-        usages = address2.usages.map { CanonicalAddressUsage(CanonicalAddressUsageCode.from(it.usageCode), it.active) },
+        usages = address2.usages.map { CanonicalAddressUsage(CanonicalAddressUsageCode.from(it.addressUsageCode), it.isActive) },
       )
 
       val canonicalReligion = CanonicalReligion(code = prisonPerson.religion, description = prisonPerson.religion)
