@@ -39,24 +39,7 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       publishSasAddressUpdateEvent(existingPersonEntity.crn!!, sasAddressId)
 
-      awaitAssert {
-        val actualPersonEntity = personRepository.findByCrn(existingPersonEntity.crn!!)!!
-        assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-        val actualAddressEntity = actualPersonEntity.addresses.first()
-        assertThat(actualAddressEntity.startDate).isEqualTo(sasCallbackResponse.startDate)
-        assertThat(actualAddressEntity.endDate).isEqualTo(sasCallbackResponse.endDate)
-        assertThat(actualAddressEntity.postcode).isEqualTo(sasCallbackResponse.address.postcode)
-        assertThat(actualAddressEntity.subBuildingName).isEqualTo(sasCallbackResponse.address.subBuildingName)
-        assertThat(actualAddressEntity.buildingName).isEqualTo(sasCallbackResponse.address.buildingName)
-        assertThat(actualAddressEntity.buildingNumber).isEqualTo(sasCallbackResponse.address.buildingNumber)
-        assertThat(actualAddressEntity.thoroughfareName).isEqualTo(sasCallbackResponse.address.thoroughfareName)
-        assertThat(actualAddressEntity.dependentLocality).isEqualTo(sasCallbackResponse.address.dependentLocality)
-        assertThat(actualAddressEntity.postTown).isEqualTo(sasCallbackResponse.address.postTown)
-        assertThat(actualAddressEntity.county).isEqualTo(sasCallbackResponse.address.county)
-        assertThat(actualAddressEntity.countryCode!!.name).isEqualTo(sasCallbackResponse.address.country)
-        assertThat(actualAddressEntity.uprn).isEqualTo(sasCallbackResponse.address.uprn)
-      }
-
+      assertAddressUpdated(existingPersonEntity.crn, sasCallbackResponse)
       // assert domain event published
     }
   }
@@ -114,5 +97,25 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
       body = jsonMapper.writeValueAsString(sasCallbackResponse),
       status = 200,
     )
+  }
+
+  private fun assertAddressUpdated(crn: String?, expected: SasGetAddressResponse) {
+    awaitAssert {
+      val actualPersonEntity = personRepository.findByCrn(crn!!)!!
+      assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
+      val actualAddressEntity = actualPersonEntity.addresses.first()
+      assertThat(actualAddressEntity.startDate).isEqualTo(expected.startDate)
+      assertThat(actualAddressEntity.endDate).isEqualTo(expected.endDate)
+      assertThat(actualAddressEntity.postcode).isEqualTo(expected.address.postcode)
+      assertThat(actualAddressEntity.subBuildingName).isEqualTo(expected.address.subBuildingName)
+      assertThat(actualAddressEntity.buildingName).isEqualTo(expected.address.buildingName)
+      assertThat(actualAddressEntity.buildingNumber).isEqualTo(expected.address.buildingNumber)
+      assertThat(actualAddressEntity.thoroughfareName).isEqualTo(expected.address.thoroughfareName)
+      assertThat(actualAddressEntity.dependentLocality).isEqualTo(expected.address.dependentLocality)
+      assertThat(actualAddressEntity.postTown).isEqualTo(expected.address.postTown)
+      assertThat(actualAddressEntity.county).isEqualTo(expected.address.county)
+      assertThat(actualAddressEntity.countryCode!!.name).isEqualTo(expected.address.country)
+      assertThat(actualAddressEntity.uprn).isEqualTo(expected.address.uprn)
+    }
   }
 }
