@@ -5,17 +5,12 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressStatus
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalCountry
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
@@ -24,14 +19,10 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonsNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformSexCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -43,7 +34,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 
 class LibraApiControllerIntTest : WebTestBase() {
 
@@ -68,13 +58,6 @@ class LibraApiControllerIntTest : WebTestBase() {
       val thoroughfareName = randomName()
       val dependentLocality = randomName()
       val postTown = randomName()
-      val county = randomName()
-      val countryCode = randomCountryCode()
-      val uprn = randomUprn()
-      val addressStatusCode = randomAddressStatusCode()
-      val addressUsageCode = randomAddressUsageCode()
-      val isActive = randomBoolean()
-      val comment = randomName()
 
       val cro = randomCro()
       val pnc = randomLongPnc()
@@ -114,12 +97,6 @@ class LibraApiControllerIntTest : WebTestBase() {
               thoroughfareName = thoroughfareName,
               dependentLocality = dependentLocality,
               postTown = postTown,
-              county = county,
-              countryCode = countryCode,
-              uprn = uprn,
-              statusCode = addressStatusCode,
-              comment = comment,
-              usages = listOf(AddressUsage(addressUsageCode, isActive)),
             ),
           ),
           references = listOf(
@@ -154,7 +131,6 @@ class LibraApiControllerIntTest : WebTestBase() {
         )
       val canonicalAddress =
         CanonicalAddress(
-          cprAddressId = person.addresses.first().updateId!!.toString(),
           noFixedAbode = noFixedAbode,
           startDate = startDate.toString(),
           endDate = endDate.toString(),
@@ -164,12 +140,6 @@ class LibraApiControllerIntTest : WebTestBase() {
           thoroughfareName = thoroughfareName,
           dependentLocality = dependentLocality,
           postTown = postTown,
-          county = county,
-          country = CanonicalCountry.from(countryCode),
-          uprn = uprn,
-          status = CanonicalAddressStatus.from(addressStatusCode),
-          comment = comment,
-          usages = listOf(CanonicalAddressUsage(CanonicalAddressUsageCode.from(addressUsageCode), isActive)),
         )
 
       assertThat(responseBody.cprUUID).isNull()
@@ -296,14 +266,8 @@ class LibraApiControllerIntTest : WebTestBase() {
       assertThat(responseBody.addresses.first().dependentLocality).isNull()
       assertThat(responseBody.addresses.first().postTown).isNull()
       assertThat(responseBody.addresses.first().county).isNull()
-      assertThat(responseBody.addresses.first().country).isNotNull()
-      assertThat(responseBody.addresses.first().country.code).isNull()
-      assertThat(responseBody.addresses.first().country.description).isNull()
+      assertThat(responseBody.addresses.first().country).isNull()
       assertThat(responseBody.addresses.first().uprn).isNull()
-      assertThat(responseBody.addresses.first().status).isNotNull()
-      assertThat(responseBody.addresses.first().status.code).isNull()
-      assertThat(responseBody.addresses.first().status.description).isNull()
-      assertThat(responseBody.addresses.first().usages.size).isEqualTo(0)
     }
 
     @Test
