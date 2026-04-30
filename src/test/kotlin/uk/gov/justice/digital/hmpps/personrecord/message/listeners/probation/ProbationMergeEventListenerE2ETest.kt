@@ -25,8 +25,9 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     val sourceCrn = randomCrn()
     val targetPersonDetails = createRandomProbationCase(targetCrn)
     val sourcePerson = createPersonWithNewKey(Person.from(targetPersonDetails.copy(identifiers = targetPersonDetails.identifiers.copy(crn = sourceCrn))))
-
     val targetPerson = createPersonWithNewKey(Person.from(targetPersonDetails))
+
+    println("source: $sourceCrn, target: $targetCrn")
 
     // 1. merge the records
     probationMergeEventAndResponseSetup(
@@ -43,7 +44,9 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     sourcePerson.assertNotMerged()
 
     // 3. create new person with same target details - should match both
-    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, targetUnmergeSetup.copy(crn = randomCrn()))
+    val personThreeCrn = randomCrn()
+    println("Person 3 crn: $personThreeCrn")
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, targetUnmergeSetup.copy(crn = personThreeCrn))
     targetPerson.personKey!!.getReview().hasReviewSize(3)
 
     // 4. merge again - should delete review (doesnt yet!)
@@ -62,7 +65,6 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     val sourceCrn = randomCrn()
     val targetPersonDetails = createRandomProbationCase(targetCrn)
     val sourcePerson = createPersonWithNewKey(Person.from(targetPersonDetails.copy(identifiers = targetPersonDetails.identifiers.copy(crn = sourceCrn))))
-
     val targetPerson = createPersonWithNewKey(Person.from(targetPersonDetails))
 
     // 1. merge the records
@@ -132,6 +134,8 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     // 6. make the person 4 match the target record - recluster should delete the target cluster and delete the linked review
     probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, fourthPersonSetup.copy(crn = fourthPerson))
     targetPerson.personKey!!.assertPersonKeyDeleted()
+
+    // todo: more asserts for review size etc
   }
 
   @Test

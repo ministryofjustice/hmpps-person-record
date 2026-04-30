@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReviewRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
@@ -19,6 +20,7 @@ class PersonDeletionService(
   private val personMatchService: PersonMatchService,
   private val publisher: ApplicationEventPublisher,
   private val reclusterService: ReclusterService,
+  private val reviewRepository: ReviewRepository,
 ) {
 
   @Transactional
@@ -47,6 +49,10 @@ class PersonDeletionService(
   private fun PersonEntity.deleteFromPersonMatch() = personMatchService.deleteFromPersonMatch(this)
 
   private fun deletePersonKey(personKeyEntity: PersonKeyEntity, personEntity: PersonEntity) {
+    val findByClustersPersonKey = reviewRepository.findByClustersPersonKey(personKeyEntity)
+    findByClustersPersonKey?.let { review ->
+      reviewRepository.delete(review)
+    }
     personKeyRepository.delete(personKeyEntity)
     publisher.publishEvent(PersonKeyDeleted(personEntity, personKeyEntity))
   }

@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReviewRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
@@ -28,6 +29,7 @@ class ReclusterService(
   private val personKeyRepository: PersonKeyRepository,
   private val publisher: ApplicationEventPublisher,
   private val personRepository: PersonRepository,
+  private val reviewRepository: ReviewRepository,
 ) {
 
   fun recluster(changedRecord: PersonEntity) {
@@ -121,6 +123,10 @@ class ReclusterService(
 
   private fun deleteOriginalCluster(originalCluster: PersonKeyEntity) {
     originalCluster.personEntities.clear()
+    val findByClustersPersonKey = reviewRepository.findByClustersPersonKey(originalCluster)
+    findByClustersPersonKey?.let { review ->
+      reviewRepository.delete(review)
+    }
     personKeyRepository.delete(originalCluster)
   }
 
