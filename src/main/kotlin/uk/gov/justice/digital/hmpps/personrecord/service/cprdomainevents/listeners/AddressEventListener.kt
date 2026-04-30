@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listen
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
@@ -22,7 +23,7 @@ class AddressEventListener(
   @Value("\${core-person-record.base-url}") private val baseUrl: String,
 ) {
 
-//  @EventListener
+  @EventListener
   @TransactionalEventListener
   fun onAddressUpdate(addressUpdated: AddressUpdated) {
     val addressEntity = addressUpdated.addressEntity
