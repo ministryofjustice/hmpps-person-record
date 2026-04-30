@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_ADDRESS_UPDATE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
@@ -49,13 +50,63 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Nested
   inner class FailureScenarios {
+
+    @Test
     fun `address not returned from sas - pushes event to dead letter queue`() {
+      val existingPersonEntity = createPerson(createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = randomPostcode()))))
+      val existingAddressEntity = existingPersonEntity.addresses.first()
+      createPersonKey()
+        .addPerson(existingPersonEntity)
+
+      val sasAddressId = UUID.randomUUID().toString()
+      stubGetRequestToSas(sasAddressId, status = 404)
+
+      publishSasAddressUpdateEvent(existingPersonEntity.crn!!, sasAddressId)
+
+      expectNoMessagesOn(sasEventsQueue)
+      expectOneMessageOnDlq(sasEventsQueue)
+      expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
+      val actualAddress = personRepository.findByCrn(existingPersonEntity.crn!!)!!.addresses.first()
+      assertThat(actualAddress.postcode).isEqualTo(existingAddressEntity.postcode)
     }
 
+    @Test
     fun `cpr address does not exist - pushed to dead letter queue`() {
+      val existingPersonEntity = createPerson(createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = randomPostcode()))))
+      createPersonKey()
+        .addPerson(existingPersonEntity)
+
+      val nonExistingAddressUpdateId = UUID.randomUUID()
+      val sasCallbackResponse = createSasAddressGetResponse(existingPersonEntity.crn, nonExistingAddressUpdateId)
+
+      val sasAddressId = UUID.randomUUID().toString()
+      stubGetRequestToSas(sasAddressId, sasCallbackResponse)
+
+      publishSasAddressUpdateEvent(existingPersonEntity.crn!!, sasAddressId)
+
+      expectNoMessagesOn(sasEventsQueue)
+      expectOneMessageOnDlq(sasEventsQueue)
+      expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
     }
 
+    @Test
     fun `cpr person does not exist - pushes to dead letter queue`() {
+      val existingPersonEntity = createPerson(createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = randomPostcode()))))
+      val existingAddressEntity = existingPersonEntity.addresses.first()
+      createPersonKey()
+        .addPerson(existingPersonEntity)
+
+      val nonExistingPersonCrn = randomCrn()
+      val sasCallbackResponse = createSasAddressGetResponse(nonExistingPersonCrn, existingAddressEntity.updateId)
+
+      val sasAddressId = UUID.randomUUID().toString()
+      stubGetRequestToSas(sasAddressId, sasCallbackResponse)
+
+      publishSasAddressUpdateEvent(existingPersonEntity.crn!!, sasAddressId)
+
+      expectNoMessagesOn(sasEventsQueue)
+      expectOneMessageOnDlq(sasEventsQueue)
+      expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
     }
   }
 
@@ -93,12 +144,13 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   private fun stubGetRequestToSas(
     sasAddressId: String,
-    sasCallbackResponse: SasGetAddressResponse,
+    sasCallbackResponse: SasGetAddressResponse? = null,
+    status: Int = 200,
   ) {
     stubGetRequest(
       url = "/proposed-accommodations/$sasAddressId",
       body = jsonMapper.writeValueAsString(sasCallbackResponse),
-      status = 200,
+      status = status,
     )
   }
 
