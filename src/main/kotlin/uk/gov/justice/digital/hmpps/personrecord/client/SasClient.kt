@@ -7,8 +7,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressR
 @Component
 class SasClient(private val sasWebClient: WebClient) {
 
-  fun getAddress(addressId: String) = sasWebClient.get()
-    .uri("/proposed-accommodations/{id}", addressId)
+  fun getAddress(callBackUrl: String) = sasWebClient.get()
+    .uri(callBackUrl)
     .retrieve()
     .bodyToMono(SasGetAddressResponse::class.java)
     .block()

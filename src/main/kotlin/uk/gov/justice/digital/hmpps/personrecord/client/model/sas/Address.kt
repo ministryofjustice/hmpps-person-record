@@ -6,7 +6,6 @@ import java.time.LocalDate
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SasGetAddressResponse(
   val crn: String,
-  val cprAddressUpdateId: String,
   val startDate: LocalDate? = null,
   val endDate: LocalDate? = null,
   val address: Address,
