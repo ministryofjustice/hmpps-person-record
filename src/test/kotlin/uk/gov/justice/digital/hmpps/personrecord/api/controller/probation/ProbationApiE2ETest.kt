@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAd
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalCountry
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
@@ -225,7 +224,8 @@ class ProbationApiE2ETest : E2ETestBase() {
           dependentLocality = dependentLocality,
           postTown = postTown,
           county = county,
-          country = CanonicalCountry.from(countryCode),
+          country = countryCode.description,
+          countryCode = countryCode.name,
           uprn = uprn,
           status = CanonicalAddressStatus.from(addressStatusCode),
           comment = comment,
