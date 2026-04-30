@@ -21,26 +21,28 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
   fun `process offender merge event with source record having a review`() {
     val targetCrn = randomCrn()
     val sourceCrn = randomCrn()
-    val sourcePerson = createPersonWithNewKey(createRandomProbationPersonDetails(sourceCrn))
     val targetPersonDetails = createRandomProbationCase(targetCrn)
-    val targetPerson = createPersonWithNewKey(Person.from(targetPersonDetails))
+    val sourcePerson = createPersonWithNewKey(Person.from(targetPersonDetails.copy(identifiers = targetPersonDetails.identifiers.copy(crn = sourceCrn))))
 
+    val targetPerson = createPersonWithNewKey(Person.from(targetPersonDetails))
+    println("Source is $sourceCrn, target is $targetCrn")
     // 1. merge the records
     probationMergeEventAndResponseSetup(
       OFFENDER_MERGED,
       sourceCrn = sourcePerson.crn!!,
       targetCrn = targetPerson.crn!!,
+      apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
     )
     sourcePerson.assertMergedTo(targetPerson)
 
     // 2. unmerge the records
     val targetUnmergeSetup = ApiResponseSetup.from(targetPersonDetails).copy(crn = sourceCrn)
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, sourceCrn, targetCrn, reactivatedSetup = targetUnmergeSetup)
+    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, sourceCrn, targetCrn, reactivatedSetup = targetUnmergeSetup, unmergedSetup = targetUnmergeSetup.copy(crn = sourceCrn))
     sourcePerson.assertNotMerged()
 
-    // 3. create new person with same target details - should get added to cluster
+    // 3. create new person with same target details - should match both
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, targetUnmergeSetup.copy(crn = randomCrn()))
-    targetPerson.personKey!!.getReview().hasReviewSize(1)
+    targetPerson.personKey!!.getReview().hasReviewSize(3)
 
     // TODO: merge again
   }

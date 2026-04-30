@@ -552,10 +552,7 @@ class IntegrationTestBase {
   }
 
   internal fun PersonKeyEntity.getReview(): ReviewEntity = awaitNotNull {
-    reviewRepository.findByClustersClusterTypeAndClustersPersonKey(
-      ClusterType.PRIMARY,
-      this,
-    )
+    reviewRepository.findByClustersPersonKey(this)
   }
 
   internal fun ReviewEntity.removed() = awaitAssert { assertThat(reviewRepository.findById(this.id!!)).isNotNull() }
