@@ -7,7 +7,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -26,6 +28,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
     val targetPerson = createPersonWithNewKey(Person.from(targetPersonDetails))
     println("Source is $sourceCrn, target is $targetCrn")
+
     // 1. merge the records
     probationMergeEventAndResponseSetup(
       OFFENDER_MERGED,
@@ -44,7 +47,91 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, targetUnmergeSetup.copy(crn = randomCrn()))
     targetPerson.personKey!!.getReview().hasReviewSize(3)
 
-    // TODO: merge again
+    // 4. merge again - should delete review (doesnt yet!)
+    probationMergeEventAndResponseSetup(
+      OFFENDER_MERGED,
+      sourceCrn = sourcePerson.crn!!,
+      targetCrn = targetPerson.crn!!,
+      apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
+    )
+    sourcePerson.assertMergedTo(targetPerson)
+  }
+
+  @Test
+  fun `attempt to delete record with source having a review`() {
+    val targetCrn = randomCrn()
+    val sourceCrn = randomCrn()
+    val targetPersonDetails = createRandomProbationCase(targetCrn)
+    val sourcePerson = createPersonWithNewKey(Person.from(targetPersonDetails.copy(identifiers = targetPersonDetails.identifiers.copy(crn = sourceCrn))))
+
+    val targetPerson = createPersonWithNewKey(Person.from(targetPersonDetails))
+    println("Source is $sourceCrn, target is $targetCrn")
+
+    // 1. merge the records
+    probationMergeEventAndResponseSetup(
+      OFFENDER_MERGED,
+      sourceCrn = sourcePerson.crn!!,
+      targetCrn = targetPerson.crn!!,
+      apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
+    )
+    sourcePerson.assertMergedTo(targetPerson)
+
+    // 2. unmerge the records
+    val targetUnmergeSetup = ApiResponseSetup.from(targetPersonDetails).copy(crn = sourceCrn)
+    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, sourceCrn, targetCrn, reactivatedSetup = targetUnmergeSetup, unmergedSetup = targetUnmergeSetup.copy(crn = sourceCrn))
+    sourcePerson.assertNotMerged()
+
+    // 3. create new person with same target details - should match both
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, targetUnmergeSetup.copy(crn = randomCrn()))
+    targetPerson.personKey!!.getReview().hasReviewSize(3)
+
+    // 4. delete record
+    publishProbationDomainEvent(OFFENDER_DELETION, sourceCrn)
+    sourcePerson.assertPersonDeleted()
+  }
+
+  @Test
+  fun `should delete review when recluster associated record`() {
+    val targetCrn = randomCrn()
+    val sourceCrn = randomCrn()
+    val targetPersonDetails = createRandomProbationCase(targetCrn)
+    val sourcePerson = createPersonWithNewKey(Person.from(targetPersonDetails.copy(identifiers = targetPersonDetails.identifiers.copy(crn = sourceCrn))))
+    val targetPerson = createPersonWithNewKey(Person.from(targetPersonDetails))
+    println("Source is $sourceCrn, target is $targetCrn")
+
+    // 1. merge the records
+    probationMergeEventAndResponseSetup(
+      OFFENDER_MERGED,
+      sourceCrn = sourcePerson.crn!!,
+      targetCrn = targetPerson.crn!!,
+      apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
+    )
+    sourcePerson.assertMergedTo(targetPerson)
+
+    // 2. unmerge the records
+    val targetUnmergeSetup = ApiResponseSetup.from(targetPersonDetails).copy(crn = sourceCrn)
+    val randomCrn = randomCrn()
+    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, sourceCrn, targetCrn,
+      reactivatedSetup = targetUnmergeSetup,
+      unmergedSetup = targetUnmergeSetup.copy(crn = sourceCrn)
+    )
+    sourcePerson.assertNotMerged()
+
+    // 3. create new person with same target details - should match both
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, targetUnmergeSetup.copy(crn = randomCrn()))
+    targetPerson.personKey!!.getReview().hasReviewSize(3)
+
+    // 4. create a new person that matches no nothing
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(createRandomProbationCase(randomCrn)))
+
+    // 5. make the target record no longer match the other 2 records
+    val randomSetup = ApiResponseSetup.from(createRandomProbationCase(randomCrn))
+    probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, randomSetup.copy(crn = targetCrn))
+    targetPerson.personKey!!.assertClusterIsOfSize(1)
+
+    // 6. make the random record match the target
+    probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, randomSetup.copy(crn = randomCrn))
+    targetPerson.personKey!!.assertPersonKeyDeleted()
   }
 
   @Test
