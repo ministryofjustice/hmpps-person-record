@@ -32,8 +32,9 @@ class ProbationEventListener(
     val crn = event.getCrn()
     when (event.eventType) {
       OFFENDER_ADDRESS_CREATED -> {
+        val deliusAddressCallbackUrl = event.detailUrl!!
         val deliusAddressId = event.additionalInformation?.addressId!!
-        val probationAddress = corePersonRecordAndDeliusClient.getAddress(deliusAddressId)!!
+        val probationAddress = corePersonRecordAndDeliusClient.getAddress(deliusAddressCallbackUrl)!!
 
         // TODO: Once ready, make use of the new AddressService class
         val personEntity = personRepository.findByCrn(crn)!!

@@ -4,6 +4,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 
 data class AddressCreated(
   val crn: String,
-  val addressId: String?,
+  val externalAddressId: String?,
   val addressEntity: AddressEntity,
 )

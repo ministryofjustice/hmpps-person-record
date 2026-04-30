@@ -30,10 +30,10 @@ class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebCl
     .retrieve()
     .bodyToMono(ProbationCase::class.java)
 
-  fun getAddress(addressId: String?): ProbationAddress? {
+  fun getAddress(deliusAddressCallbackUrl: String): ProbationAddress? {
     val address = corePersonRecordAndDeliusWebClient
       .get()
-      .uri("/person/address/{id}", addressId)
+      .uri(deliusAddressCallbackUrl)
       .retrieve()
       .bodyToMono(ProbationAddress::class.java)
       .block()

@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nowUtcFormattedUk
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.AddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 
 @Component
 @Profile("!preprod & !prod")
@@ -25,9 +26,9 @@ class AddressCreatedListener(
   fun onAddressCreated(addressCreated: AddressCreated) {
     val addressEntity = addressCreated.addressEntity
     val domainEvent = DomainEvent(
-      "core-person-record.probation.address.created",
+      eventType = CPR_PROBATION_ADDRESS_CREATED,
       personReference = PersonReference(listOf(PersonIdentifier(type = "CRN", value = addressCreated.crn))),
-      additionalInformation = AdditionalInformation(cprAddressId = addressEntity.updateId.toString(), deliusAddressId = addressCreated.addressId),
+      additionalInformation = AdditionalInformation(cprAddressId = addressEntity.updateId.toString(), deliusAddressId = addressCreated.externalAddressId),
       detailUrl = "$baseUrl/person/probation/${addressCreated.crn}/address/${addressEntity.updateId}",
       description = "Address was created in Core Person Record",
       occurredAt = nowUtcFormattedUk(),

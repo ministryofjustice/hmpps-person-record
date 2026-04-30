@@ -8,6 +8,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
@@ -36,12 +38,10 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
     stubPersonMatchScores()
     stubGetRequestToProbation(probationAddress)
 
-    publishProbationDomainEvent(OFFENDER_ADDRESS_CREATED, cprPerson.crn!!, AdditionalInformation(addressId = probationAddress.addressId))
+    publishProbationAddressCreatedEvent(cprPerson.crn, probationAddress.addressId)
 
-    awaitAssert {
-      assertAddressSaved(cprPerson.crn, probationAddress)
-      assertPublishedDomainEvent(cprPerson.crn, probationAddress.addressId!!)
-    }
+    assertAddressSaved(cprPerson.crn!!, probationAddress)
+    assertPublishedDomainEvent(cprPerson.crn!!, probationAddress.addressId!!)
   }
 
   @Test
@@ -51,17 +51,13 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
     createPersonKey()
       .addPerson(cprPerson)
 
-    stubGetRequest(
-      url = "/person/address/${probationAddress.addressId}",
-      body = "{}",
-      status = 404,
-    )
-    publishProbationDomainEvent(OFFENDER_ADDRESS_CREATED, cprPerson.crn!!, AdditionalInformation(addressId = probationAddress.addressId))
+    stubGetRequestToProbation(probationAddress, status = 404)
+    publishProbationAddressCreatedEvent(cprPerson.crn, probationAddress.addressId)
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
     expectNoMessagesOn(testOnlyCPREventsQueue)
-    assertThat(personRepository.findByCrn(cprPerson.crn)!!.addresses.size).isEqualTo(0)
+    assertThat(personRepository.findByCrn(cprPerson.crn!!)!!.addresses.size).isEqualTo(0)
   }
 
   private fun randomProbationAddress(): ProbationAddress {
@@ -86,9 +82,10 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
     )
   }
 
-  private fun stubGetRequestToProbation(probationAddress: ProbationAddress) {
+  private fun stubGetRequestToProbation(probationAddress: ProbationAddress, status: Int = 200) {
     stubGetRequest(
-      url = "/person/address/${probationAddress.addressId}",
+      url = "/address/${probationAddress.addressId}",
+      status = status,
       body = probationAddress(
         address = ApiResponseSetupAddress(
           addressId = probationAddress.addressId,
@@ -111,28 +108,44 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
     )
   }
 
-  private fun assertAddressSaved(crn: String, probationAddress: ProbationAddress) {
-    val actualPersonEntity = personRepository.findByCrn(crn)!!
-    assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-    val actualAddressEntity = actualPersonEntity.addresses.first()
-    assertThat(actualAddressEntity.updateId).isNotNull()
-    assertThat(actualAddressEntity.updateId!!.toString()).isNotBlank
-    assertThat(actualAddressEntity.noFixedAbode).isEqualTo(probationAddress.noFixedAbode)
-    assertThat(actualAddressEntity.startDate).isEqualTo(probationAddress.startDate)
-    assertThat(actualAddressEntity.endDate).isEqualTo(probationAddress.endDate)
-    assertThat(actualAddressEntity.postcode).isEqualTo(probationAddress.postcode)
-    assertThat(actualAddressEntity.fullAddress).isEqualTo(probationAddress.fullAddress)
-    assertThat(actualAddressEntity.buildingName).isEqualTo(probationAddress.buildingName)
-    assertThat(actualAddressEntity.postTown).isEqualTo(probationAddress.townCity)
-    assertThat(actualAddressEntity.county).isEqualTo(probationAddress.county)
-    assertThat(actualAddressEntity.uprn).isEqualTo(probationAddress.uprn)
+  private fun publishProbationAddressCreatedEvent(crn: String?, addressId: String?) {
+    publishDomainEvent(
+      OFFENDER_ADDRESS_CREATED,
+      DomainEvent(
+        eventType = OFFENDER_ADDRESS_CREATED,
+        detailUrl = "/address/$addressId",
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
+        additionalInformation = AdditionalInformation(
+          addressId = addressId,
+        ),
+      ),
+    )
+  }
 
-    assertThat(actualAddressEntity.buildingNumber).isEqualTo(probationAddress.addressNumber)
-    assertThat(actualAddressEntity.thoroughfareName).isEqualTo(probationAddress.streetName)
-    assertThat(actualAddressEntity.dependentLocality).isEqualTo(probationAddress.district)
-    assertThat(actualAddressEntity.comment).isEqualTo(probationAddress.notes)
-    assertThat(actualAddressEntity.contacts.first().contactType).isEqualTo(ContactType.HOME)
-    assertThat(actualAddressEntity.contacts.first().contactValue).isEqualTo(probationAddress.telephoneNumber)
+  private fun assertAddressSaved(crn: String, probationAddress: ProbationAddress) {
+    awaitAssert {
+      val actualPersonEntity = personRepository.findByCrn(crn)!!
+      assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
+      val actualAddressEntity = actualPersonEntity.addresses.first()
+      assertThat(actualAddressEntity.updateId).isNotNull()
+      assertThat(actualAddressEntity.updateId!!.toString()).isNotBlank
+      assertThat(actualAddressEntity.noFixedAbode).isEqualTo(probationAddress.noFixedAbode)
+      assertThat(actualAddressEntity.startDate).isEqualTo(probationAddress.startDate)
+      assertThat(actualAddressEntity.endDate).isEqualTo(probationAddress.endDate)
+      assertThat(actualAddressEntity.postcode).isEqualTo(probationAddress.postcode)
+      assertThat(actualAddressEntity.fullAddress).isEqualTo(probationAddress.fullAddress)
+      assertThat(actualAddressEntity.buildingName).isEqualTo(probationAddress.buildingName)
+      assertThat(actualAddressEntity.postTown).isEqualTo(probationAddress.townCity)
+      assertThat(actualAddressEntity.county).isEqualTo(probationAddress.county)
+      assertThat(actualAddressEntity.uprn).isEqualTo(probationAddress.uprn)
+
+      assertThat(actualAddressEntity.buildingNumber).isEqualTo(probationAddress.addressNumber)
+      assertThat(actualAddressEntity.thoroughfareName).isEqualTo(probationAddress.streetName)
+      assertThat(actualAddressEntity.dependentLocality).isEqualTo(probationAddress.district)
+      assertThat(actualAddressEntity.comment).isEqualTo(probationAddress.notes)
+      assertThat(actualAddressEntity.contacts.first().contactType).isEqualTo(ContactType.HOME)
+      assertThat(actualAddressEntity.contacts.first().contactValue).isEqualTo(probationAddress.telephoneNumber)
+    }
   }
 
   private fun assertPublishedDomainEvent(crn: String, probationAddressId: String) {
@@ -146,8 +159,8 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
     assertThat(domainEvent.personReference!!.identifiers!!.size).isEqualTo(1)
     assertThat(domainEvent.personReference.identifiers.first().type).isEqualTo("CRN")
     assertThat(domainEvent.personReference.identifiers.first().value).isEqualTo(crn)
-    assertThat(domainEvent.additionalInformation?.deliusAddressId).isEqualTo(probationAddressId)
     assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(cprAddressUpdateId)
+    assertThat(domainEvent.additionalInformation?.deliusAddressId).isEqualTo(probationAddressId)
     assertThat(domainEvent.version).isEqualTo(1)
     assertThat(domainEvent.description).isEqualTo("Address was created in Core Person Record")
     assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn/address/$cprAddressUpdateId")

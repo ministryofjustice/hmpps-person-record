@@ -19,3 +19,25 @@ data class ProbationAddress(
   val telephoneNumber: String? = null,
   val addressId: String? = null,
 )
+
+/**
+ *   "id": 0,
+ *   "fullAddress": "string",
+ *   "buildingName": "string",
+ *   "addressNumber": "string",
+ *   "streetName": "string",
+ *   "district": "string",
+ *   "townCity": "string",
+ *   "county": "string",
+ *   "postcode": "string",
+ *   "uprn": 0,
+ *   "telephoneNumber": "string",
+ *   "noFixedAbode": true,
+ *   "status": {
+ *     "code": "string",
+ *     "description": "string"
+ *   },
+ *   "notes": "string",
+ *   "startDate": "2026-04-30",
+ *   "endDate": "2026-04-30"
+ */
