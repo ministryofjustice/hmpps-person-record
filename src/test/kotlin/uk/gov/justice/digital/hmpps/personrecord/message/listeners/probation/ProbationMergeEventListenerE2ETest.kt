@@ -111,9 +111,12 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     // 2. unmerge the records
     val targetUnmergeSetup = ApiResponseSetup.from(targetPersonDetails).copy(crn = sourceCrn)
     val randomCrn = randomCrn()
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, sourceCrn, targetCrn,
+    probationUnmergeEventAndResponseSetup(
+      OFFENDER_UNMERGED,
+      sourceCrn,
+      targetCrn,
       reactivatedSetup = targetUnmergeSetup,
-      unmergedSetup = targetUnmergeSetup.copy(crn = sourceCrn)
+      unmergedSetup = targetUnmergeSetup.copy(crn = sourceCrn),
     )
     sourcePerson.assertNotMerged()
 
