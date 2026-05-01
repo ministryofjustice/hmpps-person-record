@@ -29,7 +29,7 @@ class MergeService(
   private fun deleteSingleRecordCluster(from: PersonEntity?) {
     from?.personKey?.let {
       from.removePersonKeyLink()
-      personKeyRepository.deleteById(it.id!!)
+      personKeyRepository.delete(it)
     }
   }
 
