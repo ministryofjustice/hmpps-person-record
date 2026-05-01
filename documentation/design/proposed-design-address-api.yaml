@@ -212,6 +212,70 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /person/probation-integration/{crn}/address/{cprAddressId}:
+    get:
+      summary: Retrieve address details for a CPR address id for Probation Integration. Note this API will be decommissioned when Delius start to record cpr address id
+      description: Returns address JSON.
+      tags: [Address]
+      parameters:
+        - name: crn
+          in: path
+          required: true
+          description: Case reference number
+          schema:
+            type: string
+            example: X313886
+        - name: cprAddressId
+          in: path
+          required: true
+          description: CPR Address ID
+          schema:
+            type: string
+            format: uuid
+            example: d4ae7071-58ae-42f0-bf5d-c69289fb1e6d
+      responses:
+        '200':
+          description: Address details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressGetPIResponse'
+              examples:
+                sample:
+                  value:
+                    crn: "X313886"
+                    addresses:
+                      deliusAddressId: 122323
+                      cprAddressId: "d4ae7071-58ae-42f0-bf5d-c69289fb1e6d"
+                      noFixedAbode: false
+                      startDate: "2020-02-26"
+                      endDate: "2023-07-15"
+                      postcode: "SW1H 9AJ"
+                      uprn: "string"
+                      subBuildingName: "Sub building 2"
+                      buildingName: "Main Building"
+                      buildingNumber: "102"
+                      thoroughfareName: "Petty France"
+                      dependentLocality: "Westminster"
+                      postTown: "London"
+                      county: "Greater London"
+                      countryCode: "UK"
+                      comment: "String"
+                      addressStatus: "Proposed"
+                      addressUsage:
+                        - addressUsageCode: "A17"
+                          addressUsageDescription: "CAS3"
+                          isActive: true
+                      contacts:
+                        - type: "PHONE"
+                          value: "+44 20 7946 0000"
+                          extension: "1234"
+        '404':
+          description: Address usage not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
     # ---- Requests ----
@@ -322,6 +386,16 @@ components:
       type: object
       description: Address information for the provided cpr address id.
       properties:
+        addresses:
+          $ref: '#/components/schemas/AddressGetResponseObject'
+
+    AddressGetPIResponse:
+      type: object
+      description: Address information for the provided cpr address id for Probation Integration. Note this API will be decommissioned when Delius start to record cpr address id
+      properties:
+        deliusAddressId:
+          type: number
+          example: 2342344
         addresses:
           $ref: '#/components/schemas/AddressGetResponseObject'
 
