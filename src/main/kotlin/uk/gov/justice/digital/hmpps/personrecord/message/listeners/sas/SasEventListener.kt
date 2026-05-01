@@ -1,13 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas
 
 import io.awspring.cloud.sqs.annotation.SqsListener
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.SasClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.SAS_EVENT_QUEUE_ID
@@ -20,7 +18,6 @@ class SasEventListener(
   private val personRepository: PersonRepository,
   private val addressRepository: AddressRepository,
   private val reclusterService: ReclusterService,
-  private val publisher: ApplicationEventPublisher,
 ) {
 
   @SqsListener(SAS_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
@@ -49,8 +46,6 @@ class SasEventListener(
         addressRepository.save(addressEntity)
 
         reclusterService.recluster(personEntity)
-
-        publisher.publishEvent(AddressUpdated(crn = personEntity.crn!!, addressEntity = addressEntity))
       }
       else -> throw Exception("Event of type ${event.eventType} does not have a registered processor")
     }
