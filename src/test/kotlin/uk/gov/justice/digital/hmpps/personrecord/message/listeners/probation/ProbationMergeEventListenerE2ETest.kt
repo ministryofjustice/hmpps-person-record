@@ -27,8 +27,6 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     val sourcePerson = createPersonWithNewKey(Person.from(targetPersonDetails.copy(identifiers = targetPersonDetails.identifiers.copy(crn = sourceCrn))))
     val targetPerson = createPersonWithNewKey(Person.from(targetPersonDetails))
 
-    println("source: $sourceCrn, target: $targetCrn")
-
     // 1. merge the records
     probationMergeEventAndResponseSetup(
       OFFENDER_MERGED,
@@ -45,7 +43,6 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
     // 3. create new person with same target details - should match both
     val personThreeCrn = randomCrn()
-    println("Person 3 crn: $personThreeCrn")
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, targetUnmergeSetup.copy(crn = personThreeCrn))
     val review = targetPerson.personKey!!.getReview()
     review.assertReviewSize(3)
