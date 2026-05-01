@@ -55,6 +55,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
       apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
     )
     sourcePerson.assertMergedTo(targetPerson)
+    sourcePerson.personKey!!.assertPersonKeyDeleted()
     review.assertRemoved()
   }
 
