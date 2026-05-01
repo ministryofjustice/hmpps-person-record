@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReviewRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
@@ -19,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyDeletionService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -29,7 +29,7 @@ class ReclusterService(
   private val personKeyRepository: PersonKeyRepository,
   private val publisher: ApplicationEventPublisher,
   private val personRepository: PersonRepository,
-  private val reviewRepository: ReviewRepository,
+  private val personKeyDeletionService: PersonKeyDeletionService,
 ) {
 
   fun recluster(changedRecord: PersonEntity) {
@@ -122,12 +122,9 @@ class ReclusterService(
   }
 
   private fun deleteOriginalCluster(originalCluster: PersonKeyEntity) {
+    val personEntity = originalCluster.personEntities.first()
     originalCluster.personEntities.clear()
-    val findByClustersPersonKey = reviewRepository.findByClustersPersonKey(originalCluster)
-    findByClustersPersonKey?.let { review ->
-      reviewRepository.delete(review)
-    }
-    personKeyRepository.delete(originalCluster)
+    personKeyDeletionService.deletePersonKey(originalCluster, personEntity)
   }
 
   private fun PersonKeyEntity.setToNeedsAttention(reason: UUIDStatusReasonType) {

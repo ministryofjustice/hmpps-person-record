@@ -4,20 +4,18 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReviewRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.PersonMerged
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyDeletionService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
 class MergeService(
-  private val personKeyRepository: PersonKeyRepository,
   private val personRepository: PersonRepository,
   private val personMatchService: PersonMatchService,
   private val publisher: ApplicationEventPublisher,
-  private val reviewRepository: ReviewRepository,
+  private val personKeyDeletionService: PersonKeyDeletionService,
 ) {
 
   fun processMerge(from: PersonEntity?, to: PersonEntity) {
@@ -31,11 +29,7 @@ class MergeService(
   private fun deleteSingleRecordCluster(from: PersonEntity?) {
     from?.personKey?.let {
       from.removePersonKeyLink()
-      val findByClustersPersonKey = reviewRepository.findByClustersPersonKey(it)
-      findByClustersPersonKey?.let { review ->
-        reviewRepository.delete(review)
-      }
-      personKeyRepository.delete(it)
+      personKeyDeletionService.deletePersonKey(it, from)
     }
   }
 
