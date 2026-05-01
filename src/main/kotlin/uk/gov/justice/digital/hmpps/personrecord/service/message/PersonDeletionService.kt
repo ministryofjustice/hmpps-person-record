@@ -4,7 +4,6 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
@@ -32,7 +31,7 @@ class PersonDeletionService(
 
   private fun PersonEntity.deleteClusterIfNoRecordsLeft() {
     if (this.personKey?.hasOneRecord() == true) {
-      deletePersonKey(this.personKey!!, this)
+      personKeyDeletionService.deletePersonKey(this.personKey!!, this)
     }
   }
 
@@ -44,10 +43,6 @@ class PersonDeletionService(
   }
 
   private fun PersonEntity.deleteFromPersonMatch() = personMatchService.deleteFromPersonMatch(this)
-
-  private fun deletePersonKey(personKeyEntity: PersonKeyEntity, personEntity: PersonEntity) {
-    personKeyDeletionService.deletePersonKey(personKeyEntity, personEntity)
-  }
 
   private fun PersonEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively() {
     personRepository.findByMergedTo(this.id!!).filterNotNull().forEach { personEntity ->
