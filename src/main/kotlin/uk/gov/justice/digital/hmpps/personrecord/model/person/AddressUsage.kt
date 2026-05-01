@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.person
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
+import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressUsage as ProbationAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.AddressUsage as SysconAddressUsage
 
 data class AddressUsage(
@@ -15,6 +16,8 @@ data class AddressUsage(
   companion object {
 
     fun from(usage: SysconAddressUsage): AddressUsage = AddressUsage(usage.addressUsageCode, usage.isActive)
+
+    fun from(usage: ProbationAddressUsage): AddressUsage = AddressUsage(usage.usageCode, usage.isActive)
 
     fun from(usage: AddressUsageEntity): AddressUsage = AddressUsage(usage.usageCode, usage.active)
   }

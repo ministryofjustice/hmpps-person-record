@@ -204,6 +204,8 @@ class PersonEntity(
 
   fun isPassive() = this.passiveState
 
+  fun isNotPassive() = !this.passiveState
+
   fun update(person: Person) {
     this.defendantId = person.defendantId
     this.crn = person.crn
