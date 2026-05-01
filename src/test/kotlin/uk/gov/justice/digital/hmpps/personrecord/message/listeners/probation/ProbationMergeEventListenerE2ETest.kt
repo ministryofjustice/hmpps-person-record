@@ -47,9 +47,10 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     val personThreeCrn = randomCrn()
     println("Person 3 crn: $personThreeCrn")
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, targetUnmergeSetup.copy(crn = personThreeCrn))
-    targetPerson.personKey!!.getReview().hasReviewSize(3)
+    val review = targetPerson.personKey!!.getReview()
+    review.assertReviewSize(3)
 
-    // 4. merge again - should delete review (doesnt yet!)
+    // 4. merge again - should delete review
     probationMergeEventAndResponseSetup(
       OFFENDER_MERGED,
       sourceCrn = sourcePerson.crn!!,
@@ -57,6 +58,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
       apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
     )
     sourcePerson.assertMergedTo(targetPerson)
+    review.assertRemoved()
   }
 
   @Test
@@ -83,11 +85,13 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
     // 3. create new person with same target details - should match both
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, targetUnmergeSetup.copy(crn = randomCrn()))
-    targetPerson.personKey!!.getReview().hasReviewSize(3)
+    val review = targetPerson.personKey!!.getReview()
+    review.assertReviewSize(3)
 
     // 4. delete record
     publishProbationDomainEvent(OFFENDER_DELETION, sourceCrn)
     sourcePerson.assertPersonDeleted()
+    review.assertRemoved()
   }
 
   @Test
@@ -120,7 +124,8 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
     // 3. create person 3 with same target details - should match both target and source records
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, targetUnmergeSetup.copy(crn = randomCrn()))
-    targetPerson.personKey!!.getReview().hasReviewSize(3)
+    val review = targetPerson.personKey!!.getReview()
+    review.assertReviewSize(3)
 
     // 4. create person 4 that matches no other records
     val fourthPerson = randomCrn()
@@ -134,8 +139,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     // 6. make the person 4 match the target record - recluster should delete the target cluster and delete the linked review
     probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, fourthPersonSetup.copy(crn = fourthPerson))
     targetPerson.personKey!!.assertPersonKeyDeleted()
-
-    // todo: more asserts for review size etc
+    review.assertRemoved()
   }
 
   @Test
