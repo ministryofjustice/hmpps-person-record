@@ -12,6 +12,9 @@ prisoner-search:
 core-person-record-and-delius:
   base-url: https://core-person-record-and-delius-dev.hmpps.service.justice.gov.uk
 
+sas:
+  base-url: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk
+
 service-now:
   base-url: http://localhost:9090
   sysparm-id: sysparm12345
@@ -56,6 +59,12 @@ hmpps.sqs:
       dlqName: cpr_nomis_merge_events_queue_dlq
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":[ "prison-offender-events.prisoner.merged"] }'
+      dlqMaxReceiveCount: 2
+    cprsaseventsqueue:
+      queueName: cpr_sas_events_queue
+      dlqName: cpr_sas_events_queue_dlq
+      subscribeTopicId: domainevents
+      subscribeFilter: '{"eventType":[ "sas.accommodation.updated"] }'
       dlqMaxReceiveCount: 2
   topics:
     courtcasestopic:

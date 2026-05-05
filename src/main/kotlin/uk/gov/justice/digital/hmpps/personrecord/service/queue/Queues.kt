@@ -13,4 +13,7 @@ object Queues {
   const val PROBATION_DELETION_EVENT_QUEUE_ID = "cprdeliusdeleteeventsqueue"
   const val PROBATION_EVENT_QUEUE_ID = "cprdeliusoffendereventsqueue"
   const val PROBATION_MERGE_EVENT_QUEUE_ID = "cprdeliusmergeeventsqueue"
+
+  // SAS
+  const val SAS_EVENT_QUEUE_ID = "cprsaseventsqueue"
 }
