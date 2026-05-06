@@ -34,6 +34,7 @@ data class Address(
   var statusCode: AddressStatusCode? = null,
   var usages: List<AddressUsage> = emptyList(),
   var recordType: AddressRecordType? = null,
+  var deliusAddressId: Long? = null,
 ) {
   fun allPropertiesOrNull(): Address? = this.takeIf { it.hasAnyMeaningfulProperty() }
 
@@ -68,6 +69,7 @@ data class Address(
       uprn = address.uprn.nullIfBlank(),
       comment = address.notes.nullIfBlank(),
       contacts = address.telephoneNumber?.let { listOf(Contact(ContactType.HOME, it)) } ?: emptyList(),
+      deliusAddressId = address.deliusAddressId,
     ).allPropertiesOrNull()
 
     fun from(address: CommonPlatformAddress?): Address? = Address(

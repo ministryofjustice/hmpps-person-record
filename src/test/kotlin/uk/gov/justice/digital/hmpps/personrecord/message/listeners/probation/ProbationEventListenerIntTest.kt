@@ -43,6 +43,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -123,6 +124,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val county = randomName()
       val uprn = randomUprn()
       val notes = randomName()
+      val deliusAddressId = randomDigit().toLong()
       val telephone = randomPhoneNumber()
 
       val dateOfBirth = randomDate()
@@ -172,6 +174,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
             uprn = uprn,
             notes = notes,
             telephoneNumber = telephone,
+            deliusAddressId = deliusAddressId,
           ),
           ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
         ),
@@ -254,6 +257,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.addresses[0].county).isEqualTo(county)
       assertThat(personEntity.addresses[0].uprn).isEqualTo(uprn)
       assertThat(personEntity.addresses[0].comment).isEqualTo(notes)
+      assertThat(personEntity.addresses[0].deliusAddressId).isEqualTo(deliusAddressId.toLong())
       assertThat(personEntity.addresses[0].contacts[0].contactValue).isEqualTo(telephone)
       assertThat(personEntity.addresses[1].noFixedAbode).isNull()
       assertThat(personEntity.addresses[1].postcode).isEqualTo("M21 9LX")
