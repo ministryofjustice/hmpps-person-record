@@ -9,4 +9,5 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.review.ClusterType
 @Repository
 interface ReviewRepository : JpaRepository<ReviewEntity, Long> {
   fun findByClustersClusterTypeAndClustersPersonKey(clusterType: ClusterType, personKeyEntity: PersonKeyEntity): ReviewEntity?
+  fun findByClustersPersonKey(personKeyEntity: PersonKeyEntity): ReviewEntity?
 }
