@@ -47,7 +47,7 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
     publishProbationAddressCreatedEvent(cprPerson.crn, probationAddressId)
 
     assertAddressSaved(cprPerson.crn!!, probationAddress)
-    assertPublishedDomainEvent(cprPerson.crn, probationAddressId)
+    assertPublishedDomainEvent(cprPerson.crn)
   }
 
   @Test
@@ -173,7 +173,7 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
     }
   }
 
-  private fun assertPublishedDomainEvent(crn: String, probationAddressId: String) {
+  private fun assertPublishedDomainEvent(crn: String) {
     val cprAddressUpdateId = personRepository.findByCrn(crn)!!.addresses.first().updateId!!.toString()
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
     val actualDomainEvent = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build())!!.get()
@@ -185,7 +185,6 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
     assertThat(domainEvent.personReference.identifiers.first().type).isEqualTo("CRN")
     assertThat(domainEvent.personReference.identifiers.first().value).isEqualTo(crn)
     assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(cprAddressUpdateId)
-    assertThat(domainEvent.additionalInformation?.deliusAddressId).isEqualTo(probationAddressId)
     assertThat(domainEvent.version).isEqualTo(1)
     assertThat(domainEvent.description).isEqualTo("Address was created in Core Person Record")
     assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn/address/$cprAddressUpdateId")

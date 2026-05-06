@@ -23,5 +23,4 @@ data class AdditionalInformation(
 
   val cprAddressId: String? = null,
   val addressId: String? = null,
-  val deliusAddressId: String? = null,
 )

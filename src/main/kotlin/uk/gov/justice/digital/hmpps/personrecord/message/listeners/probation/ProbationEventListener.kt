@@ -33,7 +33,6 @@ class ProbationEventListener(
     when (event.eventType) {
       OFFENDER_ADDRESS_CREATED -> {
         val deliusAddressCallbackUrl = event.detailUrl!!
-        val deliusAddressId = event.additionalInformation?.addressId!!
         val probationAddress = corePersonRecordAndDeliusClient.getAddress(deliusAddressCallbackUrl)!!
 
         // TODO: Once ready, make use of the new AddressService class
@@ -44,7 +43,7 @@ class ProbationEventListener(
         addressEntity.contacts.forEach { contactEntity -> contactEntity.address = addressEntity }
 
         addressRepository.save(addressEntity)
-        publisher.publishEvent(AddressCreated(crn, deliusAddressId, addressEntity))
+        publisher.publishEvent(AddressCreated(crn, addressEntity))
 
         reclusterService.recluster(personEntity)
       }

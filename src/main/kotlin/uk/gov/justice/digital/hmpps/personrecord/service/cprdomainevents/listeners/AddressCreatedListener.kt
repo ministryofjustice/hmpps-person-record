@@ -28,7 +28,7 @@ class AddressCreatedListener(
     val domainEvent = DomainEvent(
       eventType = CPR_PROBATION_ADDRESS_CREATED,
       personReference = PersonReference(listOf(PersonIdentifier(type = "CRN", value = addressCreated.crn))),
-      additionalInformation = AdditionalInformation(cprAddressId = addressEntity.updateId.toString(), deliusAddressId = addressCreated.externalAddressId),
+      additionalInformation = AdditionalInformation(cprAddressId = addressEntity.updateId.toString()),
       detailUrl = "$baseUrl/person/probation/${addressCreated.crn}/address/${addressEntity.updateId}",
       description = "Address was created in Core Person Record",
       occurredAt = nowUtcFormattedUk(),
