@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
@@ -59,6 +60,23 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
 
     stubGetRequestToProbation(probationAddress, probationAddressId, status = 404)
     publishProbationAddressCreatedEvent(cprPerson.crn, probationAddressId)
+
+    expectNoMessagesOn(probationEventsQueue)
+    expectOneMessageOnDlq(probationEventsQueue)
+    expectNoMessagesOn(testOnlyCPREventsQueue)
+    assertThat(personRepository.findByCrn(cprPerson.crn!!)!!.addresses.size).isEqualTo(0)
+  }
+
+  @Test
+  fun `consuming address created event - cpr person does not exist - pushes message to dead letter queue`() {
+    val probationAddressId = randomDigit()
+    val probationAddress = randomProbationAddress()
+    val cprPerson = createRandomProbationPersonDetails().copy(addresses = emptyList())
+    createPersonKey()
+      .addPerson(cprPerson)
+
+    stubGetRequestToProbation(probationAddress, probationAddressId)
+    publishProbationAddressCreatedEvent(randomCrn(), probationAddressId)
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
