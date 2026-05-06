@@ -120,7 +120,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     )
     sourcePerson.assertNotMerged()
 
-    // 3. create person 3 with same target details - should match both target and source records
+    // 3. create person 3 to match both target and source records
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, targetUnmergeSetup.copy(crn = randomCrn()))
     val review = targetPerson.personKey!!.getReview()
     review.assertReviewSize(3)
@@ -130,14 +130,60 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(createRandomProbationCase(fourthPerson)))
 
     // 5. make the target record no longer match the source record or person 3
-    val fourthPersonSetup = ApiResponseSetup.from(createRandomProbationCase(fourthPerson))
-    probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, fourthPersonSetup.copy(crn = targetCrn))
+    val matchTargetAndFourthPersonSetup = ApiResponseSetup.from(createRandomProbationCase(fourthPerson))
+    probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, matchTargetAndFourthPersonSetup.copy(crn = targetCrn))
     targetPerson.personKey!!.assertClusterIsOfSize(1)
 
-    // 6. make the person 4 match the target record - recluster should delete the target cluster and delete the linked review
-    probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, fourthPersonSetup.copy(crn = fourthPerson))
+    // 6. make person 4 match the target record - recluster should delete the target cluster and delete the linked review
+    probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, matchTargetAndFourthPersonSetup.copy(crn = fourthPerson))
     targetPerson.personKey!!.assertPersonKeyDeleted()
     review.assertRemoved()
+  }
+
+  @Test
+  fun `when a cluster has multiple reviews, all are deleted when the cluster is deleted`() {
+    val targetCrn = randomCrn()
+    val sourceCrn = randomCrn()
+    val targetPersonDetails = createRandomProbationCase(targetCrn)
+    val sourcePerson = createPersonWithNewKey(Person.from(targetPersonDetails.copy(identifiers = targetPersonDetails.identifiers.copy(crn = sourceCrn))))
+    val targetPerson = createPersonWithNewKey(Person.from(targetPersonDetails))
+
+    // 1. merge the target and source records
+    probationMergeEventAndResponseSetup(
+      OFFENDER_MERGED,
+      sourceCrn = sourcePerson.crn!!,
+      targetCrn = targetPerson.crn!!,
+      apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
+    )
+    sourcePerson.assertMergedTo(targetPerson)
+
+    // 2. create person 3 to match target and join its cluster
+    val person3Crn = randomCrn()
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(targetPersonDetails).copy(crn = person3Crn))
+    targetPerson.personKey?.assertClusterIsOfSize(2)
+
+    // 3. change person 3 to not match target so cluster goes into review
+    probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(createRandomProbationCase(crn = person3Crn)))
+    val review = targetPerson.personKey!!.getReview()
+    review.assertReviewSize(1)
+
+    // 4. unmerge the target and source records
+    val targetUnmergeSetup = ApiResponseSetup.from(targetPersonDetails).copy(crn = sourceCrn)
+    probationUnmergeEventAndResponseSetup(
+      OFFENDER_UNMERGED,
+      sourceCrn,
+      targetCrn,
+      reactivatedSetup = targetUnmergeSetup,
+      unmergedSetup = targetUnmergeSetup.copy(crn = sourceCrn),
+    )
+    sourcePerson.assertNotMerged()
+
+    //  5.  create a person who matches both, it creates a 2nd review
+    val person5Crn = randomCrn()
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(targetPersonDetails).copy(crn = person5Crn))
+    targetPerson.personKey!!.getReview()
+
+    // 6 delete the cluster with the target person on somehow....
   }
 
   @Test
