@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types.nationality
 
-import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 
 enum class NationalityCode(val description: String) {
@@ -248,20 +247,17 @@ enum class NationalityCode(val description: String) {
   ;
 
   companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun fromProbationMapping(code: String?): NationalityCode? = getNationalityOrUnknown(PROBATION_NATIONALITY_MAPPING, code, "probation")
+    fun fromProbationMapping(code: String?): NationalityCode? = getNationalityOrUnknown(PROBATION_NATIONALITY_MAPPING, code)
 
-    fun fromPrisonMapping(code: String?): NationalityCode? = getNationalityOrUnknown(PRISON_NATIONALITY_MAPPING, code, "prison")
+    fun fromPrisonMapping(code: String?): NationalityCode? = getNationalityOrUnknown(PRISON_NATIONALITY_MAPPING, code)
 
-    fun fromPrisonCode(code: String?): NationalityCode? = getNationalityOrUnknown(NationalityCode.entries.associateBy { it.name }, code, "prison")
+    fun fromPrisonCode(code: String?): NationalityCode? = getNationalityOrUnknown(NationalityCode.entries.associateBy { it.name }, code)
 
-    fun fromCommonPlatformMapping(code: String?): NationalityCode? = getNationalityOrUnknown(COMMON_PLATFORM_NATIONALITY_MAPPING, code, "common platform")
+    fun fromCommonPlatformMapping(code: String?): NationalityCode? = getNationalityOrUnknown(COMMON_PLATFORM_NATIONALITY_MAPPING, code)
 
-    private fun getNationalityOrUnknown(nationalityMap: Map<String, NationalityCode>, code: String?, sourceSystem: String): NationalityCode? = code.normalise()?.let { normalisedCode ->
-      nationalityMap[normalisedCode] ?: UNKNOWN.also {
-        if (normalisedCode != "UNKNOWN") log.info("Unknown nationality code $sourceSystem: $code")
-      }
+    private fun getNationalityOrUnknown(nationalityMap: Map<String, NationalityCode>, code: String?): NationalityCode? = code.normalise()?.let { normalisedCode ->
+      nationalityMap[normalisedCode] ?: UNKNOWN
     }
 
     private fun String?.normalise(): String? = this?.trim().nullIfBlank()?.uppercase()

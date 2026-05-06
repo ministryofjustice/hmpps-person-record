@@ -31,6 +31,7 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.ActiveProfiles
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
@@ -558,9 +559,9 @@ class IntegrationTestBase {
     )
   }
 
-  internal fun ReviewEntity.removed() = awaitAssert { assertThat(reviewRepository.findById(this.id!!)).isNotNull() }
+  internal fun ReviewEntity.assertRemoved() = awaitAssert { assertThat(reviewRepository.findByIdOrNull(this.id!!)).isNull() }
 
-  internal fun ReviewEntity.hasReviewSize(size: Int): ReviewEntity {
+  internal fun ReviewEntity.assertReviewSize(size: Int): ReviewEntity {
     assertThat(this.clusters).hasSize(size)
     return this
   }
