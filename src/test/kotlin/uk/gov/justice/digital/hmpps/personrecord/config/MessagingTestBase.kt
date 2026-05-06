@@ -46,10 +46,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId("testcourtcasesqueue")
   }
 
-  val testOnlyCPREventsQueue by lazy {
-    hmppsQueueService.findByQueueId("testcpreventsqueue")
-  }
-
   val testOnlyCPRDomainEventsQueue by lazy {
     hmppsQueueService.findByQueueId("testcprdomaineventsqueue")
   }
