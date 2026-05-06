@@ -902,7 +902,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
-      val review = cluster.getReview()
+      val review = cluster.getReviews().first()
         .assertReviewSize(1)
         .isPrimary(cluster)
 
@@ -934,7 +934,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster1.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
 
-      cluster1.getReview()
+      cluster1.getReviews().first()
         .assertReviewSize(3)
         .isPrimary(cluster1)
         .isAdditional(cluster2, cluster3)

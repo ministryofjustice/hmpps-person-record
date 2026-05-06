@@ -17,7 +17,7 @@ class PersonKeyDeletionService(
 
   fun deletePersonKey(personKeyEntity: PersonKeyEntity, personEntity: PersonEntity) {
     reviewRepository.findByClustersPersonKey(personKeyEntity)?.let { review ->
-      reviewRepository.delete(review)
+      reviewRepository.delete(review.first())
     }
     personKeyRepository.delete(personKeyEntity)
     publisher.publishEvent(PersonKeyDeleted(personEntity, personKeyEntity))
