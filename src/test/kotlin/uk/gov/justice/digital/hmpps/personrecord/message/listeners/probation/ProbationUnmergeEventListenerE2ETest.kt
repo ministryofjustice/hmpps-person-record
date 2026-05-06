@@ -189,7 +189,7 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
 
       val reactivatedPersonKey = awaitNotNull { personRepository.findByCrn(reactivatedCrn) }.personKey!!
       cluster.getReview()
-        .hasReviewSize(2)
+        .assertReviewSize(2)
         .isPrimary(cluster)
         .isAdditional(reactivatedPersonKey)
     }
