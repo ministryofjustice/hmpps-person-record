@@ -96,6 +96,7 @@ private fun address(address: ApiResponseSetupAddress) =
       ${address.uprn?.let { """ "uprn": ${address.uprn}, """.trimIndent() } ?: ""}
       ${address.notes?.let { """ "notes": "${address.notes}", """.trimIndent() } ?: ""}
       ${address.telephoneNumber?.let { """ "telephoneNumber": "${address.telephoneNumber}", """.trimIndent() } ?: ""}
+      ${address.deliusAddressId?.let { """ "deliusAddressId": ${address.deliusAddressId}, """.trimIndent() } ?: ""}
       ${address.postcode?.let { """ "postcode": "${address.postcode}" """.trimIndent() } ?: ""}
     }
   """.trimIndent()

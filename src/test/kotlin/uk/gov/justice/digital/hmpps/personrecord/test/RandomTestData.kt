@@ -156,7 +156,7 @@ fun randomLowerCaseString(length: Int = 7): String = (1..length).map {
 }.joinToString("")
 
 fun randomDigit(length: Int = 7): String = (1..length).map {
-  (0..9).random()
+  (1..9).random()
 }.joinToString("")
 
 private fun randomYear() = (1950..LocalDate.now().year).random()
