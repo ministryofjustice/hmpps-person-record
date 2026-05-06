@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.offender
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.LocalDate
 
 data class ProbationAddress(
@@ -17,5 +18,6 @@ data class ProbationAddress(
   val uprn: String? = null,
   val notes: String? = null,
   val telephoneNumber: String? = null,
+  @JsonProperty("id")
   val deliusAddressId: Long? = null,
 )
