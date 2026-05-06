@@ -66,6 +66,8 @@ data class Address(
       postTown = address.townCity.nullIfBlank(),
       county = address.county.nullIfBlank(),
       uprn = address.uprn.nullIfBlank(),
+      statusCode = address.status?.code?.let { AddressStatusCode.valueOf(it) },
+      recordType = address.type?.code?.let { AddressRecordType.valueOf(it) },
       comment = address.notes.nullIfBlank(),
       contacts = address.telephoneNumber?.let { listOf(Contact(ContactType.HOME, it)) } ?: emptyList(),
     ).allPropertiesOrNull()

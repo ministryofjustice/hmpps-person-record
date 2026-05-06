@@ -34,7 +34,7 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
       },
       "genderIdentityDescription": ${probationCase.selfDescribedGenderIdentity?.let {""" "${probationCase.selfDescribedGenderIdentity}" """}},
       "aliases": [${probationCase.aliases.joinToString { alias(it) }}],
-      "addresses": [${probationCase.addresses.joinToString { address(it) }}],
+      "addresses": [${probationCase.addresses.joinToString { probationAddress(it) }}],
       "ethnicity": {
         ${probationCase.ethnicity?.let { """ "code": "${probationCase.ethnicity}" """.trimIndent() } ?: ""}
       },
@@ -80,9 +80,10 @@ private fun alias(alias: ApiResponseSetupAlias) =
           }
         }
   """.trimIndent()
-private fun address(address: ApiResponseSetupAddress) =
+fun probationAddress(address: ApiResponseSetupAddress) =
   """
     {
+      ${address.addressId?.let { """ "addressId": "${address.addressId}", """.trimIndent() } ?: ""}
       ${address.startDate?.let { """ "startDate": "${address.startDate}", """.trimIndent() } ?: ""}
       ${address.endDate?.let { """ "endDate": "${address.endDate}", """.trimIndent() } ?: ""}
       ${address.noFixedAbode?.let { """ "noFixedAbode": "${address.noFixedAbode}", """.trimIndent() } ?: ""}
