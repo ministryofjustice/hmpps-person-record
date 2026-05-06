@@ -293,7 +293,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     purgeQueueAndDlq(prisonEventsQueue)
     purgeQueueAndDlq(prisonMergeEventsQueue)
     purgeQueueAndDlq(testOnlyCourtEventsQueue)
-    purgeQueueAndDlq(testOnlyCPREventsQueue)
     purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
   }
 

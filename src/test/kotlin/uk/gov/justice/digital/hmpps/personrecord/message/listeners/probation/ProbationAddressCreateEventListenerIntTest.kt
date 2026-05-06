@@ -63,7 +63,7 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
-    expectNoMessagesOn(testOnlyCPREventsQueue)
+    expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
     assertThat(personRepository.findByCrn(cprPerson.crn!!)!!.addresses.size).isEqualTo(0)
   }
 
@@ -80,7 +80,7 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
-    expectNoMessagesOn(testOnlyCPREventsQueue)
+    expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
     assertThat(personRepository.findByCrn(cprPerson.crn!!)!!.addresses.size).isEqualTo(0)
   }
 
@@ -175,8 +175,8 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
 
   private fun assertPublishedDomainEvent(crn: String, probationAddressId: String) {
     val cprAddressUpdateId = personRepository.findByCrn(crn)!!.addresses.first().updateId!!.toString()
-    expectOneMessageOn(testOnlyCPREventsQueue)
-    val actualDomainEvent = testOnlyCPREventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCPREventsQueue?.queueUrl).build())!!.get()
+    expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+    val actualDomainEvent = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build())!!.get()
     val sqsMessage = actualDomainEvent.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
     val domainEvent = jsonMapper.readValue<DomainEvent>(sqsMessage.message)
 
