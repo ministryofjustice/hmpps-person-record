@@ -23,10 +23,6 @@ service-now:
   requestor: abcd
   requested-for: efgh
 
-core-person-record:
-  base-url: http://localhost:8080
-
-
 retry:
   timeout: 200
 
