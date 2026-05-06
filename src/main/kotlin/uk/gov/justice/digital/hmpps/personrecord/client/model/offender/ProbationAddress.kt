@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.offender
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDate
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class ProbationAddress(
   val noFixedAbode: Boolean? = null,
   val startDate: LocalDate? = null,
@@ -17,27 +19,18 @@ data class ProbationAddress(
   val uprn: String? = null,
   val notes: String? = null,
   val telephoneNumber: String? = null,
-  val addressId: String? = null,
+  val status: ProbationAddressStatus? = null,
+  val type: ProbationAddressType? = null,
 )
 
-/**
- *   "id": 0,
- *   "fullAddress": "string",
- *   "buildingName": "string",
- *   "addressNumber": "string",
- *   "streetName": "string",
- *   "district": "string",
- *   "townCity": "string",
- *   "county": "string",
- *   "postcode": "string",
- *   "uprn": 0,
- *   "telephoneNumber": "string",
- *   "noFixedAbode": true,
- *   "status": {
- *     "code": "string",
- *     "description": "string"
- *   },
- *   "notes": "string",
- *   "startDate": "2026-04-30",
- *   "endDate": "2026-04-30"
- */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class ProbationAddressStatus(
+  val code: String? = null,
+  val description: String? = null,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class ProbationAddressType(
+  val code: String? = null,
+  val description: String? = null,
+)

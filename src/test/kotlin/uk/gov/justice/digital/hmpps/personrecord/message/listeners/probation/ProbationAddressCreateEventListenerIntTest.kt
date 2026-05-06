@@ -5,12 +5,16 @@ import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressStatus
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
@@ -30,29 +34,31 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
 
   @Test
   fun `consuming address created event - saves address - triggers correct events`() {
+    val probationAddressId = randomDigit()
     val probationAddress = randomProbationAddress()
     val cprPerson = createRandomProbationPersonDetails().copy(addresses = emptyList())
     createPersonKey()
       .addPerson(cprPerson)
 
     stubPersonMatchScores()
-    stubGetRequestToProbation(probationAddress)
+    stubGetRequestToProbation(probationAddress, probationAddressId)
 
-    publishProbationAddressCreatedEvent(cprPerson.crn, probationAddress.addressId)
+    publishProbationAddressCreatedEvent(cprPerson.crn, probationAddressId)
 
     assertAddressSaved(cprPerson.crn!!, probationAddress)
-    assertPublishedDomainEvent(cprPerson.crn!!, probationAddress.addressId!!)
+    assertPublishedDomainEvent(cprPerson.crn, probationAddressId)
   }
 
   @Test
   fun `consuming address created event - address not retrieved from probation - pushes message to dead letter queue`() {
+    val probationAddressId = randomDigit()
     val probationAddress = randomProbationAddress()
     val cprPerson = createRandomProbationPersonDetails().copy(addresses = emptyList())
     createPersonKey()
       .addPerson(cprPerson)
 
-    stubGetRequestToProbation(probationAddress, status = 404)
-    publishProbationAddressCreatedEvent(cprPerson.crn, probationAddress.addressId)
+    stubGetRequestToProbation(probationAddress, probationAddressId, status = 404)
+    publishProbationAddressCreatedEvent(cprPerson.crn, probationAddressId)
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
@@ -77,18 +83,19 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
       county = randomName(),
       uprn = randomUprn(),
       notes = randomLowerCaseString(),
+      status = ProbationAddressStatus(AddressStatusCode.entries.random().name, "description"),
+      type = ProbationAddressType(AddressRecordType.entries.random().name, "description"),
       telephoneNumber = randomPhoneNumber(),
-      addressId = randomDigit(),
     )
   }
 
-  private fun stubGetRequestToProbation(probationAddress: ProbationAddress, status: Int = 200) {
+  private fun stubGetRequestToProbation(probationAddress: ProbationAddress, probationAddressId: String, status: Int = 200) {
     stubGetRequest(
-      url = "/address/${probationAddress.addressId}",
+      url = "/address/$probationAddressId",
       status = status,
       body = probationAddress(
         address = ApiResponseSetupAddress(
-          addressId = probationAddress.addressId,
+          addressId = probationAddressId,
           noFixedAbode = probationAddress.noFixedAbode,
           startDate = probationAddress.startDate,
           endDate = probationAddress.endDate,
@@ -108,15 +115,15 @@ class ProbationAddressCreateEventListenerIntTest : MessagingMultiNodeTestBase() 
     )
   }
 
-  private fun publishProbationAddressCreatedEvent(crn: String?, addressId: String?) {
+  private fun publishProbationAddressCreatedEvent(crn: String?, probationAddressId: String?) {
     publishDomainEvent(
       OFFENDER_ADDRESS_CREATED,
       DomainEvent(
         eventType = OFFENDER_ADDRESS_CREATED,
-        detailUrl = "/address/$addressId",
+        detailUrl = "/address/$probationAddressId",
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
         additionalInformation = AdditionalInformation(
-          addressId = addressId,
+          addressId = probationAddressId,
         ),
       ),
     )
