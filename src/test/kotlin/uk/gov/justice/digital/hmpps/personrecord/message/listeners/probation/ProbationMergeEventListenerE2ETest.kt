@@ -44,7 +44,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     // 3. create new person with same target details - should match both
     val personThreeCrn = randomCrn()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, targetUnmergeSetup.copy(crn = personThreeCrn))
-    val review = targetPerson.personKey!!.getReview()
+    val review = targetPerson.personKey!!.getReviews().first()
     review.assertReviewSize(3)
 
     // 4. merge again - should delete review
@@ -83,7 +83,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
     // 3. create new person with same target details - should match both
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, targetUnmergeSetup.copy(crn = randomCrn()))
-    val review = targetPerson.personKey!!.getReview()
+    val review = targetPerson.personKey!!.getReviews().first()
     review.assertReviewSize(3)
 
     // 4. delete record
@@ -122,7 +122,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
     // 3. create person 3 to match both target and source records
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, targetUnmergeSetup.copy(crn = randomCrn()))
-    val review = targetPerson.personKey!!.getReview()
+    val review = targetPerson.personKey!!.getReviews().first()
     review.assertReviewSize(3)
 
     // 4. create person 4 that matches no other records
@@ -164,7 +164,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
     // 3. change person 3 to not match target so cluster goes into review
     probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(createRandomProbationCase(crn = person3Crn)))
-    val review = targetPerson.personKey!!.getReview()
+    val review = targetPerson.personKey!!.getReviews().first()
     review.assertReviewSize(1)
 
     // 4. unmerge the target and source records
@@ -181,7 +181,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     //  5.  create a person who matches both, it creates a 2nd review
     val person5Crn = randomCrn()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(targetPersonDetails).copy(crn = person5Crn))
-    targetPerson.personKey!!.getReview()
+    assertThat(targetPerson.personKey!!.getReviews()).hasSize(2)
 
     // 6 delete the cluster with the target person on somehow....
   }

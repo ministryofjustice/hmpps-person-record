@@ -28,5 +28,6 @@ class ReviewService(
     return reviewRepository.save(review)
   }
 
+  // TODO this can return more than one record if a cluster has more than one review. Raise a bug for this
   private fun PersonKeyEntity.getReviewOrNull() = reviewRepository.findByClustersClusterTypeAndClustersPersonKey(ClusterType.PRIMARY, this)
 }
