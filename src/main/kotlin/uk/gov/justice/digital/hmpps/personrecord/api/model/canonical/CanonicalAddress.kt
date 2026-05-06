@@ -40,6 +40,8 @@ data class CanonicalAddress(
   val comment: String? = null,
   @Schema(description = "List of person address usages")
   val usages: List<CanonicalAddressUsage> = emptyList(),
+  @Schema(description = "List of person address contacts")
+  val contacts: List<CanonicalContact> = emptyList(),
 ) {
 
   companion object {
@@ -62,6 +64,7 @@ data class CanonicalAddress(
       status = CanonicalAddressStatus.from(addressEntity.statusCode),
       comment = addressEntity.comment,
       usages = CanonicalAddressUsage.fromAddressUsageEntityList(addressEntity.usages),
+      contacts = CanonicalContact.fromContactEntityList(addressEntity.contacts),
     )
 
     fun fromAddressEntityList(addressEntity: List<AddressEntity>): List<CanonicalAddress> = addressEntity.map { from(it) }
