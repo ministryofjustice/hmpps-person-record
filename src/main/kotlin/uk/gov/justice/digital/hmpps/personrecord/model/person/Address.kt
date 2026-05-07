@@ -73,7 +73,7 @@ data class Address(
       contacts = address.telephoneNumber?.let { listOf(Contact(ContactType.HOME, it)) } ?: emptyList(),
       deliusAddressId = address.deliusAddressId,
       isVerified = address.isVerified,
-      usages = address.usage?.let { listOf(AddressUsage(AddressUsageCode.valueOf(address.usage.code), true)) } ?: emptyList(),
+      usages = address.usage?.let { listOf(AddressUsage(AddressUsageCode.from(address.usage.code), true)) } ?: emptyList(),
     ).allPropertiesOrNull()
 
     fun from(address: CommonPlatformAddress?): Address? = Address(

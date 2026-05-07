@@ -44,4 +44,12 @@ enum class AddressUsageCode(val description: String) {
   A01D("Rental accommodation - social rental (LA or other)"),
   A04("Supported Housing"),
   A03("Transient/short term accommodation"),
+
+  // CPR
+  UNKNOWN("Unknown"),
+  ;
+
+  companion object {
+    fun from(value: String): AddressUsageCode = entries.associateBy { it.name }.getOrDefault(value, UNKNOWN)
+  }
 }
