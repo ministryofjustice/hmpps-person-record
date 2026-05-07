@@ -31,6 +31,8 @@ data class ApiResponseSetupAddress(
   val uprn: String? = null,
   val notes: String? = null,
   val telephoneNumber: String? = null,
+  val deliusAddressId: Long? = null,
+  val isVerified: Boolean? = null,
 )
 
 data class ApiResponseSetupSentences(val sentenceDate: LocalDate?)
@@ -82,7 +84,7 @@ data class ApiResponseSetup(
       nationality = probationCase.nationality?.value,
       secondNationality = probationCase.secondNationality?.value,
       religion = probationCase.religion?.value,
-      addresses = probationCase.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDate, it.endDate, it.postcode, it.fullAddress, it.buildingName, it.addressNumber, it.streetName, it.district, it.townCity, it.county, it.uprn, it.notes, it.telephoneNumber) },
+      addresses = probationCase.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDate, it.endDate, it.postcode, it.fullAddress, it.buildingName, it.addressNumber, it.streetName, it.district, it.townCity, it.county, it.uprn, it.notes, it.telephoneNumber, it.deliusAddressId) },
       nationalInsuranceNumber = probationCase.identifiers.nationalInsuranceNumber,
       email = probationCase.contactDetails?.email,
       driverLicenseNumber = probationCase.identifiers.additionalIdentifiers?.firstOrNull { it.type?.value == DRIVER_LICENSE_NUMBER.name }?.value,

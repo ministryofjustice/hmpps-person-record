@@ -311,7 +311,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     firstPersonRecord.personKey!!.assertClusterStatus(ACTIVE)
     firstPersonRecord.personKey!!.assertClusterIsOfSize(1)
 
-    thirdPersonRecord.personKey?.getReview()
+    thirdPersonRecord.personKey?.getReviews()?.first()
       ?.assertReviewSize(3)
       ?.isPrimary(thirdPersonRecord.personKey!!)
       ?.isAdditional(firstPersonRecord.personKey!!, secondPersonRecord.personKey!!)
