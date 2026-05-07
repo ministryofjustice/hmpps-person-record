@@ -72,7 +72,7 @@ data class Address(
       contacts = address.telephoneNumber?.let { listOf(Contact(ContactType.HOME, it)) } ?: emptyList(),
       deliusAddressId = address.deliusAddressId,
       isVerified = address.isVerified,
-      statusCode = address.status?.let { AddressStatusCode.valueOf(address.status.code) },
+      statusCode = address.status?.let { AddressStatusCode.fromProbation(address.status.code) },
     ).allPropertiesOrNull()
 
     fun from(address: CommonPlatformAddress?): Address? = Address(
