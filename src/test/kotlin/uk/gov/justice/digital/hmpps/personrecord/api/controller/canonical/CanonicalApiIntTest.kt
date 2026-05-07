@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
@@ -61,8 +62,8 @@ class CanonicalApiIntTest : WebTestBase() {
     val title = randomTitleCode()
     val pnc = randomLongPnc()
     val noFixedAbode = true
-    val startDate = randomDate()
-    val endDate = randomDate()
+    val startDate = randomDateTime()
+    val endDate = randomDateTime()
     val postcode = randomPostcode()
     val nationality = randomNationalityCode()
     val religion = randomReligion()

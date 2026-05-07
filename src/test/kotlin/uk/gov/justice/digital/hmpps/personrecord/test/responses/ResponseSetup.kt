@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class ApiResponseSetupIdentifier(val type: String, val value: String)
 data class ApiResponseSetupAdditionalIdentifier(val type: String, val value: String)
@@ -18,8 +19,8 @@ data class ApiResponseSetupContact(val type: ContactType, val value: String)
 
 data class ApiResponseSetupAddress(
   val noFixedAbode: Boolean? = null,
-  val startDate: LocalDate? = null,
-  val endDate: LocalDate? = null,
+  val startDate: LocalDateTime? = null,
+  val endDate: LocalDateTime? = null,
   val postcode: String?,
   val fullAddress: String? = null,
   val buildingName: String? = null,
@@ -84,7 +85,7 @@ data class ApiResponseSetup(
       nationality = probationCase.nationality?.value,
       secondNationality = probationCase.secondNationality?.value,
       religion = probationCase.religion?.value,
-      addresses = probationCase.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDate, it.endDate, it.postcode, it.fullAddress, it.buildingName, it.addressNumber, it.streetName, it.district, it.townCity, it.county, it.uprn, it.notes, it.telephoneNumber, it.deliusAddressId) },
+      addresses = probationCase.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDateTime, it.endDateTime, it.postcode, it.fullAddress, it.buildingName, it.addressNumber, it.streetName, it.district, it.townCity, it.county, it.uprn, it.notes, it.telephoneNumber, it.deliusAddressId) },
       nationalInsuranceNumber = probationCase.identifiers.nationalInsuranceNumber,
       email = probationCase.contactDetails?.email,
       driverLicenseNumber = probationCase.identifiers.additionalIdentifiers?.firstOrNull { it.type?.value == DRIVER_LICENSE_NUMBER.name }?.value,
