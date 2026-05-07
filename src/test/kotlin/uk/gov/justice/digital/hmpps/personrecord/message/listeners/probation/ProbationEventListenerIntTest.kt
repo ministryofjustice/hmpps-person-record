@@ -184,7 +184,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
             status = ApiResponseSetupAddressStatus(
               code = statusCode.name,
               description = statusCode.description,
-            )
+            ),
           ),
           ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
         ),
