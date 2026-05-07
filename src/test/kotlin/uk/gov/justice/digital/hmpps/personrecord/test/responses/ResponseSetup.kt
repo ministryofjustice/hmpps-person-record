@@ -32,6 +32,7 @@ data class ApiResponseSetupAddress(
   val notes: String? = null,
   val telephoneNumber: String? = null,
   val deliusAddressId: Long? = null,
+  val isVerified: Boolean? = null,
 )
 
 data class ApiResponseSetupSentences(val sentenceDate: LocalDate?)
