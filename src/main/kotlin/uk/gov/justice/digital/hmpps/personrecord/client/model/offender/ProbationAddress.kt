@@ -20,4 +20,6 @@ data class ProbationAddress(
   val telephoneNumber: String? = null,
   @JsonProperty("id")
   val deliusAddressId: Long? = null,
+  @JsonProperty("typeVerified")
+  val isVerified: Boolean? = null,
 )
