@@ -109,6 +109,12 @@ class AddressEntity(
   @Column(name = "status_code")
   val statusCode: AddressStatusCode? = null,
 
+  @Column(name = "delius_address_id")
+  val deliusAddressId: Long? = null,
+
+  @Column(name = "is_verified")
+  val isVerified: Boolean? = null,
+
   @Version
   var version: Int = 0,
 ) {
@@ -132,6 +138,8 @@ class AddressEntity(
       recordType = address.recordType,
       comment = address.comment,
       statusCode = address.statusCode,
+      deliusAddressId = address.deliusAddressId,
+      isVerified = address.isVerified,
       usages = address.usages.map { AddressUsageEntity.from(it) }.toMutableList(),
       contacts = address.contacts.map { ContactEntity.from(it) }.toMutableList(),
     )
