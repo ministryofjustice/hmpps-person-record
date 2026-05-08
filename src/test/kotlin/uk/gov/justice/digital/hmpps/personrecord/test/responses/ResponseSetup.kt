@@ -34,7 +34,10 @@ data class ApiResponseSetupAddress(
   val deliusAddressId: Long? = null,
   val isVerified: Boolean? = null,
   val usage: ApiResponseSetupAddressUsage? = null,
+  val status: ApiResponseSetupAddressStatus? = null,
 )
+
+data class ApiResponseSetupAddressStatus(val code: String, val description: String)
 
 data class ApiResponseSetupAddressUsage(val code: String, val description: String)
 
