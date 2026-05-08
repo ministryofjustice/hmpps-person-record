@@ -24,11 +24,19 @@ data class ProbationAddress(
   val deliusAddressId: Long? = null,
   @JsonProperty("typeVerified")
   val isVerified: Boolean? = null,
+  @JsonProperty("type")
+  val usage: ProbationAddressUsage? = null,
   val status: ProbationAddressStatus? = null,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ProbationAddressStatus(
+  val code: String,
+  val description: String,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class ProbationAddressUsage(
   val code: String,
   val description: String,
 )

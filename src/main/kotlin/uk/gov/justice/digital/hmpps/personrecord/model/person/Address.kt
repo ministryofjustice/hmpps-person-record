@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import java.time.LocalDate
@@ -73,6 +74,7 @@ data class Address(
       deliusAddressId = address.deliusAddressId,
       isVerified = address.isVerified,
       statusCode = address.status?.let { AddressStatusCode.fromProbation(address.status.code) },
+      usages = address.usage?.let { listOf(AddressUsage(AddressUsageCode.from(address.usage.code), true)) } ?: emptyList(),
     ).allPropertiesOrNull()
 
     fun from(address: CommonPlatformAddress?): Address? = Address(
