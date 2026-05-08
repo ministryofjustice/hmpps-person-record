@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAd
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalCountry
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
@@ -80,7 +79,8 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
         dependentLocality = address.dependentLocality,
         postTown = address.postTown,
         county = address.county,
-        country = CanonicalCountry.from(address.countryCode),
+        country = address.countryCode?.description,
+        countryCode = address.countryCode?.name,
         uprn = address.uprn,
         status = CanonicalAddressStatus.from(address.statusCode),
         comment = address.comment,
@@ -99,7 +99,8 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
         dependentLocality = address2.dependentLocality,
         postTown = address2.postTown,
         county = address2.county,
-        country = CanonicalCountry.from(address2.countryCode),
+        country = address2.countryCode?.description,
+        countryCode = address2.countryCode?.name,
         uprn = address2.uprn,
         status = CanonicalAddressStatus.from(address2.statusCode),
         comment = address2.comment,

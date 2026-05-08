@@ -24,10 +24,13 @@ on:
       PLANDEK_DEPLOYMENT_URL:
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: Deploy to ${{ inputs.environment }}
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@8d9c52e65720e36d445d9611f68ca4afd8494526 # v2.14.3
     secrets: inherit
     with:
       environment: ${{ inputs.environment }}

@@ -902,14 +902,14 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
-      val review = cluster.getReview()
-        .hasReviewSize(1)
+      val review = cluster.getReviews().first()
+        .assertReviewSize(1)
         .isPrimary(cluster)
 
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.aboveFracture(), doesNotMatch.crn))
 
       cluster.assertClusterStatus(ACTIVE)
-      review.removed()
+      review.assertRemoved()
     }
 
     @Test
@@ -934,8 +934,8 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster1.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
 
-      cluster1.getReview()
-        .hasReviewSize(3)
+      cluster1.getReviews().first()
+        .assertReviewSize(3)
         .isPrimary(cluster1)
         .isAdditional(cluster2, cluster3)
     }

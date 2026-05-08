@@ -9,19 +9,23 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAd
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalCountry
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContactType
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import java.util.UUID.randomUUID
@@ -41,6 +45,7 @@ class ProbationAddressAPIControllerTest : WebTestBase() {
               subBuildingName = randomName(), buildingNumber = randomBuildingNumber(), thoroughfareName = randomName(), dependentLocality = randomName(),
               postTown = randomName(), county = randomName(), countryCode = randomCountryCode(), uprn = randomUprn(), statusCode = randomAddressStatusCode(),
               comment = randomName(), usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
+              contacts = listOf(Contact(randomContactType(), randomPhoneNumber(), "+44")),
             ),
           ),
         ),
@@ -134,7 +139,8 @@ class ProbationAddressAPIControllerTest : WebTestBase() {
       dependentLocality = expectedAddress.dependentLocality,
       postTown = expectedAddress.postTown,
       county = expectedAddress.county,
-      country = CanonicalCountry.from(expectedAddress.countryCode),
+      country = expectedAddress.countryCode?.description,
+      countryCode = expectedAddress.countryCode?.name,
       uprn = expectedAddress.uprn,
       status = CanonicalAddressStatus.from(expectedAddress.statusCode),
       comment = expectedAddress.comment,
@@ -142,6 +148,13 @@ class ProbationAddressAPIControllerTest : WebTestBase() {
         CanonicalAddressUsage(
           CanonicalAddressUsageCode.from(it.usageCode),
           it.active,
+        )
+      },
+      contacts = expectedAddress.contacts.map {
+        CanonicalContact(
+          CanonicalContactType.from(it.contactType),
+          it.contactValue,
+          it.extension,
         )
       },
     )
