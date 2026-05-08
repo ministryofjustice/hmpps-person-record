@@ -123,7 +123,6 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
     val person21 = createRandomProbationPersonDetails()
     val person22 = person21.copy(crn = randomCrn())
 
-    val tenHoursAgo = LocalDateTime.now().minusHours(HOURS_TO_CHOOSE_FROM)
     createPersonKey()
       .addPerson(person1)
       .addPerson(person2)
