@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Entity
@@ -56,10 +56,10 @@ class AddressEntity(
   val usages: MutableList<AddressUsageEntity> = mutableListOf(),
 
   @Column(name = "start_date")
-  val startDate: LocalDate? = null,
+  val startDate: LocalDateTime? = null,
 
   @Column(name = "end_date")
-  val endDate: LocalDate? = null,
+  val endDate: LocalDateTime? = null,
 
   @Column(name = "no_fixed_abode")
   val noFixedAbode: Boolean? = null,

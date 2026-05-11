@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class ApiResponseSetupIdentifier(val type: String, val value: String)
 data class ApiResponseSetupAdditionalIdentifier(val type: String, val value: String)
@@ -19,7 +20,9 @@ data class ApiResponseSetupContact(val type: ContactType, val value: String)
 data class ApiResponseSetupAddress(
   val noFixedAbode: Boolean? = null,
   val startDate: LocalDate? = null,
+  val startDateTime: LocalDateTime? = null,
   val endDate: LocalDate? = null,
+  val endDateTime: LocalDateTime? = null,
   val postcode: String?,
   val fullAddress: String? = null,
   val buildingName: String? = null,
@@ -84,7 +87,25 @@ data class ApiResponseSetup(
       nationality = probationCase.nationality?.value,
       secondNationality = probationCase.secondNationality?.value,
       religion = probationCase.religion?.value,
-      addresses = probationCase.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDate, it.endDate, it.postcode, it.fullAddress, it.buildingName, it.addressNumber, it.streetName, it.district, it.townCity, it.county, it.uprn, it.notes, it.telephoneNumber, it.deliusAddressId) },
+      addresses = probationCase.addresses.map {
+        ApiResponseSetupAddress(
+          noFixedAbode = it.noFixedAbode,
+          startDateTime = it.startDateTime,
+          endDateTime = it.endDateTime,
+          postcode = it.postcode,
+          fullAddress = it.fullAddress,
+          buildingName = it.buildingName,
+          addressNumber = it.addressNumber,
+          streetName = it.streetName,
+          district = it.district,
+          townCity = it.townCity,
+          county = it.county,
+          uprn = it.uprn,
+          notes = it.notes,
+          telephoneNumber = it.telephoneNumber,
+          deliusAddressId = it.deliusAddressId,
+        )
+      },
       nationalInsuranceNumber = probationCase.identifiers.nationalInsuranceNumber,
       email = probationCase.contactDetails?.email,
       driverLicenseNumber = probationCase.identifiers.additionalIdentifiers?.firstOrNull { it.type?.value == DRIVER_LICENSE_NUMBER.name }?.value,

@@ -43,6 +43,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupIdentifier
 import java.lang.Thread.sleep
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -148,7 +150,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.addresses[0].updateId).isNotNull()
         assertThat(personEntity.addresses[0].postcode).isEqualTo(postcode)
         assertThat(personEntity.addresses[0].fullAddress).isEqualTo(fullAddress)
-        assertThat(personEntity.addresses[0].startDate).isEqualTo(LocalDate.of(1970, 1, 1))
+        assertThat(personEntity.addresses[0].startDate).isEqualTo(LocalDateTime.of(LocalDate.of(1970, 1, 1), LocalTime.MIDNIGHT))
         assertThat(personEntity.addresses[0].noFixedAbode).isEqualTo(true)
 
         assertThat(personEntity.contacts.size).isEqualTo(3)
@@ -328,7 +330,18 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubNoMatchesPersonMatch()
       prisonDomainEventAndResponseSetup(
         PRISONER_CREATED,
-        apiResponseSetup = ApiResponseSetup(aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = aliasMiddleName, lastName = aliasLastName, dateOfBirth = aliasDateOfBirth), ApiResponseSetupAlias(firstName = secondAliasFirstName, middleName = secondAliasMiddleName, lastName = secondAliasLastName, dateOfBirth = secondAliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, sentenceStartDate = sentenceStartDate, primarySentence = true, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true, fullAddress = "")), dateOfBirth = personDateOfBirth),
+        apiResponseSetup = ApiResponseSetup(
+          aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = aliasMiddleName, lastName = aliasLastName, dateOfBirth = aliasDateOfBirth), ApiResponseSetupAlias(firstName = secondAliasFirstName, middleName = secondAliasMiddleName, lastName = secondAliasLastName, dateOfBirth = secondAliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, sentenceStartDate = sentenceStartDate, primarySentence = true, cro = cro,
+          addresses = listOf(
+            ApiResponseSetupAddress(
+              postcode = postcode,
+              startDate = LocalDate.of(1970, 1, 1),
+              noFixedAbode = true,
+              fullAddress = "",
+            ),
+          ),
+          dateOfBirth = personDateOfBirth,
+        ),
       )
 
       checkEventLog(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
