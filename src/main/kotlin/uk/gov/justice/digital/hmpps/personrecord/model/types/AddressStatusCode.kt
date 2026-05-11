@@ -11,9 +11,12 @@ enum class AddressStatusCode(val description: String) {
   RT("ROTL"),
   S("Secondary"),
   PM("Primary and Mail"),
+  UNKNOWN("Unknown"),
   ;
 
   companion object {
+    fun fromProbation(value: String): AddressStatusCode = entries.associateBy { it.name }.getOrDefault(value, UNKNOWN)
+
     fun fromPrison(isPrimary: Boolean, isMail: Boolean): AddressStatusCode? = when {
       isPrimary && isMail -> PM
       isPrimary -> M

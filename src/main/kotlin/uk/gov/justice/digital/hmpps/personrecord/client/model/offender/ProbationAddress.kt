@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.offender
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.LocalDate
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class ProbationAddress(
   val noFixedAbode: Boolean? = null,
   val startDate: LocalDate? = null,
@@ -22,4 +24,19 @@ data class ProbationAddress(
   val deliusAddressId: Long? = null,
   @JsonProperty("typeVerified")
   val isVerified: Boolean? = null,
+  @JsonProperty("type")
+  val usage: ProbationAddressUsage? = null,
+  val status: ProbationAddressStatus? = null,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class ProbationAddressStatus(
+  val code: String,
+  val description: String,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class ProbationAddressUsage(
+  val code: String,
+  val description: String,
 )
