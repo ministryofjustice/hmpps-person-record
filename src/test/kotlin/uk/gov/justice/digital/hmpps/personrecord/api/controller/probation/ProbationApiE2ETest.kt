@@ -97,8 +97,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         val title = randomTitleCode()
         val pnc = randomLongPnc()
         val noFixedAbode = true
-        val startDate = randomDateTime()
-        val endDate = randomDateTime()
+        val startDateTime = randomDateTime()
+        val endDateTime = randomDateTime()
         val postcode = randomPostcode()
         val nationality = randomNationalityCode()
         val religion = randomReligion()
@@ -163,8 +163,8 @@ class ProbationApiE2ETest : E2ETestBase() {
             addresses = listOf(
               Address(
                 noFixedAbode = noFixedAbode,
-                startDate = startDate,
-                endDate = endDate,
+                startDate = startDateTime,
+                endDate = endDateTime,
                 postcode = postcode,
                 buildingName = buildingName,
                 buildingNumber = buildingNumber,
@@ -216,8 +216,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         val canonicalAddress = CanonicalAddress(
           cprAddressId = person.addresses.first().updateId!!.toString(),
           noFixedAbode = noFixedAbode,
-          startDate = startDate.toString(),
-          endDate = endDate.toString(),
+          startDate = startDateTime.toLocalDate().toString(),
+          endDate = endDateTime.toLocalDate().toString(),
           postcode = postcode,
           buildingName = buildingName,
           buildingNumber = buildingNumber,

@@ -129,8 +129,8 @@ class ProbationAddressAPIControllerTest : WebTestBase() {
     val canonicalAddress = CanonicalAddress(
       cprAddressId = expectedAddress.updateId!!.toString(),
       noFixedAbode = expectedAddress.noFixedAbode,
-      startDate = expectedAddress.startDate?.toString(),
-      endDate = expectedAddress.endDate?.toString(),
+      startDate = expectedAddress.startDate?.toLocalDate()?.toString(),
+      endDate = expectedAddress.endDate?.toLocalDate()?.toString(),
       postcode = expectedAddress.postcode,
       subBuildingName = expectedAddress.subBuildingName,
       buildingName = expectedAddress.buildingName,

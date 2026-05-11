@@ -63,8 +63,8 @@ class CanonicalApiIntTest : WebTestBase() {
     val title = randomTitleCode()
     val pnc = randomLongPnc()
     val noFixedAbode = true
-    val startDate = randomDateTime()
-    val endDate = randomDateTime()
+    val startDateTime = randomDateTime()
+    val endDateTime = randomDateTime()
     val postcode = randomPostcode()
     val nationality = randomNationalityCode()
     val religion = randomReligion()
@@ -113,7 +113,7 @@ class CanonicalApiIntTest : WebTestBase() {
         aliases = listOf(Alias(firstName = firstName, middleNames = middleNames, lastName = lastName, dateOfBirth = randomDate(), titleCode = title.value, sexCode = sex.value)),
         addresses = listOf(
           Address(
-            noFixedAbode = noFixedAbode, startDate = startDate, endDate = endDate, postcode = postcode, buildingName = buildingName,
+            noFixedAbode = noFixedAbode, startDate = startDateTime, endDate = endDateTime, postcode = postcode, buildingName = buildingName,
             buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown, county = county,
             countryCode = countryCode, uprn = uprn, statusCode = addressStatusCode, comment = comment,
             usages = listOf(AddressUsage(addressUsageCode, isActive)),
@@ -139,7 +139,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = CanonicalTitle.from(title.value), sex = CanonicalSex.from(sex.value))
     val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
     val canonicalAddress = CanonicalAddress(
-      cprAddressId = person.addresses.first().updateId!!.toString(), noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(),
+      cprAddressId = person.addresses.first().updateId!!.toString(), noFixedAbode = noFixedAbode, startDate = startDateTime.toLocalDate().toString(), endDate = endDateTime.toLocalDate().toString(),
       postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName,
       dependentLocality = dependentLocality, postTown = postTown, county = county, country = countryCode.description, countryCode = countryCode.name,
       uprn = uprn, status = CanonicalAddressStatus.from(addressStatusCode), comment = comment,
