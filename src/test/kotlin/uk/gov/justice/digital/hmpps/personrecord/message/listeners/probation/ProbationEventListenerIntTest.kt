@@ -40,6 +40,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAdditionalIdentifierCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
@@ -64,6 +66,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAdditionalIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressStatus
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupContact
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
@@ -129,6 +133,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val deliusAddressId = randomDigit().toLong()
       val isVerified = randomBoolean()
       val telephone = randomPhoneNumber()
+      val statusCode = randomAddressStatusCode()
+      val usageCode = randomAddressUsageCode()
 
       val dateOfBirth = randomDate()
       val dateOfDeath = randomDate()
@@ -179,6 +185,14 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
             telephoneNumber = telephone,
             deliusAddressId = deliusAddressId,
             isVerified = isVerified,
+            status = ApiResponseSetupAddressStatus(
+              code = statusCode.name,
+              description = statusCode.description,
+            ),
+            usage = ApiResponseSetupAddressUsage(
+              code = usageCode.name,
+              description = usageCode.description,
+            ),
           ),
           ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
         ),
@@ -263,6 +277,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.addresses[0].comment).isEqualTo(notes)
       assertThat(personEntity.addresses[0].deliusAddressId).isEqualTo(deliusAddressId.toLong())
       assertThat(personEntity.addresses[0].isVerified).isEqualTo(isVerified)
+      assertThat(personEntity.addresses[0].statusCode).isEqualTo(statusCode)
+      assertThat(personEntity.addresses[0].usages.size).isEqualTo(1)
+      assertThat(personEntity.addresses[0].usages[0].usageCode).isEqualTo(usageCode)
+      assertThat(personEntity.addresses[0].usages[0].active).isEqualTo(true)
       assertThat(personEntity.addresses[0].contacts[0].contactValue).isEqualTo(telephone)
       assertThat(personEntity.addresses[1].noFixedAbode).isNull()
       assertThat(personEntity.addresses[1].postcode).isEqualTo("M21 9LX")
