@@ -210,6 +210,9 @@ class CanonicalApiIntTest : WebTestBase() {
 
     val expectedStartDate = startDate.toLocalDate().toString()
     assertThat(responseBody.addresses.first().startDate).isEqualTo(expectedStartDate)
+
+    val expectedEndDate = endDate.toLocalDate().toString()
+    assertThat(responseBody.addresses.first().endDate).isEqualTo(expectedEndDate)
   }
 
   @Test
