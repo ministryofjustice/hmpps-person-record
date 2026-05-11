@@ -57,7 +57,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
@@ -97,8 +96,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         val title = randomTitleCode()
         val pnc = randomLongPnc()
         val noFixedAbode = true
-        val startDateTime = randomDateTime()
-        val endDateTime = randomDateTime()
+        val startDate = randomDate()
+        val endDate = randomDate()
         val postcode = randomPostcode()
         val nationality = randomNationalityCode()
         val religion = randomReligion()
@@ -163,8 +162,8 @@ class ProbationApiE2ETest : E2ETestBase() {
             addresses = listOf(
               Address(
                 noFixedAbode = noFixedAbode,
-                startDate = startDateTime,
-                endDate = endDateTime,
+                startDate = startDate,
+                endDate = endDate,
                 postcode = postcode,
                 buildingName = buildingName,
                 buildingNumber = buildingNumber,
@@ -216,8 +215,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         val canonicalAddress = CanonicalAddress(
           cprAddressId = person.addresses.first().updateId!!.toString(),
           noFixedAbode = noFixedAbode,
-          startDate = startDateTime.toLocalDate().toString(),
-          endDate = endDateTime.toLocalDate().toString(),
+          startDate = startDate.toString(),
+          endDate = endDate.toString(),
           postcode = postcode,
           buildingName = buildingName,
           buildingNumber = buildingNumber,
@@ -517,8 +516,8 @@ class ProbationApiE2ETest : E2ETestBase() {
           addresses = listOf(
             ProbationAddress(
               noFixedAbode = false,
-              startDateTime = randomDateTime(),
-              endDateTime = randomDateTime(),
+              startDate = randomDate(),
+              endDate = randomDate(),
               postcode = randomPostcode(),
               fullAddress = randomFullAddress(),
             ),
@@ -567,8 +566,8 @@ class ProbationApiE2ETest : E2ETestBase() {
 
         assertThat(offender.addresses.size).isEqualTo(1)
         assertThat(offender.addresses[0].noFixedAbode).isEqualTo(probationCase.addresses[0].noFixedAbode)
-        assertThat(offender.addresses[0].startDate).isEqualTo(probationCase.addresses[0].startDateTime)
-        assertThat(offender.addresses[0].endDate).isEqualTo(probationCase.addresses[0].endDateTime)
+        assertThat(offender.addresses[0].startDate).isEqualTo(probationCase.addresses[0].startDate)
+        assertThat(offender.addresses[0].endDate).isEqualTo(probationCase.addresses[0].endDate)
         assertThat(offender.addresses[0].postcode).isEqualTo(probationCase.addresses[0].postcode)
         assertThat(offender.addresses[0].fullAddress).isEqualTo(probationCase.addresses[0].fullAddress)
         assertThat(offender.contacts.size).isEqualTo(3)

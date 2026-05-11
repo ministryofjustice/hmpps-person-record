@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
-import java.time.LocalDate
 
 data class CanonicalAddress(
   @Schema(description = "CPR address Id", example = "ec4c7479-218c-4f11-a02d-edd749820679")
@@ -49,8 +48,8 @@ data class CanonicalAddress(
     fun from(addressEntity: AddressEntity): CanonicalAddress = CanonicalAddress(
       cprAddressId = addressEntity.updateId!!.toString(),
       noFixedAbode = addressEntity.noFixedAbode,
-      startDate = addressEntity.startDate?.let { LocalDate.from(it).toString() },
-      endDate = addressEntity.endDate?.let { LocalDate.from(it).toString() },
+      startDate = addressEntity.startDate?.toString(),
+      endDate = addressEntity.endDate?.toString(),
       postcode = addressEntity.postcode,
       subBuildingName = addressEntity.subBuildingName,
       buildingName = addressEntity.buildingName,

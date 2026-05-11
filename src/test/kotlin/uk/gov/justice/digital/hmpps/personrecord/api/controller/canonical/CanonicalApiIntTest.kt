@@ -36,11 +36,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
-import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
@@ -63,8 +61,8 @@ class CanonicalApiIntTest : WebTestBase() {
     val title = randomTitleCode()
     val pnc = randomLongPnc()
     val noFixedAbode = true
-    val startDateTime = randomDateTime()
-    val endDateTime = randomDateTime()
+    val startDate = randomDate()
+    val endDate = randomDate()
     val postcode = randomPostcode()
     val nationality = randomNationalityCode()
     val religion = randomReligion()
@@ -113,7 +111,7 @@ class CanonicalApiIntTest : WebTestBase() {
         aliases = listOf(Alias(firstName = firstName, middleNames = middleNames, lastName = lastName, dateOfBirth = randomDate(), titleCode = title.value, sexCode = sex.value)),
         addresses = listOf(
           Address(
-            noFixedAbode = noFixedAbode, startDate = startDateTime, endDate = endDateTime, postcode = postcode, buildingName = buildingName,
+            noFixedAbode = noFixedAbode, startDate = startDate, endDate = endDate, postcode = postcode, buildingName = buildingName,
             buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown, county = county,
             countryCode = countryCode, uprn = uprn, statusCode = addressStatusCode, comment = comment,
             usages = listOf(AddressUsage(addressUsageCode, isActive)),
@@ -139,7 +137,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = CanonicalTitle.from(title.value), sex = CanonicalSex.from(sex.value))
     val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
     val canonicalAddress = CanonicalAddress(
-      cprAddressId = person.addresses.first().updateId!!.toString(), noFixedAbode = noFixedAbode, startDate = startDateTime.toLocalDate().toString(), endDate = endDateTime.toLocalDate().toString(),
+      cprAddressId = person.addresses.first().updateId!!.toString(), noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(),
       postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName,
       dependentLocality = dependentLocality, postTown = postTown, county = county, country = countryCode.description, countryCode = countryCode.name,
       uprn = uprn, status = CanonicalAddressStatus.from(addressStatusCode), comment = comment,
@@ -180,39 +178,6 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
     assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
     assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
-  }
-
-  @Test
-  fun `should return correct date format for addresses`() {
-    val startDate = randomDateTime()
-    val endDate = startDate.plusYears(10)
-    val person = createRandomProbationPersonDetails().copy(
-      addresses = listOf(
-        Address(
-          noFixedAbode = randomBoolean(), startDate = startDate, endDate = endDate, postcode = randomPostcode(), buildingName = randomLowerCaseString(),
-          buildingNumber = randomBuildingNumber(), thoroughfareName = randomLowerCaseString(), dependentLocality = randomLowerCaseString(), postTown = randomPostcode(), county = randomCountryCode().name,
-          countryCode = randomCountryCode(), uprn = randomUprn(), statusCode = randomAddressStatusCode(), comment = randomLowerCaseString(),
-        ),
-      ),
-    )
-
-    val actualPersonEntity = createPersonWithNewKey(person)
-
-    val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(actualPersonEntity.personKey?.personUUID.toString()))
-      .authorised(listOf(API_READ_ONLY))
-      .exchange()
-      .expectStatus()
-      .isOk
-      .expectBody(CanonicalRecord::class.java)
-      .returnResult()
-      .responseBody!!
-
-    val expectedStartDate = startDate.toLocalDate().toString()
-    assertThat(responseBody.addresses.first().startDate).isEqualTo(expectedStartDate)
-
-    val expectedEndDate = endDate.toLocalDate().toString()
-    assertThat(responseBody.addresses.first().endDate).isEqualTo(expectedEndDate)
   }
 
   @Test
