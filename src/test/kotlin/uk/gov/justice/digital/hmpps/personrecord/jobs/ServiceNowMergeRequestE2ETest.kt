@@ -99,7 +99,7 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
   }
 
   @Test
-  fun `should pick five clusters where each cluster has more than one probation record`() {
+  fun `should pick ten clusters where each cluster has more than one probation record`() {
     val person1 = createRandomProbationPersonDetails()
     val person2 = person1.copy(crn = randomCrn())
     val person3 = createRandomProbationPersonDetails()
@@ -112,8 +112,17 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
     val person10 = person9.copy(crn = randomCrn())
     val person11 = createRandomProbationPersonDetails()
     val person12 = person11.copy(crn = randomCrn())
+    val person13 = createRandomProbationPersonDetails()
+    val person14 = person13.copy(crn = randomCrn())
+    val person15 = createRandomProbationPersonDetails()
+    val person16 = person15.copy(crn = randomCrn())
+    val person17 = createRandomProbationPersonDetails()
+    val person18 = person17.copy(crn = randomCrn())
+    val person19 = createRandomProbationPersonDetails()
+    val person20 = person19.copy(crn = randomCrn())
+    val person21 = createRandomProbationPersonDetails()
+    val person22 = person21.copy(crn = randomCrn())
 
-    val tenHoursAgo = LocalDateTime.now().minusHours(HOURS_TO_CHOOSE_FROM)
     createPersonKey()
       .addPerson(person1)
       .addPerson(person2)
@@ -126,33 +135,35 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
     createPersonKey()
       .addPerson(person7)
       .addPerson(person8)
-    val fifthPerson = createPersonKey()
+    createPersonKey()
       .addPerson(person9)
       .addPerson(person10)
     createPersonKey()
       .addPerson(person11)
       .addPerson(person12)
-
-    personRepository.updateLastModifiedDate(person1.crn!!, tenHoursAgo.plusMinutes(1))
-    personRepository.updateLastModifiedDate(person2.crn!!, tenHoursAgo.plusMinutes(2))
-    personRepository.updateLastModifiedDate(person3.crn!!, tenHoursAgo.plusMinutes(3))
-    personRepository.updateLastModifiedDate(person4.crn!!, tenHoursAgo.plusMinutes(4))
-    personRepository.updateLastModifiedDate(person5.crn!!, tenHoursAgo.plusMinutes(5))
-    personRepository.updateLastModifiedDate(person6.crn!!, tenHoursAgo.plusMinutes(6))
-    personRepository.updateLastModifiedDate(person7.crn!!, tenHoursAgo.plusMinutes(7))
-    personRepository.updateLastModifiedDate(person8.crn!!, tenHoursAgo.plusMinutes(8))
-    personRepository.updateLastModifiedDate(person9.crn!!, tenHoursAgo.plusMinutes(9))
-    personRepository.updateLastModifiedDate(person10.crn!!, tenHoursAgo.plusMinutes(10))
-    personRepository.updateLastModifiedDate(person11.crn!!, tenHoursAgo.plusMinutes(11))
-    personRepository.updateLastModifiedDate(person12.crn!!, tenHoursAgo.plusMinutes(12))
+    createPersonKey()
+      .addPerson(person13)
+      .addPerson(person14)
+    createPersonKey()
+      .addPerson(person15)
+      .addPerson(person16)
+    createPersonKey()
+      .addPerson(person17)
+      .addPerson(person18)
+    val tenthPerson = createPersonKey()
+      .addPerson(person19)
+      .addPerson(person20)
+    createPersonKey()
+      .addPerson(person21)
+      .addPerson(person22)
 
     webTestClient.post()
       .uri(GENERATE_MERGE_REQUESTS)
       .exchange()
       .expectStatus()
       .isOk
-    awaitAssert { assertThat(serviceNowMergeRequestRepository.existsByPersonUUID(fifthPerson.personUUID!!)).isTrue() }
-    wiremock.verify(5, RequestPatternBuilder.like(serviceNowStub?.request))
+    awaitAssert { assertThat(serviceNowMergeRequestRepository.existsByPersonUUID(tenthPerson.personUUID!!)).isTrue() }
+    wiremock.verify(10, RequestPatternBuilder.like(serviceNowStub?.request))
   }
 
   @Test
