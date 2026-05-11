@@ -85,7 +85,7 @@ class ServiceNowMergeRequestService(
   )
 
   companion object {
-    private const val CLUSTER_TO_PROCESS_COUNT = 5
+    private const val CLUSTER_TO_PROCESS_COUNT = 10
     const val HOURS_TO_CHOOSE_FROM = 10L
     private val log = LoggerFactory.getLogger(this::class.java)
   }
