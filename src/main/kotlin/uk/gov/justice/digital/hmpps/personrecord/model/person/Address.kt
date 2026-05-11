@@ -53,7 +53,7 @@ data class Address(
     fun from(address: PrisonerAddress): Address? = Address(
       postcode = address.postcode.nullIfBlank(),
       fullAddress = address.fullAddress.nullIfBlank(),
-      startDate = LocalDateTime.of(address.startDate, LocalTime.MIDNIGHT),
+      startDate = address.startDate?.let { LocalDateTime.of(it, LocalTime.MIDNIGHT) },
       noFixedAbode = address.noFixedAbode,
     ).allPropertiesOrNull()
 
@@ -98,8 +98,8 @@ data class Address(
 
     fun from(address: SysconAddress): Address = Address(
       noFixedAbode = address.noFixedAbode,
-      startDate = LocalDateTime.of(address.startDate, LocalTime.MIDNIGHT),
-      endDate = LocalDateTime.of(address.endDate, LocalTime.MIDNIGHT),
+      startDate = address.startDate?.let { LocalDateTime.of(address.startDate, LocalTime.MIDNIGHT) },
+      endDate = address.endDate?.let { LocalDateTime.of(address.endDate, LocalTime.MIDNIGHT) },
       recordType = when (address.isPrimary) {
         true -> AddressRecordType.PRIMARY
         false -> AddressRecordType.PREVIOUS
