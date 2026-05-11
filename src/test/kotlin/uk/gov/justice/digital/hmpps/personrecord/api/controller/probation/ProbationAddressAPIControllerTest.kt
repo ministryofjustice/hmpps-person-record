@@ -23,7 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -41,7 +41,7 @@ class ProbationAddressAPIControllerTest : WebTestBase() {
         createRandomProbationPersonDetails(crn).copy(
           addresses = listOf(
             Address(
-              noFixedAbode = randomBoolean(), startDate = randomDate(), endDate = randomDate(), postcode = randomPostcode(), buildingName = randomName(),
+              noFixedAbode = randomBoolean(), startDate = randomDateTime(), endDate = randomDateTime(), postcode = randomPostcode(), buildingName = randomName(),
               subBuildingName = randomName(), buildingNumber = randomBuildingNumber(), thoroughfareName = randomName(), dependentLocality = randomName(),
               postTown = randomName(), county = randomName(), countryCode = randomCountryCode(), uprn = randomUprn(), statusCode = randomAddressStatusCode(),
               comment = randomName(), usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
@@ -129,8 +129,8 @@ class ProbationAddressAPIControllerTest : WebTestBase() {
     val canonicalAddress = CanonicalAddress(
       cprAddressId = expectedAddress.updateId!!.toString(),
       noFixedAbode = expectedAddress.noFixedAbode,
-      startDate = expectedAddress.startDate?.toString(),
-      endDate = expectedAddress.endDate?.toString(),
+      startDate = expectedAddress.startDate?.toLocalDate()?.toString(),
+      endDate = expectedAddress.endDate?.toLocalDate()?.toString(),
       postcode = expectedAddress.postcode,
       subBuildingName = expectedAddress.subBuildingName,
       buildingName = expectedAddress.buildingName,
