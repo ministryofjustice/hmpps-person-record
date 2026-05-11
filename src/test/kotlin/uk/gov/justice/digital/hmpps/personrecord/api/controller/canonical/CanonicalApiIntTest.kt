@@ -40,6 +40,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
@@ -179,6 +180,36 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
     assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
     assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
+  }
+
+  @Test
+  fun `should return correct date format for addresses`() {
+    val startDate = randomDateTime()
+    val endDate = startDate.plusYears(10)
+    val person = createRandomProbationPersonDetails().copy(
+      addresses = listOf(
+        Address(
+          noFixedAbode = randomBoolean(), startDate = startDate, endDate = endDate, postcode = randomPostcode(), buildingName = randomLowerCaseString(),
+          buildingNumber = randomBuildingNumber(), thoroughfareName = randomLowerCaseString(), dependentLocality = randomLowerCaseString(), postTown = randomPostcode(), county = randomCountryCode().name,
+          countryCode = randomCountryCode(), uprn = randomUprn(), statusCode = randomAddressStatusCode(), comment = randomLowerCaseString(),
+        ),
+      ),
+    )
+
+    val actualPersonEntity = createPersonWithNewKey(person)
+
+    val responseBody = webTestClient.get()
+      .uri(canonicalAPIUrl(actualPersonEntity.personKey?.personUUID.toString()))
+      .authorised(listOf(API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(CanonicalRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    val expectedStartDate = startDate.toLocalDate().toString()
+    assertThat(responseBody.addresses.first().startDate).isEqualTo(expectedStartDate)
   }
 
   @Test
