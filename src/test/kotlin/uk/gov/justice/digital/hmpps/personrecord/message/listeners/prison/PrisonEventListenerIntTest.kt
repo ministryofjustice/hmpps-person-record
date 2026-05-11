@@ -108,7 +108,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubNoMatchesPersonMatch()
       prisonDomainEventAndResponseSetup(
         PRISONER_CREATED,
-        apiResponseSetup = ApiResponseSetup(title = title.key, gender = gender.key, aliases = listOf(ApiResponseSetupAlias(title.key, aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth, aliasGender.key)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDateTime.of(LocalDate.of(1970, 1, 1), LocalTime.now()), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))),
+        apiResponseSetup = ApiResponseSetup(title = title.key, gender = gender.key, aliases = listOf(ApiResponseSetupAlias(title.key, aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth, aliasGender.key)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))),
       )
 
       checkTelemetry(
@@ -335,10 +335,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           addresses = listOf(
             ApiResponseSetupAddress(
               postcode = postcode,
-              startDate = LocalDateTime.of(
-                LocalDate.of(1970, 1, 1),
-                LocalTime.MIDNIGHT,
-              ),
+              startDate = LocalDate.of(1970, 1, 1),
               noFixedAbode = true,
               fullAddress = "",
             ),

@@ -170,8 +170,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         addresses = listOf(
           ApiResponseSetupAddress(
             noFixedAbode = true,
-            addressStartDate,
-            addressEndDate,
+            startDateTime = addressStartDate,
+            endDateTime = addressEndDate,
             postcode = "LS1 1AB",
             fullAddress = "abc street",
             buildingName = buildingName,
@@ -446,7 +446,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `should handle missing data correctly`() {
       val crn = randomCrn()
       val addresses = listOf(
-        ApiResponseSetupAddress(postcode = null, noFixedAbode = null, startDate = null, endDate = null, fullAddress = null),
+        ApiResponseSetupAddress(postcode = null, noFixedAbode = null, startDateTime = null, endDateTime = null, fullAddress = null),
       )
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = null, addresses = addresses))
       val personEntity = awaitNotNull { personRepository.findByCrn(crn) }
