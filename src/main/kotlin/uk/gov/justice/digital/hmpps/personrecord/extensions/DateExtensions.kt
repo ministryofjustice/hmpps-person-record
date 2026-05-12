@@ -4,7 +4,11 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
 
-fun LocalDate.toOffsetDateTime(): OffsetDateTime = this.atStartOfDay(ZoneId.of("Europe/London"))
-  .toOffsetDateTime()
+private val UK_ZONE = ZoneId.of("Europe/London")
 
-fun OffsetDateTime.toUkLocalDate(): LocalDate = this.atZoneSameInstant(ZoneId.of("Europe/London")).toLocalDate()
+// LocalDate extensions
+fun LocalDate.toOffsetDateTime(): OffsetDateTime = this.atStartOfDay(UK_ZONE).toOffsetDateTime()
+
+// OffsetDateTime extensions
+fun OffsetDateTime.toUkLocalDate(): LocalDate = this.atZoneSameInstant(UK_ZONE).toLocalDate()
+fun OffsetDateTime.toUkOffsetDateTime(): OffsetDateTime = this.atZoneSameInstant(UK_ZONE).toOffsetDateTime()
