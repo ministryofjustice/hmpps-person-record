@@ -63,8 +63,6 @@ fun randomDateTime(): LocalDateTime = LocalDateTime.of(randomDate(), randomTime(
 
 fun randomOffsetDateTime(): OffsetDateTime = randomDateTime().atZone(ZoneId.of("Europe/London")).toOffsetDateTime()
 
-// fun randomOffsetDateTime(): OffsetDateTime = OffsetDateTime.now(ZoneId.of("Europe/London")).minusYears((1..10).random().toLong())
-
 fun randomCro(): String {
   val year = randomYear().toString().takeLast(2)
   val digits = randomDigit(6)
