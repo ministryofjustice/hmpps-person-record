@@ -40,6 +40,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientat
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import java.time.LocalDate
+import java.time.OffsetDateTime
 
 class SysconSyncControllerIntTest : WebTestBase() {
 
@@ -103,7 +104,15 @@ class SysconSyncControllerIntTest : WebTestBase() {
 
       val actualPerson = personRepository.findByPrisonNumber(prisonNumber)?.let { Person.from(it) } ?: fail { "Person not found for update on prisoner $prisonNumber" }
       val expectedPerson = Person.from(originalPerson)
-      assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
+      assertThat(actualPerson)
+        .usingRecursiveComparison()
+        .withComparatorForType(
+          Comparator<OffsetDateTime> { a, b ->
+            a.toInstant().compareTo(b.toInstant())
+          },
+          OffsetDateTime::class.java,
+        )
+        .isEqualTo(expectedPerson)
     }
 
     @Test
@@ -132,7 +141,15 @@ class SysconSyncControllerIntTest : WebTestBase() {
 
       val actualPerson = personRepository.findByPrisonNumber(prisonNumber)?.let { Person.from(it) } ?: fail { "Person not found for update on prisoner $prisonNumber" }
       val expectedPerson = Person.from(originalPerson)
-      assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
+      assertThat(actualPerson)
+        .usingRecursiveComparison()
+        .withComparatorForType(
+          Comparator<OffsetDateTime> { a, b ->
+            a.toInstant().compareTo(b.toInstant())
+          },
+          OffsetDateTime::class.java,
+        )
+        .isEqualTo(expectedPerson)
     }
   }
 
@@ -175,7 +192,15 @@ class SysconSyncControllerIntTest : WebTestBase() {
       val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail { "Prisoner record was expected to be found" }
       val actualPerson = Person.from(actualPersonEntity)
       val expectedPerson = Person.from(request, prisonNumber).copy(personId = actualPerson.personId)
-      assertThat(actualPerson).usingRecursiveComparison().isEqualTo(expectedPerson)
+      assertThat(actualPerson)
+        .usingRecursiveComparison()
+        .withComparatorForType(
+          Comparator<OffsetDateTime> { a, b ->
+            a.toInstant().compareTo(b.toInstant())
+          },
+          OffsetDateTime::class.java,
+        )
+        .isEqualTo(expectedPerson)
     } else {
       assertThat(personRepository.findByPrisonNumber(prisonNumber)).isNull()
     }

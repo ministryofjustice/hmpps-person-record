@@ -32,6 +32,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.PROBATI
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.util.UUID
 
 fun randomLongPnc(): String {
@@ -58,6 +60,10 @@ fun randomDate(): LocalDate = LocalDate.of(randomYear(), (1..12).random(), (1..2
 fun randomTime(): LocalTime = LocalTime.of((1..23).random(), (1..59).random(), (1..59).random())
 
 fun randomDateTime(): LocalDateTime = LocalDateTime.of(randomDate(), randomTime())
+
+fun randomOffsetDateTime(): OffsetDateTime = randomDateTime().atZone(ZoneId.of("Europe/London")).toOffsetDateTime()
+
+// fun randomOffsetDateTime(): OffsetDateTime = OffsetDateTime.now(ZoneId.of("Europe/London")).minusYears((1..10).random().toLong())
 
 fun randomCro(): String {
   val year = randomYear().toString().takeLast(2)

@@ -46,12 +46,12 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomOffsetDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -93,8 +93,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val lastName = randomName()
       val pnc = randomLongPnc()
       val cro = randomCro()
-      val addressStartDate = randomDateTime()
-      val addressEndDate = randomDateTime()
+      val addressStartDate = randomOffsetDateTime()
+      val addressEndDate = randomOffsetDateTime()
       val ethnicity = randomProbationEthnicity()
       val nationality = randomProbationNationalityCode()
       val secondNationality = randomProbationNationalityCode()

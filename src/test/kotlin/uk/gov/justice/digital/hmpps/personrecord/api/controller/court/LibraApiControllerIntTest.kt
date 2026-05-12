@@ -34,12 +34,12 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomOffsetDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
@@ -58,8 +58,8 @@ class LibraApiControllerIntTest : WebTestBase() {
       val title = randomTitleCode()
 
       val noFixedAbode = true
-      val startDateTime = randomDateTime()
-      val endDateTime = randomDateTime()
+      val startDateTime = randomOffsetDateTime()
+      val endDateTime = randomOffsetDateTime()
       val postcode = randomPostcode()
       val sex = randomCommonPlatformSexCode()
 
