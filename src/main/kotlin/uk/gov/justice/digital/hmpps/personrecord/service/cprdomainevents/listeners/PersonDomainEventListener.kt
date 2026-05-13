@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_C
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
 import java.time.Instant
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Profile("!preprod & !prod")
