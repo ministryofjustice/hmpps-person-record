@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.test
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
+import uk.gov.justice.digital.hmpps.personrecord.extensions.UK_ZONE
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.VALID_LETTERS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
@@ -61,7 +62,7 @@ fun randomTime(): LocalTime = LocalTime.of((1..23).random(), (1..59).random(), (
 
 fun randomDateTime(): LocalDateTime = LocalDateTime.of(randomDate(), randomTime())
 
-fun randomOffsetDateTime(): OffsetDateTime = randomDateTime().atZone(ZoneId.of("Europe/London")).toOffsetDateTime()
+fun randomOffsetDateTime(): OffsetDateTime = randomDateTime().atZone(UK_ZONE).toOffsetDateTime()
 
 fun randomCro(): String {
   val year = randomYear().toString().takeLast(2)

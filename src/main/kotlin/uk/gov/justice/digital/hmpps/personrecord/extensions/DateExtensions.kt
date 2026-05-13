@@ -4,7 +4,7 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
 
-private val UK_ZONE = ZoneId.of("Europe/London")
+val UK_ZONE: ZoneId = ZoneId.of("Europe/London")
 
 // LocalDate extensions
 fun LocalDate.toOffsetDateTime(): OffsetDateTime = this.atStartOfDay(UK_ZONE).toOffsetDateTime()
