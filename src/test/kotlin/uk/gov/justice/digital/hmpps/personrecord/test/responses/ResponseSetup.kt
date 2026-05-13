@@ -37,9 +37,9 @@ data class ApiResponseSetupAddress(
   val status: ApiResponseSetupAddressStatus? = null,
 )
 
-data class ApiResponseSetupAddressStatus(val code: String, val description: String)
+data class ApiResponseSetupAddressStatus(val code: String?, val description: String?)
 
-data class ApiResponseSetupAddressUsage(val code: String, val description: String)
+data class ApiResponseSetupAddressUsage(val code: String?, val description: String?)
 
 data class ApiResponseSetupSentences(val sentenceDate: LocalDate?)
 
@@ -90,7 +90,7 @@ data class ApiResponseSetup(
       nationality = probationCase.nationality?.value,
       secondNationality = probationCase.secondNationality?.value,
       religion = probationCase.religion?.value,
-      addresses = probationCase.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDate, it.endDate, it.postcode, it.fullAddress, it.buildingName, it.addressNumber, it.streetName, it.district, it.townCity, it.county, it.uprn, it.notes, it.telephoneNumber, it.deliusAddressId) },
+      addresses = probationCase.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDate, it.endDate, it.postcode, it.fullAddress, it.buildingName, it.addressNumber, it.streetName, it.district, it.townCity, it.county, it.uprn, it.notes, it.telephoneNumber, it.deliusAddressId, it.isVerified, ApiResponseSetupAddressUsage(it.usage?.code, it.usage?.description), ApiResponseSetupAddressStatus(it.status?.code, it.status?.description)) },
       nationalInsuranceNumber = probationCase.identifiers.nationalInsuranceNumber,
       email = probationCase.contactDetails?.email,
       driverLicenseNumber = probationCase.identifiers.additionalIdentifiers?.firstOrNull { it.type?.value == DRIVER_LICENSE_NUMBER.name }?.value,
