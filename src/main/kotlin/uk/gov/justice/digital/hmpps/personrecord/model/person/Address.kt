@@ -141,6 +141,8 @@ data class Address(
       comment = addressEntity.comment,
       recordType = addressEntity.recordType,
       statusCode = addressEntity.statusCode,
+      deliusAddressId = addressEntity.deliusAddressId,
+      isVerified = addressEntity.isVerified,
       usages = addressEntity.usages.map { AddressUsage.from(it) },
       contacts = addressEntity.contacts.map { Contact.from(it) },
     )
