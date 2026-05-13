@@ -3,37 +3,16 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressStatus
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressUsage
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
-import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
-import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressStatus
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressUsage
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationAddress
 
-class ProbationAddressCreatedEventListenerIntTest : MessagingMultiNodeTestBase() {
+class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
   @Test
-  fun `consuming address created event - saves address - triggers correct events`() {
+  fun `consuming address created event - saves address`() {
     val probationAddress = randomProbationAddress()
     val cprPerson = createRandomProbationPersonDetails().copy(addresses = emptyList())
     createPersonKey()
@@ -42,7 +21,7 @@ class ProbationAddressCreatedEventListenerIntTest : MessagingMultiNodeTestBase()
     stubPersonMatchScores()
     stubGetRequestToProbation(probationAddress)
 
-    publishProbationAddressCreatedEvent(cprPerson.crn, probationAddress.deliusAddressId)
+    publishProbationAddressEvent(cprPerson.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_CREATED)
 
     assertAddressSaved(cprPerson.crn!!, probationAddress)
   }
@@ -55,7 +34,7 @@ class ProbationAddressCreatedEventListenerIntTest : MessagingMultiNodeTestBase()
       .addPerson(cprPerson)
 
     stubGetRequestToProbation(probationAddress, status = 404)
-    publishProbationAddressCreatedEvent(cprPerson.crn, probationAddress.deliusAddressId)
+    publishProbationAddressEvent(cprPerson.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_CREATED)
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
@@ -70,76 +49,11 @@ class ProbationAddressCreatedEventListenerIntTest : MessagingMultiNodeTestBase()
       .addPerson(cprPerson)
 
     stubGetRequestToProbation(probationAddress)
-    publishProbationAddressCreatedEvent(randomCrn(), probationAddress.deliusAddressId)
+    publishProbationAddressEvent(randomCrn(), probationAddress.deliusAddressId, OFFENDER_ADDRESS_CREATED)
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
     assertThat(personRepository.findByCrn(cprPerson.crn!!)!!.addresses.size).isEqualTo(0)
-  }
-
-  private fun randomProbationAddress(): ProbationAddress {
-    val startDate = randomDate()
-    val endDate = startDate.plusYears(10)
-    return ProbationAddress(
-      noFixedAbode = true,
-      startDate = startDate,
-      endDate = endDate,
-      postcode = randomPostcode(),
-      fullAddress = randomFullAddress(),
-      buildingName = randomName(),
-      addressNumber = randomAddressNumber(),
-      streetName = randomLowerCaseString(),
-      district = randomName(),
-      townCity = randomName(),
-      county = randomName(),
-      uprn = randomUprn(),
-      deliusAddressId = randomDigit().toLong(),
-      isVerified = randomBoolean(),
-      notes = randomLowerCaseString(),
-      status = ProbationAddressStatus(AddressStatusCode.entries.random().name, "description"),
-      usage = ProbationAddressUsage(AddressRecordType.entries.random().name, "description"),
-      telephoneNumber = randomPhoneNumber(),
-    )
-  }
-
-  private fun stubGetRequestToProbation(probationAddress: ProbationAddress, status: Int = 200) {
-    stubGetRequest(
-      url = "/address/${probationAddress.deliusAddressId}",
-      status = status,
-      body = probationAddress(
-        address = ApiResponseSetupAddress(
-          noFixedAbode = probationAddress.noFixedAbode,
-          startDate = probationAddress.startDate,
-          endDate = probationAddress.endDate,
-          postcode = probationAddress.postcode,
-          fullAddress = probationAddress.fullAddress,
-          buildingName = probationAddress.buildingName,
-          addressNumber = probationAddress.addressNumber,
-          streetName = probationAddress.streetName,
-          district = probationAddress.district,
-          townCity = probationAddress.townCity,
-          county = probationAddress.county,
-          deliusAddressId = probationAddress.deliusAddressId!!,
-          isVerified = probationAddress.isVerified,
-          status = ApiResponseSetupAddressStatus(probationAddress.status?.code, probationAddress.status?.description),
-          usage = ApiResponseSetupAddressUsage(probationAddress.usage?.code, probationAddress.usage?.description),
-          uprn = probationAddress.uprn,
-          notes = probationAddress.notes,
-          telephoneNumber = probationAddress.telephoneNumber,
-        ),
-      ),
-    )
-  }
-
-  private fun publishProbationAddressCreatedEvent(crn: String?, probationAddressId: Long?) {
-    publishDomainEvent(
-      OFFENDER_ADDRESS_CREATED,
-      DomainEvent(
-        eventType = OFFENDER_ADDRESS_CREATED,
-        detailUrl = "/address/$probationAddressId",
-        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
-      ),
-    )
   }
 
   private fun assertAddressSaved(crn: String, probationAddress: ProbationAddress) {
