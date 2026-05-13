@@ -56,10 +56,10 @@ class AddressEntity(
   val usages: MutableList<AddressUsageEntity> = mutableListOf(),
 
   @Column(name = "start_date")
-  val startDate: LocalDate? = null,
+  var startDate: LocalDate? = null,
 
   @Column(name = "end_date")
-  val endDate: LocalDate? = null,
+  var endDate: LocalDate? = null,
 
   @Column(name = "no_fixed_abode")
   val noFixedAbode: Boolean? = null,
@@ -68,38 +68,38 @@ class AddressEntity(
   val fullAddress: String? = null,
 
   @Column
-  val postcode: String? = null,
+  var postcode: String? = null,
 
   @Column(name = "sub_building_name")
-  val subBuildingName: String? = null,
+  var subBuildingName: String? = null,
 
   @Column(name = "building_name")
-  val buildingName: String? = null,
+  var buildingName: String? = null,
 
   @Column(name = "building_number")
-  val buildingNumber: String? = null,
+  var buildingNumber: String? = null,
 
   @Column(name = "thoroughfare_name")
-  val thoroughfareName: String? = null,
+  var thoroughfareName: String? = null,
 
   @Column(name = "dependent_locality")
-  val dependentLocality: String? = null,
+  var dependentLocality: String? = null,
 
   @Column(name = "post_town")
-  val postTown: String? = null,
+  var postTown: String? = null,
 
   @Column(name = "county")
-  val county: String? = null,
+  var county: String? = null,
 
   @Column(name = "country_code")
   @Enumerated(STRING)
-  val countryCode: CountryCode? = null,
+  var countryCode: CountryCode? = null,
 
   @Column(name = "comment")
   val comment: String? = null,
 
   @Column(name = "uprn")
-  val uprn: String? = null,
+  var uprn: String? = null,
 
   @Enumerated(STRING)
   @Column(name = "record_type")
