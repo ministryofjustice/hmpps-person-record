@@ -1,14 +1,13 @@
 package uk.gov.justice.digital.hmpps.personrecord.extensions
 
 import java.time.LocalDate
-import java.time.OffsetDateTime
 import java.time.ZoneId
+import java.time.ZonedDateTime
 
 val UK_ZONE: ZoneId = ZoneId.of("Europe/London")
 
 // LocalDate extensions
-fun LocalDate.toOffsetDateTime(): OffsetDateTime = this.atStartOfDay(UK_ZONE).toOffsetDateTime()
+fun LocalDate.toUkZonedDateTime(): ZonedDateTime = this.atStartOfDay(UK_ZONE)
 
-// OffsetDateTime extensions
-fun OffsetDateTime.toUkLocalDate(): LocalDate = this.atZoneSameInstant(UK_ZONE).toLocalDate()
-fun OffsetDateTime.toUkOffsetDateTime(): OffsetDateTime = this.atZoneSameInstant(UK_ZONE).toOffsetDateTime()
+// ZonedDateTime extensions
+fun ZonedDateTime.toUkLocalDate(): LocalDate = this.withZoneSameInstant(UK_ZONE).toLocalDate()

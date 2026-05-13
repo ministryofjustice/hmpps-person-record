@@ -24,10 +24,10 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomOffsetDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import java.util.UUID.randomUUID
 
 class ProbationAddressAPIControllerTest : WebTestBase() {
@@ -41,7 +41,7 @@ class ProbationAddressAPIControllerTest : WebTestBase() {
         createRandomProbationPersonDetails(crn).copy(
           addresses = listOf(
             Address(
-              noFixedAbode = randomBoolean(), startDate = randomOffsetDateTime(), endDate = randomOffsetDateTime(), postcode = randomPostcode(), buildingName = randomName(),
+              noFixedAbode = randomBoolean(), startDate = randomZonedDateTime(), endDate = randomZonedDateTime(), postcode = randomPostcode(), buildingName = randomName(),
               subBuildingName = randomName(), buildingNumber = randomBuildingNumber(), thoroughfareName = randomName(), dependentLocality = randomName(),
               postTown = randomName(), county = randomName(), countryCode = randomCountryCode(), uprn = randomUprn(), statusCode = randomAddressStatusCode(),
               comment = randomName(), usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),

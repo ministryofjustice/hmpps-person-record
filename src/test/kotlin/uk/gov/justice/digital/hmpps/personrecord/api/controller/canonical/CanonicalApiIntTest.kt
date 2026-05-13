@@ -43,7 +43,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomOffsetDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -52,6 +51,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientat
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 
 class CanonicalApiIntTest : WebTestBase() {
 
@@ -63,8 +63,8 @@ class CanonicalApiIntTest : WebTestBase() {
     val title = randomTitleCode()
     val pnc = randomLongPnc()
     val noFixedAbode = true
-    val startDateTime = randomOffsetDateTime()
-    val endDateTime = randomOffsetDateTime()
+    val startDateTime = randomZonedDateTime()
+    val endDateTime = randomZonedDateTime()
     val postcode = randomPostcode()
     val nationality = randomNationalityCode()
     val religion = randomReligion()
@@ -184,7 +184,7 @@ class CanonicalApiIntTest : WebTestBase() {
 
   @Test
   fun `should return correct date format for addresses`() {
-    val startDateTime = randomOffsetDateTime()
+    val startDateTime = randomZonedDateTime()
     val endDateTime = startDateTime.plusYears(10)
     val person = createRandomProbationPersonDetails().copy(
       addresses = listOf(

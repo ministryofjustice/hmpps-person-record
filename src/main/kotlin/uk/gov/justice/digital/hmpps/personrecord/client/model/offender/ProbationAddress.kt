@@ -2,13 +2,13 @@ package uk.gov.justice.digital.hmpps.personrecord.client.model.offender
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
-import java.time.OffsetDateTime
+import java.time.ZonedDateTime
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ProbationAddress(
   val noFixedAbode: Boolean? = null,
-  val startDateTime: OffsetDateTime? = null,
-  val endDateTime: OffsetDateTime? = null,
+  val startDateTime: ZonedDateTime? = null,
+  val endDateTime: ZonedDateTime? = null,
   val postcode: String? = null,
   val fullAddress: String? = null,
   val buildingName: String? = null,

@@ -40,7 +40,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientat
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import java.time.LocalDate
-import java.time.OffsetDateTime
+import java.time.ZonedDateTime
 
 class SysconSyncControllerIntTest : WebTestBase() {
 
@@ -107,10 +107,10 @@ class SysconSyncControllerIntTest : WebTestBase() {
       assertThat(actualPerson)
         .usingRecursiveComparison()
         .withComparatorForType(
-          Comparator<OffsetDateTime> { a, b ->
+          Comparator<ZonedDateTime> { a, b ->
             a.toInstant().compareTo(b.toInstant())
           },
-          OffsetDateTime::class.java,
+          ZonedDateTime::class.java,
         )
         .isEqualTo(expectedPerson)
     }
@@ -144,10 +144,10 @@ class SysconSyncControllerIntTest : WebTestBase() {
       assertThat(actualPerson)
         .usingRecursiveComparison()
         .withComparatorForType(
-          Comparator<OffsetDateTime> { a, b ->
+          Comparator<ZonedDateTime> { a, b ->
             a.toInstant().compareTo(b.toInstant())
           },
-          OffsetDateTime::class.java,
+          ZonedDateTime::class.java,
         )
         .isEqualTo(expectedPerson)
     }
@@ -195,10 +195,10 @@ class SysconSyncControllerIntTest : WebTestBase() {
       assertThat(actualPerson)
         .usingRecursiveComparison()
         .withComparatorForType(
-          Comparator<OffsetDateTime> { a, b ->
+          Comparator<ZonedDateTime> { a, b ->
             a.toInstant().compareTo(b.toInstant())
           },
-          OffsetDateTime::class.java,
+          ZonedDateTime::class.java,
         )
         .isEqualTo(expectedPerson)
     } else {
