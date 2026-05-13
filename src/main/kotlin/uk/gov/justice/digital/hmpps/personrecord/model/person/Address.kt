@@ -98,8 +98,8 @@ data class Address(
 
     fun from(address: SysconAddress): Address = Address(
       noFixedAbode = address.noFixedAbode,
-      startDate = address.startDate?.let { address.startDate.toUkZonedDateTime() },
-      endDate = address.endDate?.let { address.endDate.toUkZonedDateTime() },
+      startDate = address.startDate?.toUkZonedDateTime(),
+      endDate = address.endDate?.toUkZonedDateTime(),
       recordType = when (address.isPrimary) {
         true -> AddressRecordType.PRIMARY
         false -> AddressRecordType.PREVIOUS
