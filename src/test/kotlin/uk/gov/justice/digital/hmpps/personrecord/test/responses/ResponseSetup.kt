@@ -40,9 +40,9 @@ data class ApiResponseSetupAddress(
   val status: ApiResponseSetupAddressStatus? = null,
 )
 
-data class ApiResponseSetupAddressStatus(val code: String, val description: String)
+data class ApiResponseSetupAddressStatus(val code: String?, val description: String?)
 
-data class ApiResponseSetupAddressUsage(val code: String, val description: String)
+data class ApiResponseSetupAddressUsage(val code: String?, val description: String?)
 
 data class ApiResponseSetupSentences(val sentenceDate: LocalDate?)
 
@@ -110,6 +110,9 @@ data class ApiResponseSetup(
           notes = it.notes,
           telephoneNumber = it.telephoneNumber,
           deliusAddressId = it.deliusAddressId,
+          isVerified = it.isVerified,
+          usage = ApiResponseSetupAddressUsage(it.usage?.code, it.usage?.description),
+          status = ApiResponseSetupAddressStatus(it.status?.code, it.status?.description),
         )
       },
       nationalInsuranceNumber = probationCase.identifiers.nationalInsuranceNumber,
