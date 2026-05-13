@@ -186,7 +186,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
             uprn = uprn,
             notes = notes,
             telephoneNumber = telephone,
-//            deliusAddressId = deliusAddressId,
+            deliusAddressId = deliusAddressId,
             isVerified = isVerified,
             status = ApiResponseSetupAddressStatus(
               code = statusCode.name,
