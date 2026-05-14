@@ -3,94 +3,80 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 
-class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
+class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBase() {
 
   @Test
-  fun `consuming an address updated event - cpr address exists - updates address`() {
+  fun `consuming address deleted event - deletes address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = randomPostcode(), deliusAddressId = probationAddress.deliusAddressId))),
     )
-    val cprAddressBeforeUpdate = personEntity.addresses.first()
 
     stubPersonMatchScores()
     stubGetRequestToProbation(probationAddress)
 
-    publishProbationAddressEvent(personEntity.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_UPDATED)
+    publishProbationAddressEvent(personEntity.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_DELETED)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
-    assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-    val cprAddressAfterUpdate = actualPersonEntity.addresses.first()
-    assertThat(cprAddressAfterUpdate.id).isEqualTo(cprAddressBeforeUpdate.id)
-    assertThat(cprAddressAfterUpdate.updateId).isEqualTo(cprAddressBeforeUpdate.updateId)
-    assertAddress(actualPersonEntity, probationAddress)
+    assertThat(actualPersonEntity.addresses.size).isEqualTo(0)
   }
 
   @Test
-  fun `consuming address updated event - address not retrieved from probation - does not update address`() {
+  fun `consuming address deleted event - address not retrieved from probation - does not delete address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = randomPostcode(), deliusAddressId = probationAddress.deliusAddressId))),
     )
-    val cprAddressBeforeUpdate = personEntity.addresses.first()
 
     stubGetRequestToProbation(probationAddress, status = 404)
 
-    publishProbationAddressEvent(personEntity.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_UPDATED)
+    publishProbationAddressEvent(personEntity.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_DELETED)
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-    val cprAddressAfterUpdate = actualPersonEntity.addresses.first()
-    assertThat(cprAddressAfterUpdate).usingRecursiveComparison().isEqualTo(cprAddressBeforeUpdate)
   }
 
   @Test
-  fun `consuming address updated event - cpr person does not exist - does not update address`() {
+  fun `consuming address deleted event - cpr person does not exist - does not delete address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = randomPostcode(), deliusAddressId = probationAddress.deliusAddressId))),
     )
-    val cprAddressBeforeUpdate = personEntity.addresses.first()
 
     stubGetRequestToProbation(probationAddress)
 
-    publishProbationAddressEvent(randomCrn(), probationAddress.deliusAddressId, OFFENDER_ADDRESS_UPDATED)
+    publishProbationAddressEvent(randomCrn(), probationAddress.deliusAddressId, OFFENDER_ADDRESS_DELETED)
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-    val cprAddressAfterUpdate = actualPersonEntity.addresses.first()
-    assertThat(cprAddressAfterUpdate).usingRecursiveComparison().isEqualTo(cprAddressBeforeUpdate)
   }
 
   @Test
-  fun `consuming address updated event - cpr address does not exist - does not update address`() {
+  fun `consuming address deleted event - cpr address does not exist - does not delete any address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = randomPostcode(), deliusAddressId = randomDigit().toLong()))),
     )
-    val cprAddressBeforeUpdate = personEntity.addresses.first()
 
     stubGetRequestToProbation(probationAddress)
 
-    publishProbationAddressEvent(personEntity.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_UPDATED)
+    publishProbationAddressEvent(personEntity.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_DELETED)
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-    val cprAddressAfterUpdate = actualPersonEntity.addresses.first()
-    assertThat(cprAddressAfterUpdate).usingRecursiveComparison().isEqualTo(cprAddressBeforeUpdate)
   }
 }

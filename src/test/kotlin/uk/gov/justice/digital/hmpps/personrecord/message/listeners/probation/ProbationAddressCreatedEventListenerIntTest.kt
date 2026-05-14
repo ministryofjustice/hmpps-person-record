@@ -24,7 +24,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
   }
 
   @Test
-  fun `consuming address created event - address not retrieved from probation - pushes message to dead letter queue`() {
+  fun `consuming address created event - address not retrieved from probation - does not save address`() {
     val probationAddress = randomProbationAddress()
     val cprPerson = createRandomProbationPersonDetails().copy(addresses = emptyList())
     createPersonKey()
@@ -39,7 +39,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
   }
 
   @Test
-  fun `consuming address created event - cpr person does not exist - pushes message to dead letter queue`() {
+  fun `consuming address created event - cpr person does not exist - does not save address`() {
     val probationAddress = randomProbationAddress()
     val cprPerson = createRandomProbationPersonDetails().copy(addresses = emptyList())
     createPersonKey()

@@ -58,9 +58,16 @@ class ProbationEventListener(
         reclusterService.recluster(personEntity)
       }
       OFFENDER_ADDRESS_DELETED -> {
-        corePersonRecordAndDeliusClient.getPerson(crn).let {
-          eventProcessor.processEvent(it)
-        }
+        val probationAddress = getProbationAddress(event)
+
+        val personEntity = personRepository.findByCrn(crn)!!
+        val addressEntity = personEntity.addresses.first { it.deliusAddressId == probationAddress.deliusAddressId }
+
+        personEntity.addresses.remove(addressEntity)
+        addressEntity.person = null
+        personRepository.save(personEntity)
+        // TODO if...
+        reclusterService.recluster(personEntity)
       }
       else -> {
         corePersonRecordAndDeliusClient.getPerson(crn).let {
