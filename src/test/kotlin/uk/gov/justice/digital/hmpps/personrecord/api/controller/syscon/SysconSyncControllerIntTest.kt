@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Identifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Sentence
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
@@ -106,12 +107,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       val expectedPerson = Person.from(originalPerson)
       assertThat(actualPerson)
         .usingRecursiveComparison()
-        .withComparatorForType(
-          Comparator<ZonedDateTime> { a, b ->
-            a.toInstant().compareTo(b.toInstant())
-          },
-          ZonedDateTime::class.java,
-        )
+        .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
         .isEqualTo(expectedPerson)
     }
 
@@ -143,12 +139,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       val expectedPerson = Person.from(originalPerson)
       assertThat(actualPerson)
         .usingRecursiveComparison()
-        .withComparatorForType(
-          Comparator<ZonedDateTime> { a, b ->
-            a.toInstant().compareTo(b.toInstant())
-          },
-          ZonedDateTime::class.java,
-        )
+        .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
         .isEqualTo(expectedPerson)
     }
   }
@@ -194,12 +185,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       val expectedPerson = Person.from(request, prisonNumber).copy(personId = actualPerson.personId)
       assertThat(actualPerson)
         .usingRecursiveComparison()
-        .withComparatorForType(
-          Comparator<ZonedDateTime> { a, b ->
-            a.toInstant().compareTo(b.toInstant())
-          },
-          ZonedDateTime::class.java,
-        )
+        .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
         .isEqualTo(expectedPerson)
     } else {
       assertThat(personRepository.findByPrisonNumber(prisonNumber)).isNull()

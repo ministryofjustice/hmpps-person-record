@@ -6,6 +6,8 @@ import java.time.ZonedDateTime
 
 val UK_ZONE: ZoneId = ZoneId.of("Europe/London")
 
+val zonedDateTimeComparator : Comparator<ZonedDateTime> = { a, b -> a.toInstant().compareTo(b.toInstant()) }
+
 // LocalDate extensions
 fun LocalDate.toUkZonedDateTime(): ZonedDateTime = this.atStartOfDay(UK_ZONE)
 
