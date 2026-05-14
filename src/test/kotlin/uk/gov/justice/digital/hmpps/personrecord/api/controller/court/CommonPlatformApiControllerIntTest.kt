@@ -58,6 +58,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientat
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 
 class CommonPlatformApiControllerIntTest : WebTestBase() {
 
@@ -72,8 +73,8 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
       val title = randomTitleCode()
       val pnc = randomLongPnc()
       val noFixedAbode = true
-      val startDate = randomDate()
-      val endDate = randomDate()
+      val startDateTime = randomZonedDateTime()
+      val endDateTime = randomZonedDateTime()
       val postcode = randomPostcode()
       val nationality = randomNationalityCode()
       val religion = randomReligion()
@@ -132,8 +133,8 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
           addresses = listOf(
             Address(
               noFixedAbode = noFixedAbode,
-              startDate = startDate,
-              endDate = endDate,
+              startDate = startDateTime,
+              endDate = endDateTime,
               postcode = postcode,
               buildingName = buildingName,
               buildingNumber = buildingNumber,
@@ -175,8 +176,8 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
       val canonicalAddress = CanonicalAddress(
         cprAddressId = person.addresses.first().updateId!!.toString(),
         noFixedAbode = noFixedAbode,
-        startDate = startDate.toString(),
-        endDate = endDate.toString(),
+        startDate = startDateTime.toLocalDate().toString(),
+        endDate = endDateTime.toLocalDate().toString(),
         postcode = postcode,
         buildingName = buildingName,
         buildingNumber = buildingNumber,

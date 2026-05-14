@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import java.util.UUID.randomUUID
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubclassOf
@@ -151,7 +152,7 @@ class PersonEntityMappingTest {
     religion = randomReligion(),
     ethnicityCode = EthnicityCode.O1,
     contacts = listOf(Contact(contactType = ContactType.HOME, contactValue = randomName())),
-    addresses = listOf(Address(noFixedAbode = randomBoolean(), startDate = randomDate(), endDate = randomDate(), postcode = randomPostcode(), buildingName = randomName(), buildingNumber = randomBuildingNumber(), thoroughfareName = randomName(), dependentLocality = randomName(), postTown = randomName())),
+    addresses = listOf(Address(noFixedAbode = randomBoolean(), startDate = randomZonedDateTime(), endDate = randomZonedDateTime(), postcode = randomPostcode(), buildingName = randomName(), buildingNumber = randomBuildingNumber(), thoroughfareName = randomName(), dependentLocality = randomName(), postTown = randomName())),
     references = listOf(Reference(identifierType = IdentifierType.PNC, identifierValue = randomName())),
     sourceSystem = SourceSystemType.NOMIS,
     sentences = listOf(SentenceInfo.from(SentenceInfoEntity(sentenceDate = randomDate()))),
