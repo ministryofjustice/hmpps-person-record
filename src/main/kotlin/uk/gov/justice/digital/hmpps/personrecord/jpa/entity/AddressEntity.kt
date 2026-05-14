@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
-import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.util.UUID
 
 @Entity
@@ -55,11 +55,10 @@ class AddressEntity(
   @OneToMany(mappedBy = "address", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var usages: MutableList<AddressUsageEntity> = mutableListOf(),
 
-  @Column(name = "start_date")
-  var startDate: LocalDate? = null,
+  var startDate: ZonedDateTime? = null,
 
   @Column(name = "end_date")
-  var endDate: LocalDate? = null,
+  var endDate: ZonedDateTime? = null,
 
   @Column(name = "no_fixed_abode")
   var noFixedAbode: Boolean? = null,

@@ -70,8 +70,8 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
       val canonicalAddress = CanonicalAddress(
         cprAddressId = address.updateId!!.toString(),
         noFixedAbode = address.noFixedAbode,
-        startDate = address.startDate.toString(),
-        endDate = address.endDate?.toString(),
+        startDate = address.startDate?.toLocalDate()?.toString(),
+        endDate = address.endDate?.toLocalDate()?.toString(),
         postcode = address.postcode,
         buildingName = address.buildingName,
         buildingNumber = address.buildingNumber,
@@ -90,8 +90,8 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
       val canonicalAddress2 = CanonicalAddress(
         cprAddressId = address2.updateId!!.toString(),
         noFixedAbode = address2.noFixedAbode,
-        startDate = address2.startDate.toString(),
-        endDate = address2.endDate?.toString(),
+        startDate = address2.startDate?.toLocalDate()?.toString(),
+        endDate = address2.endDate?.toLocalDate()?.toString(),
         postcode = address2.postcode,
         buildingName = address2.buildingName,
         buildingNumber = address2.buildingNumber,

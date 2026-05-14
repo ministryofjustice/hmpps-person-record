@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
@@ -22,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressUsage
@@ -30,12 +30,12 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationAddress
 class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
 
   fun randomProbationAddress(): ProbationAddress {
-    val startDate = randomDate()
-    val endDate = startDate.plusYears(10)
+    val startDateTime = randomZonedDateTime()
+    val endDateTime = startDateTime.plusYears(10)
     return ProbationAddress(
       noFixedAbode = true,
-      startDate = startDate,
-      endDate = endDate,
+      startDateTime = startDateTime,
+      endDateTime = endDateTime,
       postcode = randomPostcode(),
       fullAddress = randomFullAddress(),
       buildingName = randomName(),
@@ -61,8 +61,8 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
       body = probationAddress(
         address = ApiResponseSetupAddress(
           noFixedAbode = probationAddress.noFixedAbode,
-          startDate = probationAddress.startDate,
-          endDate = probationAddress.endDate,
+          startDateTime = probationAddress.startDateTime,
+          endDateTime = probationAddress.endDateTime,
           postcode = probationAddress.postcode,
           fullAddress = probationAddress.fullAddress,
           buildingName = probationAddress.buildingName,
@@ -101,8 +101,8 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
       assertThat(actualAddressEntity.updateId).isNotNull()
       assertThat(actualAddressEntity.updateId!!.toString()).isNotBlank
       assertThat(actualAddressEntity.noFixedAbode).isEqualTo(probationAddress.noFixedAbode)
-      assertThat(actualAddressEntity.startDate).isEqualTo(probationAddress.startDate)
-      assertThat(actualAddressEntity.endDate).isEqualTo(probationAddress.endDate)
+      assertThat(actualAddressEntity.startDate).isEqualTo(probationAddress.startDateTime)
+      assertThat(actualAddressEntity.endDate).isEqualTo(probationAddress.endDateTime)
       assertThat(actualAddressEntity.postcode).isEqualTo(probationAddress.postcode)
       assertThat(actualAddressEntity.fullAddress).isEqualTo(probationAddress.fullAddress)
       assertThat(actualAddressEntity.buildingName).isEqualTo(probationAddress.buildingName)
