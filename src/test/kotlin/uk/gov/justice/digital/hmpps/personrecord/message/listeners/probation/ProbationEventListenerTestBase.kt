@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
+import org.assertj.core.api.Assertions.assertThat
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressUsage
@@ -7,8 +8,10 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -89,5 +92,33 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
       ),
     )
+  }
+
+  fun assertAddress(actualPersonEntity: PersonEntity, probationAddress: ProbationAddress) {
+    awaitAssert {
+      assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
+      val actualAddressEntity = actualPersonEntity.addresses.first()
+      assertThat(actualAddressEntity.updateId).isNotNull()
+      assertThat(actualAddressEntity.updateId!!.toString()).isNotBlank
+      assertThat(actualAddressEntity.noFixedAbode).isEqualTo(probationAddress.noFixedAbode)
+      assertThat(actualAddressEntity.startDate).isEqualTo(probationAddress.startDate)
+      assertThat(actualAddressEntity.endDate).isEqualTo(probationAddress.endDate)
+      assertThat(actualAddressEntity.postcode).isEqualTo(probationAddress.postcode)
+      assertThat(actualAddressEntity.fullAddress).isEqualTo(probationAddress.fullAddress)
+      assertThat(actualAddressEntity.buildingName).isEqualTo(probationAddress.buildingName)
+      assertThat(actualAddressEntity.postTown).isEqualTo(probationAddress.townCity)
+      assertThat(actualAddressEntity.county).isEqualTo(probationAddress.county)
+      assertThat(actualAddressEntity.uprn).isEqualTo(probationAddress.uprn)
+      assertThat(actualAddressEntity.deliusAddressId).isEqualTo(probationAddress.deliusAddressId)
+      assertThat(actualAddressEntity.isVerified).isEqualTo(probationAddress.isVerified)
+      assertThat(actualAddressEntity.usages.first().usageCode).isEqualTo(AddressUsageCode.from(probationAddress.usage!!.code))
+      assertThat(actualAddressEntity.statusCode).isEqualTo(AddressStatusCode.valueOf(probationAddress.status?.code!!))
+      assertThat(actualAddressEntity.buildingNumber).isEqualTo(probationAddress.addressNumber)
+      assertThat(actualAddressEntity.thoroughfareName).isEqualTo(probationAddress.streetName)
+      assertThat(actualAddressEntity.dependentLocality).isEqualTo(probationAddress.district)
+      assertThat(actualAddressEntity.comment).isEqualTo(probationAddress.notes)
+      assertThat(actualAddressEntity.contacts.first().contactType).isEqualTo(ContactType.HOME)
+      assertThat(actualAddressEntity.contacts.first().contactValue).isEqualTo(probationAddress.telephoneNumber)
+    }
   }
 }
