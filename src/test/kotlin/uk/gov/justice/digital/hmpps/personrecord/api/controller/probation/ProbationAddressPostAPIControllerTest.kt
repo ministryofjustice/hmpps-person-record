@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 
 class ProbationAddressPostAPIControllerTest : WebTestBase() {
 
@@ -135,8 +136,8 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
 
   private fun createRandomAddress(): Address = Address(
     noFixedAbode = false,
-    startDate = randomDate(),
-    endDate = randomDate(),
+    startDate = randomZonedDateTime(),
+    endDate = randomZonedDateTime(),
     postcode = randomPostcode(),
     uprn = randomUprn(),
     subBuildingName = randomName(),
@@ -156,8 +157,8 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
   private fun assertAddressValues(expectedAddress: Address, actualAddress: AddressEntity) {
     assertThat(actualAddress.updateId.toString()).isNotEmpty()
     assertThat(actualAddress.noFixedAbode).isEqualTo(expectedAddress.noFixedAbode)
-    assertThat(actualAddress.startDate).isEqualTo(expectedAddress.startDate.toUkZonedDateTime())
-    assertThat(actualAddress.endDate).isEqualTo(expectedAddress.endDate?.toUkZonedDateTime())
+    assertThat(actualAddress.startDate).isEqualTo(expectedAddress.startDate)
+    assertThat(actualAddress.endDate).isEqualTo(expectedAddress.endDate)
     assertThat(actualAddress.postcode).isEqualTo(expectedAddress.postcode)
     assertThat(actualAddress.uprn).isEqualTo(expectedAddress.uprn)
     assertThat(actualAddress.subBuildingName).isEqualTo(expectedAddress.subBuildingName)

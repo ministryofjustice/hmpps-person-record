@@ -4,15 +4,16 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import java.time.LocalDate
+import java.time.ZonedDateTime
 
 @Schema(name = "ProbationCreateAddress")
 data class Address(
   @Schema(description = "Is the person without a permanent residence", example = "false", required = true)
   val noFixedAbode: Boolean,
-  @Schema(description = "The address start date", example = "2020-02-26", required = true)
-  val startDate: LocalDate,
-  @Schema(description = "The address end date", example = "2023-07-15")
-  val endDate: LocalDate? = null,
+  @Schema(description = "The address start date", example = "2026-05-15T11:08:46.347Z", required = true)
+  val startDate: ZonedDateTime,
+  @Schema(description = "The address end date", example = "2026-05-15T11:08:46.347Z")
+  val endDate: ZonedDateTime? = null,
   @Schema(description = "The address postcode", example = "SW1H 9AJ")
   val postcode: String? = null,
   @Schema(description = "The address unique property reference number", example = "100120991537")

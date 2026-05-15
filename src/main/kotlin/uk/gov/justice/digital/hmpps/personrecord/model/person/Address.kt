@@ -124,8 +124,8 @@ data class Address(
 
     fun from(address: ProbationAddress): Address = Address(
       noFixedAbode = address.noFixedAbode,
-      startDate = address.startDate.toUkZonedDateTime(),
-      endDate = address.endDate?.toUkZonedDateTime(),
+      startDate = address.startDate,
+      endDate = address.endDate,
       postcode = address.postcode,
       uprn = address.uprn,
       subBuildingName = address.subBuildingName,
