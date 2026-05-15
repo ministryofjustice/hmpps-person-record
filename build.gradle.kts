@@ -13,7 +13,7 @@ plugins {
   kotlin("jvm") version "2.3.21"
   kotlin("plugin.jpa") version "2.3.21"
   id("org.jetbrains.kotlinx.kover") version "0.9.8"
-  id("org.owasp.dependencycheck") version "12.2.1"
+  id("org.owasp.dependencycheck") version "12.2.2"
 }
 
 dependencyCheck {
@@ -44,7 +44,7 @@ dependencies {
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
-  runtimeOnly("org.postgresql:postgresql:42.7.10")
+  runtimeOnly("org.postgresql:postgresql:42.7.11")
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 

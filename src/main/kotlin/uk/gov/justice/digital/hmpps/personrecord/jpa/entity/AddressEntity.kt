@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
-import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.util.UUID
 
 @Entity
@@ -56,10 +56,10 @@ class AddressEntity(
   var usages: MutableList<AddressUsageEntity> = mutableListOf(),
 
   @Column(name = "start_date")
-  var startDate: LocalDate? = null,
+  var startDate: ZonedDateTime? = null,
 
   @Column(name = "end_date")
-  var endDate: LocalDate? = null,
+  var endDate: ZonedDateTime? = null,
 
   @Column(name = "no_fixed_abode")
   var noFixedAbode: Boolean? = null,
@@ -109,6 +109,12 @@ class AddressEntity(
   @Column(name = "status_code")
   var statusCode: AddressStatusCode? = null,
 
+  @Column(name = "delius_address_id")
+  var deliusAddressId: Long? = null,
+
+  @Column(name = "is_verified")
+  var isVerified: Boolean? = null,
+
   @Version
   var version: Int = 0,
 ) {
@@ -129,11 +135,12 @@ class AddressEntity(
     this.countryCode = address.countryCode
     this.uprn = address.uprn
     this.comment = address.comment
-    this.contacts = address.contacts.map { ContactEntity.from(it).also { ue -> ue.address = this } }.toMutableList()
     this.statusCode = address.statusCode
-    this.usages = address.usages.map { AddressUsageEntity.from(it).also { ue -> ue.address = this } }.toMutableList()
+    this.deliusAddressId = address.deliusAddressId
+    this.isVerified = address.isVerified
     this.recordType = address.recordType
-    // TODO: determine how best to update the child entities
+    this.usages = address.usages.map { AddressUsageEntity.from(it).also { ue -> ue.address = this } }.toMutableList()
+    this.contacts = address.contacts.map { ContactEntity.from(it).also { ue -> ue.address = this } }.toMutableList()
   }
 
   companion object {

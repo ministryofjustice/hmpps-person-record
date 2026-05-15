@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressCont
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
@@ -155,8 +156,8 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
   private fun assertAddressValues(expectedAddress: Address, actualAddress: AddressEntity) {
     assertThat(actualAddress.updateId.toString()).isNotEmpty()
     assertThat(actualAddress.noFixedAbode).isEqualTo(expectedAddress.noFixedAbode)
-    assertThat(actualAddress.startDate).isEqualTo(expectedAddress.startDate)
-    assertThat(actualAddress.endDate).isEqualTo(expectedAddress.endDate)
+    assertThat(actualAddress.startDate).isEqualTo(expectedAddress.startDate.toUkZonedDateTime())
+    assertThat(actualAddress.endDate).isEqualTo(expectedAddress.endDate?.toUkZonedDateTime())
     assertThat(actualAddress.postcode).isEqualTo(expectedAddress.postcode)
     assertThat(actualAddress.uprn).isEqualTo(expectedAddress.uprn)
     assertThat(actualAddress.subBuildingName).isEqualTo(expectedAddress.subBuildingName)

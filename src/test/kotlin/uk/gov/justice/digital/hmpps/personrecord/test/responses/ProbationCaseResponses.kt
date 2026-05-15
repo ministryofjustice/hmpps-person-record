@@ -83,8 +83,8 @@ private fun alias(alias: ApiResponseSetupAlias) =
 private fun address(address: ApiResponseSetupAddress) =
   """
     {
-      ${address.startDate?.let { """ "startDate": "${address.startDate}", """.trimIndent() } ?: ""}
-      ${address.endDate?.let { """ "endDate": "${address.endDate}", """.trimIndent() } ?: ""}
+      ${address.startDateTime?.let { """ "startDateTime": "${address.startDateTime}", """.trimIndent() } ?: ""}
+      ${address.endDateTime?.let { """ "endDateTime": "${address.endDateTime}", """.trimIndent() } ?: ""}
       ${address.noFixedAbode?.let { """ "noFixedAbode": "${address.noFixedAbode}", """.trimIndent() } ?: ""}
       ${address.fullAddress?.let { """ "fullAddress": "${address.fullAddress}", """.trimIndent() } ?: ""}
       ${address.buildingName?.let { """ "buildingName": "${address.buildingName}", """.trimIndent() } ?: ""}
@@ -96,6 +96,10 @@ private fun address(address: ApiResponseSetupAddress) =
       ${address.uprn?.let { """ "uprn": ${address.uprn}, """.trimIndent() } ?: ""}
       ${address.notes?.let { """ "notes": "${address.notes}", """.trimIndent() } ?: ""}
       ${address.telephoneNumber?.let { """ "telephoneNumber": "${address.telephoneNumber}", """.trimIndent() } ?: ""}
+      ${address.deliusAddressId?.let { """ "id": ${address.deliusAddressId}, """.trimIndent() } ?: ""}
+      ${address.isVerified?.let { """ "typeVerified": ${address.isVerified}, """.trimIndent() } ?: ""}
+      ${address.status?.let { """ "status": { "code": "${address.status.code}", "description": "${address.status.description}" }, """.trimIndent() } ?: ""}
+      ${address.usage?.let { """ "type": { "code": "${address.usage.code}", "description": "${address.usage.description}" }, """.trimIndent() } ?: ""}
       ${address.postcode?.let { """ "postcode": "${address.postcode}" """.trimIndent() } ?: ""}
     }
   """.trimIndent()

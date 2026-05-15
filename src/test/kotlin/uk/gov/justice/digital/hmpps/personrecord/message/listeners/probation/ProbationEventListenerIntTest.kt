@@ -5,6 +5,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressStatus
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
@@ -40,11 +43,16 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAdditionalIdentifierCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
@@ -58,9 +66,12 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexualOrien
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAdditionalIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressStatus
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupContact
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
@@ -86,8 +97,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val lastName = randomName()
       val pnc = randomLongPnc()
       val cro = randomCro()
-      val addressStartDate = randomDate()
-      val addressEndDate = randomDate()
+      val addressStartDate = randomZonedDateTime()
+      val addressEndDate = randomZonedDateTime()
       val ethnicity = randomProbationEthnicity()
       val nationality = randomProbationNationalityCode()
       val secondNationality = randomProbationNationalityCode()
@@ -123,7 +134,11 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val county = randomName()
       val uprn = randomUprn()
       val notes = randomName()
+      val deliusAddressId = randomDigit().toLong()
+      val isVerified = randomBoolean()
       val telephone = randomPhoneNumber()
+      val statusCode = randomAddressStatusCode()
+      val usageCode = randomAddressUsageCode()
 
       val dateOfBirth = randomDate()
       val dateOfDeath = randomDate()
@@ -159,8 +174,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         addresses = listOf(
           ApiResponseSetupAddress(
             noFixedAbode = true,
-            addressStartDate,
-            addressEndDate,
+            startDateTime = addressStartDate,
+            endDateTime = addressEndDate,
             postcode = "LS1 1AB",
             fullAddress = "abc street",
             buildingName = buildingName,
@@ -172,6 +187,16 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
             uprn = uprn,
             notes = notes,
             telephoneNumber = telephone,
+            deliusAddressId = deliusAddressId,
+            isVerified = isVerified,
+            status = ApiResponseSetupAddressStatus(
+              code = statusCode.name,
+              description = statusCode.description,
+            ),
+            usage = ApiResponseSetupAddressUsage(
+              code = usageCode.name,
+              description = usageCode.description,
+            ),
           ),
           ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
         ),
@@ -254,6 +279,12 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.addresses[0].county).isEqualTo(county)
       assertThat(personEntity.addresses[0].uprn).isEqualTo(uprn)
       assertThat(personEntity.addresses[0].comment).isEqualTo(notes)
+      assertThat(personEntity.addresses[0].deliusAddressId).isEqualTo(deliusAddressId)
+      assertThat(personEntity.addresses[0].isVerified).isEqualTo(isVerified)
+      assertThat(personEntity.addresses[0].statusCode).isEqualTo(statusCode)
+      assertThat(personEntity.addresses[0].usages.size).isEqualTo(1)
+      assertThat(personEntity.addresses[0].usages[0].usageCode).isEqualTo(usageCode)
+      assertThat(personEntity.addresses[0].usages[0].active).isEqualTo(true)
       assertThat(personEntity.addresses[0].contacts[0].contactValue).isEqualTo(telephone)
       assertThat(personEntity.addresses[1].noFixedAbode).isNull()
       assertThat(personEntity.addresses[1].postcode).isEqualTo("M21 9LX")
@@ -354,6 +385,40 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
+    fun `when updating a probation persons details - it should not re-create address records`() {
+      val crn = randomCrn()
+      val originalProbationCase = createRandomProbationCase(crn).copy(
+        addresses = listOf(
+          ProbationAddress(
+            postcode = randomPostcode(),
+            deliusAddressId = randomDigit().toLong(),
+            isVerified = randomBoolean(),
+            usage = ProbationAddressUsage(
+              randomAddressUsageCode().toString(),
+              randomLowerCaseString(),
+            ),
+            status = ProbationAddressStatus(
+              randomAddressStatusCode().toString(),
+              randomLowerCaseString(),
+            ),
+          ),
+        ),
+      )
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(originalProbationCase))
+      val originalPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
+
+      val updatedProbationCase = originalProbationCase.copy(dateOfBirth = randomDate())
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedProbationCase))
+
+      checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+
+      val updatedPersonEntity = personRepository.findByCrn(crn)!!
+      assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
+      assertThat(updatedPersonEntity.addresses.first().id).isEqualTo(originalPersonEntity.addresses.first().id)
+      assertThat(updatedPersonEntity.addresses.first().updateId).isEqualTo(originalPersonEntity.addresses.first().updateId)
+    }
+
+    @Test
     fun `should link new probation record to an existing prison record`() {
       val crn = randomCrn()
       val prisonNumber = randomPrisonNumber()
@@ -419,7 +484,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `should handle missing data correctly`() {
       val crn = randomCrn()
       val addresses = listOf(
-        ApiResponseSetupAddress(postcode = null, noFixedAbode = null, startDate = null, endDate = null, fullAddress = null),
+        ApiResponseSetupAddress(postcode = null, noFixedAbode = null, startDateTime = null, endDateTime = null, fullAddress = null),
       )
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = null, addresses = addresses))
       val personEntity = awaitNotNull { personRepository.findByCrn(crn) }
