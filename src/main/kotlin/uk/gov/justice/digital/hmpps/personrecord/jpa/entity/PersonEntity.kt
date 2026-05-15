@@ -35,6 +35,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NO
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.reflect.KClass
 
 @Entity
 @Table(name = "person")
@@ -204,7 +205,7 @@ class PersonEntity(
 
   fun isPassive() = this.passiveState
 
-  fun update(person: Person) {
+  fun update(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()) {
     this.defendantId = person.defendantId
     this.crn = person.crn
     this.prisonNumber = person.prisonNumber
@@ -222,16 +223,28 @@ class PersonEntity(
     this.birthplace = person.birthplace
     this.birthCountryCode = person.birthCountryCode
     this.nationalityNotes = person.nationalityNotes
-    this.updateChildEntities(person)
+    this.updateChildEntities(person, childrenToIgnore)
   }
 
-  private fun updateChildEntities(person: Person) {
-    updatePersonAddresses(buildAddresses(person, this))
-    updatePersonContacts(buildContacts(person, this))
-    updatePersonReferences(buildReferences(person, this))
-    updatePersonSentences(buildSentenceInfo(person, this))
-    updateNationalities(person.nationalities.map { NationalityEntity.from(it) })
-    updatePseudonyms(listOf(PseudonymEntity.primaryNameFrom(person)) + person.aliases.mapNotNull { PseudonymEntity.aliasFrom(it) })
+  private fun updateChildEntities(person: Person, childrenToIgnore: Set<KClass<*>>) {
+    if (!childrenToIgnore.contains<Any>(AddressEntity::class)) {
+      updatePersonAddresses(buildAddresses(person, this))
+    }
+    if (!childrenToIgnore.contains<Any>(ContactEntity::class)) {
+      updatePersonContacts(buildContacts(person, this))
+    }
+    if (!childrenToIgnore.contains<Any>(ReferenceEntity::class)) {
+      updatePersonReferences(buildReferences(person, this))
+    }
+    if (!childrenToIgnore.contains<Any>(SentenceInfoEntity::class)) {
+      updatePersonSentences(buildSentenceInfo(person, this))
+    }
+    if (!childrenToIgnore.contains<Any>(NationalityEntity::class)) {
+      updateNationalities(person.nationalities.map { NationalityEntity.from(it) })
+    }
+    if (!childrenToIgnore.contains<Any>(PseudonymEntity::class)) {
+      updatePseudonyms(listOf(PseudonymEntity.primaryNameFrom(person)) + person.aliases.mapNotNull { PseudonymEntity.aliasFrom(it) })
+    }
   }
 
   private fun updatePersonSentences(sentences: List<SentenceInfoEntity>) {
@@ -276,9 +289,9 @@ class PersonEntity(
 
   companion object {
 
-    fun new(person: Person): PersonEntity {
+    fun new(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
       val personEntity = PersonEntity(sourceSystem = person.sourceSystem, matchId = UUID.randomUUID())
-      personEntity.update(person)
+      personEntity.update(person, childrenToIgnore)
       return personEntity
     }
   }
