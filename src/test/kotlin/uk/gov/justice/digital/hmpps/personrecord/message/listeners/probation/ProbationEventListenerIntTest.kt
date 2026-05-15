@@ -5,6 +5,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressStatus
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
@@ -46,10 +49,10 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
@@ -63,6 +66,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexualOrien
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAdditionalIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
@@ -93,8 +97,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val lastName = randomName()
       val pnc = randomLongPnc()
       val cro = randomCro()
-      val addressStartDate = randomDateTime()
-      val addressEndDate = randomDateTime()
+      val addressStartDate = randomZonedDateTime()
+      val addressEndDate = randomZonedDateTime()
       val ethnicity = randomProbationEthnicity()
       val nationality = randomProbationNationalityCode()
       val secondNationality = randomProbationNationalityCode()
@@ -275,7 +279,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.addresses[0].county).isEqualTo(county)
       assertThat(personEntity.addresses[0].uprn).isEqualTo(uprn)
       assertThat(personEntity.addresses[0].comment).isEqualTo(notes)
-      assertThat(personEntity.addresses[0].deliusAddressId).isEqualTo(deliusAddressId.toLong())
+      assertThat(personEntity.addresses[0].deliusAddressId).isEqualTo(deliusAddressId)
       assertThat(personEntity.addresses[0].isVerified).isEqualTo(isVerified)
       assertThat(personEntity.addresses[0].statusCode).isEqualTo(statusCode)
       assertThat(personEntity.addresses[0].usages.size).isEqualTo(1)
@@ -378,6 +382,40 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.genderIdentity).isEqualTo(GenderIdentityCode.from(changedPersonDetails))
       assertThat(updatedPersonEntity.selfDescribedGenderIdentity).isEqualTo(changedPersonDetails.selfDescribedGenderIdentity)
       assertThat(updatedPersonEntity.getAliases()[0].sexCode).isEqualTo(SexCode.from(changedPersonDetails.aliases?.first()))
+    }
+
+    @Test
+    fun `when updating a probation persons details - it should not re-create address records`() {
+      val crn = randomCrn()
+      val originalProbationCase = createRandomProbationCase(crn).copy(
+        addresses = listOf(
+          ProbationAddress(
+            postcode = randomPostcode(),
+            deliusAddressId = randomDigit().toLong(),
+            isVerified = randomBoolean(),
+            usage = ProbationAddressUsage(
+              randomAddressUsageCode().toString(),
+              randomLowerCaseString(),
+            ),
+            status = ProbationAddressStatus(
+              randomAddressStatusCode().toString(),
+              randomLowerCaseString(),
+            ),
+          ),
+        ),
+      )
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(originalProbationCase))
+      val originalPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
+
+      val updatedProbationCase = originalProbationCase.copy(dateOfBirth = randomDate())
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedProbationCase))
+
+      checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+
+      val updatedPersonEntity = personRepository.findByCrn(crn)!!
+      assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
+      assertThat(updatedPersonEntity.addresses.first().id).isEqualTo(originalPersonEntity.addresses.first().id)
+      assertThat(updatedPersonEntity.addresses.first().updateId).isEqualTo(originalPersonEntity.addresses.first().updateId)
     }
 
     @Test

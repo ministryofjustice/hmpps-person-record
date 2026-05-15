@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
@@ -43,8 +44,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupIdentifier
 import java.lang.Thread.sleep
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -150,7 +149,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.addresses[0].updateId).isNotNull()
         assertThat(personEntity.addresses[0].postcode).isEqualTo(postcode)
         assertThat(personEntity.addresses[0].fullAddress).isEqualTo(fullAddress)
-        assertThat(personEntity.addresses[0].startDate).isEqualTo(LocalDateTime.of(LocalDate.of(1970, 1, 1), LocalTime.MIDNIGHT))
+        assertThat(personEntity.addresses[0].startDate).isEqualTo(LocalDate.of(1970, 1, 1).toUkZonedDateTime())
         assertThat(personEntity.addresses[0].noFixedAbode).isEqualTo(true)
 
         assertThat(personEntity.contacts.size).isEqualTo(3)

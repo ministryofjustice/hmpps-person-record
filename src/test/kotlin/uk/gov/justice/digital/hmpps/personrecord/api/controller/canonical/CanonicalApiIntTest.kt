@@ -36,7 +36,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
@@ -52,6 +51,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientat
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 
 class CanonicalApiIntTest : WebTestBase() {
 
@@ -63,8 +63,8 @@ class CanonicalApiIntTest : WebTestBase() {
     val title = randomTitleCode()
     val pnc = randomLongPnc()
     val noFixedAbode = true
-    val startDateTime = randomDateTime()
-    val endDateTime = randomDateTime()
+    val startDateTime = randomZonedDateTime()
+    val endDateTime = randomZonedDateTime()
     val postcode = randomPostcode()
     val nationality = randomNationalityCode()
     val religion = randomReligion()
@@ -184,12 +184,12 @@ class CanonicalApiIntTest : WebTestBase() {
 
   @Test
   fun `should return correct date format for addresses`() {
-    val startDate = randomDateTime()
-    val endDate = startDate.plusYears(10)
+    val startDateTime = randomZonedDateTime()
+    val endDateTime = startDateTime.plusYears(10)
     val person = createRandomProbationPersonDetails().copy(
       addresses = listOf(
         Address(
-          noFixedAbode = randomBoolean(), startDate = startDate, endDate = endDate, postcode = randomPostcode(), buildingName = randomLowerCaseString(),
+          noFixedAbode = randomBoolean(), startDate = startDateTime, endDate = endDateTime, postcode = randomPostcode(), buildingName = randomLowerCaseString(),
           buildingNumber = randomBuildingNumber(), thoroughfareName = randomLowerCaseString(), dependentLocality = randomLowerCaseString(), postTown = randomPostcode(), county = randomCountryCode().name,
           countryCode = randomCountryCode(), uprn = randomUprn(), statusCode = randomAddressStatusCode(), comment = randomLowerCaseString(),
         ),
@@ -208,10 +208,10 @@ class CanonicalApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    val expectedStartDate = startDate.toLocalDate().toString()
+    val expectedStartDate = startDateTime.toLocalDate().toString()
     assertThat(responseBody.addresses.first().startDate).isEqualTo(expectedStartDate)
 
-    val expectedEndDate = endDate.toLocalDate().toString()
+    val expectedEndDate = endDateTime.toLocalDate().toString()
     assertThat(responseBody.addresses.first().endDate).isEqualTo(expectedEndDate)
   }
 

@@ -57,7 +57,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
@@ -76,6 +75,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ProbationApiE2ETest : E2ETestBase() {
@@ -97,8 +97,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         val title = randomTitleCode()
         val pnc = randomLongPnc()
         val noFixedAbode = true
-        val startDateTime = randomDateTime()
-        val endDateTime = randomDateTime()
+        val startDateTime = randomZonedDateTime()
+        val endDateTime = randomZonedDateTime()
         val postcode = randomPostcode()
         val nationality = randomNationalityCode()
         val religion = randomReligion()
@@ -517,8 +517,8 @@ class ProbationApiE2ETest : E2ETestBase() {
           addresses = listOf(
             ProbationAddress(
               noFixedAbode = false,
-              startDateTime = randomDateTime(),
-              endDateTime = randomDateTime(),
+              startDateTime = randomZonedDateTime(),
+              endDateTime = randomZonedDateTime(),
               postcode = randomPostcode(),
               fullAddress = randomFullAddress(),
             ),

@@ -1,14 +1,14 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
-import java.time.LocalDateTime
-import java.time.LocalTime
+import java.time.ZonedDateTime
 import kotlin.reflect.full.memberProperties
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Address as SysconAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Address as CommonPlatformAddress
@@ -18,8 +18,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Address a
 
 data class Address(
   val noFixedAbode: Boolean? = null,
-  val startDate: LocalDateTime? = null,
-  val endDate: LocalDateTime? = null,
+  val startDate: ZonedDateTime? = null,
+  val endDate: ZonedDateTime? = null,
   val postcode: String? = null,
   val fullAddress: String? = null,
   val subBuildingName: String? = null,
@@ -53,7 +53,7 @@ data class Address(
     fun from(address: PrisonerAddress): Address? = Address(
       postcode = address.postcode.nullIfBlank(),
       fullAddress = address.fullAddress.nullIfBlank(),
-      startDate = address.startDate?.let { LocalDateTime.of(it, LocalTime.MIDNIGHT) },
+      startDate = address.startDate?.toUkZonedDateTime(),
       noFixedAbode = address.noFixedAbode,
     ).allPropertiesOrNull()
 
@@ -98,8 +98,8 @@ data class Address(
 
     fun from(address: SysconAddress): Address = Address(
       noFixedAbode = address.noFixedAbode,
-      startDate = address.startDate?.let { LocalDateTime.of(address.startDate, LocalTime.MIDNIGHT) },
-      endDate = address.endDate?.let { LocalDateTime.of(address.endDate, LocalTime.MIDNIGHT) },
+      startDate = address.startDate?.toUkZonedDateTime(),
+      endDate = address.endDate?.toUkZonedDateTime(),
       recordType = when (address.isPrimary) {
         true -> AddressRecordType.PRIMARY
         false -> AddressRecordType.PREVIOUS
@@ -142,6 +142,8 @@ data class Address(
       comment = addressEntity.comment,
       recordType = addressEntity.recordType,
       statusCode = addressEntity.statusCode,
+      deliusAddressId = addressEntity.deliusAddressId,
+      isVerified = addressEntity.isVerified,
       usages = addressEntity.usages.map { AddressUsage.from(it) },
       contacts = addressEntity.contacts.map { Contact.from(it) },
     )

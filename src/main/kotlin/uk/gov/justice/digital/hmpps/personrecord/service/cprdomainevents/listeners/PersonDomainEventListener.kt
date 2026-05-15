@@ -7,6 +7,7 @@ import org.springframework.transaction.event.TransactionalEventListener
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.extensions.UK_ZONE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -18,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_C
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
 import java.time.Instant
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Profile("!preprod & !prod")
@@ -48,7 +48,7 @@ class PersonDomainEventListener(
         eventType = config.eventType,
         description = "A ${config.typeDescription} person record has been created",
         detailUrl = detailUrl,
-        occurredAt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.of("Europe/London")).format(Instant.now()),
+        occurredAt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(UK_ZONE).format(Instant.now()),
         personReference = personReference,
       ),
     )
