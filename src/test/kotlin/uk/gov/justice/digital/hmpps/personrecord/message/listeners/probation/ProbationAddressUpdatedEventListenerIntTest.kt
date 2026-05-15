@@ -2,11 +2,9 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 
 class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
@@ -14,9 +12,9 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming an address updated event - cpr address exists - updates address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = randomPostcode(), deliusAddressId = probationAddress.deliusAddressId))),
+      createRandomProbationPersonDetails().copy(addresses = listOf()),
     )
-    val cprAddressBeforeUpdate = personEntity.addresses.first()
+    val cprAddressBeforeUpdate = insertAddress(personEntity, probationAddress.deliusAddressId)
 
     stubPersonMatchScores()
     stubGetRequestToProbation(probationAddress)
@@ -35,9 +33,9 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming address updated event - address not retrieved from probation - does not update address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = randomPostcode(), deliusAddressId = probationAddress.deliusAddressId))),
+      createRandomProbationPersonDetails().copy(addresses = listOf()),
     )
-    val cprAddressBeforeUpdate = personEntity.addresses.first()
+    val cprAddressBeforeUpdate = insertAddress(personEntity, probationAddress.deliusAddressId)
 
     stubGetRequestToProbation(probationAddress, status = 404)
 
@@ -56,9 +54,9 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming address updated event - cpr person does not exist - does not update address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = randomPostcode(), deliusAddressId = probationAddress.deliusAddressId))),
+      createRandomProbationPersonDetails().copy(addresses = listOf()),
     )
-    val cprAddressBeforeUpdate = personEntity.addresses.first()
+    val cprAddressBeforeUpdate = insertAddress(personEntity, probationAddress.deliusAddressId)
 
     stubGetRequestToProbation(probationAddress)
 
@@ -77,9 +75,9 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming address updated event - cpr address does not exist - does not update address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = randomPostcode(), deliusAddressId = randomDigit().toLong()))),
+      createRandomProbationPersonDetails().copy(addresses = listOf()),
     )
-    val cprAddressBeforeUpdate = personEntity.addresses.first()
+    val cprAddressBeforeUpdate = insertAddress(personEntity, randomDigit().toLong())
 
     stubGetRequestToProbation(probationAddress)
 

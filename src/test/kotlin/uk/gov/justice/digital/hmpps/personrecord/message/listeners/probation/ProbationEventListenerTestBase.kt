@@ -8,7 +8,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
@@ -52,6 +54,13 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
       usage = ProbationAddressUsage(AddressUsageCode.entries.random().name, "description"),
       telephoneNumber = randomPhoneNumber(),
     )
+  }
+
+  fun insertAddress(personEntity: PersonEntity, deliusAddressId: Long?): AddressEntity {
+    val addressEntity = AddressEntity.from(Address(postcode = randomPostcode(), deliusAddressId = deliusAddressId))
+    addressEntity.person = personEntity
+    personEntity.addresses.add(addressEntity)
+    return personRepository.save(personEntity).addresses.first()
   }
 
   fun stubGetRequestToProbation(probationAddress: ProbationAddress, status: Int = 200) {

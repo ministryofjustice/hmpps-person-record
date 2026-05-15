@@ -226,9 +226,9 @@ class PersonEntity(
   }
 
   private fun updateChildEntities(person: Person) {
-//    if (person.sourceSystem != DELIUS) { TODO
-//    }
-    updatePersonAddresses(buildAddresses(person, this))
+    if (person.sourceSystem != DELIUS) {
+      updatePersonAddresses(buildAddresses(person, this))
+    }
     updatePersonContacts(buildContacts(person, this))
     updatePersonReferences(buildReferences(person, this))
     updatePersonSentences(buildSentenceInfo(person, this))
