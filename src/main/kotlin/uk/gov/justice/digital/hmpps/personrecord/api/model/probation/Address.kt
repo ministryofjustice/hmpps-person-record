@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.probation
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
-import java.time.LocalDate
 import java.time.ZonedDateTime
 
 @Schema(name = "ProbationCreateAddress")
