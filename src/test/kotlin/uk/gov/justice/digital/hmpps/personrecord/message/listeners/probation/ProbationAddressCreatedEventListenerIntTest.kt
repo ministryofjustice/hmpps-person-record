@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
@@ -27,10 +28,9 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming address created event - address with delius address id already exists - does not save address`() {
     val originalProbationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf()),
+      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(originalProbationAddress)!!)),
     )
-    val addressEntityBeforeCreateEvent = insertAddress(personEntity, originalProbationAddress.deliusAddressId, originalProbationAddress)
-
+    val addressEntityBeforeCreateEvent = personEntity.addresses.first()
     stubGetRequestToProbation(randomProbationAddress(originalProbationAddress.deliusAddressId))
 
     publishProbationAddressEvent(personEntity.crn, originalProbationAddress.deliusAddressId, OFFENDER_ADDRESS_CREATED)

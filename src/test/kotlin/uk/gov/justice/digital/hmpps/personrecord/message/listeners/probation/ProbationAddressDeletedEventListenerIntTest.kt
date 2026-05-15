@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
@@ -12,9 +13,8 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming address deleted event - deletes address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf()),
+      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress)!!)),
     )
-    insertAddress(personEntity, probationAddress.deliusAddressId)
 
     stubPersonMatchScores()
     stubGetRequestToProbation(probationAddress)
@@ -29,9 +29,8 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming address deleted event - address not retrieved from probation - does not delete address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf()),
+      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress)!!)),
     )
-    insertAddress(personEntity, probationAddress.deliusAddressId)
 
     stubGetRequestToProbation(probationAddress, status = 404)
 
@@ -48,9 +47,8 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming address deleted event - cpr person does not exist - does not delete address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf()),
+      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress)!!)),
     )
-    insertAddress(personEntity, probationAddress.deliusAddressId)
 
     stubGetRequestToProbation(probationAddress)
 
@@ -67,9 +65,8 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming address deleted event - cpr address does not exist - does not delete any address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf()),
+      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress.copy(deliusAddressId = randomDigit().toLong()))!!)),
     )
-    insertAddress(personEntity, randomDigit().toLong())
 
     stubGetRequestToProbation(probationAddress)
 
