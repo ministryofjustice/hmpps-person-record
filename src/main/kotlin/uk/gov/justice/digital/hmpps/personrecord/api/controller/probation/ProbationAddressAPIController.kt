@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -57,8 +58,8 @@ class ProbationAddressAPIController(
   @PreAuthorize("hasRole('$API_READ_ONLY')")
   @GetMapping("/person/probation/{crn}/address/{cprAddressId}")
   fun getProbationAddress(
-    @PathVariable(name = "crn") crn: String,
-    @PathVariable(name = "cprAddressId") cprAddressId: String,
+    @PathVariable crn: String,
+    @PathVariable cprAddressId: String,
   ): CanonicalAddress {
     val address = addressRepository.findByUpdateIdAndPersonCrn(UUID.fromString(cprAddressId), crn)
       ?: throw ResourceNotFoundException(cprAddressId)
@@ -85,8 +86,9 @@ class ProbationAddressAPIController(
   @PreAuthorize("hasRole('$PROBATION_API_READ_WRITE')")
   @PostMapping("/person/probation/{crn}/address")
   @Transactional(isolation = REPEATABLE_READ)
+  @Profile("!preprod & !prod")
   fun createProbationAddress(
-    @PathVariable(name = "crn") crn: String,
+    @PathVariable crn: String,
     @RequestBody probationAddress: ProbationAddress,
   ): ResponseEntity<ProbationCreateAddressResponse> {
     val address = Address.from(probationAddress)

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
+import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressContact
@@ -127,6 +128,52 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
         expectedStatus = HttpStatus.UNAUTHORIZED,
         sendAuthorised = false,
       )
+    }
+  }
+
+  @Nested
+  @ActiveProfiles("preprod")
+  inner class FeatureFlagPreprod {
+    @Test
+    fun `endpoint not available in preprod`() {
+      val crn = randomCrn()
+      val newAddress = createRandomAddress()
+      createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
+
+      sendPostRequestAsserted<Unit>(
+        url = probationAddressApiUrl(randomCrn()),
+        body = newAddress,
+        roles = listOf(PROBATION_API_READ_WRITE),
+        expectedStatus = HttpStatus.NOT_FOUND,
+      )
+
+      awaitAssert {
+        val personEntity = personRepository.findByCrn(crn) ?: fail("No person found with id $crn")
+        assertThat(personEntity.addresses).isEmpty()
+      }
+    }
+  }
+
+  @Nested
+  @ActiveProfiles("prod")
+  inner class FeatureFlagProd {
+    @Test
+    fun `endpoint not available in prod`() {
+      val crn = randomCrn()
+      val newAddress = createRandomAddress()
+      createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
+
+      sendPostRequestAsserted<Unit>(
+        url = probationAddressApiUrl(randomCrn()),
+        body = newAddress,
+        roles = listOf(PROBATION_API_READ_WRITE),
+        expectedStatus = HttpStatus.NOT_FOUND,
+      )
+
+      awaitAssert {
+        val personEntity = personRepository.findByCrn(crn) ?: fail("No person found with id $crn")
+        assertThat(personEntity.addresses).isEmpty()
+      }
     }
   }
 
