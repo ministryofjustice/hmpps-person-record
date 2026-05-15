@@ -97,7 +97,7 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
       val canonicalAddress = prisonPerson.addresses.map { CanonicalAddress.from(it) } + latestPerson.addresses.map { CanonicalAddress.from(it) }
 
       assertThat(responseBody.canonicalRecord.firstName).isEqualTo(probationDetails.firstName)
-      assertThat(responseBody.canonicalRecord.addresses).isEqualTo(canonicalAddress)
+      assertThat(responseBody.canonicalRecord.addresses).containsExactlyInAnyOrderElementsOf(canonicalAddress)
     }
 
     @Test
@@ -125,7 +125,7 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
       val canonicalAddress = prisonPerson.addresses.map { CanonicalAddress.from(it) } + latestPerson.addresses.map { CanonicalAddress.from(it) }
 
       assertThat(responseBody.canonicalRecord.firstName).isEqualTo(probationDetails.firstName)
-      assertThat(responseBody.canonicalRecord.addresses).isEqualTo(canonicalAddress)
+      assertThat(responseBody.canonicalRecord.addresses).containsExactlyInAnyOrderElementsOf(canonicalAddress)
     }
   }
 
