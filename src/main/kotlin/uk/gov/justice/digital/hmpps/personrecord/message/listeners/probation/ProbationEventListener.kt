@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ConflictException
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
@@ -37,6 +38,10 @@ class ProbationEventListener(
 
         // TODO: Once ready, make use of the new AddressService class
         val personEntity = personRepository.findByCrn(crn)!!
+        if (personEntity.addresses.firstOrNull { it.deliusAddressId == probationAddress.deliusAddressId } != null) {
+          throw ConflictException("Probation address with deliusAddressId '${probationAddress.deliusAddressId}' already exists")
+        }
+
         val addressEntity = AddressEntity.from(Address.from(probationAddress)!!)
         addressEntity.person = personEntity
         addressEntity.usages.forEach { usage -> usage.address = addressEntity }

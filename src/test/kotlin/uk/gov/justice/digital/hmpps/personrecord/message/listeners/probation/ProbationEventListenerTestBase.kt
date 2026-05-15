@@ -31,7 +31,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationAddress
 
 class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
 
-  fun randomProbationAddress(): ProbationAddress {
+  fun randomProbationAddress(deliusAddressId: Long? = null): ProbationAddress {
     val startDateTime = randomZonedDateTime()
     val endDateTime = startDateTime.plusYears(10)
     return ProbationAddress(
@@ -47,7 +47,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
       townCity = randomName(),
       county = randomName(),
       uprn = randomUprn(),
-      deliusAddressId = randomDigit().toLong(),
+      deliusAddressId = deliusAddressId ?: randomDigit().toLong(),
       isVerified = randomBoolean(),
       notes = randomLowerCaseString(),
       status = ProbationAddressStatus(AddressStatusCode.entries.random().name, "description"),
@@ -56,8 +56,9 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun insertAddress(personEntity: PersonEntity, deliusAddressId: Long?): AddressEntity {
-    val addressEntity = AddressEntity.from(Address(postcode = randomPostcode(), deliusAddressId = deliusAddressId))
+  fun insertAddress(personEntity: PersonEntity, deliusAddressId: Long?, probationAddress: ProbationAddress? = null): AddressEntity {
+    val cprAddress = probationAddress?.let { Address.from(it) } ?: Address(postcode = randomPostcode(), deliusAddressId = deliusAddressId)
+    val addressEntity = AddressEntity.from(cprAddress)
     addressEntity.person = personEntity
     personEntity.addresses.add(addressEntity)
     return personRepository.save(personEntity).addresses.first()
