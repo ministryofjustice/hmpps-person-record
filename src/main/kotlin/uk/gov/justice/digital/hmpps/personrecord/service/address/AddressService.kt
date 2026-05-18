@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.address
 
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -17,6 +18,7 @@ class AddressService(
   private val reclusterService: ReclusterService,
 ) {
 
+  @Transactional
   fun processAddress(
     address: Address,
     findPerson: () -> PersonEntity?,
@@ -44,7 +46,8 @@ class AddressService(
 
     val addressEntity = addressRepository.save(addressToSave)
 
-    reclusterIfMatchingFieldsChangedAndNotPassiveRecord(personEntity, matchingFieldsBeforeUpdate)
+    val matchingFieldsChanged = matchingFieldsBeforeUpdate.matchingFieldsAreDifferent(personEntity)
+    tryRecluster(personEntity, matchingFieldsChanged)
 
     return addressEntity
   }
@@ -54,16 +57,16 @@ class AddressService(
     addressEntity.update(address)
     addressRepository.save(addressEntity)
 
-    reclusterIfMatchingFieldsChangedAndNotPassiveRecord(addressEntity.person!!, matchingFieldsBeforeUpdate)
+    val matchingFieldsChanged = matchingFieldsBeforeUpdate.matchingFieldsAreDifferent(addressEntity.person!!)
+    tryRecluster(addressEntity.person!!, matchingFieldsChanged)
 
     return addressEntity
   }
 
-  private fun reclusterIfMatchingFieldsChangedAndNotPassiveRecord(
+  private fun tryRecluster(
     personEntity: PersonEntity,
-    matchingFieldsBeforeUpdate: PersonMatchRecord,
+    matchingFieldsChanged: Boolean,
   ) {
-    val matchingFieldsChanged = matchingFieldsBeforeUpdate.matchingFieldsAreDifferent(personEntity)
     if (matchingFieldsChanged && personEntity.isNotPassive()) {
       personMatchService.saveToPersonMatch(personEntity)
       personEntity.personKey?.let { reclusterService.recluster(personEntity) }
