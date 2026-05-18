@@ -7,12 +7,10 @@ import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliu
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.PROBATION_EVENT_QUEUE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
@@ -24,9 +22,8 @@ class ProbationEventListener(
   private val domainEventProcessor: DomainEventProcessor,
   private val eventProcessor: ProbationEventProcessor,
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
-  private val addressRepository: AddressRepository,
   private val personRepository: PersonRepository,
-  private val reclusterService: ReclusterService,
+  private val addressService: AddressService,
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
@@ -34,45 +31,35 @@ class ProbationEventListener(
     val crn = event.getCrn()
     when (event.eventType) {
       OFFENDER_ADDRESS_CREATED -> {
-        val probationAddress = getProbationAddress(event)
-
-        // TODO: Once ready, make use of the new AddressService class
+        val newProbationAddress = getProbationAddress(event)
         val personEntity = personRepository.findByCrn(crn)!!
-        if (personEntity.addresses.firstOrNull { it.deliusAddressId == probationAddress.deliusAddressId } != null) {
-          throw ConflictException("Probation address with deliusAddressId '${probationAddress.deliusAddressId}' already exists")
+
+        if (personEntity.addresses.firstOrNull { it.deliusAddressId == newProbationAddress.deliusAddressId } != null) {
+          throw ConflictException("Probation address with deliusAddressId '${newProbationAddress.deliusAddressId}' already exists")
         }
 
-        val addressEntity = AddressEntity.from(Address.from(probationAddress)!!)
-        addressEntity.person = personEntity
-        addressEntity.usages.forEach { usage -> usage.address = addressEntity }
-        addressEntity.contacts.forEach { contactEntity -> contactEntity.address = addressEntity }
-
-        addressRepository.save(addressEntity)
-        // TODO if...
-        reclusterService.recluster(personEntity)
+        addressService.upsertAddress(
+          address = Address.from(newProbationAddress)!!,
+          findPerson = { personEntity },
+          findAddress = { null },
+        )
       }
       OFFENDER_ADDRESS_UPDATED -> {
-        val probationAddress = getProbationAddress(event)
-
+        val updatedProbationAddress = getProbationAddress(event)
         val personEntity = personRepository.findByCrn(crn)!!
-        val addressEntity = personEntity.addresses.first { it.deliusAddressId == probationAddress.deliusAddressId }
-        addressEntity.update(Address.from(probationAddress)!!)
 
-        addressRepository.save(addressEntity)
-        // TODO if...
-        reclusterService.recluster(personEntity)
+        addressService.upsertAddress(
+          address = Address.from(updatedProbationAddress)!!,
+          findPerson = { personEntity },
+          findAddress = { personEntity.addresses.first { it.deliusAddressId == updatedProbationAddress.deliusAddressId } },
+        )
       }
       OFFENDER_ADDRESS_DELETED -> {
-        val probationAddress = getProbationAddress(event)
+        val deletedProbationAddress = getProbationAddress(event)
 
         val personEntity = personRepository.findByCrn(crn)!!
-        val addressEntity = personEntity.addresses.first { it.deliusAddressId == probationAddress.deliusAddressId }
-
-        personEntity.addresses.remove(addressEntity)
-        addressEntity.person = null
-        personRepository.save(personEntity)
-        // TODO if...
-        reclusterService.recluster(personEntity)
+        val addressEntity = personEntity.addresses.firstOrNull { it.deliusAddressId == deletedProbationAddress.deliusAddressId }
+        addressEntity?.let { addressService.deleteAddress(it) }
       }
       else -> {
         corePersonRecordAndDeliusClient.getPerson(crn).let {

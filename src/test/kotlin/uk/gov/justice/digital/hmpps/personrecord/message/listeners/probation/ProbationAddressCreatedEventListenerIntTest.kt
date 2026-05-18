@@ -15,6 +15,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     createPersonKey()
       .addPerson(cprPerson)
 
+    stubPersonMatchUpsert()
     stubPersonMatchScores()
     stubGetRequestToProbation(probationAddress)
 
