@@ -30,7 +30,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import java.util.UUID.randomUUID
 
-class ProbationAddressAPIControllerTest : WebTestBase() {
+class ProbationAddressGetAPIControllerTest : WebTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
