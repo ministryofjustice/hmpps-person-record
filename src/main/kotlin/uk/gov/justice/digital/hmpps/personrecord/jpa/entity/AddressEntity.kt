@@ -55,6 +55,7 @@ class AddressEntity(
   @OneToMany(mappedBy = "address", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var usages: MutableList<AddressUsageEntity> = mutableListOf(),
 
+  @Column(name = "start_date")
   var startDate: ZonedDateTime? = null,
 
   @Column(name = "end_date")
@@ -140,7 +141,6 @@ class AddressEntity(
     this.recordType = address.recordType
     this.deliusAddressId = address.deliusAddressId
     this.isVerified = address.isVerified
-    // TODO: determine how best to update the child entities
   }
 
   companion object {

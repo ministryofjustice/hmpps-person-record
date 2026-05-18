@@ -205,6 +205,8 @@ class PersonEntity(
 
   fun isPassive() = this.passiveState
 
+  fun isNotPassive() = !this.passiveState
+
   fun update(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()) {
     this.defendantId = person.defendantId
     this.crn = person.crn
