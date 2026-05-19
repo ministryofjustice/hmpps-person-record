@@ -155,6 +155,8 @@ fun randomLowerCaseString(length: Int = 7): String = (1..length).map {
   ('a' + (Math.random() * 26).toInt())
 }.joinToString("")
 
+fun randomDeliusAddressId(): Long = randomDigit(9).toLong()
+
 fun randomDigit(length: Int = 7): String = (1..length).map {
   (1..9).random()
 }.joinToString("")

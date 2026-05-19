@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.client
 
 import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -28,4 +29,17 @@ class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebCl
     .uri("/probation-cases/{id}", crn)
     .retrieve()
     .bodyToMono(ProbationCase::class.java)
+
+
+
+fun getProbationCases(@SpringQueryMap params): Mono<ProbationCase> = corePersonRecordAndDeliusWebClient
+  .get()
+  .uri("/probation-cases/{id}", crn)
+  .retrieve()
+  .bodyToMono(ProbationCase::class.java)
+
+class CorePersonRecordAndDeliusClientPageParams(val page: Int, val size: Int) {
+  val sort: String = "id,asc"
+}
+
 }
