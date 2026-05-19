@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchR
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
@@ -14,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchServi
 @Service
 class AddressService(
   private val addressRepository: AddressRepository,
+  private val personRepository: PersonRepository,
   private val personMatchService: PersonMatchService,
   private val reclusterService: ReclusterService,
 ) {
@@ -36,6 +38,20 @@ class AddressService(
         update(address, it)
       },
     )
+  }
+
+  @Transactional
+  fun deleteAddress(addressEntity: AddressEntity) {
+    val personEntity = addressEntity.person!!
+    val doesExist = personEntity.addresses.remove(addressEntity)
+    if (!doesExist) return
+
+    addressEntity.person = null
+    personRepository.save(personEntity)
+    if (personEntity.isNotPassive()) {
+      personMatchService.saveToPersonMatch(personEntity)
+      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
+    }
   }
 
   private fun create(address: Address, personEntity: PersonEntity): AddressEntity {
