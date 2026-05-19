@@ -33,7 +33,7 @@ class ProbationEventListener(
         val probationAddress = getProbationAddress(event)
         val personEntity = personRepository.findByCrn(crn)!!
 
-        addressService.upsertAddress(
+        addressService.processAddress(
           address = Address.from(probationAddress)!!,
           findPerson = { personEntity },
           findAddress = { personEntity.addresses.firstOrNull { it.deliusAddressId == probationAddress.deliusAddressId } },

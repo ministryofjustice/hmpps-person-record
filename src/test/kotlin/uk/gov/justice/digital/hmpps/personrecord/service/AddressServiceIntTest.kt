@@ -46,7 +46,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
 
       val addressToCreate = Address.from(createRandomProbationAddress())
 
-      addressService.upsertAddress(
+      addressService.processAddress(
         addressToCreate,
         findPerson = { personRepository.findByCrn(crn) },
         findAddress = { null },
@@ -66,7 +66,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
 
       val addressToCreate = Address.from(createRandomProbationAddress().copy(postcode = null))
 
-      addressService.upsertAddress(
+      addressService.processAddress(
         addressToCreate,
         findPerson = { personRepository.findByCrn(crn) },
         findAddress = { null },
@@ -93,7 +93,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(initialAddress)))
       val addressToCreate = initialAddress.copy(postcode = randomPostcode())
 
-      addressService.upsertAddress(
+      addressService.processAddress(
         addressToCreate,
         findPerson = { personRepository.findByCrn(crn) },
         findAddress = { addressRepository.findByUpdateId(person.addresses[0].updateId!!) },
@@ -113,7 +113,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(initialAddress)))
       val addressToCreate = initialAddress.copy(buildingNumber = randomBuildingNumber())
 
-      addressService.upsertAddress(
+      addressService.processAddress(
         addressToCreate,
         findPerson = { personRepository.findByCrn(crn) },
         findAddress = { addressRepository.findByUpdateId(person.addresses[0].updateId!!) },

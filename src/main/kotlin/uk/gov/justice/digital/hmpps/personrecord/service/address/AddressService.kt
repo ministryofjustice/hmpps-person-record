@@ -21,7 +21,7 @@ class AddressService(
 ) {
 
   @Transactional
-  fun upsertAddress(
+  fun processAddress(
     address: Address,
     findPerson: () -> PersonEntity?,
     findAddress: () -> AddressEntity?,

@@ -93,7 +93,7 @@ class ProbationAddressAPIController(
   ): ResponseEntity<ProbationCreateAddressResponse> {
     val address = Address.from(probationAddress)
 
-    val createdAddress: AddressEntity = addressService.upsertAddress(
+    val createdAddress: AddressEntity = addressService.processAddress(
       address,
       findPerson = { personRepository.findByCrn(crn) },
       findAddress = { null },
