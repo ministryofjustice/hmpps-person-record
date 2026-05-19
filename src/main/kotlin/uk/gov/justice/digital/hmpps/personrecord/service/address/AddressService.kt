@@ -40,6 +40,7 @@ class AddressService(
     )
   }
 
+  @Transactional
   fun deleteAddress(addressEntity: AddressEntity) {
     val personEntity = addressEntity.person!!
     val doesExist = personEntity.addresses.remove(addressEntity)
