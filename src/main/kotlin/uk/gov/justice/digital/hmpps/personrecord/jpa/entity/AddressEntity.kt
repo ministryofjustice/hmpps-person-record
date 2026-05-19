@@ -141,6 +141,29 @@ class AddressEntity(
     this.recordType = address.recordType
     this.deliusAddressId = address.deliusAddressId
     this.isVerified = address.isVerified
+    this.recordType = address.recordType
+    updateChildEntities(address)
+  }
+
+  private fun updateChildEntities(address: Address) {
+    updateUsages(address.usages.map { AddressUsageEntity.from(it) }.toMutableList())
+    updateContacts(address.contacts.map { ContactEntity.from(it) }.toMutableList())
+  }
+
+  fun updateContacts(contacts: MutableList<ContactEntity>) {
+    this.contacts.clear()
+    contacts.forEach { contact ->
+      contact.address = this
+    }
+    this.contacts.addAll(contacts)
+  }
+
+  fun updateUsages(usages: MutableList<AddressUsageEntity>) {
+    this.usages.clear()
+    usages.forEach { usage ->
+      usage.address = this
+    }
+    this.usages.addAll(usages)
   }
 
   companion object {
