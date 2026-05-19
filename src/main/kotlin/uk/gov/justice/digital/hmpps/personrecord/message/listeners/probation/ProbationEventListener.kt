@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ConflictException
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
@@ -30,28 +29,14 @@ class ProbationEventListener(
   fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
     val crn = event.getCrn()
     when (event.eventType) {
-      OFFENDER_ADDRESS_CREATED -> {
-        val newProbationAddress = getProbationAddress(event)
-        val personEntity = personRepository.findByCrn(crn)!!
-
-        if (personEntity.addresses.firstOrNull { it.deliusAddressId == newProbationAddress.deliusAddressId } != null) {
-          throw ConflictException("Probation address with deliusAddressId '${newProbationAddress.deliusAddressId}' already exists")
-        }
-
-        addressService.upsertAddress(
-          address = Address.from(newProbationAddress)!!,
-          findPerson = { personEntity },
-          findAddress = { null },
-        )
-      }
-      OFFENDER_ADDRESS_UPDATED -> {
-        val updatedProbationAddress = getProbationAddress(event)
+      OFFENDER_ADDRESS_CREATED, OFFENDER_ADDRESS_UPDATED -> {
+        val probationAddress = getProbationAddress(event)
         val personEntity = personRepository.findByCrn(crn)!!
 
         addressService.upsertAddress(
-          address = Address.from(updatedProbationAddress)!!,
+          address = Address.from(probationAddress)!!,
           findPerson = { personEntity },
-          findAddress = { personEntity.addresses.first { it.deliusAddressId == updatedProbationAddress.deliusAddressId } },
+          findAddress = { personEntity.addresses.firstOrNull { it.deliusAddressId == probationAddress.deliusAddressId } },
         )
       }
       OFFENDER_ADDRESS_DELETED -> {

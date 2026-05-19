@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 
 class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
@@ -94,23 +93,18 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   }
 
   @Test
-  fun `consuming address updated event - cpr address does not exist - does not update address`() {
+  fun `consuming address updated event - cpr address does not exist - saves address`() {
     val probationAddress = randomProbationAddress()
-    val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress.copy(deliusAddressId = randomDigit().toLong()))!!)),
-    )
-    val cprAddressBeforeUpdate = personEntity.addresses.first()
+    val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails().copy(addresses = listOf()))
 
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
     stubGetRequestToProbation(probationAddress)
 
     publishProbationAddressEvent(personEntity.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_UPDATED)
 
-    expectNoMessagesOn(probationEventsQueue)
-    expectOneMessageOnDlq(probationEventsQueue)
-
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-    val cprAddressAfterUpdate = actualPersonEntity.addresses.first()
-    assertThat(cprAddressAfterUpdate).usingRecursiveComparison().isEqualTo(cprAddressBeforeUpdate)
+    assertAddress(actualPersonEntity, probationAddress)
   }
 }

@@ -26,25 +26,26 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
   }
 
   @Test
-  fun `consuming address created event - address with delius address id already exists - does not save address`() {
+  fun `consuming address created event - address with delius address id already exists - updates address`() {
     val originalProbationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(originalProbationAddress)!!)),
     )
     val addressEntityBeforeCreateEvent = personEntity.addresses.first()
-    stubGetRequestToProbation(randomProbationAddress(originalProbationAddress.deliusAddressId))
+
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+    val updatedProbationAddress = randomProbationAddress(originalProbationAddress.deliusAddressId)
+    stubGetRequestToProbation(updatedProbationAddress)
 
     publishProbationAddressEvent(personEntity.crn, originalProbationAddress.deliusAddressId, OFFENDER_ADDRESS_CREATED)
-
-    expectNoMessagesOn(probationEventsQueue)
-    expectOneMessageOnDlq(probationEventsQueue)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
     val addressEntityAfterCreateEvent = actualPersonEntity.addresses.first()
     assertThat(addressEntityAfterCreateEvent.id).isEqualTo(addressEntityBeforeCreateEvent.id)
     assertThat(addressEntityAfterCreateEvent.updateId).isEqualTo(addressEntityBeforeCreateEvent.updateId)
-    assertAddress(actualPersonEntity, originalProbationAddress)
+    assertAddress(actualPersonEntity, updatedProbationAddress)
   }
 
   @Test
