@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
@@ -21,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEED
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
@@ -92,26 +90,17 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster above the fracture threshold`() {
-      val baseAddress = randomProbationAddress()
       val basePersonData = createRandomProbationCase()
 
-      val recordA = createProbationPerson(basePersonData.copy(addresses = listOf(baseAddress.copy(deliusAddressId = randomDigit().toLong()))))
-      val matchesA = createMatchingRecord(basePersonData.copy(addresses = listOf(baseAddress.copy(deliusAddressId = randomDigit().toLong()))))
-      val doesNotMatch = createProbationPerson(createRandomProbationCase().copy(addresses = listOf(baseAddress.copy(deliusAddressId = randomDigit().toLong()))))
+      val recordA = createProbationPerson(basePersonData)
+      val matchesA = createMatchingRecord(basePersonData)
+      val doesNotMatch = createProbationPerson()
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.aboveFracture(), doesNotMatch.crn!!))
-
-      val deliusAddressIdOfOriginalNoMatchPerson = doesNotMatch.addresses.first().deliusAddressId!!
-      stubGetRequestToProbation(baseAddress.copy(deliusAddressId = deliusAddressIdOfOriginalNoMatchPerson))
-      publishProbationDomainEvent(
-        eventType = OFFENDER_ADDRESS_UPDATED,
-        crn = doesNotMatch.crn!!,
-        detailUrl = "/address/$deliusAddressIdOfOriginalNoMatchPerson",
-      )
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData, doesNotMatch.crn!!))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(ACTIVE)
@@ -917,13 +906,12 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should raise cluster for review when broken cluster and remove when self healed`() {
-      val baseProbationAddress = randomProbationAddress()
-      val basePersonData = createRandomProbationCase().copy(addresses = emptyList())
+      val basePersonData = createRandomProbationCase()
 
       val personAData = Person.from(basePersonData)
-      val personA = createPerson(personAData.copy(addresses = listOf(Address.from(baseProbationAddress.copy(deliusAddressId = randomDigit().toLong()))!!)))
-      val personB = createMatchingRecord(basePersonData.copy(addresses = listOf(baseProbationAddress.copy(deliusAddressId = randomDigit().toLong()))))
-      val doesNotMatch = createPerson(Person.from(createRandomProbationCase().copy(addresses = listOf(randomProbationAddress()))))
+      val personA = createPerson(personAData)
+      val personB = createMatchingRecord(basePersonData)
+      val doesNotMatch = createProbationPerson()
       val cluster = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
@@ -937,16 +925,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .assertReviewSize(1)
         .isPrimary(cluster)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.aboveFracture(), doesNotMatch.crn))
-
-      val deliusAddressIdOfOriginalNoMatchPerson = doesNotMatch.addresses.first().deliusAddressId
-      val doesNotMatchNowUpdatedToMatch = baseProbationAddress.copy(deliusAddressId = deliusAddressIdOfOriginalNoMatchPerson)
-      stubGetRequestToProbation(doesNotMatchNowUpdatedToMatch)
-      publishProbationDomainEvent(
-        eventType = OFFENDER_ADDRESS_UPDATED,
-        crn = doesNotMatch.crn!!,
-        detailUrl = "/address/$deliusAddressIdOfOriginalNoMatchPerson",
-      )
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData, doesNotMatch.crn))
 
       cluster.assertClusterStatus(ACTIVE)
       review.assertRemoved()
