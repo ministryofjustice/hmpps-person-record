@@ -135,10 +135,7 @@ class AddressEntity(
     this.countryCode = address.countryCode
     this.uprn = address.uprn
     this.comment = address.comment
-    this.contacts = address.contacts.map { ContactEntity.from(it).also { ue -> ue.address = this } }.toMutableList()
     this.statusCode = address.statusCode
-    this.usages = address.usages.map { AddressUsageEntity.from(it).also { ue -> ue.address = this } }.toMutableList()
-    this.recordType = address.recordType
     this.deliusAddressId = address.deliusAddressId
     this.isVerified = address.isVerified
     this.recordType = address.recordType
