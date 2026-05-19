@@ -4,10 +4,16 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressStatus
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
@@ -15,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEED
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
@@ -22,8 +29,22 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_SELF_HEALED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressStatus
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressUsage
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationAddress
 
 class ReclusterServiceE2ETest : E2ETestBase() {
 
@@ -887,12 +908,13 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should raise cluster for review when broken cluster and remove when self healed`() {
-      val basePersonData = createRandomProbationCase()
+      val baseProbationAddress = randomProbationAddress()
+      val basePersonData = createRandomProbationCase().copy(addresses = emptyList())
 
       val personAData = Person.from(basePersonData)
-      val personA = createPerson(personAData)
-      val personB = createMatchingRecord(basePersonData)
-      val doesNotMatch = createProbationPerson()
+      val personA = createPerson(personAData.copy(addresses = listOf(Address.from(baseProbationAddress.copy(deliusAddressId = randomDigit().toLong()))!!)))
+      val personB = createMatchingRecord(basePersonData.copy(addresses = listOf(baseProbationAddress.copy(deliusAddressId = randomDigit().toLong()))))
+      val doesNotMatch = createPerson(Person.from(createRandomProbationCase().copy(addresses = listOf(randomProbationAddress()))))
       val cluster = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
@@ -907,6 +929,15 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .isPrimary(cluster)
 
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.aboveFracture(), doesNotMatch.crn))
+
+      val deliusAddressIdOfOriginalNoMatchPerson = doesNotMatch.addresses.first().deliusAddressId
+      val doesNotMatchNowUpdatedToMatch = baseProbationAddress.copy(deliusAddressId = deliusAddressIdOfOriginalNoMatchPerson)
+      stubGetRequestToProbation(doesNotMatchNowUpdatedToMatch)
+      publishProbationDomainEvent(
+        eventType = OFFENDER_ADDRESS_UPDATED,
+        crn = doesNotMatch.crn!!,
+        detailUrl = "/address/$deliusAddressIdOfOriginalNoMatchPerson",
+      )
 
       cluster.assertClusterStatus(ACTIVE)
       review.assertRemoved()
@@ -950,5 +981,59 @@ class ReclusterServiceE2ETest : E2ETestBase() {
   private fun PersonKeyEntity.assertClusterNotChanged(size: Int) {
     assertClusterStatus(ACTIVE)
     assertClusterIsOfSize(size)
+  }
+
+  fun randomProbationAddress(deliusAddressId: Long? = null): ProbationAddress {
+    val startDateTime = randomZonedDateTime()
+    val endDateTime = startDateTime.plusYears(10)
+    return ProbationAddress(
+      noFixedAbode = true,
+      startDateTime = startDateTime,
+      endDateTime = endDateTime,
+      postcode = randomPostcode(),
+      fullAddress = randomFullAddress(),
+      buildingName = randomName(),
+      addressNumber = randomAddressNumber(),
+      streetName = randomLowerCaseString(),
+      district = randomName(),
+      townCity = randomName(),
+      county = randomName(),
+      uprn = randomUprn(),
+      deliusAddressId = deliusAddressId ?: randomDigit().toLong(),
+      isVerified = randomBoolean(),
+      notes = randomLowerCaseString(),
+      status = ProbationAddressStatus(AddressStatusCode.entries.random().name, "description"),
+      usage = ProbationAddressUsage(AddressUsageCode.entries.random().name, "description"),
+      telephoneNumber = randomPhoneNumber(),
+    )
+  }
+
+  fun stubGetRequestToProbation(probationAddress: ProbationAddress, status: Int = 200) {
+    stubGetRequest(
+      url = "/address/${probationAddress.deliusAddressId}",
+      status = status,
+      body = probationAddress(
+        address = ApiResponseSetupAddress(
+          noFixedAbode = probationAddress.noFixedAbode,
+          startDateTime = probationAddress.startDateTime,
+          endDateTime = probationAddress.endDateTime,
+          postcode = probationAddress.postcode,
+          fullAddress = probationAddress.fullAddress,
+          buildingName = probationAddress.buildingName,
+          addressNumber = probationAddress.addressNumber,
+          streetName = probationAddress.streetName,
+          district = probationAddress.district,
+          townCity = probationAddress.townCity,
+          county = probationAddress.county,
+          deliusAddressId = probationAddress.deliusAddressId!!,
+          isVerified = probationAddress.isVerified,
+          status = ApiResponseSetupAddressStatus(probationAddress.status?.code, probationAddress.status?.description),
+          usage = ApiResponseSetupAddressUsage(probationAddress.usage?.code, probationAddress.usage?.description),
+          uprn = probationAddress.uprn,
+          notes = probationAddress.notes,
+          telephoneNumber = probationAddress.telephoneNumber,
+        ),
+      ),
+    )
   }
 }
