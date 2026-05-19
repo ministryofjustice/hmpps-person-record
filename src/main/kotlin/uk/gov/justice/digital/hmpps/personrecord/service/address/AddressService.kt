@@ -73,10 +73,7 @@ class AddressService(
 
     addressEntity.person = null
     personRepository.save(personEntity)
-    if (personEntity.isNotPassive()) {
-      personMatchService.saveToPersonMatch(personEntity)
-      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
-    }
+    tryRecluster(personEntity, true)
   }
 
   private fun tryRecluster(
