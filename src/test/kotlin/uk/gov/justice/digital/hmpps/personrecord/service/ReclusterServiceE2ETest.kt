@@ -92,17 +92,26 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster above the fracture threshold`() {
+      val baseAddress = randomProbationAddress()
       val basePersonData = createRandomProbationCase()
 
-      val recordA = createProbationPerson(basePersonData)
-      val matchesA = createMatchingRecord(basePersonData)
-      val doesNotMatch = createProbationPerson()
+      val recordA = createProbationPerson(basePersonData.copy(addresses = listOf(baseAddress.copy(deliusAddressId = randomDigit().toLong()))))
+      val matchesA = createMatchingRecord(basePersonData.copy(addresses = listOf(baseAddress.copy(deliusAddressId = randomDigit().toLong()))))
+      val doesNotMatch = createProbationPerson(createRandomProbationCase().copy(addresses = listOf(baseAddress.copy(deliusAddressId = randomDigit().toLong()))))
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
 
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.aboveFracture(), doesNotMatch.crn!!))
+
+      val deliusAddressIdOfOriginalNoMatchPerson = doesNotMatch.addresses.first().deliusAddressId!!
+      stubGetRequestToProbation(baseAddress.copy(deliusAddressId = deliusAddressIdOfOriginalNoMatchPerson))
+      publishProbationDomainEvent(
+        eventType = OFFENDER_ADDRESS_UPDATED,
+        crn = doesNotMatch.crn!!,
+        detailUrl = "/address/$deliusAddressIdOfOriginalNoMatchPerson",
+      )
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(ACTIVE)
