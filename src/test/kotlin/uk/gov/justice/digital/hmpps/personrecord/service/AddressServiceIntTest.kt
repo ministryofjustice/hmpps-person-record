@@ -127,6 +127,43 @@ class AddressServiceIntTest : IntegrationTestBase() {
     }
   }
 
+  @Nested
+  inner class DeleteAddress {
+    @Test
+    fun `should delete address when it exist and recluster`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val crn = randomCrn()
+      val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
+      val addressToDelete = personEntity.addresses.first()
+
+      addressService.deleteAddress(addressToDelete)
+
+      awaitAssert {
+        val actualPerson = personRepository.findByCrn(crn)!!
+        val actualAddress = addressRepository.findByUpdateId(addressToDelete.updateId!!)
+        assertThat(actualPerson.addresses.size).isEqualTo(0)
+        assertThat(actualAddress).isNull()
+      }
+    }
+
+    @Test
+    fun `should not delete any addresses when address does not exist`() {
+      val crn = randomCrn()
+      val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
+
+      val nonExistingAddresses = AddressEntity.from(Address.from(createRandomProbationAddress()))
+      nonExistingAddresses.person = personEntity
+      addressService.deleteAddress(nonExistingAddresses)
+
+      awaitAssert {
+        val actualPerson = personRepository.findByCrn(crn)!!
+        assertThat(actualPerson.addresses.size).isEqualTo(1)
+      }
+    }
+  }
+
   private fun createRandomProbationAddress(): ProbationAddress = ProbationAddress(
     noFixedAbode = false,
     startDate = randomZonedDateTime(),

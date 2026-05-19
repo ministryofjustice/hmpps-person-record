@@ -42,7 +42,9 @@ class AddressService(
 
   fun deleteAddress(addressEntity: AddressEntity) {
     val personEntity = addressEntity.person!!
-    personEntity.addresses.remove(addressEntity)
+    val doesExist = personEntity.addresses.remove(addressEntity)
+    if (!doesExist) return
+
     addressEntity.person = null
     personRepository.save(personEntity)
     if (personEntity.isNotPassive()) {
