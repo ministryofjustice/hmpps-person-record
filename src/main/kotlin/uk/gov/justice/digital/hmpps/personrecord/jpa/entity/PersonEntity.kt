@@ -232,21 +232,11 @@ class PersonEntity(
     if (!childrenToIgnore.contains<Any>(AddressEntity::class)) {
       updatePersonAddresses(buildAddresses(person, this))
     }
-    if (!childrenToIgnore.contains<Any>(ContactEntity::class)) {
-      updatePersonContacts(buildContacts(person, this))
-    }
-    if (!childrenToIgnore.contains<Any>(ReferenceEntity::class)) {
-      updatePersonReferences(buildReferences(person, this))
-    }
-    if (!childrenToIgnore.contains<Any>(SentenceInfoEntity::class)) {
-      updatePersonSentences(buildSentenceInfo(person, this))
-    }
-    if (!childrenToIgnore.contains<Any>(NationalityEntity::class)) {
-      updateNationalities(person.nationalities.map { NationalityEntity.from(it) })
-    }
-    if (!childrenToIgnore.contains<Any>(PseudonymEntity::class)) {
-      updatePseudonyms(listOf(PseudonymEntity.primaryNameFrom(person)) + person.aliases.mapNotNull { PseudonymEntity.aliasFrom(it) })
-    }
+    updatePersonContacts(buildContacts(person, this))
+    updatePersonReferences(buildReferences(person, this))
+    updatePersonSentences(buildSentenceInfo(person, this))
+    updateNationalities(person.nationalities.map { NationalityEntity.from(it) })
+    updatePseudonyms(listOf(PseudonymEntity.primaryNameFrom(person)) + person.aliases.mapNotNull { PseudonymEntity.aliasFrom(it) })
   }
 
   private fun updatePersonSentences(sentences: List<SentenceInfoEntity>) {
