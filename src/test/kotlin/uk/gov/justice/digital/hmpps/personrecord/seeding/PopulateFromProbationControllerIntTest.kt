@@ -54,29 +54,52 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
       val baseProbationCase = createRandomProbationCase(crn)
       val probationPerson = Person.from(baseProbationCase)
       createPersonWithNewKey(probationPerson)
+      val deliusAddressIdOne = randomDeliusAddressId()
+      val deliusAddressIdTwo = randomDeliusAddressId()
 
-      val request = listOf(AdminReclusterRecord(DELIUS, crn))
+      val response = ApiResponseSetup.from(baseProbationCase).copy(
+        addresses = listOf(
+          ApiResponseSetupAddress(
+            postcode = probationPerson.addresses[0].postcode,
+            deliusAddressId = deliusAddressIdOne,
+          ),
+          ApiResponseSetupAddress(
+            postcode = probationPerson.addresses[1].postcode,
+            deliusAddressId = deliusAddressIdTwo,
+          ),
+        ),
+      )
 
-      stub5xxResponse(url = "/probation-cases/$crn", scenarioName = "retry")
+      val responseBody = allProbationCasesResponse(listOf(response), 1)
+      stubGetRequest(
+        url = "/all-probation-cases?page=0&size=1000&sort=id,asc", scenarioName = "Retry when failed",
+        nextScenarioState = "Request will fail", body = responseBody
+      )
 
-      val updatedData = ApiResponseSetup.from(baseProbationCase).copy(religion = "Updated Religion")
+      stubGetRequest(
+        url = "/all-probation-cases?page=0&size=1000&sort=id,asc",
+        scenarioName = "Retry when failed",
+        currentScenarioState = "Request will fail",
+        nextScenarioState = "Request will Pass",
+        body = responseBody,
+        status = 500
+      )
 
-      stubSingleProbationResponse(
-        updatedData,
-        scenarioName = "retry",
-        currentScenarioState = "Next request will succeed",
+      stubGetRequest(
+        url = "/all-probation-cases?page=0&size=1000&sort=id,asc", scenarioName = "Retry when failed",
+        currentScenarioState = "Request will Pass", body = responseBody
       )
 
       webTestClient.post()
         .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
-        .contentType(APPLICATION_JSON)
-        .bodyValue(request)
         .exchange()
         .expectStatus()
         .isOk
 
       awaitAssert {
-        assertThat(personRepository.findByCrn(crn)?.religion).isEqualTo("Updated Religion")
+        val updatedPerson = personRepository.findByCrn(probationPerson.crn!!)
+        assertThat(updatedPerson?.addresses[0]?.deliusAddressId).isEqualTo(deliusAddressIdOne)
+        assertThat(updatedPerson?.addresses[1]?.deliusAddressId).isEqualTo(deliusAddressIdTwo)
       }
     }
 

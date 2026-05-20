@@ -19,6 +19,7 @@ class PopulateFromProbationController(
   val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   @Value("\${populate-from-probation.page-size}") val pageSize: Int,
   private val personRepository: PersonRepository,
+  private val retryableProbationUpdater: RetryableProbationUpdater,
 
 ) {
 
@@ -31,7 +32,6 @@ class PopulateFromProbationController(
 
   suspend fun populatePages() {
     CoroutineScope(Dispatchers.Default).launch {
-      // todo make retryable
       // todo transactional
       val totalPages = corePersonRecordAndDeliusClient.getProbationCases(
         CorePersonRecordAndDeliusClientPageParams(
@@ -42,28 +42,13 @@ class PopulateFromProbationController(
 
       log.info("Starting address updating, total pages: $totalPages")
       for (page in 0..<totalPages) {
-        corePersonRecordAndDeliusClient.getProbationCases(CorePersonRecordAndDeliusClientPageParams(page, pageSize))
-          ?.cases?.forEach {
-            val person = Person.from(it)
-            personRepository.findByCrn(person.crn!!).exists(
-              no = {
-                log.error("CRN not found in Database ${person.crn}")
-              },
-              yes = {
-                it.update(person)
-                personRepository.save(it)
-              },
-            )
-          }
+
+        retryableProbationUpdater.repopulateProbationRecord(CorePersonRecordAndDeliusClientPageParams(page, pageSize))
       }
       log.info("finished add seeding finished, approx records ${totalPages * pageSize}")
     }
   }
 
-  private fun PersonEntity?.exists(no: () -> Unit, yes: (personEntity: PersonEntity) -> Unit) = when {
-    this == null -> no()
-    else -> yes(this)
-  }
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)

@@ -6,14 +6,17 @@ import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClientException
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
+import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClientPageParams
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DiscardableNotFoundException
 
 @Component
 class RetryableProbationUpdater(
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
-  private val probationEventProcessor: ProbationEventProcessor,
+  private val personRepository: PersonRepository,
 ) {
 
   @Retryable(
@@ -23,14 +26,25 @@ class RetryableProbationUpdater(
       WebClientException::class,
     ],
   )
-  fun repopulateProbationRecord(entity: PersonEntity) {
-    try {
-      corePersonRecordAndDeliusClient.getPersonErrorIfNotFound(entity.crn!!)?.let { person ->
-        probationEventProcessor.processEvent(person)
+  fun repopulateProbationRecord(pageParams :CorePersonRecordAndDeliusClientPageParams ) {
+    corePersonRecordAndDeliusClient.getProbationCases(pageParams)
+      ?.cases?.forEach {
+        val person = Person.from(it)
+        personRepository.findByCrn(person.crn!!).exists(
+          no = {
+            log.error("CRN not found in Database ${person.crn}")
+          },
+          yes = {
+            it.update(person)
+            personRepository.save(it)
+          },
+        )
       }
-    } catch (e: DiscardableNotFoundException) {
-      log.info("Discarded probation record for CRN: ${entity.crn}. Reason: ${e.message}", e)
-    }
+  }
+
+  private fun PersonEntity?.exists(no: () -> Unit, yes: (personEntity: PersonEntity) -> Unit) = when {
+    this == null -> no()
+    else -> yes(this)
   }
 
   companion object {
