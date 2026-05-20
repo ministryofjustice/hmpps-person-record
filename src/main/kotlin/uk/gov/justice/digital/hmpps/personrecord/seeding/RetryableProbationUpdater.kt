@@ -8,12 +8,10 @@ import org.springframework.web.reactive.function.client.WebClientException
 import uk.gov.justice.digital.hmpps.personrecord.CprRetryable
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClientPageParams
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 
 @Component
 class RetryableProbationUpdater(
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
-  private val personRepository: PersonRepository,
   private val transactionalProbationUpdater: TransactionalProbationUpdater,
 ) {
 

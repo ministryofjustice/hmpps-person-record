@@ -5,14 +5,31 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDeliusAddressId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressStatus
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 
 class PopulateFromProbationControllerIntTest : WebTestBase() {
+
+  // TODO what if the deliusAddressID is already populated? Do we care?
+  // the updateId will change at the moment
+  // I don't think this matters
 
   @Nested
   inner class MissingRecord {
@@ -145,12 +162,35 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
         val deliusAddressIdOne = randomDeliusAddressId()
         val deliusAddressIdTwo = randomDeliusAddressId()
 
+        val firstAddressSetup = ApiResponseSetupAddress(
+          noFixedAbode = randomBoolean(),
+          startDateTime = randomZonedDateTime(),
+          endDateTime = randomZonedDateTime(),
+          fullAddress = randomFullAddress(),
+          buildingName = randomLowerCaseString(),
+          addressNumber = randomBuildingNumber(),
+          streetName = randomLowerCaseString(),
+          district = randomLowerCaseString(),
+          townCity = randomLowerCaseString(),
+          county = randomLowerCaseString(),
+          uprn = randomUprn(),
+          notes = randomLowerCaseString(),
+          telephoneNumber = randomPhoneNumber(),
+          isVerified = randomBoolean(),
+          status = ApiResponseSetupAddressStatus(
+            code = randomAddressStatusCode().name,
+            description = randomAddressStatusCode().description,
+          ),
+          usage = ApiResponseSetupAddressUsage(
+            code = randomAddressUsageCode().name,
+            description = randomAddressUsageCode().description,
+          ),
+          postcode = probationPerson.addresses[0].postcode,
+          deliusAddressId = deliusAddressIdOne,
+        )
         val response = ApiResponseSetup.from(baseProbationCase).copy(
           addresses = listOf(
-            ApiResponseSetupAddress(
-              postcode = probationPerson.addresses[0].postcode,
-              deliusAddressId = deliusAddressIdOne,
-            ),
+            firstAddressSetup,
             ApiResponseSetupAddress(
               postcode = probationPerson.addresses[1].postcode,
               deliusAddressId = deliusAddressIdTwo,
@@ -170,7 +210,29 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
 
         awaitAssert {
           val updatedPerson = personRepository.findByCrn(probationPerson.crn!!)
-          assertThat(updatedPerson?.addresses[0]?.deliusAddressId).isEqualTo(deliusAddressIdOne)
+          val firstAddress = updatedPerson?.addresses?.first()
+
+          assertThat(firstAddress?.deliusAddressId).isEqualTo(deliusAddressIdOne)
+          assertThat(firstAddress?.postcode).isEqualTo(firstAddressSetup.postcode)
+          assertThat(firstAddress?.fullAddress).isEqualTo(firstAddressSetup.fullAddress)
+          assertThat(firstAddress?.startDate).isEqualTo(firstAddressSetup.startDateTime)
+          assertThat(firstAddress?.endDate).isEqualTo(firstAddressSetup.endDateTime)
+          assertThat(firstAddress?.uprn).isEqualTo(firstAddressSetup.uprn)
+          assertThat(firstAddress?.buildingName).isEqualTo(firstAddressSetup.buildingName)
+          assertThat(firstAddress?.buildingNumber).isEqualTo(firstAddressSetup.addressNumber)
+          assertThat(firstAddress?.comment).isEqualTo(firstAddressSetup.notes)
+          assertThat(firstAddress?.noFixedAbode).isEqualTo(firstAddressSetup.noFixedAbode)
+
+          assertThat(firstAddress?.thoroughfareName).isEqualTo(firstAddressSetup.streetName)
+          assertThat(firstAddress?.dependentLocality).isEqualTo(firstAddressSetup.district)
+          assertThat(firstAddress?.postTown).isEqualTo(firstAddressSetup.townCity)
+          assertThat(firstAddress?.county).isEqualTo(firstAddressSetup.county)
+          assertThat(firstAddress?.isVerified).isEqualTo(firstAddressSetup.isVerified)
+          assertThat(firstAddress?.contacts?.first()?.contactValue).isEqualTo(firstAddressSetup.telephoneNumber)
+          assertThat(firstAddress?.statusCode).isEqualTo(AddressStatusCode.fromProbation(firstAddressSetup.status!!.code!!))
+          assertThat(firstAddress?.usages?.first()?.usageCode).isEqualTo(AddressUsageCode.from(firstAddressSetup.usage?.code!!))
+          assertThat(firstAddress?.usages?.first()?.active).isEqualTo(true)
+
           assertThat(updatedPerson?.addresses[1]?.deliusAddressId).isEqualTo(deliusAddressIdTwo)
         }
       }
