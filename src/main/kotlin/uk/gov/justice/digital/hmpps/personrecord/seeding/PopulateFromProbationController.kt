@@ -44,7 +44,6 @@ class PopulateFromProbationController(
       for (page in 0..<totalPages) {
         corePersonRecordAndDeliusClient.getProbationCases(CorePersonRecordAndDeliusClientPageParams(page, pageSize))
           ?.cases?.forEach {
-
             val person = Person.from(it)
             personRepository.findByCrn(person.crn!!).exists(
               no = {
@@ -55,12 +54,10 @@ class PopulateFromProbationController(
                 personRepository.save(it)
               },
             )
-
           }
       }
       log.info("finished add seeding finished, approx records ${totalPages * pageSize}")
     }
-
   }
 
   private fun PersonEntity?.exists(no: () -> Unit, yes: (personEntity: PersonEntity) -> Unit) = when {
