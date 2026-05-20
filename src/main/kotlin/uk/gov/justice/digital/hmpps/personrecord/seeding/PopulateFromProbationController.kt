@@ -10,15 +10,12 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClientPageParams
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 
 @RestController
 class PopulateFromProbationController(
   val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   @Value("\${populate-from-probation.page-size}") val pageSize: Int,
-  private val personRepository: PersonRepository,
   private val retryableProbationUpdater: RetryableProbationUpdater,
-
 ) {
 
   @Hidden

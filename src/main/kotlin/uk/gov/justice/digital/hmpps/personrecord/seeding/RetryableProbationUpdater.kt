@@ -29,15 +29,17 @@ class RetryableProbationUpdater(
   )
   fun repopulateProbationRecord(pageParams: CorePersonRecordAndDeliusClientPageParams) {
     corePersonRecordAndDeliusClient.getProbationCases(pageParams)
-      ?.cases?.forEach {
-        val person = Person.from(it)
+      ?.cases?.forEach { case ->
+        val person = Person.from(case)
         personRepository.findByCrn(person.crn!!).exists(
           no = {
             log.error("CRN not found in Database ${person.crn}")
           },
           yes = {
-            it.update(person)
-            personRepository.save(it)
+            if (it.isNotMerged()) {
+              it.update(person)
+              personRepository.save(it)
+            }
           },
         )
       }
