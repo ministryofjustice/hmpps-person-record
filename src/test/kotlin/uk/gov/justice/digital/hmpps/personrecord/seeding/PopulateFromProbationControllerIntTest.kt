@@ -72,8 +72,10 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
 
       val responseBody = allProbationCasesResponse(listOf(response), 1)
       stubGetRequest(
-        url = "/all-probation-cases?page=0&size=1000&sort=id,asc", scenarioName = "Retry when failed",
-        nextScenarioState = "Request will fail", body = responseBody
+        url = "/all-probation-cases?page=0&size=1000&sort=id,asc",
+        scenarioName = "Retry when failed",
+        nextScenarioState = "Request will fail",
+        body = responseBody,
       )
 
       stubGetRequest(
@@ -82,12 +84,14 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
         currentScenarioState = "Request will fail",
         nextScenarioState = "Request will Pass",
         body = responseBody,
-        status = 500
+        status = 500,
       )
 
       stubGetRequest(
-        url = "/all-probation-cases?page=0&size=1000&sort=id,asc", scenarioName = "Retry when failed",
-        currentScenarioState = "Request will Pass", body = responseBody
+        url = "/all-probation-cases?page=0&size=1000&sort=id,asc",
+        scenarioName = "Retry when failed",
+        currentScenarioState = "Request will Pass",
+        body = responseBody,
       )
 
       webTestClient.post()

@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClientPageParams
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 
 @RestController
 class PopulateFromProbationController(
@@ -42,13 +40,11 @@ class PopulateFromProbationController(
 
       log.info("Starting address updating, total pages: $totalPages")
       for (page in 0..<totalPages) {
-
         retryableProbationUpdater.repopulateProbationRecord(CorePersonRecordAndDeliusClientPageParams(page, pageSize))
       }
       log.info("finished add seeding finished, approx records ${totalPages * pageSize}")
     }
   }
-
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)

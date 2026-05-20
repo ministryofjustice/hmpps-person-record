@@ -1,17 +1,17 @@
 package uk.gov.justice.digital.hmpps.personrecord.seeding
 
+import jakarta.persistence.OptimisticLockException
 import org.slf4j.LoggerFactory
-import org.springframework.retry.annotation.Backoff
-import org.springframework.retry.annotation.Retryable
+import org.springframework.dao.CannotAcquireLockException
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClientException
+import uk.gov.justice.digital.hmpps.personrecord.CprRetryable
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClientPageParams
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.queue.DiscardableNotFoundException
 
 @Component
 class RetryableProbationUpdater(
@@ -19,14 +19,15 @@ class RetryableProbationUpdater(
   private val personRepository: PersonRepository,
 ) {
 
-  @Retryable(
-    maxAttempts = 2,
-    backoff = Backoff(delay = 200, random = true, multiplier = 2.0),
+  @CprRetryable(
     retryFor = [
       WebClientException::class,
+      OptimisticLockException::class,
+      DataIntegrityViolationException::class,
+      CannotAcquireLockException::class,
     ],
   )
-  fun repopulateProbationRecord(pageParams :CorePersonRecordAndDeliusClientPageParams ) {
+  fun repopulateProbationRecord(pageParams: CorePersonRecordAndDeliusClientPageParams) {
     corePersonRecordAndDeliusClient.getProbationCases(pageParams)
       ?.cases?.forEach {
         val person = Person.from(it)
