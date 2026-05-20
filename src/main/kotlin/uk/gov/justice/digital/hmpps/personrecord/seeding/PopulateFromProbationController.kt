@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClientPageParams
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 
@@ -18,6 +19,7 @@ class PopulateFromProbationController(
   val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   @Value("\${populate-from-probation.page-size}") val pageSize: Int,
   private val personRepository: PersonRepository,
+
 ) {
 
   @Hidden
@@ -42,15 +44,28 @@ class PopulateFromProbationController(
       for (page in 0..<totalPages) {
         corePersonRecordAndDeliusClient.getProbationCases(CorePersonRecordAndDeliusClientPageParams(page, pageSize))
           ?.cases?.forEach {
-            val person = Person.from(it)
-            val personEntity = personRepository.findByCrn(person.crn!!)!!
 
-            personEntity.update(person)
-            personRepository.save(personEntity)
+            val person = Person.from(it)
+            personRepository.findByCrn(person.crn!!).exists(
+              no = {
+                log.error("CRN not found in Database ${person.crn}")
+              },
+              yes = {
+                it.update(person)
+                personRepository.save(it)
+              },
+            )
+
           }
       }
       log.info("finished add seeding finished, approx records ${totalPages * pageSize}")
     }
+
+  }
+
+  private fun PersonEntity?.exists(no: () -> Unit, yes: (personEntity: PersonEntity) -> Unit) = when {
+    this == null -> no()
+    else -> yes(this)
   }
 
   companion object {
