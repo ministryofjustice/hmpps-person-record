@@ -27,7 +27,7 @@ class PopulateFromProbationController(
 
   suspend fun populatePages() {
     CoroutineScope(Dispatchers.Default).launch {
-      // todo transactional
+      // todo check all fields
       val totalPages = corePersonRecordAndDeliusClient.getProbationCases(
         CorePersonRecordAndDeliusClientPageParams(
           0,
