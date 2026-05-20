@@ -1,27 +1,24 @@
 package uk.gov.justice.digital.hmpps.personrecord.seeding
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType.APPLICATION_JSON
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterRecord
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDeliusAddressId
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 
-class PopulateFromProbationApiIntTest : WebTestBase() {
+class PopulateFromProbationControllerIntTest : WebTestBase() {
 
   @Nested
   inner class MissingRecord {
-
 
     @Test
     fun `should not populate when record is merged`() {
@@ -53,7 +50,6 @@ class PopulateFromProbationApiIntTest : WebTestBase() {
 
     @Test
     fun `should retry if request to probation-client fails`() {
-
       val crn = randomCrn()
       val baseProbationCase = createRandomProbationCase(crn)
       val probationPerson = Person.from(baseProbationCase)
@@ -71,7 +67,6 @@ class PopulateFromProbationApiIntTest : WebTestBase() {
         currentScenarioState = "Next request will succeed",
       )
 
-
       webTestClient.post()
         .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
         .contentType(APPLICATION_JSON)
@@ -85,53 +80,48 @@ class PopulateFromProbationApiIntTest : WebTestBase() {
       }
     }
 
+    @Nested
+    inner class SuccessfulProcessing {
 
+      @Test
+      fun `should populate addresses from probation single case`() {
+        val crn = randomCrn()
+        val baseProbationCase = createRandomProbationCase(crn)
+        val probationPerson = Person.from(baseProbationCase)
+        createPersonWithNewKey(probationPerson)
+        val deliusAddressIdOne = randomDeliusAddressId()
+        val deliusAddressIdTwo = randomDeliusAddressId()
 
-
-  @Nested
-  inner class SuccessfulProcessing {
-
-
-    @Test
-    fun `should populate addresses and details from probation`() {
-
-      val crn = randomCrn()
-      val baseProbationCase = createRandomProbationCase(crn)
-      val probationPerson = Person.from(baseProbationCase)
-      createPersonWithNewKey(probationPerson)
-      val deliusAddressIdOne = randomDeliusAddressId()
-      val deliusAddressIdTwo = randomDeliusAddressId()
-
-
-      val request = listOf(AdminReclusterRecord(DELIUS, crn))
-
-      val response = ApiResponseSetup.from(baseProbationCase)
-
-      stubSingleProbationResponse(
-        response.copy(addresses = listOf(ApiResponseSetupAddress(postcode = probationPerson.addresses[0].postcode,
-          deliusAddressId = deliusAddressIdOne
-        ),
-          ApiResponseSetupAddress(postcode = probationPerson.addresses[1].postcode,
-          deliusAddressId = deliusAddressIdTwo
+        val response = ApiResponseSetup.from(baseProbationCase).copy(
+          addresses = listOf(
+            ApiResponseSetupAddress(
+              postcode = probationPerson.addresses[0].postcode,
+              deliusAddressId = deliusAddressIdOne,
+            ),
+            ApiResponseSetupAddress(
+              postcode = probationPerson.addresses[1].postcode,
+              deliusAddressId = deliusAddressIdTwo,
+            ),
+          ),
         )
-        ))
-      )
 
+        val responseBody = allProbationCasesResponse(listOf(response))
+        stubGetRequest(url = "/all-probation-cases", body = responseBody)
 
-      webTestClient.post()
-        .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
-        .contentType(APPLICATION_JSON)
-        .bodyValue(request)
-        .exchange()
-        .expectStatus()
-        .isOk
+        webTestClient.post()
+          .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
+          .exchange()
+          .expectStatus()
+          .isOk
+        // .isOk
 
-      val updatedPerson = awaitNotNull { personRepository.findByCrn(probationPerson.crn!!) }
-      assertThat(updatedPerson.addresses[0].deliusAddressId).isEqualTo(deliusAddressIdOne)
-      assertThat(updatedPerson.addresses[1].deliusAddressId).isEqualTo(deliusAddressIdTwo)
+        val updatedPerson = awaitNotNull { personRepository.findByCrn(probationPerson.crn!!) }
+        assertThat(updatedPerson.addresses[0].deliusAddressId).isEqualTo(deliusAddressIdOne)
+        assertThat(updatedPerson.addresses[1].deliusAddressId).isEqualTo(deliusAddressIdTwo)
+      }
     }
   }
-}
+
   /*
     @Nested
     inner class Merges {
@@ -277,11 +267,25 @@ class PopulateFromProbationApiIntTest : WebTestBase() {
         sourcePerson.assertMergedTo(targetPerson)
       }
 
- 
+
   }
 
 */
   companion object {
     private const val ADMIN_POPULATE_FROM_PROBATION_URL = "/admin/populate-from-probation"
   }
+
+  fun allProbationCasesResponse(probationCases: List<ApiResponseSetup>, totalPages: Int = 4) = """
+  {
+    "content": [
+        ${probationCases.joinToString { probationCaseResponse(it) }}
+    ],
+    "page": {
+        "size": 2,
+        "number": 10,
+        "totalElements": 102,
+        "totalPages": $totalPages
+    }
+ }
+  """.trimIndent()
 }
