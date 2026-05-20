@@ -43,15 +43,6 @@ generic-service:
           return 401;
         }
 
-  livenessProbe:
-    httpGet:
-      path: /health/liveness
-      port: http
-    initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 10
-    failureThreshold: 10
-
   # Environment variables to load into the deployment
   env:
     JAVA_OPTS: "-Xmx4096m"
