@@ -105,7 +105,8 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
           ),
         )
 
-        val responseBody = allProbationCasesResponse(listOf(response))
+        val responseBody = allProbationCasesResponse(listOf(response),1)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = responseBody)
         stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = responseBody)
 
         webTestClient.post()
