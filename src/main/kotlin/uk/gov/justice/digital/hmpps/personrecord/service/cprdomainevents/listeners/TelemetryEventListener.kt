@@ -5,9 +5,12 @@ import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordClusterTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordPersonTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Component
 class TelemetryEventListener(
@@ -43,6 +46,26 @@ class TelemetryEventListener(
       clusterTelemetry.telemetryEventType,
       clusterTelemetry.cluster,
       clusterTelemetry.elementMap,
+    )
+  }
+
+  @Async
+  @TransactionalEventListener
+  fun onAddressCreated(addressCreated: AddressCreated) {
+    telemetryService.trackPersonEvent(
+      TelemetryEventType.CPR_RECORD_UPDATED,
+      addressCreated.addressEntity.person!!,
+      emptyMap(),
+    )
+  }
+
+  @Async
+  @TransactionalEventListener
+  fun onAddressUpdated(addressUpdated: AddressUpdated) {
+    telemetryService.trackPersonEvent(
+      TelemetryEventType.CPR_RECORD_UPDATED,
+      addressUpdated.addressEntity.person!!,
+      emptyMap(),
     )
   }
 }
