@@ -8,17 +8,23 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 
 object AddressBuilder {
 
-  fun buildAddresses(person: Person, personEntity: PersonEntity) = person.addresses.mapNotNull { address ->
+  fun buildAddresses(person: Person, personEntity: PersonEntity): List<AddressEntity> = person.addresses.mapNotNull { address ->
     address.existsIn(
       childEntities = personEntity.addresses,
-      match = { incomingAddress, existing ->
-        incomingAddress.matches(existing) ||
-          (incomingAddress.deliusAddressId != null && existing.deliusAddressId != null && incomingAddress.deliusAddressId == existing.deliusAddressId)
-      },
+      match = { ref, entity -> ref.matches(entity) },
       yes = { ref, entity -> entity.update(ref) },
       no = { AddressEntity.from(address) },
     )
   }
 
-  private fun Address.matches(entity: AddressEntity): Boolean = this == Address.from(entity)
+  // Once the final work around changing how we consume probation address
+  // is done, this can be reverted back
+  private fun Address.matches(entity: AddressEntity): Boolean = when {
+    this == Address.from(entity) -> true
+    entity.deliusAddressId == this.deliusAddressId -> when {
+      entity.deliusAddressId == null && this.deliusAddressId == null -> false
+      else -> true
+    }
+    else -> false
+  }
 }
