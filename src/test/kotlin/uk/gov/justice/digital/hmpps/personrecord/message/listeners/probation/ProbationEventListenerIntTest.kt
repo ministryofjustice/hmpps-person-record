@@ -66,6 +66,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexualOrien
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAdditionalIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
@@ -96,8 +97,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val lastName = randomName()
       val pnc = randomLongPnc()
       val cro = randomCro()
-      val addressStartDate = randomDate()
-      val addressEndDate = randomDate()
+      val addressStartDate = randomZonedDateTime()
+      val addressEndDate = randomZonedDateTime()
       val ethnicity = randomProbationEthnicity()
       val nationality = randomProbationNationalityCode()
       val secondNationality = randomProbationNationalityCode()
@@ -173,8 +174,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         addresses = listOf(
           ApiResponseSetupAddress(
             noFixedAbode = true,
-            addressStartDate,
-            addressEndDate,
+            startDateTime = addressStartDate,
+            endDateTime = addressEndDate,
             postcode = "LS1 1AB",
             fullAddress = "abc street",
             buildingName = buildingName,
@@ -483,7 +484,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `should handle missing data correctly`() {
       val crn = randomCrn()
       val addresses = listOf(
-        ApiResponseSetupAddress(postcode = null, noFixedAbode = null, startDate = null, endDate = null, fullAddress = null),
+        ApiResponseSetupAddress(postcode = null, noFixedAbode = null, startDateTime = null, endDateTime = null, fullAddress = null),
       )
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = null, addresses = addresses))
       val personEntity = awaitNotNull { personRepository.findByCrn(crn) }

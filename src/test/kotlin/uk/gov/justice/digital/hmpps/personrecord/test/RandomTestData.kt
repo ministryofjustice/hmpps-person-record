@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.test
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
+import uk.gov.justice.digital.hmpps.personrecord.extensions.UK_ZONE
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.VALID_LETTERS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
@@ -32,6 +33,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.PROBATI
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZonedDateTime
 import java.util.UUID
 
 fun randomLongPnc(): String {
@@ -58,6 +60,8 @@ fun randomDate(): LocalDate = LocalDate.of(randomYear(), (1..12).random(), (1..2
 fun randomTime(): LocalTime = LocalTime.of((1..23).random(), (1..59).random(), (1..59).random())
 
 fun randomDateTime(): LocalDateTime = LocalDateTime.of(randomDate(), randomTime())
+
+fun randomZonedDateTime(): ZonedDateTime = ZonedDateTime.of(randomDateTime(), UK_ZONE)
 
 fun randomCro(): String {
   val year = randomYear().toString().takeLast(2)
