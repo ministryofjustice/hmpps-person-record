@@ -242,10 +242,9 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
 
         val firstPageResponseBody = allProbationCasesResponse(listOf(responsePersonOne, responsePersonTwo), 2)
         val secondPageResponseBody = allProbationCasesResponse(listOf(responsePersonThree), 2)
-        stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = firstPageResponseBody)
-        stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = firstPageResponseBody)
 
-        stubGetRequest(url = "/all-probation-cases?page=1&size=1000&sort=id,asc", body = secondPageResponseBody)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = firstPageResponseBody)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = firstPageResponseBody)
         stubGetRequest(url = "/all-probation-cases?page=1&size=1000&sort=id,asc", body = secondPageResponseBody)
 
         webTestClient.post()
