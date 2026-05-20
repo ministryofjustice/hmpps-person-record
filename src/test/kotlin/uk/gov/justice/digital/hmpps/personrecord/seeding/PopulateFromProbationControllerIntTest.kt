@@ -106,18 +106,19 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
         )
 
         val responseBody = allProbationCasesResponse(listOf(response))
-        stubGetRequest(url = "/all-probation-cases", body = responseBody)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = responseBody)
 
         webTestClient.post()
           .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
           .exchange()
           .expectStatus()
           .isOk
-        // .isOk
 
-        val updatedPerson = awaitNotNull { personRepository.findByCrn(probationPerson.crn!!) }
-        assertThat(updatedPerson.addresses[0].deliusAddressId).isEqualTo(deliusAddressIdOne)
-        assertThat(updatedPerson.addresses[1].deliusAddressId).isEqualTo(deliusAddressIdTwo)
+       awaitAssert {
+        val updatedPerson = personRepository.findByCrn(probationPerson.crn!!)
+        assertThat(updatedPerson?.addresses[0]?.deliusAddressId).isEqualTo(deliusAddressIdOne)
+        assertThat(updatedPerson?.addresses[1]?.deliusAddressId).isEqualTo(deliusAddressIdTwo)
+          }
       }
     }
   }
