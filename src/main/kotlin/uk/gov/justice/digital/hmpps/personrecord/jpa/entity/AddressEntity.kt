@@ -119,7 +119,7 @@ class AddressEntity(
   var version: Int = 0,
 ) {
 
-  fun update(address: Address) {
+  fun update(address: Address): AddressEntity {
     this.noFixedAbode = address.noFixedAbode
     this.startDate = address.startDate
     this.endDate = address.endDate
@@ -140,6 +140,7 @@ class AddressEntity(
     this.isVerified = address.isVerified
     this.recordType = address.recordType
     updateChildEntities(address)
+    return this
   }
 
   private fun updateChildEntities(address: Address) {

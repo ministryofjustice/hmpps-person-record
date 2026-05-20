@@ -23,3 +23,8 @@ fun <T, E> T.existsIn(childEntities: List<E>, match: (T, E) -> Boolean, yes: (E)
   val found = childEntities.find { match(this, it) }
   return found?.let { yes(found) } ?: no()
 }
+
+fun <T, E> T.existsIn(childEntities: List<E>, match: (T, E) -> Boolean, yes: (T, E) -> E, no: () -> E?): E? {
+  val found = childEntities.find { match(this, it) }
+  return found?.let { yes(this, found) } ?: no()
+}
