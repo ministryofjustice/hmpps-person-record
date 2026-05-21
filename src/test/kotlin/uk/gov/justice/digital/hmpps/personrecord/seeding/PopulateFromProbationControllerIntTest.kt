@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.seeding
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.http.MediaType.APPLICATION_JSON
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
@@ -376,6 +377,93 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
           assertThat(updatedPersonOne?.addresses[1]?.deliusAddressId).isEqualTo(deliusAddressIdTwo)
           assertThat(updatedPersonTwo?.addresses[0]?.deliusAddressId).isEqualTo(deliusAddressIdThree)
           assertThat(updatedPersonTwo?.addresses[1]?.deliusAddressId).isEqualTo(deliusAddressIdFour)
+          assertThat(updatedPersonThree?.addresses[0]?.deliusAddressId).isEqualTo(deliusAddressIdFive)
+          assertThat(updatedPersonThree?.addresses[1]?.deliusAddressId).isEqualTo(deliusAddressIdSix)
+        }
+      }
+
+      @Test
+      fun `should start from page 2`() {
+        val personOneCrn = randomCrn()
+        val personTwoCrn = randomCrn()
+        val personThreeCrn = randomCrn()
+        val baseProbationCase = createRandomProbationCase(personOneCrn)
+        val probationPersonOne = Person.from(baseProbationCase)
+        val probationPersonTwo = Person.from(baseProbationCase).copy(crn = personTwoCrn)
+        val probationPersonThree = Person.from(baseProbationCase).copy(crn = personThreeCrn)
+        createPersonWithNewKey(probationPersonOne)
+        createPersonWithNewKey(probationPersonTwo)
+        createPersonWithNewKey(probationPersonThree)
+        val deliusAddressIdOne = randomDeliusAddressId()
+        val deliusAddressIdTwo = randomDeliusAddressId()
+        val deliusAddressIdThree = randomDeliusAddressId()
+        val deliusAddressIdFour = randomDeliusAddressId()
+        val deliusAddressIdFive = randomDeliusAddressId()
+        val deliusAddressIdSix = randomDeliusAddressId()
+
+        val responsePersonOne = ApiResponseSetup.from(baseProbationCase).copy(
+          addresses = listOf(
+            ApiResponseSetupAddress(
+              postcode = probationPersonOne.addresses[0].postcode,
+              deliusAddressId = deliusAddressIdOne,
+            ),
+            ApiResponseSetupAddress(
+              postcode = probationPersonOne.addresses[1].postcode,
+              deliusAddressId = deliusAddressIdTwo,
+            ),
+          ),
+
+        )
+        val responsePersonTwo = ApiResponseSetup.from(baseProbationCase, personTwoCrn).copy(
+          addresses = listOf(
+            ApiResponseSetupAddress(
+              postcode = probationPersonTwo.addresses[0].postcode,
+              deliusAddressId = deliusAddressIdThree,
+            ),
+            ApiResponseSetupAddress(
+              postcode = probationPersonTwo.addresses[1].postcode,
+              deliusAddressId = deliusAddressIdFour,
+            ),
+          ),
+        )
+
+        val responsePersonThree = ApiResponseSetup.from(baseProbationCase, personThreeCrn).copy(
+          addresses = listOf(
+            ApiResponseSetupAddress(
+              postcode = probationPersonThree.addresses[0].postcode,
+              deliusAddressId = deliusAddressIdFive,
+            ),
+            ApiResponseSetupAddress(
+              postcode = probationPersonThree.addresses[1].postcode,
+              deliusAddressId = deliusAddressIdSix,
+            ),
+          ),
+        )
+
+        val firstPageResponseBody = allProbationCasesResponse(listOf(responsePersonOne, responsePersonTwo), 2)
+        val secondPageResponseBody = allProbationCasesResponse(listOf(responsePersonThree), 2)
+
+        stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = firstPageResponseBody)
+
+        stubGetRequest(url = "/all-probation-cases?page=1&size=1000&sort=id,asc", body = secondPageResponseBody)
+
+        webTestClient.post()
+          .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
+          .contentType(APPLICATION_JSON)
+          .bodyValue(PopulateConfig(1))
+          .exchange()
+          .expectStatus()
+          .isOk
+
+        awaitAssert {
+          val updatedPersonOne = personRepository.findByCrn(probationPersonOne.crn!!)
+          val updatedPersonTwo = personRepository.findByCrn(probationPersonTwo.crn!!)
+          val updatedPersonThree = personRepository.findByCrn(probationPersonThree.crn!!)
+          // first page is not processed as we are starting from page 2
+          assertThat(updatedPersonOne?.addresses[0]?.deliusAddressId).isNull()
+          assertThat(updatedPersonOne?.addresses[1]?.deliusAddressId).isNull()
+          assertThat(updatedPersonTwo?.addresses[0]?.deliusAddressId).isNull()
+          assertThat(updatedPersonTwo?.addresses[1]?.deliusAddressId).isNull()
           assertThat(updatedPersonThree?.addresses[0]?.deliusAddressId).isEqualTo(deliusAddressIdFive)
           assertThat(updatedPersonThree?.addresses[1]?.deliusAddressId).isEqualTo(deliusAddressIdSix)
         }
