@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.extensions
 
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
@@ -24,7 +26,7 @@ fun <T, E> T.existsIn(childEntities: List<E>, match: (T, E) -> Boolean, yes: (E)
   return found?.let { yes(found) } ?: no()
 }
 
-fun <T, E> T.existsIn(childEntities: List<E>, match: (T, E) -> Boolean, yes: (T, E) -> E, no: () -> E?): E? {
+fun Address.existsIn(childEntities: List<AddressEntity>, match: (Address, AddressEntity) -> Boolean, yes: (Address, AddressEntity) -> AddressEntity, no: () -> AddressEntity?): AddressEntity? {
   val found = childEntities.find { match(this, it) }
   return found?.let { yes(this, found) } ?: no()
 }

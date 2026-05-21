@@ -19,12 +19,10 @@ object AddressBuilder {
 
   // Once the final work around changing how we consume probation address
   // is done, this can be reverted back
-  private fun Address.matches(entity: AddressEntity): Boolean = when {
-    this == Address.from(entity) -> true
-    entity.deliusAddressId == this.deliusAddressId -> when {
-      entity.deliusAddressId == null && this.deliusAddressId == null -> false
-      else -> true
+  private fun Address.matches(entity: AddressEntity): Boolean {
+    if (entity.deliusAddressId != null) {
+      return entity.deliusAddressId == this.deliusAddressId
     }
-    else -> false
+    return this == Address.from(entity)
   }
 }
