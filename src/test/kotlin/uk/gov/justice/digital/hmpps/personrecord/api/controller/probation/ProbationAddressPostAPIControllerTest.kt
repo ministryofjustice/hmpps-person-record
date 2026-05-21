@@ -195,6 +195,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
     countryCode = randomCountryCode(),
     comment = randomName(),
     statusCode = randomAddressStatusCode(),
+    typeVerified = randomBoolean(),
     usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
     contacts = listOf(AddressContact(randomContactType(), randomPhoneNumber(), "44")),
   )
@@ -216,6 +217,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
     assertThat(actualAddress.countryCode).isEqualTo(expectedAddress.countryCode)
     assertThat(actualAddress.comment).isEqualTo(expectedAddress.comment)
     assertThat(actualAddress.statusCode).isEqualTo(expectedAddress.statusCode)
+    assertThat(actualAddress.isVerified).isEqualTo(expectedAddress.typeVerified)
     assertThat(actualAddress.usages.size).isEqualTo(expectedAddress.usages.size)
     expectedAddress.usages.zip(actualAddress.usages).forEach { (expected, actual) ->
       assertThat(actual.usageCode).isEqualTo(expected.usageCode)
