@@ -75,6 +75,8 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
 
       webTestClient.post()
         .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
+        .contentType(APPLICATION_JSON)
+        .bodyValue(PopulateConfig(0))
         .exchange()
         .expectStatus()
         .isOk
@@ -140,6 +142,8 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
 
       webTestClient.post()
         .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
+        .contentType(APPLICATION_JSON)
+        .bodyValue(PopulateConfig(0))
         .exchange()
         .expectStatus()
         .isOk
@@ -205,6 +209,8 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
 
         webTestClient.post()
           .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
+          .contentType(APPLICATION_JSON)
+          .bodyValue(PopulateConfig(0))
           .exchange()
           .expectStatus()
           .isOk
@@ -284,6 +290,8 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
 
         webTestClient.post()
           .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
+          .contentType(APPLICATION_JSON)
+          .bodyValue(PopulateConfig(0))
           .exchange()
           .expectStatus()
           .isOk
@@ -365,6 +373,8 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
 
         webTestClient.post()
           .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
+          .contentType(APPLICATION_JSON)
+          .bodyValue(PopulateConfig(0))
           .exchange()
           .expectStatus()
           .isOk
