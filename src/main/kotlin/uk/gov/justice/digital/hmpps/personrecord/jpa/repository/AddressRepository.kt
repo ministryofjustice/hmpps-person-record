@@ -8,5 +8,7 @@ import java.util.UUID
 @Repository
 interface AddressRepository : JpaRepository<AddressEntity, Long> {
 
+  fun findByUpdateId(updateId: UUID): AddressEntity?
+
   fun findByUpdateIdAndPersonCrn(updateId: UUID, personCrn: String): AddressEntity?
 }
