@@ -13,3 +13,4 @@ fun LocalDate.toUkZonedDateTime(): ZonedDateTime = this.atStartOfDay(UK_ZONE)
 
 // ZonedDateTime extensions
 fun ZonedDateTime.toUkLocalDate(): LocalDate = this.withZoneSameInstant(UK_ZONE).toLocalDate()
+fun ZonedDateTime.withUkZone(): ZonedDateTime = this.withZoneSameInstant(UK_ZONE)
