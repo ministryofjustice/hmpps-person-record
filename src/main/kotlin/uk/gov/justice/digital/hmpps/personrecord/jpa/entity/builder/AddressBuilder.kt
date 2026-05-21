@@ -12,7 +12,10 @@ object AddressBuilder {
     address.existsIn(
       childEntities = personEntity.addresses,
       match = { ref, entity -> ref.matches(entity) },
-      yes = { ref, entity -> entity.update(ref) },
+      yes = { ref, entity ->
+        entity.update(ref)
+        entity
+      },
       no = { AddressEntity.from(address) },
     )
   }
