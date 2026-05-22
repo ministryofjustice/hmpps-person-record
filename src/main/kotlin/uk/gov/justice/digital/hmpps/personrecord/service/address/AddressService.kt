@@ -44,20 +44,6 @@ class AddressService(
     )
   }
 
-  @Transactional
-  fun deleteAddress(addressEntity: AddressEntity) {
-    val personEntity = addressEntity.person!!
-    val doesExist = personEntity.addresses.remove(addressEntity)
-    if (!doesExist) return
-
-    addressEntity.person = null
-    personRepository.save(personEntity)
-    if (personEntity.isNotPassive()) {
-      personMatchService.saveToPersonMatch(personEntity)
-      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
-    }
-  }
-
   private fun create(address: Address, personEntity: PersonEntity): AddressEntity {
     val matchingFieldsBeforeUpdate = PersonMatchRecord.from(personEntity)
     val addressToSave = AddressEntity.from(address)
