@@ -42,7 +42,7 @@ dependencies {
     implementation("org.webjars:swagger-ui:5.32.2")
   }
 
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
 
   runtimeOnly("org.postgresql:postgresql:42.7.11")
   runtimeOnly("org.flywaydb:flyway-core")
