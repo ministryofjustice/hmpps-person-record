@@ -385,7 +385,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `when updating a probation persons details - it should not re-create address records`() {
+    fun `when updating a probation persons details only - it should not re-create address records`() {
       val crn = randomCrn()
       val originalProbationCase = createRandomProbationCase(crn).copy(
         addresses = listOf(
@@ -416,6 +416,43 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
       assertThat(updatedPersonEntity.addresses.first().id).isEqualTo(originalPersonEntity.addresses.first().id)
       assertThat(updatedPersonEntity.addresses.first().updateId).isEqualTo(originalPersonEntity.addresses.first().updateId)
+    }
+
+    @Test
+    fun `when updating a probation persons address with existing delius address id - it should not re-create address record`() {
+      val crn = randomCrn()
+      val originalProbationAddress = ProbationAddress(
+        postcode = randomPostcode(),
+        deliusAddressId = randomDigit().toLong(),
+        isVerified = randomBoolean(),
+        usage = ProbationAddressUsage(
+          randomAddressUsageCode().toString(),
+          randomLowerCaseString(),
+        ),
+        status = ProbationAddressStatus(
+          randomAddressStatusCode().toString(),
+          randomLowerCaseString(),
+        ),
+      )
+      val originalProbationCase = createRandomProbationCase(crn).copy(addresses = listOf(originalProbationAddress))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(originalProbationCase))
+      val originalPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
+
+      val updatedProbationAddress = originalProbationAddress.copy(
+        deliusAddressId = originalProbationAddress.deliusAddressId,
+        postcode = randomPostcode(),
+      )
+      val updatedProbationCase = createRandomProbationCase(crn).copy(addresses = listOf(updatedProbationAddress))
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedProbationCase))
+
+      expectNoMessagesOnQueueOrDlq(probationEventsQueue)
+      val updatedPersonEntity = personRepository.findByCrn(crn)!!
+      assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
+      val actualAddressEntity = updatedPersonEntity.addresses.first()
+      assertThat(actualAddressEntity.id).isEqualTo(originalPersonEntity.addresses.first().id)
+      assertThat(actualAddressEntity.updateId).isEqualTo(originalPersonEntity.addresses.first().updateId)
+      assertThat(actualAddressEntity.deliusAddressId).isEqualTo(originalProbationAddress.deliusAddressId)
+      assertThat(actualAddressEntity.postcode).isEqualTo(updatedProbationAddress.postcode)
     }
 
     @Test
