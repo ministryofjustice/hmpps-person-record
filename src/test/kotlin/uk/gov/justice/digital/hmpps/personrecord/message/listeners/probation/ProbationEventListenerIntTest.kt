@@ -5,6 +5,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressStatus
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
@@ -48,6 +51,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
@@ -387,6 +391,77 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       assertThat(updatedPersonEntity.genderIdentity).isEqualTo(GenderIdentityCode.from(changedPersonDetails))
       assertThat(updatedPersonEntity.selfDescribedGenderIdentity).isEqualTo(changedPersonDetails.selfDescribedGenderIdentity)
       assertThat(updatedPersonEntity.getAliases()[0].sexCode).isEqualTo(SexCode.from(changedPersonDetails.aliases?.first()))
+    }
+
+    @Test
+    fun `when updating a probation persons details only - it should not re-create address records`() {
+      val crn = randomCrn()
+      val originalProbationCase = createRandomProbationCase(crn).copy(
+        addresses = listOf(
+          ProbationAddress(
+            postcode = randomPostcode(),
+            deliusAddressId = randomDigit().toLong(),
+            isVerified = randomBoolean(),
+            usage = ProbationAddressUsage(
+              randomAddressUsageCode().toString(),
+              randomLowerCaseString(),
+            ),
+            status = ProbationAddressStatus(
+              randomAddressStatusCode().toString(),
+              randomLowerCaseString(),
+            ),
+          ),
+        ),
+      )
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(originalProbationCase))
+      val originalPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
+
+      val updatedProbationCase = originalProbationCase.copy(dateOfBirth = randomDate())
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedProbationCase))
+
+      checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+
+      val updatedPersonEntity = personRepository.findByCrn(crn)!!
+      assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
+      assertThat(updatedPersonEntity.addresses.first().id).isEqualTo(originalPersonEntity.addresses.first().id)
+      assertThat(updatedPersonEntity.addresses.first().updateId).isEqualTo(originalPersonEntity.addresses.first().updateId)
+    }
+
+    @Test
+    fun `when updating a probation persons address with existing delius address id - it should not re-create address record`() {
+      val crn = randomCrn()
+      val originalProbationAddress = ProbationAddress(
+        postcode = randomPostcode(),
+        deliusAddressId = randomDigit().toLong(),
+        isVerified = randomBoolean(),
+        usage = ProbationAddressUsage(
+          randomAddressUsageCode().toString(),
+          randomLowerCaseString(),
+        ),
+        status = ProbationAddressStatus(
+          randomAddressStatusCode().toString(),
+          randomLowerCaseString(),
+        ),
+      )
+      val originalProbationCase = createRandomProbationCase(crn).copy(addresses = listOf(originalProbationAddress))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(originalProbationCase))
+      val originalPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
+
+      val updatedProbationAddress = originalProbationAddress.copy(
+        deliusAddressId = originalProbationAddress.deliusAddressId,
+        postcode = randomPostcode(),
+      )
+      val updatedProbationCase = createRandomProbationCase(crn).copy(addresses = listOf(updatedProbationAddress))
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedProbationCase))
+
+      expectNoMessagesOnQueueOrDlq(probationEventsQueue)
+      val updatedPersonEntity = personRepository.findByCrn(crn)!!
+      assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
+      val actualAddressEntity = updatedPersonEntity.addresses.first()
+      assertThat(actualAddressEntity.id).isEqualTo(originalPersonEntity.addresses.first().id)
+      assertThat(actualAddressEntity.updateId).isEqualTo(originalPersonEntity.addresses.first().updateId)
+      assertThat(actualAddressEntity.deliusAddressId).isEqualTo(originalProbationAddress.deliusAddressId)
+      assertThat(actualAddressEntity.postcode).isEqualTo(updatedProbationAddress.postcode)
     }
 
     @Test
