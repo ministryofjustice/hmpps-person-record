@@ -66,8 +66,8 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
       val responsePersonTwo = ApiResponseSetup.from(baseProbationCase, personTwoCrn)
 
       val responseBody = allProbationCasesResponse(listOf(responseMergedPerson, responsePersonTwo), 1)
-      stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = responseBody)
-      stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = responseBody)
+      stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = responseBody)
+      stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = responseBody)
 
       webTestClient.post()
         .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
@@ -114,14 +114,14 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
 
       val responseBody = allProbationCasesResponse(listOf(response), 1)
       stubGetRequest(
-        url = "/all-probation-cases?page=0&size=1000&sort=id,asc",
+        url = "/all-probation-cases?page=0&size=500&sort=id,asc",
         scenarioName = "Retry when failed",
         nextScenarioState = "Request will fail",
         body = responseBody,
       )
 
       stubGetRequest(
-        url = "/all-probation-cases?page=0&size=1000&sort=id,asc",
+        url = "/all-probation-cases?page=0&size=500&sort=id,asc",
         scenarioName = "Retry when failed",
         currentScenarioState = "Request will fail",
         nextScenarioState = "Request will Pass",
@@ -130,7 +130,7 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
       )
 
       stubGetRequest(
-        url = "/all-probation-cases?page=0&size=1000&sort=id,asc",
+        url = "/all-probation-cases?page=0&size=500&sort=id,asc",
         scenarioName = "Retry when failed",
         currentScenarioState = "Request will Pass",
         body = responseBody,
@@ -200,8 +200,8 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
         )
 
         val responseBody = allProbationCasesResponse(listOf(response), 1)
-        stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = responseBody)
-        stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = responseBody)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = responseBody)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = responseBody)
 
         webTestClient.post()
           .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
@@ -281,8 +281,8 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
         )
 
         val responseBody = allProbationCasesResponse(listOf(responsePersonOne, responsePersonTwo), 1)
-        stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = responseBody)
-        stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = responseBody)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = responseBody)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = responseBody)
 
         webTestClient.post()
           .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
@@ -363,9 +363,9 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
         val firstPageResponseBody = allProbationCasesResponse(listOf(responsePersonOne, responsePersonTwo), 2)
         val secondPageResponseBody = allProbationCasesResponse(listOf(responsePersonThree), 2)
 
-        stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = firstPageResponseBody)
-        stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = firstPageResponseBody)
-        stubGetRequest(url = "/all-probation-cases?page=1&size=1000&sort=id,asc", body = secondPageResponseBody)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = firstPageResponseBody)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = firstPageResponseBody)
+        stubGetRequest(url = "/all-probation-cases?page=1&size=500&sort=id,asc", body = secondPageResponseBody)
 
         webTestClient.post()
           .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
@@ -449,9 +449,9 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
         val firstPageResponseBody = allProbationCasesResponse(listOf(responsePersonOne, responsePersonTwo), 2)
         val secondPageResponseBody = allProbationCasesResponse(listOf(responsePersonThree), 2)
 
-        stubGetRequest(url = "/all-probation-cases?page=0&size=1000&sort=id,asc", body = firstPageResponseBody)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = firstPageResponseBody)
 
-        stubGetRequest(url = "/all-probation-cases?page=1&size=1000&sort=id,asc", body = secondPageResponseBody)
+        stubGetRequest(url = "/all-probation-cases?page=1&size=500&sort=id,asc", body = secondPageResponseBody)
 
         webTestClient.post()
           .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
