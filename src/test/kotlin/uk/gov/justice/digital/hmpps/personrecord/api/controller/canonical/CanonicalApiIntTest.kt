@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.canonical
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressStatus
@@ -18,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifie
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
@@ -113,7 +115,7 @@ class CanonicalApiIntTest : WebTestBase() {
         aliases = listOf(Alias(firstName = firstName, middleNames = middleNames, lastName = lastName, dateOfBirth = randomDate(), titleCode = title.value, sexCode = sex.value)),
         addresses = listOf(
           Address(
-            noFixedAbode = noFixedAbode, startDate = startDateTime, endDate = endDateTime, postcode = postcode, buildingName = buildingName,
+            noFixedAbode = noFixedAbode, startDate = randomDate().toUkZonedDateTime(), endDate = randomDate().toUkZonedDateTime(), postcode = postcode, buildingName = buildingName,
             buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown, county = county,
             countryCode = countryCode, uprn = uprn, statusCode = addressStatusCode, comment = comment,
             usages = listOf(AddressUsage(addressUsageCode, isActive)),
@@ -132,7 +134,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody(CanonicalRecord::class.java)
+      .expectBody<CanonicalRecord>()
       .returnResult()
       .responseBody!!
 
@@ -204,7 +206,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody(CanonicalRecord::class.java)
+      .expectBody<CanonicalRecord>()
       .returnResult()
       .responseBody!!
 
@@ -232,7 +234,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody(CanonicalRecord::class.java)
+      .expectBody<CanonicalRecord>()
       .returnResult()
       .responseBody!!
 
@@ -291,7 +293,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody(CanonicalRecord::class.java)
+      .expectBody<CanonicalRecord>()
       .returnResult()
       .responseBody!!
 
@@ -322,7 +324,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody(CanonicalRecord::class.java)
+      .expectBody<CanonicalRecord>()
       .returnResult()
       .responseBody!!
 
@@ -361,7 +363,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody(CanonicalRecord::class.java)
+      .expectBody<CanonicalRecord>()
       .returnResult()
       .responseBody!!
 
@@ -443,7 +445,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody(CanonicalRecord::class.java)
+      .expectBody<CanonicalRecord>()
       .returnResult()
       .responseBody!!
 
@@ -479,7 +481,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody(CanonicalRecord::class.java)
+      .expectBody<CanonicalRecord>()
       .returnResult()
       .responseBody!!
 
