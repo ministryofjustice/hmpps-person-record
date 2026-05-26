@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.seeding
 
 import io.swagger.v3.oas.annotations.Hidden
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.launch
 import org.hibernate.query.Page.page
 import org.slf4j.LoggerFactory
@@ -26,7 +26,7 @@ class PopulateFromProbationController(
   }
 
   suspend fun populatePages(config: PopulateConfig) {
-    CoroutineScope(Dispatchers.Default).launch {
+    CoroutineScope(Default).launch {
       val totalPages = corePersonRecordAndDeliusClient.getProbationCases(
         CorePersonRecordAndDeliusClientPageParams(
           0,
