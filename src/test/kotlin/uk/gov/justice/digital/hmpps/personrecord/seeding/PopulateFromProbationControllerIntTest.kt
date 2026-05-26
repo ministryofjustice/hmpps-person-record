@@ -241,6 +241,93 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
       }
 
       @Test
+      fun `should create a record which does not exist`() {
+        val crn = randomCrn()
+        val baseProbationCase = createRandomProbationCase(crn)
+        val probationPerson = Person.from(baseProbationCase)
+
+        val deliusAddressIdOne = randomDeliusAddressId()
+        val deliusAddressIdTwo = randomDeliusAddressId()
+
+        val firstAddressSetup = ApiResponseSetupAddress(
+          noFixedAbode = randomBoolean(),
+          startDateTime = randomZonedDateTime(),
+          endDateTime = randomZonedDateTime(),
+          fullAddress = randomFullAddress(),
+          buildingName = randomLowerCaseString(),
+          addressNumber = randomBuildingNumber(),
+          streetName = randomLowerCaseString(),
+          district = randomLowerCaseString(),
+          townCity = randomLowerCaseString(),
+          county = randomLowerCaseString(),
+          uprn = randomUprn(),
+          notes = randomLowerCaseString(),
+          telephoneNumber = randomPhoneNumber(),
+          isVerified = randomBoolean(),
+          status = ApiResponseSetupAddressStatus(
+            code = randomAddressStatusCode().name,
+            description = randomAddressStatusCode().description,
+          ),
+          usage = ApiResponseSetupAddressUsage(
+            code = randomAddressUsageCode().name,
+            description = randomAddressUsageCode().description,
+          ),
+          postcode = probationPerson.addresses[0].postcode,
+          deliusAddressId = deliusAddressIdOne,
+        )
+        val response = ApiResponseSetup.from(baseProbationCase).copy(
+          addresses = listOf(
+            firstAddressSetup,
+            ApiResponseSetupAddress(
+              postcode = probationPerson.addresses[1].postcode,
+              deliusAddressId = deliusAddressIdTwo,
+            ),
+          ),
+        )
+
+        val responseBody = allProbationCasesResponse(listOf(response), 1)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = responseBody)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = responseBody)
+        stubPersonMatchUpsert()
+        stubNoMatchesPersonMatch()
+        webTestClient.post()
+          .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
+          .contentType(APPLICATION_JSON)
+          .bodyValue(PopulateConfig(0))
+          .exchange()
+          .expectStatus()
+          .isOk
+
+        awaitAssert {
+          val updatedPerson = personRepository.findByCrn(probationPerson.crn!!)
+          val firstAddress = updatedPerson?.addresses?.first()
+
+          assertThat(firstAddress?.deliusAddressId).isEqualTo(deliusAddressIdOne)
+          assertThat(firstAddress?.postcode).isEqualTo(firstAddressSetup.postcode)
+          assertThat(firstAddress?.fullAddress).isEqualTo(firstAddressSetup.fullAddress)
+          assertThat(firstAddress?.startDate).isEqualTo(firstAddressSetup.startDateTime)
+          assertThat(firstAddress?.endDate).isEqualTo(firstAddressSetup.endDateTime)
+          assertThat(firstAddress?.uprn).isEqualTo(firstAddressSetup.uprn)
+          assertThat(firstAddress?.buildingName).isEqualTo(firstAddressSetup.buildingName)
+          assertThat(firstAddress?.buildingNumber).isEqualTo(firstAddressSetup.addressNumber)
+          assertThat(firstAddress?.comment).isEqualTo(firstAddressSetup.notes)
+          assertThat(firstAddress?.noFixedAbode).isEqualTo(firstAddressSetup.noFixedAbode)
+
+          assertThat(firstAddress?.thoroughfareName).isEqualTo(firstAddressSetup.streetName)
+          assertThat(firstAddress?.dependentLocality).isEqualTo(firstAddressSetup.district)
+          assertThat(firstAddress?.postTown).isEqualTo(firstAddressSetup.townCity)
+          assertThat(firstAddress?.county).isEqualTo(firstAddressSetup.county)
+          assertThat(firstAddress?.isVerified).isEqualTo(firstAddressSetup.isVerified)
+          assertThat(firstAddress?.contacts?.first()?.contactValue).isEqualTo(firstAddressSetup.telephoneNumber)
+          assertThat(firstAddress?.statusCode).isEqualTo(AddressStatusCode.fromProbation(firstAddressSetup.status!!.code!!))
+          assertThat(firstAddress?.usages?.first()?.usageCode).isEqualTo(AddressUsageCode.from(firstAddressSetup.usage?.code!!))
+          assertThat(firstAddress?.usages?.first()?.active).isEqualTo(true)
+
+          assertThat(updatedPerson?.addresses[1]?.deliusAddressId).isEqualTo(deliusAddressIdTwo)
+        }
+      }
+
+      @Test
       fun `should populate addresses from two people on same page`() {
         val personOneCrn = randomCrn()
         val personTwoCrn = randomCrn()
