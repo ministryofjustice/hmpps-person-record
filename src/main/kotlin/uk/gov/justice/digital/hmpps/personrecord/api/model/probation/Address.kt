@@ -37,8 +37,8 @@ data class Address(
   val comment: String? = null,
   @Schema(description = "The address status code", example = "M", required = true)
   val statusCode: AddressStatusCode,
-  @Schema(description = "Is the address type verified", example = "false", required = true)
-  val typeVerified: Boolean = false,
+  @Schema(description = "Is the address type verified", examples = ["false", "true"], required = true)
+  val typeVerified: Boolean = true,
   @Schema(description = "List of address usages", required = true)
   val usages: List<AddressUsage> = emptyList(),
   @Schema(description = "List of address contacts")
