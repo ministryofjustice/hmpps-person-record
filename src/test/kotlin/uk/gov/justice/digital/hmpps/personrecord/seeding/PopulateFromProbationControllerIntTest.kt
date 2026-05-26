@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
@@ -324,6 +325,7 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
           assertThat(firstAddress?.usages?.first()?.active).isEqualTo(true)
 
           assertThat(updatedPerson?.addresses[1]?.deliusAddressId).isEqualTo(deliusAddressIdTwo)
+          checkEventLogExist(probationPerson.crn, CPRLogEvents.CPR_RECORD_SEEDED)
         }
       }
 
