@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -396,24 +397,27 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
     @Test
     fun `when updating a probation persons details only - it should not re-create address records`() {
       val crn = randomCrn()
-      val originalProbationCase = createRandomProbationCase(crn).copy(
-        addresses = listOf(
-          ProbationAddress(
-            postcode = randomPostcode(),
-            deliusAddressId = randomDigit().toLong(),
-            isVerified = randomBoolean(),
-            usage = ProbationAddressUsage(
-              randomAddressUsageCode().toString(),
-              randomLowerCaseString(),
-            ),
-            status = ProbationAddressStatus(
-              randomAddressStatusCode().toString(),
-              randomLowerCaseString(),
-            ),
-          ),
+      val probationAddress = ProbationAddress(
+        postcode = randomPostcode(),
+        deliusAddressId = randomDigit().toLong(),
+        isVerified = randomBoolean(),
+        usage = ProbationAddressUsage(
+          randomAddressUsageCode().toString(),
+          randomLowerCaseString(),
+        ),
+        status = ProbationAddressStatus(
+          randomAddressStatusCode().toString(),
+          randomLowerCaseString(),
         ),
       )
+      val originalProbationCase = createRandomProbationCase(crn)
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(originalProbationCase))
+
+      val newlyCreatedPerson = awaitNotNull { personRepository.findByCrn(crn) }
+      val newAddressEntity = AddressEntity.from(Address.from(probationAddress)!!)
+      newAddressEntity.person = newlyCreatedPerson
+      newlyCreatedPerson.addresses = mutableListOf(newAddressEntity)
+      personRepository.save(newlyCreatedPerson)
       val originalPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
 
       val updatedProbationCase = originalProbationCase.copy(dateOfBirth = randomDate())
@@ -424,6 +428,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       val updatedPersonEntity = personRepository.findByCrn(crn)!!
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
       assertThat(updatedPersonEntity.addresses.first().id).isEqualTo(originalPersonEntity.addresses.first().id)
+      assertThat(updatedPersonEntity.addresses.first().deliusAddressId).isEqualTo(originalPersonEntity.addresses.first().deliusAddressId)
       assertThat(updatedPersonEntity.addresses.first().updateId).isEqualTo(originalPersonEntity.addresses.first().updateId)
     }
 
