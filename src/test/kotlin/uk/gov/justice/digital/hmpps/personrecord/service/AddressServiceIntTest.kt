@@ -10,7 +10,10 @@ import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
@@ -52,6 +55,17 @@ class AddressServiceIntTest : IntegrationTestBase() {
         findAddress = { null },
       )
 
+      checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val log = eventLogs.first()
+        assertThat(log.postcodes).hasSize(1)
+        assertThat(log.postcodes.first()).isEqualTo(addressToCreate.postcode)
+      }
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("SOURCE_SYSTEM" to DELIUS.name, "CRN" to crn),
+      )
+
       awaitAssert {
         val person = personRepository.findByCrn(crn)!!
         assertThat(person.addresses.size).isEqualTo(1)
@@ -70,6 +84,14 @@ class AddressServiceIntTest : IntegrationTestBase() {
         addressToCreate,
         findPerson = { personRepository.findByCrn(crn) },
         findAddress = { null },
+      )
+
+      checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
+        assertThat(eventLogs).isEmpty()
+      }
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("SOURCE_SYSTEM" to DELIUS.name, "CRN" to crn),
       )
 
       awaitAssert {
@@ -99,6 +121,17 @@ class AddressServiceIntTest : IntegrationTestBase() {
         findAddress = { addressRepository.findByUpdateId(person.addresses[0].updateId!!) },
       )
 
+      checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val log = eventLogs.first()
+        assertThat(log.postcodes).hasSize(1)
+        assertThat(log.postcodes.first()).isEqualTo(addressToCreate.postcode)
+      }
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("SOURCE_SYSTEM" to DELIUS.name, "CRN" to crn),
+      )
+
       awaitAssert {
         val person = personRepository.findByCrn(crn)!!
         assertThat(person.addresses.size).isEqualTo(1)
@@ -119,10 +152,55 @@ class AddressServiceIntTest : IntegrationTestBase() {
         findAddress = { addressRepository.findByUpdateId(person.addresses[0].updateId!!) },
       )
 
+      checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
+        assertThat(eventLogs).isEmpty()
+      }
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("SOURCE_SYSTEM" to DELIUS.name, "CRN" to crn),
+      )
+
       awaitAssert {
         val person = personRepository.findByCrn(crn)!!
         assertThat(person.addresses.size).isEqualTo(1)
         assertAddressValues(addressToCreate, person.addresses.first())
+      }
+    }
+  }
+
+  @Nested
+  inner class DeleteAddress {
+    @Test
+    fun `should delete address when it exist and recluster`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val crn = randomCrn()
+      val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
+      val addressToDelete = personEntity.addresses.first()
+
+      addressService.deleteAddress(addressToDelete)
+
+      awaitAssert {
+        val actualPerson = personRepository.findByCrn(crn)!!
+        val actualAddress = addressRepository.findByUpdateId(addressToDelete.updateId!!)
+        assertThat(actualPerson.addresses.size).isEqualTo(0)
+        assertThat(actualAddress).isNull()
+      }
+    }
+
+    @Test
+    fun `should not delete any addresses when address does not exist`() {
+      val crn = randomCrn()
+      val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
+
+      val nonExistingAddresses = AddressEntity.from(Address.from(createRandomProbationAddress()))
+      nonExistingAddresses.person = personEntity
+      addressService.deleteAddress(nonExistingAddresses)
+
+      awaitAssert {
+        val actualPerson = personRepository.findByCrn(crn)!!
+        assertThat(actualPerson.addresses.size).isEqualTo(1)
       }
     }
   }

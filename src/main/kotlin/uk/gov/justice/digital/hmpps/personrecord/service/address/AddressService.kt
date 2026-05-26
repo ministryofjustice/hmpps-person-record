@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.address
 
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
@@ -7,15 +8,20 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchR
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Service
 class AddressService(
   private val addressRepository: AddressRepository,
+  private val personRepository: PersonRepository,
   private val personMatchService: PersonMatchService,
   private val reclusterService: ReclusterService,
+  private val publisher: ApplicationEventPublisher,
 ) {
 
   @Transactional
@@ -49,6 +55,8 @@ class AddressService(
     val matchingFieldsChanged = matchingFieldsBeforeUpdate.matchingFieldsAreDifferent(personEntity)
     tryRecluster(personEntity, matchingFieldsChanged)
 
+    publisher.publishEvent(AddressCreated(addressEntity, matchingFieldsChanged))
+
     return addressEntity
   }
 
@@ -60,7 +68,20 @@ class AddressService(
     val matchingFieldsChanged = matchingFieldsBeforeUpdate.matchingFieldsAreDifferent(addressEntity.person!!)
     tryRecluster(addressEntity.person!!, matchingFieldsChanged)
 
+    publisher.publishEvent(AddressUpdated(addressEntity, matchingFieldsChanged))
+
     return addressEntity
+  }
+
+  @Transactional
+  fun deleteAddress(addressEntity: AddressEntity) {
+    val personEntity = addressEntity.person!!
+    val doesExist = personEntity.addresses.remove(addressEntity)
+    if (!doesExist) return
+
+    addressEntity.person = null
+    personRepository.save(personEntity)
+    tryRecluster(personEntity, true)
   }
 
   private fun tryRecluster(
