@@ -9,23 +9,10 @@ import org.springframework.test.context.ActiveProfiles
 import tools.jackson.databind.node.ObjectNode
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressContact
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 
 class ProbationAddressPostAPIControllerTest : WebTestBase() {
 
@@ -37,7 +24,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
       stubPersonMatchScores()
 
       val crn = randomCrn()
-      val newAddress = createRandomAddress()
+      val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
       val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
@@ -62,7 +49,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
     @Test
     fun `should create new address and not recluster passive record`() {
       val crn = randomCrn()
-      val newAddress = createRandomAddress()
+      val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList())) { this.passiveState = true }
 
       val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
@@ -90,7 +77,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
       stubPersonMatchScores()
 
       val crn = randomCrn()
-      val newAddress = createRandomAddress()
+      val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
       // simulate missing field
@@ -123,7 +110,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
     fun `should return 404 not found when probation record does not exist`() {
       sendPostRequestAsserted<Unit>(
         url = probationAddressApiUrl(randomCrn()),
-        body = createRandomAddress(),
+        body = createRandomProbationAddress(),
         roles = listOf(PROBATION_API_READ_WRITE),
         expectedStatus = HttpStatus.NOT_FOUND,
       )
@@ -136,7 +123,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
       createPerson(createRandomProbationPersonDetails(mergedCrn)) { mergedTo = person.id }
       sendPostRequestAsserted<Unit>(
         url = probationAddressApiUrl(mergedCrn),
-        body = createRandomAddress(),
+        body = createRandomProbationAddress(),
         roles = listOf(PROBATION_API_READ_WRITE),
         expectedStatus = HttpStatus.NOT_FOUND,
       )
@@ -146,7 +133,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
     fun `should return Access Denied 403 when role is wrong`() {
       sendPostRequestAsserted<Unit>(
         url = probationAddressApiUrl(randomCrn()),
-        body = createRandomAddress(),
+        body = createRandomProbationAddress(),
         roles = listOf("UNSUPPORTED_ROLE"),
         expectedStatus = HttpStatus.FORBIDDEN,
       )
@@ -156,7 +143,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       sendPostRequestAsserted<Unit>(
         url = probationAddressApiUrl(randomCrn()),
-        body = createRandomAddress(),
+        body = createRandomProbationAddress(),
         roles = listOf("UNSUPPORTED_ROLE"),
         expectedStatus = HttpStatus.UNAUTHORIZED,
         sendAuthorised = false,
@@ -170,7 +157,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
     @Test
     fun `endpoint not available in preprod`() {
       val crn = randomCrn()
-      val newAddress = createRandomAddress()
+      val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
       sendPostRequestAsserted<Unit>(
@@ -193,7 +180,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
     @Test
     fun `endpoint not available in prod`() {
       val crn = randomCrn()
-      val newAddress = createRandomAddress()
+      val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
       sendPostRequestAsserted<Unit>(
@@ -211,27 +198,6 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
   }
 
   private fun probationAddressApiUrl(crn: String) = "/person/probation/$crn/address"
-
-  private fun createRandomAddress(): Address = Address(
-    noFixedAbode = false,
-    startDate = randomZonedDateTime(),
-    endDate = randomZonedDateTime(),
-    postcode = randomPostcode(),
-    uprn = randomUprn(),
-    subBuildingName = randomName(),
-    buildingName = randomName(),
-    buildingNumber = randomBuildingNumber(),
-    thoroughfareName = randomName(),
-    dependentLocality = randomName(),
-    postTown = randomName(),
-    county = randomName(),
-    countryCode = randomCountryCode(),
-    comment = randomName(),
-    statusCode = randomAddressStatusCode(),
-    typeVerified = true,
-    usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
-    contacts = listOf(AddressContact(randomContactType(), randomPhoneNumber(), "44")),
-  )
 
   private fun assertAddressValues(expectedAddress: Address, actualAddress: AddressEntity) {
     assertThat(actualAddress.updateId.toString()).isNotEmpty()
