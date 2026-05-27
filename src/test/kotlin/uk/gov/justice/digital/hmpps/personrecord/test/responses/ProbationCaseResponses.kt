@@ -80,7 +80,7 @@ private fun alias(alias: ApiResponseSetupAlias) =
           }
         }
   """.trimIndent()
-private fun probationAddress(address: ApiResponseSetupAddress) =
+fun probationAddress(address: ApiResponseSetupAddress) =
   """
     {
       ${address.startDateTime?.let { """ "startDateTime": "${address.startDateTime}", """.trimIndent() } ?: ""}
