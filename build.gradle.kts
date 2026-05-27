@@ -32,8 +32,6 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
   implementation("jakarta.validation:jakarta.validation-api:3.1.1")
-  implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
-  implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
 
   implementation("software.amazon.sns:sns-extended-client:2.1.0")
   implementation("com.jayway.jsonpath:json-path:3.0.0")
