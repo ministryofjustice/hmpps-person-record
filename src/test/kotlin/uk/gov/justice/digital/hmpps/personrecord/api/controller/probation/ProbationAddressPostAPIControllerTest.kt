@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
+import tools.jackson.databind.node.ObjectNode
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressContact
@@ -67,6 +68,38 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
       val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
         url = probationAddressApiUrl(crn),
         body = newAddress,
+        roles = listOf(PROBATION_API_READ_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+      ).returnResult().responseBody!!
+
+      awaitAssert {
+        val personEntity = personRepository.findByCrn(crn) ?: fail("No person found with id $crn")
+        assertThat(personEntity.addresses.size).isEqualTo(1)
+
+        val actualAddress = personEntity.addresses.first()
+        assertAddressValues(newAddress, actualAddress)
+
+        assertThat(responseBody.crn).isEqualTo(crn)
+        assertThat(responseBody.cprAddressId).isEqualTo(actualAddress.updateId.toString())
+      }
+    }
+
+    @Test
+    fun `should create a new address with typeVerified as true when typeVerified is not supplied`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val crn = randomCrn()
+      val newAddress = createRandomAddress()
+      createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
+
+      // simulate missing field
+      val json = jsonMapper.valueToTree<ObjectNode>(newAddress)
+      json.remove("typeVerified")
+
+      val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
+        url = probationAddressApiUrl(crn),
+        body = json,
         roles = listOf(PROBATION_API_READ_WRITE),
         expectedStatus = HttpStatus.CREATED,
       ).returnResult().responseBody!!
@@ -195,6 +228,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
     countryCode = randomCountryCode(),
     comment = randomName(),
     statusCode = randomAddressStatusCode(),
+    typeVerified = true,
     usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
     contacts = listOf(AddressContact(randomContactType(), randomPhoneNumber(), "44")),
   )
@@ -216,6 +250,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
     assertThat(actualAddress.countryCode).isEqualTo(expectedAddress.countryCode)
     assertThat(actualAddress.comment).isEqualTo(expectedAddress.comment)
     assertThat(actualAddress.statusCode).isEqualTo(expectedAddress.statusCode)
+    assertThat(actualAddress.isVerified).isEqualTo(expectedAddress.typeVerified)
     assertThat(actualAddress.usages.size).isEqualTo(expectedAddress.usages.size)
     expectedAddress.usages.zip(actualAddress.usages).forEach { (expected, actual) ->
       assertThat(actual.usageCode).isEqualTo(expected.usageCode)
