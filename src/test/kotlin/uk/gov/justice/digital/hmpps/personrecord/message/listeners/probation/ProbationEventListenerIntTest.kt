@@ -42,7 +42,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAdditionalIdentifierCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
@@ -65,13 +64,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAdditionalIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressStatus
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupContact
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
@@ -97,8 +92,6 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       val lastName = randomName()
       val pnc = randomLongPnc()
       val cro = randomCro()
-      val addressStartDate = randomZonedDateTime()
-      val addressEndDate = randomZonedDateTime()
       val ethnicity = randomProbationEthnicity()
       val nationality = randomProbationNationalityCode()
       val secondNationality = randomProbationNationalityCode()
@@ -125,20 +118,6 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
 
       val identifierNinoValue = randomNationalInsuranceNumber()
       val additionalIdentifierNinoValue = randomNationalInsuranceNumber()
-
-      val buildingName = randomName()
-      val addressNumber = randomAddressNumber()
-      val streetName = randomName()
-      val district = randomName()
-      val townCity = randomName()
-      val county = randomName()
-      val uprn = randomUprn()
-      val notes = randomName()
-      val deliusAddressId = randomDigit().toLong()
-      val isVerified = randomBoolean()
-      val telephone = randomPhoneNumber()
-      val statusCode = randomAddressStatusCode()
-      val usageCode = randomAddressUsageCode()
 
       val dateOfBirth = randomDate()
       val dateOfDeath = randomDate()
@@ -171,35 +150,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
           ),
 
         ),
-        addresses = listOf(
-          ApiResponseSetupAddress(
-            noFixedAbode = true,
-            startDateTime = addressStartDate,
-            endDateTime = addressEndDate,
-            postcode = "LS1 1AB",
-            fullAddress = "abc street",
-            buildingName = buildingName,
-            addressNumber = addressNumber,
-            streetName = streetName,
-            district = district,
-            townCity = townCity,
-            county = county,
-            uprn = uprn,
-            notes = notes,
-            telephoneNumber = telephone,
-            deliusAddressId = deliusAddressId,
-            isVerified = isVerified,
-            status = ApiResponseSetupAddressStatus(
-              code = statusCode.name,
-              description = statusCode.description,
-            ),
-            usage = ApiResponseSetupAddressUsage(
-              code = usageCode.name,
-              description = usageCode.description,
-            ),
-          ),
-          ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
-        ),
+        addresses = listOf(ApiResponseSetupAddress(postcode = "M21 9LX")),
         aliases = listOf(
           ApiResponseSetupAlias(
             firstName = aliasFirstName,

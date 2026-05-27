@@ -25,7 +25,7 @@ class TransactionalProbationUpdater(
     personRepository.findByCrn(person.crn!!).exists(
       no = {
         log.error("CRN not found in Database ${person.crn}")
-        personService.processPerson(person, { personRepository.findByCrn(person.crn) })
+        personService.processPerson(person) { personRepository.findByCrn(person.crn) }
         publisher.publishEvent(RecordEventLog(CPR_RECORD_SEEDED, personRepository.findByCrn(person.crn)!!))
       },
       yes = {
