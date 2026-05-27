@@ -30,23 +30,24 @@ class PopulateFromProbationController(
       val totalPages = corePersonRecordAndDeliusClient.getProbationCases(
         CorePersonRecordAndDeliusClientPageParams(
           0,
-          config.pageSize,
+          PAGE_SIZE,
         ),
       )?.page?.totalPages ?: 1
 
       log.info("Starting address updating, start page ${config.startPage} total pages: $totalPages")
       for (page in config.startPage..<totalPages) {
         log.info("Page $page start")
-        retryableProbationUpdater.repopulateProbationRecord(CorePersonRecordAndDeliusClientPageParams(page, config.pageSize))
-        log.info("Page $page end ${config.pageSize * (page + 1)} records done of ${config.pageSize * totalPages}")
+        retryableProbationUpdater.repopulateProbationRecord(CorePersonRecordAndDeliusClientPageParams(page, PAGE_SIZE))
+        log.info("Page $page end ${PAGE_SIZE * (page + 1)} records done of ${PAGE_SIZE * totalPages}")
       }
-      log.info("finished address updating, approximate records ${totalPages * config.pageSize - config.startPage * config.pageSize}")
+      log.info("finished address updating, approximate records ${totalPages * PAGE_SIZE - config.startPage * PAGE_SIZE}")
     }
   }
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
+    private const val PAGE_SIZE = 1000
   }
 }
 
-data class PopulateConfig(val startPage: Long = 0, val pageSize: Int = 500)
+data class PopulateConfig(val startPage: Long = 0)
