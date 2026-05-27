@@ -2,9 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.seeding
 
 import io.swagger.v3.oas.annotations.Hidden
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.launch
-import org.hibernate.query.Page.page
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -26,7 +25,7 @@ class PopulateFromProbationController(
   }
 
   suspend fun populatePages(config: PopulateConfig) {
-    CoroutineScope(Dispatchers.Default).launch {
+    CoroutineScope(Default).launch {
       val totalPages = corePersonRecordAndDeliusClient.getProbationCases(
         CorePersonRecordAndDeliusClientPageParams(
           0,
@@ -34,11 +33,11 @@ class PopulateFromProbationController(
         ),
       )?.page?.totalPages ?: 1
 
-      log.info("Starting address updating, start page ${config.startPage} total pages: $totalPages")
+      log.info("Starting address updating, start page ${config.startPage} total pages (zero based): ${totalPages - 1}")
       for (page in config.startPage..<totalPages) {
-        log.info("Page $page start")
+        log.info("Page $page of ${totalPages - 1} start")
         retryableProbationUpdater.repopulateProbationRecord(CorePersonRecordAndDeliusClientPageParams(page, config.pageSize))
-        log.info("Page $page end ${config.pageSize * (page + 1)} records done of ${config.pageSize * totalPages}")
+        log.info("Page $page of ${totalPages - 1} end ${config.pageSize * (page + 1)} records done of ${config.pageSize * totalPages}")
       }
       log.info("finished address updating, approximate records ${totalPages * config.pageSize - config.startPage * config.pageSize}")
     }
