@@ -81,7 +81,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData, doesNotMatch.crn!!))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.aboveFracture(), doesNotMatch.crn!!))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(ACTIVE)
