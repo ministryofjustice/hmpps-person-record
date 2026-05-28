@@ -906,7 +906,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .assertReviewSize(1)
         .isPrimary(cluster)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.aboveFracture(), doesNotMatch.crn))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData, doesNotMatch.crn))
 
       cluster.assertClusterStatus(ACTIVE)
       review.assertRemoved()
