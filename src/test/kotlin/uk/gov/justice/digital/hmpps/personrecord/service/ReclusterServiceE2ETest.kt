@@ -24,7 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_SELF_HEALED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDeliusAddressId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
@@ -78,9 +78,9 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val basePersonData = createRandomProbationCase()
       val nonMatchingProbationCase = createRandomProbationCase()
 
-      val recordA = createProbationPerson(basePersonData.copy(addresses = listOf(baseAddressData.copy(deliusAddressId = randomDeliusAddressId()))))
-      val matchesA = createMatchingRecord(basePersonData.copy(addresses = listOf(baseAddressData.copy(deliusAddressId = randomDeliusAddressId()))))
-      val doesNotMatch = createProbationPerson(nonMatchingProbationCase.copy(addresses = listOf(baseAddressData.copy(deliusAddressId = randomDeliusAddressId()))))
+      val recordA = createProbationPerson(basePersonData.copy(addresses = listOf(baseAddressData.copy(deliusAddressId = randomDigit().toLong()))))
+      val matchesA = createMatchingRecord(basePersonData.copy(addresses = listOf(baseAddressData.copy(deliusAddressId = randomDigit().toLong()))))
+      val doesNotMatch = createProbationPerson(nonMatchingProbationCase.copy(addresses = listOf(baseAddressData.copy(deliusAddressId = randomDigit().toLong()))))
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(matchesA)
