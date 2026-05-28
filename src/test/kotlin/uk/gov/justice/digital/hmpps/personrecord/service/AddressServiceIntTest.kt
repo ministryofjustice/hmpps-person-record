@@ -179,7 +179,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
       val addressToDelete = personEntity.addresses.first()
 
-      addressService.deleteAddress(addressToDelete)
+      addressService.deleteAddress { addressToDelete }
 
       awaitAssert {
         val actualPerson = personRepository.findByCrn(crn)!!
@@ -196,7 +196,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
 
       val nonExistingAddresses = AddressEntity.from(Address.from(createRandomProbationAddress()))
       nonExistingAddresses.person = personEntity
-      addressService.deleteAddress(nonExistingAddresses)
+      addressService.deleteAddress { nonExistingAddresses }
 
       awaitAssert {
         val actualPerson = personRepository.findByCrn(crn)!!

@@ -20,4 +20,7 @@ data class AdditionalInformation(
 
   @JsonProperty("removedNomsNumber")
   val sourcePrisonNumber: String? = null,
+
+  @JsonProperty("addressId")
+  val deliusAddressId: String? = null,
 )

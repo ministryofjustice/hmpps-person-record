@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressUsage
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
@@ -89,6 +90,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
       DomainEvent(
         eventType = eventType,
         detailUrl = "/address/$probationAddressId",
+        additionalInformation = AdditionalInformation(deliusAddressId = probationAddressId.toString()),
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
       ),
     )

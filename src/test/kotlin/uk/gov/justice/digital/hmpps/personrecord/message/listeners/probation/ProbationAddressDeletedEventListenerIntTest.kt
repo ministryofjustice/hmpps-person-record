@@ -18,8 +18,6 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
 
     stubPersonMatchUpsert()
     stubPersonMatchScores()
-    stubGetRequestToProbation(probationAddress)
-
     publishProbationAddressEvent(personEntity.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_DELETED)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
@@ -27,39 +25,18 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
   }
 
   @Test
-  fun `consuming address deleted event - address not retrieved from probation - does not delete address`() {
+  fun `consuming address deleted event - person with crn does not exist - still deletes address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress)!!)),
     )
 
-    stubGetRequestToProbation(probationAddress, status = 404)
-
-    publishProbationAddressEvent(personEntity.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_DELETED)
-
-    expectNoMessagesOn(probationEventsQueue)
-    expectOneMessageOnDlq(probationEventsQueue)
-
-    val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
-    assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-  }
-
-  @Test
-  fun `consuming address deleted event - cpr person does not exist - does not delete address`() {
-    val probationAddress = randomProbationAddress()
-    val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress)!!)),
-    )
-
-    stubGetRequestToProbation(probationAddress)
-
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
     publishProbationAddressEvent(randomCrn(), probationAddress.deliusAddressId, OFFENDER_ADDRESS_DELETED)
 
-    expectNoMessagesOn(probationEventsQueue)
-    expectOneMessageOnDlq(probationEventsQueue)
-
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
-    assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
+    assertThat(actualPersonEntity.addresses.size).isEqualTo(0)
   }
 
   @Test
@@ -68,8 +45,6 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress.copy(deliusAddressId = randomDigit().toLong()))!!)),
     )
-
-    stubGetRequestToProbation(probationAddress)
 
     publishProbationAddressEvent(personEntity.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_DELETED)
 

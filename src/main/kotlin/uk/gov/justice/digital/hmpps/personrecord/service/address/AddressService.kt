@@ -74,14 +74,15 @@ class AddressService(
   }
 
   @Transactional
-  fun deleteAddress(addressEntity: AddressEntity) {
-    val personEntity = addressEntity.person!!
-    val doesExist = personEntity.addresses.remove(addressEntity)
-    if (!doesExist) return
+  fun deleteAddress(findAddress: () -> AddressEntity?) {
+    findAddress()?.let { addressEntity ->
+      val personEntity = addressEntity.person!!
+      personEntity.addresses.remove(addressEntity)
+      addressEntity.person = null
+      personRepository.save(personEntity)
 
-    addressEntity.person = null
-    personRepository.save(personEntity)
-    tryRecluster(personEntity, true)
+      tryRecluster(personEntity, true)
+    }
   }
 
   private fun tryRecluster(
