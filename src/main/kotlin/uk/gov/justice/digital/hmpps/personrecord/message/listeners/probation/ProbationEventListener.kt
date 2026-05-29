@@ -83,8 +83,8 @@ class ProbationEventListenerDev(
   }
 
   private fun getProbationAddress(event: DomainEvent): ProbationAddress {
-    val deliusAddressCallbackUrl = event.detailUrl!!
-    return corePersonRecordAndDeliusClient.getAddress(deliusAddressCallbackUrl)!!
+    val deliusAddressId = event.additionalInformation?.deliusAddressId!!
+    return corePersonRecordAndDeliusClient.getAddress(deliusAddressId)!!
   }
 
   companion object {
