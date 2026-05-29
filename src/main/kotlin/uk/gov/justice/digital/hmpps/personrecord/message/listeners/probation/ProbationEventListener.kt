@@ -1,11 +1,14 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import io.awspring.cloud.sqs.annotation.SqsListener
+import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
@@ -18,7 +21,30 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_D
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 
 @Component
+@Profile("preprod & prod")
 class ProbationEventListener(
+  private val domainEventProcessor: DomainEventProcessor,
+  private val eventProcessor: ProbationEventProcessor,
+  private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
+) {
+
+  @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
+    logger.info("Saving person including address")
+    val crn = event.getCrn()
+    corePersonRecordAndDeliusClient.getPerson(crn).let {
+      eventProcessor.processEvent(it)
+    }
+  }
+
+  companion object {
+    private val logger = LoggerFactory.getLogger(ProbationEventListener::class.java)
+  }
+}
+
+@Component
+@Profile("!preprod & !prod")
+class ProbationEventListenerDev(
   private val domainEventProcessor: DomainEventProcessor,
   private val eventProcessor: ProbationEventProcessor,
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
@@ -28,7 +54,8 @@ class ProbationEventListener(
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
+  fun onDomainEventDev(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
+    logger.info("Saving person and address separately")
     val crn = event.getCrn()
     when (event.eventType) {
       OFFENDER_ADDRESS_CREATED, OFFENDER_ADDRESS_UPDATED -> {
@@ -49,7 +76,7 @@ class ProbationEventListener(
       }
       else -> {
         corePersonRecordAndDeliusClient.getPerson(crn).let {
-          eventProcessor.processEvent(it)
+          eventProcessor.processEvent(it, setOf(AddressEntity::class))
         }
       }
     }
@@ -58,5 +85,9 @@ class ProbationEventListener(
   private fun getProbationAddress(event: DomainEvent): ProbationAddress {
     val deliusAddressCallbackUrl = event.detailUrl!!
     return corePersonRecordAndDeliusClient.getAddress(deliusAddressCallbackUrl)!!
+  }
+
+  companion object {
+    private val logger = LoggerFactory.getLogger(ProbationEventListenerDev::class.java)
   }
 }

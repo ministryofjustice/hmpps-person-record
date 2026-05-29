@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
@@ -96,8 +95,9 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun assertAddress(actualPersonEntity: PersonEntity, probationAddress: ProbationAddress) {
+  fun assertAddress(crn: String, probationAddress: ProbationAddress) {
     awaitAssert {
+      val actualPersonEntity = personRepository.findByCrn(crn)!!
       assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
       val actualAddressEntity = actualPersonEntity.addresses.first()
       assertThat(actualAddressEntity.updateId).isNotNull()

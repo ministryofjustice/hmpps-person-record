@@ -32,7 +32,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     val cprAddressAfterUpdate = actualPersonEntity.addresses.first()
     assertThat(cprAddressAfterUpdate.id).isEqualTo(cprAddressBeforeUpdate.id)
     assertThat(cprAddressAfterUpdate.updateId).isEqualTo(cprAddressBeforeUpdate.updateId)
-    assertAddress(actualPersonEntity, updatedProbationAddress)
+    assertAddress(personEntity.crn!!, updatedProbationAddress)
   }
 
   @Test
@@ -105,6 +105,6 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-    assertAddress(actualPersonEntity, probationAddress)
+    assertAddress(personEntity.crn!!, probationAddress)
   }
 }

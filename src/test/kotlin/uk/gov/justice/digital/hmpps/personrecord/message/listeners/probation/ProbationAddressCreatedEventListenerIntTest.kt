@@ -21,8 +21,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
 
     publishProbationAddressEvent(cprPerson.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_CREATED)
 
-    val actualPersonEntity = awaitNotNull { personRepository.findByCrn(cprPerson.crn!!) }
-    assertAddress(actualPersonEntity, probationAddress)
+    assertAddress(cprPerson.crn!!, probationAddress)
   }
 
   @Test
@@ -45,7 +44,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     val addressEntityAfterCreateEvent = actualPersonEntity.addresses.first()
     assertThat(addressEntityAfterCreateEvent.id).isEqualTo(addressEntityBeforeCreateEvent.id)
     assertThat(addressEntityAfterCreateEvent.updateId).isEqualTo(addressEntityBeforeCreateEvent.updateId)
-    assertAddress(actualPersonEntity, updatedProbationAddress)
+    assertAddress(personEntity.crn!!, updatedProbationAddress)
   }
 
   @Test
