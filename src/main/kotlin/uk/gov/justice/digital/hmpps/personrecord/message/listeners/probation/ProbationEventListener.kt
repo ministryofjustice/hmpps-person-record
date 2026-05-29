@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_D
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 
 @Component
-@Profile("preprod & prod")
+@Profile("preprod | prod")
 class ProbationEventListener(
   private val domainEventProcessor: DomainEventProcessor,
   private val eventProcessor: ProbationEventProcessor,
