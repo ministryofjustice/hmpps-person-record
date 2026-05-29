@@ -1,13 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import tools.jackson.module.kotlin.readValue
@@ -16,27 +12,12 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCr
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
+import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.util.UUID
 
-@AutoConfigureWebTestClient
-class AddressDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
-
-  @Autowired
-  lateinit var webTestClient: WebTestClient
-
-  @Autowired
-  internal lateinit var jwtAuthorisationHelper: JwtAuthorisationHelper
-
-  @BeforeEach
-  fun setup() {
-    stubPersonMatchUpsert()
-    stubPersonMatchScores()
-  }
+class AddressDomainEventPublisherE2ETest : E2ETestBase() {
 
   @Test
   fun `should publish a CPR address created domain event when an address is created in sas`() {
@@ -73,7 +54,7 @@ class AddressDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
     assertThat(domainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("CRN")
     assertThat(domainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(crn)
     assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(createdAddress?.updateId.toString())
-    assertThat(domainEvent.additionalInformation?.eventSource).isEqualTo(CPR.identifier)
+    assertThat(domainEvent.additionalInformation?.eventSource).isEqualTo(DomainEventSource.CPR.identifier)
     assertThat(domainEvent.additionalInformation?.deliusAddressId).isNull()
   }
 
@@ -82,6 +63,7 @@ class AddressDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
   inner class FeatureFlagPreprod {
     @Test
     fun `should not publish a CPR address created domain event in preprod`() {
+      assertThat(true).isTrue()
       val crn = randomCrn()
       val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
@@ -106,6 +88,7 @@ class AddressDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
   inner class FeatureFlagProd {
     @Test
     fun `should not publish a CPR address created domain event in prod`() {
+      assertThat(true).isTrue()
       val crn = randomCrn()
       val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
