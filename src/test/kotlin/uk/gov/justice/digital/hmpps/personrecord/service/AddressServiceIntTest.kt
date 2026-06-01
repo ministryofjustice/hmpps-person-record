@@ -163,7 +163,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
       val addressToDelete = personEntity.addresses.first()
 
-      addressService.deleteAddress(addressToDelete)
+      addressService.deleteAddress { addressToDelete }
 
       awaitAssert {
         val actualPerson = personRepository.findByCrn(crn)!!
@@ -176,11 +176,9 @@ class AddressServiceIntTest : IntegrationTestBase() {
     @Test
     fun `should not delete any addresses when address does not exist`() {
       val crn = randomCrn()
-      val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
+      createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
 
-      val nonExistingAddresses = AddressEntity.from(Address.from(createRandomProbationAddress()))
-      nonExistingAddresses.person = personEntity
-      addressService.deleteAddress(nonExistingAddresses)
+      addressService.deleteAddress { null }
 
       awaitAssert {
         val actualPerson = personRepository.findByCrn(crn)!!

@@ -55,7 +55,7 @@ class AddressDomainEventPublisherE2ETest : E2ETestBase() {
     assertThat(domainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(crn)
     assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(createdAddress?.updateId.toString())
     assertThat(domainEvent.additionalInformation?.eventSource).isEqualTo(DomainEventSource.CPR.identifier)
-    assertThat(domainEvent.additionalInformation?.deliusAddressId).isNull()
+    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isNull()
   }
 
   @Nested
