@@ -37,6 +37,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
         addressToCreate,
         findPerson = { personRepository.findByCrn(crn) },
         findAddress = { null },
+        DomainEventSource.DELIUS
       )
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
@@ -68,6 +69,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
         addressToCreate,
         findPerson = { personRepository.findByCrn(crn) },
         findAddress = { null },
+        DomainEventSource.DELIUS
       )
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
@@ -103,6 +105,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
         addressToCreate,
         findPerson = { personRepository.findByCrn(crn) },
         findAddress = { addressRepository.findByUpdateId(person.addresses[0].updateId!!) },
+        DomainEventSource.DELIUS
       )
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
@@ -134,6 +137,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
         addressToCreate,
         findPerson = { personRepository.findByCrn(crn) },
         findAddress = { addressRepository.findByUpdateId(person.addresses[0].updateId!!) },
+        DomainEventSource.DELIUS
       )
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->

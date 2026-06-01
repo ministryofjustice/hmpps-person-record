@@ -27,6 +27,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address as ProbationAddress
@@ -97,6 +98,7 @@ class ProbationAddressAPIController(
       address,
       findPerson = { personRepository.findByCrn(crn) },
       findAddress = { null },
+      CPR
     )
 
     val responseBody = ProbationCreateAddressResponse(crn, createdAddress.updateId!!.toString())

@@ -30,7 +30,7 @@ class AddressService(
     address: Address,
     findPerson: () -> PersonEntity?,
     findAddress: () -> AddressEntity?,
-    eventSource: DomainEventSource = DomainEventSource.CPR,
+    eventSource: DomainEventSource,
   ): AddressEntity {
     val personEntity = findPerson()
       ?.takeIf { it.mergedTo == null }
