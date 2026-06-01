@@ -22,7 +22,7 @@ data class AdditionalInformation(
   val sourcePrisonNumber: String? = null,
 
   @JsonProperty("addressId")
-  val deliusAddressId: String? = null,
+  val inboundDeliusAddressId: String? = null,
 
   val cprAddressId: String? = null,
 

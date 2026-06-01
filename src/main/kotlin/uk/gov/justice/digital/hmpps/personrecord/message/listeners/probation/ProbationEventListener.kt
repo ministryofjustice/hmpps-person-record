@@ -71,7 +71,7 @@ class ProbationEventListenerDev(
         )
       }
       OFFENDER_ADDRESS_DELETED -> {
-        event.additionalInformation?.deliusAddressId?.let {
+        event.additionalInformation?.inboundDeliusAddressId?.let {
           val deliusAddressId = it.toLong()
           addressService.deleteAddress { addressRepository.findByDeliusAddressId(deliusAddressId) }
         }
@@ -85,7 +85,7 @@ class ProbationEventListenerDev(
   }
 
   private fun getProbationAddress(event: DomainEvent): ProbationAddress {
-    val deliusAddressId = event.additionalInformation?.deliusAddressId!!
+    val deliusAddressId = event.additionalInformation?.inboundDeliusAddressId!!
     return corePersonRecordAndDeliusClient.getAddress(deliusAddressId)!!
   }
 
