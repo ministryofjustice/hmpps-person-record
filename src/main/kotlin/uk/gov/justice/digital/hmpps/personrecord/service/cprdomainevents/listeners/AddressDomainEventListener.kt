@@ -28,17 +28,9 @@ class AddressDomainEventListener(
   fun onAddressCreated(addressCreated: AddressCreated) {
     val addressEntity = addressCreated.addressEntity
     val config = buildAddressCreatedDomainEventConfig(addressEntity.person!!.sourceSystem) ?: return
-    val sourceSystemId = addressEntity.person!!.extractSourceSystemId()
+    val sourceSystemId = addressEntity.person!!.extractSourceSystemId()!!
     val addressId = addressEntity.updateId
     val detailUrl = "$baseUrl/person/${config.urlPathSegment}/$sourceSystemId/address/$addressId"
-
-    val personReference = PersonReference(
-      identifiers = sourceSystemId?.let {
-        listOf(
-          PersonIdentifier(config.identifierName, it),
-        )
-      },
-    )
 
     domainEventPublisher.publish(
       DomainEvent(
@@ -51,7 +43,11 @@ class AddressDomainEventListener(
           outboundDeliusAddressId = addressEntity.deliusAddressId?.toString(),
           eventSource = addressCreated.eventSource.identifier,
         ),
-        personReference = personReference,
+        personReference = PersonReference(
+          identifiers = listOf(
+            PersonIdentifier(config.identifierName, sourceSystemId),
+          ),
+        ),
       ),
     )
   }
