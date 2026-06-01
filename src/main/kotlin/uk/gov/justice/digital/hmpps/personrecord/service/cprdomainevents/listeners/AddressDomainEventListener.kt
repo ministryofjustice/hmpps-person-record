@@ -49,6 +49,7 @@ class AddressDomainEventListener(
           ),
         ),
       ),
+      attributes = mapOf("eventSource" to addressCreated.eventSource.identifier),
     )
   }
 
