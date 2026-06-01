@@ -98,7 +98,7 @@ class ProbationAddressAPIController(
       address,
       findPerson = { personRepository.findByCrn(crn) },
       findAddress = { null },
-      CPR
+      CPR,
     )
 
     val responseBody = ProbationCreateAddressResponse(crn, createdAddress.updateId!!.toString())
