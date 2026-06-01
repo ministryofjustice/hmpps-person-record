@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepositor
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.PROBATION_EVENT_QUEUE_ID
@@ -66,10 +67,11 @@ class ProbationEventListenerDev(
           address = Address.from(probationAddress)!!,
           findPerson = { personEntity },
           findAddress = { personEntity.addresses.firstOrNull { it.deliusAddressId == probationAddress.deliusAddressId } },
+          eventSource = DELIUS,
         )
       }
       OFFENDER_ADDRESS_DELETED -> {
-        event.additionalInformation?.deliusAddressId?.let {
+        event.additionalInformation?.inboundDeliusAddressId?.let {
           val deliusAddressId = it.toLong()
           addressService.deleteAddress { addressRepository.findByDeliusAddressId(deliusAddressId) }
         }
@@ -83,7 +85,7 @@ class ProbationEventListenerDev(
   }
 
   private fun getProbationAddress(event: DomainEvent): ProbationAddress {
-    val deliusAddressId = event.additionalInformation?.deliusAddressId!!
+    val deliusAddressId = event.additionalInformation?.inboundDeliusAddressId!!
     return corePersonRecordAndDeliusClient.getAddress(deliusAddressId)!!
   }
 
