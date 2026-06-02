@@ -39,15 +39,14 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
       createPersonKey()
         .addPerson(existingPersonEntity)
 
-      val sasAddressId = UUID.randomUUID()
       val sasCallbackResponse = createSasAddressGetResponse(existingPersonEntity.crn, existingAddressEntity.updateId)
 
       stubPersonMatchUpsert()
       stubPersonMatchScores()
-      stubGetRequestToSas(sasAddressId, sasCallbackResponse)
+      stubGetRequestToSas(sasCallbackResponse)
         .also { stubPersonMatchScores() }
 
-      publishSasAddressUpdateEvent(existingPersonEntity.crn!!, sasAddressId)
+      publishSasAddressUpdateEvent(existingPersonEntity.crn!!)
 
       assertAddressUpdated(existingPersonEntity.crn, sasCallbackResponse)
     }
@@ -63,10 +62,9 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
       createPersonKey()
         .addPerson(existingPersonEntity)
 
-      val sasAddressId = UUID.randomUUID()
-      stubGetRequestToSas(sasAddressId, status = 404)
+      stubGetRequestToSas(status = 404)
 
-      publishSasAddressUpdateEvent(existingPersonEntity.crn!!, sasAddressId)
+      publishSasAddressUpdateEvent(existingPersonEntity.crn!!)
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)
@@ -81,13 +79,12 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
       createPersonKey()
         .addPerson(existingPersonEntity)
 
-      val sasAddressId = UUID.randomUUID()
       val nonExistingAddressUpdateId = UUID.randomUUID()
       val sasCallbackResponse = createSasAddressGetResponse(existingPersonEntity.crn, nonExistingAddressUpdateId)
 
-      stubGetRequestToSas(sasAddressId, sasCallbackResponse)
+      stubGetRequestToSas(sasCallbackResponse)
 
-      publishSasAddressUpdateEvent(existingPersonEntity.crn!!, sasAddressId)
+      publishSasAddressUpdateEvent(existingPersonEntity.crn!!)
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)
@@ -104,10 +101,9 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
       val nonExistingPersonCrn = randomCrn()
       val sasCallbackResponse = createSasAddressGetResponse(nonExistingPersonCrn, existingAddressEntity.updateId)
 
-      val sasAddressId = UUID.randomUUID()
-      stubGetRequestToSas(sasAddressId, sasCallbackResponse)
+      stubGetRequestToSas(sasCallbackResponse)
 
-      publishSasAddressUpdateEvent(nonExistingPersonCrn, sasAddressId)
+      publishSasAddressUpdateEvent(nonExistingPersonCrn)
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)
@@ -146,12 +142,12 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
     ),
   )
 
-  private fun publishSasAddressUpdateEvent(crn: String, sasAddressId: UUID) {
+  private fun publishSasAddressUpdateEvent(crn: String) {
     publishDomainEvent(
       SAS_ADDRESS_UPDATED,
       DomainEvent(
         eventType = SAS_ADDRESS_UPDATED,
-        detailUrl = "/proposed-accommodations/$sasAddressId",
+        detailUrl = "/accommodations/1234",
         additionalInformation = AdditionalInformation(
           sourceCrn = crn,
         ),
@@ -160,12 +156,11 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   private fun stubGetRequestToSas(
-    sasAddressId: UUID?,
     sasCallbackResponse: SasGetAddressResponse? = null,
     status: Int = 200,
   ) {
     stubGetRequest(
-      url = "/proposed-accommodations/$sasAddressId",
+      url = "/accommodations/1234",
       body = jsonMapper.writeValueAsString(sasCallbackResponse),
       status = status,
     )
