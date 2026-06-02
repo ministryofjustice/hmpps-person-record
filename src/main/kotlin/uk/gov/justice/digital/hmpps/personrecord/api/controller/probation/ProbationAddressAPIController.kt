@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -87,7 +86,6 @@ class ProbationAddressAPIController(
   @PreAuthorize("hasRole('$PROBATION_API_READ_WRITE')")
   @PostMapping("/person/probation/{crn}/address")
   @Transactional(isolation = REPEATABLE_READ)
-  @Profile("!preprod & !prod")
   fun createProbationAddress(
     @PathVariable crn: String,
     @RequestBody probationAddress: ProbationAddress,

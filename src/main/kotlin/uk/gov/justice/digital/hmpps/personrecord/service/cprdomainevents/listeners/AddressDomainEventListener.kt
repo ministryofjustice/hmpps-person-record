@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listeners
 
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
@@ -17,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDR
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
-@Profile("!preprod & !prod")
 @Component
 class AddressDomainEventListener(
   private val domainEventPublisher: DomainEventPublisher,
