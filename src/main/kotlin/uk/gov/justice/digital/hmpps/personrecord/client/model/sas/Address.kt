@@ -12,11 +12,25 @@ data class SasGetAddressResponse(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SasAddressData(
   val crn: String,
-  @JsonProperty("id")
   val cprAddressId: String,
   val startDate: LocalDate? = null,
   val endDate: LocalDate? = null,
   val address: Address,
+  val status: SasAddressStatus? = null,
+  @JsonProperty("accommodationType")
+  val type: SasAddressType? = null,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class SasAddressStatus(
+  val code: String,
+  val description: String? = null,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class SasAddressType(
+  val code: String,
+  val description: String? = null,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

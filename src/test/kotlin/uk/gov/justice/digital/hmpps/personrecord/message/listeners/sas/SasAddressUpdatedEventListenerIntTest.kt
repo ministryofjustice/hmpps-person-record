@@ -4,6 +4,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressData
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressStatus
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
@@ -11,9 +13,12 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBa
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
@@ -127,6 +132,14 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
         country = randomCountryCode().name,
         uprn = randomUprn(),
       ),
+      status = SasAddressStatus(
+        code = randomAddressStatusCode().name,
+        description = randomLowerCaseString(),
+      ),
+      type = SasAddressType(
+        code = randomAddressUsageCode().name,
+        description = randomLowerCaseString(),
+      ),
     ),
   )
 
@@ -173,6 +186,11 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(actualAddressEntity.county).isEqualTo(expectedSasAddress.address.county)
       assertThat(actualAddressEntity.countryCode!!.name).isEqualTo(expectedSasAddress.address.country)
       assertThat(actualAddressEntity.uprn).isEqualTo(expectedSasAddress.address.uprn)
+      assertThat(actualAddressEntity.statusCode!!.name).isEqualTo(expectedSasAddress.status!!.code)
+      val actualAddressUsages = actualAddressEntity.usages
+      assertThat(actualAddressUsages.size).isEqualTo(1)
+      assertThat(actualAddressUsages.first().usageCode.name).isEqualTo(expectedSasAddress.type!!.code)
+      assertThat(actualAddressUsages.first().active).isEqualTo(true)
     }
   }
 }

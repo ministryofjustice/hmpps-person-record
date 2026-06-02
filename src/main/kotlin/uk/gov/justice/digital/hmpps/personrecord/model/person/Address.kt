@@ -157,6 +157,8 @@ data class Address(
       uprn = address.address.uprn,
       startDate = address.startDate?.toUkZonedDateTime(),
       endDate = address.endDate?.toUkZonedDateTime(),
+      statusCode = address.status?.code?.let { AddressStatusCode.valueOf(it) },
+      usages = address.type?.code?.let { listOf(AddressUsage(AddressUsageCode.from(it), true)) } ?: emptyList(),
     )
 
     fun fromPrisonerAddressList(addresses: List<PrisonerAddress>): List<Address> = addresses.mapNotNull { from(it) }
