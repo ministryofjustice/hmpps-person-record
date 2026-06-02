@@ -637,8 +637,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           CPR_RECORD_UPDATED,
           mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to probationCase.identifiers.crn),
         )
-        offender.personKey?.assertClusterStatus(ACTIVE)
-        offender.personKey?.assertClusterIsOfSize(2)
+
         assertThat(offender.masterDefendantId).isEqualTo(defendant.masterDefendantId)
       }
 

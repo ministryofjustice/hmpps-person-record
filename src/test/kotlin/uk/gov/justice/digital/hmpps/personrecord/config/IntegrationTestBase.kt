@@ -34,6 +34,8 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDO
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.ActiveProfiles
 import tools.jackson.databind.json.JsonMapper
+import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressContact
+import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
@@ -59,6 +61,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.review.ReviewEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -76,8 +79,13 @@ import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -87,6 +95,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
@@ -97,6 +106,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexualOrien
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
@@ -105,6 +116,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address as CreateProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name as LibraName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName as OffenderName
 
@@ -132,6 +144,9 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var reviewRepository: ReviewRepository
+
+  @Autowired
+  lateinit var addressRepository: AddressRepository
 
   fun authSetup() {
     wiremock.stubFor(
@@ -206,6 +221,27 @@ class IntegrationTestBase {
     genderIdentity = Value(randomProbationGenderIdentity().key),
     selfDescribedGenderIdentity = randomName(),
     dateOfBirth = randomDate(),
+  )
+
+  internal fun createRandomProbationAddress(): CreateProbationAddress = CreateProbationAddress(
+    noFixedAbode = false,
+    startDate = randomZonedDateTime(),
+    endDate = randomZonedDateTime(),
+    postcode = randomPostcode(),
+    uprn = randomUprn(),
+    subBuildingName = randomName(),
+    buildingName = randomName(),
+    buildingNumber = randomBuildingNumber(),
+    thoroughfareName = randomName(),
+    dependentLocality = randomName(),
+    postTown = randomName(),
+    county = randomName(),
+    countryCode = randomCountryCode(),
+    comment = randomName(),
+    statusCode = randomAddressStatusCode(),
+    typeVerified = true,
+    usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
+    contacts = listOf(AddressContact(randomContactType(), randomPhoneNumber(), "44")),
   )
 
   internal fun createRandomPrisonPersonDetails(prisonNumber: String = randomPrisonNumber()): Person = Person.from(

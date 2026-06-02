@@ -29,6 +29,7 @@ data class MessageAttributes(
   val eventType: MessageAttribute?,
   val messageType: MessageAttribute?,
   val hearingEventType: MessageAttribute?,
+  val eventSource: MessageAttribute?,
 )
 
 data class MessageAttribute(
