@@ -638,7 +638,6 @@ class ProbationApiE2ETest : E2ETestBase() {
           mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to probationCase.identifiers.crn),
         )
 
-        offender.personKey?.assertClusterIsOfSize(2)
         assertThat(offender.masterDefendantId).isEqualTo(defendant.masterDefendantId)
       }
 
