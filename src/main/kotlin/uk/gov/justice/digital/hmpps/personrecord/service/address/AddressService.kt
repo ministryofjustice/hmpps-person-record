@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
@@ -29,6 +30,7 @@ class AddressService(
     address: Address,
     findPerson: () -> PersonEntity?,
     findAddress: () -> AddressEntity?,
+    eventSource: DomainEventSource,
   ): AddressEntity {
     val personEntity = findPerson()
       ?.takeIf { it.mergedTo == null }
@@ -36,7 +38,7 @@ class AddressService(
 
     return findAddress().exists(
       no = {
-        create(address, personEntity)
+        create(address, personEntity, eventSource)
       },
       yes = {
         update(address, it)
@@ -44,7 +46,7 @@ class AddressService(
     )
   }
 
-  private fun create(address: Address, personEntity: PersonEntity): AddressEntity {
+  private fun create(address: Address, personEntity: PersonEntity, eventSource: DomainEventSource): AddressEntity {
     val matchingFieldsBeforeUpdate = PersonMatchRecord.from(personEntity)
     val addressToSave = AddressEntity.from(address)
     addressToSave.person = personEntity
@@ -55,7 +57,7 @@ class AddressService(
     val matchingFieldsChanged = matchingFieldsBeforeUpdate.matchingFieldsAreDifferent(personEntity)
     tryRecluster(personEntity, matchingFieldsChanged)
 
-    publisher.publishEvent(AddressCreated(addressEntity, matchingFieldsChanged))
+    publisher.publishEvent(AddressCreated(addressEntity, matchingFieldsChanged, eventSource))
 
     return addressEntity
   }
@@ -74,14 +76,15 @@ class AddressService(
   }
 
   @Transactional
-  fun deleteAddress(addressEntity: AddressEntity) {
-    val personEntity = addressEntity.person!!
-    val doesExist = personEntity.addresses.remove(addressEntity)
-    if (!doesExist) return
+  fun deleteAddress(findAddress: () -> AddressEntity?) {
+    findAddress()?.let { addressEntity ->
+      val personEntity = addressEntity.person!!
+      personEntity.addresses.remove(addressEntity)
+      addressEntity.person = null
+      personRepository.save(personEntity)
 
-    addressEntity.person = null
-    personRepository.save(personEntity)
-    tryRecluster(personEntity, true)
+      tryRecluster(personEntity, true)
+    }
   }
 
   private fun tryRecluster(

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.HttpStatus.OK
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
@@ -22,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
@@ -54,6 +56,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
 class DpsPrisonAPIControllerIntTest : WebTestBase() {
@@ -99,7 +102,9 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         cprAddressId = address.updateId!!.toString(),
         noFixedAbode = address.noFixedAbode,
         startDate = address.startDate?.toLocalDate()?.toString(),
+        startDateTime = address.startDate,
         endDate = address.endDate?.toLocalDate()?.toString(),
+        endDateTime = address.endDate,
         postcode = address.postcode,
         buildingName = address.buildingName,
         buildingNumber = address.buildingNumber,
@@ -119,7 +124,9 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         cprAddressId = address2.updateId!!.toString(),
         noFixedAbode = address2.noFixedAbode,
         startDate = address2.startDate?.toLocalDate()?.toString(),
+        startDateTime = address2.startDate,
         endDate = address2.endDate?.toLocalDate()?.toString(),
+        endDateTime = address2.endDate,
         postcode = address2.postcode,
         buildingName = address2.buildingName,
         buildingNumber = address2.buildingNumber,
@@ -165,7 +172,11 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.cros).isEqualTo(listOf(prisonPerson.getCro()))
       assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(prisonPerson.getPnc()))
       assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
-      assertThat(responseBody.addresses).usingRecursiveComparison().isEqualTo(listOf(canonicalAddress, canonicalAddress2))
+
+      assertThat(responseBody.addresses)
+        .usingRecursiveComparison()
+        .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
+        .isEqualTo(listOf(canonicalAddress, canonicalAddress2))
 
       assertThat(responseBody.religionHistory.size).isEqualTo(1)
       assertThat(responseBody.religionHistory.first().startDate).isEqualTo(existingPrisonReligionEntity.startDate)
@@ -239,7 +250,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(DpsPrisonRecordTest::class.java)
+        .expectBody<DpsPrisonRecordTest>()
         .returnResult()
         .responseBody!!
 
@@ -356,7 +367,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(DpsPrisonRecordTest::class.java)
+        .expectBody<DpsPrisonRecordTest>()
         .returnResult()
         .responseBody!!
 

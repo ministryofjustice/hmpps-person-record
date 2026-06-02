@@ -4,37 +4,21 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressContact
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address as ProbationAddress
 
 class AddressServiceIntTest : IntegrationTestBase() {
 
   @Autowired
   lateinit var addressService: AddressService
-
-  @Autowired
-  lateinit var addressRepository: AddressRepository
 
   @Nested
   inner class CreateAddress {
@@ -53,6 +37,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
         addressToCreate,
         findPerson = { personRepository.findByCrn(crn) },
         findAddress = { null },
+        DomainEventSource.DELIUS,
       )
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
@@ -84,6 +69,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
         addressToCreate,
         findPerson = { personRepository.findByCrn(crn) },
         findAddress = { null },
+        DomainEventSource.DELIUS,
       )
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
@@ -119,6 +105,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
         addressToCreate,
         findPerson = { personRepository.findByCrn(crn) },
         findAddress = { addressRepository.findByUpdateId(person.addresses[0].updateId!!) },
+        DomainEventSource.DELIUS,
       )
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
@@ -150,6 +137,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
         addressToCreate,
         findPerson = { personRepository.findByCrn(crn) },
         findAddress = { addressRepository.findByUpdateId(person.addresses[0].updateId!!) },
+        DomainEventSource.DELIUS,
       )
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
@@ -179,7 +167,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
       val addressToDelete = personEntity.addresses.first()
 
-      addressService.deleteAddress(addressToDelete)
+      addressService.deleteAddress { addressToDelete }
 
       awaitAssert {
         val actualPerson = personRepository.findByCrn(crn)!!
@@ -192,11 +180,9 @@ class AddressServiceIntTest : IntegrationTestBase() {
     @Test
     fun `should not delete any addresses when address does not exist`() {
       val crn = randomCrn()
-      val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
+      createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
 
-      val nonExistingAddresses = AddressEntity.from(Address.from(createRandomProbationAddress()))
-      nonExistingAddresses.person = personEntity
-      addressService.deleteAddress(nonExistingAddresses)
+      addressService.deleteAddress { null }
 
       awaitAssert {
         val actualPerson = personRepository.findByCrn(crn)!!
@@ -204,26 +190,6 @@ class AddressServiceIntTest : IntegrationTestBase() {
       }
     }
   }
-
-  private fun createRandomProbationAddress(): ProbationAddress = ProbationAddress(
-    noFixedAbode = false,
-    startDate = randomZonedDateTime(),
-    endDate = randomZonedDateTime(),
-    postcode = randomPostcode(),
-    uprn = randomUprn(),
-    subBuildingName = randomName(),
-    buildingName = randomName(),
-    buildingNumber = randomBuildingNumber(),
-    thoroughfareName = randomName(),
-    dependentLocality = randomName(),
-    postTown = randomName(),
-    county = randomName(),
-    countryCode = randomCountryCode(),
-    comment = randomName(),
-    statusCode = randomAddressStatusCode(),
-    usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
-    contacts = listOf(AddressContact(randomContactType(), randomPhoneNumber(), "44")),
-  )
 
   private fun assertAddressValues(expectedAddress: Address, actualAddress: AddressEntity) {
     assertThat(actualAddress.updateId.toString()).isNotEmpty()

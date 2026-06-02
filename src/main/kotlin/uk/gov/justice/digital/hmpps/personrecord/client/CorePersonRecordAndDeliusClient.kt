@@ -3,13 +3,13 @@ package uk.gov.justice.digital.hmpps.personrecord.client
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.seeding.ProbationCases
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.discardNotFoundException
 
 @Component
-class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebClient: WebClient, private val migrationClient: WebClient) {
+class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebClient: WebClient) {
 
   fun getPerson(crn: String): Person {
     val probationCase = getProbationCase(crn)
@@ -30,21 +30,10 @@ class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebCl
     .retrieve()
     .bodyToMono(ProbationCase::class.java)
 
-  fun getProbationCases(params: CorePersonRecordAndDeliusClientPageParams): ProbationCases? = migrationClient
+  fun getAddress(deliusAddressId: String): ProbationAddress? = corePersonRecordAndDeliusWebClient
     .get()
-    .uri { uriBuilder ->
-      uriBuilder
-        .path("/all-probation-cases")
-        .queryParam("page", params.page)
-        .queryParam("size", params.size)
-        .queryParam("sort", params.sort)
-        .build()
-    }
+    .uri("/address/{id}", deliusAddressId)
     .retrieve()
-    .bodyToMono(ProbationCases::class.java)
+    .bodyToMono(ProbationAddress::class.java)
     .block()
-}
-
-class CorePersonRecordAndDeliusClientPageParams(val page: Long, val size: Int) {
-  val sort: String = "id,asc"
 }
