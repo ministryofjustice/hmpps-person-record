@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
-import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.util.UUID
 
 @Entity
@@ -53,19 +53,19 @@ class AddressEntity(
 
   @Column
   @OneToMany(mappedBy = "address", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
-  val usages: MutableList<AddressUsageEntity> = mutableListOf(),
+  var usages: MutableList<AddressUsageEntity> = mutableListOf(),
 
   @Column(name = "start_date")
-  var startDate: LocalDate? = null,
+  var startDate: ZonedDateTime? = null,
 
   @Column(name = "end_date")
-  var endDate: LocalDate? = null,
+  var endDate: ZonedDateTime? = null,
 
   @Column(name = "no_fixed_abode")
-  val noFixedAbode: Boolean? = null,
+  var noFixedAbode: Boolean? = null,
 
   @Column(name = "address_full")
-  val fullAddress: String? = null,
+  var fullAddress: String? = null,
 
   @Column
   var postcode: String? = null,
@@ -96,7 +96,7 @@ class AddressEntity(
   var countryCode: CountryCode? = null,
 
   @Column(name = "comment")
-  val comment: String? = null,
+  var comment: String? = null,
 
   @Column(name = "uprn")
   var uprn: String? = null,
@@ -107,33 +107,63 @@ class AddressEntity(
 
   @Enumerated(STRING)
   @Column(name = "status_code")
-  val statusCode: AddressStatusCode? = null,
+  var statusCode: AddressStatusCode? = null,
+
+  @Column(name = "delius_address_id")
+  var deliusAddressId: Long? = null,
+
+  @Column(name = "is_verified")
+  var isVerified: Boolean? = null,
 
   @Version
   var version: Int = 0,
 ) {
 
+  fun update(address: Address) {
+    this.noFixedAbode = address.noFixedAbode
+    this.startDate = address.startDate
+    this.endDate = address.endDate
+    this.postcode = address.postcode
+    this.fullAddress = address.fullAddress
+    this.subBuildingName = address.subBuildingName
+    this.buildingName = address.buildingName
+    this.buildingNumber = address.buildingNumber
+    this.thoroughfareName = address.thoroughfareName
+    this.dependentLocality = address.dependentLocality
+    this.postTown = address.postTown
+    this.county = address.county
+    this.countryCode = address.countryCode
+    this.uprn = address.uprn
+    this.comment = address.comment
+    this.statusCode = address.statusCode
+    this.deliusAddressId = address.deliusAddressId
+    this.isVerified = address.isVerified
+    this.recordType = address.recordType
+    updateChildEntities(address)
+  }
+
+  private fun updateChildEntities(address: Address) {
+    updateUsages(address.usages.map { AddressUsageEntity.from(it) }.toMutableList())
+    updateContacts(address.contacts.map { ContactEntity.from(it) }.toMutableList())
+  }
+
+  fun updateContacts(contacts: MutableList<ContactEntity>) {
+    this.contacts.clear()
+    contacts.forEach { contact ->
+      contact.address = this
+    }
+    this.contacts.addAll(contacts)
+  }
+
+  fun updateUsages(usages: MutableList<AddressUsageEntity>) {
+    this.usages.clear()
+    usages.forEach { usage ->
+      usage.address = this
+    }
+    this.usages.addAll(usages)
+  }
+
   companion object {
-    fun from(address: Address): AddressEntity = AddressEntity(
-      startDate = address.startDate,
-      endDate = address.endDate,
-      noFixedAbode = address.noFixedAbode,
-      postcode = address.postcode,
-      fullAddress = address.fullAddress,
-      subBuildingName = address.subBuildingName,
-      buildingName = address.buildingName,
-      buildingNumber = address.buildingNumber,
-      thoroughfareName = address.thoroughfareName,
-      dependentLocality = address.dependentLocality,
-      postTown = address.postTown,
-      county = address.county,
-      countryCode = address.countryCode,
-      uprn = address.uprn,
-      recordType = address.recordType,
-      comment = address.comment,
-      statusCode = address.statusCode,
-      usages = address.usages.map { AddressUsageEntity.from(it) }.toMutableList(),
-      contacts = address.contacts.map { ContactEntity.from(it) }.toMutableList(),
-    )
+    fun from(address: Address): AddressEntity = AddressEntity().also { it.update(address) }
   }
 }

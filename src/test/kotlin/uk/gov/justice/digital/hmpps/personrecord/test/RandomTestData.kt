@@ -1,9 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.test
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
+import uk.gov.justice.digital.hmpps.personrecord.extensions.UK_ZONE
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.VALID_LETTERS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.commonPlatformEthnicity
@@ -31,6 +33,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.PROBATI
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZonedDateTime
 import java.util.UUID
 
 fun randomLongPnc(): String {
@@ -57,6 +60,8 @@ fun randomDate(): LocalDate = LocalDate.of(randomYear(), (1..12).random(), (1..2
 fun randomTime(): LocalTime = LocalTime.of((1..23).random(), (1..59).random(), (1..59).random())
 
 fun randomDateTime(): LocalDateTime = LocalDateTime.of(randomDate(), randomTime())
+
+fun randomZonedDateTime(): ZonedDateTime = ZonedDateTime.of(randomDateTime(), UK_ZONE)
 
 fun randomCro(): String {
   val year = randomYear().toString().takeLast(2)
@@ -115,6 +120,8 @@ fun randomAddressStatusCode(): AddressStatusCode = AddressStatusCode.entries.ran
 
 fun randomAddressUsageCode(): AddressUsageCode = AddressUsageCode.entries.random()
 
+fun randomContactType(): ContactType = ContactType.entries.random()
+
 fun randomDriverLicenseNumber(): String {
   fun randomString(length: Int, source: String) = (1..length).map { source.random() }.joinToString("")
   val surnamePart = randomLowerCaseString(5).uppercase()
@@ -153,7 +160,7 @@ fun randomLowerCaseString(length: Int = 7): String = (1..length).map {
 }.joinToString("")
 
 fun randomDigit(length: Int = 7): String = (1..length).map {
-  (0..9).random()
+  (1..9).random()
 }.joinToString("")
 
 private fun randomYear() = (1950..LocalDate.now().year).random()

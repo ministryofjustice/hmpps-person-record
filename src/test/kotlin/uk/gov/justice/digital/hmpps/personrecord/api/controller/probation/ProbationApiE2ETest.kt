@@ -28,6 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
+import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
@@ -75,7 +76,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
+import java.time.ZonedDateTime
 
 class ProbationApiE2ETest : E2ETestBase() {
 
@@ -96,8 +99,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         val title = randomTitleCode()
         val pnc = randomLongPnc()
         val noFixedAbode = true
-        val startDate = randomDate()
-        val endDate = randomDate()
+        val startDateTime = randomZonedDateTime()
+        val endDateTime = randomZonedDateTime()
         val postcode = randomPostcode()
         val nationality = randomNationalityCode()
         val religion = randomReligion()
@@ -162,8 +165,8 @@ class ProbationApiE2ETest : E2ETestBase() {
             addresses = listOf(
               Address(
                 noFixedAbode = noFixedAbode,
-                startDate = startDate,
-                endDate = endDate,
+                startDate = startDateTime,
+                endDate = endDateTime,
                 postcode = postcode,
                 buildingName = buildingName,
                 buildingNumber = buildingNumber,
@@ -215,8 +218,10 @@ class ProbationApiE2ETest : E2ETestBase() {
         val canonicalAddress = CanonicalAddress(
           cprAddressId = person.addresses.first().updateId!!.toString(),
           noFixedAbode = noFixedAbode,
-          startDate = startDate.toString(),
-          endDate = endDate.toString(),
+          startDate = startDateTime.toLocalDate().toString(),
+          startDateTime = startDateTime,
+          endDate = endDateTime.toLocalDate().toString(),
+          endDateTime = endDateTime,
           postcode = postcode,
           buildingName = buildingName,
           buildingNumber = buildingNumber,
@@ -265,7 +270,11 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
         assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
         assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
-        assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
+
+        assertThat(responseBody.addresses)
+          .usingRecursiveComparison()
+          .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
+          .isEqualTo(listOf(canonicalAddress))
       }
 
       @Test
@@ -516,8 +525,8 @@ class ProbationApiE2ETest : E2ETestBase() {
           addresses = listOf(
             ProbationAddress(
               noFixedAbode = false,
-              startDate = randomDate(),
-              endDate = randomDate(),
+              startDateTime = randomZonedDateTime(),
+              endDateTime = randomZonedDateTime(),
               postcode = randomPostcode(),
               fullAddress = randomFullAddress(),
             ),
@@ -566,8 +575,8 @@ class ProbationApiE2ETest : E2ETestBase() {
 
         assertThat(offender.addresses.size).isEqualTo(1)
         assertThat(offender.addresses[0].noFixedAbode).isEqualTo(probationCase.addresses[0].noFixedAbode)
-        assertThat(offender.addresses[0].startDate).isEqualTo(probationCase.addresses[0].startDate)
-        assertThat(offender.addresses[0].endDate).isEqualTo(probationCase.addresses[0].endDate)
+        assertThat(offender.addresses[0].startDate).isEqualTo(probationCase.addresses[0].startDateTime)
+        assertThat(offender.addresses[0].endDate).isEqualTo(probationCase.addresses[0].endDateTime)
         assertThat(offender.addresses[0].postcode).isEqualTo(probationCase.addresses[0].postcode)
         assertThat(offender.addresses[0].fullAddress).isEqualTo(probationCase.addresses[0].fullAddress)
         assertThat(offender.contacts.size).isEqualTo(3)

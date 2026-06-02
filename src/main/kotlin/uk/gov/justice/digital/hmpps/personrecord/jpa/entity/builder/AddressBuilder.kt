@@ -12,10 +12,20 @@ object AddressBuilder {
     address.existsIn(
       childEntities = personEntity.addresses,
       match = { ref, entity -> ref.matches(entity) },
-      yes = { it },
+      yes = { ref, entity ->
+        entity.update(ref)
+        entity
+      },
       no = { AddressEntity.from(address) },
     )
   }
 
-  private fun Address.matches(entity: AddressEntity): Boolean = this == Address.from(entity)
+  // Once the final work around changing how we consume probation address
+  // is done, this can be reverted back
+  private fun Address.matches(entity: AddressEntity): Boolean {
+    if (entity.deliusAddressId != null) {
+      return entity.deliusAddressId == this.deliusAddressId
+    }
+    return this == Address.from(entity)
+  }
 }

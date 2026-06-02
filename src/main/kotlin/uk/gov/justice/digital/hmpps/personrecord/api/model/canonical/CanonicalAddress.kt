@@ -1,7 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
+import uk.gov.justice.digital.hmpps.personrecord.extensions.withUkZone
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import java.time.ZonedDateTime
 
 data class CanonicalAddress(
   @Schema(description = "CPR address Id", example = "ec4c7479-218c-4f11-a02d-edd749820679")
@@ -10,8 +13,12 @@ data class CanonicalAddress(
   val noFixedAbode: Boolean? = null,
   @Schema(description = "Person address start date", example = "2020-02-26")
   val startDate: String? = null,
+  @Schema(description = "Person address start date time", example = "2026-02-26T11:08:46.347Z")
+  val startDateTime: ZonedDateTime? = null,
   @Schema(description = "Person address end date", example = "2023-07-15")
   val endDate: String? = null,
+  @Schema(description = "Person address end date time", example = "2026-07-15T11:08:46.347Z")
+  val endDateTime: ZonedDateTime? = null,
   @Schema(description = "Person address postcode", example = "SW1H 9AJ")
   val postcode: String? = null,
   @Schema(description = "Person address sub building name", example = "Sub building 2")
@@ -38,16 +45,22 @@ data class CanonicalAddress(
   val status: CanonicalAddressStatus,
   @Schema(description = "Person address comment", example = "Some comment")
   val comment: String? = null,
+  @Schema(description = "Person address comment", examples = ["false", "true", "null"])
+  val typeVerified: Boolean? = null,
   @Schema(description = "List of person address usages")
   val usages: List<CanonicalAddressUsage> = emptyList(),
+  @Schema(description = "List of person address contacts")
+  val contacts: List<CanonicalContact> = emptyList(),
 ) {
 
   companion object {
     fun from(addressEntity: AddressEntity): CanonicalAddress = CanonicalAddress(
       cprAddressId = addressEntity.updateId!!.toString(),
       noFixedAbode = addressEntity.noFixedAbode,
-      startDate = addressEntity.startDate?.toString(),
-      endDate = addressEntity.endDate?.toString(),
+      startDate = addressEntity.startDate?.toUkLocalDate()?.toString(),
+      startDateTime = addressEntity.startDate?.withUkZone(),
+      endDate = addressEntity.endDate?.toUkLocalDate()?.toString(),
+      endDateTime = addressEntity.endDate?.withUkZone(),
       postcode = addressEntity.postcode,
       subBuildingName = addressEntity.subBuildingName,
       buildingName = addressEntity.buildingName,
@@ -61,7 +74,9 @@ data class CanonicalAddress(
       uprn = addressEntity.uprn,
       status = CanonicalAddressStatus.from(addressEntity.statusCode),
       comment = addressEntity.comment,
+      typeVerified = addressEntity.isVerified,
       usages = CanonicalAddressUsage.fromAddressUsageEntityList(addressEntity.usages),
+      contacts = CanonicalContact.fromContactEntityList(addressEntity.contacts),
     )
 
     fun fromAddressEntityList(addressEntity: List<AddressEntity>): List<CanonicalAddress> = addressEntity.map { from(it) }

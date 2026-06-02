@@ -225,10 +225,11 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     eventType: String,
     crn: String,
     additionalInformation: AdditionalInformation? = null,
+    detailUrl: String? = null,
   ) {
     publishDomainEvent(
       eventType,
-      DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("CRN", crn))), additionalInformation),
+      DomainEvent(eventType, detailUrl = detailUrl, personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))), additionalInformation = additionalInformation),
     )
   }
 

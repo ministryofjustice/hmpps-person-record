@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.court
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressStatus
@@ -13,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
@@ -43,6 +45,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
+import java.time.ZonedDateTime
 
 class LibraApiControllerIntTest : WebTestBase() {
 
@@ -57,8 +61,8 @@ class LibraApiControllerIntTest : WebTestBase() {
       val title = randomTitleCode()
 
       val noFixedAbode = true
-      val startDate = randomDate()
-      val endDate = randomDate()
+      val startDateTime = randomZonedDateTime()
+      val endDateTime = randomZonedDateTime()
       val postcode = randomPostcode()
       val sex = randomCommonPlatformSexCode()
 
@@ -105,8 +109,8 @@ class LibraApiControllerIntTest : WebTestBase() {
           addresses = listOf(
             Address(
               noFixedAbode = noFixedAbode,
-              startDate = startDate,
-              endDate = endDate,
+              startDate = startDateTime,
+              endDate = endDateTime,
               postcode = postcode,
               buildingName = buildingName,
               buildingNumber = buildingNumber,
@@ -140,7 +144,7 @@ class LibraApiControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java)
+        .expectBody<CanonicalRecord>()
         .returnResult()
         .responseBody!!
       val canonicalAlias =
@@ -155,8 +159,10 @@ class LibraApiControllerIntTest : WebTestBase() {
         CanonicalAddress(
           cprAddressId = person.addresses.first().updateId!!.toString(),
           noFixedAbode = noFixedAbode,
-          startDate = startDate.toString(),
-          endDate = endDate.toString(),
+          startDate = startDateTime.toLocalDate().toString(),
+          startDateTime = startDateTime,
+          endDate = endDateTime.toLocalDate().toString(),
+          endDateTime = endDateTime,
           postcode = postcode,
           buildingName = buildingName,
           buildingNumber = buildingNumber,
@@ -193,7 +199,10 @@ class LibraApiControllerIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
       assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
       assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
-      assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
+      assertThat(responseBody.addresses)
+        .usingRecursiveComparison()
+        .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
+        .isEqualTo(listOf(canonicalAddress))
     }
 
     @Test
@@ -213,7 +222,7 @@ class LibraApiControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java)
+        .expectBody<CanonicalRecord>()
         .returnResult()
         .responseBody!!
 
@@ -277,7 +286,7 @@ class LibraApiControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java)
+        .expectBody<CanonicalRecord>()
         .returnResult()
         .responseBody!!
 
@@ -392,7 +401,7 @@ class LibraApiControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java)
+        .expectBody<CanonicalRecord>()
         .returnResult()
         .responseBody!!
 

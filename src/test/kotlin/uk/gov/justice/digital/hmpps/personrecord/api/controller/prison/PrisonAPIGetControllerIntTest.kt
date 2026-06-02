@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus.OK
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressStatus
@@ -17,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
@@ -33,6 +35,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNum
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import java.time.ZonedDateTime
 
 class PrisonAPIGetControllerIntTest : WebTestBase() {
 
@@ -70,8 +73,10 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
       val canonicalAddress = CanonicalAddress(
         cprAddressId = address.updateId!!.toString(),
         noFixedAbode = address.noFixedAbode,
-        startDate = address.startDate.toString(),
-        endDate = address.endDate?.toString(),
+        startDate = address.startDate?.toLocalDate()?.toString(),
+        startDateTime = address.startDate,
+        endDate = address.endDate?.toLocalDate()?.toString(),
+        endDateTime = address.endDate,
         postcode = address.postcode,
         buildingName = address.buildingName,
         buildingNumber = address.buildingNumber,
@@ -90,8 +95,10 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
       val canonicalAddress2 = CanonicalAddress(
         cprAddressId = address2.updateId!!.toString(),
         noFixedAbode = address2.noFixedAbode,
-        startDate = address2.startDate.toString(),
-        endDate = address2.endDate?.toString(),
+        startDate = address2.startDate?.toLocalDate()?.toString(),
+        startDateTime = address2.startDate,
+        endDate = address2.endDate?.toLocalDate()?.toString(),
+        endDateTime = address2.endDate,
         postcode = address2.postcode,
         buildingName = address2.buildingName,
         buildingNumber = address2.buildingNumber,
@@ -137,7 +144,11 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.cros).isEqualTo(listOf(prisonPerson.getCro()))
       assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(prisonPerson.getPnc()))
       assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
-      assertThat(responseBody.addresses).usingRecursiveComparison().isEqualTo(listOf(canonicalAddress, canonicalAddress2))
+
+      assertThat(responseBody.addresses)
+        .usingRecursiveComparison()
+        .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
+        .isEqualTo(listOf(canonicalAddress, canonicalAddress2))
     }
 
     @Test
@@ -224,7 +235,7 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java)
+        .expectBody<CanonicalRecord>()
         .returnResult()
         .responseBody!!
 

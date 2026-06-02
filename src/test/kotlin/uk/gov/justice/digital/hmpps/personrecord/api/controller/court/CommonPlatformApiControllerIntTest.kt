@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.court
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
@@ -20,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifie
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
@@ -58,6 +60,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientat
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
+import java.time.ZonedDateTime
 
 class CommonPlatformApiControllerIntTest : WebTestBase() {
 
@@ -72,8 +76,8 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
       val title = randomTitleCode()
       val pnc = randomLongPnc()
       val noFixedAbode = true
-      val startDate = randomDate()
-      val endDate = randomDate()
+      val startDateTime = randomZonedDateTime()
+      val endDateTime = randomZonedDateTime()
       val postcode = randomPostcode()
       val nationality = randomNationalityCode()
       val religion = randomReligion()
@@ -132,8 +136,8 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
           addresses = listOf(
             Address(
               noFixedAbode = noFixedAbode,
-              startDate = startDate,
-              endDate = endDate,
+              startDate = startDateTime,
+              endDate = endDateTime,
               postcode = postcode,
               buildingName = buildingName,
               buildingNumber = buildingNumber,
@@ -161,7 +165,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java)
+        .expectBody<CanonicalRecord>()
         .returnResult()
         .responseBody!!
       val canonicalAlias = CanonicalAlias(
@@ -175,8 +179,10 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
       val canonicalAddress = CanonicalAddress(
         cprAddressId = person.addresses.first().updateId!!.toString(),
         noFixedAbode = noFixedAbode,
-        startDate = startDate.toString(),
-        endDate = endDate.toString(),
+        startDate = startDateTime.toLocalDate().toString(),
+        startDateTime = startDateTime,
+        endDate = endDateTime.toLocalDate().toString(),
+        endDateTime = endDateTime,
         postcode = postcode,
         buildingName = buildingName,
         buildingNumber = buildingNumber,
@@ -225,7 +231,10 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
       assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
       assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
-      assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
+      assertThat(responseBody.addresses)
+        .usingRecursiveComparison()
+        .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
+        .isEqualTo(listOf(canonicalAddress))
     }
 
     @Test
@@ -246,7 +255,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java)
+        .expectBody<CanonicalRecord>()
         .returnResult()
         .responseBody!!
 
@@ -306,7 +315,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java)
+        .expectBody<CanonicalRecord>()
         .returnResult()
         .responseBody!!
 
@@ -421,7 +430,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java)
+        .expectBody<CanonicalRecord>()
         .returnResult()
         .responseBody!!
 
@@ -476,7 +485,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java)
+        .expectBody<CanonicalRecord>()
         .returnResult()
         .responseBody!!
 

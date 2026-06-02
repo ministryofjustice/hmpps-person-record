@@ -9,23 +9,31 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAd
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContactType
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.withUkZone
+import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
+import java.time.ZonedDateTime
 import java.util.UUID.randomUUID
 
-class ProbationAddressAPIControllerTest : WebTestBase() {
+class ProbationAddressGetAPIControllerTest : WebTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
@@ -36,10 +44,11 @@ class ProbationAddressAPIControllerTest : WebTestBase() {
         createRandomProbationPersonDetails(crn).copy(
           addresses = listOf(
             Address(
-              noFixedAbode = randomBoolean(), startDate = randomDate(), endDate = randomDate(), postcode = randomPostcode(), buildingName = randomName(),
+              noFixedAbode = randomBoolean(), startDate = randomZonedDateTime(), endDate = randomZonedDateTime(), postcode = randomPostcode(), buildingName = randomName(),
               subBuildingName = randomName(), buildingNumber = randomBuildingNumber(), thoroughfareName = randomName(), dependentLocality = randomName(),
               postTown = randomName(), county = randomName(), countryCode = randomCountryCode(), uprn = randomUprn(), statusCode = randomAddressStatusCode(),
-              comment = randomName(), usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
+              comment = randomName(), isVerified = randomBoolean(), usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
+              contacts = listOf(Contact(randomContactType(), randomPhoneNumber(), "+44")),
             ),
           ),
         ),
@@ -123,8 +132,10 @@ class ProbationAddressAPIControllerTest : WebTestBase() {
     val canonicalAddress = CanonicalAddress(
       cprAddressId = expectedAddress.updateId!!.toString(),
       noFixedAbode = expectedAddress.noFixedAbode,
-      startDate = expectedAddress.startDate?.toString(),
-      endDate = expectedAddress.endDate?.toString(),
+      startDate = expectedAddress.startDate?.toLocalDate()?.toString(),
+      startDateTime = expectedAddress.startDate?.withUkZone(),
+      endDate = expectedAddress.endDate?.toLocalDate()?.toString(),
+      endDateTime = expectedAddress.endDate?.withUkZone(),
       postcode = expectedAddress.postcode,
       subBuildingName = expectedAddress.subBuildingName,
       buildingName = expectedAddress.buildingName,
@@ -138,16 +149,25 @@ class ProbationAddressAPIControllerTest : WebTestBase() {
       uprn = expectedAddress.uprn,
       status = CanonicalAddressStatus.from(expectedAddress.statusCode),
       comment = expectedAddress.comment,
+      typeVerified = expectedAddress.isVerified,
       usages = expectedAddress.usages.map {
         CanonicalAddressUsage(
           CanonicalAddressUsageCode.from(it.usageCode),
           it.active,
         )
       },
+      contacts = expectedAddress.contacts.map {
+        CanonicalContact(
+          CanonicalContactType.from(it.contactType),
+          it.contactValue,
+          it.extension,
+        )
+      },
     )
 
     assertThat(actualAddress)
       .usingRecursiveComparison()
+      .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
       .isEqualTo(canonicalAddress)
   }
 }

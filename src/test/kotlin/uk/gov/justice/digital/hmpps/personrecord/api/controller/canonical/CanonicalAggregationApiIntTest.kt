@@ -1,13 +1,17 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.canonical
 
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_ADMIN_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecordView
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
+import java.time.ZonedDateTime
 
 class CanonicalAggregationApiIntTest : WebTestBase() {
 
@@ -31,7 +35,7 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecordView::class.java)
+        .expectBody<CanonicalRecordView>()
         .returnResult()
         .responseBody!!
 
@@ -59,7 +63,7 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecordView::class.java)
+        .expectBody<CanonicalRecordView>()
         .returnResult()
         .responseBody!!
 
@@ -90,14 +94,21 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecordView::class.java)
+        .expectBody<CanonicalRecordView>()
         .returnResult()
         .responseBody!!
 
       val canonicalAddress = prisonPerson.addresses.map { CanonicalAddress.from(it) } + latestPerson.addresses.map { CanonicalAddress.from(it) }
 
       assertThat(responseBody.canonicalRecord.firstName).isEqualTo(probationDetails.firstName)
-      assertThat(responseBody.canonicalRecord.addresses).isEqualTo(canonicalAddress)
+
+      assertThat(responseBody.canonicalRecord.addresses)
+        .usingRecursiveFieldByFieldElementComparator(
+          RecursiveComparisonConfiguration.builder()
+            .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
+            .build(),
+        )
+        .containsExactlyInAnyOrderElementsOf(canonicalAddress)
     }
 
     @Test
@@ -118,14 +129,20 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecordView::class.java)
+        .expectBody<CanonicalRecordView>()
         .returnResult()
         .responseBody!!
 
       val canonicalAddress = prisonPerson.addresses.map { CanonicalAddress.from(it) } + latestPerson.addresses.map { CanonicalAddress.from(it) }
 
       assertThat(responseBody.canonicalRecord.firstName).isEqualTo(probationDetails.firstName)
-      assertThat(responseBody.canonicalRecord.addresses).isEqualTo(canonicalAddress)
+      assertThat(responseBody.canonicalRecord.addresses)
+        .usingRecursiveFieldByFieldElementComparator(
+          RecursiveComparisonConfiguration.builder()
+            .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
+            .build(),
+        )
+        .containsExactlyInAnyOrderElementsOf(canonicalAddress)
     }
   }
 
@@ -149,7 +166,7 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecordView::class.java)
+        .expectBody<CanonicalRecordView>()
         .returnResult()
         .responseBody!!
 
@@ -177,7 +194,7 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecordView::class.java)
+        .expectBody<CanonicalRecordView>()
         .returnResult()
         .responseBody!!
 
