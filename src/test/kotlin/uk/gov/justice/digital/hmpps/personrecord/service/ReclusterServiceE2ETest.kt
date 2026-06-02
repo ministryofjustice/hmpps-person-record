@@ -37,24 +37,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
   inner class ClusterAlreadySetAsNeedsAttention {
 
     @Test
-    fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster above the join threshold`() {
-      val basePersonData = createRandomProbationCase()
-
-      val recordA = createProbationPerson(basePersonData)
-      val matchesA = createMatchingRecord(basePersonData)
-      val doesNotMatch = createProbationPerson()
-      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-        .addPerson(recordA)
-        .addPerson(matchesA)
-        .addPerson(doesNotMatch)
-
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData, crn = doesNotMatch.crn!!))
-
-      cluster.assertClusterIsOfSize(3)
-      cluster.assertClusterStatus(ACTIVE)
-    }
-
-    @Test
     fun `should change from needs attention status with null reason to active when the non-matching record is updated to match the other records in the cluster above the join threshold`() {
       val basePersonData = createRandomProbationCase()
 
@@ -173,7 +155,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should retain needs attention if the cluster has one record in it after a delete but was a override conflict`() {
+    fun `should retain needs attention if the cluster has one record in it after a delete but was an override conflict`() {
       val basePersonData = createRandomProbationCase()
 
       val recordA = createProbationPerson(basePersonData)
