@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -120,6 +121,8 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
       cprAddressId = cprAddressUpdateId.toString(),
       startDate = LocalDate.now().minusYears(10),
       endDate = LocalDate.now().plusYears(10),
+      noFixedAbode = randomBoolean(),
+      typeVerified = randomBoolean(),
       address = SasAddress(
         postcode = randomPostcode(),
         subBuildingName = randomName(),
@@ -176,6 +179,8 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
       val actualAddressEntity = actualPersonEntity.addresses.first()
       assertThat(actualAddressEntity.startDate!!.toUkLocalDate()).isEqualTo(expectedSasAddress.startDate)
       assertThat(actualAddressEntity.endDate!!.toUkLocalDate()).isEqualTo(expectedSasAddress.endDate)
+      assertThat(actualAddressEntity.noFixedAbode).isEqualTo(expectedSasAddress.noFixedAbode)
+      assertThat(actualAddressEntity.isVerified).isEqualTo(expectedSasAddress.typeVerified)
       assertThat(actualAddressEntity.postcode).isEqualTo(expectedSasAddress.address.postcode)
       assertThat(actualAddressEntity.subBuildingName).isEqualTo(expectedSasAddress.address.subBuildingName)
       assertThat(actualAddressEntity.buildingName).isEqualTo(expectedSasAddress.address.buildingName)

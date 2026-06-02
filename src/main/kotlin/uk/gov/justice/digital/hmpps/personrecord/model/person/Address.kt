@@ -145,6 +145,7 @@ data class Address(
     )
 
     fun from(address: SasAddressData): Address = Address(
+      noFixedAbode = address.noFixedAbode,
       postcode = address.address.postcode,
       subBuildingName = address.address.subBuildingName,
       buildingName = address.address.buildingName,
@@ -157,6 +158,7 @@ data class Address(
       uprn = address.address.uprn,
       startDate = address.startDate?.toUkZonedDateTime(),
       endDate = address.endDate?.toUkZonedDateTime(),
+      isVerified = address.typeVerified,
       statusCode = address.status?.code?.let { AddressStatusCode.valueOf(it) },
       usages = address.type?.code?.let { listOf(AddressUsage(AddressUsageCode.from(it), true)) } ?: emptyList(),
     )

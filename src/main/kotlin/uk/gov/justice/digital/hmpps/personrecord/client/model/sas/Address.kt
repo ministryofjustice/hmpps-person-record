@@ -15,6 +15,8 @@ data class SasAddressData(
   val cprAddressId: String,
   val startDate: LocalDate? = null,
   val endDate: LocalDate? = null,
+  val typeVerified: Boolean? = null,
+  val noFixedAbode: Boolean? = null,
   val address: Address,
   val status: SasAddressStatus? = null,
   @JsonProperty("accommodationType")
