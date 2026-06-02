@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressR
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
@@ -34,6 +35,8 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sasAddressId = UUID.randomUUID()
       val sasCallbackResponse = createSasAddressGetResponse(existingPersonEntity.crn, existingAddressEntity.updateId)
 
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
       stubGetRequestToSas(sasAddressId, sasCallbackResponse)
         .also { stubPersonMatchScores() }
 
@@ -154,8 +157,8 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
       val actualPersonEntity = personRepository.findByCrn(crn!!)!!
       assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
       val actualAddressEntity = actualPersonEntity.addresses.first()
-      assertThat(actualAddressEntity.startDate).isEqualTo(expected.startDate)
-      assertThat(actualAddressEntity.endDate).isEqualTo(expected.endDate)
+      assertThat(actualAddressEntity.startDate!!.toUkLocalDate()).isEqualTo(expected.startDate)
+      assertThat(actualAddressEntity.endDate!!.toUkLocalDate()).isEqualTo(expected.endDate)
       assertThat(actualAddressEntity.postcode).isEqualTo(expected.address.postcode)
       assertThat(actualAddressEntity.subBuildingName).isEqualTo(expected.address.subBuildingName)
       assertThat(actualAddressEntity.buildingName).isEqualTo(expected.address.buildingName)

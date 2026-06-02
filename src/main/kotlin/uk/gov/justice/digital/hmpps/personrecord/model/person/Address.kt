@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -141,6 +142,21 @@ data class Address(
       isVerified = address.typeVerified,
       usages = address.usages.map { AddressUsage.from(it) },
       contacts = address.contacts.mapNotNull { Contact.from(it) },
+    )
+
+    fun from(address: SasGetAddressResponse): Address = Address(
+      postcode = address.address.postcode,
+      subBuildingName = address.address.subBuildingName,
+      buildingName = address.address.buildingName,
+      buildingNumber = address.address.buildingNumber,
+      thoroughfareName = address.address.thoroughfareName,
+      dependentLocality = address.address.dependentLocality,
+      postTown = address.address.postTown,
+      county = address.address.county,
+      countryCode = address.address.country?.let { CountryCode.valueOf(it) },
+      uprn = address.address.uprn,
+      startDate = address.startDate?.toUkZonedDateTime(),
+      endDate = address.endDate?.toUkZonedDateTime(),
     )
 
     fun fromPrisonerAddressList(addresses: List<PrisonerAddress>): List<Address> = addresses.mapNotNull { from(it) }
