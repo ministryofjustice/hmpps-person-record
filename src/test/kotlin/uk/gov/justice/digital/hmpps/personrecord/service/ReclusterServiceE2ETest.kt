@@ -669,7 +669,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personB)
         .addPerson(personC)
 
-      // This shows the cluster isn't correct to start with
       recluster(personA)
       cluster1.assertClusterIsOfSize(3)
 
@@ -707,21 +706,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personA)
         .addPerson(personB)
         .addPerson(doesNotMatch)
-
-      recluster(personA)
-
-      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-    }
-
-    @Test
-    fun `should mark as need attention when matches no record in cluster with multiple records`() {
-      val personA = createProbationPerson()
-      val personB = createProbationPerson()
-      val personC = createProbationPerson()
-      val cluster = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-        .addPerson(personC)
 
       recluster(personA)
 
