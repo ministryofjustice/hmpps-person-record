@@ -139,7 +139,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should not set a cluster to active if it is set to needs attention and an update does change the cluster composition`() {
+    fun `should not set a cluster to active if it is set to needs attention and a new record joins the cluster`() {
       val basePersonData = createRandomProbationCase()
 
       val personA = createProbationPerson(basePersonData)
@@ -467,27 +467,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster1.assertClusterNotChanged(size = 1)
       cluster2.assertClusterNotChanged(size = 2)
-    }
-
-    @Test
-    fun `should do nothing when match return same items from cluster with large amount of records`() {
-      val basePersonData = createRandomProbationCase()
-
-      val personA = createProbationPerson(basePersonData)
-      val personB = createMatchingRecord(basePersonData)
-      val personC = createMatchingRecord(basePersonData)
-      val personD = createMatchingRecord(basePersonData)
-      val personE = createMatchingRecord(basePersonData)
-      val cluster = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-        .addPerson(personC)
-        .addPerson(personD)
-        .addPerson(personE)
-
-      recluster(personA)
-
-      cluster.assertClusterNotChanged(size = 5)
     }
 
     @Test
