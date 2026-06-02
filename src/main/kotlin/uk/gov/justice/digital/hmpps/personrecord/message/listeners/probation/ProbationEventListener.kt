@@ -30,7 +30,7 @@ class ProbationEventListener(
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEventDev(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
     val crn = event.getCrn()
     when (event.eventType) {
       OFFENDER_ADDRESS_CREATED, OFFENDER_ADDRESS_UPDATED -> {
