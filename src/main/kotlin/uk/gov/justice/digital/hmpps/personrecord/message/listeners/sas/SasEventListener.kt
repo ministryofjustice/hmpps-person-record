@@ -32,7 +32,7 @@ class SasEventListener(
         addressService.processAddress(
           address = updatedSasAddress,
           findPerson = { personEntity },
-          findAddress = { personEntity.addresses.firstOrNull { address -> address.updateId == cprAddressUpdateId } },
+          findAddress = { personEntity.addresses.first { address -> address.updateId == cprAddressUpdateId } },
           eventSource = DomainEventSource.CPR,
         )
       }
