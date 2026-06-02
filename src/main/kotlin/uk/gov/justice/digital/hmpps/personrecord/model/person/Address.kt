@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressData
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -144,7 +144,7 @@ data class Address(
       contacts = address.contacts.mapNotNull { Contact.from(it) },
     )
 
-    fun from(address: SasGetAddressResponse): Address = Address(
+    fun from(address: SasAddressData): Address = Address(
       postcode = address.address.postcode,
       subBuildingName = address.address.subBuildingName,
       buildingName = address.address.buildingName,

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressData
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
@@ -109,21 +110,23 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   private fun createSasAddressGetResponse(crn: String?, cprAddressUpdateId: UUID?) = SasGetAddressResponse(
-    crn = crn!!,
-    cprAddressId = cprAddressUpdateId.toString(),
-    startDate = LocalDate.now().minusYears(10),
-    endDate = LocalDate.now().plusYears(10),
-    address = SasAddress(
-      postcode = randomPostcode(),
-      subBuildingName = randomName(),
-      buildingName = randomName(),
-      buildingNumber = randomBuildingNumber(),
-      thoroughfareName = randomName(),
-      dependentLocality = randomName(),
-      postTown = randomPostcode(),
-      county = randomName(),
-      country = randomCountryCode().name,
-      uprn = randomUprn(),
+    data = SasAddressData(
+      crn = crn!!,
+      cprAddressId = cprAddressUpdateId.toString(),
+      startDate = LocalDate.now().minusYears(10),
+      endDate = LocalDate.now().plusYears(10),
+      address = SasAddress(
+        postcode = randomPostcode(),
+        subBuildingName = randomName(),
+        buildingName = randomName(),
+        buildingNumber = randomBuildingNumber(),
+        thoroughfareName = randomName(),
+        dependentLocality = randomName(),
+        postTown = randomPostcode(),
+        county = randomName(),
+        country = randomCountryCode().name,
+        uprn = randomUprn(),
+      ),
     ),
   )
 
@@ -154,21 +157,22 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   private fun assertAddressUpdated(crn: String?, expected: SasGetAddressResponse) {
     awaitAssert {
+      val expectedSasAddress = expected.data
       val actualPersonEntity = personRepository.findByCrn(crn!!)!!
       assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
       val actualAddressEntity = actualPersonEntity.addresses.first()
-      assertThat(actualAddressEntity.startDate!!.toUkLocalDate()).isEqualTo(expected.startDate)
-      assertThat(actualAddressEntity.endDate!!.toUkLocalDate()).isEqualTo(expected.endDate)
-      assertThat(actualAddressEntity.postcode).isEqualTo(expected.address.postcode)
-      assertThat(actualAddressEntity.subBuildingName).isEqualTo(expected.address.subBuildingName)
-      assertThat(actualAddressEntity.buildingName).isEqualTo(expected.address.buildingName)
-      assertThat(actualAddressEntity.buildingNumber).isEqualTo(expected.address.buildingNumber)
-      assertThat(actualAddressEntity.thoroughfareName).isEqualTo(expected.address.thoroughfareName)
-      assertThat(actualAddressEntity.dependentLocality).isEqualTo(expected.address.dependentLocality)
-      assertThat(actualAddressEntity.postTown).isEqualTo(expected.address.postTown)
-      assertThat(actualAddressEntity.county).isEqualTo(expected.address.county)
-      assertThat(actualAddressEntity.countryCode!!.name).isEqualTo(expected.address.country)
-      assertThat(actualAddressEntity.uprn).isEqualTo(expected.address.uprn)
+      assertThat(actualAddressEntity.startDate!!.toUkLocalDate()).isEqualTo(expectedSasAddress.startDate)
+      assertThat(actualAddressEntity.endDate!!.toUkLocalDate()).isEqualTo(expectedSasAddress.endDate)
+      assertThat(actualAddressEntity.postcode).isEqualTo(expectedSasAddress.address.postcode)
+      assertThat(actualAddressEntity.subBuildingName).isEqualTo(expectedSasAddress.address.subBuildingName)
+      assertThat(actualAddressEntity.buildingName).isEqualTo(expectedSasAddress.address.buildingName)
+      assertThat(actualAddressEntity.buildingNumber).isEqualTo(expectedSasAddress.address.buildingNumber)
+      assertThat(actualAddressEntity.thoroughfareName).isEqualTo(expectedSasAddress.address.thoroughfareName)
+      assertThat(actualAddressEntity.dependentLocality).isEqualTo(expectedSasAddress.address.dependentLocality)
+      assertThat(actualAddressEntity.postTown).isEqualTo(expectedSasAddress.address.postTown)
+      assertThat(actualAddressEntity.county).isEqualTo(expectedSasAddress.address.county)
+      assertThat(actualAddressEntity.countryCode!!.name).isEqualTo(expectedSasAddress.address.country)
+      assertThat(actualAddressEntity.uprn).isEqualTo(expectedSasAddress.address.uprn)
     }
   }
 }

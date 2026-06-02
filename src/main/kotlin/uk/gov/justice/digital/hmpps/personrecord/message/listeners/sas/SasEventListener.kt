@@ -24,10 +24,10 @@ class SasEventListener(
   fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
     when (event.eventType) {
       SAS_ADDRESS_UPDATED -> {
-        val sasGetAddressResponse = sasClient.getAddress(event.detailUrl!!)!!
-        val cprAddressUpdateId = UUID.fromString(sasGetAddressResponse.cprAddressId)
-        val updatedSasAddress = Address.from(sasGetAddressResponse)
-        val personEntity = personRepository.findByCrn(sasGetAddressResponse.crn)!!
+        val sasAddress = sasClient.getAddress(event.detailUrl!!)!!.data
+        val cprAddressUpdateId = UUID.fromString(sasAddress.cprAddressId)
+        val updatedSasAddress = Address.from(sasAddress)
+        val personEntity = personRepository.findByCrn(sasAddress.crn)!!
 
         addressService.processAddress(
           address = updatedSasAddress,

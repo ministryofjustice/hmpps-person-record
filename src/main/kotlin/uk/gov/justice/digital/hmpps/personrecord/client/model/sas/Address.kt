@@ -1,11 +1,18 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.sas
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SasGetAddressResponse(
+  val data: SasAddressData,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class SasAddressData(
   val crn: String,
+  @JsonProperty("id")
   val cprAddressId: String,
   val startDate: LocalDate? = null,
   val endDate: LocalDate? = null,
