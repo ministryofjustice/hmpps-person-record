@@ -61,7 +61,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
@@ -522,15 +521,7 @@ class ProbationApiE2ETest : E2ETestBase() {
               gender = Value("M"),
             ),
           ),
-          addresses = listOf(
-            ProbationAddress(
-              noFixedAbode = false,
-              startDateTime = randomZonedDateTime(),
-              endDateTime = randomZonedDateTime(),
-              postcode = randomPostcode(),
-              fullAddress = randomFullAddress(),
-            ),
-          ),
+          addresses = listOf(ProbationAddress(postcode = randomPostcode())),
           ethnicity = Value(randomProbationEthnicity()),
           contactDetails = ContactDetails(
             email = randomEmail(),
@@ -573,12 +564,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.getPrimaryName().dateOfBirth).isEqualTo(probationCase.dateOfBirth)
         assertThat(offender.getPrimaryName().sexCode).isEqualTo(SexCode.from(probationCase))
 
-        assertThat(offender.addresses.size).isEqualTo(1)
-        assertThat(offender.addresses[0].noFixedAbode).isEqualTo(probationCase.addresses[0].noFixedAbode)
-        assertThat(offender.addresses[0].startDate).isEqualTo(probationCase.addresses[0].startDateTime)
-        assertThat(offender.addresses[0].endDate).isEqualTo(probationCase.addresses[0].endDateTime)
-        assertThat(offender.addresses[0].postcode).isEqualTo(probationCase.addresses[0].postcode)
-        assertThat(offender.addresses[0].fullAddress).isEqualTo(probationCase.addresses[0].fullAddress)
+        assertThat(offender.addresses.size).isEqualTo(0)
         assertThat(offender.contacts.size).isEqualTo(3)
         val populatedContactUpdateIdCount = offender.contacts.count { it.updateId != null }
         assertThat(populatedContactUpdateIdCount).isEqualTo(3)
