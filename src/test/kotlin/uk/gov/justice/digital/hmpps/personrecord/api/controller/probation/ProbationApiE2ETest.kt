@@ -591,6 +591,35 @@ class ProbationApiE2ETest : E2ETestBase() {
       }
 
       @Test
+      fun `should not saves address on probation create record`() {
+        val defendantId = randomDefendantId()
+        val defendant = createRandomCommonPlatformPersonDetails(defendantId)
+        val probationCase = ProbationCase(
+          name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
+          identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
+          dateOfBirth = defendant.dateOfBirth,
+          addresses = listOf(
+            ProbationAddress(postcode = randomPostcode()),
+            ProbationAddress(postcode = randomPostcode()),
+            ProbationAddress(postcode = randomPostcode()),
+          ),
+        )
+
+        createPersonWithNewKey(defendant)
+
+        webTestClient.put()
+          .uri(probationApiUrl(defendantId))
+          .authorised(listOf(PROBATION_API_READ_WRITE))
+          .bodyValue(probationCase)
+          .exchange()
+          .expectStatus()
+          .isOk
+
+        val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+        assertThat(offender.addresses.size).isEqualTo(0)
+      }
+
+      @Test
       fun `should retain master defendant id on update on probation record`() {
         val defendantId = randomDefendantId()
 
