@@ -1,9 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.expectBody
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import tools.jackson.module.kotlin.readValue
@@ -56,58 +54,8 @@ class AddressDomainEventPublisherE2ETest : E2ETestBase() {
     assertThat(domainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("CRN")
     assertThat(domainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(crn)
     assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(createdAddress?.updateId.toString())
-    assertThat(domainEvent.additionalInformation?.eventSource).isEqualTo(DomainEventSource.CPR.identifier)
+    assertThat(domainEvent.additionalInformation?.eventSource).isEqualTo(CPR.identifier)
     assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isNull()
-  }
-
-  @Nested
-  @ActiveProfiles("preprod")
-  inner class FeatureFlagPreprod {
-    @Test
-    fun `should not publish a CPR address created domain event in preprod`() {
-      assertThat(true).isTrue()
-      val crn = randomCrn()
-      val newAddress = createRandomProbationAddress()
-      createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
-
-      val responseBody = webTestClient
-        .post()
-        .uri(probationAddressApiUrl(crn))
-        .headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = listOf(PROBATION_API_READ_WRITE)))
-        .bodyValue(newAddress)
-        .exchange()
-        .expectStatus()
-        .isCreated
-        .expectBody<ProbationCreateAddressResponse>()
-        .returnResult().responseBody!!
-
-      expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
-    }
-  }
-
-  @Nested
-  @ActiveProfiles("prod")
-  inner class FeatureFlagProd {
-    @Test
-    fun `should not publish a CPR address created domain event in prod`() {
-      assertThat(true).isTrue()
-      val crn = randomCrn()
-      val newAddress = createRandomProbationAddress()
-      createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
-
-      val responseBody = webTestClient
-        .post()
-        .uri(probationAddressApiUrl(crn))
-        .headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = listOf(PROBATION_API_READ_WRITE)))
-        .bodyValue(newAddress)
-        .exchange()
-        .expectStatus()
-        .isCreated
-        .expectBody<ProbationCreateAddressResponse>()
-        .returnResult().responseBody!!
-
-      expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
-    }
   }
 
   private fun probationAddressApiUrl(crn: String) = "/person/probation/$crn/address"
