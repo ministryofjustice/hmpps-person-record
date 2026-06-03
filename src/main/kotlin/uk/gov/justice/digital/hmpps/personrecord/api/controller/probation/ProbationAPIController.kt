@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.context.annotation.Profile
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus.MOVED_PERMANENTLY
 import org.springframework.http.ResponseEntity
@@ -33,6 +34,92 @@ import java.net.URI
 
 @Tag(name = "Probation")
 @RestController
+@Profile("prod")
+class ProbationAPIControllerProd(
+  private val personRepository: PersonRepository,
+  private val personService: PersonService,
+  private val reclusterService: ReclusterService,
+) {
+  @Operation(
+    description = """Retrieve person record by CRN. Role required is **$API_READ_ONLY** . 
+      For Identifiers the crn, prisonNumber, defendantId, cids come from all records related to this person.
+      The other Identifiers come from just this person
+      **cprUUID is not supplied on this endpoint.**""",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @GetMapping("/person/probation/{crn}")
+  @ApiResponses(
+    ApiResponse(
+      responseCode = "200",
+      description = "OK",
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = CanonicalRecord::class),
+        ),
+      ],
+    ),
+    ApiResponse(
+      responseCode = "301",
+      description = "Permanent Redirect",
+      content = [
+        Content(schema = Schema(hidden = true)),
+      ],
+    ),
+  )
+  @PreAuthorize("hasRole('$API_READ_ONLY')")
+  fun getProbationPerson(
+    @PathVariable(name = "crn") crn: String,
+  ): ResponseEntity<CanonicalRecord> {
+    val personEntity = personRepository.findByCrn(crn) ?: throw ResourceNotFoundException(crn)
+    return when {
+      personEntity.isMerged() -> respondWithRedirect(getMergedToCrn(personEntity))
+      else -> ResponseEntity.ok(CanonicalRecord.from(personEntity))
+    }
+  }
+
+  @Operation(
+    description = """Create person record by CRN. Role required is **$PROBATION_API_READ_WRITE** . 
+      Includes all fields relating to core person information""",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @PutMapping("/person/probation/{defendantId}")
+  @ApiResponses(
+    ApiResponse(
+      responseCode = "200",
+      description = "OK",
+    ),
+  )
+  @PreAuthorize("hasRole('$PROBATION_API_READ_WRITE')")
+  @Transactional(isolation = REPEATABLE_READ)
+  fun createProbationPerson(
+    @PathVariable(name = "defendantId") defendantId: String,
+    @RequestBody probationCase: ProbationCase,
+  ) {
+    val masterDefendantId: String? = retrieveDefendant(defendantId).masterDefendantId
+
+    val person = Person.from(probationCase)
+    person.masterDefendantId = masterDefendantId
+
+    val offender: PersonEntity = personService.processPerson(person) {
+      personRepository.findByCrn(probationCase.identifiers.crn!!)
+    }
+
+    reclusterService.recluster(offender)
+  }
+
+  private fun retrieveDefendant(defendantId: String): PersonEntity = personRepository.findByDefendantId(defendantId) ?: throw ResourceNotFoundException(defendantId)
+
+  private fun getMergedToCrn(personEntity: PersonEntity): String = personRepository.findByIdOrNull(personEntity.mergedTo!!)!!.crn!!
+
+  private fun <T : Any> respondWithRedirect(crn: String): ResponseEntity<T> = ResponseEntity.status(MOVED_PERMANENTLY)
+    .location(URI("/person/probation/$crn"))
+    .build()
+}
+
+@Tag(name = "Probation")
+@RestController
+@Profile("!prod")
 class ProbationAPIController(
   private val personRepository: PersonRepository,
   private val personService: PersonService,
