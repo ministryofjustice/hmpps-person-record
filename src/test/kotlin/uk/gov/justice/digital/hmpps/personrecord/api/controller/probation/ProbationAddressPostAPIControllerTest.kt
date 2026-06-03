@@ -184,7 +184,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
       sendPostRequestAsserted<Unit>(
-        url = probationAddressApiUrl(randomCrn()),
+        url = probationAddressApiUrl(crn),
         body = newAddress,
         roles = listOf(PROBATION_API_READ_WRITE),
         expectedStatus = HttpStatus.NOT_FOUND,

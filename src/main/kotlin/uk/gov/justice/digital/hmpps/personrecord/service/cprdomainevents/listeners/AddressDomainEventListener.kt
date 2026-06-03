@@ -9,11 +9,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.extensions.UK_ZONE
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
@@ -26,8 +29,31 @@ class AddressDomainEventListener(
 
   @TransactionalEventListener
   fun onAddressCreated(addressCreated: AddressCreated) {
-    val addressEntity = addressCreated.addressEntity
-    val config = buildAddressCreatedDomainEventConfig(addressEntity.person!!.sourceSystem) ?: return
+    publishAddressDomainEvent(
+      addressEntity = addressCreated.addressEntity,
+      eventSource = addressCreated.eventSource.identifier,
+      action = "created",
+      config = buildAddressDomainEventConfig(addressCreated.addressEntity.person!!.sourceSystem, CPR_PROBATION_ADDRESS_CREATED),
+    )
+  }
+
+  @TransactionalEventListener
+  fun onAddressUpdated(addressUpdated: AddressUpdated) {
+    publishAddressDomainEvent(
+      addressEntity = addressUpdated.addressEntity,
+      eventSource = addressUpdated.eventSource.identifier,
+      action = "updated",
+      config = buildAddressDomainEventConfig(addressUpdated.addressEntity.person!!.sourceSystem, CPR_PROBATION_ADDRESS_UPDATED),
+    )
+  }
+
+  private fun publishAddressDomainEvent(
+    addressEntity: AddressEntity,
+    eventSource: String,
+    action: String,
+    config: AddressDomainEventConfig?,
+  ) {
+    config ?: return
     val sourceSystemId = addressEntity.person!!.extractSourceSystemId()!!
     val addressId = addressEntity.updateId
     val detailUrl = "$baseUrl/person/${config.urlPathSegment}/$sourceSystemId/address/$addressId"
@@ -35,13 +61,13 @@ class AddressDomainEventListener(
     domainEventPublisher.publish(
       DomainEvent(
         eventType = config.eventType,
-        description = "A ${config.typeDescription} address has been created for a person",
+        description = "A ${config.typeDescription} address has been $action for a person",
         detailUrl = detailUrl,
         occurredAt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(UK_ZONE).format(Instant.now()),
         additionalInformation = AdditionalInformation(
           cprAddressId = addressId.toString(),
           outboundDeliusAddressId = addressEntity.deliusAddressId?.toString(),
-          eventSource = addressCreated.eventSource.identifier,
+          eventSource = eventSource,
         ),
         personReference = PersonReference(
           identifiers = listOf(
@@ -49,12 +75,12 @@ class AddressDomainEventListener(
           ),
         ),
       ),
-      attributes = mapOf("eventSource" to addressCreated.eventSource.identifier),
+      attributes = mapOf("eventSource" to eventSource),
     )
   }
 
-  private fun buildAddressCreatedDomainEventConfig(sourceSystem: SourceSystemType): AddressDomainEventConfig? = when (sourceSystem) {
-    DELIUS -> AddressDomainEventConfig(CPR_PROBATION_ADDRESS_CREATED, "CRN", "probation", "probation")
+  private fun buildAddressDomainEventConfig(sourceSystem: SourceSystemType, eventType: String): AddressDomainEventConfig? = when (sourceSystem) {
+    DELIUS -> AddressDomainEventConfig(eventType, "CRN", "probation", "probation")
     else -> null // temporary flow for other source systems we haven't mapped yet
   }
 }
