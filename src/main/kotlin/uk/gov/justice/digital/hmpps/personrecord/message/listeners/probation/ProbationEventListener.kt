@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import io.awspring.cloud.sqs.annotation.SqsListener
-import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
@@ -22,30 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_D
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 
 @Component
-@Profile("prod")
 class ProbationEventListener(
-  private val domainEventProcessor: DomainEventProcessor,
-  private val eventProcessor: ProbationEventProcessor,
-  private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
-) {
-
-  @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
-    logger.info("Saving person including address")
-    val crn = event.getCrn()
-    corePersonRecordAndDeliusClient.getPerson(crn).let {
-      eventProcessor.processEvent(it)
-    }
-  }
-
-  companion object {
-    private val logger = LoggerFactory.getLogger(ProbationEventListener::class.java)
-  }
-}
-
-@Component
-@Profile("!prod")
-class ProbationEventListenerDev(
   private val domainEventProcessor: DomainEventProcessor,
   private val eventProcessor: ProbationEventProcessor,
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
@@ -55,8 +30,7 @@ class ProbationEventListenerDev(
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEventDev(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
-    logger.info("Saving person and address separately")
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
     val crn = event.getCrn()
     when (event.eventType) {
       OFFENDER_ADDRESS_CREATED, OFFENDER_ADDRESS_UPDATED -> {
@@ -87,9 +61,5 @@ class ProbationEventListenerDev(
   private fun getProbationAddress(event: DomainEvent): ProbationAddress {
     val deliusAddressId = event.additionalInformation?.inboundDeliusAddressId!!
     return corePersonRecordAndDeliusClient.getAddress(deliusAddressId)!!
-  }
-
-  companion object {
-    private val logger = LoggerFactory.getLogger(ProbationEventListenerDev::class.java)
   }
 }
