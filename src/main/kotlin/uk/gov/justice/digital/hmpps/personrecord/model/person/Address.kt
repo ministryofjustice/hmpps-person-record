@@ -154,13 +154,13 @@ data class Address(
       dependentLocality = address.address.dependentLocality,
       postTown = address.address.postTown,
       county = address.address.county,
-      countryCode = address.address.country?.let { CountryCode.valueOf(it) },
+      countryCode = address.address.countryCode?.let { CountryCode.valueOf(it) },
       uprn = address.address.uprn,
       startDate = address.startDate?.toUkZonedDateTime(),
       endDate = address.endDate?.toUkZonedDateTime(),
       isVerified = address.typeVerified,
-      statusCode = address.status?.code?.let { AddressStatusCode.valueOf(it) },
-      usages = address.type?.code?.let { listOf(AddressUsage(AddressUsageCode.from(it), true)) } ?: emptyList(),
+      statusCode = address.statusCode?.code?.let { AddressStatusCode.valueOf(it) },
+      usages = address.usage?.code?.let { listOf(AddressUsage(AddressUsageCode.from(it), true)) } ?: emptyList(),
     )
 
     fun fromPrisonerAddressList(addresses: List<PrisonerAddress>): List<Address> = addresses.mapNotNull { from(it) }

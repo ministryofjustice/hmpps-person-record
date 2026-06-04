@@ -128,14 +128,14 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
         dependentLocality = randomName(),
         postTown = randomPostcode(),
         county = randomName(),
-        country = randomCountryCode().name,
+        countryCode = randomCountryCode().name,
         uprn = randomUprn(),
       ),
-      status = SasAddressStatus(
+      statusCode = SasAddressStatus(
         code = randomAddressStatusCode().name,
         description = randomLowerCaseString(),
       ),
-      type = SasAddressType(
+      usage = SasAddressType(
         code = randomAddressUsageCode().name,
         description = randomLowerCaseString(),
       ),
@@ -184,12 +184,12 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(actualAddressEntity.dependentLocality).isEqualTo(expectedSasAddress.address.dependentLocality)
       assertThat(actualAddressEntity.postTown).isEqualTo(expectedSasAddress.address.postTown)
       assertThat(actualAddressEntity.county).isEqualTo(expectedSasAddress.address.county)
-      assertThat(actualAddressEntity.countryCode!!.name).isEqualTo(expectedSasAddress.address.country)
+      assertThat(actualAddressEntity.countryCode!!.name).isEqualTo(expectedSasAddress.address.countryCode)
       assertThat(actualAddressEntity.uprn).isEqualTo(expectedSasAddress.address.uprn)
-      assertThat(actualAddressEntity.statusCode!!.name).isEqualTo(expectedSasAddress.status!!.code)
+      assertThat(actualAddressEntity.statusCode!!.name).isEqualTo(expectedSasAddress.statusCode!!.code)
       val actualAddressUsages = actualAddressEntity.usages
       assertThat(actualAddressUsages.size).isEqualTo(1)
-      assertThat(actualAddressUsages.first().usageCode.name).isEqualTo(expectedSasAddress.type!!.code)
+      assertThat(actualAddressUsages.first().usageCode.name).isEqualTo(expectedSasAddress.usage!!.code)
       assertThat(actualAddressUsages.first().active).isEqualTo(true)
     }
   }

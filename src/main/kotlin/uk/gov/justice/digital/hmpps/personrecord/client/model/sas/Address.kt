@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.sas
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -17,8 +18,10 @@ data class SasAddressData(
   val typeVerified: Boolean? = null,
   val noFixedAbode: Boolean? = null,
   val address: Address,
-  val status: SasAddressStatus? = null,
-  val type: SasAddressType? = null,
+  @JsonProperty("status")
+  val statusCode: SasAddressStatus? = null,
+  @JsonProperty("type")
+  val usage: SasAddressType? = null,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -43,6 +46,7 @@ data class Address(
   val dependentLocality: String? = null,
   val postTown: String? = null,
   val county: String? = null,
-  val country: String? = null,
+  @JsonProperty("country")
+  val countryCode: String? = null,
   val uprn: String? = null,
 )
