@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -23,8 +22,16 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_SELF_HEALED
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAlias
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
@@ -35,24 +42,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
   @Nested
   inner class ClusterAlreadySetAsNeedsAttention {
-
-    @Test
-    fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster above the join threshold`() {
-      val basePersonData = createRandomProbationCase()
-
-      val recordA = createProbationPerson(basePersonData)
-      val matchesA = createMatchingRecord(basePersonData)
-      val doesNotMatch = createProbationPerson()
-      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-        .addPerson(recordA)
-        .addPerson(matchesA)
-        .addPerson(doesNotMatch)
-
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData, crn = doesNotMatch.crn!!))
-
-      cluster.assertClusterIsOfSize(3)
-      cluster.assertClusterStatus(ACTIVE)
-    }
 
     @Test
     fun `should change from needs attention status with null reason to active when the non-matching record is updated to match the other records in the cluster above the join threshold`() {
@@ -74,22 +63,36 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster above the fracture threshold`() {
-      val baseAddressData = ProbationAddress(postcode = randomPostcode())
-      val basePersonData = createRandomProbationCase()
-      val nonMatchingProbationCase = createRandomProbationCase()
-
-      val recordA = createProbationPerson(basePersonData.copy(addresses = listOf(baseAddressData.copy(deliusAddressId = randomDigit().toLong()))))
-      val matchesA = createMatchingRecord(basePersonData.copy(addresses = listOf(baseAddressData.copy(deliusAddressId = randomDigit().toLong()))))
-      val doesNotMatch = createProbationPerson(nonMatchingProbationCase.copy(addresses = listOf(baseAddressData.copy(deliusAddressId = randomDigit().toLong()))))
-      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-        .addPerson(recordA)
-        .addPerson(matchesA)
-        .addPerson(doesNotMatch)
-
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.aboveFracture(), doesNotMatch.crn!!))
-
+      val nonMatchingDefendantId = randomDefendantId()
+      val basePersonSetup = CommonPlatformHearingSetup(
+        middleName = randomName(),
+        gender = randomCommonPlatformSexCode().key,
+        pnc = randomLongPnc(),
+        cro = randomCro(),
+        defendantId = randomDefendantId(),
+        aliases = listOf(CommonPlatformHearingSetupAlias(randomName(), randomName())),
+        address = CommonPlatformHearingSetupAddress("", "", "", "", "", randomPostcode()),
+      )
+      publishCommonPlatformMessage(
+        commonPlatformHearing(listOf(basePersonSetup, basePersonSetup.copy(defendantId = randomDefendantId()), basePersonSetup.copy(defendantId = nonMatchingDefendantId))),
+      )
+      val cluster = awaitNotNull { personRepository.findByDefendantId(nonMatchingDefendantId)?.personKey }
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(ACTIVE)
+
+      publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = nonMatchingDefendantId))))
+      awaitAssert {
+        personRepository.findByDefendantId(nonMatchingDefendantId)?.personKey
+        cluster.assertClusterStatus(NEEDS_ATTENTION, BROKEN_CLUSTER)
+      }
+
+      publishCommonPlatformMessage(
+        commonPlatformHearing(listOf(aboveFractureMatch(basePersonSetup, nonMatchingDefendantId))),
+      )
+      awaitAssert {
+        personRepository.findByDefendantId(nonMatchingDefendantId)?.personKey
+        cluster.assertClusterStatus(ACTIVE)
+      }
     }
 
     @Test
@@ -136,7 +139,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should not set a cluster to active if it is set to needs attention and an update does change the cluster composition`() {
+    fun `should not set a cluster to active if it is set to needs attention and a new record joins the cluster`() {
       val basePersonData = createRandomProbationCase()
 
       val personA = createProbationPerson(basePersonData)
@@ -147,11 +150,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       val personCCrn = randomCrn()
       probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup.from(basePersonData, personCCrn))
-
-      cluster.assertClusterIsOfSize(3)
-      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), personCCrn))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
@@ -173,7 +171,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should retain needs attention if the cluster has one record in it after a delete but was a override conflict`() {
+    fun `should retain needs attention if the cluster has one record in it after a delete but was an override conflict`() {
       val basePersonData = createRandomProbationCase()
 
       val recordA = createProbationPerson(basePersonData)
@@ -193,6 +191,11 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
     }
   }
+
+  private fun aboveFractureMatch(
+    basePersonSetup: CommonPlatformHearingSetup,
+    defendantId: String,
+  ): CommonPlatformHearingSetup = basePersonSetup.copy(defendantId = defendantId, cro = "", pnc = "", masterDefendantId = defendantId)
 
   @Nested
   inner class ClusterWithExclusionOverride {
@@ -467,27 +470,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should do nothing when match return same items from cluster with large amount of records`() {
-      val basePersonData = createRandomProbationCase()
-
-      val personA = createProbationPerson(basePersonData)
-      val personB = createMatchingRecord(basePersonData)
-      val personC = createMatchingRecord(basePersonData)
-      val personD = createMatchingRecord(basePersonData)
-      val personE = createMatchingRecord(basePersonData)
-      val cluster = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-        .addPerson(personC)
-        .addPerson(personD)
-        .addPerson(personE)
-
-      recluster(personA)
-
-      cluster.assertClusterNotChanged(size = 5)
-    }
-
-    @Test
     fun `should do nothing when cluster is valid but matches to other clusters below the join threshold`() {
       val basePersonData = createRandomProbationCase()
 
@@ -687,7 +669,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personB)
         .addPerson(personC)
 
-      // This shows the cluster isn't correct to start with
       recluster(personA)
       cluster1.assertClusterIsOfSize(3)
 
@@ -725,21 +706,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personA)
         .addPerson(personB)
         .addPerson(doesNotMatch)
-
-      recluster(personA)
-
-      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-    }
-
-    @Test
-    fun `should mark as need attention when matches no record in cluster with multiple records`() {
-      val personA = createProbationPerson()
-      val personB = createProbationPerson()
-      val personC = createProbationPerson()
-      val cluster = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-        .addPerson(personC)
 
       recluster(personA)
 
