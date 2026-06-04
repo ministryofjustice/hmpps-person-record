@@ -13,8 +13,8 @@ generic-service:
     NOMIS_OAUTH_BASE_URL: https://sign-in-dev.hmpps.service.justice.gov.uk
     PRISONER_SEARCH_BASE_URL: https://prisoner-search-dev.prison.service.justice.gov.uk
     CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: https://core-person-record-and-delius-dev.hmpps.service.justice.gov.uk
-    SAS_BASE_URL: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk
     SERVICE_NOW_BASE_URL: https://mojdev.service-now.com
+    SAS_BASE_URL: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk
 
   scheduledDowntime:
     enabled: true
@@ -31,7 +31,7 @@ generic-prometheus-alerts:
     - "hmpps-person-record-development-cpr_delius_delete_events_dlq"
     - "hmpps-person-record-development-cpr_nomis_events_dlq"
     - "hmpps-person-record-development-cpr_nomis_merge_events_dlq"
-    - "hmpps-person-record-prod-cpr_sas_events_dlq"
+    - "hmpps-person-record-development-cpr_sas_events_dlq"
   rdsAlertsDatabases:
     cloud-platform-21758fcf16e3a488: "hmpps-person-record-database"
 
