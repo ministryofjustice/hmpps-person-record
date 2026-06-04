@@ -38,7 +38,6 @@ class SasEventListener(
           eventSource = DomainEventSource.CPR,
         )
       }
-      else -> throw Exception("Event of type ${event.eventType} does not have a registered processor")
     }
   }
 }
