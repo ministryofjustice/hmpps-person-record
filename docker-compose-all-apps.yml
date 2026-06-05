@@ -128,6 +128,7 @@ services:
       PERSON_MATCH_BASE_URL: http://hmpps-person-match:5000
       PRISONER_SEARCH_BASE_URL: http://localhost:9999 # non-existent
       CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: http://localhost:9999 # non-existent
+      SAS_BASE_URL: http://localhost:9999 # non-existent
       SERVICE_NOW_BASE_URL: http://localhost:9999 # non-existent
       SERVICE_NOW_SYSPARM_ID: sysparm12345
       SERVICE_NOW_REQUESTOR: abcd
