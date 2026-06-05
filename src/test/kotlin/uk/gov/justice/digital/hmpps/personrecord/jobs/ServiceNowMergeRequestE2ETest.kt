@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestRepository
 import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestService.Companion.HOURS_TO_CHOOSE_FROM
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -269,6 +270,36 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
         "SOURCE_SYSTEM" to "DELIUS",
       ),
     )
+    val tenHoursAgo = LocalDateTime.now().minusHours(HOURS_TO_CHOOSE_FROM)
+
+    personRepository.updateLastModifiedDate(person1.crn!!, tenHoursAgo.plusMinutes(1))
+    personRepository.updateLastModifiedDate(person2.crn!!, tenHoursAgo.plusMinutes(2))
+    personRepository.updateLastModifiedDate(person3.crn!!, tenHoursAgo.plusMinutes(2))
+    personRepository.updateLastModifiedDate(person4.crn!!, tenHoursAgo.plusMinutes(2))
+
+    webTestClient.post()
+      .uri(GENERATE_MERGE_REQUESTS)
+      .exchange()
+      .expectStatus()
+      .isOk
+
+    awaitAssert { wiremock.verify(1, RequestPatternBuilder.like(serviceNowStub?.request)) }
+  }
+
+  @Test
+  fun `should ignore records in NEEDS_ATTENTION`() {
+    val person1 = createPerson(createRandomProbationPersonDetails())
+    val person2 = createPerson(createRandomProbationPersonDetails())
+    createPersonKey()
+      .addPerson(person1)
+      .addPerson(person2)
+
+    val person3 = createRandomProbationPersonDetails()
+    val person4 = createRandomProbationPersonDetails()
+    createPersonKey(NEEDS_ATTENTION)
+      .addPerson(person3)
+      .addPerson(person4)
+
     val tenHoursAgo = LocalDateTime.now().minusHours(HOURS_TO_CHOOSE_FROM)
 
     personRepository.updateLastModifiedDate(person1.crn!!, tenHoursAgo.plusMinutes(1))
