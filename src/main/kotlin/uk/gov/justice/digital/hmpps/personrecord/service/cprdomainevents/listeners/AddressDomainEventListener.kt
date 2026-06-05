@@ -67,7 +67,6 @@ class AddressDomainEventListener(
         additionalInformation = AdditionalInformation(
           cprAddressId = addressId.toString(),
           outboundDeliusAddressId = addressEntity.deliusAddressId?.toString(),
-          eventSource = eventSource,
         ),
         personReference = PersonReference(
           identifiers = listOf(

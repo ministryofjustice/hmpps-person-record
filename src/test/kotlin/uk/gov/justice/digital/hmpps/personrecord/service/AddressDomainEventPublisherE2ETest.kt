@@ -56,7 +56,6 @@ class AddressDomainEventPublisherE2ETest : E2ETestBase() {
     assertThat(domainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("CRN")
     assertThat(domainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(crn)
     assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(createdAddress?.updateId.toString())
-    assertThat(domainEvent.additionalInformation?.eventSource).isEqualTo(DomainEventSource.CPR.identifier)
     assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isNull()
   }
 
@@ -70,7 +69,7 @@ class AddressDomainEventPublisherE2ETest : E2ETestBase() {
       val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
-      val responseBody = webTestClient
+      webTestClient
         .post()
         .uri(probationAddressApiUrl(crn))
         .headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = listOf(PROBATION_API_READ_WRITE)))
@@ -95,7 +94,7 @@ class AddressDomainEventPublisherE2ETest : E2ETestBase() {
       val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
-      val responseBody = webTestClient
+      webTestClient
         .post()
         .uri(probationAddressApiUrl(crn))
         .headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = listOf(PROBATION_API_READ_WRITE)))

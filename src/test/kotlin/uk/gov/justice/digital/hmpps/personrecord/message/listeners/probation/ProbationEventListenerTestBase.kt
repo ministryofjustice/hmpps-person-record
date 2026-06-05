@@ -153,7 +153,6 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     assertThat(domainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("CRN")
     assertThat(domainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(crn)
     assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(addressEntity.updateId.toString())
-    assertThat(domainEvent.additionalInformation?.eventSource).isEqualTo(DELIUS.identifier)
     assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity.deliusAddressId.toString())
   }
 
