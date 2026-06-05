@@ -41,7 +41,7 @@ class AddressService(
         create(address, personEntity, eventSource)
       },
       yes = {
-        update(address, it)
+        update(address, it, eventSource)
       },
     )
   }
@@ -62,7 +62,7 @@ class AddressService(
     return addressEntity
   }
 
-  private fun update(address: Address, addressEntity: AddressEntity): AddressEntity {
+  private fun update(address: Address, addressEntity: AddressEntity, eventSource: DomainEventSource): AddressEntity {
     val matchingFieldsBeforeUpdate = PersonMatchRecord.from(addressEntity.person!!)
     addressEntity.update(address)
     addressRepository.save(addressEntity)
@@ -70,7 +70,7 @@ class AddressService(
     val matchingFieldsChanged = matchingFieldsBeforeUpdate.matchingFieldsAreDifferent(addressEntity.person!!)
     tryRecluster(addressEntity.person!!, matchingFieldsChanged)
 
-    publisher.publishEvent(AddressUpdated(addressEntity, matchingFieldsChanged))
+    publisher.publishEvent(AddressUpdated(addressEntity, matchingFieldsChanged, eventSource))
 
     return addressEntity
   }
