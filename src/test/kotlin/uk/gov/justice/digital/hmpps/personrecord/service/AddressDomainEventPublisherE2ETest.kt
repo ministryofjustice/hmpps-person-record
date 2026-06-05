@@ -46,6 +46,7 @@ class AddressDomainEventPublisherE2ETest : E2ETestBase() {
     val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_ADDRESS_CREATED))
     assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(CPR.identifier))
+    assertThat(sqsMessage.message.contains("unmergedCRN")).isFalse()
 
     val domainEvent: DomainEvent = jsonMapper.readValue(sqsMessage.message)
     assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_ADDRESS_CREATED)
