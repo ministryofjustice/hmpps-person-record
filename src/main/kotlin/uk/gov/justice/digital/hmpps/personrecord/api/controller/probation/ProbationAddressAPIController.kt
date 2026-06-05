@@ -34,10 +34,8 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address as 
 
 @Tag(name = "Probation")
 @RestController
-class ProbationAddressAPIController(
-  private val addressService: AddressService,
+class ProbationAddressAPIControllerGet(
   private val addressRepository: AddressRepository,
-  private val personRepository: PersonRepository,
 ) {
 
   @Operation(
@@ -67,6 +65,15 @@ class ProbationAddressAPIController(
 
     return CanonicalAddress.from(address)
   }
+}
+
+@Tag(name = "Probation")
+@RestController
+@Profile("!preprod & !prod")
+class ProbationAddressAPIControllerPost(
+  private val addressService: AddressService,
+  private val personRepository: PersonRepository,
+) {
 
   @Operation(
     description = """Create an address for the given CRN person record. Role required is **$PROBATION_API_READ_WRITE**.""",
@@ -87,7 +94,6 @@ class ProbationAddressAPIController(
   @PreAuthorize("hasRole('$PROBATION_API_READ_WRITE')")
   @PostMapping("/person/probation/{crn}/address")
   @Transactional(isolation = REPEATABLE_READ)
-  @Profile("!preprod & !prod")
   fun createProbationAddress(
     @PathVariable crn: String,
     @RequestBody probationAddress: ProbationAddress,
