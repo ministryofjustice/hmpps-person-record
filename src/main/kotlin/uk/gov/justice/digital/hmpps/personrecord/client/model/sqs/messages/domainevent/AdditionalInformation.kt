@@ -28,6 +28,4 @@ data class AdditionalInformation(
 
   @JsonProperty("deliusAddressId")
   val outboundDeliusAddressId: String? = null,
-
-  val eventSource: String? = null,
 )
