@@ -11,8 +11,6 @@ import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -51,7 +49,6 @@ class ProbationAddressCreateApiController(
   )
   @PreAuthorize("hasRole('$PROBATION_API_READ_WRITE')")
   @PostMapping("/person/probation/{crn}/address")
-  @Transactional(isolation = REPEATABLE_READ)
   fun createProbationAddress(
     @PathVariable crn: String,
     @RequestBody probationAddress: ProbationAddress,
