@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
@@ -25,10 +24,9 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     publishProbationAddressEvent(cprPerson.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_CREATED)
 
     assertAddress(cprPerson.crn!!, probationAddress)
-    assertProbationAddressDomainEventPublished(
+    assertDomainEventPublishedAfterDeliusEvent(
       expectedEventType = CPR_PROBATION_ADDRESS_CREATED,
       crn = cprPerson.crn,
-      eventSource = DELIUS,
     )
   }
 
@@ -54,10 +52,9 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     assertThat(addressEntityAfterCreateEvent.updateId).isEqualTo(addressEntityBeforeCreateEvent.updateId)
     assertAddress(personEntity.crn!!, updatedProbationAddress)
 
-    assertProbationAddressDomainEventPublished(
+    assertDomainEventPublishedAfterDeliusEvent(
       expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
       crn = personEntity.crn!!,
-      eventSource = DELIUS,
     )
   }
 

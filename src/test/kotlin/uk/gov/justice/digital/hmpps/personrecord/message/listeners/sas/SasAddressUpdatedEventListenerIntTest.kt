@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
@@ -51,10 +50,9 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
       publishSasAddressUpdateEvent(crn!!)
 
       assertAddressUpdated(crn, sasCallbackResponse)
-      assertProbationAddressDomainEventPublished(
+      assertDomainEventPublishedAfterSasEvent(
         expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
         crn = crn,
-        eventSource = CPR,
       )
     }
   }

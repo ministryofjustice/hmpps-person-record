@@ -6,7 +6,6 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
@@ -36,10 +35,9 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     assertThat(cprAddressAfterUpdate.id).isEqualTo(cprAddressBeforeUpdate.id)
     assertThat(cprAddressAfterUpdate.updateId).isEqualTo(cprAddressBeforeUpdate.updateId)
     assertAddress(personEntity.crn!!, updatedProbationAddress)
-    assertProbationAddressDomainEventPublished(
+    assertDomainEventPublishedAfterDeliusEvent(
       expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
       crn = personEntity.crn!!,
-      eventSource = DELIUS,
     )
   }
 
@@ -114,10 +112,9 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
     assertAddress(personEntity.crn!!, probationAddress)
-    assertProbationAddressDomainEventPublished(
+    assertDomainEventPublishedAfterDeliusEvent(
       expectedEventType = CPR_PROBATION_ADDRESS_CREATED,
       crn = personEntity.crn!!,
-      eventSource = DELIUS,
     )
   }
 }
