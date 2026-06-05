@@ -24,7 +24,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     publishProbationAddressEvent(cprPerson.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_CREATED)
 
     assertAddress(cprPerson.crn!!, probationAddress)
-    assertProbationAddressDomainEventPublished(
+    assertDomainEventPublishedAfterDeliusEvent(
       expectedEventType = CPR_PROBATION_ADDRESS_CREATED,
       crn = cprPerson.crn,
     )
@@ -52,7 +52,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     assertThat(addressEntityAfterCreateEvent.updateId).isEqualTo(addressEntityBeforeCreateEvent.updateId)
     assertAddress(personEntity.crn!!, updatedProbationAddress)
 
-    assertProbationAddressDomainEventPublished(
+    assertDomainEventPublishedAfterDeliusEvent(
       expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
       crn = personEntity.crn!!,
     )

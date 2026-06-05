@@ -9,9 +9,10 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
@@ -27,7 +28,7 @@ import java.time.LocalDate
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.Address as SasAddress
 
-class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
+class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
   @Nested
   inner class Successful {
@@ -35,20 +36,24 @@ class SasAddressUpdatedEventListenerIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `consumes sas update event - updates address`() {
       val existingPersonEntity = createPerson(createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = randomPostcode()))))
+      val crn = existingPersonEntity.crn
       val existingAddressEntity = existingPersonEntity.addresses.first()
       createPersonKey()
         .addPerson(existingPersonEntity)
 
-      val sasCallbackResponse = createSasAddressGetResponse(existingPersonEntity.crn, existingAddressEntity.updateId)
+      val sasCallbackResponse = createSasAddressGetResponse(crn, existingAddressEntity.updateId)
 
       stubPersonMatchUpsert()
       stubPersonMatchScores()
       stubGetRequestToSas(sasCallbackResponse)
-        .also { stubPersonMatchScores() }
 
-      publishSasAddressUpdateEvent(existingPersonEntity.crn!!)
+      publishSasAddressUpdateEvent(crn!!)
 
-      assertAddressUpdated(existingPersonEntity.crn, sasCallbackResponse)
+      assertAddressUpdated(crn, sasCallbackResponse)
+      assertDomainEventPublishedAfterSasEvent(
+        expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
+        crn = crn,
+      )
     }
   }
 

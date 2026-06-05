@@ -12,10 +12,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
@@ -131,7 +135,18 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     }
   }
 
-  fun assertProbationAddressDomainEventPublished(expectedEventType: String, crn: String) {
+  fun assertDomainEventPublishedAfterDeliusEvent(expectedEventType: String, crn: String) {
+    val (addressEntity, domainEvent: DomainEvent) = checkDomainEventPublished(crn, expectedEventType, DELIUS)
+    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity.deliusAddressId.toString())
+  }
+
+  fun assertDomainEventPublishedAfterSasEvent(expectedEventType: String, crn: String) = checkDomainEventPublished(crn, expectedEventType, CPR)
+
+  private fun checkDomainEventPublished(
+    crn: String,
+    expectedEventType: String,
+    eventSource: DomainEventSource,
+  ): Pair<AddressEntity, DomainEvent> {
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
     val addressEntity = actualPersonEntity.addresses.first()
@@ -140,9 +155,10 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
       ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
     )
-    val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(expectedEventType))
-    assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(DELIUS.identifier))
+    val sqsMessage =
+      rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
+    assertThat(sqsMessage.getEventType()).isEqualTo(expectedEventType)
+    assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(eventSource.identifier))
 
     val domainEvent: DomainEvent = jsonMapper.readValue(sqsMessage.message)
     assertThat(domainEvent.eventType).isEqualTo(expectedEventType)
@@ -150,10 +166,9 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     assertThat(domainEvent.description).isEqualTo(expectedDescription(expectedEventType))
     assertThat(domainEvent.occurredAt).isNotNull()
     assertThat(domainEvent.personReference?.identifiers?.size).isEqualTo(1)
-    assertThat(domainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("CRN")
-    assertThat(domainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(crn)
+    assertThat(domainEvent.getCrn()).isEqualTo(crn)
     assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(addressEntity.updateId.toString())
-    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity.deliusAddressId.toString())
+    return Pair(addressEntity, domainEvent)
   }
 
   private fun expectedDescription(eventType: String): String = when (eventType) {
