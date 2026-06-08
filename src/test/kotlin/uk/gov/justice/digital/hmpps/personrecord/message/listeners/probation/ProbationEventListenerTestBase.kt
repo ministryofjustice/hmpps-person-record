@@ -1,28 +1,17 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import org.assertj.core.api.Assertions.assertThat
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
-import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressUsage
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
@@ -133,47 +122,5 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
       assertThat(actualAddressEntity.contacts.first().contactType).isEqualTo(ContactType.HOME)
       assertThat(actualAddressEntity.contacts.first().contactValue).isEqualTo(probationAddress.telephoneNumber)
     }
-  }
-
-  fun assertDomainEventPublishedAfterDeliusEvent(expectedEventType: String, crn: String) {
-    val (addressEntity, domainEvent: DomainEvent) = checkDomainEventPublished(crn, expectedEventType, DELIUS)
-    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity.deliusAddressId.toString())
-  }
-
-  fun assertDomainEventPublishedAfterSasEvent(expectedEventType: String, crn: String) = checkDomainEventPublished(crn, expectedEventType, CPR)
-
-  private fun checkDomainEventPublished(
-    crn: String,
-    expectedEventType: String,
-    eventSource: DomainEventSource,
-  ): Pair<AddressEntity, DomainEvent> {
-    val actualPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
-    assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-    val addressEntity = actualPersonEntity.addresses.first()
-
-    expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-    )
-    val sqsMessage =
-      rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
-    assertThat(sqsMessage.getEventType()).isEqualTo(expectedEventType)
-    assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(eventSource.identifier))
-
-    val domainEvent: DomainEvent = jsonMapper.readValue(sqsMessage.message)
-    assertThat(domainEvent.eventType).isEqualTo(expectedEventType)
-    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn/address/${addressEntity.updateId}")
-    assertThat(domainEvent.description).isEqualTo(expectedDescription(expectedEventType))
-    assertThat(domainEvent.occurredAt).isNotNull()
-    assertThat(domainEvent.personReference?.identifiers?.size).isEqualTo(1)
-    assertThat(domainEvent.getCrn()).isEqualTo(crn)
-    assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(addressEntity.updateId.toString())
-    return Pair(addressEntity, domainEvent)
-  }
-
-  private fun expectedDescription(eventType: String): String = when (eventType) {
-    CPR_PROBATION_ADDRESS_CREATED -> "A probation address has been created for a person"
-    CPR_PROBATION_ADDRESS_UPDATED -> "A probation address has been updated for a person"
-    else -> error("Unsupported event type: $eventType")
   }
 }
