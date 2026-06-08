@@ -27,7 +27,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address as 
 @Tag(name = "Probation")
 @RestController
 @Profile("!preprod & !prod")
-class ProbationAddressCreateApiController(
+class ProbationAddressCreateAPIController(
   private val addressService: AddressService,
   private val personRepository: PersonRepository,
 ) {
