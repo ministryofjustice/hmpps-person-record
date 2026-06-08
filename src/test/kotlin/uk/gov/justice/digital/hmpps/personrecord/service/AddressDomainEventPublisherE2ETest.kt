@@ -4,9 +4,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.web.reactive.server.expectBody
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
@@ -20,25 +17,22 @@ class AddressDomainEventPublisherE2ETest : E2ETestBase() {
   private lateinit var addressService: AddressService
 
   @Test
-  fun `should publish a CPR address created domain event when an address is created in sas`() {
+  fun `should publish a CPR address created domain event when an address is created`() {
     val crn = randomCrn()
-    val newAddress = createRandomProbationAddress()
-    createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
+    val newAddress = Address.from(createRandomProbationAddress())
+    val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
-    webTestClient
-      .post()
-      .uri(probationAddressApiUrl(crn))
-      .headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = listOf(PROBATION_API_READ_WRITE)))
-      .bodyValue(newAddress)
-      .exchange()
-      .expectStatus()
-      .isCreated
-      .expectBody<ProbationCreateAddressResponse>()
-      .returnResult().responseBody!!
+    addressService.processAddress(
+      address = newAddress,
+      findPerson = { personEntity },
+      findAddress = { null },
+      eventSource = CPR,
+    )
 
-    assertDomainEventPublishedAfterSasEvent(
-      expectedEventType = CPR_PROBATION_ADDRESS_CREATED,
+    checkDomainEventPublished(
       crn = crn,
+      expectedEventType = CPR_PROBATION_ADDRESS_CREATED,
+      eventSource = CPR,
     )
   }
 
@@ -81,6 +75,4 @@ class AddressDomainEventPublisherE2ETest : E2ETestBase() {
       expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
     }
   }
-
-  private fun probationAddressApiUrl(crn: String) = "/person/probation/$crn/address"
 }

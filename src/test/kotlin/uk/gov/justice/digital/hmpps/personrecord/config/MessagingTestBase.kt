@@ -304,7 +304,7 @@ abstract class MessagingTestBase : IntegrationTestBase() {
 
   fun assertDomainEventPublishedAfterSasEvent(expectedEventType: String, crn: String) = checkDomainEventPublished(crn, expectedEventType, CPR)
 
-  private fun checkDomainEventPublished(
+  fun checkDomainEventPublished(
     crn: String,
     expectedEventType: String,
     eventSource: DomainEventSource,
