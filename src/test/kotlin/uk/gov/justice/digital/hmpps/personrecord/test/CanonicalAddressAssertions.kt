@@ -50,4 +50,3 @@ private fun AddressEntity.toCanonicalAddress(): CanonicalAddress = CanonicalAddr
   usages = usages.map { CanonicalAddressUsage(CanonicalAddressUsageCode.from(it.usageCode), it.active) },
   contacts = contacts.map { CanonicalContact(CanonicalContactType.from(it.contactType), it.contactValue, it.extension) },
 )
-

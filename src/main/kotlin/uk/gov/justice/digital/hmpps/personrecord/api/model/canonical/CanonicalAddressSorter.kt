@@ -26,5 +26,3 @@ object CanonicalAddressSorter {
     null -> 2
   }
 }
-
-

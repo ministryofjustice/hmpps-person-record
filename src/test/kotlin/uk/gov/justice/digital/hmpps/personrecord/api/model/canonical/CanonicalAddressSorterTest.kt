@@ -70,4 +70,3 @@ class CanonicalAddressSorterTest {
     recordType = recordType,
   )
 }
-
