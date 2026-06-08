@@ -33,52 +33,54 @@ class ProbationEventListener(
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
   fun onDomainEvent(rawMessage: String) = sqsDomainEventProcessor.processDomainEvent(rawMessage) { event, eventSource ->
+    when {
+      patchAddressEvent(event, eventSource) -> patchAddress(event)
+      createAddressEvent(event, eventSource) -> upsertAddress(event)
+      updateAddressEvent(event) -> upsertAddress(event)
+      deleteAddressEvent(event) -> deleteAddress(event)
+      else -> updateWholePerson(event)
+    }
+  }
+
+  private fun patchAddressEvent(event: DomainEvent, eventSource: String?) = eventSource == DomainEventSource.CPR.identifier && event.eventType == OFFENDER_ADDRESS_CREATED
+
+  private fun createAddressEvent(event: DomainEvent, eventSource: String?) = eventSource != DomainEventSource.CPR.identifier && event.eventType == OFFENDER_ADDRESS_CREATED
+
+  private fun updateAddressEvent(event: DomainEvent) = event.eventType == OFFENDER_ADDRESS_UPDATED
+
+  private fun deleteAddressEvent(event: DomainEvent) = event.eventType == OFFENDER_ADDRESS_DELETED
+
+  private fun patchAddress(event: DomainEvent) {
+    val cprAddressUpdateId = event.additionalInformation!!.cprAddressId!!
+    val probationAddress = getProbationAddress(event)
+    val existingAddressEntity = addressRepository.findByUpdateId(UUID.fromString(cprAddressUpdateId))!!
+    existingAddressEntity.deliusAddressId = probationAddress.deliusAddressId
+    addressRepository.save(existingAddressEntity)
+  }
+
+  private fun upsertAddress(event: DomainEvent) {
     val crn = event.getCrn()
-    when (event.eventType) {
-      OFFENDER_ADDRESS_CREATED -> {
-        when (eventSource != DomainEventSource.CPR.identifier) {
-          true -> {
-            val probationAddress = getProbationAddress(event)
-            val personEntity = personRepository.findByCrn(crn)!!
+    val probationAddress = getProbationAddress(event)
+    val personEntity = personRepository.findByCrn(crn)!!
 
-            addressService.processAddress(
-              address = Address.from(probationAddress)!!,
-              findPerson = { personEntity },
-              findAddress = { personEntity.addresses.firstOrNull { it.deliusAddressId == probationAddress.deliusAddressId } },
-              eventSource = DELIUS,
-            )
-          }
-          false -> {
-            val cprAddressUpdateId = event.additionalInformation!!.cprAddressId!!
-            val probationAddress = getProbationAddress(event)
-            val existingAddressEntity = addressRepository.findByUpdateId(UUID.fromString(cprAddressUpdateId))!!
-            existingAddressEntity.deliusAddressId = probationAddress.deliusAddressId
-            addressRepository.save(existingAddressEntity)
-          }
-        }
-      }
-      OFFENDER_ADDRESS_UPDATED -> {
-        val probationAddress = getProbationAddress(event)
-        val personEntity = personRepository.findByCrn(crn)!!
+    addressService.processAddress(
+      address = Address.from(probationAddress)!!,
+      findPerson = { personEntity },
+      findAddress = { personEntity.addresses.firstOrNull { it.deliusAddressId == probationAddress.deliusAddressId } },
+      eventSource = DELIUS,
+    )
+  }
 
-        addressService.processAddress(
-          address = Address.from(probationAddress)!!,
-          findPerson = { personEntity },
-          findAddress = { personEntity.addresses.firstOrNull { it.deliusAddressId == probationAddress.deliusAddressId } },
-          eventSource = DELIUS,
-        )
-      }
-      OFFENDER_ADDRESS_DELETED -> {
-        event.additionalInformation?.inboundDeliusAddressId?.let {
-          val deliusAddressId = it.toLong()
-          addressService.deleteAddress { addressRepository.findByDeliusAddressId(deliusAddressId) }
-        }
-      }
-      else -> {
-        corePersonRecordAndDeliusClient.getPerson(crn).let {
-          eventProcessor.processEvent(it, setOf(AddressEntity::class))
-        }
-      }
+  private fun deleteAddress(event: DomainEvent) {
+    event.additionalInformation?.inboundDeliusAddressId?.let {
+      val deliusAddressId = it.toLong()
+      addressService.deleteAddress { addressRepository.findByDeliusAddressId(deliusAddressId) }
+    }
+  }
+
+  private fun updateWholePerson(event: DomainEvent) {
+    corePersonRecordAndDeliusClient.getPerson(event.getCrn()).let {
+      eventProcessor.processEvent(it, setOf(AddressEntity::class))
     }
   }
 
