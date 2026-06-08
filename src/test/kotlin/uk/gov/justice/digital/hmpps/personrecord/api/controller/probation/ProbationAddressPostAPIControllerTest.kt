@@ -4,35 +4,38 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.web.reactive.server.expectBody
 import tools.jackson.databind.node.ObjectNode
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
-import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
-class ProbationAddressPostAPIControllerTest : WebTestBase() {
+class ProbationAddressPostAPIControllerTest : E2ETestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
     @Test
-    fun `should create a new address and recluster`() {
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-
+    fun `should create a new address - recluster person - publish domain event`() {
       val crn = randomCrn()
       val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
-      val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
-        url = probationAddressApiUrl(crn),
-        body = newAddress,
-        roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.CREATED,
-      ).returnResult().responseBody!!
+      val responseBody = webTestClient
+        .post()
+        .uri(probationAddressApiUrl(crn))
+        .headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = listOf(PROBATION_API_READ_WRITE)))
+        .bodyValue(newAddress)
+        .exchange()
+        .expectStatus()
+        .isCreated
+        .expectBody<ProbationCreateAddressResponse>()
+        .returnResult().responseBody!!
 
       awaitAssert {
         val personEntity = personRepository.findByCrn(crn) ?: fail("No person found with id $crn")
@@ -44,6 +47,12 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
         assertThat(responseBody.crn).isEqualTo(crn)
         assertThat(responseBody.cprAddressId).isEqualTo(actualAddress.updateId.toString())
       }
+
+      checkDomainEventPublished(
+        crn = crn,
+        expectedEventType = CPR_PROBATION_ADDRESS_CREATED,
+        eventSource = CPR,
+      )
     }
 
     @Test
@@ -52,12 +61,16 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
       val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList())) { this.passiveState = true }
 
-      val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
-        url = probationAddressApiUrl(crn),
-        body = newAddress,
-        roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.CREATED,
-      ).returnResult().responseBody!!
+      val responseBody = webTestClient
+        .post()
+        .uri(probationAddressApiUrl(crn))
+        .headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = listOf(PROBATION_API_READ_WRITE)))
+        .bodyValue(newAddress)
+        .exchange()
+        .expectStatus()
+        .isCreated
+        .expectBody<ProbationCreateAddressResponse>()
+        .returnResult().responseBody!!
 
       awaitAssert {
         val personEntity = personRepository.findByCrn(crn) ?: fail("No person found with id $crn")
@@ -73,9 +86,6 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
 
     @Test
     fun `should create a new address with typeVerified as true when typeVerified is not supplied`() {
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-
       val crn = randomCrn()
       val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
@@ -84,12 +94,16 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
       val json = jsonMapper.valueToTree<ObjectNode>(newAddress)
       json.remove("typeVerified")
 
-      val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
-        url = probationAddressApiUrl(crn),
-        body = json,
-        roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.CREATED,
-      ).returnResult().responseBody!!
+      val responseBody = webTestClient
+        .post()
+        .uri(probationAddressApiUrl(crn))
+        .headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = listOf(PROBATION_API_READ_WRITE)))
+        .bodyValue(newAddress)
+        .exchange()
+        .expectStatus()
+        .isCreated
+        .expectBody<ProbationCreateAddressResponse>()
+        .returnResult().responseBody!!
 
       awaitAssert {
         val personEntity = personRepository.findByCrn(crn) ?: fail("No person found with id $crn")
@@ -108,12 +122,14 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
   inner class ErrorScenarios {
     @Test
     fun `should return 404 not found when probation record does not exist`() {
-      sendPostRequestAsserted<Unit>(
-        url = probationAddressApiUrl(randomCrn()),
-        body = createRandomProbationAddress(),
-        roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.NOT_FOUND,
-      )
+      webTestClient
+        .post()
+        .uri(probationAddressApiUrl(randomCrn()))
+        .headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = listOf(PROBATION_API_READ_WRITE)))
+        .bodyValue(createRandomProbationAddress())
+        .exchange()
+        .expectStatus()
+        .isNotFound
     }
 
     @Test
@@ -121,33 +137,37 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
       val mergedCrn = randomCrn()
       val person = createPersonWithNewKey(createRandomProbationPersonDetails())
       createPerson(createRandomProbationPersonDetails(mergedCrn)) { mergedTo = person.id }
-      sendPostRequestAsserted<Unit>(
-        url = probationAddressApiUrl(mergedCrn),
-        body = createRandomProbationAddress(),
-        roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.NOT_FOUND,
-      )
+      webTestClient
+        .post()
+        .uri(probationAddressApiUrl(mergedCrn))
+        .headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = listOf(PROBATION_API_READ_WRITE)))
+        .bodyValue(createRandomProbationAddress())
+        .exchange()
+        .expectStatus()
+        .isNotFound
     }
 
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
-      sendPostRequestAsserted<Unit>(
-        url = probationAddressApiUrl(randomCrn()),
-        body = createRandomProbationAddress(),
-        roles = listOf("UNSUPPORTED_ROLE"),
-        expectedStatus = HttpStatus.FORBIDDEN,
-      )
+      webTestClient
+        .post()
+        .uri(probationAddressApiUrl(randomCrn()))
+        .headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = listOf("UNSUPPORTED_ROLE")))
+        .bodyValue(createRandomProbationAddress())
+        .exchange()
+        .expectStatus()
+        .isForbidden
     }
 
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
-      sendPostRequestAsserted<Unit>(
-        url = probationAddressApiUrl(randomCrn()),
-        body = createRandomProbationAddress(),
-        roles = listOf("UNSUPPORTED_ROLE"),
-        expectedStatus = HttpStatus.UNAUTHORIZED,
-        sendAuthorised = false,
-      )
+      webTestClient
+        .post()
+        .uri(probationAddressApiUrl(randomCrn()))
+        .bodyValue(createRandomProbationAddress())
+        .exchange()
+        .expectStatus()
+        .isUnauthorized
     }
   }
 
@@ -160,12 +180,14 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
       val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
-      sendPostRequestAsserted<Unit>(
-        url = probationAddressApiUrl(crn),
-        body = newAddress,
-        roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.NOT_FOUND,
-      )
+      webTestClient
+        .post()
+        .uri(probationAddressApiUrl(crn))
+        .headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = listOf(PROBATION_API_READ_WRITE)))
+        .bodyValue(newAddress)
+        .exchange()
+        .expectStatus()
+        .isNotFound
 
       awaitAssert {
         val personEntity = personRepository.findByCrn(crn) ?: fail("No person found with id $crn")
@@ -183,12 +205,14 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
       val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
-      sendPostRequestAsserted<Unit>(
-        url = probationAddressApiUrl(crn),
-        body = newAddress,
-        roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.NOT_FOUND,
-      )
+      webTestClient
+        .post()
+        .uri(probationAddressApiUrl(crn))
+        .headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = listOf(PROBATION_API_READ_WRITE)))
+        .bodyValue(newAddress)
+        .exchange()
+        .expectStatus()
+        .isNotFound
 
       awaitAssert {
         val personEntity = personRepository.findByCrn(crn) ?: fail("No person found with id $crn")
