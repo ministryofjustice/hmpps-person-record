@@ -11,17 +11,19 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepositor
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
-import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.PROBATION_EVENT_QUEUE_ID
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.SqsDomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
+import java.util.UUID
 
 @Component
 class ProbationEventListener(
-  private val domainEventProcessor: DomainEventProcessor,
+  private val sqsDomainEventProcessor: SqsDomainEventProcessor,
   private val eventProcessor: ProbationEventProcessor,
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   private val personRepository: PersonRepository,
@@ -30,10 +32,32 @@ class ProbationEventListener(
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
+  fun onDomainEvent(rawMessage: String) = sqsDomainEventProcessor.processDomainEvent(rawMessage) { event, eventSource ->
     val crn = event.getCrn()
     when (event.eventType) {
-      OFFENDER_ADDRESS_CREATED, OFFENDER_ADDRESS_UPDATED -> {
+      OFFENDER_ADDRESS_CREATED -> {
+        when (eventSource != DomainEventSource.CPR.identifier) {
+          true -> {
+            val probationAddress = getProbationAddress(event)
+            val personEntity = personRepository.findByCrn(crn)!!
+
+            addressService.processAddress(
+              address = Address.from(probationAddress)!!,
+              findPerson = { personEntity },
+              findAddress = { personEntity.addresses.firstOrNull { it.deliusAddressId == probationAddress.deliusAddressId } },
+              eventSource = DELIUS,
+            )
+          }
+          false -> {
+            val cprAddressUpdateId = event.additionalInformation!!.cprAddressId!!
+            val probationAddress = getProbationAddress(event)
+            val existingAddressEntity = addressRepository.findByUpdateId(UUID.fromString(cprAddressUpdateId))!!
+            existingAddressEntity.deliusAddressId = probationAddress.deliusAddressId
+            addressRepository.save(existingAddressEntity)
+          }
+        }
+      }
+      OFFENDER_ADDRESS_UPDATED -> {
         val probationAddress = getProbationAddress(event)
         val personEntity = personRepository.findByCrn(crn)!!
 

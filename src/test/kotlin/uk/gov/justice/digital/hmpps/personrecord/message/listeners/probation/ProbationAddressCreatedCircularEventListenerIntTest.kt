@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
@@ -15,27 +16,28 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 class ProbationAddressCreatedCircularEventListenerIntTest : ProbationEventListenerTestBase() {
 
   @Test
-  fun `given an address created event - event contains CRP event source - updates delius address id only`() {
+  fun `given an address created event - event contains CPR event source - updates delius address id only`() {
     val crn = randomCrn()
     val addressCreatedBySas = randomProbationAddress().copy(deliusAddressId = null)
     val personEntity = createPerson(createRandomProbationPersonDetails(crn = crn).copy(addresses = listOf(Address.from(addressCreatedBySas)!!)))
     createPersonKey()
       .addPerson(personEntity)
     val addressEntity = personEntity.addresses.first()
-    assertNull(addressEntity.deliusAddressId)
 
     val deliusAddressId = randomDigit().toLong()
     val addressCreatedByDelius = addressCreatedBySas.copy(deliusAddressId = deliusAddressId)
     stubGetRequestToProbation(addressCreatedByDelius)
 
+    assertNull(addressEntity.deliusAddressId)
     publishDomainEvent(
-      OFFENDER_ADDRESS_CREATED,
-      DomainEvent(
+      eventType = OFFENDER_ADDRESS_CREATED,
+      domainEvent = DomainEvent(
         eventType = OFFENDER_ADDRESS_CREATED,
         detailUrl = "/address/$deliusAddressId",
         additionalInformation = AdditionalInformation(cprAddressId = addressEntity.updateId.toString(), inboundDeliusAddressId = deliusAddressId.toString()),
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
       ),
+      eventSource = DomainEventSource.CPR,
     )
 
     val actualAddresses = awaitNotNull { personRepository.findByCrn(crn)!!.addresses }
