@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.expectBody
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
@@ -13,12 +14,17 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribu
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
+import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import java.util.UUID
 
 class AddressDomainEventPublisherE2ETest : E2ETestBase() {
+
+  @Autowired
+  private lateinit var addressService: AddressService
 
   @Test
   fun `should publish a CPR address created domain event when an address is created in sas`() {
@@ -65,21 +71,16 @@ class AddressDomainEventPublisherE2ETest : E2ETestBase() {
   inner class FeatureFlagPreprod {
     @Test
     fun `should not publish a CPR address created domain event in preprod`() {
-      assertThat(true).isTrue()
       val crn = randomCrn()
-      val newAddress = createRandomProbationAddress()
-      createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
+      val newAddress = Address.from(createRandomProbationAddress())
+      val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
-      webTestClient
-        .post()
-        .uri(probationAddressApiUrl(crn))
-        .headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = listOf(PROBATION_API_READ_WRITE)))
-        .bodyValue(newAddress)
-        .exchange()
-        .expectStatus()
-        .isCreated
-        .expectBody<ProbationCreateAddressResponse>()
-        .returnResult().responseBody!!
+      addressService.processAddress(
+        address = newAddress,
+        findPerson = { personEntity },
+        findAddress = { null },
+        eventSource = CPR,
+      )
 
       expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
     }
@@ -90,21 +91,16 @@ class AddressDomainEventPublisherE2ETest : E2ETestBase() {
   inner class FeatureFlagProd {
     @Test
     fun `should not publish a CPR address created domain event in prod`() {
-      assertThat(true).isTrue()
       val crn = randomCrn()
-      val newAddress = createRandomProbationAddress()
-      createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
+      val newAddress = Address.from(createRandomProbationAddress())
+      val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
-      webTestClient
-        .post()
-        .uri(probationAddressApiUrl(crn))
-        .headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = listOf(PROBATION_API_READ_WRITE)))
-        .bodyValue(newAddress)
-        .exchange()
-        .expectStatus()
-        .isCreated
-        .expectBody<ProbationCreateAddressResponse>()
-        .returnResult().responseBody!!
+      addressService.processAddress(
+        address = newAddress,
+        findPerson = { personEntity },
+        findAddress = { null },
+        eventSource = CPR,
+      )
 
       expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
     }
