@@ -49,15 +49,15 @@ class ServiceNowMergeRequestService(
 
     log.info("Got ${records.size} distinct clusters")
 
-    val clustersWithMoreThanOneProbationRecord = records.filter { hasMoreThanOneProbationRecord(it) }
-    log.info("Found ${clustersWithMoreThanOneProbationRecord.size} clusters with more than one probation record")
-    val activeClusters = clustersWithMoreThanOneProbationRecord.filter { it.personKey!!.isActive() }
-    log.info("Removed ${clustersWithMoreThanOneProbationRecord.size - activeClusters.size} NEEDS_ATTENTION clusters")
+    val moreThanOneProbationRecordOnCluster = records.filter { hasMoreThanOneProbationRecord(it) }
+    log.info("Found ${moreThanOneProbationRecordOnCluster.size} clusters with more than one probation record")
+    val activeClusters = moreThanOneProbationRecordOnCluster.filter { it.personKey!!.isActive() }
+    log.info("Removed ${moreThanOneProbationRecordOnCluster.size - activeClusters.size} NEEDS_ATTENTION clusters")
     val clustersWithNoExistingMergeRequest = activeClusters.filterNot { mergeRequestAlreadyMade(it.personKey!!.personUUID!!) }
     log.info("Removed ${activeClusters.size - clustersWithNoExistingMergeRequest.size} requests already made")
     val requestsCount = min(CLUSTER_TO_PROCESS_COUNT, clustersWithNoExistingMergeRequest.size)
     log.info("Sending $requestsCount requests")
-    return clustersWithNoExistingMergeRequest.take(CLUSTER_TO_PROCESS_COUNT).sortedBy { it.crn }.map {
+    return clustersWithNoExistingMergeRequest.take(CLUSTER_TO_PROCESS_COUNT).map {
       log.info(
         "Number of probation records on cluster: ${
           it.personKey!!.personEntities.count { person ->
@@ -69,7 +69,7 @@ class ServiceNowMergeRequestService(
         it.personKey!!.personUUID!!,
         it.personKey!!.personEntities.filter { person ->
           person.isProbationRecord()
-        }.map { person -> MergeRequestDetails.from(person) },
+        }.sortedBy { it.crn }.map { person -> MergeRequestDetails.from(person) },
       )
     }
   }
