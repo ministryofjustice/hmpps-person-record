@@ -203,7 +203,7 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
           "variables":{
     "requestor":"$requestor",
     "requested_for":"$requestedFor",
-    "record_a_details_cpr_ndelius":"[{\"full_name_b\":\"${sortedCrns[0].firstName} ${sortedCrns[0].middleNames} ${sortedCrns[0].lastName}\",\"date_of_birth_b\":\"${sortedCrns[0].dateOfBirth}\",\"case_reference_number_crn_a\":\"$crn1\",\"police_national_computer_pnc_reference_b\":\"${sortedCrns[0].getPnc()}\"},{\"full_name_b\":\"${sortedCrns[1].firstName} ${sortedCrns[1].middleNames} ${sortedCrns[1].lastName}\",\"date_of_birth_b\":\"${sortedCrns[1].dateOfBirth}\",\"case_reference_number_crn_a\":\"$crn2\",\"police_national_computer_pnc_reference_b\":\"${sortedCrns[1].getPnc()}\"}]"
+    "record_a_details_cpr_ndelius":"[{\"full_name_b\":\"${sortedCrns[0].firstName} ${sortedCrns[0].middleNames} ${sortedCrns[0].lastName}\",\"date_of_birth_b\":\"${sortedCrns[0].dateOfBirth}\",\"case_reference_number_crn_a\":\"${sortedCrns[0].crn}\",\"police_national_computer_pnc_reference_b\":\"${sortedCrns[0].getPnc()}\"},{\"full_name_b\":\"${sortedCrns[1].firstName} ${sortedCrns[1].middleNames} ${sortedCrns[1].lastName}\",\"date_of_birth_b\":\"${sortedCrns[1].dateOfBirth}\",\"case_reference_number_crn_a\":\"${sortedCrns[1].crn}\",\"police_national_computer_pnc_reference_b\":\"${sortedCrns[1].getPnc()}\"}]"
   }
       }"""
     awaitAssert {
