@@ -25,7 +25,6 @@ import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
 private const val GENERATE_MERGE_REQUESTS = "/jobs/service-now/generate-delius-merge-requests"
-
 class ServiceNowMergeRequestE2ETest : E2ETestBase() {
 
   @Value($$"${service-now.sysparm-id}")
