@@ -42,9 +42,9 @@ class ServiceNowMergeRequestService(
   fun getClustersForMergeRequests(): List<MergeRequestItem> {
     log.info("starting")
     val tenHoursAgo = LocalDateTime.now().minusHours(HOURS_TO_CHOOSE_FROM)
-    val recordsModifiedYesterday = personRepository.findByLastModifiedAfter(tenHoursAgo)
-    log.info("finished getting modified clusters for ${recordsModifiedYesterday.size}")
-    val records = recordsModifiedYesterday
+    val recordsModifiedRecently = personRepository.findByLastModifiedAfter(tenHoursAgo)
+    log.info("finished getting modified clusters for ${recordsModifiedRecently.size}")
+    val records = recordsModifiedRecently
       .distinctBy { it.personKey }
 
     log.info("Got ${records.size} distinct clusters")

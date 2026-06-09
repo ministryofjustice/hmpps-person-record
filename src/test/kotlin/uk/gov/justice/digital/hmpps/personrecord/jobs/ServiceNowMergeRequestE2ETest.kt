@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import java.lang.Thread.sleep
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -101,6 +102,7 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
 
   @Test
   fun `should pick ten clusters where each cluster has more than one probation record`() {
+    serviceNowMergeRequestRepository.deleteAll()
     val person1 = createRandomProbationPersonDetails()
     val person2 = person1.copy(crn = randomCrn())
     val person3 = createRandomProbationPersonDetails()
@@ -151,7 +153,7 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
     createPersonKey()
       .addPerson(person17)
       .addPerson(person18)
-    val tenthPerson = createPersonKey()
+    createPersonKey()
       .addPerson(person19)
       .addPerson(person20)
     createPersonKey()
@@ -163,7 +165,8 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
       .exchange()
       .expectStatus()
       .isOk
-    awaitAssert { assertThat(serviceNowMergeRequestRepository.existsByPersonUUID(tenthPerson.personUUID!!)).isTrue() }
+    awaitAssert { assertThat(serviceNowMergeRequestRepository.findAll().size).isEqualTo(10) }
+    sleep(2000) // 10 of above 11 will be picked in an indeterminate order.
     wiremock.verify(10, RequestPatternBuilder.like(serviceNowStub?.request))
   }
 
