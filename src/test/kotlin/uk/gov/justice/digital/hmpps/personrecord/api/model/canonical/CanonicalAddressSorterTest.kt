@@ -40,16 +40,16 @@ class CanonicalAddressSorterTest {
   }
 
   @Test
-  fun `should keep original order for source systems without an ordering strategy`() {
+  fun `should keep original order for source systems whose addresses never have a record type`() {
     listOf(NOMIS, DELIUS, LIBRA).forEach { sourceSystem ->
-      val previous = address(randomPostcode(), PREVIOUS)
-      val primary = address(randomPostcode(), PRIMARY)
+      val first = address(randomPostcode(), recordType = null)
+      val second = address(randomPostcode(), recordType = null)
 
-      val sorted = CanonicalAddressSorter.sort(addressesFor(sourceSystem, previous, primary))
+      val sorted = CanonicalAddressSorter.sort(addressesFor(sourceSystem, first, second))
 
       assertThat(sorted)
         .`as`("ordering should be untouched for $sourceSystem")
-        .containsExactly(previous, primary)
+        .containsExactly(first, second)
     }
   }
 
