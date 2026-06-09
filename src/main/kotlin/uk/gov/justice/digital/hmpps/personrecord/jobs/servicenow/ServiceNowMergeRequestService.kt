@@ -57,7 +57,7 @@ class ServiceNowMergeRequestService(
     log.info("Removed ${activeClusters.size - clustersWithNoExistingMergeRequest.size} requests already made")
     val requestsCount = min(CLUSTER_TO_PROCESS_COUNT, clustersWithNoExistingMergeRequest.size)
     log.info("Sending $requestsCount requests")
-    return clustersWithNoExistingMergeRequest.take(CLUSTER_TO_PROCESS_COUNT).map {
+    return clustersWithNoExistingMergeRequest.take(CLUSTER_TO_PROCESS_COUNT).sortedBy { it.crn }.map {
       log.info(
         "Number of probation records on cluster: ${
           it.personKey!!.personEntities.count { person ->

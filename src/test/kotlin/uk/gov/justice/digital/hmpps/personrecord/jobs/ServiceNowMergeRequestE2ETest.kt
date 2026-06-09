@@ -195,24 +195,15 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
       .exchange()
       .expectStatus()
       .isOk
-    "[ {\n" +
-      "      \"full_name_b\":\"${person1.firstName} \${person1.middleNames} \${person1.lastName}\",\n" +
-      "      \"date_of_birth_b\":\"${person1.dateOfBirth}\",\n" +
-      "      \"case_reference_number_crn_a\":\"$crn1\",\n" +
-      "      \"police_national_computer_pnc_reference_b\":\"${person1.getPnc()}\"\n" +
-      "    }, {\n" +
-      "      \"full_name_b\":\"${person2.firstName} \${person2.middleNames} \${person2.lastName}\",\n" +
-      "      \"date_of_birth_b\":\"${person2.dateOfBirth}\",\n" +
-      "      \"case_reference_number_crn_a\":\"$crn2\",\n" +
-      "      \"police_national_computer_pnc_reference_b\":\"${person2.getPnc()}\"\n" +
-      "    } ]"
+
+    val sortedCrns = listOf(person1,person2).sortedBy { it.crn }
     val body = """{
           "sysparm_id":"$sysParmId",
           "sysparm_quantity":"1",
           "variables":{
     "requestor":"$requestor",
     "requested_for":"$requestedFor",
-    "record_a_details_cpr_ndelius":"[{\"full_name_b\":\"${person1.firstName} ${person1.middleNames} ${person1.lastName}\",\"date_of_birth_b\":\"${person1.dateOfBirth}\",\"case_reference_number_crn_a\":\"$crn1\",\"police_national_computer_pnc_reference_b\":\"${person1.getPnc()}\"},{\"full_name_b\":\"${person2.firstName} ${person2.middleNames} ${person2.lastName}\",\"date_of_birth_b\":\"${person2.dateOfBirth}\",\"case_reference_number_crn_a\":\"$crn2\",\"police_national_computer_pnc_reference_b\":\"${person2.getPnc()}\"}]"
+    "record_a_details_cpr_ndelius":"[{\"full_name_b\":\"${sortedCrns[0].firstName} ${sortedCrns[0].middleNames} ${sortedCrns[0].lastName}\",\"date_of_birth_b\":\"${sortedCrns[0].dateOfBirth}\",\"case_reference_number_crn_a\":\"$crn1\",\"police_national_computer_pnc_reference_b\":\"${sortedCrns[0].getPnc()}\"},{\"full_name_b\":\"${sortedCrns[1].firstName} ${sortedCrns[1].middleNames} ${sortedCrns[1].lastName}\",\"date_of_birth_b\":\"${sortedCrns[1].dateOfBirth}\",\"case_reference_number_crn_a\":\"$crn2\",\"police_national_computer_pnc_reference_b\":\"${sortedCrns[1].getPnc()}\"}]"
   }
       }"""
     awaitAssert {
