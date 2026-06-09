@@ -11,4 +11,4 @@ nomis-oauth:
   base-url: http://localhost:9090
 
 retry:
-  timeout: 5000
+  timeout: 1000
