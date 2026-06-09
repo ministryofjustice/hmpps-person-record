@@ -196,7 +196,7 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
       .expectStatus()
       .isOk
 
-    val sortedCrns = listOf(person1,person2).sortedBy { it.crn }
+    val sortedCrns = listOf(person1, person2).sortedBy { it.crn }
     val body = """{
           "sysparm_id":"$sysParmId",
           "sysparm_quantity":"1",
