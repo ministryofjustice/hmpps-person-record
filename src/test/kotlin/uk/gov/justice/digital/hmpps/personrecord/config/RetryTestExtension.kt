@@ -9,6 +9,7 @@ class RetryTestExtension : TestExecutionExceptionHandler {
     context: ExtensionContext,
     throwable: Throwable,
   ) {
+    println("retrying once: ${throwable.message}")
     context.requiredTestMethod.invoke(context.requiredTestInstance)
   }
 }
