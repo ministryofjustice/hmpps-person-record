@@ -9,7 +9,7 @@ import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.QUEUE_ADMIN
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
-@AutoConfigureWebTestClient
+@AutoConfigureWebTestClient(timeout = "1000")
 open class WebTestSetup : IntegrationTestBase() {
 
   @Autowired
