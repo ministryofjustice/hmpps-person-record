@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestRepository
 import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestService.Companion.HOURS_TO_CHOOSE_FROM
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -24,7 +25,6 @@ import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
 private const val GENERATE_MERGE_REQUESTS = "/jobs/service-now/generate-delius-merge-requests"
-
 class ServiceNowMergeRequestE2ETest : E2ETestBase() {
 
   @Value($$"${service-now.sysparm-id}")
@@ -100,6 +100,7 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
 
   @Test
   fun `should pick ten clusters where each cluster has more than one probation record`() {
+    serviceNowMergeRequestRepository.deleteAll()
     val person1 = createRandomProbationPersonDetails()
     val person2 = person1.copy(crn = randomCrn())
     val person3 = createRandomProbationPersonDetails()
@@ -150,7 +151,7 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
     createPersonKey()
       .addPerson(person17)
       .addPerson(person18)
-    val tenthPerson = createPersonKey()
+    createPersonKey()
       .addPerson(person19)
       .addPerson(person20)
     createPersonKey()
@@ -162,7 +163,7 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
       .exchange()
       .expectStatus()
       .isOk
-    awaitAssert { assertThat(serviceNowMergeRequestRepository.existsByPersonUUID(tenthPerson.personUUID!!)).isTrue() }
+    awaitAssert { assertThat(serviceNowMergeRequestRepository.findAll().size).isEqualTo(10) }
     wiremock.verify(10, RequestPatternBuilder.like(serviceNowStub?.request))
   }
 
@@ -193,24 +194,15 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
       .exchange()
       .expectStatus()
       .isOk
-    "[ {\n" +
-      "      \"full_name_b\":\"${person1.firstName} \${person1.middleNames} \${person1.lastName}\",\n" +
-      "      \"date_of_birth_b\":\"${person1.dateOfBirth}\",\n" +
-      "      \"case_reference_number_crn_a\":\"$crn1\",\n" +
-      "      \"police_national_computer_pnc_reference_b\":\"${person1.getPnc()}\"\n" +
-      "    }, {\n" +
-      "      \"full_name_b\":\"${person2.firstName} \${person2.middleNames} \${person2.lastName}\",\n" +
-      "      \"date_of_birth_b\":\"${person2.dateOfBirth}\",\n" +
-      "      \"case_reference_number_crn_a\":\"$crn2\",\n" +
-      "      \"police_national_computer_pnc_reference_b\":\"${person2.getPnc()}\"\n" +
-      "    } ]"
+
+    val sortedCrns = listOf(person1, person2).sortedBy { it.crn }
     val body = """{
           "sysparm_id":"$sysParmId",
           "sysparm_quantity":"1",
           "variables":{
     "requestor":"$requestor",
     "requested_for":"$requestedFor",
-    "record_a_details_cpr_ndelius":"[{\"full_name_b\":\"${person1.firstName} ${person1.middleNames} ${person1.lastName}\",\"date_of_birth_b\":\"${person1.dateOfBirth}\",\"case_reference_number_crn_a\":\"$crn1\",\"police_national_computer_pnc_reference_b\":\"${person1.getPnc()}\"},{\"full_name_b\":\"${person2.firstName} ${person2.middleNames} ${person2.lastName}\",\"date_of_birth_b\":\"${person2.dateOfBirth}\",\"case_reference_number_crn_a\":\"$crn2\",\"police_national_computer_pnc_reference_b\":\"${person2.getPnc()}\"}]"
+    "record_a_details_cpr_ndelius":"[{\"full_name_b\":\"${sortedCrns[0].firstName} ${sortedCrns[0].middleNames} ${sortedCrns[0].lastName}\",\"date_of_birth_b\":\"${sortedCrns[0].dateOfBirth}\",\"case_reference_number_crn_a\":\"${sortedCrns[0].crn}\",\"police_national_computer_pnc_reference_b\":\"${sortedCrns[0].getPnc()}\"},{\"full_name_b\":\"${sortedCrns[1].firstName} ${sortedCrns[1].middleNames} ${sortedCrns[1].lastName}\",\"date_of_birth_b\":\"${sortedCrns[1].dateOfBirth}\",\"case_reference_number_crn_a\":\"${sortedCrns[1].crn}\",\"police_national_computer_pnc_reference_b\":\"${sortedCrns[1].getPnc()}\"}]"
   }
       }"""
     awaitAssert {
@@ -269,6 +261,36 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
         "SOURCE_SYSTEM" to "DELIUS",
       ),
     )
+    val tenHoursAgo = LocalDateTime.now().minusHours(HOURS_TO_CHOOSE_FROM)
+
+    personRepository.updateLastModifiedDate(person1.crn!!, tenHoursAgo.plusMinutes(1))
+    personRepository.updateLastModifiedDate(person2.crn!!, tenHoursAgo.plusMinutes(2))
+    personRepository.updateLastModifiedDate(person3.crn!!, tenHoursAgo.plusMinutes(2))
+    personRepository.updateLastModifiedDate(person4.crn!!, tenHoursAgo.plusMinutes(2))
+
+    webTestClient.post()
+      .uri(GENERATE_MERGE_REQUESTS)
+      .exchange()
+      .expectStatus()
+      .isOk
+
+    awaitAssert { wiremock.verify(1, RequestPatternBuilder.like(serviceNowStub?.request)) }
+  }
+
+  @Test
+  fun `should ignore records in NEEDS_ATTENTION`() {
+    val person1 = createPerson(createRandomProbationPersonDetails())
+    val person2 = createPerson(createRandomProbationPersonDetails())
+    createPersonKey()
+      .addPerson(person1)
+      .addPerson(person2)
+
+    val person3 = createRandomProbationPersonDetails()
+    val person4 = createRandomProbationPersonDetails()
+    createPersonKey(NEEDS_ATTENTION)
+      .addPerson(person3)
+      .addPerson(person4)
+
     val tenHoursAgo = LocalDateTime.now().minusHours(HOURS_TO_CHOOSE_FROM)
 
     personRepository.updateLastModifiedDate(person1.crn!!, tenHoursAgo.plusMinutes(1))

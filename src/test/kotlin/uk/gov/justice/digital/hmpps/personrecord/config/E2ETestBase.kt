@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.test.context.ActiveProfiles
@@ -16,6 +17,7 @@ import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
 @ActiveProfiles("e2e")
 @AutoConfigureWebTestClient
+@ExtendWith(RetryTestExtension::class)
 class E2ETestBase : MessagingTestBase() {
 
   @Autowired
