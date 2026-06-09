@@ -9,13 +9,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CO
 
 object CanonicalAddressSorter {
 
-  private val orderingStrategies: Map<SourceSystemType, Comparator<AddressEntity>> = mapOf(
-    COMMON_PLATFORM to compareBy { it.recordType.recordTypeOrder() },
-  )
-
-  fun sort(addresses: List<AddressEntity>): List<AddressEntity> {
-    val comparator = addresses.sourceSystem()?.let { orderingStrategies[it] } ?: return addresses
-    return addresses.sortedWith(comparator)
+  fun sort(addresses: List<AddressEntity>): List<AddressEntity> = when (addresses.sourceSystem()) {
+    COMMON_PLATFORM -> addresses.sortedWith(compareBy { it.recordType.recordTypeOrder() })
+    else -> addresses
   }
 
   private fun List<AddressEntity>.sourceSystem(): SourceSystemType? = this.firstNotNullOfOrNull { it.person?.sourceSystem }
