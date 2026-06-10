@@ -6,9 +6,11 @@ import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
@@ -36,7 +38,7 @@ class ProbationEventListener(
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
   fun onDomainEvent(rawMessage: String) = sqsListenerService.processSQSMessage(rawMessage) { message ->
-    val eventSource = message.getEventSource()?.let { src -> DomainEventSource.entries.firstOrNull { it.identifier == src } } ?: DELIUS
+    val eventSource = getProbationEventSource(message)
     val event = jsonMapper.readValue<DomainEvent>(message.message)
     val crn = event.getCrn()
     when (event.eventType) {
@@ -47,7 +49,7 @@ class ProbationEventListener(
         addressService.processAddress(
           address = Address.from(probationAddress)!!,
           findPerson = { personEntity },
-          findAddress = { personEntity.addresses.firstOrNull { it.deliusAddressId == probationAddress.deliusAddressId || it.updateId == event.additionalInformation?.cprAddressId?.let { cprAddressId -> UUID.fromString(cprAddressId) } } },
+          findAddress = { existingAddress(personEntity, probationAddress, event) },
           eventSource = eventSource,
         )
       }
@@ -64,6 +66,19 @@ class ProbationEventListener(
       }
     }
   }
+
+  private fun existingAddress(
+    personEntity: PersonEntity,
+    probationAddress: ProbationAddress,
+    event: DomainEvent,
+  ): AddressEntity? = personEntity.addresses.firstOrNull {
+    it.deliusAddressId == probationAddress.deliusAddressId ||
+      it.updateId == event.additionalInformation?.cprAddressId?.let { cprAddressId ->
+        UUID.fromString(cprAddressId)
+      }
+  }
+
+  private fun getProbationEventSource(message: SQSMessage): DomainEventSource = message.getEventSource()?.let { src -> DomainEventSource.entries.firstOrNull { it.identifier == src } } ?: DELIUS
 
   private fun getProbationAddress(event: DomainEvent): ProbationAddress {
     val deliusAddressId = event.additionalInformation?.inboundDeliusAddressId!!
