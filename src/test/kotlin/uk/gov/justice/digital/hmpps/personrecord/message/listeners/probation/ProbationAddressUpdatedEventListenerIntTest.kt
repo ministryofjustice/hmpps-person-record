@@ -6,9 +6,12 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 
@@ -116,5 +119,28 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
       expectedEventType = CPR_PROBATION_ADDRESS_CREATED,
       crn = personEntity.crn!!,
     )
+  }
+
+  @Test
+  fun `check for event source on sas update event`() {
+    val originalProbationAddress = randomProbationAddress()
+    val personEntity = createPersonWithNewKey(
+      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(originalProbationAddress)!!)),
+    )
+    val cprAddressBeforeUpdate = personEntity.addresses.first()
+
+   // val updatedProbationAddress = randomProbationAddress().copy(deliusAddressId = cprAddressBeforeUpdate.deliusAddressId)
+
+    publishProbationAddressEvent(personEntity.crn,
+      personEntity.addresses[0].deliusAddressId,
+      OFFENDER_ADDRESS_UPDATED,
+      CPR
+    )
+
+
+
+    val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
+    assertThat(actualPersonEntity).isEqualTo(personEntity)
+
   }
 }

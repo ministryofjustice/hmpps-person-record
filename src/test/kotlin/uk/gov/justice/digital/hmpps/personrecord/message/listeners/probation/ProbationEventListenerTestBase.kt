@@ -94,7 +94,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun publishProbationAddressEvent(crn: String?, probationAddressId: Long?, eventType: String) {
+  fun publishProbationAddressEvent(crn: String?, probationAddressId: Long?, eventType: String, eventSource: DomainEventSource? = null) {
     publishDomainEvent(
       eventType,
       DomainEvent(
