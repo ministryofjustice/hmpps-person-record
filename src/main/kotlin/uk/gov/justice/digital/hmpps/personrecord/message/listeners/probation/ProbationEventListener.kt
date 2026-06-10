@@ -2,8 +2,11 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.springframework.stereotype.Component
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -15,7 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.PROBATION_EVENT_QUEUE_ID
-import uk.gov.justice.digital.hmpps.personrecord.service.queue.SqsDomainEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
@@ -23,7 +26,8 @@ import java.util.UUID
 
 @Component
 class ProbationEventListener(
-  private val sqsDomainEventProcessor: SqsDomainEventProcessor,
+  private val sqsListenerService: SQSListenerService,
+  private val jsonMapper: JsonMapper,
   private val eventProcessor: ProbationEventProcessor,
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   private val personRepository: PersonRepository,
@@ -32,7 +36,9 @@ class ProbationEventListener(
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = sqsDomainEventProcessor.processDomainEvent(rawMessage) { event, eventSource ->
+  fun onDomainEvent(rawMessage: String) = sqsListenerService.processSQSMessage(rawMessage, { sqsMessage: SQSMessage ->
+    val eventSource = sqsMessage.getEventSource()
+    val event = jsonMapper.readValue<DomainEvent>(sqsMessage.message)
     when {
       patchAddressEvent(event, eventSource) -> patchAddress(event)
       createAddressEvent(event, eventSource) -> upsertAddress(event)
@@ -40,7 +46,7 @@ class ProbationEventListener(
       deleteAddressEvent(event) -> deleteAddress(event)
       else -> updateWholePerson(event)
     }
-  }
+  })
 
   private fun patchAddressEvent(event: DomainEvent, eventSource: String?) = eventSource == DomainEventSource.CPR.identifier && event.eventType == OFFENDER_ADDRESS_CREATED
 

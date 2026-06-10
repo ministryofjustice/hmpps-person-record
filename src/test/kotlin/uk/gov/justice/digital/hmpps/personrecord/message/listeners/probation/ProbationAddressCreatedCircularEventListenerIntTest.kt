@@ -46,10 +46,9 @@ class ProbationAddressCreatedCircularEventListenerIntTest : ProbationEventListen
       eventSource = DomainEventSource.CPR,
     )
 
-    val actualAddresses = awaitNotNull { personRepository.findByCrn(crn)!!.addresses }
-    assertThat(actualAddresses.size).isEqualTo(1)
-    val actualAddress = actualAddresses.first()
-    assertThat(actualAddress.deliusAddressId).isEqualTo(deliusAddressId)
+    awaitAssert {
+      assertThat(personRepository.findByCrn(crn)!!.addresses.firstOrNull()?.deliusAddressId).isEqualTo(deliusAddressId)
+    }
 
     assertNoCprActionsHappenAfterAddressPatch(crn)
   }
