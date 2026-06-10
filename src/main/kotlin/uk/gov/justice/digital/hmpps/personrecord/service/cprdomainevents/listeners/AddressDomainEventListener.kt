@@ -24,7 +24,7 @@ import java.time.format.DateTimeFormatter
 @Component
 class AddressDomainEventListener(
   private val domainEventPublisher: DomainEventPublisher,
-  @Value("\${core-person-record.base-url}") private val baseUrl: String,
+  @Value($$"${core-person-record.base-url}") private val baseUrl: String,
 ) {
 
   @TransactionalEventListener
