@@ -11,6 +11,6 @@ class SqsDomainEventProcessor(
   private val sqsListenerService: SQSListenerService,
 ) {
   fun processDomainEvent(rawMessage: String, action: (domainEvent: DomainEvent, eventSource: String?) -> Unit) = sqsListenerService.processSQSMessage(rawMessage) {
-    action(jsonMapper.readValue<DomainEvent>(it.message), it.getEventsource())
+    action(jsonMapper.readValue<DomainEvent>(it.message), it.getEventSource())
   }
 }

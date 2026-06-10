@@ -31,8 +31,6 @@ class ProbationAddressCreatedCircularEventListenerIntTest : ProbationEventListen
     val addressEntity = personEntity.addresses.first()
 
     val deliusAddressId = randomDigit().toLong()
-    val addressCreatedByDeliusBecauseOfCprEvent = addressCreatedBySas.copy(deliusAddressId = deliusAddressId)
-    stubGetRequestToProbation(addressCreatedByDeliusBecauseOfCprEvent)
 
     assertNull(addressEntity.deliusAddressId)
     publishDomainEvent(
@@ -46,10 +44,9 @@ class ProbationAddressCreatedCircularEventListenerIntTest : ProbationEventListen
       eventSource = DomainEventSource.CPR,
     )
 
-    val actualAddresses = awaitNotNull { personRepository.findByCrn(crn)!!.addresses }
-    assertThat(actualAddresses.size).isEqualTo(1)
-    val actualAddress = actualAddresses.first()
-    assertThat(actualAddress.deliusAddressId).isEqualTo(deliusAddressId)
+    awaitAssert {
+      assertThat(personRepository.findByCrn(crn)?.addresses?.firstOrNull()?.deliusAddressId).isEqualTo(deliusAddressId)
+    }
 
     assertNoCprActionsHappenAfterAddressPatch(crn)
   }

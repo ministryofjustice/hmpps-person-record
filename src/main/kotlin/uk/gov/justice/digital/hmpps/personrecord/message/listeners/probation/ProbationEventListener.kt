@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.SqsDomainEventPro
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
-import java.util.UUID
 
 @Component
 class ProbationEventListener(
@@ -29,12 +28,13 @@ class ProbationEventListener(
   private val personRepository: PersonRepository,
   private val addressRepository: AddressRepository,
   private val addressService: AddressService,
+  private val deliusAddressIdHandler: DeliusAddressIdHandler,
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
   fun onDomainEvent(rawMessage: String) = sqsDomainEventProcessor.processDomainEvent(rawMessage) { event, eventSource ->
     when {
-      patchAddressEvent(event, eventSource) -> patchAddress(event)
+      patchAddressEvent(event, eventSource) -> deliusAddressIdHandler.patchAddress(event)
       createAddressEvent(event, eventSource) -> upsertAddress(event)
       updateAddressEvent(event) -> upsertAddress(event)
       deleteAddressEvent(event) -> deleteAddress(event)
@@ -49,14 +49,6 @@ class ProbationEventListener(
   private fun updateAddressEvent(event: DomainEvent) = event.eventType == OFFENDER_ADDRESS_UPDATED
 
   private fun deleteAddressEvent(event: DomainEvent) = event.eventType == OFFENDER_ADDRESS_DELETED
-
-  private fun patchAddress(event: DomainEvent) {
-    val cprAddressUpdateId = event.additionalInformation!!.cprAddressId!!
-    val probationAddress = getProbationAddress(event)
-    val existingAddressEntity = addressRepository.findByUpdateId(UUID.fromString(cprAddressUpdateId))!!
-    existingAddressEntity.deliusAddressId = probationAddress.deliusAddressId
-    addressRepository.save(existingAddressEntity)
-  }
 
   private fun upsertAddress(event: DomainEvent) {
     val crn = event.getCrn()
