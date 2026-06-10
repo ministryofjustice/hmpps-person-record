@@ -6,12 +6,10 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 
@@ -122,25 +120,29 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   }
 
   @Test
-  fun `check for event source on sas update event`() {
+  fun `consuming address updated event - cpr event source - does not update address or publish subsequent events`() {
     val originalProbationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(originalProbationAddress)!!)),
     )
     val cprAddressBeforeUpdate = personEntity.addresses.first()
 
-   // val updatedProbationAddress = randomProbationAddress().copy(deliusAddressId = cprAddressBeforeUpdate.deliusAddressId)
-
-    publishProbationAddressEvent(personEntity.crn,
+    publishProbationAddressEvent(
+      personEntity.crn,
       personEntity.addresses[0].deliusAddressId,
       OFFENDER_ADDRESS_UPDATED,
-      CPR
+      CPR,
     )
 
-
-
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
-    assertThat(actualPersonEntity).isEqualTo(personEntity)
+    assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
+    val cprAddressAfterUpdate = actualPersonEntity.addresses.first()
+    assertThat(cprAddressAfterUpdate.id).isEqualTo(cprAddressBeforeUpdate.id)
+    assertThat(cprAddressAfterUpdate.updateId).isEqualTo(cprAddressBeforeUpdate.updateId)
 
+    expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
+    wiremock.verify(0, getRequestedFor(urlEqualTo("/address/*")))
+    wiremock.verify(0, postRequestedFor(urlEqualTo("/person")))
+    wiremock.verify(0, getRequestedFor(urlEqualTo("/person/score/.*")))
   }
 }

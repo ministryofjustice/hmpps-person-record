@@ -36,8 +36,8 @@ class ProbationEventListener(
     when {
       patchAddressEvent(event, eventSource) -> deliusAddressIdHandler.patchAddress(event)
       createAddressEvent(event, eventSource) -> upsertAddress(event)
-      updateAddressEvent(event,eventSource) -> upsertAddress(event)
-      ignoreUpdateEvent(event, eventSource) -> {}
+      updateAddressEvent(event, eventSource) -> upsertAddress(event)
+      ignoreUpdateAddressEvent(event, eventSource) -> {}
       deleteAddressEvent(event) -> deleteAddress(event)
       else -> updateWholePerson(event)
     }
@@ -49,7 +49,7 @@ class ProbationEventListener(
 
   private fun updateAddressEvent(event: DomainEvent, eventSource: String?) = eventSource != DomainEventSource.CPR.identifier && event.eventType == OFFENDER_ADDRESS_UPDATED
 
-  private fun ignoreUpdateEvent(event: DomainEvent, eventSource: String?) = eventSource == DomainEventSource.CPR.identifier && event.eventType == OFFENDER_ADDRESS_UPDATED
+  private fun ignoreUpdateAddressEvent(event: DomainEvent, eventSource: String?) = eventSource == DomainEventSource.CPR.identifier && event.eventType == OFFENDER_ADDRESS_UPDATED
 
   private fun deleteAddressEvent(event: DomainEvent) = event.eventType == OFFENDER_ADDRESS_DELETED
 
