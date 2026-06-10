@@ -38,7 +38,6 @@ class ProbationEventListener(
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
   fun onDomainEvent(rawMessage: String) = sqsListenerService.processSQSMessage(rawMessage) { message ->
-    val eventSource = getProbationEventSource(message)
     val event = jsonMapper.readValue<DomainEvent>(message.message)
     val crn = event.getCrn()
     when (event.eventType) {
@@ -50,7 +49,7 @@ class ProbationEventListener(
           address = Address.from(probationAddress)!!,
           findPerson = { personEntity },
           findAddress = { existingAddress(personEntity, probationAddress, event) },
-          eventSource = eventSource,
+          eventSource = getProbationEventSource(message),
         )
       }
       OFFENDER_ADDRESS_DELETED -> {
@@ -78,7 +77,7 @@ class ProbationEventListener(
       }
   }
 
-  private fun getProbationEventSource(message: SQSMessage): DomainEventSource = message.getEventSource()?.let { src -> DomainEventSource.entries.firstOrNull { it.identifier == src } } ?: DELIUS
+  private fun getProbationEventSource(message: SQSMessage): DomainEventSource = message.getEventSource()?.let { src -> DomainEventSource.entries.associateBy { it.identifier }[src] } ?: DELIUS
 
   private fun getProbationAddress(event: DomainEvent): ProbationAddress {
     val deliusAddressId = event.additionalInformation?.inboundDeliusAddressId!!
