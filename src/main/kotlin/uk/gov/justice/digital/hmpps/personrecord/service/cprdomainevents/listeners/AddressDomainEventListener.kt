@@ -24,7 +24,7 @@ import java.time.format.DateTimeFormatter
 @Component
 class AddressDomainEventListener(
   private val domainEventPublisher: DomainEventPublisher,
-  @Value("\${core-person-record.base-url}") private val baseUrl: String,
+  @Value($$"${core-person-record.base-url}") private val baseUrl: String,
 ) {
 
   @TransactionalEventListener
@@ -65,7 +65,7 @@ class AddressDomainEventListener(
         detailUrl = detailUrl,
         occurredAt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(UK_ZONE).format(Instant.now()),
         additionalInformation = AdditionalInformation(
-          cprAddressId = addressId.toString(),
+          outboundCprAddressId = addressId.toString(),
           outboundDeliusAddressId = addressEntity.deliusAddressId?.toString(),
         ),
         personReference = PersonReference(

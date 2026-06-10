@@ -26,8 +26,9 @@ data class AdditionalInformation(
   @JsonProperty("addressId")
   val inboundDeliusAddressId: String? = null,
 
-  val cprAddressId: String? = null,
-
   @JsonProperty("deliusAddressId")
   val outboundDeliusAddressId: String? = null,
+
+  @JsonProperty("cprAddressId")
+  val outboundCprAddressId: String? = null,
 )

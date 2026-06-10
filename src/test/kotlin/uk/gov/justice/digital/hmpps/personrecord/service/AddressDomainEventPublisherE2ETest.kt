@@ -49,6 +49,7 @@ class AddressDomainEventPublisherE2ETest : E2ETestBase() {
     val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
       ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
     )
+    assertThat(rawDomainEventMessage?.get()?.messages()?.first()?.body()?.contains("cprAddressId")).isTrue()
     val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_ADDRESS_CREATED))
     assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(CPR.identifier))
@@ -62,7 +63,7 @@ class AddressDomainEventPublisherE2ETest : E2ETestBase() {
     assertThat(domainEvent.personReference?.identifiers?.size).isEqualTo(1)
     assertThat(domainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("CRN")
     assertThat(domainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(crn)
-    assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(createdAddress?.updateId.toString())
+    assertThat(domainEvent.additionalInformation?.outboundCprAddressId).isEqualTo(createdAddress?.updateId.toString())
     assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isNull()
   }
 
