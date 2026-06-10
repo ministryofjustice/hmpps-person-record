@@ -167,7 +167,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     assertThat(domainEvent.occurredAt).isNotNull()
     assertThat(domainEvent.personReference?.identifiers?.size).isEqualTo(1)
     assertThat(domainEvent.getCrn()).isEqualTo(crn)
-    assertThat(domainEvent.additionalInformation?.cprAddressId).isEqualTo(addressEntity.updateId.toString())
+    assertThat(domainEvent.additionalInformation?.outboundCprAddressId).isEqualTo(addressEntity.updateId.toString())
     return Pair(addressEntity, domainEvent)
   }
 
