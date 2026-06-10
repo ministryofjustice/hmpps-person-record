@@ -38,7 +38,7 @@ class ProbationAddressCreatedCircularEventListenerIntTest : ProbationEventListen
       domainEvent = DomainEvent(
         eventType = OFFENDER_ADDRESS_CREATED,
         detailUrl = "/address/$deliusAddressId",
-        additionalInformation = AdditionalInformation(cprAddressId = addressEntity.updateId.toString(), inboundDeliusAddressId = deliusAddressId.toString()),
+        additionalInformation = AdditionalInformation(inboundCprAddressId = addressEntity.updateId.toString(), inboundDeliusAddressId = deliusAddressId.toString()),
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
       ),
       eventSource = DomainEventSource.CPR,
