@@ -1,23 +1,15 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.probation
 
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus.OK
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressStatus
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContactType
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.withUkZone
-import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
+import uk.gov.justice.digital.hmpps.personrecord.test.assertCanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
@@ -30,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
-import java.time.ZonedDateTime
 import java.util.UUID.randomUUID
 
 class ProbationAddressGetAPIControllerTest : WebTestBase() {
@@ -127,47 +118,4 @@ class ProbationAddressGetAPIControllerTest : WebTestBase() {
   }
 
   private fun probationAddressApiUrl(crn: String, cprAddressId: String) = "/person/probation/$crn/address/$cprAddressId"
-
-  private fun assertCanonicalAddress(expectedAddress: AddressEntity, actualAddress: CanonicalAddress) {
-    val canonicalAddress = CanonicalAddress(
-      cprAddressId = expectedAddress.updateId!!.toString(),
-      noFixedAbode = expectedAddress.noFixedAbode,
-      startDate = expectedAddress.startDate?.toLocalDate()?.toString(),
-      startDateTime = expectedAddress.startDate?.withUkZone(),
-      endDate = expectedAddress.endDate?.toLocalDate()?.toString(),
-      endDateTime = expectedAddress.endDate?.withUkZone(),
-      postcode = expectedAddress.postcode,
-      subBuildingName = expectedAddress.subBuildingName,
-      buildingName = expectedAddress.buildingName,
-      buildingNumber = expectedAddress.buildingNumber,
-      thoroughfareName = expectedAddress.thoroughfareName,
-      dependentLocality = expectedAddress.dependentLocality,
-      postTown = expectedAddress.postTown,
-      county = expectedAddress.county,
-      country = expectedAddress.countryCode?.description,
-      countryCode = expectedAddress.countryCode?.name,
-      uprn = expectedAddress.uprn,
-      status = CanonicalAddressStatus.from(expectedAddress.statusCode),
-      comment = expectedAddress.comment,
-      typeVerified = expectedAddress.isVerified,
-      usages = expectedAddress.usages.map {
-        CanonicalAddressUsage(
-          CanonicalAddressUsageCode.from(it.usageCode),
-          it.active,
-        )
-      },
-      contacts = expectedAddress.contacts.map {
-        CanonicalContact(
-          CanonicalContactType.from(it.contactType),
-          it.contactValue,
-          it.extension,
-        )
-      },
-    )
-
-    assertThat(actualAddress)
-      .usingRecursiveComparison()
-      .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
-      .isEqualTo(canonicalAddress)
-  }
 }

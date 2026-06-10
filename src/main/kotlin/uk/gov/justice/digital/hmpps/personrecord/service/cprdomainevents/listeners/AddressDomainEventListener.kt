@@ -65,7 +65,7 @@ class AddressDomainEventListener(
         detailUrl = detailUrl,
         occurredAt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(UK_ZONE).format(Instant.now()),
         additionalInformation = AdditionalInformation(
-          cprAddressId = addressId.toString(),
+          outboundCprAddressId = addressId.toString(),
           outboundDeliusAddressId = addressEntity.deliusAddressId?.toString(),
         ),
         personReference = PersonReference(
