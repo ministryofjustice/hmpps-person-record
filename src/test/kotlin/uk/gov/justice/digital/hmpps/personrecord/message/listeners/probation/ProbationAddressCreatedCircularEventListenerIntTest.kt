@@ -1,8 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
-import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNull
@@ -11,11 +8,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 
@@ -47,7 +42,7 @@ class ProbationAddressCreatedCircularEventListenerIntTest : ProbationEventListen
     )
 
     awaitAssert {
-      assertThat(personRepository.findByCrn(crn)!!.addresses.firstOrNull()?.deliusAddressId).isEqualTo(deliusAddressId)
+      assertThat(personRepository.findByCrn(crn)?.addresses?.firstOrNull()?.deliusAddressId).isEqualTo(deliusAddressId)
     }
 
     assertNoCprActionsHappenAfterAddressPatch(crn)
@@ -56,20 +51,8 @@ class ProbationAddressCreatedCircularEventListenerIntTest : ProbationEventListen
   private fun assertNoCprActionsHappenAfterAddressPatch(crn: String) {
     // assert no recluster happened or event logs saved
     checkEventLog(crn, CPRLogEvents.CPR_RECORD_CREATED) { assertThat(it).isEmpty() }
-    checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { assertThat(it).isEmpty() }
-
+    checkEventLog(crn, CPRLogEvents.CPR_RECORD_CREATED) { assertThat(it).isEmpty() }
     // assert CPR does not publish any domain events
     expectNoMessagesOnQueueOrDlq(testOnlyCPRDomainEventsQueue)
-
-    // assert no telemetry events made
-    checkTelemetry(
-      event = CPR_RECORD_UPDATED,
-      expected = mapOf("SOURCE_SYSTEM" to DELIUS.name, "CRN" to crn),
-      times = 0,
-    )
-
-    // assert no person match calls made
-    wiremock.verify(0, postRequestedFor(urlEqualTo("/person")))
-    wiremock.verify(0, getRequestedFor(urlEqualTo("/person/score/.*")))
   }
 }

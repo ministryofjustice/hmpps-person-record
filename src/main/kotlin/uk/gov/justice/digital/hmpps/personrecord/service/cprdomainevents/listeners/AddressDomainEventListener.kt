@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.UK_ZONE
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
@@ -29,22 +30,29 @@ class AddressDomainEventListener(
 
   @TransactionalEventListener
   fun onAddressCreated(addressCreated: AddressCreated) {
-    publishAddressDomainEvent(
-      addressEntity = addressCreated.addressEntity,
-      eventSource = addressCreated.eventSource.identifier,
-      action = "created",
-      config = buildAddressDomainEventConfig(addressCreated.addressEntity.person!!.sourceSystem, CPR_PROBATION_ADDRESS_CREATED),
-    )
+    if (addressCreated.eventSource != DomainEventSource.CPR) {
+      publishAddressDomainEvent(
+        addressEntity = addressCreated.addressEntity,
+        eventSource = addressCreated.eventSource.identifier,
+        action = "created",
+        config = buildAddressDomainEventConfig(addressCreated.addressEntity.person!!.sourceSystem, CPR_PROBATION_ADDRESS_CREATED),
+      )
+    }
   }
 
   @TransactionalEventListener
   fun onAddressUpdated(addressUpdated: AddressUpdated) {
-    publishAddressDomainEvent(
-      addressEntity = addressUpdated.addressEntity,
-      eventSource = addressUpdated.eventSource.identifier,
-      action = "updated",
-      config = buildAddressDomainEventConfig(addressUpdated.addressEntity.person!!.sourceSystem, CPR_PROBATION_ADDRESS_UPDATED),
-    )
+    if (addressUpdated.eventSource != DomainEventSource.CPR) {
+      publishAddressDomainEvent(
+        addressEntity = addressUpdated.addressEntity,
+        eventSource = addressUpdated.eventSource.identifier,
+        action = "updated",
+        config = buildAddressDomainEventConfig(
+          addressUpdated.addressEntity.person!!.sourceSystem,
+          CPR_PROBATION_ADDRESS_UPDATED,
+        ),
+      )
+    }
   }
 
   private fun publishAddressDomainEvent(

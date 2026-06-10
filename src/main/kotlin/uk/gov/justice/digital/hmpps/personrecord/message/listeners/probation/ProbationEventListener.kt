@@ -6,7 +6,6 @@ import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -36,57 +35,33 @@ class ProbationEventListener(
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = sqsListenerService.processSQSMessage(rawMessage, { sqsMessage: SQSMessage ->
-    val eventSource = sqsMessage.getEventSource()
-    val event = jsonMapper.readValue<DomainEvent>(sqsMessage.message)
-    when {
-      patchAddressEvent(event, eventSource) -> patchAddress(event)
-      createAddressEvent(event, eventSource) -> upsertAddress(event)
-      updateAddressEvent(event) -> upsertAddress(event)
-      deleteAddressEvent(event) -> deleteAddress(event)
-      else -> updateWholePerson(event)
-    }
-  })
-
-  private fun patchAddressEvent(event: DomainEvent, eventSource: String?) = eventSource == DomainEventSource.CPR.identifier && event.eventType == OFFENDER_ADDRESS_CREATED
-
-  private fun createAddressEvent(event: DomainEvent, eventSource: String?) = eventSource != DomainEventSource.CPR.identifier && event.eventType == OFFENDER_ADDRESS_CREATED
-
-  private fun updateAddressEvent(event: DomainEvent) = event.eventType == OFFENDER_ADDRESS_UPDATED
-
-  private fun deleteAddressEvent(event: DomainEvent) = event.eventType == OFFENDER_ADDRESS_DELETED
-
-  private fun patchAddress(event: DomainEvent) {
-    val cprAddressUpdateId = event.additionalInformation!!.cprAddressId!!
-    val probationAddress = getProbationAddress(event)
-    val existingAddressEntity = addressRepository.findByUpdateId(UUID.fromString(cprAddressUpdateId))!!
-    existingAddressEntity.deliusAddressId = probationAddress.deliusAddressId
-    addressRepository.save(existingAddressEntity)
-  }
-
-  private fun upsertAddress(event: DomainEvent) {
+  fun onDomainEvent(rawMessage: String) = sqsListenerService.processSQSMessage(rawMessage) { message ->
+    val eventSource = message.getEventSource()?.let { src -> DomainEventSource.entries.firstOrNull { it.identifier == src } } ?: DELIUS
+    val event = jsonMapper.readValue<DomainEvent>(message.message)
     val crn = event.getCrn()
-    val probationAddress = getProbationAddress(event)
-    val personEntity = personRepository.findByCrn(crn)!!
+    when (event.eventType) {
+      OFFENDER_ADDRESS_CREATED, OFFENDER_ADDRESS_UPDATED -> {
+        val probationAddress = getProbationAddress(event)
+        val personEntity = personRepository.findByCrn(crn)!!
 
-    addressService.processAddress(
-      address = Address.from(probationAddress)!!,
-      findPerson = { personEntity },
-      findAddress = { personEntity.addresses.firstOrNull { it.deliusAddressId == probationAddress.deliusAddressId } },
-      eventSource = DELIUS,
-    )
-  }
-
-  private fun deleteAddress(event: DomainEvent) {
-    event.additionalInformation?.inboundDeliusAddressId?.let {
-      val deliusAddressId = it.toLong()
-      addressService.deleteAddress { addressRepository.findByDeliusAddressId(deliusAddressId) }
-    }
-  }
-
-  private fun updateWholePerson(event: DomainEvent) {
-    corePersonRecordAndDeliusClient.getPerson(event.getCrn()).let {
-      eventProcessor.processEvent(it, setOf(AddressEntity::class))
+        addressService.processAddress(
+          address = Address.from(probationAddress)!!,
+          findPerson = { personEntity },
+          findAddress = { personEntity.addresses.firstOrNull { it.deliusAddressId == probationAddress.deliusAddressId || it.updateId == event.additionalInformation?.cprAddressId?.let { cprAddressId -> UUID.fromString(cprAddressId) } } },
+          eventSource = eventSource,
+        )
+      }
+      OFFENDER_ADDRESS_DELETED -> {
+        event.additionalInformation?.inboundDeliusAddressId?.let {
+          val deliusAddressId = it.toLong()
+          addressService.deleteAddress { addressRepository.findByDeliusAddressId(deliusAddressId) }
+        }
+      }
+      else -> {
+        corePersonRecordAndDeliusClient.getPerson(crn).let {
+          eventProcessor.processEvent(it, setOf(AddressEntity::class))
+        }
+      }
     }
   }
 
