@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
@@ -138,15 +139,20 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     } matches { it == 1 }
   }
 
-  fun publishDomainEvent(eventType: String, domainEvent: DomainEvent) {
+  fun publishDomainEvent(eventType: String, domainEvent: DomainEvent, eventSource: DomainEventSource? = null) {
+    val messageAttributes = mutableMapOf(
+      "eventType" to MessageAttributeValue.builder().dataType("String")
+        .stringValue(eventType).build(),
+    )
+    if (eventSource != null) {
+      messageAttributes["eventSource"] = MessageAttributeValue.builder().dataType("String")
+        .stringValue(eventSource.identifier).build()
+    }
     publishEvent(
-      jsonMapper.writeValueAsString(domainEvent),
-      domainEventsTopic,
-      mapOf(
-        "eventType" to MessageAttributeValue.builder().dataType("String")
-          .stringValue(eventType).build(),
-      ),
-      eventType,
+      message = jsonMapper.writeValueAsString(domainEvent),
+      topic = domainEventsTopic,
+      messageAttributes = messageAttributes,
+      eventType = eventType,
     )
     expectNoMessagesOn(probationEventsQueue)
     expectNoMessagesOn(probationMergeEventsQueue)
