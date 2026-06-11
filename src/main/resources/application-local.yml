@@ -48,6 +48,12 @@ hmpps.sqs:
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":[ "probation-case.deleted.gdpr", "probation-case.engagement.deleted" ] }'
       dlqMaxReceiveCount: 2
+    cprdeliusaddresseventsfromcprqueue:
+      queueName: cpr_delius_address_events_from_cpr_queue
+      dlqName: cpr_delius_address_events_from_cpr_queue_dlq
+      subscribeTopicId: domainevents
+      subscribeFilter: '{"eventType":[ "probation-case.address.created", "probation-case.address.updated"],"eventSource":[ "core-person-record" ] }'
+      dlqMaxReceiveCount: 2
     cprnomiseventsqueue:
       queueName: cpr_nomis_events_queue
       dlqName: cpr_nomis_events_dlq
