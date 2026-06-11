@@ -1,0 +1,21 @@
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
+
+import io.awspring.cloud.sqs.annotation.SqsListener
+import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.PROBATION_ADDRESS_EVENT_FROM_CPR_QUEUE
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
+
+@Component
+class ProbationAddressFromCPREventListener(
+  private val domainEventProcessor: DomainEventProcessor,
+  private val deliusAddressIdHandler: DeliusAddressIdHandler,
+) {
+
+  @SqsListener(PROBATION_ADDRESS_EVENT_FROM_CPR_QUEUE, factory = "hmppsQueueContainerFactoryProxy")
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
+    when {
+      event.eventType == OFFENDER_ADDRESS_CREATED -> deliusAddressIdHandler.patchAddress(event)
+    }
+  }
+}

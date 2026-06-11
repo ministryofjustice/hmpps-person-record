@@ -55,9 +55,9 @@ hmpps.sqs:
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":[ "probation-case.engagement.created", "probation-case.address.created", "probation-case.address.updated", "probation-case.address.deleted","probation-case.personal-details.updated", "probation-case.alias.created","probation-case.alias.updated","probation-case.alias.deleted", "probation-case.engagement.recovered" ],"eventSource": [{"exists": false},{"anything-but": ["core-person-record"]}]}'
       dlqMaxReceiveCount: 2
-    cprdeliusaddresseventsqueue:
-      queueName: cpr_delius_address_events_queue
-      dlqName: cpr_delius_address_events_queue_dlq
+    cprdeliusaddresseventsfromcprqueue:
+      queueName: cpr_delius_address_events_from_cpr_queue
+      dlqName: cpr_delius_address_events_from_cpr_queue_dlq
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":[ "probation-case.address.created", "probation-case.address.updated"],"eventSource":[ "core-person-record" ] }'
       dlqMaxReceiveCount: 2
