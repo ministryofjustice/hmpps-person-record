@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AdditionalInformation(
 
@@ -24,10 +26,12 @@ data class AdditionalInformation(
   @JsonProperty("addressId")
   val inboundDeliusAddressId: String? = null,
 
-  val cprAddressId: String? = null,
-
   @JsonProperty("deliusAddressId")
   val outboundDeliusAddressId: String? = null,
 
-  val eventSource: String? = null,
+  @JsonProperty("corePersonAddressId")
+  val inboundCprAddressId: String? = null,
+
+  @JsonProperty("cprAddressId")
+  val outboundCprAddressId: String? = null,
 )
