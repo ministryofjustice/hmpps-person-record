@@ -94,13 +94,13 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun publishProbationAddressEvent(crn: String?, probationAddressId: Long?, eventType: String, eventSource: DomainEventSource? = DELIUS) {
+  fun publishProbationAddressEvent(crn: String?, probationAddressId: Long?, eventType: String, eventSource: DomainEventSource? = DELIUS, cprUpdateId: String? = null) {
     publishDomainEvent(
       eventType,
       DomainEvent(
         eventType = eventType,
         detailUrl = "/address/$probationAddressId",
-        additionalInformation = AdditionalInformation(inboundDeliusAddressId = probationAddressId.toString()),
+        additionalInformation = AdditionalInformation(inboundCprAddressId = cprUpdateId, inboundDeliusAddressId = probationAddressId.toString()),
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
       ),
       eventSource,
