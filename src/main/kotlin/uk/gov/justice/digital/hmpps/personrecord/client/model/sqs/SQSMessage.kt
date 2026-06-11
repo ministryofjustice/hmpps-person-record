@@ -22,6 +22,7 @@ data class SQSMessage(
   fun getEventType(): String? = messageAttributes?.eventType?.value
   fun getHearingEventType(): String? = messageAttributes?.hearingEventType?.value
   fun isLargeMessage() = getEventType() == LARGE_CASE_EVENT_TYPE
+  fun getEventSource(): String? = messageAttributes?.eventSource?.value
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)

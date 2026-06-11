@@ -1,0 +1,16 @@
+package uk.gov.justice.digital.hmpps.personrecord.service.queue
+
+import org.springframework.stereotype.Component
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.readValue
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+
+@Component
+class SqsDomainEventProcessor(
+  private val jsonMapper: JsonMapper,
+  private val sqsListenerService: SQSListenerService,
+) {
+  fun processDomainEvent(rawMessage: String, action: (domainEvent: DomainEvent, eventSource: String?) -> Unit) = sqsListenerService.processSQSMessage(rawMessage) {
+    action(jsonMapper.readValue<DomainEvent>(it.message), it.getEventSource())
+  }
+}

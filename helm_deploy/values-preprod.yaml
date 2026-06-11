@@ -14,6 +14,7 @@ generic-service:
     PRISONER_SEARCH_BASE_URL: https://prisoner-search-preprod.prison.service.justice.gov.uk
     CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: https://core-person-record-and-delius-preprod.hmpps.service.justice.gov.uk
     SERVICE_NOW_BASE_URL: https://mojuat.service-now.com/
+    SAS_BASE_URL: https://single-accommodation-service-api-preprod.hmpps.service.justice.gov.uk
 
   scheduledDowntime:
     enabled: true
@@ -30,6 +31,7 @@ generic-prometheus-alerts:
     - "hmpps-person-record-preprod-cpr_delius_delete_events_queue"
     - "hmpps-person-record-preprod-cpr_nomis_events_queue"
     - "hmpps-person-record-preprod-cpr_nomis_merge_events_queue"
+    - "hmpps-person-record-preprod-cpr_sas_events_queue"
   sqsNumberAlertQueueNames:
     - "hmpps-person-record-preprod-cpr_court_cases_dlq.fifo"
     - "hmpps-person-record-preprod-cpr_delius_offender_events_dlq"
@@ -37,6 +39,7 @@ generic-prometheus-alerts:
     - "hmpps-person-record-preprod-cpr_delius_delete_events_dlq"
     - "hmpps-person-record-preprod-cpr_nomis_events_dlq"
     - "hmpps-person-record-preprod-cpr_nomis_merge_events_dlq"
+    - "hmpps-person-record-preprod-cpr_sas_events_dlq"
   rdsAlertsDatabases:
     cloud-platform-288cab966b34da54: "hmpps-person-record-database"
 

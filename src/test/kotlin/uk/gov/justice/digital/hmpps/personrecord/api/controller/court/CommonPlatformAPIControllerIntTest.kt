@@ -6,10 +6,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressStatus
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
@@ -21,12 +17,13 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifie
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType.PREVIOUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
@@ -36,6 +33,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.test.assertCanonicalAddresses
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonsNumber
@@ -61,9 +59,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
-import java.time.ZonedDateTime
 
-class CommonPlatformApiControllerIntTest : WebTestBase() {
+class CommonPlatformAPIControllerIntTest : WebTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
@@ -78,7 +75,6 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
       val noFixedAbode = true
       val startDateTime = randomZonedDateTime()
       val endDateTime = randomZonedDateTime()
-      val postcode = randomPostcode()
       val nationality = randomNationalityCode()
       val religion = randomReligion()
       val ethnicity = randomCommonPlatformEthnicity()
@@ -103,6 +99,23 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
       val defendantId = randomDefendantId()
       val prisonNumber = randomPrisonNumber()
       val cid = randomCId()
+
+      val address = Address(
+        noFixedAbode = noFixedAbode,
+        startDate = startDateTime,
+        endDate = endDateTime,
+        buildingName = buildingName,
+        buildingNumber = buildingNumber,
+        thoroughfareName = thoroughfareName,
+        dependentLocality = dependentLocality,
+        postTown = postTown,
+        county = county,
+        countryCode = countryCode,
+        uprn = uprn,
+        statusCode = addressStatusCode,
+        comment = comment,
+        usages = listOf(AddressUsage(addressUsageCode, isActive)),
+      )
 
       val person = createPersonWithNewKey(
         Person(
@@ -134,23 +147,8 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
             ),
           ),
           addresses = listOf(
-            Address(
-              noFixedAbode = noFixedAbode,
-              startDate = startDateTime,
-              endDate = endDateTime,
-              postcode = postcode,
-              buildingName = buildingName,
-              buildingNumber = buildingNumber,
-              thoroughfareName = thoroughfareName,
-              dependentLocality = dependentLocality,
-              postTown = postTown,
-              county = county,
-              countryCode = countryCode,
-              uprn = uprn,
-              statusCode = addressStatusCode,
-              comment = comment,
-              usages = listOf(AddressUsage(addressUsageCode, isActive)),
-            ),
+            address.copy(postcode = randomPostcode()).setToPrevious(),
+            address.copy(postcode = randomPostcode()).setToPrimary(),
           ),
           references = listOf(
             Reference(identifierType = PNC, identifierValue = pnc),
@@ -168,6 +166,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
         .expectBody<CanonicalRecord>()
         .returnResult()
         .responseBody!!
+
       val canonicalAlias = CanonicalAlias(
         firstName = firstName,
         lastName = lastName,
@@ -176,29 +175,11 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
         sex = CanonicalSex.from(sex.value),
       )
       val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
-      val canonicalAddress = CanonicalAddress(
-        cprAddressId = person.addresses.first().updateId!!.toString(),
-        noFixedAbode = noFixedAbode,
-        startDate = startDateTime.toLocalDate().toString(),
-        startDateTime = startDateTime,
-        endDate = endDateTime.toLocalDate().toString(),
-        endDateTime = endDateTime,
-        postcode = postcode,
-        buildingName = buildingName,
-        buildingNumber = buildingNumber,
-        thoroughfareName = thoroughfareName,
-        dependentLocality = dependentLocality,
-        postTown = postTown,
-        county = county,
-        country = countryCode.description,
-        countryCode = countryCode.name,
-        uprn = uprn,
-        status = CanonicalAddressStatus.from(addressStatusCode),
-        comment = comment,
-        usages = listOf(CanonicalAddressUsage(CanonicalAddressUsageCode.from(addressUsageCode), isActive)),
-      )
+      val primaryAddressEntity = person.addresses.first { it.recordType == PRIMARY }
+      val previousAddressEntity = person.addresses.first { it.recordType == PREVIOUS }
       val canonicalReligion = CanonicalReligion(code = religion, description = religion)
       val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromCommonPlatform(ethnicity))
+
       assertThat(responseBody.cprUUID).isNull()
       assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
       assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
@@ -231,10 +212,7 @@ class CommonPlatformApiControllerIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
       assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
       assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
-      assertThat(responseBody.addresses)
-        .usingRecursiveComparison()
-        .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
-        .isEqualTo(listOf(canonicalAddress))
+      assertCanonicalAddresses(listOf(primaryAddressEntity, previousAddressEntity), responseBody.addresses)
     }
 
     @Test
