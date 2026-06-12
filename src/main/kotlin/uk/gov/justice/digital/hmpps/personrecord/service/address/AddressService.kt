@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.address
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -31,20 +30,14 @@ class AddressService(
     findPerson: () -> PersonEntity?,
     findAddress: () -> AddressEntity?,
     eventSource: DomainEventSource,
-  ): AddressEntity {
-    val personEntity = findPerson()
-      ?.takeIf { it.mergedTo == null }
-      ?: throw ResourceNotFoundException("Person not found")
-
-    return findAddress().exists(
-      no = {
-        create(address, personEntity, eventSource)
-      },
-      yes = {
-        update(address, it, eventSource)
-      },
-    )
-  }
+  ): AddressEntity = findAddress().exists(
+    no = {
+      create(address, findPerson()!!, eventSource)
+    },
+    yes = {
+      update(address, it, eventSource)
+    },
+  )
 
   private fun create(address: Address, personEntity: PersonEntity, eventSource: DomainEventSource): AddressEntity {
     val matchingFieldsBeforeUpdate = PersonMatchRecord.from(personEntity)
