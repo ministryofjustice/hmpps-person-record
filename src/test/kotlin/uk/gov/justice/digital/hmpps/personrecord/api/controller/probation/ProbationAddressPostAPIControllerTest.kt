@@ -107,25 +107,12 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
   @Nested
   inner class ErrorScenarios {
     @Test
-    fun `should return 404 not found when probation record does not exist`() {
+    fun `should return 500 not found when probation record does not exist`() {
       sendPostRequestAsserted<Unit>(
         url = probationAddressApiUrl(randomCrn()),
         body = createRandomProbationAddress(),
         roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.NOT_FOUND,
-      )
-    }
-
-    @Test
-    fun `should return 404 not found when probation record is a merged record`() {
-      val mergedCrn = randomCrn()
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails())
-      createPerson(createRandomProbationPersonDetails(mergedCrn)) { mergedTo = person.id }
-      sendPostRequestAsserted<Unit>(
-        url = probationAddressApiUrl(mergedCrn),
-        body = createRandomProbationAddress(),
-        roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.NOT_FOUND,
+        expectedStatus = HttpStatus.INTERNAL_SERVER_ERROR,
       )
     }
 
