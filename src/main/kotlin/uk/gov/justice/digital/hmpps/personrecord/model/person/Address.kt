@@ -136,7 +136,6 @@ data class Address(
       dependentLocality = address.dependentLocality,
       postTown = address.postTown,
       county = address.county,
-      countryCode = address.countryCode,
       comment = address.comment,
       statusCode = address.statusCode,
       isVerified = address.typeVerified,

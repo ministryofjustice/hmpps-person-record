@@ -102,6 +102,34 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
         assertThat(responseBody.cprAddressId).isEqualTo(actualAddress.updateId.toString())
       }
     }
+
+    @Test
+    fun `should create a new address and recluster - with invalid country code`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val crn = randomCrn()
+      val newAddress = createRandomProbationAddress()
+      createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
+
+      val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
+        url = probationAddressApiUrl(crn),
+        body = jsonMapper.writeValueAsString(newAddress).replace("\"typeVerified\"", "\"countryCode\": \"INVALID\", \"typeVerified\""),
+        roles = listOf(PROBATION_API_READ_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+      ).returnResult().responseBody!!
+
+      awaitAssert {
+        val personEntity = personRepository.findByCrn(crn) ?: fail("No person found with id $crn")
+        assertThat(personEntity.addresses.size).isEqualTo(1)
+
+        val actualAddress = personEntity.addresses.first()
+        assertAddressValues(newAddress, actualAddress)
+
+        assertThat(responseBody.crn).isEqualTo(crn)
+        assertThat(responseBody.cprAddressId).isEqualTo(actualAddress.updateId.toString())
+      }
+    }
   }
 
   @Nested
@@ -200,7 +228,6 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
     assertThat(actualAddress.dependentLocality).isEqualTo(expectedAddress.dependentLocality)
     assertThat(actualAddress.postTown).isEqualTo(expectedAddress.postTown)
     assertThat(actualAddress.county).isEqualTo(expectedAddress.county)
-    assertThat(actualAddress.countryCode).isEqualTo(expectedAddress.countryCode)
     assertThat(actualAddress.comment).isEqualTo(expectedAddress.comment)
     assertThat(actualAddress.statusCode).isEqualTo(expectedAddress.statusCode)
     assertThat(actualAddress.isVerified).isEqualTo(expectedAddress.typeVerified)
