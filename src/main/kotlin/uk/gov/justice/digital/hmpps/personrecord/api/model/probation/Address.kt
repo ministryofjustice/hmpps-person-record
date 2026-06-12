@@ -1,10 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.probation
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import java.time.ZonedDateTime
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(name = "ProbationCreateAddress")
 data class Address(
   @Schema(description = "Is the person without a permanent residence", example = "false", required = true)
@@ -31,8 +32,6 @@ data class Address(
   val postTown: String? = null,
   @Schema(description = "The address building number", example = "Greater London")
   val county: String? = null,
-  @Schema(description = "The address country code", example = "GBR")
-  val countryCode: CountryCode? = null,
   @Schema(description = "The address comment", example = "String")
   val comment: String? = null,
   @Schema(description = "The address status code", example = "M", required = true)

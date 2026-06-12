@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -133,7 +132,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
         dependentLocality = randomName(),
         postTown = randomPostcode(),
         county = randomName(),
-        countryCode = randomCountryCode().name,
+        countryCode = "E",
         uprn = randomUprn(),
       ),
       statusCode = SasAddressStatus(
@@ -189,7 +188,6 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
       assertThat(actualAddressEntity.dependentLocality).isEqualTo(expectedSasAddress.address.dependentLocality)
       assertThat(actualAddressEntity.postTown).isEqualTo(expectedSasAddress.address.postTown)
       assertThat(actualAddressEntity.county).isEqualTo(expectedSasAddress.address.county)
-      assertThat(actualAddressEntity.countryCode!!.name).isEqualTo(expectedSasAddress.address.countryCode)
       assertThat(actualAddressEntity.uprn).isEqualTo(expectedSasAddress.address.uprn)
       assertThat(actualAddressEntity.statusCode!!.name).isEqualTo(expectedSasAddress.statusCode!!.code)
       val actualAddressUsages = actualAddressEntity.usages
