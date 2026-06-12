@@ -153,7 +153,6 @@ data class Address(
       dependentLocality = address.address.dependentLocality,
       postTown = address.address.postTown,
       county = address.address.county,
-      countryCode = address.address.countryCode?.let { CountryCode.valueOf(it) },
       uprn = address.address.uprn,
       startDate = address.startDate?.toUkZonedDateTime(),
       endDate = address.endDate?.toUkZonedDateTime(),
