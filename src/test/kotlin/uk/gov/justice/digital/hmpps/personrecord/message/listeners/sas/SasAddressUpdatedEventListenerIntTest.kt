@@ -3,9 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressData
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressStatus
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
@@ -14,18 +11,9 @@ import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.Pro
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
-import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
-import java.time.LocalDate
 import java.util.UUID
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.Address as SasAddress
 
 class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
@@ -115,37 +103,6 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
     }
   }
 
-  private fun createSasAddressGetResponse(crn: String?, cprAddressUpdateId: UUID?) = SasGetAddressResponse(
-    data = SasAddressData(
-      crn = crn!!,
-      cprAddressId = cprAddressUpdateId.toString(),
-      startDate = LocalDate.now().minusYears(10),
-      endDate = LocalDate.now().plusYears(10),
-      noFixedAbode = randomBoolean(),
-      typeVerified = randomBoolean(),
-      address = SasAddress(
-        postcode = randomPostcode(),
-        subBuildingName = randomName(),
-        buildingName = randomName(),
-        buildingNumber = randomBuildingNumber(),
-        thoroughfareName = randomName(),
-        dependentLocality = randomName(),
-        postTown = randomPostcode(),
-        county = randomName(),
-        countryCode = "E",
-        uprn = randomUprn(),
-      ),
-      statusCode = SasAddressStatus(
-        code = randomAddressStatusCode().name,
-        description = randomLowerCaseString(),
-      ),
-      usage = SasAddressType(
-        code = randomAddressUsageCode().name,
-        description = randomLowerCaseString(),
-      ),
-    ),
-  )
-
   private fun publishSasAddressUpdateEvent(crn: String) {
     publishDomainEvent(
       SAS_ADDRESS_UPDATED,
@@ -156,17 +113,6 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
           sourceCrn = crn,
         ),
       ),
-    )
-  }
-
-  private fun stubGetRequestToSas(
-    sasCallbackResponse: SasGetAddressResponse? = null,
-    status: Int = 200,
-  ) {
-    stubGetRequest(
-      url = "/accommodations/1234",
-      body = jsonMapper.writeValueAsString(sasCallbackResponse),
-      status = status,
     )
   }
 
