@@ -85,7 +85,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -236,7 +235,6 @@ class IntegrationTestBase {
     dependentLocality = randomName(),
     postTown = randomName(),
     county = randomName(),
-    countryCode = randomCountryCode(),
     comment = randomName(),
     statusCode = randomAddressStatusCode(),
     typeVerified = true,

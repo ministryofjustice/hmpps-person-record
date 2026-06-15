@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.QUEUE_ADMIN
@@ -61,6 +62,7 @@ open class WebTestSetup : IntegrationTestBase() {
     val requestSpec = webTestClient
       .method(methodType)
       .uri(url)
+      .contentType(MediaType.APPLICATION_JSON)
 
     val requestSpecReady = when (methodType) {
       HttpMethod.GET, HttpMethod.DELETE -> requestSpec
