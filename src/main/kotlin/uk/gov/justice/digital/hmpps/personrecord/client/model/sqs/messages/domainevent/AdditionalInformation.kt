@@ -24,7 +24,7 @@ data class AdditionalInformation(
   val sourcePrisonNumber: String? = null,
 
   @JsonProperty("addressId")
-  val inboundDeliusAddressId: String? = null,
+  val inboundDeliusAddressId: Long? = null,
 
   @JsonProperty("deliusAddressId")
   val outboundDeliusAddressId: String? = null,
