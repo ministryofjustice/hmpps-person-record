@@ -117,6 +117,19 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
+  fun publishSasAddressEvent(crn: String, eventTye: String) {
+    publishDomainEvent(
+      eventTye,
+      DomainEvent(
+        eventType = eventTye,
+        detailUrl = "/accommodations/1234",
+        additionalInformation = AdditionalInformation(
+          sourceCrn = crn,
+        ),
+      ),
+    )
+  }
+
   fun createSasAddressGetResponse(crn: String?, cprAddressUpdateId: UUID?) = SasGetAddressResponse(
     data = SasAddressData(
       crn = crn!!,

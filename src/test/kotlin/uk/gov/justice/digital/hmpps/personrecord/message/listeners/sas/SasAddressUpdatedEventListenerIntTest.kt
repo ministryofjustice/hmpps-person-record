@@ -4,8 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -34,7 +32,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
       stubPersonMatchScores()
       stubGetRequestToSas(sasCallbackResponse)
 
-      publishSasAddressUpdateEvent(crn!!)
+      publishSasAddressEvent(crn!!, SAS_ADDRESS_UPDATED)
 
       assertAddressUpdated(crn, sasCallbackResponse)
       assertDomainEventPublishedAfterSasEvent(
@@ -56,7 +54,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       stubGetRequestToSas(status = 404)
 
-      publishSasAddressUpdateEvent(existingPersonEntity.crn!!)
+      publishSasAddressEvent(existingPersonEntity.crn!!, SAS_ADDRESS_UPDATED)
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)
@@ -76,7 +74,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       stubGetRequestToSas(sasCallbackResponse)
 
-      publishSasAddressUpdateEvent(existingPersonEntity.crn!!)
+      publishSasAddressEvent(existingPersonEntity.crn!!, SAS_ADDRESS_UPDATED)
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)
@@ -95,25 +93,12 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       stubGetRequestToSas(sasCallbackResponse)
 
-      publishSasAddressUpdateEvent(nonExistingPersonCrn)
+      publishSasAddressEvent(existingPersonEntity.crn!!, SAS_ADDRESS_UPDATED)
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)
       expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
     }
-  }
-
-  private fun publishSasAddressUpdateEvent(crn: String) {
-    publishDomainEvent(
-      SAS_ADDRESS_UPDATED,
-      DomainEvent(
-        eventType = SAS_ADDRESS_UPDATED,
-        detailUrl = "/accommodations/1234",
-        additionalInformation = AdditionalInformation(
-          sourceCrn = crn,
-        ),
-      ),
-    )
   }
 
   private fun assertAddressUpdated(crn: String?, expected: SasGetAddressResponse) {

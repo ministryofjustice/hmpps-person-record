@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -35,7 +33,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
-      publishSasAddressArrivedEvent(crn!!)
+      publishSasAddressEvent(crn!!, SAS_ADDRESS_ARRIVED)
 
       awaitAssert {
         val addressEntity = addressRepository.findByUpdateId(existingAddressEntity.updateId!!)!!
@@ -65,18 +63,5 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
     @Test
     fun `cpr address does not exist - pushed to dead letter queue`() {
     }
-  }
-
-  private fun publishSasAddressArrivedEvent(crn: String) {
-    publishDomainEvent(
-      SAS_ADDRESS_ARRIVED,
-      DomainEvent(
-        eventType = SAS_ADDRESS_ARRIVED,
-        detailUrl = "/accommodations/1234",
-        additionalInformation = AdditionalInformation(
-          sourceCrn = crn,
-        ),
-      ),
-    )
   }
 }
