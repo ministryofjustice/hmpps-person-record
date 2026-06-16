@@ -12,7 +12,7 @@ class DeliusAddressIdHandler(private val addressRepository: AddressRepository) {
   fun patchAddress(event: DomainEvent) {
     val cprAddressUpdateId = event.additionalInformation!!.inboundCprAddressId!!
     val existingAddressEntity = addressRepository.findByUpdateId(UUID.fromString(cprAddressUpdateId))!!
-    existingAddressEntity.deliusAddressId = event.additionalInformation.inboundDeliusAddressId!!.toLong()
+    existingAddressEntity.deliusAddressId = event.additionalInformation.inboundDeliusAddressId!!
     addressRepository.save(existingAddressEntity)
   }
 }

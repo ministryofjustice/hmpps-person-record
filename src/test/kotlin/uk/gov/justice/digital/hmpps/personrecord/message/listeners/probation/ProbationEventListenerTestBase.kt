@@ -110,7 +110,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
       DomainEvent(
         eventType = eventType,
         detailUrl = "/address/$probationAddressId",
-        additionalInformation = AdditionalInformation(inboundCprAddressId = cprUpdateId, inboundDeliusAddressId = probationAddressId.toString()),
+        additionalInformation = AdditionalInformation(inboundCprAddressId = cprUpdateId, inboundDeliusAddressId = probationAddressId),
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
       ),
       eventSource,
