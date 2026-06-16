@@ -46,7 +46,10 @@ class SasEventListener(
         val sasAddress = sasClient.getAddress(event.detailUrl!!)!!.data
         val personEntity = personRepository.findByCrn(sasAddress.crn)!!
 
-        val demotingAddressEntity = personEntity.addresses.firstOrNull { it.statusCode == AddressStatusCode.M }
+        val demotingAddressEntity = personEntity.addresses
+          .filter { it.updateId != UUID.fromString(sasAddress.cprAddressId) }
+          .firstOrNull { it.statusCode == AddressStatusCode.M }
+
         demotingAddressEntity?.let { mainAddressEntity ->
           mainAddressEntity.statusCode = AddressStatusCode.P
           mainAddressEntity.endDate = LocalDate.now().toUkZonedDateTime()
