@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas
 
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.client.SasClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
@@ -20,6 +21,7 @@ class SasAddressArrivedHandler(
   private val addressService: AddressService,
 ) {
 
+  @Transactional
   fun handle(event: DomainEvent) {
     val sasAddress = sasClient.getAddress(event.detailUrl!!)!!.data
     val personEntity = personRepository.findByCrn(sasAddress.crn)!!
