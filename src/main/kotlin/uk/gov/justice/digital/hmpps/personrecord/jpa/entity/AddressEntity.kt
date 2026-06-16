@@ -136,7 +136,6 @@ class AddressEntity(
     this.uprn = address.uprn
     this.comment = address.comment
     this.statusCode = address.statusCode
-    this.deliusAddressId = address.deliusAddressId
     this.isVerified = address.isVerified
     this.recordType = address.recordType
     updateChildEntities(address)

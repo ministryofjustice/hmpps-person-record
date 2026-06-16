@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressData
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
@@ -19,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDeliusAddressId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -46,12 +46,12 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
       stubPersonMatchScores()
       stubGetRequestToSas(sasCallbackResponse)
 
-      publishSasAddressUpdateEvent(crn!!)
+      publishSasAddressUpdateEvent()
 
-      assertAddressUpdated(crn, sasCallbackResponse)
+      assertAddressUpdated(crn, sasCallbackResponse, existingAddressEntity.deliusAddressId!!)
       assertDomainEventPublishedAfterSasEvent(
         expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
-        crn = crn,
+        crn = crn!!,
       )
     }
   }
@@ -68,7 +68,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       stubGetRequestToSas(status = 404)
 
-      publishSasAddressUpdateEvent(existingPersonEntity.crn!!)
+      publishSasAddressUpdateEvent()
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)
@@ -88,7 +88,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       stubGetRequestToSas(sasCallbackResponse)
 
-      publishSasAddressUpdateEvent(existingPersonEntity.crn!!)
+      publishSasAddressUpdateEvent()
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)
@@ -107,7 +107,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       stubGetRequestToSas(sasCallbackResponse)
 
-      publishSasAddressUpdateEvent(nonExistingPersonCrn)
+      publishSasAddressUpdateEvent()
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)
@@ -146,15 +146,12 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
     ),
   )
 
-  private fun publishSasAddressUpdateEvent(crn: String) {
+  private fun publishSasAddressUpdateEvent() {
     publishDomainEvent(
       SAS_ADDRESS_UPDATED,
       DomainEvent(
         eventType = SAS_ADDRESS_UPDATED,
         detailUrl = "/accommodations/1234",
-        additionalInformation = AdditionalInformation(
-          sourceCrn = crn,
-        ),
       ),
     )
   }
@@ -170,17 +167,19 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
     )
   }
 
-  private fun assertAddressUpdated(crn: String?, expected: SasGetAddressResponse) {
+  private fun assertAddressUpdated(crn: String?, expected: SasGetAddressResponse, existingDeliusAddressId: Long) {
     awaitAssert {
       val expectedSasAddress = expected.data
       val actualPersonEntity = personRepository.findByCrn(crn!!)!!
       assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
       val actualAddressEntity = actualPersonEntity.addresses.first()
+
+      assertThat(actualAddressEntity.postcode).isEqualTo(expectedSasAddress.address.postcode)
+      assertThat(actualAddressEntity.deliusAddressId).isEqualTo(existingDeliusAddressId)
       assertThat(actualAddressEntity.startDate!!.toUkLocalDate()).isEqualTo(expectedSasAddress.startDate)
       assertThat(actualAddressEntity.endDate!!.toUkLocalDate()).isEqualTo(expectedSasAddress.endDate)
       assertThat(actualAddressEntity.noFixedAbode).isEqualTo(expectedSasAddress.noFixedAbode)
       assertThat(actualAddressEntity.isVerified).isEqualTo(expectedSasAddress.typeVerified)
-      assertThat(actualAddressEntity.postcode).isEqualTo(expectedSasAddress.address.postcode)
       assertThat(actualAddressEntity.subBuildingName).isEqualTo(expectedSasAddress.address.subBuildingName)
       assertThat(actualAddressEntity.buildingName).isEqualTo(expectedSasAddress.address.buildingName)
       assertThat(actualAddressEntity.buildingNumber).isEqualTo(expectedSasAddress.address.buildingNumber)
