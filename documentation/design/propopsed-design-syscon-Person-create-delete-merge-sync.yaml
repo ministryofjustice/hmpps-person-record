@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  title: Person Create / Delete / Sync / Merge API
+  title: Syscon Person Sync / Create / Delete / Merge API
   version: 1.0.0
   description: API for creating, updating, and retrieving prisoner religion details and CPR/NOMIS mappings.
 
@@ -308,7 +308,31 @@ paths:
         '500':
           description: Unexpected server error.
 
-  /person/prison/{toPrisonNumber}/merge:
+    # /syscon-sync/person/{prisonNumber}:
+    delete:
+      summary: Delete a person from CPR using NOMIS id
+      description: >
+        Deletes a person from CPR using the NOMIS id
+      operationId: deletePerson
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prison number of the person to synchronise (e.g. A1234BC).
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Person data deleted successfully.
+        '400':
+          description: Invalid request payload.
+        '404':
+          description: Prisoner not found.
+        '500':
+          description: Unexpected server error.
+
+  /syscon-sync/person/{toPrisonNumber}/merge:
     post:
       summary: Sync person data into CPR from NOMIS
       description: >
@@ -425,133 +449,109 @@ paths:
         '500':
           description: Unexpected server error.
 
-  /person/prison/{prisonNumber}:
-    delete:
-      summary: Delete a person from CPR using NOMIS id
-      description: >
-        Deletes a person from CPR using the NOMIS id
-      operationId: deletePerson
-      parameters:
-        - name: prisonNumber
-          in: path
-          required: true
-          description: Prison number of the person to synchronise (e.g. A1234BC).
-          schema:
-            type: string
-
-      responses:
-        '200':
-          description: Person data deleted successfully.
-        '400':
-          description: Invalid request payload.
-        '404':
-          description: Prisoner not found.
-        '500':
-          description: Unexpected server error.
-
-    # /person/prison/{prisonNumber}:
-    post:
-      summary: Create a person into CPR from Reception / DPS
-      description: >
-        Creates a prisoner's demographics, contacts, pseudonyms, addresses and sentences
-        from Reception / DPS service into the CPR using the prisoner’s prison number as the key. Returns appropriate HTTP status code.
-      operationId: createPerson
-      parameters:
-        - name: prisonNumber
-          in: path
-          required: true
-          description: Prison number of the person to synchronise (e.g. A1234BC).
-          schema:
-            type: string
-      requestBody:
-        required: true
-        description: Person data to be synchronised from NOMIS to CPR.
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreatePersonRequest'
-            examples:
-              default:
-                summary: Example person sync request
-                value:
-                  demographicAttributes:
-                    birthPlace: "Milton Keynes"
-                    birthCountryCode: "UK"
-                    ethnicityCode: "W1"
-                    sexualOrientation: "HET"
-                    disability: false
-                    interestToImmigration: false
-                    religionCode: "MOS"
-                    nationalityCode: "GB"
-                    nationalityNote: "Possibly Finnish"
-                  personContacts:
-                    - value: "01234567890"
-                      type: "HOME"
-                      extension: "235"
-                    - value: "abc@def.xyz"
-                      type: "EMAIL"
-                      extension: null
-                  pseudonym:
-                    - titleCode: "MR"
-                      firstName: "John"
-                      middleNames: "Jimmy Jane"
-                      lastName: "Smith"
-                      dateOfBirth: "1980-01-01"
-                      sexCode: "M"
-                      isPrimary: true
-                      identifiers:
-                        - type: "PNC"
-                          value: "2000/1234567A"
-                          comment: "Test comment"
-                    - titleCode: "MR"
-                      firstName: "Jon"
-                      middleNames: "James"
-                      lastName: "Smythe"
-                      dateOfBirth: "1980-01-01"
-                      sexCode: "M"
-                      isPrimary: false
-                      identifiers:
-                        - type: "PNC"
-                          value: "2000/1234567A"
-                          comment: "Test comment2"
-                        - type: "NINO"
-                          value: "SC344857F"
-                          comment: "Test comment3"
-                  addresses:
-                    - fullAddress: "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ"
-                      noFixedAbode: false
-                      startDate: "2020-02-26"
-                      endDate: "2023-07-15"
-                      postcode: "SW1H 9AJ"
-                      subBuildingName: "Sub building 2"
-                      buildingName: "Main Building"
-                      buildingNumber: "102"
-                      thoroughfareName: "Petty France"
-                      dependentLocality: "Westminster"
-                      postTown: "London"
-                      county: "Greater London"
-                      countryCode: "UK"
-                      comment: "String"
-                      isPrimary: true
-                      isMail: true
-                      addressUsage:
-                        - addressUsageCode: "DSH"
-                          isActive: true
-                      contacts:
-                        - type: "PHONE"
-                          value: "+44 20 7946 0000"
-                          extension: "1234"
-                  sentences:
-                    - sentenceDate: "1980-01-01"
-      responses:
-        '200':
-          description: Person data synchronised successfully.
-        '400':
-          description: Invalid request payload.
-        '404':
-          description: Prisoner not found.
-        '500':
-          description: Unexpected server error.
+        # # /person/prison/{prisonNumber}:
+        #   post:
+        #     summary: Create a person into CPR from Reception / DPS
+        #     description: >
+        #       Creates a prisoner's demographics, contacts, pseudonyms, addresses and sentences
+        #       from Reception / DPS service into the CPR using the prisoner’s prison number as the key. Returns appropriate HTTP status code.
+        #     operationId: createPerson
+        #     parameters:
+        #       - name: prisonNumber
+        #         in: path
+        #         required: true
+        #         description: Prison number of the person to synchronise (e.g. A1234BC).
+        #         schema:
+        #           type: string
+        #     requestBody:
+        #       required: true
+        #       description: Person data to be synchronised from NOMIS to CPR.
+        #       content:
+        #         application/json:
+        #           schema:
+        #             $ref: '#/components/schemas/CreatePersonRequest'
+        #           examples:
+        #             default:
+        #               summary: Example person sync request
+        #               value:
+        #                 demographicAttributes:
+        #                   birthPlace: "Milton Keynes"
+        #                   birthCountryCode: "UK"
+        #                   ethnicityCode: "W1"
+        #                   sexualOrientation: "HET"
+        #                   disability: false
+        #                   interestToImmigration: false
+        #                   religionCode: "MOS"
+        #                   nationalityCode: "GB"
+        #                   nationalityNote: "Possibly Finnish"
+        #                 personContacts:
+        #                   - value: "01234567890"
+        #                     type: "HOME"
+        #                     extension: "235"
+        #                   - value: "abc@def.xyz"
+        #                     type: "EMAIL"
+        #                     extension: null
+        #                 pseudonym:
+        #                   - titleCode: "MR"
+        #                     firstName: "John"
+        #                     middleNames: "Jimmy Jane"
+        #                     lastName: "Smith"
+        #                     dateOfBirth: "1980-01-01"
+        #                     sexCode: "M"
+        #                     isPrimary: true
+        #                     identifiers:
+        #                       - type: "PNC"
+        #                         value: "2000/1234567A"
+        #                         comment: "Test comment"
+        #                   - titleCode: "MR"
+        #                     firstName: "Jon"
+        #                     middleNames: "James"
+        #                     lastName: "Smythe"
+        #                     dateOfBirth: "1980-01-01"
+        #                     sexCode: "M"
+        #                     isPrimary: false
+        #                     identifiers:
+        #                       - type: "PNC"
+        #                         value: "2000/1234567A"
+        #                         comment: "Test comment2"
+        #                       - type: "NINO"
+        #                         value: "SC344857F"
+        #                         comment: "Test comment3"
+        #                 addresses:
+        #                   - fullAddress: "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ"
+        #                     noFixedAbode: false
+        #                     startDate: "2020-02-26"
+        #                     endDate: "2023-07-15"
+        #                     postcode: "SW1H 9AJ"
+        #                     subBuildingName: "Sub building 2"
+        #                     buildingName: "Main Building"
+        #                     buildingNumber: "102"
+        #                     thoroughfareName: "Petty France"
+        #                     dependentLocality: "Westminster"
+        #                     postTown: "London"
+        #                     county: "Greater London"
+        #                     countryCode: "UK"
+        #                     comment: "String"
+        #                     isPrimary: true
+        #                     isMail: true
+        #                     addressUsage:
+        #                       - addressUsageCode: "DSH"
+        #                         isActive: true
+        #                     contacts:
+        #                       - type: "PHONE"
+        #                         value: "+44 20 7946 0000"
+        #                         extension: "1234"
+        #                 sentences:
+        #                   - sentenceDate: "1980-01-01"
+        #     responses:
+        #       '200':
+        #         description: Person data synchronised successfully.
+        #       '400':
+        #         description: Invalid request payload.
+        #       '404':
+        #         description: Prisoner not found.
+        #       '500':
+        #         description: Unexpected server error.
 
 components:
   schemas:
