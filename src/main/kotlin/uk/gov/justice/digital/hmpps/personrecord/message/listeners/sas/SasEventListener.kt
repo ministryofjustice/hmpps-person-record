@@ -21,7 +21,7 @@ class SasEventListener(
   private val sasClient: SasClient,
   private val personRepository: PersonRepository,
   private val addressService: AddressService,
-  private val sasAddressArrivedHandler: SasAddressArrivedHandler,
+  private val sasAddressPromotionHandler: SasAddressPromotionHandler,
 ) {
 
   @SqsListener(SAS_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
@@ -41,7 +41,7 @@ class SasEventListener(
         )
       }
       SAS_ADDRESS_ARRIVED -> {
-        sasAddressArrivedHandler.handle(event)
+        sasAddressPromotionHandler.handle(event)
       }
     }
   }

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.client.SasClient
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressData
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -15,7 +16,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 @Component
-class SasAddressArrivedHandler(
+class SasAddressPromotionHandler(
   private val sasClient: SasClient,
   private val personRepository: PersonRepository,
   private val addressService: AddressService,
@@ -25,20 +26,19 @@ class SasAddressArrivedHandler(
   fun handle(event: DomainEvent) {
     val sasAddress = sasClient.getAddress(event.detailUrl!!)!!.data
     val personEntity = personRepository.findByCrn(sasAddress.crn)!!
-    val cprAddressId = sasAddress.cprAddressId
-    personEntity.demoteMainAddressIfPresent(cprAddressId)
+    personEntity.demoteMainAddressIfPresent(sasAddress)
 
     addressService.processAddress(
       address = Address.from(sasAddress),
       findPerson = { personEntity },
-      findAddress = { personEntity.addresses.first { it.updateId.toString() == cprAddressId } },
+      findAddress = { personEntity.addresses.first { it.updateId.toString() == sasAddress.cprAddressId } },
       eventSource = DomainEventSource.CPR,
     )
   }
 
-  private fun PersonEntity.demoteMainAddressIfPresent(cprAddressIdToIgnore: String) {
+  private fun PersonEntity.demoteMainAddressIfPresent(sasAddress: SasAddressData) {
     this.addresses
-      .filter { it.updateId != UUID.fromString(cprAddressIdToIgnore) }
+      .filter { it.updateId != UUID.fromString(sasAddress.cprAddressId) }
       .firstOrNull { it.statusCode == AddressStatusCode.M }
       ?.let { mainAddressEntity ->
         mainAddressEntity.statusCode = AddressStatusCode.P
