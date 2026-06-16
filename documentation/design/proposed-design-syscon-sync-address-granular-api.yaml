@@ -1,12 +1,15 @@
 openapi: 3.0.3
 info:
-  title: Person Address API
+  title: Syscon Person Address API
   version: 1.0.0
   description: >
     API for creating, updating, and retrieving prisoner address details and related mappings.
 
 servers:
   # Added by API Auto Mocking Plugin
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/ftl/Syscon-Person-Address-API/1.0.0
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/ftl/Granular-Sync-Endpoints/1.0.0
   - url: https://api.yourdomain.tld
@@ -16,7 +19,7 @@ tags:
     description: Endpoints for person address management
 
 paths:
-  /person/prison/{prisonNumber}/address:
+  /syscon-sync/person/{prisonNumber}/address:
     post:
       summary: Create address records for a prisoner
       description: Creates one or more addresses for the specified prisoner number.
@@ -39,33 +42,33 @@ paths:
               sample:
                 value:
                   addresses:
-                    - nomisAddressId: "5677"
-                      fullAddress: "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ"
-                      noFixedAbode: false
-                      startDate: "2020-02-26"
-                      endDate: "2023-07-15"
-                      postcode: "SW1H 9AJ"
-                      uprn: "string"
-                      subBuildingName: "Sub building 2"
-                      buildingName: "Main Building"
-                      buildingNumber: "102"
-                      thoroughfareName: "Petty France"
-                      dependentLocality: "Westminster"
-                      postTown: "London"
-                      county: "Greater London"
-                      countryCode: "UK"
-                      comment: "String"
-                      isPrimary: true
-                      isMail: true
-                      addressUsage:
-                        - nomisAddressUsageId: "5678"
-                          addressUsageCode: "DSH"
-                          isActive: true
-                      contacts:
-                        - nomisAddressContactId: "5679"
-                          type: "PHONE"
-                          value: "+44 20 7946 0000"
-                          extension: "1234"
+                    nomisAddressId: "5677"
+                    fullAddress: "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ"
+                    noFixedAbode: false
+                    startDate: "2020-02-26"
+                    endDate: "2023-07-15"
+                    postcode: "SW1H 9AJ"
+                    uprn: "string"
+                    subBuildingName: "Sub building 2"
+                    buildingName: "Main Building"
+                    buildingNumber: "102"
+                    thoroughfareName: "Petty France"
+                    dependentLocality: "Westminster"
+                    postTown: "London"
+                    county: "Greater London"
+                    countryCode: "UK"
+                    comment: "String"
+                    isPrimary: true
+                    isMail: true
+                    addressUsage:
+                      - nomisAddressUsageId: "5678"
+                        addressUsageCode: "DSH"
+                        isActive: true
+                    # contacts:
+                    #   - nomisAddressContactId: "5679"
+                    #     type: "PHONE"
+                    #     value: "+44 20 7946 0000"
+                    #     extension: "1234"
       responses:
         '200':
           description: Address records synced successfully
@@ -78,14 +81,11 @@ paths:
                   value:
                     prisonerId: "A6443EG"
                     addressMappings:
-                      - nomisAddressId: "5677"
-                        cprAddressId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
-                        addressUsageMappings:
-                          - nomisAddressUsageId: "5678"
-                            cprAddressUsageid: "d4ae7071-58ae-42f0-bf5d-c69289fb1e6d"
-                        addressContactMappings:
-                          - nomisContactId: "5679"
-                            cprContactId: "e34a39e9-c22a-44c3-87ae-ab5017f465c3"
+                      nomisAddressId: "5677"
+                      cprAddressId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+                      addressUsageMappings:
+                        - nomisAddressUsageId: "5678"
+                          cprAddressUsageid: "d4ae7071-58ae-42f0-bf5d-c69289fb1e6d"
         '400':
           description: Invalid data supplied
           content:
@@ -99,7 +99,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /person/prison/{prisonNumber}/address/{cprAddressId}:
+  /syscon-sync/person/{prisonNumber}/address/{cprAddressId}:
     put:
       summary: Update an existing CPR address for a prisoner
       description: >
@@ -109,7 +109,7 @@ paths:
         - name: prisonNumber
           in: path
           required: true
-          description: Prisoner number (e.g., NOMIS number)
+          description: Prisoner number
           schema:
             type: string
             example: A6443EG
@@ -131,7 +131,84 @@ paths:
               sample:
                 value:
                   addresses:
-                    - nomisAddressId: "5677"
+                    nomisAddressId: "5677"
+                    fullAddress: "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ"
+                    noFixedAbode: false
+                    startDate: "2020-02-26"
+                    endDate: "2023-07-15"
+                    postcode: "SW1H 9AJ"
+                    uprn: "string"
+                    subBuildingName: "Sub building 2"
+                    buildingName: "Main Building"
+                    buildingNumber: "102"
+                    thoroughfareName: "Petty France"
+                    dependentLocality: "Westminster"
+                    postTown: "London"
+                    county: "Greater London"
+                    countryCode: "UK"
+                    comment: "String"
+                    isPrimary: true
+                    isMail: true
+      responses:
+        '200':
+          description: Address updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressUpdateResponse'
+              examples:
+                sample:
+                  value:
+                    prisonerId: "A6443EG"
+                    addressMappings:
+                      nomisAddressId: "5677"
+                      cprAddressId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+
+        '400':
+          description: Invalid data supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Prisoner or address not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    # /syscon-sync/person/{prisonNumber}/address/{cprAddressId}:
+    get:
+      summary: Retrieve address details for a CPR address id
+      description: Returns address JSON.
+      tags: [Address]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prisoner number
+          schema:
+            type: string
+            example: A6443EG
+        - name: cprAddressId
+          in: path
+          required: true
+          description: CPR Address ID
+          schema:
+            type: string
+            format: uuid
+            example: d4ae7071-58ae-42f0-bf5d-c69289fb1e6d
+      responses:
+        '200':
+          description: Address details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressGetResponse'
+              examples:
+                sample:
+                  value:
+                    addresses:
                       fullAddress: "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ"
                       noFixedAbode: false
                       startDate: "2020-02-26"
@@ -149,95 +226,6 @@ paths:
                       comment: "String"
                       isPrimary: true
                       isMail: true
-      responses:
-        '200':
-          description: Address updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AddressUpdateResponse'
-              examples:
-                sample:
-                  value:
-                    prisonerId: "A6443EG"
-                    addressMappings:
-                      - nomisAddressId: "5677"
-                        cprAddressId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
-                        addressUsageMappings:
-                          - nomisAddressUsageId: "5678"
-                            cprAddressUsageid: "d4ae7071-58ae-42f0-bf5d-c69289fb1e6d"
-                        addressContactMappings:
-                          - nomisContactId: "5679"
-                            cprContactId: "e34a39e9-c22a-44c3-87ae-ab5017f465c3"
-        '400':
-          description: Invalid data supplied
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Prisoner or address not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-    # /person/prison/{prisonNumber}/address/{cprAddressId}:
-    get:
-      summary: Retrieve address details for a CPR address usage (without NOMIS IDs)
-      description: Returns address JSON matching POST/PUT shapes but with all NOMIS IDs removed.
-      tags: [Address]
-      parameters:
-        - name: prisonNumber
-          in: path
-          required: true
-          description: Prisoner number (e.g., NOMIS number)
-          schema:
-            type: string
-            example: A6443EG
-        - name: cprAddressId
-          in: path
-          required: true
-          description: CPR Address ID
-          schema:
-            type: string
-            format: uuid
-            example: d4ae7071-58ae-42f0-bf5d-c69289fb1e6d
-      responses:
-        '200':
-          description: Address details (NOMIS IDs removed)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AddressGetResponse'
-              examples:
-                sample:
-                  value:
-                    addresses:
-                      - fullAddress: "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ"
-                        noFixedAbode: false
-                        startDate: "2020-02-26"
-                        endDate: "2023-07-15"
-                        postcode: "SW1H 9AJ"
-                        uprn: "string"
-                        subBuildingName: "Sub building 2"
-                        buildingName: "Main Building"
-                        buildingNumber: "102"
-                        thoroughfareName: "Petty France"
-                        dependentLocality: "Westminster"
-                        postTown: "London"
-                        county: "Greater London"
-                        countryCode: "UK"
-                        comment: "String"
-                        isPrimary: true
-                        isMail: true
-                        addressUsage:
-                          - addressUsageCode: "DSH"
-                            isActive: true
-                        contacts:
-                          - type: "PHONE"
-                            value: "+44 20 7946 0000"
-                            extension: "1234"
         '404':
           description: Address usage not found
           content:
@@ -245,7 +233,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /person/prison/{prisonNumber}/address/{cprAddressId}/address-usage:
+  /syscon-sync/person/{prisonNumber}/address/{cprAddressId}/address-usage:
     post:
       summary: Create new CPR address usage mapping for a prisoner
       tags: [Address Usage]
@@ -294,7 +282,7 @@ paths:
         '404':
           description: Prisoner or CPR address not found
 
-  /person/prison/{prisonNumber}/address-usage/{cprAddressUsageId}:
+  /syscon-sync/person/{prisonNumber}/address-usage/{cprAddressUsageId}:
     put:
       summary: Update CPR address usage for a prisoner
       tags: [Address Usage]
@@ -344,7 +332,7 @@ paths:
         '404':
           description: Prisoner or address usage not found
 
-    # /person/prison/{prisonNumber}/address-usage/{cprAddressUsageId}:
+    # /syscon-sync/person/{prisonNumber}/address-usage/{cprAddressUsageId}:
     get:
       summary: Retrieve CPR address usage
       tags: [Address Usage]
@@ -377,7 +365,7 @@ paths:
         '404':
           description: Address usage not found
 
-  /person/prison/{prisonNumber}/address/{cprAddressId}/address-contact:
+  /syscon-sync/person/{prisonNumber}/address/{cprAddressId}/address-contact:
     post:
       summary: Create address contacts for a CPR address contact
       description: Creates one or more contacts for the specified CPR address contact ID.
@@ -440,7 +428,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /person/prison/{prisonNumber}/address-contact/{cprAddressContactId}:
+  /syscon-sync/person/{prisonNumber}/address-contact/{cprAddressContactId}:
     put:
       summary: Update address contacts for a CPR address contact
       description: Updates one or more contacts for the specified CPR address contact ID.
@@ -502,6 +490,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+    # /syscon-sync/person/{prisonerNumber}/address-contact/{cprAddressContact}:
     get:
       summary: Retrieve address contacts.
       description: Returns contacts JSON
@@ -551,20 +540,14 @@ components:
       required: [addresses]
       properties:
         addresses:
-          type: array
-          minItems: 1
-          items:
-            $ref: '#/components/schemas/AddressItemPost'
+          $ref: '#/components/schemas/AddressItemPost'
 
     AddressPutRequest:
       type: object
       required: [addresses]
       properties:
         addresses:
-          type: array
-          minItems: 1
-          items:
-            $ref: '#/components/schemas/AddressItemPut'
+          $ref: '#/components/schemas/AddressItemPut'
 
     AddressItemPost:
       type: object
@@ -615,10 +598,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AddressUsageItem'
-        contacts:
-          type: array
-          items:
-            $ref: '#/components/schemas/AddressContactItem'
 
     AddressItemPut:
       description: Same as POST request but without addressUsage and contacts.
@@ -703,9 +682,7 @@ components:
           type: string
           example: "A6443EG"
         addressMappings:
-          type: array
-          items:
-            $ref: '#/components/schemas/AddressMapping'
+          $ref: '#/components/schemas/AddressMapping'
 
     AddressMapping:
       type: object
@@ -767,9 +744,7 @@ components:
       description: Address information as per POST/PUT but with all NOMIS IDs removed.
       properties:
         addresses:
-          type: array
-          items:
-            $ref: '#/components/schemas/AddressWithoutNomisIds'
+          $ref: '#/components/schemas/AddressWithoutNomisIds'
 
     AddressWithoutNomisIds:
       type: object
@@ -814,26 +789,26 @@ components:
           type: boolean
         isMail:
           type: boolean
-        addressUsage:
-          type: array
-          items:
-            type: object
-            properties:
-              addressUsageCode:
-                type: string
-              isActive:
-                type: boolean
-        contacts:
-          type: array
-          items:
-            type: object
-            properties:
-              type:
-                type: string
-              value:
-                type: string
-              extension:
-                type: string
+        # addressUsage:
+        #   type: array
+        #   items:
+        #     type: object
+        #     properties:
+        #       addressUsageCode:
+        #         type: string
+        #       isActive:
+        #         type: boolean
+        # contacts:
+        #   type: array
+        #   items:
+        #     type: object
+        #     properties:
+        #       type:
+        #         type: string
+        #       value:
+        #         type: string
+        #       extension:
+        #         type: string
 
 
 
