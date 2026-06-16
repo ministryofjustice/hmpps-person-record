@@ -75,6 +75,10 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId(Queues.SAS_EVENT_QUEUE_ID)
   }
 
+  val probationAddressEventsFromCPRQueue by lazy {
+    hmppsQueueService.findByQueueId(Queues.PROBATION_ADDRESS_EVENT_FROM_CPR_QUEUE)
+  }
+
   internal fun publishLibraMessage(message: String) = publishCourtMessage(message, LIBRA_COURT_CASE, "libra.case.received", null)
 
   internal fun publishCommonPlatformMessage(message: String) = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.case.received", "ConfirmedOrUpdated")
@@ -302,6 +306,7 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     purgeQueueAndDlq(testOnlyCourtEventsQueue)
     purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
     purgeQueueAndDlq(sasEventsQueue)
+    purgeQueueAndDlq(probationAddressEventsFromCPRQueue)
   }
 
   fun purgeQueueAndDlq(hmppsQueue: HmppsQueue?) {

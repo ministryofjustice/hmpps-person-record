@@ -6,42 +6,34 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNull
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 
-class ProbationAddressCreatedCircularEventListenerIntTest : ProbationEventListenerTestBase() {
+class ProbationAddressCircularEventListenerIntTest : ProbationEventListenerTestBase() {
 
   @Test
   fun `given an address created event - event contains CPR event source - updates delius address id only`() {
     val crn = randomCrn()
     val addressCreatedBySas = randomProbationAddress().copy(deliusAddressId = null)
-    val personEntity = createPerson(createRandomProbationPersonDetails(crn = crn).copy(addresses = listOf(Address.from(addressCreatedBySas)!!)))
-    createPersonKey()
-      .addPerson(personEntity)
+    val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn = crn).copy(addresses = listOf(Address.from(addressCreatedBySas)!!)))
     val addressEntity = personEntity.addresses.first()
 
     val deliusAddressId = randomDigit().toLong()
 
     assertNull(addressEntity.deliusAddressId)
-    publishDomainEvent(
-      eventType = OFFENDER_ADDRESS_CREATED,
-      domainEvent = DomainEvent(
-        eventType = OFFENDER_ADDRESS_CREATED,
-        detailUrl = "/address/$deliusAddressId",
-        additionalInformation = AdditionalInformation(inboundCprAddressId = addressEntity.updateId.toString(), inboundDeliusAddressId = deliusAddressId.toString()),
-        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
-      ),
-      eventSource = DomainEventSource.CPR,
+    publishProbationAddressEvent(
+      crn,
+      deliusAddressId,
+      OFFENDER_ADDRESS_CREATED,
+      DomainEventSource.CPR,
+      addressEntity.updateId.toString(),
     )
 
     awaitAssert {
@@ -49,6 +41,33 @@ class ProbationAddressCreatedCircularEventListenerIntTest : ProbationEventListen
     }
 
     assertNoCprActionsHappenAfterAddressPatch(crn)
+  }
+
+  @Test
+  fun `consuming address updated event - cpr event source - does not update address or publish subsequent events`() {
+    val originalProbationAddress = randomProbationAddress()
+    val personEntity = createPersonWithNewKey(
+      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(originalProbationAddress)!!)),
+    )
+    val cprAddressBeforeUpdate = personEntity.addresses.first()
+
+    publishProbationAddressEvent(
+      personEntity.crn,
+      personEntity.addresses[0].deliusAddressId,
+      OFFENDER_ADDRESS_UPDATED,
+      DomainEventSource.CPR,
+      cprAddressBeforeUpdate.updateId.toString(),
+    )
+
+    val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
+    assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
+    val cprAddressAfterUpdate = actualPersonEntity.addresses.first()
+    assertThat(cprAddressAfterUpdate.id).isEqualTo(cprAddressBeforeUpdate.id)
+    assertThat(cprAddressAfterUpdate.updateId).isEqualTo(cprAddressBeforeUpdate.updateId)
+
+    expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
+
+    assertNoCprActionsHappenAfterAddressPatch(personEntity.crn!!)
   }
 
   private fun assertNoCprActionsHappenAfterAddressPatch(crn: String) {
@@ -69,5 +88,6 @@ class ProbationAddressCreatedCircularEventListenerIntTest : ProbationEventListen
     // assert no person match calls made
     wiremock.verify(0, postRequestedFor(urlEqualTo("/person")))
     wiremock.verify(0, getRequestedFor(urlEqualTo("/person/score/.*")))
+    wiremock.verify(0, getRequestedFor(urlEqualTo("/address/*")))
   }
 }
