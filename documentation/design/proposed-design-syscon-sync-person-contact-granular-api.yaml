@@ -1,11 +1,14 @@
 openapi: 3.0.3
 info:
-  title: Person & Person Contact API
+  title: Syscon Person & Person Contact API
   version: 1.0.0
   description: API for creating, updating, and retrieving prisoner personal contact details.
 
 servers:
   # Added by API Auto Mocking Plugin
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/ftl/Syscon-Person-API/1.0.0
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/ftl/person/1.0.0
   - url: https://api.yourdomain.tld
@@ -15,7 +18,7 @@ tags:
     description: Endpoints for prisoner personal contact information
 
 paths:
-  /person/prison/{prisonNumber}/person-contact:
+  /syscon-sync/person/{prisonNumber}/person-contact:
     post:
       summary: Create person contacts for a prisoner
       tags: [Person Contact]
@@ -51,7 +54,7 @@ paths:
               examples:
                 sample:
                   value:
-                    PrisonNumber: "A6443EG"
+                    prisonerNumber: "A6443EG"
                     personContactMappings:
                       nomisContactId: "1234"
                       cprContactId: "e34a39e9-c22a-44c3-87ae-ab5017f465c3"
@@ -60,7 +63,7 @@ paths:
         '404':
           description: Prisoner not found
 
-  /person/prison/{prisonNumber}/person-contact/{cprPersonContactId}:
+  /syscon-sync/person/{prisonNumber}/person-contact/{cprPersonContactId}:
     put:
       summary: Update an existing CPR person contact record for a prisoner
       tags: [Person Contact]
@@ -139,7 +142,7 @@ paths:
         '404':
           description: CPR person contact not found
 
-  /person/{prisonNumber}:
+  /syscon-sync/person/{prisonNumber}:
     put:
       summary: Update core person details
       description: >
@@ -213,7 +216,7 @@ components:
     PersonContactResponse:
       type: object
       properties:
-        PrisonNumber:
+        prisonerNumber:
           type: string
           example: "A6443EG"
         personContactMappings:
@@ -232,7 +235,7 @@ components:
     PersonContactPutResponse:
       type: object
       properties:
-        PrisonNumber:
+        prisonerNumber:
           type: string
           example: "A6443EG"
         personContactMappings:
@@ -247,7 +250,7 @@ components:
           type: string
           format: uuid
 
-    # ----- GET RESPONSE (NOMIS ID REMOVED) -----
+    # ----- GET RESPONSE -----
     PersonContactGetResponse:
       type: object
       description: Contact info returned
