@@ -4,12 +4,14 @@ import io.awspring.cloud.sqs.annotation.SqsListener
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.SasClient
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.SAS_EVENT_QUEUE_ID
+import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 import java.util.UUID
 
@@ -19,6 +21,7 @@ class SasEventListener(
   private val domainEventProcessor: DomainEventProcessor,
   private val sasClient: SasClient,
   private val personRepository: PersonRepository,
+  private val addressRepository: AddressRepository,
   private val addressService: AddressService,
 ) {
 
@@ -37,6 +40,15 @@ class SasEventListener(
           findAddress = { personEntity.addresses.first { address -> address.updateId == cprAddressUpdateId } },
           eventSource = DomainEventSource.CPR,
         )
+      }
+      SAS_ADDRESS_DELETED -> {
+        val cprAddressUpdateId = event.additionalInformation!!.inboundCprAddressId
+        addressRepository.findByUpdateId(UUID.fromString(cprAddressUpdateId))?.let { addressEntity ->
+          val personEntity = addressEntity.person!!
+          personEntity.addresses.remove(addressEntity)
+          addressEntity.person = null
+          personRepository.save(personEntity)
+        }
       }
     }
   }
