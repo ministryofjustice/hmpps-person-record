@@ -1,12 +1,15 @@
 openapi: 3.0.3
 info:
-  title: Person Pseudonym API
+  title: Syscon Person Pseudonym & Identifiers API
   version: 1.0.0
   description: API for creating, updating, and retrieving prisoner pseudonyms and identifier mappings.
 
 servers:
   # Added by API Auto Mocking Plugin
   # Added by API Auto Mocking Plugin
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/ftl/Syscon-Pesudonym-Identifiers-API/1.0.0
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/ftl/Pesudonym-Identifiers/1.0.0
   - description: SwaggerHub API Auto Mocking
@@ -18,7 +21,7 @@ tags:
     description: Endpoints for prisoner pseudonyms
 
 paths:
-  /person/prison/{prisonNumber}/pseudonym:
+  /syscon-sync/person/{prisonNumber}/pseudonym:
     post:
       summary: Create pseudonyms for a prisoner
       tags: [Pseudonym]
@@ -77,7 +80,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /person/prison/{prisonNumber}/pseudonym/{cprPseudonymId}:
+  /syscon-sync/person/{prisonNumber}/pseudonym/{cprPseudonymId}:
     put:
       summary: Update an existing CPR pseudonym for a prisoner
       tags: [Pseudonym]
@@ -190,7 +193,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /person/prison/{prisonNumber}/pseudonym/{cprPseudonymId}/identifier:
+  /syscon-sync/person/{prisonNumber}/pseudonym/{cprPseudonymId}/identifier:
     post:
       summary: Create identifiers for a CPR pseudonym
       description: Creates one or more identifiers under the specified CPR pseudonym.
@@ -258,7 +261,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /person/prison/{prisonNumber}/identifier/{cprIdentifierId}:
+  /syscon-sync/person/{prisonNumber}/identifier/{cprIdentifierId}:
     put:
       summary: Update an existing CPR identifier for a prisoner
       description: Updates one or more identifiers corresponding to the specified CPR identifier.
