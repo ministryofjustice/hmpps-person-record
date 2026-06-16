@@ -1,11 +1,14 @@
 openapi: 3.0.3
 info:
-  title: Prisoner Religion API
+  title: Syscon Prisoner Religion API
   version: 1.0.0
   description: API for creating, updating, and retrieving prisoner religion details and CPR/NOMIS mappings.
 
 servers:
   # Added by API Auto Mocking Plugin
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/ftl/Syscon-Person-Religion-API/1.0.0
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/ftl/Person-Religion-API/1.0.0
   - url: https://api.yourdomain.tld
@@ -15,7 +18,7 @@ tags:
     description: Endpoints for prisoner religion
 
 paths:
-  /person/prison/{prisonNumber}/religion:
+  /syscon-sync/person/{prisonNumber}/religion:
     post:
       summary: Create a religion record for a prisoner
       description: Accepts a single religion object and returns the CPR mapping for it.
@@ -75,7 +78,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /person/prison/{prisonNumber}/religion/{cprReligionId}:
+  /syscon-sync/person/{prisonNumber}/religion/{cprReligionId}:
     put:
       summary: Update an existing CPR religion for a prisoner
       tags: [Religion]
