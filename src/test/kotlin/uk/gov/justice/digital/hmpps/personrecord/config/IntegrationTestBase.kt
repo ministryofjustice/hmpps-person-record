@@ -186,6 +186,12 @@ class IntegrationTestBase {
     }
   }
 
+  internal fun deleteAllPersonData() {
+    reviewRepository.deleteAll()
+    personRepository.deleteAll()
+    personKeyRepository.deleteAll()
+  }
+
   fun probationUrl(crn: String) = "/probation-cases/$crn"
 
   internal fun createRandomProbationPersonDetails(crn: String = randomCrn()): Person = Person.from(
