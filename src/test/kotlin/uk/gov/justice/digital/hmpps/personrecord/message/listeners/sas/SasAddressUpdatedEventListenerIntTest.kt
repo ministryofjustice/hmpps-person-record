@@ -7,9 +7,12 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressR
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDeliusAddressId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.util.UUID
 
@@ -20,11 +23,25 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
     @Test
     fun `consumes sas update event - updates address`() {
+      val deliusAddressId = randomDeliusAddressId()
       val existingPersonEntity = createPerson(createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = randomPostcode()))))
       val crn = existingPersonEntity.crn
       val existingAddressEntity = existingPersonEntity.addresses.first()
-      createPersonKey()
-        .addPerson(existingPersonEntity)
+      createPersonKey().addPerson(existingPersonEntity)
+
+      assertThat(existingAddressEntity.deliusAddressId).isNull()
+
+      publishProbationAddressEvent(
+        crn,
+        deliusAddressId,
+        OFFENDER_ADDRESS_CREATED,
+        DomainEventSource.CPR,
+        existingAddressEntity.updateId.toString(),
+      )
+
+      awaitNotNull {
+        addressRepository.findByDeliusAddressId(deliusAddressId)
+      }
 
       val sasCallbackResponse = createSasAddressGetResponse(crn, existingAddressEntity.updateId)
 
@@ -34,7 +51,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       publishSasAddressEvent(crn!!, SAS_ADDRESS_UPDATED)
 
-      assertAddressUpdated(crn, sasCallbackResponse)
+      assertAddressUpdated(crn, sasCallbackResponse, deliusAddressId)
       assertDomainEventPublishedAfterSasEvent(
         expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
         crn = crn,
@@ -101,17 +118,19 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
     }
   }
 
-  private fun assertAddressUpdated(crn: String?, expected: SasGetAddressResponse) {
+  private fun assertAddressUpdated(crn: String?, expected: SasGetAddressResponse, existingDeliusAddressId: Long) {
     awaitAssert {
       val expectedSasAddress = expected.data
       val actualPersonEntity = personRepository.findByCrn(crn!!)!!
       assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
+
       val actualAddressEntity = actualPersonEntity.addresses.first()
+      assertThat(actualAddressEntity.postcode).isEqualTo(expectedSasAddress.address.postcode)
+      assertThat(actualAddressEntity.deliusAddressId).isEqualTo(existingDeliusAddressId)
       assertThat(actualAddressEntity.startDate!!.toUkLocalDate()).isEqualTo(expectedSasAddress.startDate)
       assertThat(actualAddressEntity.endDate!!.toUkLocalDate()).isEqualTo(expectedSasAddress.endDate)
       assertThat(actualAddressEntity.noFixedAbode).isEqualTo(expectedSasAddress.noFixedAbode)
       assertThat(actualAddressEntity.isVerified).isEqualTo(expectedSasAddress.typeVerified)
-      assertThat(actualAddressEntity.postcode).isEqualTo(expectedSasAddress.address.postcode)
       assertThat(actualAddressEntity.subBuildingName).isEqualTo(expectedSasAddress.address.subBuildingName)
       assertThat(actualAddressEntity.buildingName).isEqualTo(expectedSasAddress.address.buildingName)
       assertThat(actualAddressEntity.buildingNumber).isEqualTo(expectedSasAddress.address.buildingNumber)
