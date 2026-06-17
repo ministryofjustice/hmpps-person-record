@@ -20,7 +20,8 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
     stubPersonMatchScores()
     publishProbationAddressEvent(personEntity.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_DELETED)
 
-    val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
+    expectNoMessagesOnQueueOrDlq(probationEventsQueue)
+    val actualPersonEntity = personRepository.findByCrn(personEntity.crn!!)!!
     assertThat(actualPersonEntity.addresses.size).isEqualTo(0)
   }
 
@@ -34,8 +35,9 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
     stubPersonMatchUpsert()
     stubPersonMatchScores()
     publishProbationAddressEvent(randomCrn(), probationAddress.deliusAddressId, OFFENDER_ADDRESS_DELETED)
+    expectNoMessagesOnQueueOrDlq(probationEventsQueue)
 
-    val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
+    val actualPersonEntity = personRepository.findByCrn(personEntity.crn!!)!!
     assertThat(actualPersonEntity.addresses.size).isEqualTo(0)
   }
 
@@ -49,8 +51,7 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
     publishProbationAddressEvent(personEntity.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_DELETED)
 
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
-
-    val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
+    val actualPersonEntity = personRepository.findByCrn(personEntity.crn!!)!!
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
   }
 }
