@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -47,11 +46,11 @@ class ProbationEventListener(
 
   private fun upsertAddress(event: DomainEvent) {
     val crn = event.getCrn()
-    val probationAddress = getProbationAddress(event)
+    val probationAddress = getAddress(event)
     val personEntity = personRepository.findByCrn(crn)!!
 
     addressService.processAddress(
-      address = Address.from(probationAddress)!!,
+      address = probationAddress,
       findPerson = { personEntity },
       findAddress = { personEntity.addresses.firstOrNull { it.deliusAddressId == probationAddress.deliusAddressId } },
       eventSource = DELIUS,
@@ -70,7 +69,7 @@ class ProbationEventListener(
     }
   }
 
-  private fun getProbationAddress(event: DomainEvent): ProbationAddress {
+  private fun getAddress(event: DomainEvent): Address {
     val deliusAddressId = event.additionalInformation?.inboundDeliusAddressId!!
     return corePersonRecordAndDeliusClient.getAddress(deliusAddressId)!!
   }
