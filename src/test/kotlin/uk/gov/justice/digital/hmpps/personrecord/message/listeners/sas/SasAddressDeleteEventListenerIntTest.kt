@@ -51,7 +51,7 @@ class SasAddressDeleteEventListenerIntTest : ProbationEventListenerTestBase() {
     )
 
     expectNoMessagesOnQueueOrDlq(sasEventsQueue)
-    assertNoCprActionsHappenAfterAddressPatch(personEntity.crn!!, shouldNotPublishDomainEvent = false)
+    assertCorrectActionsHappenAfterSasAddressDelete(personEntity.crn!!)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)

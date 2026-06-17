@@ -183,25 +183,26 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     else -> error("Unsupported event type: $eventType")
   }
 
-  fun assertNoCprActionsHappenAfterAddressPatch(crn: String, shouldNotPublishDomainEvent: Boolean = true) {
-    // assert no recluster happened or event logs saved
+  fun assertNoCprActionsHappenAfterAddressPatch(crn: String) {
+    expectNoMessagesOnQueueOrDlq(testOnlyCPRDomainEventsQueue)
+    assertNoCprActions(crn)
+  }
+
+  fun assertCorrectActionsHappenAfterSasAddressDelete(crn: String) {
+    assertNoCprActions(crn)
+  }
+
+  private fun assertNoCprActions(crn: String) {
     checkEventLog(crn, CPRLogEvents.CPR_RECORD_CREATED) { assertThat(it).isEmpty() }
     checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { assertThat(it).isEmpty() }
     checkEventLog(crn, CPRLogEvents.CPR_RECORD_DELETED) { assertThat(it).isEmpty() }
 
-    // assert CPR does not publish any domain events
-    if (shouldNotPublishDomainEvent) {
-      expectNoMessagesOnQueueOrDlq(testOnlyCPRDomainEventsQueue)
-    }
-
-    // assert no telemetry events made
     checkTelemetry(
       event = TelemetryEventType.CPR_RECORD_UPDATED,
       expected = mapOf("SOURCE_SYSTEM" to DELIUS.name, "CRN" to crn),
       times = 0,
     )
 
-    // assert no person match calls made
     wiremock.verify(0, postRequestedFor(urlEqualTo("/person")))
     wiremock.verify(0, getRequestedFor(urlEqualTo("/person/score/.*")))
     wiremock.verify(0, getRequestedFor(urlEqualTo("/address/*")))
