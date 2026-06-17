@@ -65,7 +65,7 @@ class AddressDomainEventListener(
       eventSource = addressDeleted.eventSource.identifier,
       action = "deleted",
       config = buildAddressDomainEventConfig(addressDeleted.personEntity.sourceSystem, CPR_PROBATION_ADDRESS_DELETED),
-      shouldCallback = false,
+      shouldConsumersCallback = false,
     )
   }
 
@@ -75,7 +75,7 @@ class AddressDomainEventListener(
     eventSource: String,
     action: String,
     config: AddressDomainEventConfig?,
-    shouldCallback: Boolean = true,
+    shouldConsumersCallback: Boolean = true,
   ) {
     config ?: return
     val addressId = addressEntity.updateId
@@ -94,7 +94,7 @@ class AddressDomainEventListener(
         ),
       ),
     )
-    if (shouldCallback) {
+    if (shouldConsumersCallback) {
       domainEvent.detailUrl = "$baseUrl/person/${config.urlPathSegment}/$sourceSystemId/address/$addressId"
     }
     domainEventPublisher.publish(
