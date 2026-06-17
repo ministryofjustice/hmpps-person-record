@@ -23,10 +23,11 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
 
     publishProbationAddressEvent(cprPerson.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_CREATED)
 
-    assertAddress(cprPerson.crn!!, probationAddress)
+    val actualAddress = assertAddress(cprPerson.crn!!, probationAddress)
     assertDomainEventPublishedAfterDeliusEvent(
       expectedEventType = CPR_PROBATION_ADDRESS_CREATED,
       crn = cprPerson.crn,
+      cprAddressUpdateId = actualAddress.updateId.toString(),
     )
   }
 
@@ -50,11 +51,12 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     val addressEntityAfterCreateEvent = actualPersonEntity.addresses.first()
     assertThat(addressEntityAfterCreateEvent.id).isEqualTo(addressEntityBeforeCreateEvent.id)
     assertThat(addressEntityAfterCreateEvent.updateId).isEqualTo(addressEntityBeforeCreateEvent.updateId)
-    assertAddress(personEntity.crn!!, updatedProbationAddress)
 
+    val actualAddress = assertAddress(personEntity.crn!!, updatedProbationAddress)
     assertDomainEventPublishedAfterDeliusEvent(
       expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
       crn = personEntity.crn!!,
+      cprAddressUpdateId = actualAddress.updateId.toString(),
     )
   }
 
