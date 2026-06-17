@@ -145,10 +145,10 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(prisonPerson.getPnc()))
       assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
 
-      assertThat(responseBody.addresses)
+      assertThat(responseBody.addresses.sortedBy { it.cprAddressId })
         .usingRecursiveComparison()
         .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
-        .isEqualTo(listOf(canonicalAddress, canonicalAddress2))
+        .isEqualTo(listOf(canonicalAddress, canonicalAddress2).sortedBy { it.cprAddressId })
     }
 
     @Test
@@ -273,7 +273,7 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
       val targetPrisonNumber = randomPrisonNumber()
 
       val targetPersonEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(targetPrisonNumber))
-      val sourcePersonEntity = createPerson(createRandomPrisonPersonDetails(sourcePrisonNumber)) { mergedTo = targetPersonEntity.id }
+      createPerson(createRandomPrisonPersonDetails(sourcePrisonNumber)) { mergedTo = targetPersonEntity.id }
 
       webTestClient.get()
         .uri(prisonApiUrl(sourcePrisonNumber))

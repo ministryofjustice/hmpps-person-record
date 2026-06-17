@@ -143,7 +143,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
 
   fun assertDomainEventPublishedAfterDeliusEvent(expectedEventType: String, crn: String) {
     val (addressEntity, domainEvent: DomainEvent) = checkDomainEventPublished(crn, expectedEventType, DELIUS)
-    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity.deliusAddressId.toString())
+    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity.deliusAddressId)
   }
 
   fun assertDomainEventPublishedAfterSasEvent(expectedEventType: String, crn: String) = checkDomainEventPublished(crn, expectedEventType, CPR)
