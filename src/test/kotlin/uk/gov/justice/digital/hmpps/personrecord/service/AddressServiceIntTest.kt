@@ -169,7 +169,6 @@ class AddressServiceIntTest : IntegrationTestBase() {
 
       addressService.deleteAddress(
         eventSource = DomainEventSource.DELIUS,
-        sourceSystemType = SourceSystemType.DELIUS,
         findAddress = { addressToDelete },
       )
 
@@ -188,7 +187,6 @@ class AddressServiceIntTest : IntegrationTestBase() {
 
       addressService.deleteAddress(
         eventSource = DomainEventSource.DELIUS,
-        sourceSystemType = SourceSystemType.DELIUS,
         findAddress = { null },
       )
 

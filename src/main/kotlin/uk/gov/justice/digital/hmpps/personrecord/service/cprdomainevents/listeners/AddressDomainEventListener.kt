@@ -33,9 +33,13 @@ class AddressDomainEventListener(
   fun onAddressCreated(addressCreated: AddressCreated) {
     publishAddressDomainEvent(
       addressEntity = addressCreated.addressEntity,
+      sourceSystemId = addressCreated.addressEntity.person!!.extractSourceSystemId()!!,
       eventSource = addressCreated.eventSource.identifier,
       action = "created",
-      config = buildAddressDomainEventConfig(addressCreated.addressEntity.person!!.sourceSystem, CPR_PROBATION_ADDRESS_CREATED),
+      config = buildAddressDomainEventConfig(
+        sourceSystem = addressCreated.addressEntity.person!!.sourceSystem,
+        eventType = CPR_PROBATION_ADDRESS_CREATED,
+      ),
     )
   }
 
@@ -43,75 +47,58 @@ class AddressDomainEventListener(
   fun onAddressUpdated(addressUpdated: AddressUpdated) {
     publishAddressDomainEvent(
       addressEntity = addressUpdated.addressEntity,
+      sourceSystemId = addressUpdated.addressEntity.person!!.extractSourceSystemId()!!,
       eventSource = addressUpdated.eventSource.identifier,
       action = "updated",
-      config = buildAddressDomainEventConfig(addressUpdated.addressEntity.person!!.sourceSystem, CPR_PROBATION_ADDRESS_UPDATED),
+      config = buildAddressDomainEventConfig(
+        sourceSystem = addressUpdated.addressEntity.person!!.sourceSystem,
+        eventType = CPR_PROBATION_ADDRESS_UPDATED,
+      ),
     )
   }
 
   @TransactionalEventListener
   fun onAddressDeleted(addressDeleted: AddressDeleted) {
-    publishAddressDeleteDomainEvent(
+    publishAddressDomainEvent(
       addressEntity = addressDeleted.addressEntity,
+      sourceSystemId = addressDeleted.personEntity.extractSourceSystemId()!!,
       eventSource = addressDeleted.eventSource.identifier,
-      sourceSystem = addressDeleted.sourceSystemType,
-      config = buildAddressDomainEventConfig(addressDeleted.sourceSystemType, CPR_PROBATION_ADDRESS_DELETED),
+      action = "deleted",
+      config = buildAddressDomainEventConfig(addressDeleted.personEntity.sourceSystem, CPR_PROBATION_ADDRESS_DELETED),
+      shouldCallback = false,
     )
   }
 
   private fun publishAddressDomainEvent(
     addressEntity: AddressEntity,
+    sourceSystemId: String,
     eventSource: String,
     action: String,
     config: AddressDomainEventConfig?,
+    shouldCallback: Boolean = true,
   ) {
     config ?: return
-    val sourceSystemId = addressEntity.person!!.extractSourceSystemId()!!
     val addressId = addressEntity.updateId
-    val detailUrl = "$baseUrl/person/${config.urlPathSegment}/$sourceSystemId/address/$addressId"
 
-    domainEventPublisher.publish(
-      DomainEvent(
-        eventType = config.eventType,
-        description = "A ${config.typeDescription} address has been $action for a person",
-        detailUrl = detailUrl,
-        occurredAt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(UK_ZONE).format(Instant.now()),
-        additionalInformation = AdditionalInformation(
-          outboundCprAddressId = addressId.toString(),
-          outboundDeliusAddressId = addressEntity.deliusAddressId,
-        ),
-        personReference = PersonReference(
-          identifiers = listOf(
-            PersonIdentifier(config.identifierName, sourceSystemId),
-          ),
+    val domainEvent = DomainEvent(
+      eventType = config.eventType,
+      description = "A ${config.typeDescription} address has been $action for a person",
+      occurredAt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(UK_ZONE).format(Instant.now()),
+      additionalInformation = AdditionalInformation(
+        outboundCprAddressId = addressId.toString(),
+        outboundDeliusAddressId = addressEntity.deliusAddressId,
+      ),
+      personReference = PersonReference(
+        identifiers = listOf(
+          PersonIdentifier(config.identifierName, sourceSystemId),
         ),
       ),
-      attributes = mapOf("eventSource" to eventSource),
     )
-  }
-
-  private fun publishAddressDeleteDomainEvent(
-    addressEntity: AddressEntity,
-    eventSource: String,
-    sourceSystem: SourceSystemType,
-    config: AddressDomainEventConfig?,
-  ) {
-    config ?: return
+    if (shouldCallback) {
+      domainEvent.detailUrl = "$baseUrl/person/${config.urlPathSegment}/$sourceSystemId/address/$addressId"
+    }
     domainEventPublisher.publish(
-      DomainEvent(
-        eventType = config.eventType,
-        description = "A ${config.typeDescription} address has been deleted for a person",
-        occurredAt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(UK_ZONE).format(Instant.now()),
-        additionalInformation = AdditionalInformation(
-          outboundCprAddressId = addressEntity.updateId.toString(),
-          outboundDeliusAddressId = addressEntity.deliusAddressId,
-        ),
-        personReference = PersonReference(
-          identifiers = listOf(
-            PersonIdentifier(config.identifierName, sourceSystem.name),
-          ),
-        ),
-      ),
+      domainEvent = domainEvent,
       attributes = mapOf("eventSource" to eventSource),
     )
   }
