@@ -113,6 +113,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
+
     val actualAddress = assertAddress(personEntity.crn!!, probationAddress)
     assertDomainEventPublishedAfterDeliusEvent(
       expectedEventType = CPR_PROBATION_ADDRESS_CREATED,
