@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -48,7 +48,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
       }
       checkTelemetry(
         CPR_RECORD_UPDATED,
-        mapOf("SOURCE_SYSTEM" to DELIUS.name, "CRN" to crn),
+        mapOf("SOURCE_SYSTEM" to SourceSystemType.DELIUS.name, "CRN" to crn),
       )
 
       awaitAssert {
@@ -77,7 +77,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
       }
       checkTelemetry(
         CPR_RECORD_UPDATED,
-        mapOf("SOURCE_SYSTEM" to DELIUS.name, "CRN" to crn),
+        mapOf("SOURCE_SYSTEM" to SourceSystemType.DELIUS.name, "CRN" to crn),
       )
 
       awaitAssert {
@@ -116,7 +116,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
       }
       checkTelemetry(
         CPR_RECORD_UPDATED,
-        mapOf("SOURCE_SYSTEM" to DELIUS.name, "CRN" to crn),
+        mapOf("SOURCE_SYSTEM" to SourceSystemType.DELIUS.name, "CRN" to crn),
       )
 
       awaitAssert {
@@ -145,7 +145,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
       }
       checkTelemetry(
         CPR_RECORD_UPDATED,
-        mapOf("SOURCE_SYSTEM" to DELIUS.name, "CRN" to crn),
+        mapOf("SOURCE_SYSTEM" to SourceSystemType.DELIUS.name, "CRN" to crn),
       )
 
       awaitAssert {
@@ -167,7 +167,11 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
       val addressToDelete = personEntity.addresses.first()
 
-      addressService.deleteAddress { addressToDelete }
+      addressService.deleteAddress(
+        eventSource = DomainEventSource.DELIUS,
+        sourceSystemType = SourceSystemType.DELIUS,
+        findAddress = { addressToDelete },
+      )
 
       awaitAssert {
         val actualPerson = personRepository.findByCrn(crn)!!
@@ -182,7 +186,11 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val crn = randomCrn()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
 
-      addressService.deleteAddress { null }
+      addressService.deleteAddress(
+        eventSource = DomainEventSource.DELIUS,
+        sourceSystemType = SourceSystemType.DELIUS,
+        findAddress = { null },
+      )
 
       awaitAssert {
         val actualPerson = personRepository.findByCrn(crn)!!

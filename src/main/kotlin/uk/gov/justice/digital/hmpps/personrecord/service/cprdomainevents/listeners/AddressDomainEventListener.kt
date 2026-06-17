@@ -13,9 +13,11 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -47,6 +49,16 @@ class AddressDomainEventListener(
     )
   }
 
+  @TransactionalEventListener
+  fun onAddressDeleted(addressDeleted: AddressDeleted) {
+    publishAddressDeleteDomainEvent(
+      addressEntity = addressDeleted.addressEntity,
+      eventSource = addressDeleted.eventSource.identifier,
+      sourceSystem = addressDeleted.sourceSystemType,
+      config = buildAddressDomainEventConfig(addressDeleted.sourceSystemType, CPR_PROBATION_ADDRESS_DELETED),
+    )
+  }
+
   private fun publishAddressDomainEvent(
     addressEntity: AddressEntity,
     eventSource: String,
@@ -71,6 +83,32 @@ class AddressDomainEventListener(
         personReference = PersonReference(
           identifiers = listOf(
             PersonIdentifier(config.identifierName, sourceSystemId),
+          ),
+        ),
+      ),
+      attributes = mapOf("eventSource" to eventSource),
+    )
+  }
+
+  private fun publishAddressDeleteDomainEvent(
+    addressEntity: AddressEntity,
+    eventSource: String,
+    sourceSystem: SourceSystemType,
+    config: AddressDomainEventConfig?,
+  ) {
+    config ?: return
+    domainEventPublisher.publish(
+      DomainEvent(
+        eventType = config.eventType,
+        description = "A ${config.typeDescription} address has been deleted for a person",
+        occurredAt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(UK_ZONE).format(Instant.now()),
+        additionalInformation = AdditionalInformation(
+          outboundCprAddressId = addressEntity.updateId.toString(),
+          outboundDeliusAddressId = addressEntity.deliusAddressId,
+        ),
+        personReference = PersonReference(
+          identifiers = listOf(
+            PersonIdentifier(config.identifierName, sourceSystem.name),
           ),
         ),
       ),
