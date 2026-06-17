@@ -44,7 +44,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
@@ -202,10 +201,6 @@ class IntegrationTestBase {
     name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
     title = Value(randomTitleCode().key),
     identifiers = Identifiers(crn = crn, pnc = randomLongPnc(), cro = randomCro()),
-    addresses = listOf(
-      ProbationAddress(postcode = randomPostcode()),
-      ProbationAddress(postcode = randomPostcode()),
-    ),
     aliases = listOf(
       ProbationCaseAlias(
         ProbationCaseName(
