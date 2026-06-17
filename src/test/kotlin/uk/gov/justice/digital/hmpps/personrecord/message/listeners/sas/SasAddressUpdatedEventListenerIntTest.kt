@@ -65,8 +65,6 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       publishSasAddressUpdateEvent()
 
-      assertAddressUpdated(crn, sasCallbackResponse, deliusAddressId)
-
       val actualAddress = assertAddressUpdated(crn, sasCallbackResponse, deliusAddressId)
       assertDomainEventPublishedAfterSasEvent(
         expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,

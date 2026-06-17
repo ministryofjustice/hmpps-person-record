@@ -34,7 +34,6 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     val cprAddressAfterUpdate = actualPersonEntity.addresses.first()
     assertThat(cprAddressAfterUpdate.id).isEqualTo(cprAddressBeforeUpdate.id)
     assertThat(cprAddressAfterUpdate.updateId).isEqualTo(cprAddressBeforeUpdate.updateId)
-    assertAddress(personEntity.crn!!, updatedProbationAddress)
 
     val actualAddress = assertAddress(personEntity.crn!!, updatedProbationAddress)
     assertDomainEventPublishedAfterDeliusEvent(
