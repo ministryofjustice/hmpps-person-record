@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_A
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
@@ -55,16 +55,16 @@ class AddressDomainEventPublisherE2ETest : E2ETestBase() {
     assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(CPR.identifier))
     assertThat(sqsMessage.message.contains("unmergedCRN")).isFalse()
 
-    val domainEvent: DomainEvent = jsonMapper.readValue(sqsMessage.message)
+    val domainEvent = jsonMapper.readValue(sqsMessage.message) as CprAddressCreated
     assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_ADDRESS_CREATED)
     assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn/address/${createdAddress?.updateId}")
     assertThat(domainEvent.description).isEqualTo("A probation address has been created for a person")
     assertThat(domainEvent.occurredAt).isNotNull()
-    assertThat(domainEvent.personReference?.identifiers?.size).isEqualTo(1)
-    assertThat(domainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("CRN")
-    assertThat(domainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(crn)
-    assertThat(domainEvent.additionalInformation?.outboundCprAddressId).isEqualTo(createdAddress?.updateId.toString())
-    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isNull()
+    assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
+    assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("CRN")
+    assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(crn)
+    assertThat(domainEvent.additionalInformation.cprAddressId).isEqualTo(createdAddress?.updateId.toString())
+    assertThat(domainEvent.additionalInformation.deliusAddressId).isNull()
   }
 
   @Nested

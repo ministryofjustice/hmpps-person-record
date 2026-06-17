@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_DELIUS_MERGE_REQUEST_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
@@ -282,7 +281,12 @@ class JoinClustersE2ETest : E2ETestBase() {
 
     val secondSetup = ApiResponseSetup.from(basePersonData, secondCrn)
 
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, secondCrn, firstCrn, reactivatedSetup = secondSetup, unmergedSetup = firstSetup)
+    probationUnmergeEventAndResponseSetup(
+      secondCrn,
+      firstCrn,
+      reactivatedSetup = secondSetup,
+      unmergedSetup = firstSetup,
+    )
     awaitAssert { assertThat(personRepository.findByCrn(secondCrn)?.personKey).isNotNull() }
     var secondPersonRecord = awaitNotNull { personRepository.findByCrn(secondCrn) }
     assertThat(secondPersonRecord.personKey!!.personEntities.size).isEqualTo(1)

@@ -8,12 +8,15 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressDomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressCreatedUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressCreatedUpdatedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressDeletedInfo
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
@@ -23,6 +26,9 @@ import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
@@ -37,6 +43,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationAddress
+import java.time.Instant
 
 class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
 
@@ -94,16 +101,47 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun publishProbationAddressEvent(crn: String?, probationAddressId: Long?, eventType: String, eventSource: DomainEventSource? = DELIUS, cprUpdateId: String? = null) {
+  fun publishProbationAddressCreatedEvent(crn: String?, cprAddressId: String? = null, deliusAddressId: Long?, eventSource: DomainEventSource) {
     publishDomainEvent(
-      eventType,
-      DomainEvent(
-        eventType = eventType,
-        detailUrl = "/address/$probationAddressId",
-        additionalInformation = AdditionalInformation(inboundCprAddressId = cprUpdateId, inboundDeliusAddressId = probationAddressId),
+      ProbationOffenderAddressCreatedUpdated(
+        eventType = OFFENDER_ADDRESS_CREATED,
+        occurredAt = Instant.now().asStringWithUkZone(),
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
+        additionalInformation = ProbationOffenderAddressCreatedUpdatedInfo(
+          cprAddressId = cprAddressId,
+          deliusAddressId = deliusAddressId!!,
+        ),
       ),
       eventSource,
+    )
+  }
+
+  fun publishProbationAddressUpdatedEvent(crn: String?, cprAddressId: String? = null, deliusAddressId: Long?, eventSource: DomainEventSource) {
+    publishDomainEvent(
+      ProbationOffenderAddressCreatedUpdated(
+        eventType = OFFENDER_ADDRESS_UPDATED,
+        occurredAt = Instant.now().asStringWithUkZone(),
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
+        additionalInformation = ProbationOffenderAddressCreatedUpdatedInfo(
+          cprAddressId = cprAddressId,
+          deliusAddressId = deliusAddressId!!,
+        ),
+      ),
+      eventSource,
+    )
+  }
+
+  fun publishProbationAddressDeletedEvent(crn: String?, deliusAddressId: Long?) {
+    publishDomainEvent(
+      ProbationOffenderAddressDeleted(
+        eventType = OFFENDER_ADDRESS_DELETED,
+        occurredAt = Instant.now().asStringWithUkZone(),
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
+        additionalInformation = ProbationOffenderAddressDeletedInfo(
+          deliusAddressId = deliusAddressId!!,
+        ),
+      ),
+      eventSource = DELIUS,
     )
   }
 
@@ -137,8 +175,8 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
   }
 
   fun assertDomainEventPublishedAfterDeliusEvent(expectedEventType: String, crn: String) {
-    val (addressEntity, domainEvent: DomainEvent) = checkDomainEventPublished(crn, expectedEventType, DELIUS)
-    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity.deliusAddressId)
+    val (addressEntity, domainEvent: CprAddressDomainEvent) = checkDomainEventPublished(crn, expectedEventType, DELIUS)
+    assertThat(domainEvent.additionalInformation.deliusAddressIdAsString).isEqualTo(addressEntity.deliusAddressId?.toString())
   }
 
   fun assertDomainEventPublishedAfterSasEvent(expectedEventType: String, crn: String) = checkDomainEventPublished(crn, expectedEventType, CPR)
@@ -147,7 +185,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     crn: String,
     expectedEventType: String,
     eventSource: DomainEventSource,
-  ): Pair<AddressEntity, DomainEvent> {
+  ): Pair<AddressEntity, CprAddressDomainEvent> {
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
     val addressEntity = actualPersonEntity.addresses.first()
@@ -161,14 +199,14 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     assertThat(sqsMessage.getEventType()).isEqualTo(expectedEventType)
     assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(eventSource.identifier))
 
-    val domainEvent: DomainEvent = jsonMapper.readValue(sqsMessage.message)
+    val domainEvent: CprAddressDomainEvent = jsonMapper.readValue(sqsMessage.message)
     assertThat(domainEvent.eventType).isEqualTo(expectedEventType)
     assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn/address/${addressEntity.updateId}")
     assertThat(domainEvent.description).isEqualTo(expectedDescription(expectedEventType))
     assertThat(domainEvent.occurredAt).isNotNull()
-    assertThat(domainEvent.personReference?.identifiers?.size).isEqualTo(1)
-    assertThat(domainEvent.getCrn()).isEqualTo(crn)
-    assertThat(domainEvent.additionalInformation?.outboundCprAddressId).isEqualTo(addressEntity.updateId.toString())
+    assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
+    assertThat(domainEvent.personReference.identifiers?.first { it.type == "CRN" }?.value).isEqualTo(crn)
+    assertThat(domainEvent.additionalInformation.cprAddressId).isEqualTo(addressEntity.updateId.toString())
     return Pair(addressEntity, domainEvent)
   }
 

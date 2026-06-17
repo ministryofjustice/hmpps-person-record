@@ -11,19 +11,38 @@ import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPrisonerCreatedUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPrisonerMerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPrisonerMergedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderCreatedUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMergedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnMerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnMergedInfo
+import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
+import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsTopic
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import uk.gov.justice.hmpps.sqs.publish
+import java.time.Instant
 import java.util.UUID
 
 abstract class MessagingTestBase : IntegrationTestBase() {
@@ -143,10 +162,10 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     } matches { it == 1 }
   }
 
-  fun publishDomainEvent(eventType: String, domainEvent: DomainEvent, eventSource: DomainEventSource? = null) {
+  fun publishDomainEvent(domainEvent: DomainEvent, eventSource: DomainEventSource? = null) {
     val messageAttributes = mutableMapOf(
       "eventType" to MessageAttributeValue.builder().dataType("String")
-        .stringValue(eventType).build(),
+        .stringValue(domainEvent.eventType).build(),
     )
     if (eventSource != null) {
       messageAttributes["eventSource"] = MessageAttributeValue.builder().dataType("String")
@@ -156,7 +175,7 @@ abstract class MessagingTestBase : IntegrationTestBase() {
       message = jsonMapper.writeValueAsString(domainEvent),
       topic = domainEventsTopic,
       messageAttributes = messageAttributes,
-      eventType = eventType,
+      eventType = domainEvent.eventType,
     )
     expectNoMessagesOn(probationEventsQueue)
     expectNoMessagesOn(probationMergeEventsQueue)
@@ -172,7 +191,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   ): String? = topic?.publish(event = message, eventType = eventType, attributes = messageAttributes)?.messageId()
 
   fun probationMergeEventAndResponseSetup(
-    eventType: String,
     sourceCrn: String,
     targetCrn: String,
     scenario: String = BASE_SCENARIO,
@@ -182,10 +200,10 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   ) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
     publishDomainEvent(
-      eventType,
-      DomainEvent(
-        eventType = eventType,
-        additionalInformation = AdditionalInformation(
+      ProbationOffenderMerged(
+        eventType = OFFENDER_MERGED,
+        occurredAt = Instant.now().asStringWithUkZone(),
+        additionalInformation = ProbationOffenderMergedInfo(
           sourceCrn = sourceCrn,
           targetCrn = targetCrn,
         ),
@@ -194,7 +212,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   }
 
   fun probationUnmergeEventAndResponseSetup(
-    eventType: String,
     reactivatedCrn: String,
     unmergedCrn: String,
     scenario: String = BASE_SCENARIO,
@@ -207,10 +224,10 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     stubSingleProbationResponse(unmergedSetup, scenario, currentScenarioState, nextScenarioState)
 
     publishDomainEvent(
-      eventType,
-      DomainEvent(
-        eventType = eventType,
-        additionalInformation = AdditionalInformation(
+      ProbationOffenderUnMerged(
+        eventType = OFFENDER_UNMERGED,
+        occurredAt = Instant.now().asStringWithUkZone(),
+        additionalInformation = ProbationOffenderUnMergedInfo(
           reactivatedCrn = reactivatedCrn,
           unmergedCrn = unmergedCrn,
         ),
@@ -221,29 +238,32 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   fun probationDomainEventAndResponseSetup(
     eventType: String,
     apiResponseSetup: ApiResponseSetup,
-    additionalInformation: AdditionalInformation? = null,
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
   ) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
 
-    publishProbationDomainEvent(eventType, apiResponseSetup.crn!!, additionalInformation)
+    publishProbationDomainEvent(eventType, apiResponseSetup.crn!!)
   }
 
   fun publishProbationDomainEvent(
     eventType: String,
     crn: String,
-    additionalInformation: AdditionalInformation? = null,
-    detailUrl: String? = null,
   ) {
-    publishDomainEvent(
-      eventType,
-      DomainEvent(eventType, detailUrl = detailUrl, personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))), additionalInformation = additionalInformation),
-    )
+    val domainEvent = toProbationEvent(eventType, crn)
+    publishDomainEvent(domainEvent)
   }
 
-  fun prisonDomainEvent(eventType: String, prisonNumber: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))), additionalInformation)
+  fun publishPrisonDomainEvent(
+    eventType: String,
+    prisonNumber: String,
+  ) {
+    val domainEvent = toPrisonEvent(eventType, prisonNumber)
+    publishDomainEvent(domainEvent)
+  }
+
+  fun prisonDomainEvent(eventType: String, prisonNumber: String) = toPrisonEvent(eventType, prisonNumber)
 
   fun prisonDomainEventAndResponseSetup(
     eventType: String,
@@ -260,7 +280,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     )
 
     publishDomainEvent(
-      eventType,
       prisonDomainEvent(
         eventType,
         apiResponseSetup.prisonNumber!!,
@@ -269,7 +288,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   }
 
   fun prisonMergeEventAndResponseSetup(
-    eventType: String,
     sourcePrisonNumber: String,
     targetPrisonNumber: String,
     scenario: String = BASE_SCENARIO,
@@ -284,11 +302,11 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     )
 
     publishDomainEvent(
-      eventType,
-      prisonDomainEvent(
-        eventType,
-        targetPrisonNumber,
-        AdditionalInformation(
+      PrisonPrisonerMerged(
+        eventType = PRISONER_MERGED,
+        occurredAt = Instant.now().asStringWithUkZone(),
+        personReference = PersonReference(listOf(PersonIdentifier("NOMS", targetPrisonNumber))),
+        additionalInformation = PrisonPrisonerMergedInfo(
           sourcePrisonNumber = sourcePrisonNumber,
         ),
       ),
@@ -316,5 +334,28 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     hmppsQueue.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(hmppsQueue.dlqUrl).build(),
     ).get()
+  }
+
+  private fun toProbationEvent(eventType: String, crn: String): DomainEvent = when (eventType) {
+    NEW_OFFENDER_CREATED, OFFENDER_PERSONAL_DETAILS_UPDATED -> ProbationOffenderCreatedUpdated(
+      eventType = eventType,
+      occurredAt = Instant.now().asStringWithUkZone(),
+      personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
+    )
+    OFFENDER_DELETION, OFFENDER_GDPR_DELETION -> ProbationOffenderDeleted(
+      eventType = eventType,
+      occurredAt = Instant.now().asStringWithUkZone(),
+      personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
+    )
+    else -> throw IllegalArgumentException("Unknown event type '$eventType'")
+  }
+
+  private fun toPrisonEvent(eventType: String, prisonNumber: String): DomainEvent = when (eventType) {
+    PRISONER_CREATED, PRISONER_UPDATED -> PrisonPrisonerCreatedUpdated(
+      eventType = eventType,
+      occurredAt = Instant.now().asStringWithUkZone(),
+      personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))),
+    )
+    else -> throw IllegalArgumentException("Unknown event type '$eventType'")
   }
 }

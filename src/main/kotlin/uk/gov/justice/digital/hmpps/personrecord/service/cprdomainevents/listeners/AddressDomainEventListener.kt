@@ -4,11 +4,11 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressCreatedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.extensions.UK_ZONE
+import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublis
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import java.time.Instant
-import java.time.format.DateTimeFormatter
 
 @Profile("!preprod & !prod")
 @Component
@@ -59,14 +58,14 @@ class AddressDomainEventListener(
     val detailUrl = "$baseUrl/person/${config.urlPathSegment}/$sourceSystemId/address/$addressId"
 
     domainEventPublisher.publish(
-      DomainEvent(
+      CprAddressCreated(
         eventType = config.eventType,
         description = "A ${config.typeDescription} address has been $action for a person",
         detailUrl = detailUrl,
-        occurredAt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(UK_ZONE).format(Instant.now()),
-        additionalInformation = AdditionalInformation(
-          outboundCprAddressId = addressId.toString(),
-          outboundDeliusAddressId = addressEntity.deliusAddressId,
+        occurredAt = Instant.now().asStringWithUkZone(),
+        additionalInformation = CprAddressCreatedInfo(
+          cprAddressId = addressId.toString(),
+          deliusAddressId = addressEntity.deliusAddressId,
         ),
         personReference = PersonReference(
           identifiers = listOf(

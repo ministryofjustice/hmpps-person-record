@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPrisonerMerged
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonMergeEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
@@ -13,7 +14,7 @@ class PrisonMergeEventListener(
 ) {
 
   @SqsListener(Queues.PRISON_MERGE_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) {
-    mergeEventProcessor.processEvent(it)
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.process(rawMessage) { event ->
+    mergeEventProcessor.processEvent(event as PrisonPrisonerMerged)
   }
 }
