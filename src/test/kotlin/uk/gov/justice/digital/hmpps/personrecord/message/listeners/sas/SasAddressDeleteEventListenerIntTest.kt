@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas
 
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
@@ -17,6 +20,8 @@ class SasAddressDeleteEventListenerIntTest : ProbationEventListenerTestBase() {
     val personEntity = createPerson(createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = randomPostcode()))))
     createPersonKey().addPerson(personEntity)
 
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
     publishDomainEvent(
       SAS_ADDRESS_DELETED,
       DomainEvent(
@@ -31,7 +36,6 @@ class SasAddressDeleteEventListenerIntTest : ProbationEventListenerTestBase() {
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(0)
-    // assert no recluster happened
   }
 
   @Test
@@ -50,9 +54,10 @@ class SasAddressDeleteEventListenerIntTest : ProbationEventListenerTestBase() {
     )
 
     expectNoMessagesOnQueueOrDlq(sasEventsQueue)
+    wiremock.verify(0, postRequestedFor(urlEqualTo("/person")))
+    wiremock.verify(0, getRequestedFor(urlEqualTo("/person/score/.*")))
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-    // assert no recluster happened
   }
 }
