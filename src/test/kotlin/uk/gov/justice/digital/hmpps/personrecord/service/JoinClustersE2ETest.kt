@@ -135,7 +135,6 @@ class JoinClustersE2ETest : E2ETestBase() {
       middleName = basePerson.middleNames,
       lastName = basePerson.lastName,
       dateOfBirth = basePerson.dateOfBirth,
-      addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
       sentences = listOf(ApiResponseSetupSentences(basePerson.sentences.first().sentenceDate)),
     )
@@ -159,7 +158,6 @@ class JoinClustersE2ETest : E2ETestBase() {
       middleName = basePerson.middleNames,
       lastName = basePerson.lastName,
       dateOfBirth = basePerson.dateOfBirth,
-      addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, secondSetup)
@@ -179,7 +177,6 @@ class JoinClustersE2ETest : E2ETestBase() {
       middleName = basePerson.middleNames,
       lastName = basePerson.lastName,
       dateOfBirth = basePerson.dateOfBirth,
-      addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
       sentences = listOf(ApiResponseSetupSentences(basePerson.sentences.first().sentenceDate)),
     )
@@ -209,7 +206,6 @@ class JoinClustersE2ETest : E2ETestBase() {
       middleName = basePerson.middleNames,
       lastName = basePerson.lastName,
       dateOfBirth = basePerson.dateOfBirth,
-      addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
@@ -231,7 +227,6 @@ class JoinClustersE2ETest : E2ETestBase() {
       middleName = basePerson.middleNames,
       lastName = basePerson.lastName,
       dateOfBirth = basePerson.dateOfBirth,
-      addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, secondSetup)
