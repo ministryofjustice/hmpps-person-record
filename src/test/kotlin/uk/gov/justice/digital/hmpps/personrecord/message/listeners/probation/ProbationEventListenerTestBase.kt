@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import tools.jackson.module.kotlin.readValue
@@ -21,8 +24,10 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
@@ -176,5 +181,29 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     CPR_PROBATION_ADDRESS_CREATED -> "A probation address has been created for a person"
     CPR_PROBATION_ADDRESS_UPDATED -> "A probation address has been updated for a person"
     else -> error("Unsupported event type: $eventType")
+  }
+
+  fun assertNoCprActionsHappenAfterAddressPatch(crn: String, shouldNotPublishDomainEvent: Boolean = true) {
+    // assert no recluster happened or event logs saved
+    checkEventLog(crn, CPRLogEvents.CPR_RECORD_CREATED) { assertThat(it).isEmpty() }
+    checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { assertThat(it).isEmpty() }
+    checkEventLog(crn, CPRLogEvents.CPR_RECORD_DELETED) { assertThat(it).isEmpty() }
+
+    // assert CPR does not publish any domain events
+    if (shouldNotPublishDomainEvent) {
+      expectNoMessagesOnQueueOrDlq(testOnlyCPRDomainEventsQueue)
+    }
+
+    // assert no telemetry events made
+    checkTelemetry(
+      event = TelemetryEventType.CPR_RECORD_UPDATED,
+      expected = mapOf("SOURCE_SYSTEM" to DELIUS.name, "CRN" to crn),
+      times = 0,
+    )
+
+    // assert no person match calls made
+    wiremock.verify(0, postRequestedFor(urlEqualTo("/person")))
+    wiremock.verify(0, getRequestedFor(urlEqualTo("/person/score/.*")))
+    wiremock.verify(0, getRequestedFor(urlEqualTo("/address/*")))
   }
 }
