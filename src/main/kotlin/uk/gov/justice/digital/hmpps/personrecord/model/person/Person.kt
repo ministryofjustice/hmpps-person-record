@@ -92,7 +92,6 @@ data class Person(
         ethnicityCode = EthnicityCode.fromProbation(probationCase.ethnicity?.value),
         nationalities = nationalities,
         aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
-        addresses = Address.fromOffenderAddressList(probationCase.addresses),
         contacts = contacts,
         references = references,
         sourceSystem = DELIUS,
