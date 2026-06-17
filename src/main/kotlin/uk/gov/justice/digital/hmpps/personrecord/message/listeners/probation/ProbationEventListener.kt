@@ -45,14 +45,11 @@ class ProbationEventListener(
   private fun deleteAddressEvent(event: DomainEvent) = event.eventType == OFFENDER_ADDRESS_DELETED
 
   private fun upsertAddress(event: DomainEvent) {
-    val crn = event.getCrn()
     val probationAddress = getAddress(event)
-    val personEntity = personRepository.findByCrn(crn)!!
-
     addressService.processAddress(
       address = probationAddress,
-      findPerson = { personEntity },
-      findAddress = { personEntity.addresses.firstOrNull { it.deliusAddressId == probationAddress.deliusAddressId } },
+      findPerson = { personRepository.findByCrn(event.getCrn())!! },
+      findAddress = { addressRepository.findByDeliusAddressId(probationAddress.deliusAddressId) },
       eventSource = DELIUS,
     )
   }
