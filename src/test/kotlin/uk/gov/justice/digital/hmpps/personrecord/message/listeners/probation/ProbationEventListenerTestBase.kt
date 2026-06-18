@@ -107,11 +107,12 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun assertAddress(crn: String, probationAddress: ProbationAddress) {
+  fun assertAddress(crn: String, probationAddress: ProbationAddress): AddressEntity {
+    var actualAddressEntity: AddressEntity? = null
     awaitAssert {
       val actualPersonEntity = personRepository.findByCrn(crn)!!
       assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-      val actualAddressEntity = actualPersonEntity.addresses.first()
+      actualAddressEntity = actualPersonEntity.addresses.first()
       assertThat(actualAddressEntity.updateId).isNotNull()
       assertThat(actualAddressEntity.updateId!!.toString()).isNotBlank
       assertThat(actualAddressEntity.noFixedAbode).isEqualTo(probationAddress.noFixedAbode)
@@ -134,22 +135,23 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
       assertThat(actualAddressEntity.contacts.first().contactType).isEqualTo(ContactType.HOME)
       assertThat(actualAddressEntity.contacts.first().contactValue).isEqualTo(probationAddress.telephoneNumber)
     }
+    return actualAddressEntity!!
   }
 
-  fun assertDomainEventPublishedAfterDeliusEvent(expectedEventType: String, crn: String) {
-    val (addressEntity, domainEvent: DomainEvent) = checkDomainEventPublished(crn, expectedEventType, DELIUS)
-    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity.deliusAddressId)
+  fun assertDomainEventPublishedAfterDeliusEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) {
+    val (addressEntity, domainEvent: DomainEvent) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, DELIUS)
+    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity!!.deliusAddressId)
   }
 
-  fun assertDomainEventPublishedAfterSasEvent(expectedEventType: String, crn: String) = checkDomainEventPublished(crn, expectedEventType, CPR)
+  fun assertDomainEventPublishedAfterSasEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, CPR)
 
   private fun checkDomainEventPublished(
     crn: String,
     expectedEventType: String,
+    cprAddressUpdateId: String,
     eventSource: DomainEventSource,
-  ): Pair<AddressEntity, DomainEvent> {
+  ): Pair<AddressEntity?, DomainEvent> {
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
-    assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
     val addressEntity = actualPersonEntity.addresses.first()
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
@@ -168,7 +170,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     assertThat(domainEvent.occurredAt).isNotNull()
     assertThat(domainEvent.personReference?.identifiers?.size).isEqualTo(1)
     assertThat(domainEvent.getCrn()).isEqualTo(crn)
-    assertThat(domainEvent.additionalInformation?.outboundCprAddressId).isEqualTo(addressEntity.updateId.toString())
+    assertThat(domainEvent.additionalInformation?.outboundCprAddressId).isEqualTo(cprAddressUpdateId)
     return Pair(addressEntity, domainEvent)
   }
 
