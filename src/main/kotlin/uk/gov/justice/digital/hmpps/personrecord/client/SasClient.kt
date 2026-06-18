@@ -5,6 +5,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import java.util.UUID
 
 @Component
 class SasClient(private val sasWebClient: WebClient) {
@@ -19,7 +20,7 @@ class SasClient(private val sasWebClient: WebClient) {
     return SasAddress(
       Address.from(addressData),
       addressData.crn,
-      addressData.cprAddressId,
+      UUID.fromString(addressData.cprAddressId),
     )
   }
 }
@@ -27,5 +28,5 @@ class SasClient(private val sasWebClient: WebClient) {
 data class SasAddress(
   val address: Address,
   val crn: String,
-  val cprAddressId: String,
+  val cprAddressId: UUID,
 )
