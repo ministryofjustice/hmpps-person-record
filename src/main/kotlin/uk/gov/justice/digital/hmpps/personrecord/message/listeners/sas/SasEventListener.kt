@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.SasClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
@@ -25,12 +24,12 @@ class SasEventListener(
   fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
     when (event.eventType) {
       SAS_ADDRESS_UPDATED -> {
-        val sasAddress = sasClient.getAddress(event.detailUrl!!)
+        val sasResponse = sasClient.getAddress(event.detailUrl!!)
 
         addressService.processAddress(
-          address = Address.from(sasAddress),
-          findPerson = { personRepository.findByCrn(sasAddress.crn)!! },
-          findAddress = { personRepository.findByCrn(sasAddress.crn)!!.addresses.first { address -> address.updateId.toString() == sasAddress.cprAddressId } },
+          address = sasResponse.address,
+          findPerson = { personRepository.findByCrn(sasResponse.crn)!! },
+          findAddress = { personRepository.findByCrn(sasResponse.crn)!!.addresses.first { address -> address.updateId.toString() == sasResponse.cprAddressId } },
           eventSource = CPR,
         )
       }
