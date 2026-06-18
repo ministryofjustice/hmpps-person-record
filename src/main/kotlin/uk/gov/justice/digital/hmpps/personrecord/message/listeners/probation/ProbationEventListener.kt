@@ -49,7 +49,7 @@ class ProbationEventListener(
     addressService.processAddress(
       address = probationAddress,
       findPerson = { personRepository.findByCrn(event.getCrn())!! },
-      findAddress = { personRepository.findByCrn(event.getCrn())?.addresses?.firstOrNull { it.deliusAddressId == deliusAddressId } },
+      findAddress = { addressRepository.findByDeliusAddressId(deliusAddressId) },
       eventSource = DELIUS,
     )
   }
