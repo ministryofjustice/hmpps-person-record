@@ -206,11 +206,6 @@ data class CprAddressUpdatedInfo(
   override val deliusAddressIdAsString: String? get() = deliusAddressId
 }
 
-/**
- * Common supertype for outbound CPR address domain events (created / updated). These events share
- * the same wire shape, so this allows consumers (e.g. tests) to assert against a single type while
- * the concrete subtype is still resolved polymorphically from the `eventType`.
- */
 sealed interface CprAddressDomainEvent : DomainEvent {
   val description: String
   val detailUrl: String
