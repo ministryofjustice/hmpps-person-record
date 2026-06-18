@@ -43,8 +43,7 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
 
   @BeforeEach
   fun beforeEach() {
-    personKeyRepository.deleteAll()
-    personRepository.deleteAll()
+    deleteAllPersonData()
     serviceNowStub = wiremock.stubFor(
       WireMock.post(
         "/api/sn_sc/servicecatalog/items/$sysParmId/order_now",

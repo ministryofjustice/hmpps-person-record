@@ -18,9 +18,7 @@ class ClustersApiIntTest : WebTestBase() {
 
   @BeforeEach
   fun beforeEach() {
-    reviewRepository.deleteAll()
-    personRepository.deleteAll()
-    personKeyRepository.deleteAll()
+    deleteAllPersonData()
   }
 
   @Test
