@@ -164,8 +164,6 @@ data class Address(
 
     fun fromPrisonerAddressList(addresses: List<PrisonerAddress>): List<Address> = addresses.mapNotNull { from(it) }
 
-    fun fromOffenderAddressList(addresses: List<ProbationAddress>): List<Address> = addresses.mapNotNull { from(it) }
-
     fun from(addressEntity: AddressEntity): Address = Address(
       postcode = addressEntity.postcode,
       fullAddress = addressEntity.fullAddress,
