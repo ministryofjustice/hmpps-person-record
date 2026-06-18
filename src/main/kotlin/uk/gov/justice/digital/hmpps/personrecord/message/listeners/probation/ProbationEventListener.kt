@@ -3,8 +3,9 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressCreatedUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderCreatedUpdated
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -13,9 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIU
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.PROBATION_EVENT_QUEUE_ID
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 
 @Component
 class ProbationEventListener(
@@ -28,40 +26,30 @@ class ProbationEventListener(
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
-    when {
-      createAddressEvent(event) -> upsertAddress(event)
-      updateAddressEvent(event) -> upsertAddress(event)
-      deleteAddressEvent(event) -> deleteAddress(event)
-      else -> updateWholePerson(event)
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.process(rawMessage) { event ->
+    when (event) {
+      is ProbationOffenderAddressCreatedUpdated -> processOffenderAddressCreatedUpdated(event)
+      is ProbationOffenderAddressDeleted -> processOffenderAddressDeleted(event)
+      else -> processOffenderCreatedUpdated(event as ProbationOffenderCreatedUpdated)
     }
   }
 
-  private fun createAddressEvent(event: DomainEvent) = event.eventType == OFFENDER_ADDRESS_CREATED
-
-  private fun updateAddressEvent(event: DomainEvent) = event.eventType == OFFENDER_ADDRESS_UPDATED
-
-  private fun deleteAddressEvent(event: DomainEvent) = event.eventType == OFFENDER_ADDRESS_DELETED
-
-  private fun upsertAddress(event: DomainEvent) {
-    val deliusAddressId = event.getDeliusAddressId()!!
-    val probationAddress = corePersonRecordAndDeliusClient.getAddress(deliusAddressId)!!
+  private fun processOffenderAddressCreatedUpdated(event: ProbationOffenderAddressCreatedUpdated) {
+    val probationAddress = corePersonRecordAndDeliusClient.getAddress(event.additionalInformation.deliusAddressId)
     addressService.processAddress(
-      address = probationAddress,
-      findPerson = { personRepository.findByCrn(event.getCrn())!! },
-      findAddress = { addressRepository.findByDeliusAddressId(deliusAddressId) },
+      address = probationAddress!!,
+      findPerson = { personRepository.findByCrn(event.crn)!! },
+      findAddress = { addressRepository.findByDeliusAddressId(event.additionalInformation.deliusAddressId) },
       eventSource = DELIUS,
     )
   }
 
-  private fun deleteAddress(event: DomainEvent) = addressService.deleteAddress {
-    addressRepository.findByDeliusAddressId(event.getDeliusAddressId())
+  private fun processOffenderAddressDeleted(event: ProbationOffenderAddressDeleted) {
+    addressService.deleteAddress { addressRepository.findByDeliusAddressId(event.additionalInformation.deliusAddressId) }
   }
 
-  private fun DomainEvent.getDeliusAddressId(): Long? = this.additionalInformation?.inboundDeliusAddressId
-
-  private fun updateWholePerson(event: DomainEvent) {
-    corePersonRecordAndDeliusClient.getPerson(event.getCrn()).let {
+  private fun processOffenderCreatedUpdated(event: ProbationOffenderCreatedUpdated) {
+    corePersonRecordAndDeliusClient.getPerson(event.crn).let {
       eventProcessor.processEvent(it, setOf(AddressEntity::class))
     }
   }

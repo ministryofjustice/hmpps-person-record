@@ -16,9 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_SELF_HEALED
@@ -223,11 +221,19 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personBData))
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personAData, personCCrn))
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personACrn, personCCrn)
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personBCrn, personCCrn)
+      probationMergeEventAndResponseSetup(personACrn, personCCrn)
+      probationMergeEventAndResponseSetup(personBCrn, personCCrn)
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personACrn, personCCrn, reactivatedSetup = ApiResponseSetup.from(personAData))
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personBCrn, personCCrn, reactivatedSetup = ApiResponseSetup.from(personBData))
+      probationUnmergeEventAndResponseSetup(
+        personACrn,
+        personCCrn,
+        reactivatedSetup = ApiResponseSetup.from(personAData),
+      )
+      probationUnmergeEventAndResponseSetup(
+        personBCrn,
+        personCCrn,
+        reactivatedSetup = ApiResponseSetup.from(personBData),
+      )
 
       val clusterA = awaitNotNull { personRepository.findByCrn(personACrn) }.personKey
       clusterA?.assertClusterIsOfSize(1)

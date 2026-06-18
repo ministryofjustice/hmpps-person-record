@@ -10,8 +10,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
@@ -28,13 +26,33 @@ class ProbationAddressCircularEventListenerIntTest : ProbationEventListenerTestB
     val deliusAddressId = randomDigit().toLong()
 
     assertNull(addressEntity.deliusAddressId)
-    publishProbationAddressEvent(
-      crn,
-      deliusAddressId,
-      OFFENDER_ADDRESS_CREATED,
-      DomainEventSource.CPR,
-      addressEntity.updateId.toString(),
+
+    publishProbationAddressCreatedEvent(
+      crn = crn,
+      cprAddressId = addressEntity.updateId.toString(),
+      deliusAddressId = deliusAddressId,
+      eventSource = DomainEventSource.CPR,
     )
+
+//    publishDomainEvent(
+//      ProbationOffenderAddressCreatedUpdated(
+//        eventType = OFFENDER_ADDRESS_CREATED,
+//        occurredAt = Instant.now().asStringWithUkZone(),
+//        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
+//        additionalInformation = ProbationOffenderAddressCreatedUpdatedInfo(
+//          cprAddressId = addressEntity.updateId.toString(),
+//          deliusAddressId = deliusAddressId
+//        )
+//      )
+//    )
+
+//    publishProbationAddressEvent(
+//      crn,
+//      deliusAddressId,
+//      OFFENDER_ADDRESS_CREATED,
+//      DomainEventSource.CPR,
+//      addressEntity.updateId.toString(),
+//    )
 
     awaitAssert {
       assertThat(personRepository.findByCrn(crn)?.addresses?.firstOrNull()?.deliusAddressId).isEqualTo(deliusAddressId)
@@ -51,12 +69,11 @@ class ProbationAddressCircularEventListenerIntTest : ProbationEventListenerTestB
     )
     val cprAddressBeforeUpdate = personEntity.addresses.first()
 
-    publishProbationAddressEvent(
-      personEntity.crn,
-      personEntity.addresses[0].deliusAddressId,
-      OFFENDER_ADDRESS_UPDATED,
-      DomainEventSource.CPR,
-      cprAddressBeforeUpdate.updateId.toString(),
+    publishProbationAddressUpdatedEvent(
+      crn = personEntity.crn,
+      cprAddressId = cprAddressBeforeUpdate.updateId.toString(),
+      deliusAddressId = personEntity.addresses[0].deliusAddressId,
+      eventSource = DomainEventSource.CPR,
     )
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }

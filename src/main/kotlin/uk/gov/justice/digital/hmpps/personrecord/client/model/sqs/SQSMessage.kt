@@ -13,8 +13,6 @@ data class SQSMessage(
   @NotBlank
   @JsonProperty("Message")
   val message: String,
-  @JsonProperty("MessageId")
-  val messageId: String? = null,
   @JsonProperty(value = "MessageAttributes")
   val messageAttributes: MessageAttributes? = null,
 ) {

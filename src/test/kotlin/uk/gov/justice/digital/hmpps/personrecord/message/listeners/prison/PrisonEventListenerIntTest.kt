@@ -53,8 +53,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     stub5xxResponse("/prisoner/$prisonNumber", currentScenarioState = "next request will fail", nextScenarioState = "next request will fail", scenarioName = "processing fail")
     stub5xxResponse("/prisoner/$prisonNumber", "next request will fail", scenarioName = "processing fail")
     stub5xxResponse("/prisoner/$prisonNumber", "next request will fail", scenarioName = "processing fail")
-    val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
-    publishDomainEvent(PRISONER_CREATED, domainEvent)
+
+    publishPrisonDomainEvent(PRISONER_CREATED, prisonNumber)
 
     expectOneMessageOnDlq(prisonEventsQueue)
   }
@@ -63,8 +63,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should discard message if prisoner search returns 404`() {
     val prisonNumber = randomPrisonNumber()
     stub404Response("/prisoner/$prisonNumber")
-    val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
-    publishDomainEvent(PRISONER_CREATED, domainEvent)
+    publishPrisonDomainEvent(PRISONER_CREATED, prisonNumber)
     waitForMessageToBeProcessedAndDiscarded()
     expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
   }
@@ -269,8 +268,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       stub5xxResponse("/prisoner/$prisonNumber", nextScenarioState = "next request will succeed", scenarioName = "retry")
       stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber), scenarioName = "retry", currentScenarioState = "next request will succeed")
 
-      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
-      publishDomainEvent(PRISONER_CREATED, domainEvent)
+      publishPrisonDomainEvent(PRISONER_CREATED, prisonNumber)
 
       checkTelemetry(
         CPR_RECORD_CREATED,
@@ -291,8 +289,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubPrisonResponse(ApiResponseSetup(gender = "Male", prisonNumber = prisonNumber), currentScenarioState = "will succeed")
       stubPersonMatchUpsert(currentScenarioState = "will succeed")
       stubPersonMatchScores(currentScenarioState = "will succeed")
-      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
-      publishDomainEvent(PRISONER_CREATED, domainEvent)
+      publishPrisonDomainEvent(PRISONER_CREATED, prisonNumber)
       awaitNotNull { personRepository.findByPrisonNumber(prisonNumber = prisonNumber) }
       checkTelemetry(
         CPR_RECORD_CREATED,

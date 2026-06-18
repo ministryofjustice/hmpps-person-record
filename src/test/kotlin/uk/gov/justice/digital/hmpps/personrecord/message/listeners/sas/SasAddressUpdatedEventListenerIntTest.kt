@@ -7,14 +7,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressData
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressUpdated
+import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.Address as SasAddress
@@ -45,12 +46,11 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       assertThat(existingAddressEntity.deliusAddressId).isNull()
 
-      publishProbationAddressEvent(
-        crn,
-        deliusAddressId,
-        OFFENDER_ADDRESS_CREATED,
-        DomainEventSource.CPR,
-        existingAddressEntity.updateId.toString(),
+      publishProbationAddressCreatedEvent(
+        crn = randomCrn(),
+        cprAddressId = existingAddressEntity.updateId.toString(),
+        deliusAddressId = deliusAddressId,
+        eventSource = DomainEventSource.CPR,
       )
 
       awaitNotNull {
@@ -166,9 +166,9 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
   private fun publishSasAddressUpdateEvent() {
     publishDomainEvent(
-      SAS_ADDRESS_UPDATED,
-      DomainEvent(
+      SasAddressUpdated(
         eventType = SAS_ADDRESS_UPDATED,
+        occurredAt = Instant.now().asStringWithUkZone(),
         detailUrl = "/accommodations/1234",
       ),
     )
