@@ -19,7 +19,7 @@ class SasClient(private val sasWebClient: WebClient) {
     return SasAddress(
       Address.from(addressData),
       addressData.crn,
-      addressData.cprAddressId
+      addressData.cprAddressId,
     )
   }
 }
