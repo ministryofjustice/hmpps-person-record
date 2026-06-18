@@ -33,10 +33,12 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     val cprAddressAfterUpdate = actualPersonEntity.addresses.first()
     assertThat(cprAddressAfterUpdate.id).isEqualTo(cprAddressBeforeUpdate.id)
     assertThat(cprAddressAfterUpdate.updateId).isEqualTo(cprAddressBeforeUpdate.updateId)
-    assertAddress(personEntity.crn!!, updatedProbationAddress)
+
+    val actualAddress = assertAddress(personEntity.crn!!, updatedProbationAddress)
     assertDomainEventPublishedAfterDeliusEvent(
       expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
       crn = personEntity.crn!!,
+      cprAddressUpdateId = actualAddress.updateId.toString(),
     )
   }
 
@@ -89,10 +91,12 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-    assertAddress(personEntity.crn!!, probationAddress)
+
+    val actualAddress = assertAddress(personEntity.crn!!, probationAddress)
     assertDomainEventPublishedAfterDeliusEvent(
       expectedEventType = CPR_PROBATION_ADDRESS_CREATED,
       crn = personEntity.crn!!,
+      cprAddressUpdateId = actualAddress.updateId.toString(),
     )
   }
 }

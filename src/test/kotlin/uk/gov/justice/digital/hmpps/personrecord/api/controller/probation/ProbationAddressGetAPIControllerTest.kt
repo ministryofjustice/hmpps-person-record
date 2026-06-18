@@ -61,7 +61,7 @@ class ProbationAddressGetAPIControllerTest : WebTestBase() {
     @Test
     fun `should return 404 not found when probation record does not exist`() {
       val crn = randomCrn()
-      val otherPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+      val otherPerson = createPersonWithNewKey(createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = "ZX1 1AB"))))
       val otherAddressId = otherPerson.addresses.first().updateId.toString()
       val expectedErrorMessage = "Not found: $otherAddressId"
       webTestClient.get()

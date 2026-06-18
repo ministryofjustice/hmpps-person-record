@@ -4,12 +4,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -48,7 +48,6 @@ class EventLogServiceIntTest : IntegrationTestBase() {
         ProbationCase(
           name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
           identifiers = Identifiers(crn = randomCrn(), cro = randomCro(), pnc = randomLongPnc()),
-          addresses = listOf(ProbationAddress(postcode = "ZX1 1AB"), ProbationAddress(postcode = "AB1 2BC"), ProbationAddress(postcode = "ZX1 1AB")),
           aliases = listOf(
             ProbationCaseAlias(
               name = ProbationCaseName(firstName = "Bob", lastName = "Smythe"),
@@ -65,7 +64,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
             Sentences(sentenceDate = LocalDate.of(1980, 1, 1)),
           ),
         ),
-      ),
+      ).copy(addresses = listOf(Address(postcode = "ZX1 1AB"), Address(postcode = "AB1 2BC"), Address(postcode = "ZX1 1AB"))),
     )
 
     val eventLog = eventLogService.logEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_CREATED, personEntity))
