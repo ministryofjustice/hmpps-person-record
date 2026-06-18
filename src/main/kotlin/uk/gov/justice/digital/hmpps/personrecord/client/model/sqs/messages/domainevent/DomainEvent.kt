@@ -102,10 +102,10 @@ data class ProbationOffenderMerged(
 
 data class ProbationOffenderMergedInfo(
   @JsonProperty("sourceCRN")
-  val sourceCrn: String? = null,
+  val sourceCrn: String,
 
   @JsonProperty("targetCRN")
-  val targetCrn: String? = null,
+  val targetCrn: String,
 )
 
 data class ProbationOffenderUnMerged(
@@ -117,10 +117,10 @@ data class ProbationOffenderUnMerged(
 
 data class ProbationOffenderUnMergedInfo(
   @JsonProperty("reactivatedCRN")
-  val reactivatedCrn: String? = null,
+  val reactivatedCrn: String,
 
   @JsonProperty("unmergedCRN")
-  val unmergedCrn: String? = null,
+  val unmergedCrn: String,
 )
 
 data class ProbationOffenderDeleted(

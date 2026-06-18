@@ -19,8 +19,8 @@ class ProbationMergeEventProcessor(
 
   @Transactional
   fun processEvent(event: ProbationOffenderMerged) {
-    val toCrn = event.additionalInformation.targetCrn!!
-    val fromCrn = event.additionalInformation.sourceCrn!!
+    val toCrn = event.additionalInformation.targetCrn
+    val fromCrn = event.additionalInformation.sourceCrn
 
     corePersonRecordAndDeliusClient.getPerson(toCrn).let {
       val from: PersonEntity? = personRepository.findByCrn(fromCrn)

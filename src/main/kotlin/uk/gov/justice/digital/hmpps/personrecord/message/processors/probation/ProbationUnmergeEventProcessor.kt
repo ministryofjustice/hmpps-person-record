@@ -15,14 +15,14 @@ class ProbationUnmergeEventProcessor(
 
   @Transactional
   fun processEvent(domainEvent: ProbationOffenderUnMerged) {
-    val unmergedCrn = domainEvent.additionalInformation.unmergedCrn!!
+    val unmergedCrn = domainEvent.additionalInformation.unmergedCrn
     val existingPerson = corePersonRecordAndDeliusClient
       .getPersonErrorIfNotFound(unmergedCrn)
       .let {
         probationProcessor.processProbationEvent(it)
       }
 
-    val reactivatedCrn = domainEvent.additionalInformation.reactivatedCrn!!
+    val reactivatedCrn = domainEvent.additionalInformation.reactivatedCrn
     val reactivatedPerson = corePersonRecordAndDeliusClient
       .getPersonErrorIfNotFound(reactivatedCrn)
       .let {
