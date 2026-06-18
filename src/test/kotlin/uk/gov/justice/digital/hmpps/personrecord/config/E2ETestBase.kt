@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
 @ActiveProfiles("e2e")
@@ -44,8 +45,8 @@ class E2ETestBase : MessagingTestBase() {
   Remove matching fields to reduce match weight below the join threshold but keep above fracture threshold
    */
   internal fun ProbationCase.aboveFracture(): ProbationCase = this.copy(
+    name = name.copy(firstName = randomName()),
     identifiers = this.identifiers.copy(pnc = null, cro = null),
-    sentences = emptyList(),
   )
 
   internal fun ProbationCase.withChangedMatchDetails(): ProbationCase = this.copy(

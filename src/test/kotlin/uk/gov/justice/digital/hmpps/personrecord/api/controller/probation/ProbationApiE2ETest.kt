@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ContactDetails
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
@@ -519,7 +518,6 @@ class ProbationApiE2ETest : E2ETestBase() {
               gender = Value("M"),
             ),
           ),
-          addresses = listOf(ProbationAddress(postcode = randomPostcode())),
           ethnicity = Value(randomProbationEthnicity()),
           contactDetails = ContactDetails(
             email = randomEmail(),

@@ -36,12 +36,10 @@ class ProbationEventListener(
 
   private fun processOffenderAddressCreatedUpdated(event: ProbationOffenderAddressCreatedUpdated) {
     val probationAddress = corePersonRecordAndDeliusClient.getAddress(event.additionalInformation.deliusAddressId)
-    val personEntity = personRepository.findByCrn(event.crn)!!
-
     addressService.processAddress(
       address = probationAddress!!,
-      findPerson = { personEntity },
-      findAddress = { personEntity.addresses.firstOrNull { it.deliusAddressId == probationAddress.deliusAddressId } },
+      findPerson = { personRepository.findByCrn(event.crn)!! },
+      findAddress = { addressRepository.findByDeliusAddressId(event.additionalInformation.deliusAddressId) },
       eventSource = DELIUS,
     )
   }
