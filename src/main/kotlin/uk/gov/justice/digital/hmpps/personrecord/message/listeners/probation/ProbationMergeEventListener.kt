@@ -18,7 +18,7 @@ class ProbationMergeEventListener(
 ) {
 
   @SqsListener(Queues.PROBATION_MERGE_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) {
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.process(rawMessage) {
     it
       .whenEvent(OFFENDER_MERGED) { event -> mergeEventProcessor.processEvent(event) }
       .whenEvent(OFFENDER_UNMERGED) { event -> unmergeEventProcessor.processEvent(event) }

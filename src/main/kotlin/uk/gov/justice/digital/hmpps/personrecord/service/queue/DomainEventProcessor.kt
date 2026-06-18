@@ -7,10 +7,10 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 @Component
 class DomainEventProcessor(
   private val jsonMapper: JsonMapper,
-  private val sqsListenerService: SQSListenerService,
+  private val sqsMessageProcessor: SQSMessageProcessor,
 ) {
 
-  fun processDomainEvent(rawMessage: String, action: (domainEvent: DomainEvent) -> Unit) = sqsListenerService.processSQSMessage(rawMessage) {
+  fun process(rawMessage: String, action: (domainEvent: DomainEvent) -> Unit) = sqsMessageProcessor.process(rawMessage) {
     action(jsonMapper.readValue<DomainEvent>(it.message))
   }
 }
