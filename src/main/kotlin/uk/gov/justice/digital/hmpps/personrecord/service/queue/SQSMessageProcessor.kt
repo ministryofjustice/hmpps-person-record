@@ -13,12 +13,12 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 
 @Component
-class SQSListenerService(
+class SQSMessageProcessor(
   private val jsonMapper: JsonMapper,
 ) {
 
   @CprRetryable
-  fun processSQSMessage(rawMessage: String, action: (sqsMessage: SQSMessage) -> Unit) = TimeoutExecutor.runWithTimeout {
+  fun process(rawMessage: String, action: (sqsMessage: SQSMessage) -> Unit) = TimeoutExecutor.runWithTimeout {
     val sqsMessage = jsonMapper.readValue<SQSMessage>(rawMessage)
     try {
       when (sqsMessage.type) {

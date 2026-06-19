@@ -13,8 +13,6 @@ data class SQSMessage(
   @NotBlank
   @JsonProperty("Message")
   val message: String,
-  @JsonProperty("MessageId")
-  val messageId: String? = null,
   @JsonProperty(value = "MessageAttributes")
   val messageAttributes: MessageAttributes? = null,
 ) {
@@ -22,7 +20,6 @@ data class SQSMessage(
   fun getEventType(): String? = messageAttributes?.eventType?.value
   fun getHearingEventType(): String? = messageAttributes?.hearingEventType?.value
   fun isLargeMessage() = getEventType() == LARGE_CASE_EVENT_TYPE
-  fun getEventSource(): String? = messageAttributes?.eventSource?.value
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)

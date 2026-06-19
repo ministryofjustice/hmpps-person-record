@@ -21,7 +21,7 @@ class SasEventListener(
 ) {
 
   @SqsListener(SAS_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.process(rawMessage) { event ->
     when (event.eventType) {
       SAS_ADDRESS_UPDATED -> {
         val sasResponse = sasClient.getAddress(event.detailUrl!!)

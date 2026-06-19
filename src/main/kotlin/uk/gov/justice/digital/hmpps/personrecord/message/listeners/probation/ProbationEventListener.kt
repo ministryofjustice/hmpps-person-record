@@ -28,7 +28,7 @@ class ProbationEventListener(
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.process(rawMessage) { event ->
     when {
       createAddressEvent(event) -> upsertAddress(event)
       updateAddressEvent(event) -> upsertAddress(event)
