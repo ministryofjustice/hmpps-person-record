@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProces
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.SAS_EVENT_QUEUE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
+import java.util.UUID
 
 @Component
 @Profile("!preprod | !prod")
