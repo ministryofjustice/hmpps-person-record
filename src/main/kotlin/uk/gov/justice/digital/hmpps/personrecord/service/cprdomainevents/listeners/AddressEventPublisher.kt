@@ -17,17 +17,17 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDR
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
-interface AddressDomainEventStrategy {
+interface AddressEventPublisher {
   val sourceSystemType: SourceSystemType
   fun onCreate(addressCreated: AddressCreated)
   fun onUpdate(addressUpdated: AddressUpdated)
 }
 
 @Component
-class ProbationAddressDomainEventStrategy(
+class ProbationAddressEventPublisher(
   private val domainEventPublisher: DomainEventPublisher,
   @Value($$"${core-person-record.base-url}") private val baseUrl: String,
-) : AddressDomainEventStrategy {
+) : AddressEventPublisher {
   override val sourceSystemType = SourceSystemType.DELIUS
 
   override fun onCreate(addressCreated: AddressCreated) {

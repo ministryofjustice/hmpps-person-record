@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 
 @Profile("!preprod & !prod")
 @Component
-class AddressDomainEventListener(addressDomainEventStrategies: List<AddressDomainEventStrategy>) {
+class AddressDomainEventListener(addressDomainEventStrategies: List<AddressEventPublisher>) {
 
   private val strategies = addressDomainEventStrategies.associateBy { it.sourceSystemType }
 
