@@ -9,25 +9,25 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 
 @Profile("!preprod & !prod")
 @Component
-class AddressDomainEventListener(addressDomainEventStrategies: List<AddressEventPublisher>) {
+class AddressDomainEventListener(addressEventPublishers: List<AddressEventPublisher>) {
 
-  private val strategies = addressDomainEventStrategies.associateBy { it.sourceSystemType }
+  private val publishersBySourceSystem = addressEventPublishers.associateBy { it.sourceSystemType }
 
   @TransactionalEventListener
   fun onAddressCreated(addressCreated: AddressCreated) {
     val sourceSystem = addressCreated.addressEntity.person!!.sourceSystem
-    strategies[sourceSystem]?.onCreate(addressCreated)
+    publishersBySourceSystem[sourceSystem]?.onCreate(addressCreated)
   }
 
   @TransactionalEventListener
   fun onAddressUpdated(addressUpdated: AddressUpdated) {
     val sourceSystem = addressUpdated.addressEntity.person!!.sourceSystem
-    strategies[sourceSystem]?.onUpdate(addressUpdated)
+    publishersBySourceSystem[sourceSystem]?.onUpdate(addressUpdated)
   }
 
   @TransactionalEventListener
   fun onAddressDeleted(addressDeleted: AddressDeleted) {
     val sourceSystem = addressDeleted.personEntity.sourceSystem
-    strategies[sourceSystem]?.onDelete(addressDeleted)
+    publishersBySourceSystem[sourceSystem]?.onDelete(addressDeleted)
   }
 }
