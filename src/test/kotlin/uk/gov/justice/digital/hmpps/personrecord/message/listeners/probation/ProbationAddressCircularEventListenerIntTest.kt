@@ -34,26 +34,6 @@ class ProbationAddressCircularEventListenerIntTest : ProbationEventListenerTestB
       eventSource = DomainEventSource.CPR,
     )
 
-//    publishDomainEvent(
-//      ProbationOffenderAddressCreatedUpdated(
-//        eventType = OFFENDER_ADDRESS_CREATED,
-//        occurredAt = Instant.now().asStringWithUkZone(),
-//        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
-//        additionalInformation = ProbationOffenderAddressCreatedUpdatedInfo(
-//          cprAddressId = addressEntity.updateId.toString(),
-//          deliusAddressId = deliusAddressId
-//        )
-//      )
-//    )
-
-//    publishProbationAddressEvent(
-//      crn,
-//      deliusAddressId,
-//      OFFENDER_ADDRESS_CREATED,
-//      DomainEventSource.CPR,
-//      addressEntity.updateId.toString(),
-//    )
-
     awaitAssert {
       assertThat(personRepository.findByCrn(crn)?.addresses?.firstOrNull()?.deliusAddressId).isEqualTo(deliusAddressId)
     }

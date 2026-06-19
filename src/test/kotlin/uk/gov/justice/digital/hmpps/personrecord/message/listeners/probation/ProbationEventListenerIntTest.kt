@@ -702,7 +702,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
   fun `should not push 404 from delius API to dead letter queue but discard message instead`() {
     val crn = randomCrn()
     stub404Response(probationUrl(crn))
-    publishProbationDomainEvent(NEW_OFFENDER_CREATED, crn)
+    publishProbationOffenderCreatedEvent(crn)
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
   }
 
@@ -712,7 +712,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
     stub5xxResponse(probationUrl(crn), nextScenarioState = "request will fail", "failure")
     stub5xxResponse(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
     stub5xxResponse(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
-    publishProbationDomainEvent(NEW_OFFENDER_CREATED, crn)
+    publishProbationOffenderCreatedEvent(crn)
     expectOneMessageOnDlq(probationEventsQueue)
   }
 

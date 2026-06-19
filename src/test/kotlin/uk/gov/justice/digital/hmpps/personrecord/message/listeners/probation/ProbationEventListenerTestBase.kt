@@ -11,10 +11,15 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressDomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressCreatedUpdated
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressCreatedUpdatedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressCreatedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressDeletedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressUpdatedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUpdated
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -26,9 +31,13 @@ import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
@@ -101,13 +110,46 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
+  fun publishProbationOffenderCreatedEvent(crn: String) {
+    publishDomainEvent(
+      ProbationOffenderCreated(
+        eventType = NEW_OFFENDER_CREATED,
+        occurredAt = Instant.now().asStringWithUkZone(),
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
+      ),
+    )
+  }
+
+  fun publishProbationOffenderUpdatedEvent(crn: String) {
+    publishDomainEvent(
+      ProbationOffenderUpdated(
+        eventType = OFFENDER_PERSONAL_DETAILS_UPDATED,
+        occurredAt = Instant.now().asStringWithUkZone(),
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
+      ),
+    )
+  }
+
+  fun publishProbationOffenderDeletedEvent(eventType: String, crn: String) {
+    require(eventType == OFFENDER_GDPR_DELETION || eventType == OFFENDER_DELETION) {
+      "Unsupported event type: $eventType"
+    }
+    publishDomainEvent(
+      ProbationOffenderDeleted(
+        eventType = eventType,
+        occurredAt = Instant.now().asStringWithUkZone(),
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
+      ),
+    )
+  }
+
   fun publishProbationAddressCreatedEvent(crn: String?, cprAddressId: String? = null, deliusAddressId: Long?, eventSource: DomainEventSource) {
     publishDomainEvent(
-      ProbationOffenderAddressCreatedUpdated(
+      ProbationOffenderAddressCreated(
         eventType = OFFENDER_ADDRESS_CREATED,
         occurredAt = Instant.now().asStringWithUkZone(),
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
-        additionalInformation = ProbationOffenderAddressCreatedUpdatedInfo(
+        additionalInformation = ProbationOffenderAddressCreatedInfo(
           cprAddressId = cprAddressId,
           deliusAddressId = deliusAddressId!!,
         ),
@@ -118,11 +160,11 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
 
   fun publishProbationAddressUpdatedEvent(crn: String?, cprAddressId: String? = null, deliusAddressId: Long?, eventSource: DomainEventSource) {
     publishDomainEvent(
-      ProbationOffenderAddressCreatedUpdated(
+      ProbationOffenderAddressUpdated(
         eventType = OFFENDER_ADDRESS_UPDATED,
         occurredAt = Instant.now().asStringWithUkZone(),
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
-        additionalInformation = ProbationOffenderAddressCreatedUpdatedInfo(
+        additionalInformation = ProbationOffenderAddressUpdatedInfo(
           cprAddressId = cprAddressId,
           deliusAddressId = deliusAddressId!!,
         ),

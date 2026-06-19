@@ -23,7 +23,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 
-// TODO: see about this structure, some duplication with identifiers, maybe push down?
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
   include = JsonTypeInfo.As.EXISTING_PROPERTY,
@@ -31,18 +30,21 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATE
   visible = true,
 )
 @JsonSubTypes(
-  JsonSubTypes.Type(value = ProbationOffenderCreatedUpdated::class, names = [NEW_OFFENDER_CREATED, OFFENDER_PERSONAL_DETAILS_UPDATED]),
-  JsonSubTypes.Type(value = ProbationOffenderAddressCreatedUpdated::class, names = [OFFENDER_ADDRESS_CREATED, OFFENDER_ADDRESS_UPDATED]),
+  JsonSubTypes.Type(value = ProbationOffenderCreated::class, name = NEW_OFFENDER_CREATED),
+  JsonSubTypes.Type(value = ProbationOffenderUpdated::class, name = OFFENDER_PERSONAL_DETAILS_UPDATED),
+  JsonSubTypes.Type(value = ProbationOffenderAddressCreated::class, name = OFFENDER_ADDRESS_CREATED),
+  JsonSubTypes.Type(value = ProbationOffenderAddressUpdated::class, name = OFFENDER_ADDRESS_UPDATED),
   JsonSubTypes.Type(value = ProbationOffenderAddressDeleted::class, name = OFFENDER_ADDRESS_DELETED),
   JsonSubTypes.Type(value = ProbationOffenderMerged::class, name = OFFENDER_MERGED),
   JsonSubTypes.Type(value = ProbationOffenderUnMerged::class, name = OFFENDER_UNMERGED),
   JsonSubTypes.Type(value = ProbationOffenderDeleted::class, names = [OFFENDER_DELETION, OFFENDER_GDPR_DELETION]),
-  JsonSubTypes.Type(value = PrisonPrisonerCreatedUpdated::class, names = [PRISONER_CREATED, PRISONER_UPDATED]),
+  JsonSubTypes.Type(value = PrisonPrisonerCreated::class, name = PRISONER_CREATED),
+  JsonSubTypes.Type(value = PrisonPrisonerUpdated::class, name = PRISONER_UPDATED),
   JsonSubTypes.Type(value = PrisonPrisonerMerged::class, name = PRISONER_MERGED),
   JsonSubTypes.Type(value = SasAddressUpdated::class, name = SAS_ADDRESS_UPDATED),
   JsonSubTypes.Type(value = CprPersonCreated::class, names = [CPR_PRISON_PERSON_CREATED, CPR_PROBATION_PERSON_CREATED, CPR_COURT_PERSON_CREATED]),
-  JsonSubTypes.Type(value = CprAddressCreated::class, names = [CPR_PROBATION_ADDRESS_CREATED]),
-  JsonSubTypes.Type(value = CprAddressUpdated::class, names = [CPR_PROBATION_ADDRESS_UPDATED]),
+  JsonSubTypes.Type(value = CprAddressCreated::class, name = CPR_PROBATION_ADDRESS_CREATED),
+  JsonSubTypes.Type(value = CprAddressUpdated::class, name = CPR_PROBATION_ADDRESS_UPDATED),
 )
 @JsonIgnoreProperties(ignoreUnknown = true)
 sealed interface DomainEvent {
@@ -51,7 +53,7 @@ sealed interface DomainEvent {
   val occurredAt: String
 }
 
-data class ProbationOffenderCreatedUpdated(
+data class ProbationOffenderCreated(
   override val eventType: String,
   override val version: Int = 1,
   override val occurredAt: String,
@@ -60,17 +62,44 @@ data class ProbationOffenderCreatedUpdated(
   val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
 }
 
-data class ProbationOffenderAddressCreatedUpdated(
+data class ProbationOffenderUpdated(
   override val eventType: String,
   override val version: Int = 1,
   override val occurredAt: String,
   val personReference: PersonReference,
-  val additionalInformation: ProbationOffenderAddressCreatedUpdatedInfo,
 ) : DomainEvent {
   val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
 }
 
-data class ProbationOffenderAddressCreatedUpdatedInfo(
+data class ProbationOffenderAddressCreated(
+  override val eventType: String,
+  override val version: Int = 1,
+  override val occurredAt: String,
+  val personReference: PersonReference,
+  val additionalInformation: ProbationOffenderAddressCreatedInfo,
+) : DomainEvent {
+  val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
+}
+
+data class ProbationOffenderAddressCreatedInfo(
+  @JsonProperty("corePersonAddressId")
+  val cprAddressId: String? = null,
+
+  @JsonProperty("addressId")
+  val deliusAddressId: Long,
+)
+
+data class ProbationOffenderAddressUpdated(
+  override val eventType: String,
+  override val version: Int = 1,
+  override val occurredAt: String,
+  val personReference: PersonReference,
+  val additionalInformation: ProbationOffenderAddressUpdatedInfo,
+) : DomainEvent {
+  val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
+}
+
+data class ProbationOffenderAddressUpdatedInfo(
   @JsonProperty("corePersonAddressId")
   val cprAddressId: String? = null,
 
@@ -132,7 +161,16 @@ data class ProbationOffenderDeleted(
   val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
 }
 
-data class PrisonPrisonerCreatedUpdated(
+data class PrisonPrisonerCreated(
+  override val eventType: String,
+  override val version: Int = 1,
+  override val occurredAt: String,
+  val personReference: PersonReference,
+) : DomainEvent {
+  val prisonNumber: String get() = personReference.identifiers?.first { it.type == "NOMS" }?.value!!
+}
+
+data class PrisonPrisonerUpdated(
   override val eventType: String,
   override val version: Int = 1,
   override val occurredAt: String,

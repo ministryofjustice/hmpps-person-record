@@ -14,15 +14,17 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPrisonerCreatedUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPrisonerCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPrisonerMerged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPrisonerMergedInfo
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderCreatedUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPrisonerUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderDeleted
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMerged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMergedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnMerged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnMergedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUpdated
 import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
@@ -337,7 +339,12 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   }
 
   private fun toProbationEvent(eventType: String, crn: String): DomainEvent = when (eventType) {
-    NEW_OFFENDER_CREATED, OFFENDER_PERSONAL_DETAILS_UPDATED -> ProbationOffenderCreatedUpdated(
+    NEW_OFFENDER_CREATED -> ProbationOffenderCreated(
+      eventType = eventType,
+      occurredAt = Instant.now().asStringWithUkZone(),
+      personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
+    )
+    OFFENDER_PERSONAL_DETAILS_UPDATED -> ProbationOffenderUpdated(
       eventType = eventType,
       occurredAt = Instant.now().asStringWithUkZone(),
       personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
@@ -351,7 +358,12 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   }
 
   private fun toPrisonEvent(eventType: String, prisonNumber: String): DomainEvent = when (eventType) {
-    PRISONER_CREATED, PRISONER_UPDATED -> PrisonPrisonerCreatedUpdated(
+    PRISONER_CREATED -> PrisonPrisonerCreated(
+      eventType = eventType,
+      occurredAt = Instant.now().asStringWithUkZone(),
+      personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))),
+    )
+    PRISONER_UPDATED -> PrisonPrisonerUpdated(
       eventType = eventType,
       occurredAt = Instant.now().asStringWithUkZone(),
       personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))),
