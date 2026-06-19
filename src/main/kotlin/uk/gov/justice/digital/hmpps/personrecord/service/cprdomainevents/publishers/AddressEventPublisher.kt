@@ -34,7 +34,7 @@ class ProbationAddressEventPublisher(
   override val sourceSystemType = SourceSystemType.DELIUS
 
   override fun onCreate(addressCreated: AddressCreated) {
-    publishAddressUpsertDomainEvent(
+    publishAddressDomainEvent(
       addressEntity = addressCreated.addressEntity,
       eventSource = addressCreated.eventSource.identifier,
       action = "created",
@@ -43,7 +43,7 @@ class ProbationAddressEventPublisher(
   }
 
   override fun onUpdate(addressUpdated: AddressUpdated) {
-    publishAddressUpsertDomainEvent(
+    publishAddressDomainEvent(
       addressEntity = addressUpdated.addressEntity,
       eventSource = addressUpdated.eventSource.identifier,
       action = "updated",
@@ -59,7 +59,7 @@ class ProbationAddressEventPublisher(
     )
   }
 
-  private fun publishAddressUpsertDomainEvent(
+  private fun publishAddressDomainEvent(
     addressEntity: AddressEntity,
     eventSource: String,
     action: String,
@@ -102,7 +102,6 @@ class ProbationAddressEventPublisher(
       occurredAt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(UK_ZONE).format(Instant.now()),
       additionalInformation = AdditionalInformation(
         outboundCprAddressId = addressId.toString(),
-        outboundDeliusAddressId = addressEntity.deliusAddressId,
       ),
       personReference = PersonReference(
         identifiers = listOf(
