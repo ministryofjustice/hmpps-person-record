@@ -1,16 +1,14 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listeners
 
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
-import org.springframework.transaction.event.TransactionalEventListener
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.extensions.UK_ZONE
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
@@ -19,37 +17,35 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDR
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
-@Profile("!preprod & !prod")
+interface AddressDomainEventStrategy {
+  val sourceSystemType: SourceSystemType
+  fun onCreate(addressCreated: AddressCreated)
+  fun onUpdate(addressUpdated: AddressUpdated)
+}
+
 @Component
-class ProbationAddressDomainEventListener(
+class ProbationAddressDomainEventStrategy(
   private val domainEventPublisher: DomainEventPublisher,
   @Value($$"${core-person-record.base-url}") private val baseUrl: String,
-) {
+) : AddressDomainEventStrategy {
+  override val sourceSystemType = SourceSystemType.DELIUS
 
-  @TransactionalEventListener
-  fun onAddressCreated(addressCreated: AddressCreated) {
-    val sourceSystem = addressCreated.addressEntity.person!!.sourceSystem
-    if (sourceSystem == DELIUS) {
-      publishProbationAddressDomainEvent(
-        addressEntity = addressCreated.addressEntity,
-        eventSource = addressCreated.eventSource.identifier,
-        action = "created",
-        eventType = CPR_PROBATION_ADDRESS_CREATED,
-      )
-    }
+  override fun onCreate(addressCreated: AddressCreated) {
+    publishProbationAddressDomainEvent(
+      addressEntity = addressCreated.addressEntity,
+      eventSource = addressCreated.eventSource.identifier,
+      action = "created",
+      eventType = CPR_PROBATION_ADDRESS_CREATED,
+    )
   }
 
-  @TransactionalEventListener
-  fun onAddressUpdated(addressUpdated: AddressUpdated) {
-    val sourceSystem = addressUpdated.addressEntity.person!!.sourceSystem
-    if (sourceSystem == DELIUS) {
-      publishProbationAddressDomainEvent(
-        addressEntity = addressUpdated.addressEntity,
-        eventSource = addressUpdated.eventSource.identifier,
-        action = "updated",
-        eventType = CPR_PROBATION_ADDRESS_UPDATED,
-      )
-    }
+  override fun onUpdate(addressUpdated: AddressUpdated) {
+    publishProbationAddressDomainEvent(
+      addressEntity = addressUpdated.addressEntity,
+      eventSource = addressUpdated.eventSource.identifier,
+      action = "updated",
+      eventType = CPR_PROBATION_ADDRESS_UPDATED,
+    )
   }
 
   private fun publishProbationAddressDomainEvent(
