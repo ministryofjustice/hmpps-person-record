@@ -39,9 +39,10 @@ class SasEventListener(
       }
       SAS_ADDRESS_DELETED -> {
         val cprAddressUpdateId = event.additionalInformation!!.inboundCprAddressId
-        addressService.deleteAddress {
-          addressRepository.findByUpdateId(UUID.fromString(cprAddressUpdateId))
-        }
+        addressService.deleteAddress(
+          eventSource = CPR,
+          findAddress = { addressRepository.findByUpdateId(UUID.fromString(cprAddressUpdateId)) },
+        )
       }
     }
   }
