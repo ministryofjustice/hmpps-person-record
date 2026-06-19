@@ -145,13 +145,24 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
   }
 
   fun assertDomainEventPublishedAfterDeliusEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) {
-    val (addressEntity, domainEvent: DomainEvent) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, DELIUS)
+    val (_, domainEvent) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, DELIUS)
+    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isNull()
+  }
+
+  fun assertDomainEventPublishedAfterDeliusAddressDeleteEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) {
+    val (_, domainEvent) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, DELIUS)
+    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isNull()
+  }
+
+  fun assertDomainEventPublishedAfterSasEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) {
+    val (addressEntity, domainEvent) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, CPR)
     assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity?.deliusAddressId)
   }
 
-  fun assertDomainEventPublishedAfterDeliusAddressDeleteEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, DELIUS)
-
-  fun assertDomainEventPublishedAfterSasEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, CPR)
+  fun assertDomainEventPublishedAfterSasAddressDeleteEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) {
+    val (addressEntity, domainEvent) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, CPR)
+    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity?.deliusAddressId)
+  }
 
   private fun checkDomainEventPublished(
     crn: String,
