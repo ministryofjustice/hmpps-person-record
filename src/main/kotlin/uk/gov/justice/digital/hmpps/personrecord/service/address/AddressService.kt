@@ -78,7 +78,7 @@ class AddressService(
       personRepository.save(personEntity)
 
       tryRecluster(personEntity, true)
-      publisher.publishEvent(AddressDeleted(addressEntity, personEntity, true, eventSource))
+      publisher.publishEvent(AddressDeleted(addressEntity, personEntity, eventSource))
     }
   }
 
