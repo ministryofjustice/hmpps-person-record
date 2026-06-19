@@ -149,17 +149,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isNull()
   }
 
-  fun assertDomainEventPublishedAfterDeliusAddressDeleteEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) {
-    val (_, domainEvent) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, DELIUS)
-    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isNull()
-  }
-
   fun assertDomainEventPublishedAfterSasEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) {
-    val (addressEntity, domainEvent) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, CPR)
-    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity?.deliusAddressId)
-  }
-
-  fun assertDomainEventPublishedAfterSasAddressDeleteEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) {
     val (addressEntity, domainEvent) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, CPR)
     assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity?.deliusAddressId)
   }

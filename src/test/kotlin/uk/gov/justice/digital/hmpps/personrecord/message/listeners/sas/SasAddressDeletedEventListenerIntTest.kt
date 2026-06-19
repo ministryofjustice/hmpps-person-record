@@ -34,7 +34,7 @@ class SasAddressDeletedEventListenerIntTest : ProbationEventListenerTestBase() {
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(0)
-    assertDomainEventPublishedAfterSasAddressDeleteEvent(
+    assertDomainEventPublishedAfterSasEvent(
       expectedEventType = CPR_PROBATION_ADDRESS_DELETED,
       crn = personEntity.crn!!,
       cprAddressUpdateId = personEntity.addresses.first().updateId!!.toString(),
