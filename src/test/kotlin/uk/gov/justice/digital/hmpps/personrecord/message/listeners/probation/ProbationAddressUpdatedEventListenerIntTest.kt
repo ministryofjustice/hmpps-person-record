@@ -6,9 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 
 class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
@@ -29,7 +27,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     publishProbationAddressUpdatedEvent(
       crn = personEntity.crn,
       deliusAddressId = originalProbationAddress.deliusAddressId,
-      eventSource = DomainEventSource.DELIUS,
+      eventSource = DELIUS,
     )
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
@@ -39,11 +37,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     assertThat(cprAddressAfterUpdate.updateId).isEqualTo(cprAddressBeforeUpdate.updateId)
 
     val actualAddress = assertAddress(personEntity.crn!!, updatedProbationAddress)
-    assertDomainEventPublishedAfterDeliusEvent(
-      expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
-      crn = personEntity.crn!!,
-      cprAddressUpdateId = actualAddress.updateId.toString(),
-    )
+    assertCprAddressUpdatedEventPublished(personEntity.crn!!, actualAddress.updateId.toString(), DELIUS)
   }
 
   @Test
@@ -59,7 +53,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     publishProbationAddressUpdatedEvent(
       crn = personEntity.crn,
       deliusAddressId = updatedProbationAddress.deliusAddressId,
-      eventSource = DomainEventSource.DELIUS,
+      eventSource = DELIUS,
     )
     wiremock.verify(0, postRequestedFor(urlEqualTo("/person")))
     wiremock.verify(0, getRequestedFor(urlEqualTo("/person/score/.*")))
@@ -78,7 +72,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     publishProbationAddressUpdatedEvent(
       crn = personEntity.crn,
       deliusAddressId = probationAddress.deliusAddressId,
-      eventSource = DomainEventSource.DELIUS,
+      eventSource = DELIUS,
     )
 
     expectNoMessagesOn(probationEventsQueue)
@@ -91,7 +85,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   }
 
   @Test
-  fun `consuming address updated event - cpr address does not exist - saves address`() {
+  fun `consuming address updated event - cpr address does not exist - creates address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails().copy(addresses = listOf()))
 
@@ -102,17 +96,13 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     publishProbationAddressUpdatedEvent(
       crn = personEntity.crn,
       deliusAddressId = probationAddress.deliusAddressId,
-      eventSource = DomainEventSource.DELIUS,
+      eventSource = DELIUS,
     )
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
 
     val actualAddress = assertAddress(personEntity.crn!!, probationAddress)
-    assertDomainEventPublishedAfterDeliusEvent(
-      expectedEventType = CPR_PROBATION_ADDRESS_CREATED,
-      crn = personEntity.crn!!,
-      cprAddressUpdateId = actualAddress.updateId.toString(),
-    )
+    assertCprAddressCreatedEventPublished(personEntity.crn!!, actualAddress.updateId.toString(), DELIUS)
   }
 }

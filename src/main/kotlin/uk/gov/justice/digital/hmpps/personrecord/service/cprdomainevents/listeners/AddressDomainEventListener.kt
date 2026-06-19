@@ -6,10 +6,11 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressCreatedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressUpdatedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
@@ -28,44 +29,19 @@ class AddressDomainEventListener(
 
   @TransactionalEventListener
   fun onAddressCreated(addressCreated: AddressCreated) {
-    publishAddressDomainEvent(
-      addressEntity = addressCreated.addressEntity,
-      eventSource = addressCreated.eventSource.identifier,
-      action = "created",
-      config = buildAddressDomainEventConfig(addressCreated.addressEntity.person!!.sourceSystem, CPR_PROBATION_ADDRESS_CREATED),
-    )
-  }
-
-  @TransactionalEventListener
-  fun onAddressUpdated(addressUpdated: AddressUpdated) {
-    publishAddressDomainEvent(
-      addressEntity = addressUpdated.addressEntity,
-      eventSource = addressUpdated.eventSource.identifier,
-      action = "updated",
-      config = buildAddressDomainEventConfig(addressUpdated.addressEntity.person!!.sourceSystem, CPR_PROBATION_ADDRESS_UPDATED),
-    )
-  }
-
-  private fun publishAddressDomainEvent(
-    addressEntity: AddressEntity,
-    eventSource: String,
-    action: String,
-    config: AddressDomainEventConfig?,
-  ) {
-    config ?: return
-    val sourceSystemId = addressEntity.person!!.extractSourceSystemId()!!
-    val addressId = addressEntity.updateId
-    val detailUrl = "$baseUrl/person/${config.urlPathSegment}/$sourceSystemId/address/$addressId"
+    val config = buildAddressDomainEventConfig(addressCreated.addressEntity.person!!.sourceSystem) ?: return
+    val sourceSystemId = addressCreated.addressEntity.person!!.extractSourceSystemId()!!
+    val addressId = addressCreated.addressEntity.updateId
 
     domainEventPublisher.publish(
       CprAddressCreated(
-        eventType = config.eventType,
-        description = "A ${config.typeDescription} address has been $action for a person",
-        detailUrl = detailUrl,
+        eventType = CPR_PROBATION_ADDRESS_CREATED,
+        description = "A ${config.typeDescription} address has been created for a person",
+        detailUrl = "$baseUrl/person/${config.urlPathSegment}/$sourceSystemId/address/$addressId",
         occurredAt = Instant.now().asStringWithUkZone(),
         additionalInformation = CprAddressCreatedInfo(
           cprAddressId = addressId.toString(),
-          deliusAddressId = addressEntity.deliusAddressId,
+          deliusAddressId = addressCreated.addressEntity.deliusAddressId,
         ),
         personReference = PersonReference(
           identifiers = listOf(
@@ -73,18 +49,43 @@ class AddressDomainEventListener(
           ),
         ),
       ),
-      attributes = mapOf("eventSource" to eventSource),
+      attributes = mapOf("eventSource" to addressCreated.eventSource.identifier),
     )
   }
 
-  private fun buildAddressDomainEventConfig(sourceSystem: SourceSystemType, eventType: String): AddressDomainEventConfig? = when (sourceSystem) {
-    DELIUS -> AddressDomainEventConfig(eventType, "CRN", "probation", "probation")
+  @TransactionalEventListener
+  fun onAddressUpdated(addressUpdated: AddressUpdated) {
+    val config = buildAddressDomainEventConfig(addressUpdated.addressEntity.person!!.sourceSystem) ?: return
+    val sourceSystemId = addressUpdated.addressEntity.person!!.extractSourceSystemId()!!
+    val addressId = addressUpdated.addressEntity.updateId
+
+    domainEventPublisher.publish(
+      CprAddressUpdated(
+        eventType = CPR_PROBATION_ADDRESS_UPDATED,
+        description = "A ${config.typeDescription} address has been updated for a person",
+        detailUrl = "$baseUrl/person/${config.urlPathSegment}/$sourceSystemId/address/$addressId",
+        occurredAt = Instant.now().asStringWithUkZone(),
+        additionalInformation = CprAddressUpdatedInfo(
+          cprAddressId = addressId.toString(),
+          deliusAddressId = addressUpdated.addressEntity.deliusAddressId,
+        ),
+        personReference = PersonReference(
+          identifiers = listOf(
+            PersonIdentifier(config.identifierName, sourceSystemId),
+          ),
+        ),
+      ),
+      attributes = mapOf("eventSource" to addressUpdated.eventSource.identifier),
+    )
+  }
+
+  private fun buildAddressDomainEventConfig(sourceSystem: SourceSystemType): AddressDomainEventConfig? = when (sourceSystem) {
+    DELIUS -> AddressDomainEventConfig("CRN", "probation", "probation")
     else -> null // temporary flow for other source systems we haven't mapped yet
   }
 }
 
 data class AddressDomainEventConfig(
-  val eventType: String,
   val identifierName: String,
   val urlPathSegment: String,
   val typeDescription: String,

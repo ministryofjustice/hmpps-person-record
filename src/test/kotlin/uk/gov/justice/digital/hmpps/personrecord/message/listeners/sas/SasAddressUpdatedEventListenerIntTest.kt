@@ -13,8 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
@@ -50,7 +49,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
         crn = randomCrn(),
         cprAddressId = existingAddressEntity.updateId.toString(),
         deliusAddressId = deliusAddressId,
-        eventSource = DomainEventSource.CPR,
+        eventSource = CPR,
       )
 
       awaitNotNull {
@@ -66,11 +65,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
       publishSasAddressUpdateEvent()
 
       val actualAddress = assertAddressUpdated(crn, sasCallbackResponse, deliusAddressId)
-      assertDomainEventPublishedAfterSasEvent(
-        expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
-        crn = crn!!,
-        cprAddressUpdateId = actualAddress.updateId.toString(),
-      )
+      assertCprAddressUpdatedEventPublished(crn!!, actualAddress.updateId.toString(), CPR)
     }
   }
 

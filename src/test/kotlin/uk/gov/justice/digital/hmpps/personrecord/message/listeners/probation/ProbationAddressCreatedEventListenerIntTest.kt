@@ -3,9 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
 class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBase() {
@@ -23,15 +21,11 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     publishProbationAddressCreatedEvent(
       crn = cprPerson.crn,
       deliusAddressId = probationAddress.deliusAddressId,
-      eventSource = DomainEventSource.DELIUS,
+      eventSource = DELIUS,
     )
 
     val actualAddress = assertAddress(cprPerson.crn!!, probationAddress)
-    assertDomainEventPublishedAfterDeliusEvent(
-      expectedEventType = CPR_PROBATION_ADDRESS_CREATED,
-      crn = cprPerson.crn,
-      cprAddressUpdateId = actualAddress.updateId.toString(),
-    )
+    assertCprAddressCreatedEventPublished(cprPerson.crn, actualAddress.updateId.toString(), DELIUS)
   }
 
   @Test
@@ -50,7 +44,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     publishProbationAddressCreatedEvent(
       crn = personEntity.crn,
       deliusAddressId = originalProbationAddress.deliusAddressId,
-      eventSource = DomainEventSource.DELIUS,
+      eventSource = DELIUS,
     )
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
@@ -60,11 +54,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     assertThat(addressEntityAfterCreateEvent.updateId).isEqualTo(addressEntityBeforeCreateEvent.updateId)
 
     val actualAddress = assertAddress(personEntity.crn!!, updatedProbationAddress)
-    assertDomainEventPublishedAfterDeliusEvent(
-      expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
-      crn = personEntity.crn!!,
-      cprAddressUpdateId = actualAddress.updateId.toString(),
-    )
+    assertCprAddressUpdatedEventPublished(personEntity.crn!!, actualAddress.updateId.toString(), DELIUS)
   }
 
   @Test
@@ -79,7 +69,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     publishProbationAddressCreatedEvent(
       crn = cprPerson.crn,
       deliusAddressId = probationAddress.deliusAddressId,
-      eventSource = DomainEventSource.DELIUS,
+      eventSource = DELIUS,
     )
 
     expectNoMessagesOn(probationEventsQueue)
@@ -99,7 +89,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     publishProbationAddressCreatedEvent(
       crn = randomCrn(),
       deliusAddressId = probationAddress.deliusAddressId,
-      eventSource = DomainEventSource.DELIUS,
+      eventSource = DELIUS,
     )
 
     expectNoMessagesOn(probationEventsQueue)
