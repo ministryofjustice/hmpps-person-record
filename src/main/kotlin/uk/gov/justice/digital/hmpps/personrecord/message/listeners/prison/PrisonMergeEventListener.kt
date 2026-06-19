@@ -13,7 +13,7 @@ class PrisonMergeEventListener(
 ) {
 
   @SqsListener(Queues.PRISON_MERGE_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) {
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.process(rawMessage) {
     mergeEventProcessor.processEvent(it)
   }
 }

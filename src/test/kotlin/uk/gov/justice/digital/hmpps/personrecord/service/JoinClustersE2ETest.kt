@@ -24,7 +24,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -135,7 +134,6 @@ class JoinClustersE2ETest : E2ETestBase() {
       middleName = basePerson.middleNames,
       lastName = basePerson.lastName,
       dateOfBirth = basePerson.dateOfBirth,
-      addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
       sentences = listOf(ApiResponseSetupSentences(basePerson.sentences.first().sentenceDate)),
     )
@@ -159,7 +157,6 @@ class JoinClustersE2ETest : E2ETestBase() {
       middleName = basePerson.middleNames,
       lastName = basePerson.lastName,
       dateOfBirth = basePerson.dateOfBirth,
-      addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, secondSetup)
@@ -179,7 +176,6 @@ class JoinClustersE2ETest : E2ETestBase() {
       middleName = basePerson.middleNames,
       lastName = basePerson.lastName,
       dateOfBirth = basePerson.dateOfBirth,
-      addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
       sentences = listOf(ApiResponseSetupSentences(basePerson.sentences.first().sentenceDate)),
     )
@@ -209,7 +205,6 @@ class JoinClustersE2ETest : E2ETestBase() {
       middleName = basePerson.middleNames,
       lastName = basePerson.lastName,
       dateOfBirth = basePerson.dateOfBirth,
-      addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
@@ -231,7 +226,6 @@ class JoinClustersE2ETest : E2ETestBase() {
       middleName = basePerson.middleNames,
       lastName = basePerson.lastName,
       dateOfBirth = basePerson.dateOfBirth,
-      addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, secondSetup)

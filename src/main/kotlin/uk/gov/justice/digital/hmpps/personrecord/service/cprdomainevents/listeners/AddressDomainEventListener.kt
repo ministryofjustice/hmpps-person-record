@@ -11,50 +11,34 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.extensions.UK_ZONE
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
 @Profile("!preprod & !prod")
 @Component
 class AddressDomainEventListener(
+  addressDomainEventStrategies: List<AddressEventPublisher>,
   private val domainEventPublisher: DomainEventPublisher,
   @Value($$"${core-person-record.base-url}") private val baseUrl: String,
 ) {
 
+  private val strategies = addressDomainEventStrategies.associateBy { it.sourceSystemType }
+
   @TransactionalEventListener
   fun onAddressCreated(addressCreated: AddressCreated) {
-    publishAddressDomainEvent(
-      addressEntity = addressCreated.addressEntity,
-      sourceSystemId = addressCreated.addressEntity.person!!.extractSourceSystemId()!!,
-      eventSource = addressCreated.eventSource.identifier,
-      action = "created",
-      config = buildAddressDomainEventConfig(
-        sourceSystem = addressCreated.addressEntity.person!!.sourceSystem,
-        eventType = CPR_PROBATION_ADDRESS_CREATED,
-      ),
-    )
+    val sourceSystem = addressCreated.addressEntity.person!!.sourceSystem
+    strategies[sourceSystem]?.onCreate(addressCreated)
   }
 
   @TransactionalEventListener
   fun onAddressUpdated(addressUpdated: AddressUpdated) {
-    publishAddressDomainEvent(
-      addressEntity = addressUpdated.addressEntity,
-      sourceSystemId = addressUpdated.addressEntity.person!!.extractSourceSystemId()!!,
-      eventSource = addressUpdated.eventSource.identifier,
-      action = "updated",
-      config = buildAddressDomainEventConfig(
-        sourceSystem = addressUpdated.addressEntity.person!!.sourceSystem,
-        eventType = CPR_PROBATION_ADDRESS_UPDATED,
-      ),
-    )
+    val sourceSystem = addressUpdated.addressEntity.person!!.sourceSystem
+    strategies[sourceSystem]?.onUpdate(addressUpdated)
   }
 
   @TransactionalEventListener
@@ -104,7 +88,7 @@ class AddressDomainEventListener(
   }
 
   private fun buildAddressDomainEventConfig(sourceSystem: SourceSystemType, eventType: String): AddressDomainEventConfig? = when (sourceSystem) {
-    DELIUS -> AddressDomainEventConfig(eventType, "CRN", "probation", "probation")
+    SourceSystemType.DELIUS -> AddressDomainEventConfig(eventType, "CRN", "probation", "probation")
     else -> null // temporary flow for other source systems we haven't mapped yet
   }
 }

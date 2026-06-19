@@ -16,7 +16,7 @@ class PrisonEventListener(
 ) {
 
   @SqsListener(Queues.PRISON_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) {
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.process(rawMessage) {
     prisonerSearchClient.getPrisoner(it.getPrisonNumber())?.let { person ->
       prisonEventProcessor.processEvent(person)
     }
