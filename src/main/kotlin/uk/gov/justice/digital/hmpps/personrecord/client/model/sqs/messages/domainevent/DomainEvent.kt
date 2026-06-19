@@ -11,7 +11,7 @@ data class DomainEvent @JsonCreator constructor(
   @JsonProperty("additionalInformation") val additionalInformation: AdditionalInformation? = null,
   @JsonProperty("version") val version: Int? = 1,
   @JsonProperty("description") val description: String? = null,
-  @JsonProperty("detailUrl") var detailUrl: String? = null,
+  @JsonProperty("detailUrl") val detailUrl: String? = null,
   @JsonProperty("occurredAt") val occurredAt: String? = null,
 )
 fun DomainEvent.getPrisonNumber() = this.personReference?.identifiers?.first { it.type == "NOMS" }?.value!!
