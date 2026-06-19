@@ -6,10 +6,11 @@ import org.springframework.transaction.event.TransactionalEventListener
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.AddressEventPublisher
 
 @Profile("!preprod & !prod")
 @Component
-class AddressDomainEventListener(addressEventPublishers: List<AddressEventPublisher>) {
+class AddressEventListener(addressEventPublishers: List<AddressEventPublisher>) {
 
   private val publishersBySourceSystem = addressEventPublishers.associateBy { it.sourceSystemType }
 
