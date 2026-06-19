@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressData
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
@@ -11,12 +12,12 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import java.time.ZonedDateTime
 import kotlin.Boolean
+import kotlin.collections.mapNotNull
 import kotlin.reflect.full.memberProperties
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address as ProbationAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address as ProbationCreateAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Address as SysconAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Address as CommonPlatformAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Address as LibraAddress
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress as OffenderAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Address as PrisonerAddress
 
 data class Address(
@@ -60,7 +61,7 @@ data class Address(
       noFixedAbode = address.noFixedAbode,
     ).allPropertiesOrNull()
 
-    fun from(address: OffenderAddress): Address? = Address(
+    fun from(address: ProbationAddress): Address? = Address(
       noFixedAbode = address.noFixedAbode,
       startDate = address.startDateTime,
       endDate = address.endDateTime,
@@ -123,7 +124,7 @@ data class Address(
       contacts = address.contacts.mapNotNull { Contact.from(it) },
     )
 
-    fun from(address: ProbationAddress): Address = Address(
+    fun from(address: ProbationCreateAddress): Address = Address(
       noFixedAbode = address.noFixedAbode,
       startDate = address.startDate,
       endDate = address.endDate,
@@ -162,8 +163,6 @@ data class Address(
     )
 
     fun fromPrisonerAddressList(addresses: List<PrisonerAddress>): List<Address> = addresses.mapNotNull { from(it) }
-
-    fun fromOffenderAddressList(addresses: List<OffenderAddress>): List<Address> = addresses.mapNotNull { from(it) }
 
     fun from(addressEntity: AddressEntity): Address = Address(
       postcode = addressEntity.postcode,

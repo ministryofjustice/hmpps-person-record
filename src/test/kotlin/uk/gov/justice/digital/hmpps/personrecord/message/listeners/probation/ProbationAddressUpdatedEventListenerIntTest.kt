@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 
 class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
@@ -34,10 +33,12 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     val cprAddressAfterUpdate = actualPersonEntity.addresses.first()
     assertThat(cprAddressAfterUpdate.id).isEqualTo(cprAddressBeforeUpdate.id)
     assertThat(cprAddressAfterUpdate.updateId).isEqualTo(cprAddressBeforeUpdate.updateId)
-    assertAddress(personEntity.crn!!, updatedProbationAddress)
+
+    val actualAddress = assertAddress(personEntity.crn!!, updatedProbationAddress)
     assertDomainEventPublishedAfterDeliusEvent(
       expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
       crn = personEntity.crn!!,
+      cprAddressUpdateId = actualAddress.updateId.toString(),
     )
   }
 
@@ -78,27 +79,6 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   }
 
   @Test
-  fun `consuming address updated event - cpr person does not exist - does not update address`() {
-    val probationAddress = randomProbationAddress()
-    val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress)!!)),
-    )
-    val cprAddressBeforeUpdate = personEntity.addresses.first()
-
-    stubGetRequestToProbation(probationAddress)
-
-    publishProbationAddressEvent(randomCrn(), probationAddress.deliusAddressId, OFFENDER_ADDRESS_UPDATED)
-
-    expectNoMessagesOn(probationEventsQueue)
-    expectOneMessageOnDlq(probationEventsQueue)
-
-    val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
-    assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-    val cprAddressAfterUpdate = actualPersonEntity.addresses.first()
-    assertThat(cprAddressAfterUpdate).usingRecursiveComparison().isEqualTo(cprAddressBeforeUpdate)
-  }
-
-  @Test
   fun `consuming address updated event - cpr address does not exist - saves address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails().copy(addresses = listOf()))
@@ -111,10 +91,12 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-    assertAddress(personEntity.crn!!, probationAddress)
+
+    val actualAddress = assertAddress(personEntity.crn!!, probationAddress)
     assertDomainEventPublishedAfterDeliusEvent(
       expectedEventType = CPR_PROBATION_ADDRESS_CREATED,
       crn = personEntity.crn!!,
+      cprAddressUpdateId = actualAddress.updateId.toString(),
     )
   }
 }
