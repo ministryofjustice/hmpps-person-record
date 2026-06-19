@@ -22,3 +22,4 @@ const val CPR_PROBATION_ADDRESS_CREATED = "core-person-record.probation.address.
 const val SAS_ADDRESS_UPDATED = "sas.accommodation.updated"
 const val SAS_ADDRESS_DELETED = "sas.accommodation.deleted"
 const val CPR_PROBATION_ADDRESS_UPDATED = "core-person-record.probation.address.updated"
+const val CPR_PROBATION_ADDRESS_DELETED = "core-person-record.probation.address.deleted"

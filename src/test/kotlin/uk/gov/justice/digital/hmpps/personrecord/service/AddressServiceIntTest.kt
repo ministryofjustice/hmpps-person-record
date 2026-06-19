@@ -167,7 +167,10 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
       val addressToDelete = personEntity.addresses.first()
 
-      addressService.deleteAddress { addressToDelete }
+      addressService.deleteAddress(
+        eventSource = DomainEventSource.DELIUS,
+        findAddress = { addressToDelete },
+      )
 
       awaitAssert {
         val actualPerson = personRepository.findByCrn(crn)!!
@@ -182,7 +185,10 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val crn = randomCrn()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
 
-      addressService.deleteAddress { null }
+      addressService.deleteAddress(
+        eventSource = DomainEventSource.DELIUS,
+        findAddress = { null },
+      )
 
       awaitAssert {
         val actualPerson = personRepository.findByCrn(crn)!!

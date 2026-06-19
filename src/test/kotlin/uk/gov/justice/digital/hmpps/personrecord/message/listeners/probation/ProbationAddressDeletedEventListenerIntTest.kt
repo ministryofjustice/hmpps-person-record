@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
@@ -15,13 +16,21 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress)!!)),
     )
+    val addressEntity = personEntity.addresses.first()
 
     stubPersonMatchUpsert()
     stubPersonMatchScores()
     publishProbationAddressEvent(personEntity.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_DELETED)
 
-    val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
+    expectNoMessagesOnQueueOrDlq(probationEventsQueue)
+    val actualPersonEntity = personRepository.findByCrn(personEntity.crn!!)!!
     assertThat(actualPersonEntity.addresses.size).isEqualTo(0)
+
+    assertDomainEventPublishedAfterDeliusAddressDeleteEvent(
+      expectedEventType = CPR_PROBATION_ADDRESS_DELETED,
+      crn = personEntity.crn!!,
+      cprAddressUpdateId = addressEntity.updateId.toString(),
+    )
   }
 
   @Test
@@ -30,13 +39,22 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress)!!)),
     )
+    val addressEntity = personEntity.addresses.first()
 
     stubPersonMatchUpsert()
     stubPersonMatchScores()
     publishProbationAddressEvent(randomCrn(), probationAddress.deliusAddressId, OFFENDER_ADDRESS_DELETED)
 
-    val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
+    expectNoMessagesOnQueueOrDlq(probationEventsQueue)
+
+    val actualPersonEntity = personRepository.findByCrn(personEntity.crn!!)!!
     assertThat(actualPersonEntity.addresses.size).isEqualTo(0)
+
+    assertDomainEventPublishedAfterDeliusAddressDeleteEvent(
+      expectedEventType = CPR_PROBATION_ADDRESS_DELETED,
+      crn = personEntity.crn!!,
+      cprAddressUpdateId = addressEntity.updateId.toString(),
+    )
   }
 
   @Test
@@ -49,8 +67,8 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
     publishProbationAddressEvent(personEntity.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_DELETED)
 
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
-
-    val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
+    expectNoMessagesOnQueueOrDlq(testOnlyCPRDomainEventsQueue)
+    val actualPersonEntity = personRepository.findByCrn(personEntity.crn!!)!!
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
   }
 }

@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
@@ -145,8 +146,10 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
 
   fun assertDomainEventPublishedAfterDeliusEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) {
     val (addressEntity, domainEvent: DomainEvent) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, DELIUS)
-    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity!!.deliusAddressId)
+    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity?.deliusAddressId)
   }
+
+  fun assertDomainEventPublishedAfterDeliusAddressDeleteEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, DELIUS)
 
   fun assertDomainEventPublishedAfterSasEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, CPR)
 
@@ -157,7 +160,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     eventSource: DomainEventSource,
   ): Pair<AddressEntity?, DomainEvent> {
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
-    val addressEntity = actualPersonEntity.addresses.first()
+    val addressEntity = actualPersonEntity.addresses.firstOrNull()
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
     val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
@@ -170,7 +173,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
 
     val domainEvent: DomainEvent = jsonMapper.readValue(sqsMessage.message)
     assertThat(domainEvent.eventType).isEqualTo(expectedEventType)
-    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn/address/${addressEntity.updateId}")
+    addressEntity?.let { assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn/address/${addressEntity.updateId}") }
     assertThat(domainEvent.description).isEqualTo(expectedDescription(expectedEventType))
     assertThat(domainEvent.occurredAt).isNotNull()
     assertThat(domainEvent.personReference?.identifiers?.size).isEqualTo(1)
@@ -182,6 +185,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
   private fun expectedDescription(eventType: String): String = when (eventType) {
     CPR_PROBATION_ADDRESS_CREATED -> "A probation address has been created for a person"
     CPR_PROBATION_ADDRESS_UPDATED -> "A probation address has been updated for a person"
+    CPR_PROBATION_ADDRESS_DELETED -> "A probation address has been deleted for a person"
     else -> error("Unsupported event type: $eventType")
   }
 

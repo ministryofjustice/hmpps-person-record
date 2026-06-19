@@ -54,8 +54,11 @@ class ProbationEventListener(
     )
   }
 
-  private fun deleteAddress(event: DomainEvent) = addressService.deleteAddress {
-    addressRepository.findByDeliusAddressId(event.getDeliusAddressId())
+  private fun deleteAddress(event: DomainEvent) {
+    addressService.deleteAddress(
+      eventSource = DELIUS,
+      findAddress = { addressRepository.findByDeliusAddressId(event.getDeliusAddressId()) },
+    )
   }
 
   private fun DomainEvent.getDeliusAddressId(): Long? = this.additionalInformation?.inboundDeliusAddressId
