@@ -11,4 +11,3 @@ interface PersonEventPublisher {
   fun onUpdate(personUpdated: PersonUpdated)
   fun onDelete(personDeleted: PersonDeleted)
 }
-

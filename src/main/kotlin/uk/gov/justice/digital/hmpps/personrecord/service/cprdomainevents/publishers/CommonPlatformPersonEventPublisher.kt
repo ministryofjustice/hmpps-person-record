@@ -19,23 +19,19 @@ import java.time.Instant
 class CommonPlatformPersonEventPublisher(
   private val domainEventPublisher: DomainEventPublisher,
   @Value($$"${core-person-record.base-url}") private val baseUrl: String,
-): PersonEventPublisher {
+) : PersonEventPublisher {
   override val sourceSystemType = SourceSystemType.COMMON_PLATFORM
 
   override fun onCreate(personCreated: PersonCreated) {
     publishPersonDomainEvent(
       personCreated.personEntity,
-      CPR_COURT_PERSON_CREATED
+      CPR_COURT_PERSON_CREATED,
     )
   }
 
-  override fun onUpdate(personUpdated: PersonUpdated) {
-    throw NotImplementedError("Person update events are not currently published for common platform records")
-  }
+  override fun onUpdate(personUpdated: PersonUpdated): Unit = throw NotImplementedError("Person update events are not currently published for common platform records")
 
-  override fun onDelete(personDeleted: PersonDeleted) {
-    throw NotImplementedError("Person delete events are not currently published for common platform records")
-  }
+  override fun onDelete(personDeleted: PersonDeleted): Unit = throw NotImplementedError("Person delete events are not currently published for common platform records")
 
   private fun publishPersonDomainEvent(
     personEntity: PersonEntity,
@@ -54,8 +50,8 @@ class CommonPlatformPersonEventPublisher(
         personReference = PersonReference(
           identifiers = listOf(
             PersonIdentifier("DEFENDANT_ID", defendantId),
-          )
-        )
+          ),
+        ),
       ),
     )
   }

@@ -19,23 +19,19 @@ import java.time.Instant
 class LibraPersonEventPublisher(
   private val domainEventPublisher: DomainEventPublisher,
   @Value($$"${core-person-record.base-url}") private val baseUrl: String,
-): PersonEventPublisher {
+) : PersonEventPublisher {
   override val sourceSystemType = SourceSystemType.LIBRA
 
   override fun onCreate(personCreated: PersonCreated) {
     publishPersonDomainEvent(
       personCreated.personEntity,
-      CPR_COURT_PERSON_CREATED
+      CPR_COURT_PERSON_CREATED,
     )
   }
 
-  override fun onUpdate(personUpdated: PersonUpdated) {
-    throw NotImplementedError("Person update events are not currently published for libra records")
-  }
+  override fun onUpdate(personUpdated: PersonUpdated): Unit = throw NotImplementedError("Person update events are not currently published for libra records")
 
-  override fun onDelete(personDeleted: PersonDeleted) {
-    throw NotImplementedError("Person delete events are not currently published for libra records")
-  }
+  override fun onDelete(personDeleted: PersonDeleted): Unit = throw NotImplementedError("Person delete events are not currently published for libra records")
 
   private fun publishPersonDomainEvent(
     personEntity: PersonEntity,
@@ -54,8 +50,8 @@ class LibraPersonEventPublisher(
         personReference = PersonReference(
           identifiers = listOf(
             PersonIdentifier("C_ID", cId),
-          )
-        )
+          ),
+        ),
       ),
     )
   }
