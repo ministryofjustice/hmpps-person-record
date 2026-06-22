@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import tools.jackson.module.kotlin.readValue
@@ -25,8 +28,11 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
@@ -172,11 +178,12 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun assertAddress(crn: String, probationAddress: ProbationAddress) {
+  fun assertAddress(crn: String, probationAddress: ProbationAddress): AddressEntity {
+    var actualAddressEntity: AddressEntity? = null
     awaitAssert {
       val actualPersonEntity = personRepository.findByCrn(crn)!!
       assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-      val actualAddressEntity = actualPersonEntity.addresses.first()
+      actualAddressEntity = actualPersonEntity.addresses.first()
       assertThat(actualAddressEntity.updateId).isNotNull()
       assertThat(actualAddressEntity.updateId!!.toString()).isNotBlank
       assertThat(actualAddressEntity.noFixedAbode).isEqualTo(probationAddress.noFixedAbode)
@@ -199,23 +206,26 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
       assertThat(actualAddressEntity.contacts.first().contactType).isEqualTo(ContactType.HOME)
       assertThat(actualAddressEntity.contacts.first().contactValue).isEqualTo(probationAddress.telephoneNumber)
     }
+    return actualAddressEntity!!
   }
 
-  fun assertDomainEventPublishedAfterDeliusEvent(expectedEventType: String, crn: String) {
-    val (addressEntity, domainEvent: DomainEvent) = checkDomainEventPublished(crn, expectedEventType, DELIUS)
-    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity.deliusAddressId)
+  fun assertDomainEventPublishedAfterDeliusEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) {
+    val (addressEntity, domainEvent: DomainEvent) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, DELIUS)
+    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity?.deliusAddressId)
   }
 
-  fun assertDomainEventPublishedAfterSasEvent(expectedEventType: String, crn: String) = checkDomainEventPublished(crn, expectedEventType, CPR)
+  fun assertDomainEventPublishedAfterDeliusAddressDeleteEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, DELIUS)
+
+  fun assertDomainEventPublishedAfterSasEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, CPR)
 
   private fun checkDomainEventPublished(
     crn: String,
     expectedEventType: String,
+    cprAddressUpdateId: String,
     eventSource: DomainEventSource,
-  ): Pair<AddressEntity, DomainEvent> {
+  ): Pair<AddressEntity?, DomainEvent> {
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
-    assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-    val addressEntity = actualPersonEntity.addresses.first()
+    val addressEntity = actualPersonEntity.addresses.firstOrNull()
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
     val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
@@ -228,18 +238,44 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
 
     val domainEvent: DomainEvent = jsonMapper.readValue(sqsMessage.message)
     assertThat(domainEvent.eventType).isEqualTo(expectedEventType)
-    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn/address/${addressEntity.updateId}")
+    addressEntity?.let { assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn/address/${addressEntity.updateId}") }
     assertThat(domainEvent.description).isEqualTo(expectedDescription(expectedEventType))
     assertThat(domainEvent.occurredAt).isNotNull()
     assertThat(domainEvent.personReference?.identifiers?.size).isEqualTo(1)
     assertThat(domainEvent.getCrn()).isEqualTo(crn)
-    assertThat(domainEvent.additionalInformation?.outboundCprAddressId).isEqualTo(addressEntity.updateId.toString())
+    assertThat(domainEvent.additionalInformation?.outboundCprAddressId).isEqualTo(cprAddressUpdateId)
     return Pair(addressEntity, domainEvent)
   }
 
   private fun expectedDescription(eventType: String): String = when (eventType) {
     CPR_PROBATION_ADDRESS_CREATED -> "A probation address has been created for a person"
     CPR_PROBATION_ADDRESS_UPDATED -> "A probation address has been updated for a person"
+    CPR_PROBATION_ADDRESS_DELETED -> "A probation address has been deleted for a person"
     else -> error("Unsupported event type: $eventType")
+  }
+
+  fun assertNoCprActionsHappenAfterAddressPatch(crn: String) {
+    expectNoMessagesOnQueueOrDlq(testOnlyCPRDomainEventsQueue)
+    assertNoCprActions(crn)
+  }
+
+  fun assertCorrectActionsHappenAfterSasAddressDelete(crn: String) {
+    assertNoCprActions(crn)
+  }
+
+  private fun assertNoCprActions(crn: String) {
+    checkEventLog(crn, CPRLogEvents.CPR_RECORD_CREATED) { assertThat(it).isEmpty() }
+    checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { assertThat(it).isEmpty() }
+    checkEventLog(crn, CPRLogEvents.CPR_RECORD_DELETED) { assertThat(it).isEmpty() }
+
+    checkTelemetry(
+      event = TelemetryEventType.CPR_RECORD_UPDATED,
+      expected = mapOf("SOURCE_SYSTEM" to DELIUS.name, "CRN" to crn),
+      times = 0,
+    )
+
+    wiremock.verify(0, postRequestedFor(urlEqualTo("/person")))
+    wiremock.verify(0, getRequestedFor(urlEqualTo("/person/score/.*")))
+    wiremock.verify(0, getRequestedFor(urlEqualTo("/address/*")))
   }
 }

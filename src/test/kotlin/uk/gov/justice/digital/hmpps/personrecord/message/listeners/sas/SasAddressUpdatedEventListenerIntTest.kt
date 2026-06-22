@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
@@ -51,10 +52,11 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       publishSasAddressEvent(crn!!, SAS_ADDRESS_UPDATED)
 
-      assertAddressUpdated(crn, sasCallbackResponse, deliusAddressId)
+      val actualAddress = assertAddressUpdated(crn, sasCallbackResponse, deliusAddressId)
       assertDomainEventPublishedAfterSasEvent(
         expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
-        crn = crn,
+        crn = crn!!,
+        cprAddressUpdateId = actualAddress.updateId.toString(),
       )
     }
   }
@@ -118,11 +120,13 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
     }
   }
 
-  private fun assertAddressUpdated(crn: String?, expected: SasGetAddressResponse, existingDeliusAddressId: Long) {
+  private fun assertAddressUpdated(crn: String?, expected: SasGetAddressResponse, existingDeliusAddressId: Long): AddressEntity {
+    var actualAddressEntity: AddressEntity? = null
     awaitAssert {
       val expectedSasAddress = expected.data
       val actualPersonEntity = personRepository.findByCrn(crn!!)!!
       assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
+      actualAddressEntity = actualPersonEntity.addresses.first()
 
       val actualAddressEntity = actualPersonEntity.addresses.first()
       assertThat(actualAddressEntity.postcode).isEqualTo(expectedSasAddress.address.postcode)
@@ -145,5 +149,6 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
       assertThat(actualAddressUsages.first().usageCode.name).isEqualTo(expectedSasAddress.usage!!.code)
       assertThat(actualAddressUsages.first().active).isEqualTo(true)
     }
+    return actualAddressEntity!!
   }
 }

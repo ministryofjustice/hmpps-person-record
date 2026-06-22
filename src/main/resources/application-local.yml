@@ -70,7 +70,7 @@ hmpps.sqs:
       queueName: cpr_sas_events_queue
       dlqName: cpr_sas_events_queue_dlq
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "sas.accommodation.updated", "sas.accommodation.person.arrived"] }'
+      subscribeFilter: '{"eventType":[ "sas.accommodation.updated", "sas.accommodation.deleted", "sas.accommodation.person.arrived"] }'
       dlqMaxReceiveCount: 2
   topics:
     courtcasestopic:
