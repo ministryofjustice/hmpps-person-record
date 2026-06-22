@@ -40,7 +40,7 @@ class PrisonReligionGetResponseTest {
       prisonNumber = prisonNumber,
       religion = PrisonReligion(
         religionCode = prisonReligionEntity.code,
-        religionDescription = ReligionCode.valueOf(prisonReligionEntity.code!!).description,
+        religionDescription = ReligionCode.valueOf(prisonReligionEntity.code).description,
         changeReasonKnown = prisonReligionEntity.changeReasonKnown,
         comments = prisonReligionEntity.comments,
         startDate = prisonReligionEntity.startDate,
