@@ -28,7 +28,7 @@ class ProbationEventListener(
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) { event ->
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.process(rawMessage) { event ->
     when {
       createAddressEvent(event) -> upsertAddress(event)
       updateAddressEvent(event) -> upsertAddress(event)
@@ -54,8 +54,11 @@ class ProbationEventListener(
     )
   }
 
-  private fun deleteAddress(event: DomainEvent) = addressService.deleteAddress {
-    addressRepository.findByDeliusAddressId(event.getDeliusAddressId())
+  private fun deleteAddress(event: DomainEvent) {
+    addressService.deleteAddress(
+      eventSource = DELIUS,
+      findAddress = { addressRepository.findByDeliusAddressId(event.getDeliusAddressId()) },
+    )
   }
 
   private fun DomainEvent.getDeliusAddressId(): Long? = this.additionalInformation?.inboundDeliusAddressId
