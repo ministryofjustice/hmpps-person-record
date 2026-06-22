@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
-enum class SourceSystemType {
-  NOMIS,
-  DELIUS,
-  COMMON_PLATFORM,
-  LIBRA,
+enum class SourceSystemType(val description: String) {
+  NOMIS("prison"),
+  DELIUS("probation"),
+  COMMON_PLATFORM("commonplatform"),
+  LIBRA("libra"),
 }
