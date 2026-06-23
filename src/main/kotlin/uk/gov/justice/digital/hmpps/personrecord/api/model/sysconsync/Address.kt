@@ -40,7 +40,7 @@ data class Address(
   @Schema(description = "Is this the mail address", example = "true")
   val isMail: Boolean? = null,
   @Schema(description = "List of address usages")
-  val addressUsage: List<SysconAddressUsage> = emptyList(),
+  val addressUsage: List<PrisonAddressUsage> = emptyList(),
   @Schema(description = "List of address contacts")
   val contacts: List<Contact> = emptyList(),
 )

@@ -16,9 +16,9 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Contact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.DemographicAttributes
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Identifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Sentence
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.SysconAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -228,7 +228,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
           isPrimary = randomBoolean(),
           isMail = randomBoolean(),
           addressUsage = listOf(
-            SysconAddressUsage(
+            PrisonAddressUsage(
               nomisAddressUsageId = randomCId().toLong(),
               addressUsageCode = AddressUsageCode.HOME,
               isActive = true,
