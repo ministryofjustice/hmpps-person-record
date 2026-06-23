@@ -42,5 +42,5 @@ data class PrisonAddress(
   @Schema(description = "List of address usages")
   val addressUsage: List<PrisonAddressUsage> = emptyList(),
   @Schema(description = "List of address contacts")
-  val contacts: List<Contact> = emptyList(),
+  val contacts: List<PrisonContact> = emptyList(),
 )

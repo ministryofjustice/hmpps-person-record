@@ -4,7 +4,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressContact as ProbationAddressContact
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Contact as SysconContact
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact as SysconContact
 
 data class Contact(
   val contactType: ContactType,

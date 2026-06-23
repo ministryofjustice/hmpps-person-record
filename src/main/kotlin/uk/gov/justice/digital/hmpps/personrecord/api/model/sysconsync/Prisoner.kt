@@ -4,13 +4,13 @@ import io.swagger.v3.oas.annotations.media.Schema
 
 data class Prisoner(
   @Schema(description = "The demographic attributes of the person")
-  val demographicAttributes: DemographicAttributes,
+  val demographicAttributes: PrisonDemographicAttributes,
   @Schema(description = "The aliases of the person")
-  val pseudonyms: List<Alias> = emptyList(),
+  val pseudonyms: List<PrisonAlias> = emptyList(),
   @Schema(description = "The addresses of the person")
   val addresses: List<PrisonAddress> = emptyList(),
   @Schema(description = "The contacts of the person")
-  val personContacts: List<Contact> = emptyList(),
+  val personContacts: List<PrisonContact> = emptyList(),
   @Schema(description = "The sentence dates of the person")
-  val sentences: List<Sentence> = emptyList(),
+  val sentences: List<PrisonSentence> = emptyList(),
 )
