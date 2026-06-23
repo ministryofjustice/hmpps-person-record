@@ -41,5 +41,5 @@ data class ProbationCreateAddress(
   @Schema(description = "List of address usages", required = true)
   val usages: List<ProbationCreateAddressUsage> = emptyList(),
   @Schema(description = "List of address contacts")
-  val contacts: List<AddressContact> = emptyList(),
+  val contacts: List<ProbationCreateAddressContact> = emptyList(),
 )

@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
+import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressContact
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressContact as ProbationAddressContact
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact as SysconContact
 
 data class Contact(
   val contactType: ContactType,
@@ -13,7 +13,7 @@ data class Contact(
 ) {
   companion object {
 
-    fun from(contact: SysconContact): Contact? = contact.value.nullIfBlank()?.let {
+    fun from(contact: PrisonContact): Contact? = contact.value.nullIfBlank()?.let {
       Contact(
         contactType = contact.type,
         contactValue = contact.value,
@@ -21,7 +21,7 @@ data class Contact(
       )
     }
 
-    fun from(contact: ProbationAddressContact): Contact? = contact.value.nullIfBlank()?.let {
+    fun from(contact: ProbationCreateAddressContact): Contact? = contact.value.nullIfBlank()?.let {
       Contact(
         contactType = contact.typeCode,
         contactValue = contact.value,

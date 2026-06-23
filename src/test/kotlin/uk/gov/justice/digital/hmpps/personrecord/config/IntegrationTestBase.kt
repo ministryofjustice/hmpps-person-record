@@ -34,8 +34,8 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDO
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.ActiveProfiles
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
@@ -240,7 +240,7 @@ class IntegrationTestBase {
     statusCode = randomAddressStatusCode(),
     typeVerified = true,
     usages = listOf(ProbationCreateAddressUsage(randomAddressUsageCode(), randomBoolean())),
-    contacts = listOf(AddressContact(randomContactType(), randomPhoneNumber(), "44")),
+    contacts = listOf(ProbationCreateAddressContact(randomContactType(), randomPhoneNumber(), "44")),
   )
 
   internal fun createRandomPrisonPersonDetails(prisonNumber: String = randomPrisonNumber()): Person = Person.from(
