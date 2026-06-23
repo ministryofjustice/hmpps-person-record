@@ -35,6 +35,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.ActiveProfiles
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressContact
+import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
@@ -115,9 +116,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddress as CreateProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name as LibraName
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName as OffenderName
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -199,7 +198,7 @@ class IntegrationTestBase {
   )
 
   internal fun createRandomProbationCase(crn: String? = randomCrn()): ProbationCase = ProbationCase(
-    name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
+    name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
     title = Value(randomTitleCode().key),
     identifiers = Identifiers(crn = crn, pnc = randomLongPnc(), cro = randomCro()),
     aliases = listOf(
@@ -224,7 +223,7 @@ class IntegrationTestBase {
     dateOfBirth = randomDate(),
   )
 
-  internal fun createRandomProbationAddress(): CreateProbationAddress = CreateProbationAddress(
+  internal fun createRandomProbationAddress(): ProbationCreateAddress = ProbationCreateAddress(
     noFixedAbode = false,
     startDate = randomZonedDateTime(),
     endDate = randomZonedDateTime(),
