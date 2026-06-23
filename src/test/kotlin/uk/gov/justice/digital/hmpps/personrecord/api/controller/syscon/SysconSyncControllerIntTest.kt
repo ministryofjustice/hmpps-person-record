@@ -10,12 +10,12 @@ import reactor.core.publisher.Mono
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.node.ObjectNode
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Address
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Alias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Contact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.DemographicAttributes
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Identifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Sentence
@@ -209,7 +209,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       ),
       pseudonyms = buildAliasList(),
       addresses = listOf(
-        Address(
+        PrisonAddress(
           nomisAddressId = randomCId().toLong(),
           fullAddress = randomFullAddress(),
           noFixedAbode = randomBoolean(),
