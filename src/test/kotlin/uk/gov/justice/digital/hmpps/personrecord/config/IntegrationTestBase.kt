@@ -115,7 +115,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address as CreateProbationAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddress as CreateProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name as LibraName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName as OffenderName
 
