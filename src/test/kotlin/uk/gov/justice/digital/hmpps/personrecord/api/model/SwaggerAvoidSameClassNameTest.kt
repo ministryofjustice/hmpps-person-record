@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model
 
+import org.assertj.core.api.Fail.fail
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.nio.file.Paths
@@ -15,8 +16,9 @@ class SwaggerAvoidSameClassNameTest {
 
     if (ls.isNotEmpty()) {
       ls.forEach { filename ->
-        print("There is more than one class named $filename with swagger annotations")
+        println("There is more than one class named $filename with swagger annotations")
       }
+      fail<String>("Rename some of the classes with swagger annotations listed above so there are no conflicts")
     }
   }
 }
