@@ -32,8 +32,7 @@ class ProbationPersonEventPublisher(
     eventType: String,
   ) {
     val crn = personEntity.extractSourceSystemId()!!
-    val sourceSystemId = personEntity.extractSourceSystemId()
-    val detailUrl = "$baseUrl/person/probation/$sourceSystemId"
+    val detailUrl = "$baseUrl/person/probation/$crn"
 
     domainEventPublisher.publish(
       DomainEvent(

@@ -32,8 +32,7 @@ class LibraPersonEventPublisher(
     eventType: String,
   ) {
     val cId = personEntity.extractSourceSystemId()!!
-    val sourceSystemId = personEntity.extractSourceSystemId()
-    val detailUrl = "$baseUrl/person/libra/$sourceSystemId"
+    val detailUrl = "$baseUrl/person/libra/$cId"
 
     domainEventPublisher.publish(
       DomainEvent(

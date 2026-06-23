@@ -31,9 +31,8 @@ class PrisonPersonEventPublisher(
     personEntity: PersonEntity,
     eventType: String,
   ) {
-    val noms = personEntity.extractSourceSystemId()!!
-    val sourceSystemId = personEntity.extractSourceSystemId()
-    val detailUrl = "$baseUrl/person/prison/$sourceSystemId"
+    val prisonNumber = personEntity.extractSourceSystemId()!!
+    val detailUrl = "$baseUrl/person/prison/$prisonNumber"
 
     domainEventPublisher.publish(
       DomainEvent(
@@ -43,7 +42,7 @@ class PrisonPersonEventPublisher(
         occurredAt = Instant.now().asStringWithUkZone(),
         personReference = PersonReference(
           identifiers = listOf(
-            PersonIdentifier("NOMS", noms),
+            PersonIdentifier("prisonNumber", prisonNumber),
           ),
         ),
       ),

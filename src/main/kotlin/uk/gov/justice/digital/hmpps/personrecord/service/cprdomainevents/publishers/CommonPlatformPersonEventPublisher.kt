@@ -32,8 +32,7 @@ class CommonPlatformPersonEventPublisher(
     eventType: String,
   ) {
     val defendantId = personEntity.extractSourceSystemId()!!
-    val sourceSystemId = personEntity.extractSourceSystemId()
-    val detailUrl = "$baseUrl/person/commonplatform/$sourceSystemId"
+    val detailUrl = "$baseUrl/person/commonplatform/$defendantId"
 
     domainEventPublisher.publish(
       DomainEvent(
