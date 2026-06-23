@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
+import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressData
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
@@ -14,8 +15,7 @@ import java.time.ZonedDateTime
 import kotlin.Boolean
 import kotlin.collections.mapNotNull
 import kotlin.reflect.full.memberProperties
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address as ProbationCreateAddress
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Address as SysconAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress as SysconAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Address as CommonPlatformAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Address as LibraAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Address as PrisonerAddress

@@ -7,7 +7,7 @@ import java.time.ZonedDateTime
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(name = "ProbationCreateAddress")
-data class Address(
+data class ProbationCreateAddress(
   @Schema(description = "Is the person without a permanent residence", example = "false", required = true)
   val noFixedAbode: Boolean,
   @Schema(description = "The address start date", example = "2026-05-15T11:08:46.347Z", required = true)
@@ -39,7 +39,7 @@ data class Address(
   @Schema(description = "Is the address type verified", examples = ["false", "true"], required = true)
   val typeVerified: Boolean = true,
   @Schema(description = "List of address usages", required = true)
-  val usages: List<AddressUsage> = emptyList(),
+  val usages: List<ProbationCreateAddressUsage> = emptyList(),
   @Schema(description = "List of address contacts")
-  val contacts: List<AddressContact> = emptyList(),
+  val contacts: List<ProbationCreateAddressContact> = emptyList(),
 )

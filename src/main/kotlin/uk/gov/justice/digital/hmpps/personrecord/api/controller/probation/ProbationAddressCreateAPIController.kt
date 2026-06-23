@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.Address as ProbationAddress
 
 @Tag(name = "Probation")
 @RestController
@@ -51,9 +51,9 @@ class ProbationAddressCreateAPIController(
   @PostMapping("/person/probation/{crn}/address")
   fun createProbationAddress(
     @PathVariable crn: String,
-    @RequestBody probationAddress: ProbationAddress,
+    @RequestBody probationCreateAddress: ProbationCreateAddress,
   ): ResponseEntity<ProbationCreateAddressResponse> {
-    val address = Address.from(probationAddress)
+    val address = Address.from(probationCreateAddress)
 
     val createdAddress: AddressEntity = addressService.processAddress(
       address,

@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import java.time.LocalDate
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Alias as SysconAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias as SysconAlias
 
 data class Alias(
   val firstName: String? = null,
