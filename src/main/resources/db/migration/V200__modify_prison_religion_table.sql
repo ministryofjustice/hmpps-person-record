@@ -1,8 +1,6 @@
 BEGIN;
 -------------------------------------------------------
 
-truncate table personrecordservice.prison_religion;
-
 ALTER TABLE IF EXISTS personrecordservice.prison_religion
     ALTER COLUMN religion_code SET NOT NULL,
     ALTER COLUMN start_date SET NOT NULL,
