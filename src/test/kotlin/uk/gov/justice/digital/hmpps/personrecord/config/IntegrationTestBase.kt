@@ -35,7 +35,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.ActiveProfiles
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressContact
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.AddressUsage
+import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
@@ -240,7 +240,7 @@ class IntegrationTestBase {
     comment = randomName(),
     statusCode = randomAddressStatusCode(),
     typeVerified = true,
-    usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
+    usages = listOf(ProbationCreateAddressUsage(randomAddressUsageCode(), randomBoolean())),
     contacts = listOf(AddressContact(randomContactType(), randomPhoneNumber(), "44")),
   )
 
