@@ -1,15 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
-import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.SysconAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 
 data class AddressUsage(
-  @Schema(description = "The address usage code", example = "DSH")
   val addressUsageCode: AddressUsageCode,
-  @Schema(description = "Is the address active", example = "true")
   val isActive: Boolean,
 ) {
 
