@@ -17,9 +17,16 @@ abstract class PersonEventPublisher(
 ) {
   abstract val sourceSystemType: SourceSystemType
   abstract val identifierType: String
-  abstract fun onCreate(personCreated: PersonCreated)
+  abstract val eventType: String
 
-  protected fun publishPersonDomainEvent(personEntity: PersonEntity, eventType: String) {
+  fun onCreate(personCreated: PersonCreated) {
+    publishPersonDomainEvent(
+      personEntity = personCreated.personEntity,
+      eventType = eventType,
+    )
+  }
+
+  private fun publishPersonDomainEvent(personEntity: PersonEntity, eventType: String) {
     val sourceSystemId = personEntity.extractSourceSystemId()!!
     val detailUrl = "$baseUrl/person/${sourceSystemType.description}/$sourceSystemId"
     domainEventPublisher.publish(

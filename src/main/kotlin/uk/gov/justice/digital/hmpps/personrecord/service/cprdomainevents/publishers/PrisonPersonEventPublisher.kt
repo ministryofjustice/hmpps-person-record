@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publis
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
 
@@ -13,8 +12,6 @@ class PrisonPersonEventPublisher(
   @Value($$"${core-person-record.base-url}") private val baseUrl: String,
 ) : PersonEventPublisher(domainEventPublisher, baseUrl) {
   override val sourceSystemType = SourceSystemType.NOMIS
-
   override val identifierType = "NOMS"
-
-  override fun onCreate(personCreated: PersonCreated) = publishPersonDomainEvent(personCreated.personEntity, CPR_PRISON_PERSON_CREATED)
+  override val eventType = CPR_PRISON_PERSON_CREATED
 }
