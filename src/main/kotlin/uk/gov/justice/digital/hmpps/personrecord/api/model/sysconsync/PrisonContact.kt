@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 
-data class Contact(
+data class PrisonContact(
   @Schema(description = "The nomis contact id", example = "1234")
   val nomisContactId: Long? = null,
   @Schema(description = "The contact value", example = "01234567890")

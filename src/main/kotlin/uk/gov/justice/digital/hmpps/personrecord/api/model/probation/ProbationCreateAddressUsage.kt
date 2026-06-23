@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 
 @Schema(name = "ProbationCreateAddressUsage")
-data class AddressUsage(
+data class ProbationCreateAddressUsage(
   @Schema(description = "The address usage code", example = "A02")
   val usageCode: AddressUsageCode,
   @Schema(description = "Is the address active", example = "true")

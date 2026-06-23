@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import java.time.LocalDate
 
-data class Address(
+data class PrisonAddress(
   @Schema(description = "Is nomis address id", example = "5678")
   val nomisAddressId: Long,
   @Schema(description = "The full address", example = "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ")
@@ -40,7 +40,7 @@ data class Address(
   @Schema(description = "Is this the mail address", example = "true")
   val isMail: Boolean? = null,
   @Schema(description = "List of address usages")
-  val addressUsage: List<AddressUsage> = emptyList(),
+  val addressUsage: List<PrisonAddressUsage> = emptyList(),
   @Schema(description = "List of address contacts")
-  val contacts: List<Contact> = emptyList(),
+  val contacts: List<PrisonContact> = emptyList(),
 )
