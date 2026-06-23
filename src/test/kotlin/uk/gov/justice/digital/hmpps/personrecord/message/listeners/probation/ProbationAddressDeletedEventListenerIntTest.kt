@@ -26,7 +26,7 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
     val actualPersonEntity = personRepository.findByCrn(personEntity.crn!!)!!
     assertThat(actualPersonEntity.addresses.size).isEqualTo(0)
 
-    assertDomainEventPublishedAfterDeliusAddressDeleteEvent(
+    assertDomainEventPublishedAfterDeliusEvent(
       expectedEventType = CPR_PROBATION_ADDRESS_DELETED,
       crn = personEntity.crn!!,
       cprAddressUpdateId = addressEntity.updateId.toString(),
@@ -50,7 +50,7 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
     val actualPersonEntity = personRepository.findByCrn(personEntity.crn!!)!!
     assertThat(actualPersonEntity.addresses.size).isEqualTo(0)
 
-    assertDomainEventPublishedAfterDeliusAddressDeleteEvent(
+    assertDomainEventPublishedAfterDeliusEvent(
       expectedEventType = CPR_PROBATION_ADDRESS_DELETED,
       crn = personEntity.crn!!,
       cprAddressUpdateId = addressEntity.updateId.toString(),
