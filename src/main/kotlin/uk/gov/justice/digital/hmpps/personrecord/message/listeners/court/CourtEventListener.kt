@@ -7,17 +7,17 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.court.CommonPlatformEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.court.LibraEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
-import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerService
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSMessageProcessor
 
 @Component
 class CourtEventListener(
   private val commonPlatformEventProcessor: CommonPlatformEventProcessor,
   private val libraEventProcessor: LibraEventProcessor,
-  private val sqsListenerService: SQSListenerService,
+  private val sqsMessageProcessor: SQSMessageProcessor,
 ) {
 
   @SqsListener(Queues.COURT_CASES_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onMessage(rawMessage: String) = sqsListenerService.processSQSMessage(rawMessage) { sqsMessage ->
+  fun onMessage(rawMessage: String) = sqsMessageProcessor.process(rawMessage) { sqsMessage ->
     when (sqsMessage.getMessageType()) {
       COMMON_PLATFORM_HEARING.name -> commonPlatformEventProcessor.processEvent(sqsMessage)
       LIBRA_COURT_CASE.name -> libraEventProcessor.processEvent(sqsMessage)

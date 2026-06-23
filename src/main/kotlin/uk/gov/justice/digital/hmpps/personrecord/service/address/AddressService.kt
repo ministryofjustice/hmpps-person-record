@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
@@ -69,7 +70,7 @@ class AddressService(
   }
 
   @Transactional
-  fun deleteAddress(findAddress: () -> AddressEntity?) {
+  fun deleteAddress(findAddress: () -> AddressEntity?, eventSource: DomainEventSource) {
     findAddress()?.let { addressEntity ->
       val personEntity = addressEntity.person!!
       personEntity.addresses.remove(addressEntity)
@@ -77,6 +78,7 @@ class AddressService(
       personRepository.save(personEntity)
 
       tryRecluster(personEntity, true)
+      publisher.publishEvent(AddressDeleted(addressEntity, personEntity, eventSource))
     }
   }
 

@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDR
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import java.util.UUID
 
-class AddressDomainEventPublisherE2ETest : E2ETestBase() {
+class AddressEventPublisherE2ETest : E2ETestBase() {
 
   @Autowired
   private lateinit var addressService: AddressService
