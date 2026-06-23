@@ -60,7 +60,7 @@ class PersonDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
     assertThat(domainEvent.description).isEqualTo("A prison person record has been created")
     assertThat(domainEvent.occurredAt).isNotNull()
     assertThat(domainEvent.personReference?.identifiers?.size).isEqualTo(1)
-    assertThat(domainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("NOMS")
+    assertThat(domainEvent.personReference?.identifiers?.get(0)?.type).isEqualTo("prisonNumber")
     assertThat(domainEvent.personReference?.identifiers?.get(0)?.value).isEqualTo(prisonNumber)
   }
 
