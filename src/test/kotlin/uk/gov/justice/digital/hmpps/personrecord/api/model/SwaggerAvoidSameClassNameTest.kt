@@ -1,0 +1,24 @@
+package uk.gov.justice.digital.hmpps.personrecord.api.model
+
+import org.assertj.core.api.Fail.fail
+import org.junit.jupiter.api.Test
+import java.io.File
+import java.nio.file.Paths
+
+class SwaggerAvoidSameClassNameTest {
+
+  @Test
+  fun `ensure there are not two classes with the same name with Swagger annotations`() {
+    val kotlinFilesLocation = Paths.get("src/main/kotlin").toAbsolutePath()
+    val ls = File(kotlinFilesLocation.toString()).walkTopDown().filter {
+      it.isFile() && it.readText().contains("@Schema")
+    }.map { it.name }.groupingBy { it }.eachCount().filter { it.value > 1 }
+
+    if (ls.isNotEmpty()) {
+      ls.forEach { filename ->
+        println("There is more than one class named $filename with swagger annotations")
+      }
+      fail<String>("Rename some of the classes with swagger annotations listed above so there are no conflicts")
+    }
+  }
+}

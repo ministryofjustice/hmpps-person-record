@@ -10,15 +10,15 @@ import reactor.core.publisher.Mono
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.node.ObjectNode
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Address
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.AddressUsage
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Alias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Contact
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.DemographicAttributes
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Identifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonDemographicAttributes
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonSentence
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Sentence
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -195,7 +195,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
 
   companion object {
     fun buildRequestBody(): Prisoner = Prisoner(
-      demographicAttributes = DemographicAttributes(
+      demographicAttributes = PrisonDemographicAttributes(
         birthPlace = randomName(),
         birthCountryCode = randomCountryCode(),
         ethnicityCode = randomPrisonEthnicityCode(),
@@ -209,7 +209,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
       ),
       pseudonyms = buildAliasList(),
       addresses = listOf(
-        Address(
+        PrisonAddress(
           nomisAddressId = randomCId().toLong(),
           fullAddress = randomFullAddress(),
           noFixedAbode = randomBoolean(),
@@ -228,14 +228,14 @@ class SysconSyncControllerIntTest : WebTestBase() {
           isPrimary = randomBoolean(),
           isMail = randomBoolean(),
           addressUsage = listOf(
-            AddressUsage(
+            PrisonAddressUsage(
               nomisAddressUsageId = randomCId().toLong(),
               addressUsageCode = AddressUsageCode.HOME,
               isActive = true,
             ),
           ),
           contacts = listOf(
-            Contact(
+            PrisonContact(
               nomisContactId = randomCId().toLong(),
               value = randomPhoneNumber(),
               type = ContactType.entries.random(),
@@ -245,7 +245,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
         ),
       ),
       personContacts = listOf(
-        Contact(
+        PrisonContact(
           nomisContactId = randomCId().toLong(),
           value = randomPhoneNumber(),
           type = ContactType.entries.random(),
@@ -253,14 +253,14 @@ class SysconSyncControllerIntTest : WebTestBase() {
         ),
       ),
       sentences = listOf(
-        Sentence(
+        PrisonSentence(
           sentenceDate = randomDate(),
         ),
       ),
     )
 
-    fun buildAliasList(hasPrimary: Boolean = true): List<Alias> = listOf(
-      Alias(
+    fun buildAliasList(hasPrimary: Boolean = true): List<PrisonAlias> = listOf(
+      PrisonAlias(
         nomisAliasId = randomCId().toLong(),
         titleCode = randomTitleCode().value,
         firstName = randomName(),
