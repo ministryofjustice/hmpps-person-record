@@ -1,7 +1,6 @@
 BEGIN;
 -------------------------------------------------------
-CREATE INDEX idx_update_id ON address(update_id);
-
+CREATE UNIQUE INDEX unq_idx_update_id ON personrecordservice.address(update_id);
 
 -----------------------------------------------------
 COMMIT;
