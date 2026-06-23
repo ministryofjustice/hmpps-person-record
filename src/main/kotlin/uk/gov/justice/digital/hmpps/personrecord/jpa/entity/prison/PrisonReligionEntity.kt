@@ -35,25 +35,25 @@ class PrisonReligionEntity(
   @Column(name = "prison_number", nullable = false)
   val prisonNumber: String,
 
-  @Column(name = "religion_code")
-  var code: String? = null,
+  @Column(name = "religion_code", nullable = false)
+  var code: String,
 
-  @Column(name = "change_reason_known")
-  var changeReasonKnown: Boolean? = null,
+  @Column(name = "change_reason_known", nullable = false)
+  var changeReasonKnown: Boolean,
 
   @Column
   var comments: String? = null,
 
-  @Column(name = "start_date")
-  var startDate: LocalDate? = null,
+  @Column(name = "start_date", nullable = false)
+  var startDate: LocalDate,
 
   @Column(name = "end_date")
   var endDate: LocalDate? = null,
 
-  @Column(name = "modify_date_time", nullable = true)
+  @Column(name = "modify_date_time")
   var modifyDateTime: LocalDateTime? = null,
 
-  @Column(name = "modify_user_id", nullable = true)
+  @Column(name = "modify_user_id")
   var modifyUserId: String? = null,
 
   @Column(name = "record_type", nullable = false)
