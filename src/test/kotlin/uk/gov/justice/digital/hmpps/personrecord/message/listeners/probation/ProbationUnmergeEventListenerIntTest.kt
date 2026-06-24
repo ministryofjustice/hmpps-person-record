@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -316,7 +315,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       publishDomainEvent(
         ProbationOffenderUnmerged(
-          eventType = OFFENDER_UNMERGED,
           additionalInformation = ProbationOffenderUnmergedInfo(
             reactivatedCrn = reactivatedCrn,
             unmergedCrn = unmergedCrn,
@@ -335,7 +333,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       publishDomainEvent(
         ProbationOffenderUnmerged(
-          eventType = OFFENDER_UNMERGED,
           additionalInformation = ProbationOffenderUnmergedInfo(
             reactivatedCrn = reactivatedCrn,
             unmergedCrn = unmergedCrn,

@@ -23,8 +23,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -210,7 +208,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
     publishDomainEvent(
       ProbationOffenderMerged(
-        eventType = OFFENDER_MERGED,
         additionalInformation = ProbationOffenderMergedInfo(
           sourceCrn = sourceCrn,
           targetCrn = targetCrn,
@@ -233,7 +230,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
 
     publishDomainEvent(
       ProbationOffenderUnmerged(
-        eventType = OFFENDER_UNMERGED,
         additionalInformation = ProbationOffenderUnmergedInfo(
           reactivatedCrn = reactivatedCrn,
           unmergedCrn = unmergedCrn,

@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBa
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -278,7 +277,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       publishDomainEvent(
         ProbationOffenderMerged(
-          eventType = OFFENDER_MERGED,
           additionalInformation = ProbationOffenderMergedInfo(
             sourceCrn = sourceCrn,
             targetCrn = targetCrn,
