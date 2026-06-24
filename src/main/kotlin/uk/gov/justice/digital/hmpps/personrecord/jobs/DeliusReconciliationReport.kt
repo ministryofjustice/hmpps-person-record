@@ -39,7 +39,7 @@ class DeliusReconciliationReport(
         0,
         1,
       ),
-    )?.page?.totalPages ?: 1
+    )?.page?.totalPages!!
 
     val totalDeliusPersons = totalPages * pageSize
     val totalCprPersons = personRepository.countBySourceSystemAndMergedToIsNullAndPassiveStateFalse(SourceSystemType.DELIUS)
