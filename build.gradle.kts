@@ -52,6 +52,7 @@ dependencies {
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.5.0")
   testImplementation("org.springframework.boot:spring-boot-starter-webclient-test")
   testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
+  testImplementation("au.com.dius.pact.provider:junit5spring:4.7.1")
 }
 
 repositories {
@@ -74,10 +75,24 @@ tasks.register<Test>("e2eTest") {
   onlyIf { gradle.startParameter.taskNames.contains("e2eTest") }
 }
 
+tasks.register<Test>("pactTest") {
+  description = "Run and publish Pact provider tests"
+  group = "verification"
+
+  systemProperty("pact.provider.tag", System.getenv("PACT_PROVIDER_TAG"))
+  systemProperty("pact.provider.version", System.getenv("PACT_PROVIDER_VERSION"))
+  systemProperty("pact.verifier.publishResults", System.getenv("PACT_PUBLISH_RESULTS") ?: "false")
+  testClassesDirs = files(test.map { it.sources.output.classesDirs })
+  classpath = files(test.map { it.sources.runtimeClasspath })
+  include("**/**PactTest.class")
+  onlyIf { gradle.startParameter.taskNames.contains("pactTest") }
+}
+
 tasks {
   test {
     exclude("**/InitialiseDatabase.class")
     exclude("**/**E2ETest.class")
+    exclude("**/**PactTest.class")
   }
 
   getByName("check") {
