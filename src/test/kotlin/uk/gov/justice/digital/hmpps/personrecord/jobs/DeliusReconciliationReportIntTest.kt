@@ -16,11 +16,11 @@ class DeliusReconciliationReportIntTest : WebTestBase() {
   }
 
   @Test
-  fun `cpr and delius have same person count`() {
+  fun `tracks person count between delius and cpr`() {
     createPersonWithNewKey(createRandomProbationPersonDetails())
 
     val responseBody = ProbationCases(
-      page = PageMetadata(1, 0, 0, 1),
+      page = PageMetadata(1, 0, 0, 5),
       cases = listOf(createRandomProbationCase()),
     )
     stubGetRequest(
@@ -36,7 +36,10 @@ class DeliusReconciliationReportIntTest : WebTestBase() {
 
     checkTelemetry(
       TelemetryEventType.CPR_RECORD_DELIUS_RECONCILIATION_REPORT,
-      mapOf("DELIUS" to "1"),
+      mapOf(
+        "DELIUS" to "5",
+        "CPR" to "1",
+      ),
     )
   }
 }

@@ -49,13 +49,9 @@ class DeliusReconciliationReport(
         telemetryEventType = TelemetryEventType.CPR_RECORD_DELIUS_RECONCILIATION_REPORT,
         elementMap = mapOf(
           EventKeys.DELIUS to totalDeliusPersons.toString(),
+          EventKeys.CPR to totalCprPersons.toString(),
         ),
       ),
     )
   }
 }
-
-data class DeliusReconciliationResult(
-  val numberOfCprPersons: Long,
-  val numberOfDeliusPersons: Long,
-)

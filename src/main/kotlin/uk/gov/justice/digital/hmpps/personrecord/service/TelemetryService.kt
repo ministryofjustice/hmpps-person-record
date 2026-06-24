@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 enum class EventKeys {
   // Message
+  CPR,
   COMMON_PLATFORM,
   LIBRA,
   NOMIS,
