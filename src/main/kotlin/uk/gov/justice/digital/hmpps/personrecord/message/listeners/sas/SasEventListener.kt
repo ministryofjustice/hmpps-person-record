@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATE
 import java.util.UUID
 
 @Component
-@Profile("!preprod | !prod")
+@Profile("!prod")
 class SasEventListener(
   private val domainEventProcessor: DomainEventProcessor,
   private val sasClient: SasClient,

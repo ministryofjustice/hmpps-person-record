@@ -68,26 +68,6 @@ class AddressEventPublisherE2ETest : E2ETestBase() {
   }
 
   @Nested
-  @ActiveProfiles("preprod")
-  inner class FeatureFlagPreprod {
-    @Test
-    fun `should not publish a CPR address created domain event in preprod`() {
-      val crn = randomCrn()
-      val newAddress = Address.from(createRandomProbationAddress())
-      val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
-
-      addressService.processAddress(
-        address = newAddress,
-        findPerson = { personEntity },
-        findAddress = { null },
-        eventSource = CPR,
-      )
-
-      expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
-    }
-  }
-
-  @Nested
   @ActiveProfiles("prod")
   inner class FeatureFlagProd {
     @Test
