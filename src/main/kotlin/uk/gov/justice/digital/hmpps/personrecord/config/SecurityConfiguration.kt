@@ -22,6 +22,7 @@ class SecurityConfiguration {
         "/jobs/recordcountreport",
         "/jobs/recluster-needs-attention",
         "/jobs/service-now/generate-delius-merge-requests",
+        "/jobs/deliusreconciliationreport",
         "/admin/recluster",
         "/admin/exclusion/prisoner",
       )
