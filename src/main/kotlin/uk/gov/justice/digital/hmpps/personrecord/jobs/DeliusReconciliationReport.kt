@@ -37,7 +37,7 @@ class DeliusReconciliationReport(
     val totalPages = corePersonRecordAndDeliusClient.getProbationCases(
       CorePersonRecordAndDeliusClientPageParams(
         0,
-        1,
+        pageSize,
       ),
     )?.page?.totalPages!!
 
