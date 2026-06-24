@@ -33,7 +33,7 @@ fun DomainEvent.getCrn() = this.personReference?.identifiers?.first { it.type ==
 @JsonSubTypes(
   JsonSubTypes.Type(value = ProbationOffenderDeleted::class, names = [OFFENDER_DELETION, OFFENDER_GDPR_DELETION]),
   JsonSubTypes.Type(value = ProbationOffenderMerged::class, name = OFFENDER_MERGED),
-  JsonSubTypes.Type(value = ProbationOffenderUnMerged::class, name = OFFENDER_UNMERGED),
+  JsonSubTypes.Type(value = ProbationOffenderUnmerged::class, name = OFFENDER_UNMERGED),
 )
 @JsonIgnoreProperties(ignoreUnknown = true)
 sealed interface HmppsDomainEvent {

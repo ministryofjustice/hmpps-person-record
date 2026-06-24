@@ -18,8 +18,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMerged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMergedInfo
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnMerged
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnMergedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnmerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnmergedInfo
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
@@ -232,9 +232,9 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     stubSingleProbationResponse(unmergedSetup, scenario, currentScenarioState, nextScenarioState)
 
     publishDomainEvent(
-      ProbationOffenderUnMerged(
+      ProbationOffenderUnmerged(
         eventType = OFFENDER_UNMERGED,
-        additionalInformation = ProbationOffenderUnMergedInfo(
+        additionalInformation = ProbationOffenderUnmergedInfo(
           reactivatedCrn = reactivatedCrn,
           unmergedCrn = unmergedCrn,
         ),

@@ -22,12 +22,12 @@ data class ProbationOffenderMergedInfo(
   val targetCrn: String,
 )
 
-data class ProbationOffenderUnMerged(
+data class ProbationOffenderUnmerged(
   override val eventType: String,
-  val additionalInformation: ProbationOffenderUnMergedInfo,
+  val additionalInformation: ProbationOffenderUnmergedInfo,
 ) : HmppsDomainEvent
 
-data class ProbationOffenderUnMergedInfo(
+data class ProbationOffenderUnmergedInfo(
   @JsonProperty("reactivatedCRN")
   val reactivatedCrn: String,
 

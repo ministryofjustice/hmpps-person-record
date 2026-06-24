@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMerged
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnMerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnmerged
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationMergeEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationUnmergeEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
@@ -22,7 +22,7 @@ class ProbationMergeEventListener(
   fun onDomainEvent(rawMessage: String) = domainEventProcessor.processHmppsDomainEvent<HmppsDomainEvent>(rawMessage) { event ->
     when (event) {
       is ProbationOffenderMerged -> mergeEventProcessor.processEvent(event)
-      is ProbationOffenderUnMerged -> unmergeEventProcessor.processEvent(event)
+      is ProbationOffenderUnmerged -> unmergeEventProcessor.processEvent(event)
       else -> log.info("Discarding message, unexpected event: $event")
     }
   }
