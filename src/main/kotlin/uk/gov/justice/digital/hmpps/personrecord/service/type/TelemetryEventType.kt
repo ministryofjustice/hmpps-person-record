@@ -15,6 +15,7 @@ enum class TelemetryEventType(val eventName: String) {
   CPR_RECLUSTER_SELF_HEALED("CprReclusterSelfHealed"),
   CPR_RECLUSTER_MERGE("CprReclusterMerge"),
   CPR_RECORD_COUNT_REPORT("CprRecordCountReport"),
+  CPR_RECORD_DELIUS_RECONCILIATION_REPORT("CprRecordDeliusReconciliationReport"),
   CPR_ADMIN_RECLUSTER_TRIGGERED("CprAdminReclusterTriggered"),
   CPR_DELIUS_MERGE_REQUEST_CREATED("CPRDeliusMergeRequestCreated"),
 }
