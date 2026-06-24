@@ -41,7 +41,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.P
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers

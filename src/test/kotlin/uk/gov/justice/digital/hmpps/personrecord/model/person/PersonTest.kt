@@ -2,8 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.model.person
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.PERSON
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
