@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.SAS_EVENT_QUEUE_ID
+import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_ARRIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 import java.util.UUID
@@ -22,6 +23,7 @@ class SasEventListener(
   private val personRepository: PersonRepository,
   private val addressRepository: AddressRepository,
   private val addressService: AddressService,
+  private val sasAddressPromotionHandler: SasAddressPromotionHandler,
 ) {
 
   @SqsListener(SAS_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
@@ -43,6 +45,9 @@ class SasEventListener(
           eventSource = CPR,
           findAddress = { addressRepository.findByUpdateId(UUID.fromString(cprAddressUpdateId)) },
         )
+      }
+      SAS_ADDRESS_ARRIVED -> {
+        sasAddressPromotionHandler.handle(event)
       }
     }
   }

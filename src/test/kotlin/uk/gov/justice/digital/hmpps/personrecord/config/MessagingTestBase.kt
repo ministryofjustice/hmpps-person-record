@@ -118,6 +118,12 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     expectNoMessagesOn(courtEventsQueue)
   }
 
+  fun expectMessagesOn(queue: HmppsQueue?, size: Int) {
+    await untilCallTo {
+      queue?.sqsClient?.countMessagesOnQueue(queue.queueUrl)?.get()
+    } matches { it == size }
+  }
+
   fun expectOneMessageOn(queue: HmppsQueue?) {
     await untilCallTo {
       queue?.sqsClient?.countMessagesOnQueue(queue.queueUrl)?.get()

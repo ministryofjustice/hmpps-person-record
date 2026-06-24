@@ -9,6 +9,10 @@ import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressUsage
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressData
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressStatus
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressType
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
@@ -31,7 +35,10 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
@@ -44,6 +51,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationAddress
+import java.time.LocalDate
+import java.util.UUID
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.Address as SasAddress
 
 class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
 
@@ -120,6 +130,61 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
       ),
       eventSource,
+    )
+  }
+
+  fun publishSasAddressEvent(crn: String, eventTye: String) {
+    publishDomainEvent(
+      eventTye,
+      DomainEvent(
+        eventType = eventTye,
+        detailUrl = "/accommodations/1234",
+        additionalInformation = AdditionalInformation(
+          sourceCrn = crn,
+        ),
+      ),
+    )
+  }
+
+  fun createSasAddressGetResponse(crn: String?, cprAddressUpdateId: UUID?) = SasGetAddressResponse(
+    data = SasAddressData(
+      crn = crn!!,
+      cprAddressId = cprAddressUpdateId.toString(),
+      startDate = LocalDate.now().minusYears(10),
+      endDate = LocalDate.now().plusYears(10),
+      noFixedAbode = randomBoolean(),
+      typeVerified = randomBoolean(),
+      address = SasAddress(
+        postcode = randomPostcode(),
+        subBuildingName = randomName(),
+        buildingName = randomName(),
+        buildingNumber = randomBuildingNumber(),
+        thoroughfareName = randomName(),
+        dependentLocality = randomName(),
+        postTown = randomPostcode(),
+        county = randomName(),
+        countryCode = "E",
+        uprn = randomUprn(),
+      ),
+      statusCode = SasAddressStatus(
+        code = randomAddressStatusCode().name,
+        description = randomLowerCaseString(),
+      ),
+      usage = SasAddressType(
+        code = randomAddressUsageCode().name,
+        description = randomLowerCaseString(),
+      ),
+    ),
+  )
+
+  fun stubGetRequestToSas(
+    sasCallbackResponse: SasGetAddressResponse? = null,
+    status: Int = 200,
+  ) {
+    stubGetRequest(
+      url = "/accommodations/1234",
+      body = jsonMapper.writeValueAsString(sasCallbackResponse),
+      status = status,
     )
   }
 
