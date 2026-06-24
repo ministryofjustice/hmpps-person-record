@@ -5,7 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
