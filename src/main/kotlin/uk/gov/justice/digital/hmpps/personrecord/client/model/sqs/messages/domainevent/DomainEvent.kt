@@ -7,6 +7,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DomainEvent @JsonCreator constructor(
@@ -30,15 +32,10 @@ fun DomainEvent.getCrn() = this.personReference?.identifiers?.first { it.type ==
 )
 @JsonSubTypes(
   JsonSubTypes.Type(value = ProbationOffenderDeleted::class, names = [OFFENDER_DELETION, OFFENDER_GDPR_DELETION]),
+  JsonSubTypes.Type(value = ProbationOffenderMerged::class, name = OFFENDER_MERGED),
+  JsonSubTypes.Type(value = ProbationOffenderUnMerged::class, name = OFFENDER_UNMERGED),
 )
 @JsonIgnoreProperties(ignoreUnknown = true)
 sealed interface HmppsDomainEvent {
   val eventType: String
-}
-
-data class ProbationOffenderDeleted(
-  override val eventType: String,
-  val personReference: PersonReference,
-) : HmppsDomainEvent {
-  val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
 }

@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMerge
 import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestService.Companion.HOURS_TO_CHOOSE_FROM
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -251,7 +250,7 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
     createPersonKey()
       .addPerson(person3)
       .addPerson(person4)
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, person1.crn!!, person2.crn!!)
+    probationMergeEventAndResponseSetup(person1.crn!!, person2.crn!!)
 
     checkTelemetry(
       CPR_RECORD_MERGED,

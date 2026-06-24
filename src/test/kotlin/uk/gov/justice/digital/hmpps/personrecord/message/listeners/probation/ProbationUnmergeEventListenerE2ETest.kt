@@ -11,8 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonTyp
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
@@ -39,13 +37,13 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       remainingPerson.masterDefendantId = masterDefendantId
       val remaining = createPerson(remainingPerson)
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, remainingCrn, deletedCrn)
+      probationMergeEventAndResponseSetup(remainingCrn, deletedCrn)
 
       checkEventLogExist(remainingCrn, CPRLogEvents.CPR_RECORD_MERGED)
       remaining.assertMergedTo(deleted)
 
       val remainingSetup = ApiResponseSetup.from(remainingPersonData)
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, remainingCrn, deletedCrn, reactivatedSetup = remainingSetup)
+      probationUnmergeEventAndResponseSetup(remainingCrn, deletedCrn, reactivatedSetup = remainingSetup)
 
       checkEventLogExist(remainingCrn, CPRLogEvents.CPR_UUID_CREATED)
 
@@ -79,13 +77,13 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       reactivatedPerson.masterDefendantId = masterDefendantId
       val reactivatedPersonEntity = createPerson(reactivatedPerson)
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmergedCrn)
+      probationMergeEventAndResponseSetup(reactivatedCrn, unmergedCrn)
 
       checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_RECORD_MERGED)
       reactivatedPersonEntity.assertMergedTo(unmergedPerson)
 
       val reactivatedSetup = ApiResponseSetup.from(reactivatedPersonData)
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn, reactivatedSetup = reactivatedSetup)
+      probationUnmergeEventAndResponseSetup(reactivatedCrn, unmergedCrn, reactivatedSetup = reactivatedSetup)
 
       checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_UUID_CREATED)
       checkEventLog(reactivatedCrn, CPRLogEvents.CPR_RECORD_UNMERGED) { eventLogs ->
@@ -149,13 +147,12 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
         .addPerson(unmergedPerson)
         .addPerson(createMatchingRecord(unmergedPersonDetails))
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmergedCrn, apiResponseSetup = unmergedSetup)
+      probationMergeEventAndResponseSetup(reactivatedCrn, unmergedCrn, apiResponseSetup = unmergedSetup)
 
       checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_RECORD_MERGED)
       reactivatedPerson.assertMergedTo(unmergedPerson)
 
       probationUnmergeEventAndResponseSetup(
-        OFFENDER_UNMERGED,
         reactivatedCrn,
         unmergedCrn,
         reactivatedSetup = ApiResponseSetup.from(reactivatedPersonDetails),
