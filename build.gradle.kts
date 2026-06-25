@@ -78,10 +78,10 @@ tasks.register<Test>("e2eTest") {
 tasks.register<Test>("pactTest") {
   description = "Run and publish Pact provider tests"
   group = "verification"
-  val brokerHost = System.getProperty("pactbroker.host") ?: System.getProperty("PACT_BROKER_HOST")
-  val brokerUrl = System.getProperty("pactbroker.url") ?: System.getProperty("PACT_BROKER_URL")
-  val authUser = System.getProperty("pactbroker.auth.username") ?: System.getProperty("PACT_BROKER_USERNAME")
-  val authPass = System.getProperty("pactbroker.auth.password") ?: System.getProperty("PACT_BROKER_PASSWORD")
+  val brokerHost = System.getProperty("pactbroker.host") ?: System.getenv("PACT_BROKER_HOST")
+  val brokerUrl = System.getProperty("pactbroker.url") ?: System.getenv("PACT_BROKER_URL")
+  val authUser = System.getProperty("pactbroker.auth.username") ?: System.getenv("PACT_BROKER_USERNAME")
+  val authPass = System.getProperty("pactbroker.auth.password") ?: System.getenv("PACT_BROKER_PASSWORD")
 
   systemProperty("pact.provider.tag", System.getenv("PACT_PROVIDER_TAG") ?: "")
   systemProperty("pact.provider.version", System.getenv("PACT_PROVIDER_VERSION") ?: "")
