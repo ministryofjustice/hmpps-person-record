@@ -16,6 +16,10 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMergedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnmerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnmergedInfo
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
@@ -194,7 +198,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   ): String? = topic?.publish(event = message, eventType = eventType, attributes = messageAttributes)?.messageId()
 
   fun probationMergeEventAndResponseSetup(
-    eventType: String,
     sourceCrn: String,
     targetCrn: String,
     scenario: String = BASE_SCENARIO,
@@ -204,10 +207,8 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   ) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
     publishDomainEvent(
-      eventType,
-      DomainEvent(
-        eventType = eventType,
-        additionalInformation = AdditionalInformation(
+      ProbationOffenderMerged(
+        additionalInformation = ProbationOffenderMergedInfo(
           sourceCrn = sourceCrn,
           targetCrn = targetCrn,
         ),
@@ -216,7 +217,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   }
 
   fun probationUnmergeEventAndResponseSetup(
-    eventType: String,
     reactivatedCrn: String,
     unmergedCrn: String,
     scenario: String = BASE_SCENARIO,
@@ -229,10 +229,8 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     stubSingleProbationResponse(unmergedSetup, scenario, currentScenarioState, nextScenarioState)
 
     publishDomainEvent(
-      eventType,
-      DomainEvent(
-        eventType = eventType,
-        additionalInformation = AdditionalInformation(
+      ProbationOffenderUnmerged(
+        additionalInformation = ProbationOffenderUnmergedInfo(
           reactivatedCrn = reactivatedCrn,
           unmergedCrn = unmergedCrn,
         ),
