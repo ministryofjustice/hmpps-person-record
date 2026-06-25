@@ -21,7 +21,6 @@ data class Prisoner(
   val middleNames: String? = null,
   val lastName: String?,
   val nationality: String? = null,
-  val religion: String? = null,
   val ethnicity: String? = null,
   @JsonProperty("pncNumberCanonicalShort")
   @JsonDeserialize(using = PNCIdentifierDeserializer::class)

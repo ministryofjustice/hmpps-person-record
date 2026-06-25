@@ -251,7 +251,6 @@ class IntegrationTestBase {
       firstName = randomName(),
       lastName = randomName(),
       dateOfBirth = randomDate(),
-      religion = randomReligion(),
       aliases = listOf(
         PrisonerAlias(
           firstName = randomName(),
@@ -280,7 +279,7 @@ class IntegrationTestBase {
         ),
       ),
     ),
-  )
+  ).copy(religion = randomReligion())
 
   internal fun createRandomLibraPersonDetails(cId: String = randomCId()): Person = Person.from(LibraHearingEvent(name = LibraName(firstName = randomName(), lastName = randomName()), cId = cId))
 

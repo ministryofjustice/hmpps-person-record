@@ -237,6 +237,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.nationalities.size).isEqualTo(1)
         assertThat(personEntity.religion).isEqualTo(prisoner.religion)
         assertThat(personEntity.religion).isNotEqualTo(updatedReligion)
+        assertThat(personEntity.religion).isNotNull()
         assertThat(personEntity.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.name)
         assertThat(personEntity.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.description)
       }
