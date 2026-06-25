@@ -9,6 +9,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DomainEvent @JsonCreator constructor(
@@ -34,6 +36,8 @@ fun DomainEvent.getCrn() = this.personReference?.identifiers?.first { it.type ==
   JsonSubTypes.Type(value = ProbationOffenderDeleted::class, names = [OFFENDER_DELETION, OFFENDER_GDPR_DELETION]),
   JsonSubTypes.Type(value = ProbationOffenderMerged::class, name = OFFENDER_MERGED),
   JsonSubTypes.Type(value = ProbationOffenderUnmerged::class, name = OFFENDER_UNMERGED),
+  JsonSubTypes.Type(value = SasAddressUpdated::class, name = SAS_ADDRESS_UPDATED),
+  JsonSubTypes.Type(value = SasAddressDeleted::class, name = SAS_ADDRESS_DELETED),
 )
 @JsonIgnoreProperties(ignoreUnknown = true)
 sealed interface HmppsDomainEvent {
