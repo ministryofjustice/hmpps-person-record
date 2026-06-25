@@ -16,6 +16,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeletedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -44,6 +47,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationAddress
+import java.util.UUID
 
 class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
 
@@ -101,7 +105,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun publishProbationOffenderDeleteEvent(eventType: String, crn: String) {
+  fun publishProbationOffenderDeletedEvent(eventType: String, crn: String) {
     publishDomainEvent(
       ProbationOffenderDeleted(
         eventType = eventType,
@@ -120,6 +124,24 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
       ),
       eventSource,
+    )
+  }
+
+  fun publishSasAddressUpdatedEvent() {
+    publishDomainEvent(
+      SasAddressUpdated(
+        detailUrl = "/accommodations/1234",
+      ),
+    )
+  }
+
+  fun publishSasAddressDeletedEvent(cprAddressId: UUID) {
+    publishDomainEvent(
+      SasAddressDeleted(
+        additionalInformation = SasAddressDeletedInfo(
+          cprAddressId = cprAddressId.toString(),
+        ),
+      ),
     )
   }
 
