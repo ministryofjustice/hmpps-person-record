@@ -123,7 +123,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().middleNames).isEqualTo("$middleName $middleName")
         assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
         assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
-        assertThat(personEntity.religion).isEqualTo(religion)
+        assertThat(personEntity.religion).isNull()
 
         val populatedReferencesUpdateIdCount = personEntity.references.count { it.updateId != null }
         assertThat(populatedReferencesUpdateIdCount).isEqualTo(4)
@@ -167,30 +167,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       }
 
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
-
-      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
-    }
-
-    @Test
-    fun `should check nationality and religion null`() {
-      val prisonNumber = randomPrisonNumber()
-
-      stubNoMatchesPersonMatch()
-      prisonDomainEventAndResponseSetup(
-        PRISONER_CREATED,
-        apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber, nationality = null, religion = null),
-      )
-
-      checkTelemetry(
-        CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
-      )
-
-      awaitAssert {
-        val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
-        assertThat(personEntity.nationalities.size).isEqualTo(0)
-        assertThat(personEntity.religion).isEqualTo(null)
-      }
 
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
     }

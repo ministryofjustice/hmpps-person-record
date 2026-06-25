@@ -213,7 +213,6 @@ data class Person(
         references = references,
         sourceSystem = NOMIS,
         nationalities = nationalities,
-        religion = prisoner.religion.nullIfBlank(),
         sentences = prisoner.allConvictedOffences?.mapNotNull { SentenceInfo.from(it) } ?: emptyList(),
         sexCode = SexCode.from(prisoner),
       )
