@@ -54,7 +54,7 @@ class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebCl
         .build()
     }
     .retrieve()
-    .bodyToMono(ProbationCases::class.java)
+    .bodyToMono<ProbationCases>()
     .block()
 }
 
