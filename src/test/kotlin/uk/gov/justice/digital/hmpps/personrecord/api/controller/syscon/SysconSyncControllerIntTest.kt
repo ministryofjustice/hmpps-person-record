@@ -203,7 +203,7 @@ class SysconSyncControllerIntTest : WebTestBase() {
         sexualOrientation = randomPrisonSexualOrientation().value,
         disability = randomBoolean(),
         interestToImmigration = randomBoolean(),
-        religionCode = randomReligionCode(),
+        religionCode = randomReligionCode().name,
         nationalityCode = randomNationalityCode(),
         nationalityNote = randomName(),
       ),
