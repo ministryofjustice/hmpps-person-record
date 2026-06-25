@@ -46,10 +46,9 @@ class SasEventListener(
   }
 
   private fun processSasAddressDeleted(event: SasAddressDeleted) {
-    val cprAddressUpdateId = event.additionalInformation.cprAddressId
     addressService.deleteAddress(
       eventSource = CPR,
-      findAddress = { addressRepository.findByUpdateId(UUID.fromString(cprAddressUpdateId)) },
+      findAddress = { addressRepository.findByUpdateId(UUID.fromString(event.additionalInformation.cprAddressId)) },
     )
   }
 

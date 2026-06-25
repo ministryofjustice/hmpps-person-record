@@ -16,5 +16,5 @@ data class SasAddressDeleted(
 
 data class SasAddressDeletedInfo(
   @JsonProperty("corePersonAddressId")
-  val cprAddressId: String? = null,
+  val cprAddressId: String,
 )
