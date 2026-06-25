@@ -4,6 +4,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.updater.OtherPersonUpdater
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
@@ -49,7 +50,7 @@ class PersonService(
 
   private fun update(person: Person, personEntity: PersonEntity, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
     val beforeUpdate = PersonMatchRecord.from(personEntity)
-    personEntity.update(person, childrenToIgnore)
+    personEntity.update(person, childrenToIgnore, OtherPersonUpdater())
     personRepository.save(personEntity)
     val matchingFieldsChanged = beforeUpdate.matchingFieldsAreDifferent(personEntity)
     if (matchingFieldsChanged && !personEntity.isPassive()) {
