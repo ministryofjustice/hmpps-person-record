@@ -17,7 +17,11 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.types.*
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import java.time.ZonedDateTime
 import java.util.UUID
 
