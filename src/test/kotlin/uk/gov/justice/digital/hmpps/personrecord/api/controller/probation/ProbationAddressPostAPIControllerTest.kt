@@ -167,29 +167,6 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
   }
 
   @Nested
-  @ActiveProfiles("preprod")
-  inner class FeatureFlagPreprod {
-    @Test
-    fun `endpoint not available in preprod`() {
-      val crn = randomCrn()
-      val newAddress = createRandomProbationAddress()
-      createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
-
-      sendPostRequestAsserted<Unit>(
-        url = probationAddressApiUrl(crn),
-        body = newAddress,
-        roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.NOT_FOUND,
-      )
-
-      awaitAssert {
-        val personEntity = personRepository.findByCrn(crn) ?: fail("No person found with id $crn")
-        assertThat(personEntity.addresses).isEmpty()
-      }
-    }
-  }
-
-  @Nested
   @ActiveProfiles("prod")
   inner class FeatureFlagProd {
     @Test
