@@ -8,9 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
@@ -29,7 +27,6 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
     // 1. merge the records
     probationMergeEventAndResponseSetup(
-      OFFENDER_MERGED,
       sourceCrn = sourcePerson.crn!!,
       targetCrn = targetPerson.crn!!,
       apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
@@ -38,7 +35,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
     // 2. unmerge the records
     val targetUnmergeSetup = ApiResponseSetup.from(targetPersonDetails).copy(crn = sourceCrn)
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, sourceCrn, targetCrn, reactivatedSetup = targetUnmergeSetup, unmergedSetup = targetUnmergeSetup.copy(crn = sourceCrn))
+    probationUnmergeEventAndResponseSetup(sourceCrn, targetCrn, reactivatedSetup = targetUnmergeSetup, unmergedSetup = targetUnmergeSetup.copy(crn = sourceCrn))
     sourcePerson.assertNotMerged()
 
     // 3. create new person with same target details - should match both
@@ -49,7 +46,6 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
     // 4. merge again - should delete review
     probationMergeEventAndResponseSetup(
-      OFFENDER_MERGED,
       sourceCrn = sourcePerson.crn!!,
       targetCrn = targetPerson.crn!!,
       apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
@@ -69,7 +65,6 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
     // 1. merge the records
     probationMergeEventAndResponseSetup(
-      OFFENDER_MERGED,
       sourceCrn = sourcePerson.crn!!,
       targetCrn = targetPerson.crn!!,
       apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
@@ -78,7 +73,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
     // 2. unmerge the records
     val targetUnmergeSetup = ApiResponseSetup.from(targetPersonDetails).copy(crn = sourceCrn)
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, sourceCrn, targetCrn, reactivatedSetup = targetUnmergeSetup, unmergedSetup = targetUnmergeSetup.copy(crn = sourceCrn))
+    probationUnmergeEventAndResponseSetup(sourceCrn, targetCrn, reactivatedSetup = targetUnmergeSetup, unmergedSetup = targetUnmergeSetup.copy(crn = sourceCrn))
     sourcePerson.assertNotMerged()
 
     // 3. create new person with same target details - should match both
@@ -102,7 +97,6 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
     // 1. merge the target and source records
     probationMergeEventAndResponseSetup(
-      OFFENDER_MERGED,
       sourceCrn = sourcePerson.crn!!,
       targetCrn = targetPerson.crn!!,
       apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
@@ -112,7 +106,6 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     // 2. unmerge the target and source records
     val targetUnmergeSetup = ApiResponseSetup.from(targetPersonDetails).copy(crn = sourceCrn)
     probationUnmergeEventAndResponseSetup(
-      OFFENDER_UNMERGED,
       sourceCrn,
       targetCrn,
       reactivatedSetup = targetUnmergeSetup,
@@ -150,7 +143,6 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
     // 1. merge the target and source records
     probationMergeEventAndResponseSetup(
-      OFFENDER_MERGED,
       sourceCrn = sourcePerson.crn!!,
       targetCrn = targetPerson.crn!!,
       apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
@@ -171,7 +163,6 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     // 4. unmerge the target and source records
     val targetUnmergeSetup = ApiResponseSetup.from(targetPersonDetails).copy(crn = sourceCrn)
     probationUnmergeEventAndResponseSetup(
-      OFFENDER_UNMERGED,
       sourceCrn,
       targetCrn,
       reactivatedSetup = targetUnmergeSetup,
@@ -209,7 +200,6 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
       .addPerson(targetPerson)
 
     probationMergeEventAndResponseSetup(
-      OFFENDER_MERGED,
       sourceCrn = sourceCrn,
       targetCrn = targetCrn,
     )
@@ -256,7 +246,6 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
       .addPerson(targetPerson)
 
     probationMergeEventAndResponseSetup(
-      OFFENDER_MERGED,
       sourceCrn = sourceCrn,
       targetCrn = targetCrn,
     )

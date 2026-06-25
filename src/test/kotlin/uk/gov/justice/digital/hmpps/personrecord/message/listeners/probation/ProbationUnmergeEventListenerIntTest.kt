@@ -4,13 +4,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnmerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnmergedInfo
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -35,7 +33,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val unmergedPerson = createPersonWithNewKey(createRandomProbationPersonDetails(unmergedCrn))
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn)
+      probationUnmergeEventAndResponseSetup(reactivatedCrn, unmergedCrn)
 
       checkTelemetry(
         CPR_RECORD_CREATED,
@@ -88,14 +86,13 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val unmergedPerson = createPersonWithNewKey(createRandomProbationPersonDetails(unmergedCrn))
       val reactivatedPerson = createPerson(createRandomProbationPersonDetails(reactivatedCrn))
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmergedCrn)
+      probationMergeEventAndResponseSetup(reactivatedCrn, unmergedCrn)
       checkEventLogExist(unmergedCrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       stub5xxResponse(probationUrl(unmergedCrn), "next request will succeed", "retry")
 
       probationUnmergeEventAndResponseSetup(
-        OFFENDER_UNMERGED,
         reactivatedCrn,
         unmergedCrn,
         scenario = "retry",
@@ -134,7 +131,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val reactivatedPerson = createPersonWithNewKey(createRandomProbationPersonDetails(reactivatedCrn))
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn)
+      probationUnmergeEventAndResponseSetup(reactivatedCrn, unmergedCrn)
 
       checkTelemetry(
         CPR_RECORD_CREATED,
@@ -177,7 +174,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val cluster = createPersonKey().addPerson(unmergedRecord)
       val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedRecord.crn!!, unmergedRecord.crn!!)
+      probationUnmergeEventAndResponseSetup(reactivatedRecord.crn!!, unmergedRecord.crn!!)
 
       checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to reactivatedRecord.crn!!))
 
@@ -206,14 +203,14 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         .addPerson(recordA)
         .addPerson(recordB)
       stubDeletePersonMatch()
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordA.crn!!, recordB.crn!!)
+      probationMergeEventAndResponseSetup(recordA.crn!!, recordB.crn!!)
 
       recordA.assertMergedTo(recordB)
 
       val matchedRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
 
       stubOnePersonMatchAboveJoinThreshold(matchId = recordA.matchId, matchedRecord = matchedRecord.matchId)
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, recordA.crn!!, recordB.crn!!)
+      probationUnmergeEventAndResponseSetup(recordA.crn!!, recordB.crn!!)
 
       checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to recordB.crn!!, "TO_SOURCE_SYSTEM_ID" to recordA.crn!!))
       recordB.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
@@ -246,11 +243,11 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val firstReactivatedRecord = createPerson(createRandomProbationPersonDetails())
       val secondReactivatedRecord = createPerson(createRandomProbationPersonDetails())
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, firstReactivatedRecord.crn!!, unmergedRecord.crn!!)
+      probationUnmergeEventAndResponseSetup(firstReactivatedRecord.crn!!, unmergedRecord.crn!!)
 
       checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to firstReactivatedRecord.crn!!))
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, secondReactivatedRecord.crn!!, unmergedRecord.crn!!)
+      probationUnmergeEventAndResponseSetup(secondReactivatedRecord.crn!!, unmergedRecord.crn!!)
 
       checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to secondReactivatedRecord.crn!!))
 
@@ -291,13 +288,13 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val firstReactivatedRecord = createPerson(createRandomProbationPersonDetails())
       val secondReactivatedRecord = createPerson(createRandomProbationPersonDetails())
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, firstReactivatedRecord.crn!!, unmergedRecord.crn!!)
+      probationUnmergeEventAndResponseSetup(firstReactivatedRecord.crn!!, unmergedRecord.crn!!)
       checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to firstReactivatedRecord.crn!!))
 
       val initialOverrideMarker = awaitNotNull { personRepository.findByCrn(unmergedRecord.crn!!) }.overrideMarker
       assertThat(initialOverrideMarker).isNotNull()
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, secondReactivatedRecord.crn!!, unmergedRecord.crn!!)
+      probationUnmergeEventAndResponseSetup(secondReactivatedRecord.crn!!, unmergedRecord.crn!!)
       checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to secondReactivatedRecord.crn!!))
 
       val finalOverrideMarker = awaitNotNull { personRepository.findByCrn(unmergedRecord.crn!!) }.overrideMarker
@@ -317,10 +314,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stub5xxResponse(probationUrl(unmergedCrn), "next request will fail", "failure", "next request will fail")
 
       publishDomainEvent(
-        OFFENDER_UNMERGED,
-        DomainEvent(
-          eventType = OFFENDER_UNMERGED,
-          additionalInformation = AdditionalInformation(
+        ProbationOffenderUnmerged(
+          additionalInformation = ProbationOffenderUnmergedInfo(
             reactivatedCrn = reactivatedCrn,
             unmergedCrn = unmergedCrn,
           ),
@@ -337,10 +332,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stub404Response(probationUrl(unmergedCrn))
 
       publishDomainEvent(
-        OFFENDER_UNMERGED,
-        DomainEvent(
-          eventType = OFFENDER_UNMERGED,
-          additionalInformation = AdditionalInformation(
+        ProbationOffenderUnmerged(
+          additionalInformation = ProbationOffenderUnmergedInfo(
             reactivatedCrn = reactivatedCrn,
             unmergedCrn = unmergedCrn,
           ),

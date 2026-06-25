@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Hidden
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -25,33 +26,45 @@ class DeliusReconciliationReport(
 
   @Hidden
   @RequestMapping(method = [RequestMethod.POST], value = ["/jobs/deliusreconciliationreport"])
-  fun report(): String {
-    CoroutineScope(Dispatchers.Default).launch {
-      runDeliusReconciliation()
-    }
-    return "OK"
+  suspend fun report(): String {
+    runDeliusReconciliation()
+    return OK
   }
 
   suspend fun runDeliusReconciliation() {
-    val pageSize = 1
-    val totalPages = corePersonRecordAndDeliusClient.getProbationCases(
-      CorePersonRecordAndDeliusClientPageParams(
-        0,
-        pageSize,
-      ),
-    )?.page?.totalPages!!
-
-    val totalDeliusPersons = totalPages * pageSize
-    val totalCprPersons = personRepository.countBySourceSystemAndMergedToIsNullAndPassiveStateFalse(SourceSystemType.DELIUS)
-
-    applicationEventPublisher.publishEvent(
-      RecordTelemetry(
-        telemetryEventType = TelemetryEventType.CPR_RECORD_DELIUS_RECONCILIATION_REPORT,
-        elementMap = mapOf(
-          EventKeys.DELIUS to totalDeliusPersons.toString(),
-          EventKeys.CPR to totalCprPersons.toString(),
+    CoroutineScope(Dispatchers.Default).launch {
+      val pageSize = 1
+      val totalPages = corePersonRecordAndDeliusClient.getProbationCases(
+        CorePersonRecordAndDeliusClientPageParams(
+          0,
+          pageSize,
         ),
-      ),
-    )
+      )?.page?.totalPages!!
+
+      log.info("$JOB_NAME $totalPages pages with page size of $pageSize")
+
+      val totalDeliusPersons = totalPages * pageSize
+      val totalCprPersons = personRepository.countBySourceSystemAndMergedToIsNullAndPassiveStateFalse(SourceSystemType.DELIUS)
+
+      log.info("$JOB_NAME $totalDeliusPersons Delius records, $totalCprPersons CPR records")
+
+      applicationEventPublisher.publishEvent(
+        RecordTelemetry(
+          telemetryEventType = TelemetryEventType.CPR_RECORD_DELIUS_RECONCILIATION_REPORT,
+          elementMap = mapOf(
+            EventKeys.DELIUS to totalDeliusPersons.toString(),
+            EventKeys.CPR to totalCprPersons.toString(),
+          ),
+        ),
+      )
+
+      log.info("$JOB_NAME Job completed successfully")
+    }
+  }
+
+  companion object {
+    private const val OK = "OK"
+    private val log = LoggerFactory.getLogger(this::class.java)
+    private const val JOB_NAME = "JOB: deliusreconciliationreport:"
   }
 }
