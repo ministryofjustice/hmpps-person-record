@@ -251,6 +251,7 @@ class IntegrationTestBase {
       firstName = randomName(),
       lastName = randomName(),
       dateOfBirth = randomDate(),
+      religion = randomReligion(),
       aliases = listOf(
         PrisonerAlias(
           firstName = randomName(),
