@@ -14,9 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_SELF_HEALED
@@ -53,7 +51,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData, crn = doesNotMatch.crn!!))
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(basePersonData, crn = doesNotMatch.crn!!))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(ACTIVE)
@@ -106,7 +104,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), recordA.crn))
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), recordA.crn))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
@@ -127,7 +125,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData, doesNotMatch.crn))
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(basePersonData, doesNotMatch.crn))
 
       recordToJoinCluster.assertLinkedToCluster(cluster)
 
@@ -147,7 +145,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(doesNotMatch)
 
       val personCCrn = randomCrn()
-      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup.from(basePersonData, personCCrn))
+      probationCreateEventAndResponseSetup(ApiResponseSetup.from(basePersonData, personCCrn))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
@@ -183,7 +181,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.withChangedMatchDetails()))
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(basePersonData.withChangedMatchDetails()))
 
       cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
@@ -217,9 +215,9 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val personBData = createRandomProbationCase()
       val personBCrn = personBData.identifiers.crn!!
       val personCCrn = randomCrn()
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personAData))
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personBData))
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personAData, personCCrn))
+      probationCreateEventAndResponseSetup(ApiResponseSetup.from(personAData))
+      probationCreateEventAndResponseSetup(ApiResponseSetup.from(personBData))
+      probationCreateEventAndResponseSetup(ApiResponseSetup.from(personAData, personCCrn))
 
       probationMergeEventAndResponseSetup(personACrn, personCCrn)
       probationMergeEventAndResponseSetup(personBCrn, personCCrn)
@@ -236,7 +234,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val clusterC = awaitNotNull { personRepository.findByCrn(personCCrn) }.personKey
       clusterC?.assertClusterIsOfSize(1)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(personAData, personBCrn))
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(personAData, personBCrn))
 
       clusterA?.assertPersonKeyDeleted()
 
@@ -365,20 +363,14 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personB)
         .addPerson(personC)
 
-      probationDomainEventAndResponseSetup(
-        eventType = OFFENDER_PERSONAL_DETAILS_UPDATED,
-        ApiResponseSetup.from(createRandomProbationCase(crn = personB.crn!!)),
-      )
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(crn = personB.crn!!)))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
       includeRecords(personA, personB, personC)
 
-      probationDomainEventAndResponseSetup(
-        eventType = OFFENDER_PERSONAL_DETAILS_UPDATED,
-        ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), crn = personA.crn!!),
-      )
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), crn = personA.crn!!))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(ACTIVE)
@@ -800,7 +792,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personB)
         .addPerson(personC)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(personData.withChangedMatchDetails(), personA.crn!!))
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(personData.withChangedMatchDetails(), personA.crn!!))
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -832,7 +824,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), crn = personA.crn!!))
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), crn = personA.crn!!))
 
       cluster.assertClusterStatus(ACTIVE)
 
@@ -875,7 +867,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .assertReviewSize(1)
         .isPrimary(cluster)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(basePersonData, doesNotMatch.crn))
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(basePersonData, doesNotMatch.crn))
 
       cluster.assertClusterStatus(ACTIVE)
       review.assertRemoved()
