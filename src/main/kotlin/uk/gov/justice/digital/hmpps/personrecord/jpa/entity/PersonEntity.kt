@@ -260,6 +260,6 @@ class PersonEntity(
 
   companion object {
 
-    fun new(person: Person): PersonEntity = PersonEntity(sourceSystem = person.sourceSystem, matchId = UUID.randomUUID())
+    fun new(sourceSystemType: SourceSystemType): PersonEntity = PersonEntity(sourceSystem = sourceSystemType, matchId = UUID.randomUUID())
   }
 }

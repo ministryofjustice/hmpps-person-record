@@ -38,7 +38,7 @@ class PersonService(
   }
 
   private fun create(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
-    val personEntity = PersonEntity.new(person).apply { updatePersonEntity(person, childrenToIgnore) }
+    val personEntity = PersonEntity.new(person.sourceSystem).apply { updatePersonEntity(person, childrenToIgnore) }
     personRepository.save(personEntity)
 
     personMatchService.saveToPersonMatch(personEntity)
