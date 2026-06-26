@@ -164,27 +164,30 @@ class ProbationApiE2ETest : E2ETestBase() {
               Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
               Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
             ),
-          ), configure = {
-           val addressEntity =  AddressEntity.from(Address(
-              noFixedAbode = noFixedAbode,
-              startDate = startDateTime,
-              endDate = endDateTime,
-              postcode = postcode,
-              buildingName = buildingName,
-              buildingNumber = buildingNumber,
-              thoroughfareName = thoroughfareName,
-              dependentLocality = dependentLocality,
-              postTown = postTown,
-              county = county,
-              countryCode = countryCode,
-              uprn = uprn,
-              statusCode = addressStatusCode,
-              comment = comment,
-              usages = listOf(AddressUsage(addressUsageCode, isActive)),
-            ))
-             addressEntity.person = this
-                addresses = mutableListOf(addressEntity)
-          }
+          ),
+          configure = {
+            val addressEntity = AddressEntity.from(
+              Address(
+                noFixedAbode = noFixedAbode,
+                startDate = startDateTime,
+                endDate = endDateTime,
+                postcode = postcode,
+                buildingName = buildingName,
+                buildingNumber = buildingNumber,
+                thoroughfareName = thoroughfareName,
+                dependentLocality = dependentLocality,
+                postTown = postTown,
+                county = county,
+                countryCode = countryCode,
+                uprn = uprn,
+                statusCode = addressStatusCode,
+                comment = comment,
+                usages = listOf(AddressUsage(addressUsageCode, isActive)),
+              ),
+            )
+            addressEntity.person = this
+            addresses = mutableListOf(addressEntity)
+          },
         )
 
         val responseBody = webTestClient.get()

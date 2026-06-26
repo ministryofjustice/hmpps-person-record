@@ -13,7 +13,7 @@ fun PersonEntity.updatePersonEntity(
 ) {
   when (this.sourceSystem) {
     SourceSystemType.NOMIS -> fieldsToUpdatePrison(person)
-    SourceSystemType.DELIUS -> fieldsToUpdateProbation(person,childrenToIgnore)
+    SourceSystemType.DELIUS -> fieldsToUpdateProbation(person, childrenToIgnore)
     else -> fieldsToUpdate(person, childrenToIgnore)
   }
 }
