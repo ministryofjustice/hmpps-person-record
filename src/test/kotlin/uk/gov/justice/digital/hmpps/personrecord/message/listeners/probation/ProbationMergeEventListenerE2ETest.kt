@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
@@ -123,11 +122,11 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
     // 5. make the target record no longer match the source record or person 3
     val matchTargetAndFourthPersonSetup = ApiResponseSetup.from(createRandomProbationCase(fourthPerson))
-    probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, matchTargetAndFourthPersonSetup.copy(crn = targetCrn))
+    probationUpdateEventAndResponseSetup(matchTargetAndFourthPersonSetup.copy(crn = targetCrn))
     targetPerson.personKey!!.assertClusterIsOfSize(1)
 
     // 6. make person 4 match the target record - recluster should delete the target cluster and delete the linked review
-    probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, matchTargetAndFourthPersonSetup.copy(crn = fourthPerson))
+    probationUpdateEventAndResponseSetup(matchTargetAndFourthPersonSetup.copy(crn = fourthPerson))
     targetPerson.personKey!!.assertPersonKeyDeleted()
     review.assertRemoved()
   }
@@ -155,7 +154,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     targetCluster?.assertClusterIsOfSize(2)
 
     // 3. change person 3 to not match target so cluster goes into review
-    probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(createRandomProbationCase(crn = person3Crn)))
+    probationUpdateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(crn = person3Crn)))
     val review = targetCluster!!.getReviews().first()
     review.assertReviewSize(1)
 

@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMergedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnmerged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnmergedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
@@ -247,6 +248,20 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
     publishDomainEvent(
       ProbationOffenderCreated(
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", apiResponseSetup.crn!!))),
+      ),
+    )
+  }
+
+  fun probationUpdateEventAndResponseSetup(
+    apiResponseSetup: ApiResponseSetup,
+    scenario: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = STARTED,
+  ) {
+    stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
+    publishDomainEvent(
+      ProbationOffenderUpdated(
         personReference = PersonReference(listOf(PersonIdentifier("CRN", apiResponseSetup.crn!!))),
       ),
     )

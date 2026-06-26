@@ -34,7 +34,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -260,7 +259,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
         addresses = listOf(randomProbationAddress(), randomProbationAddress(), randomProbationAddress()),
       )
 
-      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(probationCase))
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(probationCase))
 
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to personEntity.crn))
       val actualPersonEntity = personRepository.findByCrn(personEntity.crn!!)!!
@@ -313,10 +312,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       val createdLastModified = personEntity.lastModified
       val dateOfDeath = randomDate()
       val changedPersonDetails = createRandomProbationCase(crn)
-      probationDomainEventAndResponseSetup(
-        OFFENDER_PERSONAL_DETAILS_UPDATED,
-        ApiResponseSetup.from(changedPersonDetails).copy(dateOfDeath = dateOfDeath),
-      )
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(changedPersonDetails).copy(dateOfDeath = dateOfDeath))
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val updatedPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
@@ -369,7 +365,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       val originalPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
 
       val updatedProbationCase = originalProbationCase.copy(dateOfBirth = randomDate())
-      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedProbationCase))
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(updatedProbationCase))
 
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
@@ -411,7 +407,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
         postcode = randomPostcode(),
       )
       val updatedProbationCase = createRandomProbationCase(crn).copy(addresses = listOf(updatedProbationAddress))
-      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedProbationCase))
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(updatedProbationCase))
 
       expectNoMessagesOnQueueOrDlq(probationEventsQueue)
       val updatedPersonEntity = personRepository.findByCrn(crn)!!
@@ -530,7 +526,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
     fun `multiple updates to single probation record are processed successfully`() {
       val crn = randomCrn()
       blitz(30, 15) {
-        probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn))
+        probationUpdateEventAndResponseSetup(ApiResponseSetup(crn = crn))
       }
 
       expectNoMessagesOnQueueOrDlq(probationEventsQueue)
@@ -585,10 +581,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       val croEntity = person?.references?.getCrosFromReferences()?.first()
 
       val updatedCro = randomCro()
-      probationDomainEventAndResponseSetup(
-        OFFENDER_PERSONAL_DETAILS_UPDATED,
-        ApiResponseSetup(crn = crn, pnc = pnc, cro = updatedCro, nationalInsuranceNumber = null),
-      )
+      probationUpdateEventAndResponseSetup(ApiResponseSetup(crn = crn, pnc = pnc, cro = updatedCro, nationalInsuranceNumber = null))
 
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
@@ -625,10 +618,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       val sentenceDateFour = randomDate()
       val updateSentenceDates =
         listOf(ApiResponseSetupSentences(sentenceDateOne), ApiResponseSetupSentences(sentenceDateFour))
-      probationDomainEventAndResponseSetup(
-        OFFENDER_PERSONAL_DETAILS_UPDATED,
-        ApiResponseSetup(crn = crn, sentences = updateSentenceDates),
-      )
+      probationUpdateEventAndResponseSetup(ApiResponseSetup(crn = crn, sentences = updateSentenceDates))
 
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
@@ -662,7 +652,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
 
       val email = randomEmail()
       val updateContacts = listOf(ApiResponseSetupContact(ContactType.HOME, homePhoneNumber), ApiResponseSetupContact(ContactType.EMAIL, email))
-      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, contacts = updateContacts))
+      probationUpdateEventAndResponseSetup(ApiResponseSetup(crn = crn, contacts = updateContacts))
 
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
