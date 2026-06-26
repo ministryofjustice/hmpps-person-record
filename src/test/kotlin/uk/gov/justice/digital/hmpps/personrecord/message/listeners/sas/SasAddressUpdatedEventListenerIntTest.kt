@@ -11,9 +11,8 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
@@ -43,13 +42,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       assertThat(existingAddressEntity.deliusAddressId).isNull()
 
-      publishProbationAddressEvent(
-        crn,
-        deliusAddressId,
-        OFFENDER_ADDRESS_CREATED,
-        DomainEventSource.CPR,
-        existingAddressEntity.updateId.toString(),
-      )
+      publishProbationOffenderAddressCreatedEvent(crn, existingAddressEntity.updateId, deliusAddressId, CPR)
 
       awaitNotNull {
         addressRepository.findByDeliusAddressId(deliusAddressId)
