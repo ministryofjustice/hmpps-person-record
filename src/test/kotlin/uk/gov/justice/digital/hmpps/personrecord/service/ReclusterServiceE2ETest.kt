@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
@@ -147,7 +146,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(doesNotMatch)
 
       val personCCrn = randomCrn()
-      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup.from(basePersonData, personCCrn))
+      probationCreateEventAndResponseSetup(ApiResponseSetup.from(basePersonData, personCCrn))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
@@ -217,9 +216,9 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val personBData = createRandomProbationCase()
       val personBCrn = personBData.identifiers.crn!!
       val personCCrn = randomCrn()
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personAData))
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personBData))
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personAData, personCCrn))
+      probationCreateEventAndResponseSetup(ApiResponseSetup.from(personAData))
+      probationCreateEventAndResponseSetup(ApiResponseSetup.from(personBData))
+      probationCreateEventAndResponseSetup(ApiResponseSetup.from(personAData, personCCrn))
 
       probationMergeEventAndResponseSetup(personACrn, personCCrn)
       probationMergeEventAndResponseSetup(personBCrn, personCCrn)

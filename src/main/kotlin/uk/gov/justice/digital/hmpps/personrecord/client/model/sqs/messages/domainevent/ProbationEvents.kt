@@ -1,21 +1,23 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 
 data class ProbationOffenderCreated(
-  override val eventType: String,
+  override val eventType: String = NEW_OFFENDER_CREATED,
   val personReference: PersonReference,
 ) : HmppsDomainEvent {
   val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
 }
 
 data class ProbationOffenderUpdated(
-  override val eventType: String,
+  override val eventType: String = OFFENDER_PERSONAL_DETAILS_UPDATED,
   val personReference: PersonReference,
 ) : HmppsDomainEvent {
   val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
