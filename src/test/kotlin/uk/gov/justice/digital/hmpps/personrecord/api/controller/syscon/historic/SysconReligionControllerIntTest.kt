@@ -57,8 +57,8 @@ class SysconReligionControllerIntTest : WebTestBase() {
         .responseBody!!
 
       val actualReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber).associateBy { it.code }
-      val actualCurrentReligionEntity = actualReligionEntities[ReligionCode.valueOf(currentReligion.religionCode)]
-      val actualAnotherReligionEntity = actualReligionEntities[ReligionCode.valueOf(anotherReligion.religionCode)]
+      val actualCurrentReligionEntity = actualReligionEntities[currentReligion.religionCode]
+      val actualAnotherReligionEntity = actualReligionEntities[anotherReligion.religionCode]
 
       assertThat(actualResponseBody.religionMappings.size).isEqualTo(2)
       val actualCurrentReligionMapping = actualResponseBody.religionMappings.find { it.nomisReligionId == currentReligion.nomisReligionId }
@@ -139,7 +139,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `should return a 400 when more than one current religion is sent`() {
       val prisonNumber = randomPrisonNumber()
-      val religions = listOf(createRandomReligion(randomReligionCode().name, true), createRandomReligion(randomReligionCode().name, true))
+      val religions = listOf(createRandomReligion(randomReligionCode(), true), createRandomReligion(randomReligionCode(), true))
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
       val reqBody = PrisonReligionRequest(religions)
 
@@ -158,7 +158,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `should return a 400 when no current religion is sent`() {
       val prisonNumber = randomPrisonNumber()
-      val religions = listOf(createRandomReligion(randomReligionCode().name, false), createRandomReligion(randomReligionCode().name, false))
+      val religions = listOf(createRandomReligion(randomReligionCode(), false), createRandomReligion(randomReligionCode(), false))
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
       val reqBody = PrisonReligionRequest(religions)
 
@@ -228,7 +228,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
       assertThat(storedReligion.prisonNumber).isEqualTo(prisonNumber)
       assertThat(storedReligion.comments).isEqualTo(sentReligion.comments)
       assertThat(storedReligion.changeReasonKnown).isEqualTo(sentReligion.changeReasonKnown)
-      assertThat(storedReligion.code.name).isEqualTo(sentReligion.religionCode)
+      assertThat(storedReligion.code).isEqualTo(sentReligion.religionCode)
       assertThat(storedReligion.startDate).isEqualTo(sentReligion.startDate)
       assertThat(storedReligion.endDate).isEqualTo(sentReligion.endDate)
       assertThat(storedReligion.modifyDateTime).isEqualTo(sentReligion.modifyDateTime)
