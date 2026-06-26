@@ -11,15 +11,10 @@ class PrisonPersonUpdater : PersonUpdater {
     childrenToIgnore: Set<KClass<*>>,
     personEntity: PersonEntity,
   ) {
-    personEntity.defendantId = person.defendantId
-    personEntity.crn = person.crn
     personEntity.prisonNumber = person.prisonNumber
-    personEntity.masterDefendantId = person.masterDefendantId
-    personEntity.religion = person.religion
-    personEntity.cId = person.cId
+    personEntity.religion = personEntity.religion
     personEntity.sexualOrientation = person.sexualOrientation
     personEntity.lastModified = LocalDateTime.now()
-    personEntity.dateOfDeath = person.dateOfDeath
     personEntity.ethnicityCode = person.ethnicityCode
     personEntity.genderIdentity = person.genderIdentity
     personEntity.selfDescribedGenderIdentity = person.selfDescribedGenderIdentity

@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.SentenceInfoEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.updater.OtherPersonUpdater
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
@@ -59,7 +60,7 @@ class PersonEntityMappingTest {
   @Test
   fun `should update all entity fields from dto`() {
     // PersonEntity.new calls update which sets values from Person
-    val entity = PersonEntity.new(createPerson())
+    val entity = PersonEntity.new(createPerson(), updater = OtherPersonUpdater())
     val entityProps = PersonEntity::class.memberProperties.filterNot {
       it.name == "id" ||
         it.name == "overrideMarker" ||

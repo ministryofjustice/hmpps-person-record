@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.updater.OtherPersonUpdater
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.updater.PersonUpdater
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
@@ -26,20 +27,21 @@ class PersonService(
   fun processPerson(
     person: Person,
     childrenToIgnore: Set<KClass<*>> = emptySet(),
+    updater: PersonUpdater = OtherPersonUpdater(),
     findPerson: () -> PersonEntity?,
   ): PersonEntity = findPerson().exists(
     no = {
-      create(person, childrenToIgnore)
+      create(person, childrenToIgnore, updater)
     },
     yes = {
-      update(person, it, childrenToIgnore)
+      update(person, it, childrenToIgnore, updater)
     },
   ).also {
     publisher.publishEvent(PersonProcessingCompleted(it))
   }
 
-  private fun create(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
-    val personEntity = personRepository.save(PersonEntity.new(person, childrenToIgnore))
+  private fun create(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet(), updater: PersonUpdater): PersonEntity {
+    val personEntity = personRepository.save(PersonEntity.new(person, childrenToIgnore, updater))
     personMatchService.saveToPersonMatch(personEntity)
     if (person.behaviour.linkOnCreate) {
       personKeyService.linkRecordToPersonKey(personEntity)
@@ -48,9 +50,14 @@ class PersonService(
     return personEntity
   }
 
-  private fun update(person: Person, personEntity: PersonEntity, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
+  private fun update(
+    person: Person,
+    personEntity: PersonEntity,
+    childrenToIgnore: Set<KClass<*>> = emptySet(),
+    updater: PersonUpdater,
+  ): PersonEntity {
     val beforeUpdate = PersonMatchRecord.from(personEntity)
-    personEntity.update(person, childrenToIgnore, OtherPersonUpdater())
+    personEntity.update(person, childrenToIgnore, updater)
     personRepository.save(personEntity)
     val matchingFieldsChanged = beforeUpdate.matchingFieldsAreDifferent(personEntity)
     if (matchingFieldsChanged && !personEntity.isPassive()) {

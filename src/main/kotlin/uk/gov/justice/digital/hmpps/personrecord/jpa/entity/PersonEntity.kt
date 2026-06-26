@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.AddressBuild
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ContactBuilder.buildContacts
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBuilder.buildReferences
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.SentenceInfoBuilder.buildSentenceInfo
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.updater.OtherPersonUpdater
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.updater.PersonUpdater
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
@@ -266,9 +265,9 @@ class PersonEntity(
 
   companion object {
 
-    fun new(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
+    fun new(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet(), updater: PersonUpdater): PersonEntity {
       val personEntity = PersonEntity(sourceSystem = person.sourceSystem, matchId = UUID.randomUUID())
-      personEntity.update(person, childrenToIgnore, OtherPersonUpdater())
+      personEntity.update(person, childrenToIgnore, updater)
       return personEntity
     }
   }
