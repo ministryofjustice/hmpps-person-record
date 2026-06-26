@@ -27,7 +27,6 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
 
     publishProbationOffenderAddressUpdatedEvent(
       personEntity.crn,
-      null,
       originalProbationAddress.deliusAddressId,
     )
 
@@ -55,7 +54,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     val updatedProbationAddress = originalProbationAddress.copy(notes = randomLowerCaseString())
     stubGetRequestToProbation(updatedProbationAddress)
 
-    publishProbationOffenderAddressUpdatedEvent(personEntity.crn, null, updatedProbationAddress.deliusAddressId)
+    publishProbationOffenderAddressUpdatedEvent(personEntity.crn, updatedProbationAddress.deliusAddressId)
 
     wiremock.verify(0, postRequestedFor(urlEqualTo("/person")))
     wiremock.verify(0, getRequestedFor(urlEqualTo("/person/score/.*")))
@@ -71,7 +70,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
 
     stubGetRequestToProbation(probationAddress, status = 404)
 
-    publishProbationOffenderAddressUpdatedEvent(personEntity.crn, null, probationAddress.deliusAddressId)
+    publishProbationOffenderAddressUpdatedEvent(personEntity.crn, probationAddress.deliusAddressId)
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
@@ -91,7 +90,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     stubPersonMatchScores()
     stubGetRequestToProbation(probationAddress)
 
-    publishProbationOffenderAddressUpdatedEvent(personEntity.crn, null, probationAddress.deliusAddressId)
+    publishProbationOffenderAddressUpdatedEvent(personEntity.crn, probationAddress.deliusAddressId)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)

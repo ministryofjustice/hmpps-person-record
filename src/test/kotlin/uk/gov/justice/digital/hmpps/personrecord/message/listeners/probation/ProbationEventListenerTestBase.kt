@@ -141,12 +141,11 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun publishProbationOffenderAddressUpdatedEvent(crn: String?, cprAddressId: UUID?, deliusAddressId: Long?) {
+  fun publishProbationOffenderAddressUpdatedEvent(crn: String?, deliusAddressId: Long?) {
     publishDomainEvent(
       ProbationOffenderAddressUpdated(
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
         additionalInformation = ProbationOffenderAddressUpdatedInfo(
-          cprAddressId = cprAddressId.toString(),
           deliusAddressId = deliusAddressId!!,
         ),
       ),

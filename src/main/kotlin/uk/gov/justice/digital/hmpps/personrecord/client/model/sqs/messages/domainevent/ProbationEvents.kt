@@ -81,9 +81,6 @@ data class ProbationOffenderAddressUpdated(
 }
 
 data class ProbationOffenderAddressUpdatedInfo(
-  @JsonProperty("corePersonAddressId")
-  val cprAddressId: String? = null,
-
   @JsonProperty("addressId")
   val deliusAddressId: Long,
 )
