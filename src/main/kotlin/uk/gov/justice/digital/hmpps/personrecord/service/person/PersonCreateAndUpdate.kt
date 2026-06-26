@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -84,5 +85,5 @@ private fun PersonEntity.fieldsToUpdateProbation(
   this.birthplace = person.birthplace
   this.birthCountryCode = person.birthCountryCode
   this.nationalityNotes = person.nationalityNotes
-  this.updateChildEntities(person, childrenToIgnore)
+  this.updateChildEntities(person, setOf(AddressEntity::class))
 }

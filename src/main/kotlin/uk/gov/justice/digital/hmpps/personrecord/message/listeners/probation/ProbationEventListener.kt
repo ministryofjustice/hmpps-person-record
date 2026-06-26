@@ -76,7 +76,7 @@ class ProbationEventListener(
 
   private fun updateWholePerson(crn: String) {
     corePersonRecordAndDeliusClient.getPerson(crn).let {
-      eventProcessor.processEvent(it, setOf(AddressEntity::class))
+      eventProcessor.processEvent(it)
     }
   }
 
