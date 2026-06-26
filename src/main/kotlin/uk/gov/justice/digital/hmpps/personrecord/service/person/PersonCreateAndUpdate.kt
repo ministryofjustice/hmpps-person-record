@@ -12,6 +12,7 @@ fun PersonEntity.updatePersonEntity(
 ) {
   when (this.sourceSystem) {
     SourceSystemType.NOMIS -> fieldsToUpdatePrison(person)
+    SourceSystemType.DELIUS -> fieldsToUpdateProbation(person,childrenToIgnore)
     else -> fieldsToUpdate(person, childrenToIgnore)
   }
 }
@@ -39,6 +40,30 @@ private fun PersonEntity.fieldsToUpdatePrison(
 }
 
 private fun PersonEntity.fieldsToUpdate(
+  person: Person,
+  childrenToIgnore: Set<KClass<*>>,
+) {
+  this.defendantId = person.defendantId
+  this.crn = person.crn
+  this.prisonNumber = person.prisonNumber
+  this.masterDefendantId = person.masterDefendantId
+  this.religion = person.religion
+  this.cId = person.cId
+  this.sexualOrientation = person.sexualOrientation
+  this.lastModified = LocalDateTime.now()
+  this.dateOfDeath = person.dateOfDeath
+  this.ethnicityCode = person.ethnicityCode
+  this.genderIdentity = person.genderIdentity
+  this.selfDescribedGenderIdentity = person.selfDescribedGenderIdentity
+  this.disability = person.disability
+  this.immigrationStatus = person.immigrationStatus
+  this.birthplace = person.birthplace
+  this.birthCountryCode = person.birthCountryCode
+  this.nationalityNotes = person.nationalityNotes
+  this.updateChildEntities(person, childrenToIgnore)
+}
+
+private fun PersonEntity.fieldsToUpdateProbation(
   person: Person,
   childrenToIgnore: Set<KClass<*>>,
 ) {
