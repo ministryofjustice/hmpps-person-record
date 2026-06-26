@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
@@ -15,9 +16,11 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   @Test
   fun `consuming an address updated event - cpr address exists - updates address`() {
     val originalProbationAddress = randomProbationAddress()
-    val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(originalProbationAddress)!!)),
-    )
+    val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(), configure = {
+      val addressEntity = AddressEntity.from(Address.from(originalProbationAddress)!!)
+      addressEntity.person = this
+      addresses = mutableListOf(addressEntity)
+    })
     val cprAddressBeforeUpdate = personEntity.addresses.first()
 
     stubPersonMatchUpsert()
@@ -47,9 +50,11 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   @Test
   fun `consuming an address updated event - no matching fields updated - does not save in person match or trigger recluster`() {
     val originalProbationAddress = randomProbationAddress()
-    val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(originalProbationAddress)!!)),
-    )
+    val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(), configure = {
+      val addressEntity = AddressEntity.from(Address.from(originalProbationAddress)!!)
+      addressEntity.person = this
+      addresses = mutableListOf(addressEntity)
+    })
 
     val updatedProbationAddress = originalProbationAddress.copy(notes = randomLowerCaseString())
     stubGetRequestToProbation(updatedProbationAddress)
@@ -63,9 +68,11 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   @Test
   fun `consuming address updated event - address not retrieved from probation - does not update address`() {
     val probationAddress = randomProbationAddress()
-    val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress)!!)),
-    )
+    val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(), configure = {
+      val addressEntity = AddressEntity.from(Address.from(probationAddress)!!)
+      addressEntity.person = this
+      addresses = mutableListOf(addressEntity)
+    })
     val cprAddressBeforeUpdate = personEntity.addresses.first()
 
     stubGetRequestToProbation(probationAddress, status = 404)

@@ -28,6 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
@@ -38,6 +39,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
@@ -74,6 +76,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.time.ZonedDateTime
+import kotlin.collections.mutableListOf
 
 class ProbationApiE2ETest : E2ETestBase() {
 
@@ -130,7 +133,7 @@ class ProbationApiE2ETest : E2ETestBase() {
             dateOfBirth = randomDate(),
             disability = randomBoolean(),
             immigrationStatus = randomBoolean(),
-            sourceSystem = NOMIS,
+            sourceSystem = DELIUS,
             titleCode = title.value,
             crn = crn,
             sexCode = primarySex.value,
@@ -157,7 +160,13 @@ class ProbationApiE2ETest : E2ETestBase() {
                 sexCode = aliasSex2.value,
               ),
             ),
-            addresses = listOf(
+            references = listOf(
+              Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
+              Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
+            ),
+          ),
+          configure = {
+            val addressEntity = AddressEntity.from(
               Address(
                 noFixedAbode = noFixedAbode,
                 startDate = startDateTime,
@@ -175,12 +184,10 @@ class ProbationApiE2ETest : E2ETestBase() {
                 comment = comment,
                 usages = listOf(AddressUsage(addressUsageCode, isActive)),
               ),
-            ),
-            references = listOf(
-              Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
-              Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
-            ),
-          ),
+            )
+            addressEntity.person = this
+            addresses = mutableListOf(addressEntity)
+          },
         )
 
         val responseBody = webTestClient.get()

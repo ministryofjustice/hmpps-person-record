@@ -207,28 +207,7 @@ class PersonEntity(
 
   fun isNotPassive() = !this.passiveState
 
-  fun update(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()) {
-    this.defendantId = person.defendantId
-    this.crn = person.crn
-    this.prisonNumber = person.prisonNumber
-    this.masterDefendantId = person.masterDefendantId
-    this.religion = person.religion
-    this.cId = person.cId
-    this.sexualOrientation = person.sexualOrientation
-    this.lastModified = LocalDateTime.now()
-    this.dateOfDeath = person.dateOfDeath
-    this.ethnicityCode = person.ethnicityCode
-    this.genderIdentity = person.genderIdentity
-    this.selfDescribedGenderIdentity = person.selfDescribedGenderIdentity
-    this.disability = person.disability
-    this.immigrationStatus = person.immigrationStatus
-    this.birthplace = person.birthplace
-    this.birthCountryCode = person.birthCountryCode
-    this.nationalityNotes = person.nationalityNotes
-    this.updateChildEntities(person, childrenToIgnore)
-  }
-
-  private fun updateChildEntities(person: Person, childrenToIgnore: Set<KClass<*>>) {
+  fun updateChildEntities(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()) {
     if (!childrenToIgnore.contains<Any>(AddressEntity::class)) {
       updatePersonAddresses(buildAddresses(person, this))
     }
@@ -281,10 +260,6 @@ class PersonEntity(
 
   companion object {
 
-    fun new(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
-      val personEntity = PersonEntity(sourceSystem = person.sourceSystem, matchId = UUID.randomUUID())
-      personEntity.update(person, childrenToIgnore)
-      return personEntity
-    }
+    fun new(person: Person): PersonEntity = PersonEntity(sourceSystem = person.sourceSystem, matchId = UUID.randomUUID())
   }
 }
