@@ -228,7 +228,7 @@ class PersonEntity(
     this.updateChildEntities(person, childrenToIgnore)
   }
 
-  private fun updateChildEntities(person: Person, childrenToIgnore: Set<KClass<*>>) {
+  fun updateChildEntities(person: Person, childrenToIgnore: Set<KClass<*>>) {
     if (!childrenToIgnore.contains<Any>(AddressEntity::class)) {
       updatePersonAddresses(buildAddresses(person, this))
     }
