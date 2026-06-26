@@ -301,10 +301,10 @@ class IntegrationTestBase {
   )
 
   internal fun createRandomReligions(): List<PrisonReligionHistory> = List((4..20).random()) { index ->
-    if (index == 0) createRandomReligion(randomReligionCode().name, true) else createRandomReligion(randomReligionCode().name, false)
+    if (index == 0) createRandomReligion(randomReligionCode(), true) else createRandomReligion(randomReligionCode(), false)
   }
 
-  internal fun createRandomReligion(code: String = randomReligionCode().name, current: Boolean = true) = PrisonReligionHistory(
+  internal fun createRandomReligion(code: String = randomReligionCode(), current: Boolean = true) = PrisonReligionHistory(
     nomisReligionId = randomDigit(10),
     changeReasonKnown = randomBoolean(),
     comments = randomName(),

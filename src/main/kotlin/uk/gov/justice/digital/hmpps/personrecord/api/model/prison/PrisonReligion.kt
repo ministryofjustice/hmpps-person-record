@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.prison
 
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.toReligionCodeDescription
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -19,8 +20,8 @@ data class PrisonReligion(
 ) {
   companion object {
     fun from(prisonReligionEntity: PrisonReligionEntity): PrisonReligion = PrisonReligion(
-      religionCode = prisonReligionEntity.code.name,
-      religionDescription = prisonReligionEntity.code.description,
+      religionCode = prisonReligionEntity.code,
+      religionDescription = prisonReligionEntity.code.toReligionCodeDescription(),
       changeReasonKnown = prisonReligionEntity.changeReasonKnown,
       comments = prisonReligionEntity.comments,
       startDate = prisonReligionEntity.startDate,
