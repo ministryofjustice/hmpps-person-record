@@ -51,7 +51,7 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
           nationalities = listOf(randomNationalityCode()),
         )
       val cluster = createPersonKey()
-        .addPerson(prisonPerson)
+        .addPerson(createPerson(prisonPerson, configure = { religion = prisonPerson.religion }))
 
       val person = cluster.personEntities.first()
       val responseBody = sendGetRequestAsserted<CanonicalRecord>(

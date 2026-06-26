@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.AddressBuild
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ContactBuilder.buildContacts
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBuilder.buildReferences
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.SentenceInfoBuilder.buildSentenceInfo
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.updater.PersonUpdater
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
@@ -207,28 +208,11 @@ class PersonEntity(
 
   fun isNotPassive() = !this.passiveState
 
-  fun update(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()) {
-    this.defendantId = person.defendantId
-    this.crn = person.crn
-    this.prisonNumber = person.prisonNumber
-    this.masterDefendantId = person.masterDefendantId
-    this.religion = person.religion
-    this.cId = person.cId
-    this.sexualOrientation = person.sexualOrientation
-    this.lastModified = LocalDateTime.now()
-    this.dateOfDeath = person.dateOfDeath
-    this.ethnicityCode = person.ethnicityCode
-    this.genderIdentity = person.genderIdentity
-    this.selfDescribedGenderIdentity = person.selfDescribedGenderIdentity
-    this.disability = person.disability
-    this.immigrationStatus = person.immigrationStatus
-    this.birthplace = person.birthplace
-    this.birthCountryCode = person.birthCountryCode
-    this.nationalityNotes = person.nationalityNotes
-    this.updateChildEntities(person, childrenToIgnore)
+  fun update(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet(), updater: PersonUpdater) {
+    updater.update(person, childrenToIgnore, this)
   }
 
-  private fun updateChildEntities(person: Person, childrenToIgnore: Set<KClass<*>>) {
+  fun updateChildEntities(person: Person, childrenToIgnore: Set<KClass<*>>) {
     if (!childrenToIgnore.contains<Any>(AddressEntity::class)) {
       updatePersonAddresses(buildAddresses(person, this))
     }
@@ -281,9 +265,9 @@ class PersonEntity(
 
   companion object {
 
-    fun new(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
+    fun new(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet(), updater: PersonUpdater): PersonEntity {
       val personEntity = PersonEntity(sourceSystem = person.sourceSystem, matchId = UUID.randomUUID())
-      personEntity.update(person, childrenToIgnore)
+      personEntity.update(person, childrenToIgnore, updater)
       return personEntity
     }
   }

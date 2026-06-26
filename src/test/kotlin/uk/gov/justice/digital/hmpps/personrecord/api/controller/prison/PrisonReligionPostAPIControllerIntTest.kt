@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.P
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.updater.PrisonPersonUpdater
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -52,7 +53,11 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
     fun `person has existing current prison religion - does not save prison religion - return internal server error`() {
       val prisonNumber = randomPrisonNumber()
       val existingReligionEntity = PrisonReligionEntity.from(prisonNumber, createRandomReligion())
-      val personEntityWithCurrentReligion = PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = existingReligionEntity.code))
+      val personEntityWithCurrentReligion = PersonEntity.new(
+        createRandomPrisonPersonDetails(prisonNumber),
+        updater = PrisonPersonUpdater(),
+      )
+      personEntityWithCurrentReligion.religion = existingReligionEntity.code
       prisonReligionRepository.save(existingReligionEntity)
       personRepository.saveAndFlush(personEntityWithCurrentReligion)
 
