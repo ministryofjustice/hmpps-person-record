@@ -26,7 +26,9 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     stubGetRequestToProbation(updatedProbationAddress)
 
     publishProbationOffenderAddressUpdatedEvent(
-      personEntity.crn, null, originalProbationAddress.deliusAddressId
+      personEntity.crn,
+      null,
+      originalProbationAddress.deliusAddressId,
     )
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
