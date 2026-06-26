@@ -34,7 +34,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
     fun `prison religion exists - updates prison religion - returns correct response body`() {
       val prisonNumber = randomPrisonNumber()
       val existingReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createRandomReligion(code = ReligionCode.AGNO.toString())))
-      val existingPersonEntity = personRepository.saveAndFlush(PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = existingReligionEntity.code)))
+      val existingPersonEntity = personRepository.saveAndFlush(PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = existingReligionEntity.code.name)))
 
       val requestBody = createRandomReligionUpdateRequest()
       val responseBody = sendPutRequestAsserted<PrisonReligionSaveResponse>(
@@ -70,7 +70,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
     fun `prison religion exists - demoting a current religion - update prison religion`() {
       val prisonNumber = randomPrisonNumber()
       val existingCurrentReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createRandomReligion(code = ReligionCode.AGNO.toString())))
-      val existingPersonEntity = PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = existingCurrentReligionEntity.code))
+      val existingPersonEntity = PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = existingCurrentReligionEntity.code.name))
       personRepository.saveAndFlush(existingPersonEntity)
 
       val requestBody = createRandomReligionUpdateRequest(current = false)
@@ -99,7 +99,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
       val existingCurrentReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createRandomReligion(code = ReligionCode.AGNO.toString())))
       val existingNonCurrentReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createRandomReligion(current = false, code = ReligionCode.BAHA.toString())))
-      val existingPersonEntity = PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = existingCurrentReligionEntity.code))
+      val existingPersonEntity = PersonEntity.new(createRandomPrisonPersonDetails(prisonNumber).copy(religion = existingCurrentReligionEntity.code.name))
       personRepository.saveAndFlush(existingPersonEntity)
 
       val requestBody = createRandomReligionUpdateRequest(current = true)

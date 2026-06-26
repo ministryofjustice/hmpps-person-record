@@ -11,6 +11,7 @@ import jakarta.persistence.Table
 import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -36,7 +37,7 @@ class PrisonReligionEntity(
   val prisonNumber: String,
 
   @Column(name = "religion_code", nullable = false)
-  var code: String,
+  var code: ReligionCode,
 
   @Column(name = "change_reason_known", nullable = false)
   var changeReasonKnown: Boolean,
@@ -71,7 +72,7 @@ class PrisonReligionEntity(
   companion object {
     fun from(prisonNumber: String, prisonReligionHistory: PrisonReligionHistory) = PrisonReligionEntity(
       prisonNumber = prisonNumber,
-      code = prisonReligionHistory.religionCode,
+      code = ReligionCode.valueOf(prisonReligionHistory.religionCode),
       changeReasonKnown = prisonReligionHistory.changeReasonKnown,
       comments = prisonReligionHistory.comments,
       startDate = prisonReligionHistory.startDate,
