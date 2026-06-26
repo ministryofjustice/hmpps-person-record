@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
-import java.time.LocalDateTime
 import kotlin.reflect.KClass
 
 @Component
@@ -40,7 +39,7 @@ class PersonService(
   }
 
   private fun create(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
-    val personEntity = PersonEntity.new(person, childrenToIgnore)
+    val personEntity = PersonEntity.new(person)
     personEntity.apply {
       when (personEntity.sourceSystem) {
         SourceSystemType.NOMIS -> fieldsToUpdatePrison(person)

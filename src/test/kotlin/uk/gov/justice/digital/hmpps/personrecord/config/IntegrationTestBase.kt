@@ -388,8 +388,10 @@ class IntegrationTestBase {
     return personRepository.findByMatchId(personEntity.matchId)!!
   }
 
-  internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(person)
-    .apply {  
+  internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
+    person
+  )
+    .apply {
       when (this.sourceSystem) {
       SourceSystemType.NOMIS -> fieldsToUpdatePrison(person)
       else -> fieldsToUpdate(person, emptySet())

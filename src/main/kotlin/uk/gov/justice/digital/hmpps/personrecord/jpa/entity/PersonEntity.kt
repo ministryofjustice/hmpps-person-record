@@ -281,7 +281,7 @@ class PersonEntity(
 
   companion object {
 
-    fun new(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
+    fun new(person: Person): PersonEntity {
       val personEntity = PersonEntity(sourceSystem = person.sourceSystem, matchId = UUID.randomUUID())
       return personEntity
     }
