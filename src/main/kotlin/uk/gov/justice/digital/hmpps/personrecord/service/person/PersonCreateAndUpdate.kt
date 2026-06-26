@@ -9,11 +9,12 @@ import kotlin.reflect.KClass
 fun PersonEntity.updatePersonEntity(
   person: Person,
   childrenToIgnore: Set<KClass<*>>,
-) {
+): PersonEntity {
   when (this.sourceSystem) {
     SourceSystemType.NOMIS -> fieldsToUpdatePrison(person)
     else -> fieldsToUpdate(person, childrenToIgnore)
   }
+  return this
 }
 
 private fun PersonEntity.fieldsToUpdatePrison(

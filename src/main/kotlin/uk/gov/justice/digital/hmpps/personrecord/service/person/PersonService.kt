@@ -38,7 +38,7 @@ class PersonService(
   }
 
   private fun create(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
-    val personEntity = PersonEntity.new(person.sourceSystem).apply { updatePersonEntity(person, childrenToIgnore) }
+    val personEntity = PersonEntity.new(person.sourceSystem).updatePersonEntity(person, childrenToIgnore)
     personRepository.save(personEntity)
 
     personMatchService.saveToPersonMatch(personEntity)
@@ -51,9 +51,7 @@ class PersonService(
 
   private fun update(person: Person, personEntity: PersonEntity, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
     val beforeUpdate = PersonMatchRecord.from(personEntity)
-    personEntity.apply {
-      updatePersonEntity(person, childrenToIgnore)
-    }
+    personEntity.updatePersonEntity(person, childrenToIgnore)
     personRepository.save(personEntity)
     val matchingFieldsChanged = beforeUpdate.matchingFieldsAreDifferent(personEntity)
     if (matchingFieldsChanged && !personEntity.isPassive()) {
