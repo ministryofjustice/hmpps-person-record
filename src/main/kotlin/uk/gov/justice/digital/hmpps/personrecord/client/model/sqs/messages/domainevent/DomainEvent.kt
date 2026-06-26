@@ -53,3 +53,12 @@ fun DomainEvent.getCrn() = this.personReference?.identifiers?.first { it.type ==
 sealed interface HmppsDomainEvent {
   val eventType: String
 }
+
+data class CprPersonCreated(
+  override val eventType: String,
+  val version: Int = 1,
+  val occurredAt: String,
+  val description: String,
+  val detailUrl: String,
+  val personReference: PersonReference,
+) : HmppsDomainEvent
