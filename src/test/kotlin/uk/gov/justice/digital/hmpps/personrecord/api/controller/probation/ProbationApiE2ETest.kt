@@ -38,6 +38,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
@@ -132,7 +134,7 @@ class ProbationApiE2ETest : E2ETestBase() {
             dateOfBirth = randomDate(),
             disability = randomBoolean(),
             immigrationStatus = randomBoolean(),
-            sourceSystem = NOMIS,
+            sourceSystem = DELIUS,
             titleCode = title.value,
             crn = crn,
             sexCode = primarySex.value,
