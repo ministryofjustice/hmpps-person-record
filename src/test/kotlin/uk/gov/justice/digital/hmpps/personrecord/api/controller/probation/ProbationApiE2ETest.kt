@@ -42,8 +42,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
-import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
@@ -611,10 +609,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         offender.personKey?.assertClusterStatus(ACTIVE)
         offender.personKey?.assertClusterIsOfSize(2)
 
-        probationDomainEventAndResponseSetup(
-          OFFENDER_PERSONAL_DETAILS_UPDATED,
-          ApiResponseSetup.from(probationCase.aboveFracture()),
-        )
+        probationUpdateEventAndResponseSetup(ApiResponseSetup.from(probationCase.aboveFracture()))
 
         checkTelemetry(
           CPR_RECORD_UPDATED,
@@ -632,10 +627,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         val defendant = createPersonWithNewKey(person)
 
         val crn = randomCrn()
-        probationDomainEventAndResponseSetup(
-          NEW_OFFENDER_CREATED,
-          ApiResponseSetup.from(createRandomProbationCase(crn)),
-        )
+        probationCreateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(crn)))
 
         val offender = awaitNotNull { personRepository.findByCrn(crn) }
 

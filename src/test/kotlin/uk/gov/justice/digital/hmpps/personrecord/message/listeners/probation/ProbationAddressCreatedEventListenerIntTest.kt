@@ -3,9 +3,9 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
 class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBase() {
@@ -21,7 +21,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     stubPersonMatchScores()
     stubGetRequestToProbation(probationAddress)
 
-    publishProbationAddressEvent(cprPerson.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_CREATED)
+    publishProbationOffenderAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
 
     val actualAddress = assertAddress(cprPerson.crn!!, probationAddress)
     assertDomainEventPublishedAfterDeliusEvent(
@@ -44,7 +44,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     val updatedProbationAddress = randomProbationAddress(originalProbationAddress.deliusAddressId)
     stubGetRequestToProbation(updatedProbationAddress)
 
-    publishProbationAddressEvent(personEntity.crn, originalProbationAddress.deliusAddressId, OFFENDER_ADDRESS_CREATED)
+    publishProbationOffenderAddressCreatedEvent(personEntity.crn, null, originalProbationAddress.deliusAddressId, DELIUS)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
@@ -68,7 +68,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
       .addPerson(cprPerson)
 
     stubGetRequestToProbation(probationAddress, status = 404)
-    publishProbationAddressEvent(cprPerson.crn, probationAddress.deliusAddressId, OFFENDER_ADDRESS_CREATED)
+    publishProbationOffenderAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
@@ -84,7 +84,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
       .addPerson(cprPerson)
 
     stubGetRequestToProbation(probationAddress)
-    publishProbationAddressEvent(randomCrn(), probationAddress.deliusAddressId, OFFENDER_ADDRESS_CREATED)
+    publishProbationOffenderAddressCreatedEvent(randomCrn(), null, probationAddress.deliusAddressId, DELIUS)
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)

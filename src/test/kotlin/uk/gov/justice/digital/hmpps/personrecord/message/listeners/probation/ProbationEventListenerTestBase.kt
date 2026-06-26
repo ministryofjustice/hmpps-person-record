@@ -11,11 +11,20 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressCreatedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressDeletedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressUpdatedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeletedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -44,6 +53,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationAddress
+import java.util.UUID
 
 class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
 
@@ -101,7 +111,15 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun publishProbationOffenderDeleteEvent(eventType: String, crn: String) {
+  fun publishProbationOffenderCreatedEvent(crn: String) {
+    publishDomainEvent(
+      ProbationOffenderCreated(
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
+      ),
+    )
+  }
+
+  fun publishProbationOffenderDeletedEvent(eventType: String, crn: String) {
     publishDomainEvent(
       ProbationOffenderDeleted(
         eventType = eventType,
@@ -110,16 +128,58 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun publishProbationAddressEvent(crn: String?, probationAddressId: Long?, eventType: String, eventSource: DomainEventSource? = DELIUS, cprUpdateId: String? = null) {
+  fun publishProbationOffenderAddressCreatedEvent(crn: String?, cprAddressId: UUID?, deliusAddressId: Long?, eventSource: DomainEventSource) {
     publishDomainEvent(
-      eventType,
-      DomainEvent(
-        eventType = eventType,
-        detailUrl = "/address/$probationAddressId",
-        additionalInformation = AdditionalInformation(inboundCprAddressId = cprUpdateId, inboundDeliusAddressId = probationAddressId),
+      ProbationOffenderAddressCreated(
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
+        additionalInformation = ProbationOffenderAddressCreatedInfo(
+          cprAddressId = cprAddressId.toString(),
+          deliusAddressId = deliusAddressId!!,
+        ),
       ),
       eventSource,
+    )
+  }
+
+  fun publishProbationOffenderAddressUpdatedEvent(crn: String?, deliusAddressId: Long?) {
+    publishDomainEvent(
+      ProbationOffenderAddressUpdated(
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
+        additionalInformation = ProbationOffenderAddressUpdatedInfo(
+          deliusAddressId = deliusAddressId!!,
+        ),
+      ),
+      DELIUS,
+    )
+  }
+
+  fun publishProbationAddressDeletedEvent(crn: String?, deliusAddressId: Long?) {
+    publishDomainEvent(
+      ProbationOffenderAddressDeleted(
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
+        additionalInformation = ProbationOffenderAddressDeletedInfo(
+          deliusAddressId = deliusAddressId!!,
+        ),
+      ),
+      eventSource = DELIUS,
+    )
+  }
+
+  fun publishSasAddressUpdatedEvent() {
+    publishDomainEvent(
+      SasAddressUpdated(
+        detailUrl = "/accommodations/1234",
+      ),
+    )
+  }
+
+  fun publishSasAddressDeletedEvent(cprAddressId: UUID) {
+    publishDomainEvent(
+      SasAddressDeleted(
+        additionalInformation = SasAddressDeletedInfo(
+          cprAddressId = cprAddressId.toString(),
+        ),
+      ),
     )
   }
 

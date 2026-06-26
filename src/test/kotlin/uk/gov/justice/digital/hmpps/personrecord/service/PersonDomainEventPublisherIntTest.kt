@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBa
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
@@ -68,10 +67,7 @@ class PersonDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
   fun `should publish a CPR person created domain event when a person is created in delius`() {
     val crn = randomCrn()
 
-    probationDomainEventAndResponseSetup(
-      NEW_OFFENDER_CREATED,
-      ApiResponseSetup.from(createRandomProbationCase(crn)),
-    )
+    probationCreateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(crn)))
 
     awaitNotNull {
       personRepository.findByCrn(crn)
