@@ -281,9 +281,7 @@ class PersonEntity(
 
   companion object {
 
-    fun new(person: Person): PersonEntity {
-      val personEntity = PersonEntity(sourceSystem = person.sourceSystem, matchId = UUID.randomUUID())
-      return personEntity
-    }
+    fun new(person: Person): PersonEntity =
+       PersonEntity(sourceSystem = person.sourceSystem, matchId = UUID.randomUUID())
   }
 }
