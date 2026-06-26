@@ -46,7 +46,7 @@ class PersonService(
         else -> fieldsToUpdate(person, childrenToIgnore)
       }
     }
-  personRepository.save(personEntity)
+    personRepository.save(personEntity)
 
     personMatchService.saveToPersonMatch(personEntity)
     if (person.behaviour.linkOnCreate) {

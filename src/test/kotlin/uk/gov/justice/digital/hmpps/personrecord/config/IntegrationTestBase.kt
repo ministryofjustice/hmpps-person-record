@@ -389,13 +389,14 @@ class IntegrationTestBase {
   }
 
   internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
-    person
+    person,
   )
     .apply {
       when (this.sourceSystem) {
-      SourceSystemType.NOMIS -> fieldsToUpdatePrison(person)
-      else -> fieldsToUpdate(person, emptySet())
-    } }
+        SourceSystemType.NOMIS -> fieldsToUpdatePrison(person)
+        else -> fieldsToUpdate(person, emptySet())
+      }
+    }
     .apply(configure)
     .let(personRepository::saveAndFlush)
 

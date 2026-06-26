@@ -198,7 +198,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `should receive the message successfully when prisoner updated event published`() {
       val prisonNumber = randomPrisonNumber()
-      val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = {religion=randomReligion()})
+      val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = randomReligion() })
 
       val updatedFirstName = randomName()
       val ethnicity = randomPrisonEthnicity()

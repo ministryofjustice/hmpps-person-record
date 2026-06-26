@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import java.time.LocalDateTime
 import kotlin.reflect.KClass
 
- fun PersonEntity.fieldsToUpdatePrison(
+fun PersonEntity.fieldsToUpdatePrison(
   person: Person,
 ) {
   this.defendantId = person.defendantId
