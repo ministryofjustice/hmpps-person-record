@@ -43,7 +43,7 @@ class PersonService(
     val personEntity = PersonEntity.new(person, childrenToIgnore)
     personEntity.apply {
       when (personEntity.sourceSystem) {
-        SourceSystemType.NOMIS -> fieldsToUpdatePrison(person, childrenToIgnore)
+        SourceSystemType.NOMIS -> fieldsToUpdatePrison(person)
         else -> fieldsToUpdate(person, childrenToIgnore)
       }
     }
@@ -61,7 +61,7 @@ class PersonService(
     val beforeUpdate = PersonMatchRecord.from(personEntity)
     personEntity.apply {
       when (personEntity.sourceSystem) {
-        SourceSystemType.NOMIS -> fieldsToUpdatePrison(person, childrenToIgnore)
+        SourceSystemType.NOMIS -> fieldsToUpdatePrison(person)
         else -> fieldsToUpdate(person, childrenToIgnore)
       }
     }

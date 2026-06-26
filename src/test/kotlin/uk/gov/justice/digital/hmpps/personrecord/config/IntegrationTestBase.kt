@@ -72,12 +72,15 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.review.ClusterType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.fieldsToUpdate
+import uk.gov.justice.digital.hmpps.personrecord.service.person.fieldsToUpdatePrison
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
@@ -279,7 +282,7 @@ class IntegrationTestBase {
         ),
       ),
     ),
-  ).copy(religion = randomReligion())
+  )
 
   internal fun createRandomLibraPersonDetails(cId: String = randomCId()): Person = Person.from(LibraHearingEvent(name = LibraName(firstName = randomName(), lastName = randomName()), cId = cId))
 
@@ -386,6 +389,11 @@ class IntegrationTestBase {
   }
 
   internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(person)
+    .apply {  
+      when (this.sourceSystem) {
+      SourceSystemType.NOMIS -> fieldsToUpdatePrison(person)
+      else -> fieldsToUpdate(person, emptySet())
+    } }
     .apply(configure)
     .let(personRepository::saveAndFlush)
 

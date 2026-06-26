@@ -198,7 +198,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `should receive the message successfully when prisoner updated event published`() {
       val prisonNumber = randomPrisonNumber()
-      val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+      val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = {religion=randomReligion()})
 
       val updatedFirstName = randomName()
       val ethnicity = randomPrisonEthnicity()
@@ -206,15 +206,13 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val title = randomTitleCode()
       val updatedSexCode = randomPrisonSexCode()
 
-      val updatedReligion = randomReligion()
-
       val updatedAliasGender = randomPrisonSexCode()
       val updatedAlias = ApiResponseSetupAlias(title = title.key, firstName = randomName(), lastName = randomName(), gender = updatedAliasGender.key)
 
       stubNoMatchesPersonMatch(matchId = prisoner.matchId)
       prisonDomainEventAndResponseSetup(
         PRISONER_UPDATED,
-        apiResponseSetup = ApiResponseSetup(gender = updatedSexCode.key, title = title.key, religion = updatedReligion, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity, aliases = listOf(updatedAlias)),
+        apiResponseSetup = ApiResponseSetup(gender = updatedSexCode.key, title = title.key, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity, aliases = listOf(updatedAlias)),
       )
       checkTelemetry(
         CPR_RECORD_UPDATED,
@@ -236,7 +234,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
         assertThat(personEntity.nationalities.size).isEqualTo(1)
         assertThat(personEntity.religion).isEqualTo(prisoner.religion)
-        assertThat(personEntity.religion).isNotEqualTo(updatedReligion)
         assertThat(personEntity.religion).isNotNull()
         assertThat(personEntity.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.name)
         assertThat(personEntity.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.description)

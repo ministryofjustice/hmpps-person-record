@@ -228,7 +228,7 @@ class PersonEntity(
     this.updateChildEntities(person, childrenToIgnore)
   }
 
-  fun updateChildEntities(person: Person, childrenToIgnore: Set<KClass<*>>) {
+  fun updateChildEntities(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()) {
     if (!childrenToIgnore.contains<Any>(AddressEntity::class)) {
       updatePersonAddresses(buildAddresses(person, this))
     }
@@ -283,7 +283,6 @@ class PersonEntity(
 
     fun new(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
       val personEntity = PersonEntity(sourceSystem = person.sourceSystem, matchId = UUID.randomUUID())
-      personEntity.update(person, childrenToIgnore)
       return personEntity
     }
   }

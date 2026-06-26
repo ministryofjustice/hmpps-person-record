@@ -7,7 +7,6 @@ import kotlin.reflect.KClass
 
  fun PersonEntity.fieldsToUpdatePrison(
   person: Person,
-  childrenToIgnore: Set<KClass<*>>,
 ) {
   this.defendantId = person.defendantId
   this.crn = person.crn
@@ -25,7 +24,7 @@ import kotlin.reflect.KClass
   this.birthplace = person.birthplace
   this.birthCountryCode = person.birthCountryCode
   this.nationalityNotes = person.nationalityNotes
-  this.updateChildEntities(person, childrenToIgnore)
+  this.updateChildEntities(person)
 }
 
 fun PersonEntity.fieldsToUpdate(
