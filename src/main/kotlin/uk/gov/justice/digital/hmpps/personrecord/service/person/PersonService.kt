@@ -40,14 +40,14 @@ class PersonService(
   }
 
   private fun create(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
-    val createPersonEntity = PersonEntity.new(person, childrenToIgnore)
-    createPersonEntity.apply {
-      when (createPersonEntity.sourceSystem) {
+    val personEntity = PersonEntity.new(person, childrenToIgnore)
+    personEntity.apply {
+      when (personEntity.sourceSystem) {
         SourceSystemType.NOMIS -> fieldsToUpdatePrison(person, childrenToIgnore)
         else -> fieldsToUpdate(person, childrenToIgnore)
       }
     }
-    val personEntity = personRepository.save(createPersonEntity)
+  personRepository.save(personEntity)
 
     personMatchService.saveToPersonMatch(personEntity)
     if (person.behaviour.linkOnCreate) {
