@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.service.person.fieldsToUpdate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -59,7 +60,8 @@ class PersonEntityMappingTest {
   @Test
   fun `should update all entity fields from dto`() {
     // PersonEntity.new calls update which sets values from Person
-    val entity = PersonEntity.new(createPerson())
+    val person = createPerson()
+    val entity = PersonEntity.new(person).apply { fieldsToUpdate(person, emptySet()) }
     val entityProps = PersonEntity::class.memberProperties.filterNot {
       it.name == "id" ||
         it.name == "overrideMarker" ||
@@ -154,7 +156,7 @@ class PersonEntityMappingTest {
     contacts = listOf(Contact(contactType = ContactType.HOME, contactValue = randomName())),
     addresses = listOf(Address(noFixedAbode = randomBoolean(), startDate = randomZonedDateTime(), endDate = randomZonedDateTime(), postcode = randomPostcode(), buildingName = randomName(), buildingNumber = randomBuildingNumber(), thoroughfareName = randomName(), dependentLocality = randomName(), postTown = randomName())),
     references = listOf(Reference(identifierType = IdentifierType.PNC, identifierValue = randomName())),
-    sourceSystem = SourceSystemType.NOMIS,
+    sourceSystem = SourceSystemType.DELIUS,
     sentences = listOf(SentenceInfo.from(SentenceInfoEntity(sentenceDate = randomDate()))),
     cId = randomCId(),
     sexCode = SexCode.M,
