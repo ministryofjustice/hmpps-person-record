@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
-import uk.gov.justice.digital.hmpps.personrecord.service.person.fieldsToUpdate
+import uk.gov.justice.digital.hmpps.personrecord.service.person.updatePersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -61,7 +61,8 @@ class PersonEntityMappingTest {
   fun `should update all entity fields from dto`() {
     // PersonEntity.new calls update which sets values from Person
     val person = createPerson()
-    val entity = PersonEntity.new(person).apply { fieldsToUpdate(person, emptySet()) }
+    val entity = PersonEntity.new(person)
+    entity.updatePersonEntity(person, emptySet())
     val entityProps = PersonEntity::class.memberProperties.filterNot {
       it.name == "id" ||
         it.name == "overrideMarker" ||

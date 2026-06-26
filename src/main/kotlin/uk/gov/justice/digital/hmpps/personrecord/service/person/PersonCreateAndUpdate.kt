@@ -2,10 +2,21 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import java.time.LocalDateTime
 import kotlin.reflect.KClass
 
-fun PersonEntity.fieldsToUpdatePrison(
+fun PersonEntity.updatePersonEntity(
+  person: Person,
+  childrenToIgnore: Set<KClass<*>>,
+) {
+  when (this.sourceSystem) {
+    SourceSystemType.NOMIS -> fieldsToUpdatePrison(person)
+    else -> fieldsToUpdate(person, childrenToIgnore)
+  }
+}
+
+private fun PersonEntity.fieldsToUpdatePrison(
   person: Person,
 ) {
   this.defendantId = person.defendantId
@@ -27,7 +38,7 @@ fun PersonEntity.fieldsToUpdatePrison(
   this.updateChildEntities(person)
 }
 
-fun PersonEntity.fieldsToUpdate(
+private fun PersonEntity.fieldsToUpdate(
   person: Person,
   childrenToIgnore: Set<KClass<*>>,
 ) {

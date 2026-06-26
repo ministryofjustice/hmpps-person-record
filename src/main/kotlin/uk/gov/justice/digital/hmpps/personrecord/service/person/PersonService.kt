@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchR
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonProcessingCompleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
@@ -39,13 +38,7 @@ class PersonService(
   }
 
   private fun create(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
-    val personEntity = PersonEntity.new(person)
-    personEntity.apply {
-      when (personEntity.sourceSystem) {
-        SourceSystemType.NOMIS -> fieldsToUpdatePrison(person)
-        else -> fieldsToUpdate(person, childrenToIgnore)
-      }
-    }
+    val personEntity = PersonEntity.new(person).apply { updatePersonEntity(person, childrenToIgnore) }
     personRepository.save(personEntity)
 
     personMatchService.saveToPersonMatch(personEntity)
@@ -59,10 +52,7 @@ class PersonService(
   private fun update(person: Person, personEntity: PersonEntity, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
     val beforeUpdate = PersonMatchRecord.from(personEntity)
     personEntity.apply {
-      when (personEntity.sourceSystem) {
-        SourceSystemType.NOMIS -> fieldsToUpdatePrison(person)
-        else -> fieldsToUpdate(person, childrenToIgnore)
-      }
+      updatePersonEntity(person, childrenToIgnore)
     }
     personRepository.save(personEntity)
     val matchingFieldsChanged = beforeUpdate.matchingFieldsAreDifferent(personEntity)
