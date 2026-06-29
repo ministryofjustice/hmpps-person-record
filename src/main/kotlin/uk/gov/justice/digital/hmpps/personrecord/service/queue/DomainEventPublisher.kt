@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.queue
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.HmppsDomainEvent
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import uk.gov.justice.hmpps.sqs.publish
@@ -17,7 +17,7 @@ class DomainEventPublisher(
     hmppsQueueService.findByTopicId("domainevents")
       ?: throw MissingTopicException("Could not find topic domainevents")
 
-  fun publish(domainEvent: DomainEvent, attributes: Map<String, String> = emptyMap()) {
+  fun publish(domainEvent: HmppsDomainEvent, attributes: Map<String, String> = emptyMap()) {
     val sqsAttributes = attributes.map {
       it.key to MessageAttributeValue.builder()
         .dataType("String")
