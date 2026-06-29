@@ -4,33 +4,35 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.client.SasAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.SasClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressArrived
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import java.time.LocalDate
+import java.util.UUID
 
 @Component
 class SasAddressPromotionHandler(
   private val sasClient: SasClient,
-  private val personRepository: PersonRepository,
+  private val addressRepository: AddressRepository,
   private val addressService: AddressService,
 ) {
 
   @Transactional
-  fun handle(event: DomainEvent) {
-    val sasAddress = sasClient.getAddress(event.detailUrl!!)
-    val personEntity = personRepository.findByCrn(sasAddress.crn)!!
+  fun handle(event: SasAddressArrived) {
+    val sasAddress = sasClient.getAddress(event.detailUrl)
+    val addressEntity = addressRepository.findByUpdateId(UUID.fromString(event.additionalInformation.corePersonAddressId))!!
+    val personEntity = addressEntity.person!!
     personEntity.demoteMainAddressIfPresent(sasAddress)
 
     addressService.processAddress(
       address = sasAddress.address,
       findPerson = { personEntity },
-      findAddress = { personEntity.addresses.first { it.updateId.toString() == sasAddress.cprAddressId.toString() } },
+      findAddress = { addressEntity },
       eventSource = DomainEventSource.CPR,
     )
   }

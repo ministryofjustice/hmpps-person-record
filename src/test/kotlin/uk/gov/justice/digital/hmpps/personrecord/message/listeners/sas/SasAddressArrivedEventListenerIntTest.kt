@@ -37,7 +37,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
-//      publishSasAddressEvent(personEntity.crn!!, SAS_ADDRESS_ARRIVED)
+      publishSasAddressArrivedEvent(originalAddressEntity.updateId)
 
       awaitAssert {
         val actualAddressEntity = addressRepository.findByUpdateId(originalAddressEntity.updateId!!)!!
@@ -70,7 +70,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
-//      publishSasAddressEvent(personEntity.crn!!, SAS_ADDRESS_ARRIVED)
+      publishSasAddressArrivedEvent(originalPreviousAddress.updateId)
 
       awaitAssert {
         val actualDemotedAddress = addressRepository.findByUpdateId(originalMainAddress.updateId!!)!!
@@ -103,7 +103,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
-//      publishSasAddressEvent(personEntity.crn!!, SAS_ADDRESS_ARRIVED)
+      publishSasAddressArrivedEvent(originalMainAddress.updateId)
 
       awaitAssert {
         val actualAddress = addressRepository.findByUpdateId(originalMainAddress.updateId!!)!!
@@ -128,7 +128,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       createPersonKey().addPerson(personEntity)
 
       stubGetRequestToSas(null, status = 404)
-//      publishSasAddressEvent(personEntity.crn!!, SAS_ADDRESS_ARRIVED)
+      publishSasAddressArrivedEvent(personEntity.addresses.first().updateId)
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)
@@ -145,11 +145,11 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       )
       createPersonKey().addPerson(personEntity)
 
-      val sasCallbackResponse = createSasAddressGetResponse(personEntity.crn, UUID.randomUUID()).data
+      val sasCallbackResponse = createSasAddressGetResponse(personEntity.crn, personEntity.addresses.first().updateId).data
         .copy(typeVerified = true, statusCode = SasAddressStatus(AddressStatusCode.M.name), startDate = randomDate())
 
       stubGetRequestToSas(SasGetAddressResponse(sasCallbackResponse))
-//      publishSasAddressEvent(personEntity.crn!!, SAS_ADDRESS_ARRIVED)
+      publishSasAddressArrivedEvent(UUID.randomUUID())
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)

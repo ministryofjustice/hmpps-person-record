@@ -26,6 +26,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressUpdatedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressArrived
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressArrivedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeletedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressUpdated
@@ -178,6 +180,17 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     publishDomainEvent(
       SasAddressUpdated(
         detailUrl = "/accommodations/1234",
+      ),
+    )
+  }
+
+  fun publishSasAddressArrivedEvent(cprAddressUpdateId: UUID?) {
+    publishDomainEvent(
+      SasAddressArrived(
+        detailUrl = "/accommodations/1234",
+        additionalInformation = SasAddressArrivedInfo(
+          corePersonAddressId = cprAddressUpdateId.toString(),
+        ),
       ),
     )
   }
