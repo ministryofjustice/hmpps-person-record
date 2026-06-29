@@ -25,7 +25,7 @@ class SasEventListener(
   private val personRepository: PersonRepository,
   private val addressRepository: AddressRepository,
   private val addressService: AddressService,
-  private val sasAddressPromotionHandler: SasAddressPromotionHandler,
+  private val sasAddressArrivedHandler: SasAddressArrivedHandler,
 ) {
 
   @SqsListener(SAS_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
@@ -33,7 +33,7 @@ class SasEventListener(
     when (event) {
       is SasAddressUpdated -> processSasAddressUpdated(event)
       is SasAddressDeleted -> processSasAddressDeleted(event)
-      is SasAddressArrived -> sasAddressPromotionHandler.handle(event)
+      is SasAddressArrived -> sasAddressArrivedHandler.handle(event)
       else -> log.info("Discarding message, unexpected event: $event")
     }
   }

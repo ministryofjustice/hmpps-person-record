@@ -16,7 +16,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 @Component
-class SasAddressPromotionHandler(
+class SasAddressArrivedHandler(
   private val sasClient: SasClient,
   private val addressRepository: AddressRepository,
   private val addressService: AddressService,
