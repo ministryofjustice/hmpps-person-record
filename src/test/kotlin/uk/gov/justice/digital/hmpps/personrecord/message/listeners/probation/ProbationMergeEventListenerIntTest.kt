@@ -4,13 +4,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMergedInfo
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -30,7 +29,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails(targetCrn))
 
       stubPersonMatchUpsert()
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
+      probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
 
       checkTelemetry(
         CPR_RECORD_MERGED,
@@ -54,7 +53,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
       stubDeletePersonMatch()
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourcePerson.crn!!, targetCrn)
+      probationMergeEventAndResponseSetup(sourcePerson.crn!!, targetCrn)
 
       val targetPerson = awaitNotNull { personRepository.findByCrn(targetCrn) }
       sourcePerson.assertMergedTo(targetPerson)
@@ -100,7 +99,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails(targetCrn))
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
+      probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
 
       checkTelemetry(
         CPR_RECORD_UPDATED,
@@ -140,7 +139,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
       val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails(targetCrn))
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
+      probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
 
       checkTelemetry(
         CPR_RECORD_MERGED,
@@ -166,7 +165,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
       val sourceClusterId = sourcePerson.personKey?.id
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourcePerson.crn!!, targetPerson.crn!!)
+      probationMergeEventAndResponseSetup(sourcePerson.crn!!, targetPerson.crn!!)
 
       checkTelemetry(
         CPR_RECORD_MERGED,
@@ -206,7 +205,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         .addPerson(sourcePerson)
         .addPerson(targetPerson)
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn, scenario = "retry", currentScenarioState = "next request will succeed")
+      probationMergeEventAndResponseSetup(sourceCrn, targetCrn, scenario = "retry", currentScenarioState = "next request will succeed")
 
       expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
       sourcePerson.assertMergedTo(targetPerson)
@@ -233,7 +232,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       // stubs for successful delete
       stubDeletePersonMatch(currentScenarioState = "deleteWillWork")
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn, currentScenarioState = "deleteWillWork", nextScenarioState = "deleteWillWork", apiResponseSetup = response)
+      probationMergeEventAndResponseSetup(sourceCrn, targetCrn, currentScenarioState = "deleteWillWork", nextScenarioState = "deleteWillWork", apiResponseSetup = response)
 
       sourcePersonEntity.assertMergedTo(targetPersonEntity)
     }
@@ -250,7 +249,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       stubDeletePersonMatch(status = 404)
       stubPersonMatchUpsert()
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
+      probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
       sourcePerson.assertMergedTo(targetPerson)
     }
   }
@@ -277,10 +276,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
 
       publishDomainEvent(
-        OFFENDER_MERGED,
-        DomainEvent(
-          eventType = OFFENDER_MERGED,
-          additionalInformation = AdditionalInformation(
+        ProbationOffenderMerged(
+          additionalInformation = ProbationOffenderMergedInfo(
             sourceCrn = sourceCrn,
             targetCrn = targetCrn,
           ),
@@ -300,7 +297,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       stubDeletePersonMatch()
       stubPersonMatchUpsert()
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordACrn, recordBCrn)
+      probationMergeEventAndResponseSetup(recordACrn, recordBCrn)
 
       checkTelemetry(
         CPR_RECORD_MERGED,
@@ -311,7 +308,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordBCrn, recordACrn)
+      probationMergeEventAndResponseSetup(recordBCrn, recordACrn)
 
       expectOneMessageOnDlq(probationMergeEventsQueue)
 

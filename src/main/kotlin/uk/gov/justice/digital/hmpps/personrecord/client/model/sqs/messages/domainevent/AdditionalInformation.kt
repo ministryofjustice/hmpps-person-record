@@ -8,18 +8,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AdditionalInformation(
 
-  @JsonProperty("sourceCRN")
-  val sourceCrn: String? = null,
-
-  @JsonProperty("targetCRN")
-  val targetCrn: String? = null,
-
-  @JsonProperty("reactivatedCRN")
-  val reactivatedCrn: String? = null,
-
-  @JsonProperty("unmergedCRN")
-  val unmergedCrn: String? = null,
-
   @JsonProperty("removedNomsNumber")
   val sourcePrisonNumber: String? = null,
 

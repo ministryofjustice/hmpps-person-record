@@ -4,17 +4,15 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
-class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
+class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
 
   @BeforeEach
   fun beforeEach() {
@@ -34,7 +32,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
           stubPersonMatchScores()
         }
 
-      publishProbationDomainEvent(OFFENDER_GDPR_DELETION, crn)
+      publishProbationOffenderDeletedEvent(OFFENDER_GDPR_DELETION, crn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
@@ -51,7 +49,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     fun `when cluster has one person - deletes person and cluster`() {
       val crn = randomCrn()
       val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
-      publishProbationDomainEvent(OFFENDER_DELETION, crn)
+      publishProbationOffenderDeletedEvent(OFFENDER_DELETION, crn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
@@ -89,7 +87,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
           stubPersonMatchScores()
         }
 
-      publishProbationDomainEvent(OFFENDER_DELETION, crn)
+      publishProbationOffenderDeletedEvent(OFFENDER_DELETION, crn)
 
       checkTelemetry(CPR_RECORD_DELETED, mapOf("CRN" to crn, "SOURCE_SYSTEM" to "DELIUS"))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_DELETED)
@@ -117,11 +115,11 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
       val recordB = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordBCrn, recordACrn)
+      probationMergeEventAndResponseSetup(recordBCrn, recordACrn)
       checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      publishProbationDomainEvent(OFFENDER_DELETION, recordBCrn)
+      publishProbationOffenderDeletedEvent(OFFENDER_DELETION, recordBCrn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
@@ -146,11 +144,11 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
         .addPerson(recordA)
         .addPerson(recordB)
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordBCrn, recordACrn)
+      probationMergeEventAndResponseSetup(recordBCrn, recordACrn)
       checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
+      publishProbationOffenderDeletedEvent(OFFENDER_DELETION, recordACrn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
@@ -180,11 +178,11 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       val mergedTo = createPersonWithNewKey(createRandomProbationPersonDetails(mergedToCrn))
       val mergedFrom = createPersonWithNewKey(createRandomProbationPersonDetails(mergedFromCrn))
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, mergedFromCrn, mergedToCrn)
+      probationMergeEventAndResponseSetup(mergedFromCrn, mergedToCrn)
       checkEventLogExist(mergedToCrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(mergedFromCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      publishProbationDomainEvent(OFFENDER_DELETION, mergedToCrn)
+      publishProbationOffenderDeletedEvent(OFFENDER_DELETION, mergedToCrn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
@@ -220,15 +218,15 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       val recordB = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
       val recordC = createPersonWithNewKey(createRandomProbationPersonDetails(recordCCrn))
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordCCrn, recordBCrn)
+      probationMergeEventAndResponseSetup(recordCCrn, recordBCrn)
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordBCrn, recordACrn)
+      probationMergeEventAndResponseSetup(recordBCrn, recordACrn)
       checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
+      publishProbationOffenderDeletedEvent(OFFENDER_DELETION, recordACrn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
@@ -266,15 +264,15 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       val recordB = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
       val recordC = createPersonWithNewKey(createRandomProbationPersonDetails(recordCCrn))
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordBCrn, recordACrn)
+      probationMergeEventAndResponseSetup(recordBCrn, recordACrn)
       checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordCCrn, recordACrn)
+      probationMergeEventAndResponseSetup(recordCCrn, recordACrn)
       checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED, 2)
       checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
+      publishProbationOffenderDeletedEvent(OFFENDER_DELETION, recordACrn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
@@ -315,19 +313,19 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       val recordC = createPersonWithNewKey(createRandomProbationPersonDetails(recordCCrn))
       val recordD = createPersonWithNewKey(createRandomProbationPersonDetails(recordDCrn))
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordDCrn, recordCCrn)
+      probationMergeEventAndResponseSetup(recordDCrn, recordCCrn)
       checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordDCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordCCrn, recordACrn)
+      probationMergeEventAndResponseSetup(recordCCrn, recordACrn)
       checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordBCrn, recordACrn)
+      probationMergeEventAndResponseSetup(recordBCrn, recordACrn)
       checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED, 2)
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      publishProbationDomainEvent(OFFENDER_DELETION, recordACrn)
+      publishProbationOffenderDeletedEvent(OFFENDER_DELETION, recordACrn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
@@ -371,7 +369,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     stubPersonMatchUpsert()
     excludeRecord(personA, personB)
 
-    publishProbationDomainEvent(OFFENDER_DELETION, personA.crn!!)
+    publishProbationOffenderDeletedEvent(OFFENDER_DELETION, personA.crn!!)
 
     checkTelemetry(
       CPR_RECORD_DELETED,

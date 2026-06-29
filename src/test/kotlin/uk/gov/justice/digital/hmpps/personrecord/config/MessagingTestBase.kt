@@ -13,8 +13,15 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMergedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnmerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnmergedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
@@ -149,6 +156,27 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     } matches { it == 1 }
   }
 
+  fun publishDomainEvent(domainEvent: HmppsDomainEvent, eventSource: DomainEventSource? = null) {
+    val messageAttributes = mutableMapOf(
+      "eventType" to MessageAttributeValue.builder().dataType("String")
+        .stringValue(domainEvent.eventType).build(),
+    )
+    if (eventSource != null) {
+      messageAttributes["eventSource"] = MessageAttributeValue.builder().dataType("String")
+        .stringValue(eventSource.identifier).build()
+    }
+    publishEvent(
+      message = jsonMapper.writeValueAsString(domainEvent),
+      topic = domainEventsTopic,
+      messageAttributes = messageAttributes,
+      eventType = domainEvent.eventType,
+    )
+    expectNoMessagesOn(probationEventsQueue)
+    expectNoMessagesOn(probationMergeEventsQueue)
+    expectNoMessagesOn(prisonMergeEventsQueue)
+    expectNoMessagesOn(prisonEventsQueue)
+  }
+
   fun publishDomainEvent(eventType: String, domainEvent: DomainEvent, eventSource: DomainEventSource? = null) {
     val messageAttributes = mutableMapOf(
       "eventType" to MessageAttributeValue.builder().dataType("String")
@@ -178,7 +206,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   ): String? = topic?.publish(event = message, eventType = eventType, attributes = messageAttributes)?.messageId()
 
   fun probationMergeEventAndResponseSetup(
-    eventType: String,
     sourceCrn: String,
     targetCrn: String,
     scenario: String = BASE_SCENARIO,
@@ -188,10 +215,8 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   ) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
     publishDomainEvent(
-      eventType,
-      DomainEvent(
-        eventType = eventType,
-        additionalInformation = AdditionalInformation(
+      ProbationOffenderMerged(
+        additionalInformation = ProbationOffenderMergedInfo(
           sourceCrn = sourceCrn,
           targetCrn = targetCrn,
         ),
@@ -200,7 +225,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   }
 
   fun probationUnmergeEventAndResponseSetup(
-    eventType: String,
     reactivatedCrn: String,
     unmergedCrn: String,
     scenario: String = BASE_SCENARIO,
@@ -211,15 +235,40 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   ) {
     stubSingleProbationResponse(reactivatedSetup, scenario, currentScenarioState, nextScenarioState)
     stubSingleProbationResponse(unmergedSetup, scenario, currentScenarioState, nextScenarioState)
-
     publishDomainEvent(
-      eventType,
-      DomainEvent(
-        eventType = eventType,
-        additionalInformation = AdditionalInformation(
+      ProbationOffenderUnmerged(
+        additionalInformation = ProbationOffenderUnmergedInfo(
           reactivatedCrn = reactivatedCrn,
           unmergedCrn = unmergedCrn,
         ),
+      ),
+    )
+  }
+
+  fun probationCreateEventAndResponseSetup(
+    apiResponseSetup: ApiResponseSetup,
+    scenario: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = STARTED,
+  ) {
+    stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
+    publishDomainEvent(
+      ProbationOffenderCreated(
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", apiResponseSetup.crn!!))),
+      ),
+    )
+  }
+
+  fun probationUpdateEventAndResponseSetup(
+    apiResponseSetup: ApiResponseSetup,
+    scenario: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = STARTED,
+  ) {
+    stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
+    publishDomainEvent(
+      ProbationOffenderUpdated(
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", apiResponseSetup.crn!!))),
       ),
     )
   }

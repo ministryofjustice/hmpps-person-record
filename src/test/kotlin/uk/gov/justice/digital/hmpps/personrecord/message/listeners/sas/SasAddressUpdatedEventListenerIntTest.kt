@@ -8,10 +8,8 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDeliusAddressId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -32,13 +30,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       assertThat(existingAddressEntity.deliusAddressId).isNull()
 
-      publishProbationAddressEvent(
-        crn,
-        deliusAddressId,
-        OFFENDER_ADDRESS_CREATED,
-        DomainEventSource.CPR,
-        existingAddressEntity.updateId.toString(),
-      )
+      publishProbationOffenderAddressCreatedEvent(crn, existingAddressEntity.updateId, deliusAddressId, CPR)
 
       awaitNotNull {
         addressRepository.findByDeliusAddressId(deliusAddressId)
@@ -50,7 +42,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
       stubPersonMatchScores()
       stubGetRequestToSas(sasCallbackResponse)
 
-      publishSasAddressEvent(crn!!, SAS_ADDRESS_UPDATED)
+      publishSasAddressUpdatedEvent()
 
       val actualAddress = assertAddressUpdated(crn, sasCallbackResponse, deliusAddressId)
       assertDomainEventPublishedAfterSasEvent(
@@ -73,7 +65,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       stubGetRequestToSas(status = 404)
 
-      publishSasAddressEvent(existingPersonEntity.crn!!, SAS_ADDRESS_UPDATED)
+      publishSasAddressUpdatedEvent()
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)
@@ -93,7 +85,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       stubGetRequestToSas(sasCallbackResponse)
 
-      publishSasAddressEvent(existingPersonEntity.crn!!, SAS_ADDRESS_UPDATED)
+      publishSasAddressUpdatedEvent()
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)
@@ -112,7 +104,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       stubGetRequestToSas(sasCallbackResponse)
 
-      publishSasAddressEvent(existingPersonEntity.crn!!, SAS_ADDRESS_UPDATED)
+      publishSasAddressUpdatedEvent()
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)

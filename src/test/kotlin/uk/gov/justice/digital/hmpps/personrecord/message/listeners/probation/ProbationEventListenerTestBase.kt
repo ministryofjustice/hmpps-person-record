@@ -15,10 +15,20 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressCreatedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressDeletedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressUpdatedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeletedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -110,27 +120,73 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun publishProbationAddressEvent(crn: String?, probationAddressId: Long?, eventType: String, eventSource: DomainEventSource? = DELIUS, cprUpdateId: String? = null) {
+  fun publishProbationOffenderCreatedEvent(crn: String) {
     publishDomainEvent(
-      eventType,
-      DomainEvent(
+      ProbationOffenderCreated(
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
+      ),
+    )
+  }
+
+  fun publishProbationOffenderDeletedEvent(eventType: String, crn: String) {
+    publishDomainEvent(
+      ProbationOffenderDeleted(
         eventType = eventType,
-        detailUrl = "/address/$probationAddressId",
-        additionalInformation = AdditionalInformation(inboundCprAddressId = cprUpdateId, inboundDeliusAddressId = probationAddressId),
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
+      ),
+    )
+  }
+
+  fun publishProbationOffenderAddressCreatedEvent(crn: String?, cprAddressId: UUID?, deliusAddressId: Long?, eventSource: DomainEventSource) {
+    publishDomainEvent(
+      ProbationOffenderAddressCreated(
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
+        additionalInformation = ProbationOffenderAddressCreatedInfo(
+          cprAddressId = cprAddressId.toString(),
+          deliusAddressId = deliusAddressId!!,
+        ),
       ),
       eventSource,
     )
   }
 
-  fun publishSasAddressEvent(crn: String, eventTye: String) {
+  fun publishProbationOffenderAddressUpdatedEvent(crn: String?, deliusAddressId: Long?) {
     publishDomainEvent(
-      eventTye,
-      DomainEvent(
-        eventType = eventTye,
+      ProbationOffenderAddressUpdated(
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
+        additionalInformation = ProbationOffenderAddressUpdatedInfo(
+          deliusAddressId = deliusAddressId!!,
+        ),
+      ),
+      DELIUS,
+    )
+  }
+
+  fun publishProbationAddressDeletedEvent(crn: String?, deliusAddressId: Long?) {
+    publishDomainEvent(
+      ProbationOffenderAddressDeleted(
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
+        additionalInformation = ProbationOffenderAddressDeletedInfo(
+          deliusAddressId = deliusAddressId!!,
+        ),
+      ),
+      eventSource = DELIUS,
+    )
+  }
+
+  fun publishSasAddressUpdatedEvent() {
+    publishDomainEvent(
+      SasAddressUpdated(
         detailUrl = "/accommodations/1234",
-        additionalInformation = AdditionalInformation(
-          sourceCrn = crn,
+      ),
+    )
+  }
+
+  fun publishSasAddressDeletedEvent(cprAddressId: UUID) {
+    publishDomainEvent(
+      SasAddressDeleted(
+        additionalInformation = SasAddressDeletedInfo(
+          cprAddressId = cprAddressId.toString(),
         ),
       ),
     )
@@ -210,13 +266,14 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
   }
 
   fun assertDomainEventPublishedAfterDeliusEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) {
-    val (addressEntity, domainEvent: DomainEvent) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, DELIUS)
-    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity?.deliusAddressId)
+    val (_, domainEvent) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, DELIUS)
+    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isNull()
   }
 
-  fun assertDomainEventPublishedAfterDeliusAddressDeleteEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, DELIUS)
-
-  fun assertDomainEventPublishedAfterSasEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, CPR)
+  fun assertDomainEventPublishedAfterSasEvent(expectedEventType: String, crn: String, cprAddressUpdateId: String) {
+    val (addressEntity, domainEvent) = checkDomainEventPublished(crn, expectedEventType, cprAddressUpdateId, CPR)
+    assertThat(domainEvent.additionalInformation?.outboundDeliusAddressId).isEqualTo(addressEntity?.deliusAddressId)
+  }
 
   private fun checkDomainEventPublished(
     crn: String,

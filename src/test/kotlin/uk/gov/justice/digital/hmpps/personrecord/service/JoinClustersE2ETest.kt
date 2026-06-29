@@ -11,8 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEED
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_DELIUS_MERGE_REQUEST_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
@@ -66,7 +64,7 @@ class JoinClustersE2ETest : E2ETestBase() {
       ),
       sentences = listOf(),
     )
-    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, deliusSetup)
+    probationCreateEventAndResponseSetup(deliusSetup)
     val deliusPersonRecord = awaitNotNull { personRepository.findByCrn(crn) }
 
     publishLibraMessage(libraHearing(cro = cro2, firstName = firstName, foreName2 = middleName, cId = cId, lastName = lastName, postcode = postCode1, dateOfBirth = date1.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
@@ -137,7 +135,7 @@ class JoinClustersE2ETest : E2ETestBase() {
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
       sentences = listOf(ApiResponseSetupSentences(basePerson.sentences.first().sentenceDate)),
     )
-    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
+    probationCreateEventAndResponseSetup(firstSetup)
 
     val firstPersonRecord = awaitNotNull { personRepository.findByCrn(firstCrnWithPnc) }
     assertThat(firstPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
@@ -159,7 +157,7 @@ class JoinClustersE2ETest : E2ETestBase() {
       dateOfBirth = basePerson.dateOfBirth,
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
     )
-    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, secondSetup)
+    probationCreateEventAndResponseSetup(secondSetup)
 
     val secondPersonRecord = awaitNotNull { personRepository.findByCrn(secondCrnWithCro) }
     assertThat(secondPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
@@ -179,7 +177,7 @@ class JoinClustersE2ETest : E2ETestBase() {
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
       sentences = listOf(ApiResponseSetupSentences(basePerson.sentences.first().sentenceDate)),
     )
-    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, thirdSetup)
+    probationCreateEventAndResponseSetup(thirdSetup)
 
     val thirdPersonRecord = awaitNotNull { personRepository.findByCrn(thirdCrnWithBoth) }
     assertThat(thirdPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
@@ -207,7 +205,7 @@ class JoinClustersE2ETest : E2ETestBase() {
       dateOfBirth = basePerson.dateOfBirth,
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
     )
-    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
+    probationCreateEventAndResponseSetup(firstSetup)
 
     val firstPersonRecord = awaitNotNull { personRepository.findByCrn(firstCrnWithPnc) }
     assertThat(firstPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
@@ -228,7 +226,7 @@ class JoinClustersE2ETest : E2ETestBase() {
       dateOfBirth = basePerson.dateOfBirth,
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
     )
-    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, secondSetup)
+    probationCreateEventAndResponseSetup(secondSetup)
 
     val secondPersonRecord = awaitNotNull { personRepository.findByCrn(secondCrnWithCro) }
     assertThat(secondPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
@@ -244,10 +242,10 @@ class JoinClustersE2ETest : E2ETestBase() {
 
     val basePerson = createRandomProbationCase(firstCrn)
     val firstSetup = ApiResponseSetup.from(basePerson)
-    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
+    probationCreateEventAndResponseSetup(firstSetup)
 
     val secondSetup = ApiResponseSetup.from(basePerson, secondCrn)
-    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, secondSetup)
+    probationCreateEventAndResponseSetup(secondSetup)
 
     val secondPersonRecord = awaitNotNull { personRepository.findByCrn(secondCrn) }
     checkTelemetry(
@@ -270,13 +268,13 @@ class JoinClustersE2ETest : E2ETestBase() {
 
     val firstSetup = ApiResponseSetup.from(basePersonData)
 
-    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
+    probationCreateEventAndResponseSetup(firstSetup)
     var firstPersonRecord = awaitNotNull { personRepository.findByCrn(firstCrn) }
     assertThat(firstPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
 
     val secondSetup = ApiResponseSetup.from(basePersonData, secondCrn)
 
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, secondCrn, firstCrn, reactivatedSetup = secondSetup, unmergedSetup = firstSetup)
+    probationUnmergeEventAndResponseSetup(secondCrn, firstCrn, reactivatedSetup = secondSetup, unmergedSetup = firstSetup)
     awaitAssert { assertThat(personRepository.findByCrn(secondCrn)?.personKey).isNotNull() }
     var secondPersonRecord = awaitNotNull { personRepository.findByCrn(secondCrn) }
     assertThat(secondPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
@@ -285,7 +283,7 @@ class JoinClustersE2ETest : E2ETestBase() {
 
     val thirdSetup = ApiResponseSetup.from(basePersonData, thirdCrn)
 
-    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, thirdSetup)
+    probationCreateEventAndResponseSetup(thirdSetup)
 
     val thirdPersonRecord = awaitNotNull { personRepository.findByCrn(thirdCrn) }
     thirdPersonRecord.personKey!!.assertClusterStatus(NEEDS_ATTENTION, OVERRIDE_CONFLICT)

@@ -6,15 +6,15 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class PrisonReligion(
-  val religionCode: String? = null,
-  val religionDescription: String? = null,
-  val changeReasonKnown: Boolean? = null,
+  val religionCode: String,
+  val religionDescription: String?,
+  val changeReasonKnown: Boolean,
   val comments: String? = null,
-  val startDate: LocalDate? = null,
+  val startDate: LocalDate,
   val endDate: LocalDate? = null,
   val modifyDateTime: LocalDateTime? = null,
   val modifyUserId: String? = null,
-  val current: Boolean? = null,
+  val current: Boolean,
   val createDateTime: LocalDateTime,
   val createUserId: String,
 ) {

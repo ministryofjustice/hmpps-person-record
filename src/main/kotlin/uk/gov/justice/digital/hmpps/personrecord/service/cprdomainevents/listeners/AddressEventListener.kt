@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.AddressEventPublisher
 
-@Profile("!preprod & !prod")
+@Profile("!prod")
 @Component
 class AddressEventListener(addressEventPublishers: List<AddressEventPublisher>) {
 

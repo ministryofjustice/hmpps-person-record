@@ -4,9 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNull
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 
@@ -22,13 +20,7 @@ class ProbationAddressCircularEventListenerIntTest : ProbationEventListenerTestB
     val deliusAddressId = randomDigit().toLong()
 
     assertNull(addressEntity.deliusAddressId)
-    publishProbationAddressEvent(
-      crn,
-      deliusAddressId,
-      OFFENDER_ADDRESS_CREATED,
-      DomainEventSource.CPR,
-      addressEntity.updateId.toString(),
-    )
+    publishProbationOffenderAddressCreatedEvent(crn, addressEntity.updateId, deliusAddressId, CPR)
 
     awaitAssert {
       assertThat(personRepository.findByCrn(crn)?.addresses?.firstOrNull()?.deliusAddressId).isEqualTo(deliusAddressId)
@@ -45,13 +37,7 @@ class ProbationAddressCircularEventListenerIntTest : ProbationEventListenerTestB
     )
     val cprAddressBeforeUpdate = personEntity.addresses.first()
 
-    publishProbationAddressEvent(
-      personEntity.crn,
-      personEntity.addresses[0].deliusAddressId,
-      OFFENDER_ADDRESS_UPDATED,
-      DomainEventSource.CPR,
-      cprAddressBeforeUpdate.updateId.toString(),
-    )
+    publishProbationOffenderAddressCreatedEvent(personEntity.crn, cprAddressBeforeUpdate.updateId, personEntity.addresses[0].deliusAddressId, CPR)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)

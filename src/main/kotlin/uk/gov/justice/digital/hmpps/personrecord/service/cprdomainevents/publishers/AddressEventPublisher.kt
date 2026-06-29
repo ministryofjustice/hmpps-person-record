@@ -9,6 +9,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.extensions.UK_ZONE
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
@@ -36,7 +38,7 @@ class ProbationAddressEventPublisher(
   override fun onCreate(addressCreated: AddressCreated) {
     publishAddressDomainEvent(
       addressEntity = addressCreated.addressEntity,
-      eventSource = addressCreated.eventSource.identifier,
+      eventSource = addressCreated.eventSource,
       action = "created",
       eventType = CPR_PROBATION_ADDRESS_CREATED,
     )
@@ -45,7 +47,7 @@ class ProbationAddressEventPublisher(
   override fun onUpdate(addressUpdated: AddressUpdated) {
     publishAddressDomainEvent(
       addressEntity = addressUpdated.addressEntity,
-      eventSource = addressUpdated.eventSource.identifier,
+      eventSource = addressUpdated.eventSource,
       action = "updated",
       eventType = CPR_PROBATION_ADDRESS_UPDATED,
     )
@@ -55,13 +57,13 @@ class ProbationAddressEventPublisher(
     publishAddressDeleteDomainEvent(
       addressEntity = addressDeleted.addressEntity,
       sourceSystemId = addressDeleted.personEntity.extractSourceSystemId()!!,
-      eventSource = addressDeleted.eventSource.identifier,
+      eventSource = addressDeleted.eventSource,
     )
   }
 
   private fun publishAddressDomainEvent(
     addressEntity: AddressEntity,
-    eventSource: String,
+    eventSource: DomainEventSource,
     action: String,
     eventType: String,
   ) {
@@ -77,7 +79,7 @@ class ProbationAddressEventPublisher(
         occurredAt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(UK_ZONE).format(Instant.now()),
         additionalInformation = AdditionalInformation(
           outboundCprAddressId = addressId.toString(),
-          outboundDeliusAddressId = addressEntity.deliusAddressId,
+          outboundDeliusAddressId = addressEntity.deliusAddressId.takeIf { eventSource == CPR },
         ),
         personReference = PersonReference(
           identifiers = listOf(
@@ -85,14 +87,14 @@ class ProbationAddressEventPublisher(
           ),
         ),
       ),
-      attributes = mapOf("eventSource" to eventSource),
+      attributes = mapOf("eventSource" to eventSource.identifier),
     )
   }
 
   private fun publishAddressDeleteDomainEvent(
     addressEntity: AddressEntity,
     sourceSystemId: String,
-    eventSource: String,
+    eventSource: DomainEventSource,
   ) {
     val addressId = addressEntity.updateId
 
@@ -102,6 +104,7 @@ class ProbationAddressEventPublisher(
       occurredAt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(UK_ZONE).format(Instant.now()),
       additionalInformation = AdditionalInformation(
         outboundCprAddressId = addressId.toString(),
+        outboundDeliusAddressId = addressEntity.deliusAddressId.takeIf { eventSource == CPR },
       ),
       personReference = PersonReference(
         identifiers = listOf(
@@ -111,7 +114,7 @@ class ProbationAddressEventPublisher(
     )
     domainEventPublisher.publish(
       domainEvent = domainEvent,
-      attributes = mapOf("eventSource" to eventSource),
+      attributes = mapOf("eventSource" to eventSource.identifier),
     )
   }
 }

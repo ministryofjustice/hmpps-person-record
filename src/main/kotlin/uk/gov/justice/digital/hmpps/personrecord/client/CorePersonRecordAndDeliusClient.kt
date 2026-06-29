@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.client
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import org.springframework.data.web.PagedModel.PageMetadata
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
@@ -40,4 +42,27 @@ class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebCl
       .bodyToMono<ProbationAddress>()
       .block()!!,
   )
+
+  fun getProbationCases(params: CorePersonRecordAndDeliusClientPageParams): ProbationCases? = corePersonRecordAndDeliusWebClient
+    .get()
+    .uri { uriBuilder ->
+      uriBuilder
+        .path("/all-probation-cases")
+        .queryParam("page", params.page)
+        .queryParam("size", params.size)
+        .queryParam("sort", params.sort)
+        .build()
+    }
+    .retrieve()
+    .bodyToMono<ProbationCases>()
+    .block()
 }
+
+class CorePersonRecordAndDeliusClientPageParams(val page: Long, val size: Int) {
+  val sort: String = "id,asc"
+}
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class ProbationCases(
+  val page: PageMetadata,
+)

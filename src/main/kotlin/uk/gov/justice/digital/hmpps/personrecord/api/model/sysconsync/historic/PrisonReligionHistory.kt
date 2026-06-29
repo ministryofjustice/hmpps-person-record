@@ -10,7 +10,7 @@ data class PrisonReligionHistory(
   @Schema(description = "The religion code", example = "AGNO", required = true)
   val religionCode: String,
   @Schema(description = "The religion change reason known", example = "true")
-  val changeReasonKnown: Boolean? = null,
+  val changeReasonKnown: Boolean,
   @Schema(description = "The religion comments", example = "Foo Bar")
   val comments: String? = null,
   @Schema(description = "The religion start date", example = "1980-01-01", required = true)

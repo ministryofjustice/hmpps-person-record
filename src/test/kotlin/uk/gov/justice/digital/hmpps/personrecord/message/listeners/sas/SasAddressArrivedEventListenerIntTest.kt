@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
-import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_ARRIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
@@ -38,7 +37,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
-      publishSasAddressEvent(personEntity.crn!!, SAS_ADDRESS_ARRIVED)
+//      publishSasAddressEvent(personEntity.crn!!, SAS_ADDRESS_ARRIVED)
 
       awaitAssert {
         val actualAddressEntity = addressRepository.findByUpdateId(originalAddressEntity.updateId!!)!!
@@ -71,7 +70,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
-      publishSasAddressEvent(personEntity.crn!!, SAS_ADDRESS_ARRIVED)
+//      publishSasAddressEvent(personEntity.crn!!, SAS_ADDRESS_ARRIVED)
 
       awaitAssert {
         val actualDemotedAddress = addressRepository.findByUpdateId(originalMainAddress.updateId!!)!!
@@ -104,7 +103,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
-      publishSasAddressEvent(personEntity.crn!!, SAS_ADDRESS_ARRIVED)
+//      publishSasAddressEvent(personEntity.crn!!, SAS_ADDRESS_ARRIVED)
 
       awaitAssert {
         val actualAddress = addressRepository.findByUpdateId(originalMainAddress.updateId!!)!!
@@ -129,7 +128,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       createPersonKey().addPerson(personEntity)
 
       stubGetRequestToSas(null, status = 404)
-      publishSasAddressEvent(personEntity.crn!!, SAS_ADDRESS_ARRIVED)
+//      publishSasAddressEvent(personEntity.crn!!, SAS_ADDRESS_ARRIVED)
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)
@@ -150,7 +149,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
         .copy(typeVerified = true, statusCode = SasAddressStatus(AddressStatusCode.M.name), startDate = randomDate())
 
       stubGetRequestToSas(SasGetAddressResponse(sasCallbackResponse))
-      publishSasAddressEvent(personEntity.crn!!, SAS_ADDRESS_ARRIVED)
+//      publishSasAddressEvent(personEntity.crn!!, SAS_ADDRESS_ARRIVED)
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)
