@@ -209,8 +209,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     data = SasAddressData(
       crn = crn!!,
       cprAddressId = cprAddressUpdateId.toString(),
-      startDate = LocalDate.now().minusYears(10),
-      endDate = LocalDate.now().plusYears(10),
+      startDate = LocalDate.now(),
       noFixedAbode = randomBoolean(),
       typeVerified = randomBoolean(),
       address = SasAddress(
