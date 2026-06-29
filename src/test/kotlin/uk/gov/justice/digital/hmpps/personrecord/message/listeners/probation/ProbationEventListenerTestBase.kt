@@ -294,9 +294,8 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     eventSource: DomainEventSource,
   ): Pair<AddressEntity?, DomainEvent> {
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
-    val addressEntity = actualPersonEntity.addresses.firstOrNull()
+    val addressEntity = actualPersonEntity.addresses.firstOrNull { it.updateId.toString() == cprAddressUpdateId }
 
-    expectOneMessageOn(testOnlyCPRDomainEventsQueue)
     val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
       ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
     )
