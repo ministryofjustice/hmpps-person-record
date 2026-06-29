@@ -123,7 +123,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().middleNames).isEqualTo("$middleName $middleName")
         assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
         assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
-        assertThat(personEntity.religion).isEqualTo(religion)
+        assertThat(personEntity.religion).isNull()
 
         val populatedReferencesUpdateIdCount = personEntity.references.count { it.updateId != null }
         assertThat(populatedReferencesUpdateIdCount).isEqualTo(4)
@@ -172,30 +172,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should check nationality and religion null`() {
-      val prisonNumber = randomPrisonNumber()
-
-      stubNoMatchesPersonMatch()
-      prisonDomainEventAndResponseSetup(
-        PRISONER_CREATED,
-        apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber, nationality = null, religion = null),
-      )
-
-      checkTelemetry(
-        CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
-      )
-
-      awaitAssert {
-        val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
-        assertThat(personEntity.nationalities.size).isEqualTo(0)
-        assertThat(personEntity.religion).isEqualTo(null)
-      }
-
-      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
-    }
-
-    @Test
     fun `should check sentence start date is not populated when primary sentence is false`() {
       val prisonNumber = randomPrisonNumber()
       val sentenceStartDate = randomDate()
@@ -222,7 +198,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `should receive the message successfully when prisoner updated event published`() {
       val prisonNumber = randomPrisonNumber()
-      val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+      val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = randomReligion() })
 
       val updatedFirstName = randomName()
       val ethnicity = randomPrisonEthnicity()
@@ -257,6 +233,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))
 
         assertThat(personEntity.nationalities.size).isEqualTo(1)
+        assertThat(personEntity.religion).isEqualTo(prisoner.religion)
+        assertThat(personEntity.religion).isNotNull()
         assertThat(personEntity.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.name)
         assertThat(personEntity.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.description)
       }
