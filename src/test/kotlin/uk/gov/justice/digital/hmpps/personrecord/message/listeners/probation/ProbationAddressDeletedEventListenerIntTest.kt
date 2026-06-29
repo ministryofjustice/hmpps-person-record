@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 
@@ -25,11 +25,7 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
     val actualPersonEntity = personRepository.findByCrn(personEntity.crn!!)!!
     assertThat(actualPersonEntity.addresses.size).isEqualTo(0)
 
-    assertDomainEventPublishedAfterDeliusEvent(
-      expectedEventType = CPR_PROBATION_ADDRESS_DELETED,
-      crn = personEntity.crn!!,
-      cprAddressUpdateId = addressEntity.updateId.toString(),
-    )
+    assertCprAddressDeletedEventPublished(personEntity.crn!!, addressEntity.updateId!!, null, DELIUS)
   }
 
   @Test
@@ -49,11 +45,7 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
     val actualPersonEntity = personRepository.findByCrn(personEntity.crn!!)!!
     assertThat(actualPersonEntity.addresses.size).isEqualTo(0)
 
-    assertDomainEventPublishedAfterDeliusEvent(
-      expectedEventType = CPR_PROBATION_ADDRESS_DELETED,
-      crn = personEntity.crn!!,
-      cprAddressUpdateId = addressEntity.updateId.toString(),
-    )
+    assertCprAddressDeletedEventPublished(personEntity.crn!!, addressEntity.updateId!!, null, DELIUS)
   }
 
   @Test
