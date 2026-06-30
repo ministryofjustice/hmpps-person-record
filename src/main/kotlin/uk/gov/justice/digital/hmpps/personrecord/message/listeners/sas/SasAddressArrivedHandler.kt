@@ -29,6 +29,8 @@ class SasAddressArrivedHandler(
     val personEntity = addressEntity.person!!
     validateSasAddressElseThrow(sasAddress)
 
+    sasAddress.address.isVerified = true
+    sasAddress.address.statusCode = AddressStatusCode.M
     personEntity.demoteMainAddressIfPresent(sasAddress)
     addressService.processAddress(
       address = sasAddress.address,

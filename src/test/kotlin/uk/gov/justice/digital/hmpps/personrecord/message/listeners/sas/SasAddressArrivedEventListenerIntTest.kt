@@ -135,6 +135,39 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
     }
   }
 
+  @Test
+  fun `cpr override isVerified and statusCode regardless of what SAS send`() {
+    val personEntity = createPerson(
+      createRandomProbationPersonDetails().copy(
+        addresses = listOf(Address(postcode = randomPostcode(), statusCode = AddressStatusCode.P)),
+      ),
+    )
+    val originalAddressEntity = personEntity.addresses.first()
+    createPersonKey().addPerson(personEntity)
+
+    val sasCallbackResponse = createSasAddressGetResponse(personEntity.crn, originalAddressEntity.updateId).data
+      .copy(typeVerified = false, statusCode = SasAddressStatus(AddressStatusCode.P.name), startDate = randomDate())
+
+    stubGetRequestToSas(SasGetAddressResponse(sasCallbackResponse))
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+
+    publishSasAddressArrivedEvent(originalAddressEntity.updateId!!)
+
+    awaitAssert {
+      val actualAddressEntity = addressRepository.findByUpdateId(originalAddressEntity.updateId!!)!!
+      assertThat(actualAddressEntity.isVerified).isEqualTo(true)
+      assertThat(actualAddressEntity.statusCode).isEqualTo(AddressStatusCode.M)
+      assertThat(actualAddressEntity.startDate!!.toUkLocalDate()).isEqualTo(sasCallbackResponse.startDate)
+    }
+
+    assertDomainEventPublishedAfterSasEvent(
+      expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
+      crn = personEntity.crn!!,
+      cprAddressUpdateId = originalAddressEntity.updateId.toString(),
+    )
+  }
+
   @Nested
   inner class FailureScenarios {
 
