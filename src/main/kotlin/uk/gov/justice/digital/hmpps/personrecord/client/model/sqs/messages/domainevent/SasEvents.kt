@@ -22,7 +22,8 @@ data class SasAddressArrived(
 ) : HmppsDomainEvent
 
 data class SasAddressArrivedInfo(
-  val corePersonAddressId: String,
+  @JsonProperty("corePersonAddressId")
+  val cprAddressId: String,
 )
 
 data class SasAddressDeletedInfo(

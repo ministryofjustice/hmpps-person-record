@@ -25,7 +25,7 @@ class SasAddressArrivedHandler(
   @Transactional
   fun handle(event: SasAddressArrived) {
     val sasAddress = sasClient.getAddress(event.detailUrl)
-    val addressEntity = addressRepository.findByUpdateId(UUID.fromString(event.additionalInformation.corePersonAddressId))!!
+    val addressEntity = addressRepository.findByUpdateId(UUID.fromString(event.additionalInformation.cprAddressId))!!
     val personEntity = addressEntity.person!!
     validateSasAddressElseThrow(sasAddress)
 
