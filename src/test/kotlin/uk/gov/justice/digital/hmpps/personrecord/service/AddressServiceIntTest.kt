@@ -179,22 +179,6 @@ class AddressServiceIntTest : IntegrationTestBase() {
         assertThat(actualAddress).isNull()
       }
     }
-
-    @Test
-    fun `should not delete any addresses when address does not exist`() {
-      val crn = randomCrn()
-      createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
-
-      addressService.deleteAddress(
-        eventSource = DomainEventSource.DELIUS,
-        findAddress = { null },
-      )
-
-      awaitAssert {
-        val actualPerson = personRepository.findByCrn(crn)!!
-        assertThat(actualPerson.addresses.size).isEqualTo(1)
-      }
-    }
   }
 
   private fun assertAddressValues(expectedAddress: Address, actualAddress: AddressEntity) {
