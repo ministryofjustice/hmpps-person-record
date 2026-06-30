@@ -156,7 +156,7 @@ class PersonEntityMappingTest {
     contacts = listOf(Contact(contactType = ContactType.HOME, contactValue = randomName())),
     addresses = listOf(Address(noFixedAbode = randomBoolean(), startDate = randomZonedDateTime(), endDate = randomZonedDateTime(), postcode = randomPostcode(), buildingName = randomName(), buildingNumber = randomBuildingNumber(), thoroughfareName = randomName(), dependentLocality = randomName(), postTown = randomName())),
     references = listOf(Reference(identifierType = IdentifierType.PNC, identifierValue = randomName())),
-    sourceSystem = SourceSystemType.DELIUS,
+    sourceSystem = SourceSystemType.COMMON_PLATFORM,
     sentences = listOf(SentenceInfo.from(SentenceInfoEntity(sentenceDate = randomDate()))),
     cId = randomCId(),
     sexCode = SexCode.M,
