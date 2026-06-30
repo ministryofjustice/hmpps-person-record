@@ -270,19 +270,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     )
   }
 
-  fun probationDomainEventAndResponseSetup(
-    eventType: String,
-    apiResponseSetup: ApiResponseSetup,
-    additionalInformation: AdditionalInformation? = null,
-    scenario: String = BASE_SCENARIO,
-    currentScenarioState: String = STARTED,
-    nextScenarioState: String = STARTED,
-  ) {
-    stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
-
-    publishProbationDomainEvent(eventType, apiResponseSetup.crn!!, additionalInformation)
-  }
-
   fun publishProbationDomainEvent(
     eventType: String,
     crn: String,
@@ -292,58 +279,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     publishDomainEvent(
       eventType,
       DomainEvent(eventType, detailUrl = detailUrl, personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))), additionalInformation = additionalInformation),
-    )
-  }
-
-  fun prisonDomainEvent(eventType: String, prisonNumber: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))), additionalInformation)
-
-  fun prisonDomainEventAndResponseSetup(
-    eventType: String,
-    scenario: String = BASE_SCENARIO,
-    currentScenarioState: String = STARTED,
-    nextScenarioState: String = STARTED,
-    apiResponseSetup: ApiResponseSetup,
-  ) {
-    stubPrisonResponse(
-      apiResponseSetup,
-      scenario,
-      currentScenarioState,
-      nextScenarioState,
-    )
-
-    publishDomainEvent(
-      eventType,
-      prisonDomainEvent(
-        eventType,
-        apiResponseSetup.prisonNumber!!,
-      ),
-    )
-  }
-
-  fun prisonMergeEventAndResponseSetup(
-    eventType: String,
-    sourcePrisonNumber: String,
-    targetPrisonNumber: String,
-    scenario: String = BASE_SCENARIO,
-    currentScenarioState: String = STARTED,
-    nextScenarioState: String = STARTED,
-  ) {
-    stubPrisonResponse(
-      ApiResponseSetup(prisonNumber = targetPrisonNumber),
-      scenario,
-      currentScenarioState,
-      nextScenarioState,
-    )
-
-    publishDomainEvent(
-      eventType,
-      prisonDomainEvent(
-        eventType,
-        targetPrisonNumber,
-        AdditionalInformation(
-          sourcePrisonNumber = sourcePrisonNumber,
-        ),
-      ),
     )
   }
 
