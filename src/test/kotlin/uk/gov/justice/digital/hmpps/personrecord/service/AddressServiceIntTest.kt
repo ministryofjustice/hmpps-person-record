@@ -98,11 +98,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
 
       val crn = randomCrn()
       val initialAddress = Address.from(createRandomProbationAddress())
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = {
-        val addresses = listOf(initialAddress)
-        val addressEntities = addresses.map { AddressEntity.from(it).also { addressEntity -> addressEntity.person = this } }.toMutableList()
-        this.addresses = addressEntities
-      })
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToProbationRecord(initialAddress))
       val addressToCreate = initialAddress.copy(postcode = randomPostcode())
 
       addressService.processAddress(
@@ -134,11 +130,12 @@ class AddressServiceIntTest : IntegrationTestBase() {
     fun `should update address and not recluster when no matching fields have changed`() {
       val crn = randomCrn()
       val initialAddress = Address.from(createRandomProbationAddress())
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = {
-        val addresses = listOf(initialAddress)
-        val addressEntities = addresses.map { AddressEntity.from(it).also { addressEntity -> addressEntity.person = this } }.toMutableList()
-        this.addresses = addressEntities
-      })
+      val person = createPersonWithNewKey(
+        createRandomProbationPersonDetails(crn),
+        configure = addAddressToProbationRecord(
+          initialAddress,
+        ),
+      )
       val addressToCreate = initialAddress.copy(buildingNumber = randomBuildingNumber())
 
       addressService.processAddress(
@@ -175,11 +172,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val personEntity = createPersonWithNewKey(
         createRandomProbationPersonDetails(crn),
         configure =
-        {
-          val addresses = listOf(Address(postcode = randomPostcode()))
-          val addressEntities = addresses.map { AddressEntity.from(it).also { addressEntity -> addressEntity.person = this } }.toMutableList()
-          this.addresses = addressEntities
-        },
+        addAddressToProbationRecord(Address(postcode = randomPostcode())),
       )
       val addressToDelete = personEntity.addresses.first()
 
