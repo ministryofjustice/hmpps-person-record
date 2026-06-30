@@ -87,7 +87,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
   internal fun addProbationAddress(originalProbationAddress: ProbationAddress): PersonEntity.() -> Unit = {
     val addressEntity = AddressEntity.from(Address.from(originalProbationAddress)!!)
     addressEntity.person = this
-    addresses = mutableListOf(addressEntity)
+    this.addresses = mutableListOf(addressEntity)
   }
 
   fun stubGetRequestToProbation(probationAddress: ProbationAddress, status: Int = 200) {
