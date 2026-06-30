@@ -1,0 +1,375 @@
+openapi: 3.0.3
+info:
+  title: CDPS-CPR APIs
+  version: 1.0.0
+  description: Collection of APIs for CDPS-CPR integration
+
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/ftl/Syscon-Person-Religion-API/1.0.0
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/ftl/Person-Religion-API/1.0.0
+  - url: https://api.yourdomain.tld
+
+tags:
+  - name: CDPS-CPR APIs
+    description: Collection of endpoints for CDPS-CPR API.
+
+paths:
+  /prison/person/{prisonNumber}/religion:
+    post:
+      summary: Create a religion record for a prisoner
+      description: Accepts a single religion object and returns the CPR mapping for it.
+      tags: [Religion]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prisoner number (e.g., NOMIS number)
+          schema:
+            type: string
+            example: "A6443EG"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReligionEnvelope"
+            examples:
+              sample:
+                value:
+                  religion:
+                    religionCode: "AGNO"
+                    changeReasonKnown: true
+                    comments: "Foo Bar"
+                    startDateTime: "1980-01-01"
+                    endDateTime: "2000-01-01"
+                    createDateTime: "2000-01-01 12:00:00"
+                    createUserId: "56789"
+                    modifiedDateTime: "2000-01-01 12:00:00"
+                    modifiedUserId: "56789"
+                    current: true
+      responses:
+        "201":
+          description: Religion processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReligionMappingResponse"
+              examples:
+                sample:
+                  value:
+                    prisonNumber: "A6443EG"
+                    cprReligionId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Prisoner not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    # /prison/person/{prisonNumber}/religion:
+    get:
+      deprecated: true
+      summary: Retrieve CPR religion history
+      description: Returns the religion history JSON.
+      tags: [Religion]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prisoner number
+          schema:
+            type: string
+            example: "A6443EG"
+      responses:
+        "200":
+          description: Religion details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReligionGetResponse"
+              examples:
+                sample:
+                  value:
+                    prisonNumber: "A6443EG"
+                    religion:
+                      religionCode: "AGNO"
+                      religionDescription: "Agnostic"
+                      changeReasonKnown: true
+                      comments: "Foo Bar"
+                      startDate: "1980-01-01"
+                      endDate: "2000-01-01"
+                      modifyDateTime: "2001-01-01 12:00:00"
+                      modifyUserId: "12345"
+                      createDateTime: "2000-01-01 12:00:00"
+                      createUserId: "156789"
+                      current: true
+        "404":
+          description: CPR religion not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /prison/person/{prisonNumber}/religion/{cprReligionId}:
+    put:
+      summary: Update an existing CPR religion for a prisoner
+      tags: [Religion]
+      parameters:
+        - name: prisonNumber
+          in: path
+          required: true
+          description: Prisoner number (e.g., NOMIS number)
+          schema:
+            type: string
+            example: "A6443EG"
+        - name: cprReligionId
+          in: path
+          required: true
+          description: CPR Religion ID (UUID or system identifier)
+          schema:
+            type: string
+            example: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReligionPutRequest"
+            examples:
+              sample:
+                value:
+                  prisonNumber: "A6443EG"
+                  religion:
+                    # religionCode: "AGNO"
+                    changeReasonKnown: true
+                    comments: "Foo Bar"
+                    # startDate: "1980-01-01"
+                    endDate: "2000-01-01"
+                    modifyDateTime: "2000-01-01 12:00:00"
+                    modifyUserId: "12345"
+                    current: false
+      responses:
+        "200":
+          description: Religion updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReligionMappingResponse"
+              examples:
+                sample:
+                  value:
+                    prisonNumber: "A6443EG"
+                    religionMappings:
+                      nomisReligionId: "3456"
+                      cprReligionId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Prisoner or religion not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    # ---------- Request Envelope ----------
+    ReligionEnvelope:
+      type: object
+      required: [religion]
+      properties:
+        religion:
+          $ref: "#/components/schemas/ReligionItem"
+
+    # ---------- Religion Item ----------
+    ReligionItem:
+      type: object
+      required:
+        - religionCode
+        - changeReasonKnown
+        - verified
+        - startDate
+        - createDateTime
+        - createUserId
+        # - modifyDateTime
+        # - modifyUserId
+        - current
+      properties:
+        religionCode:
+          type: string
+          example: "AGNO"
+        religionDescription:
+          type: string
+          example: "Agnostic"
+        changeReasonKnown:
+          type: boolean
+          example: true
+        comments:
+          type: string
+          example: "Foo Bar"
+        startDate:
+          type: string
+          format: date
+          example: "1980-01-01"
+        endDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2001-01-01"
+        modifyDateTime:
+          type: string
+          description: "Non-ISO timestamp in 'yyyy-MM-dd HH:mm:ss' format"
+          example: "2001-01-01 12:00:00"
+        modifyUserId:
+          type: string
+          example: "12345"
+        createDateTime:
+          type: string
+          description: "Non-ISO timestamp in 'yyyy-MM-dd HH:mm:ss' format"
+          example: "2000-01-01 12:00:00"
+        createUserId:
+          type: string
+          example: "56789"
+        current:
+          type: boolean
+          example: true
+
+    # ---------- PUT/POST Response ----------
+    ReligionMappingResponse:
+      type: object
+      required: [prisonNumber, religionMappings]
+      properties:
+        prisonNumber:
+          type: string
+          example: "A6443EG"
+        cprReligionId:
+          type: string
+          example: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+
+    # ---------- PUT Request ----------
+    ReligionPutRequest:
+      type: object
+      description: Religion details returned
+      required:
+        - prisonNumber
+        - changeReasonKnown
+        - modifyDateTime
+        - modifyUserId
+        - current
+      properties:
+        prisonNumber:
+          type: string
+          example: "A6443EG"
+        changeReasonKnown:
+          type: boolean
+          example: true
+        comments:
+          type: string
+          example: "Foo Bar"
+        endDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2000-01-01"
+        modifyDateTime:
+          type: string
+          description: "Non-ISO timestamp in 'yyyy-MM-dd HH:mm:ss' format"
+          example: "2000-01-01 12:00:00"
+        modifyUserId:
+          type: string
+          example: "12345"
+        current:
+          type: boolean
+          example: false
+
+
+    # ---------- GET Response (without NOMIS ID) ----------
+    ReligionGetResponse:
+      type: object
+      description: Religion details returned
+      required: [prisonNumber, religion]
+      properties:
+        prisonNumber:
+          type: string
+          example: "A6443EG"
+        religion:
+          $ref: "#/components/schemas/ReligionGetResponseSchema"
+
+    ReligionGetResponseSchema:
+      type: object
+      required:
+        - religionCode
+        - religionDescription
+        - changeReasonKnown
+        - verified
+        - startDate
+        - modifyDateTime
+        - modifyUserId
+        - createDateTime
+        - createUserId
+        - current
+      properties:
+        religionCode:
+          type: string
+          example: "AGNO"
+        religionDescription:
+          type: string
+          example: "Agnostic"
+        changeReasonKnown:
+          type: boolean
+          example: true
+        comments:
+          type: string
+          example: "Foo Bar"
+        startDate:
+          type: string
+          format: date
+          example: "1980-01-01"
+        endDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2000-01-01"
+        modifyDateTime:
+          type: string
+          description: "Non-ISO timestamp in 'yyyy-MM-dd HH:mm:ss' format"
+          example: "2001-01-01 12:00:00"
+        modifyUserId:
+          type: string
+          example: "12345"
+        createDateTime:
+          type: string
+          description: "Non-ISO timestamp in 'yyyy-MM-dd HH:mm:ss' format"
+          example: "2000-01-01 12:00:00"
+        createUserId:
+          type: string
+          example: "56789"
+        current:
+          type: boolean
+          example: true
+
+    # ---------- Common Error ----------
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 404
+        error:
+          type: string
+          example: Not Found
+        message:
+          type: string
+          example: "CPR religion not found"
