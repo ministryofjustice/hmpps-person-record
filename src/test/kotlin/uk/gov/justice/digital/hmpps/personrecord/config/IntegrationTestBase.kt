@@ -387,11 +387,8 @@ class IntegrationTestBase {
   }
 
   internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
-    person,
-  )
-    .apply {
-      updatePersonEntity(person, emptySet())
-    }
+    person.sourceSystem,
+  ).updatePersonEntity(person, emptySet())
     .apply(configure)
     .let(personRepository::saveAndFlush)
 
