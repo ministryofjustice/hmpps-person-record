@@ -146,7 +146,7 @@ paths:
             examples:
               sample:
                 value:
-                  prisonNumber: "A6443EG"
+                  # prisonNumber: "A6443EG"
                   religion:
                     # religionCode: "AGNO"
                     changeReasonKnown: true
@@ -167,9 +167,7 @@ paths:
                 sample:
                   value:
                     prisonNumber: "A6443EG"
-                    religionMappings:
-                      nomisReligionId: "3456"
-                      cprReligionId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
+                    cprReligionId: "0b6f8655-278a-4cb8-81c6-21364a91c466"
         "400":
           description: Invalid request
           content:
@@ -263,15 +261,15 @@ components:
       type: object
       description: Religion details returned
       required:
-        - prisonNumber
+        # - prisonNumber
         - changeReasonKnown
         - modifyDateTime
         - modifyUserId
         - current
       properties:
-        prisonNumber:
-          type: string
-          example: "A6443EG"
+        # prisonNumber:
+        #   type: string
+        #   example: "A6443EG"
         changeReasonKnown:
           type: boolean
           example: true
@@ -295,7 +293,7 @@ components:
           example: false
 
 
-    # ---------- GET Response (without NOMIS ID) ----------
+    # ---------- GET Response  ----------
     ReligionGetResponse:
       type: object
       description: Religion details returned
