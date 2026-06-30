@@ -58,8 +58,7 @@ paths:
                     county: "Greater London"
                     countryCode: "UK"
                     comment: "String"
-                    isPrimary: true
-                    isMail: true
+                    typeVerified: true
                     addressUsage:
                       - nomisAddressUsageId: "5678"
                         addressUsageCode: "DSH"
@@ -147,8 +146,7 @@ paths:
                     county: "Greater London"
                     countryCode: "UK"
                     comment: "String"
-                    isPrimary: true
-                    isMail: true
+                    typeVerified: true
       responses:
         '200':
           description: Address updated successfully
@@ -224,8 +222,7 @@ paths:
                       county: "Greater London"
                       countryCode: "UK"
                       comment: "String"
-                      isPrimary: true
-                      isMail: true
+                      typeVerified: true
         '404':
           description: Address usage not found
           content:
@@ -590,10 +587,6 @@ components:
           type: string
         comment:
           type: string
-        isPrimary:
-          type: boolean
-        isMail:
-          type: boolean
         addressUsage:
           type: array
           items:
@@ -641,9 +634,7 @@ components:
           type: string
         comment:
           type: string
-        isPrimary:
-          type: boolean
-        isMail:
+        typeVerified:
           type: boolean
 
     AddressUsageItem:
@@ -785,10 +776,9 @@ components:
           type: string
         comment:
           type: string
-        isPrimary:
+        typeVerified:
           type: boolean
-        isMail:
-          type: boolean
+
         # addressUsage:
         #   type: array
         #   items:
