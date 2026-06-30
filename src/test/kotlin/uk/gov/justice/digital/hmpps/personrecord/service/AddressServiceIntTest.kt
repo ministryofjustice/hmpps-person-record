@@ -98,7 +98,11 @@ class AddressServiceIntTest : IntegrationTestBase() {
 
       val crn = randomCrn()
       val initialAddress = Address.from(createRandomProbationAddress())
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(initialAddress)))
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = {
+        val addresses = listOf(initialAddress)
+        val addressEntities = addresses.map { AddressEntity.from(it).also { addressEntity -> addressEntity.person = this } }.toMutableList()
+        this.addresses = addressEntities
+      })
       val addressToCreate = initialAddress.copy(postcode = randomPostcode())
 
       addressService.processAddress(
@@ -130,7 +134,11 @@ class AddressServiceIntTest : IntegrationTestBase() {
     fun `should update address and not recluster when no matching fields have changed`() {
       val crn = randomCrn()
       val initialAddress = Address.from(createRandomProbationAddress())
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(initialAddress)))
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = {
+        val addresses = listOf(initialAddress)
+        val addressEntities = addresses.map { AddressEntity.from(it).also { addressEntity -> addressEntity.person = this } }.toMutableList()
+        this.addresses = addressEntities
+      })
       val addressToCreate = initialAddress.copy(buildingNumber = randomBuildingNumber())
 
       addressService.processAddress(
@@ -159,12 +167,20 @@ class AddressServiceIntTest : IntegrationTestBase() {
   @Nested
   inner class DeleteAddress {
     @Test
-    fun `should delete address when it exist and recluster`() {
+    fun `should delete address when it exists and recluster`() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
       val crn = randomCrn()
-      val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
+      val personEntity = createPersonWithNewKey(
+        createRandomProbationPersonDetails(crn),
+        configure =
+        {
+          val addresses = listOf(Address(postcode = randomPostcode()))
+          val addressEntities = addresses.map { AddressEntity.from(it).also { addressEntity -> addressEntity.person = this } }.toMutableList()
+          this.addresses = addressEntities
+        },
+      )
       val addressToDelete = personEntity.addresses.first()
 
       addressService.deleteAddress(
