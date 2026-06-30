@@ -45,7 +45,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.LibraH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
@@ -57,7 +56,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAlias
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -225,11 +223,7 @@ class IntegrationTestBase {
     selfDescribedGenderIdentity = randomName(),
     dateOfBirth = randomDate(),
   )
-  internal fun addAddress(originalProbationAddress: ProbationAddress): PersonEntity.() -> Unit = {
-    val addressEntity = AddressEntity.from(uk.gov.justice.digital.hmpps.personrecord.model.person.Address.from(originalProbationAddress)!!)
-    addressEntity.person = this
-    addresses = mutableListOf(addressEntity)
-  }
+
   internal fun createRandomProbationAddress(): ProbationCreateAddress = ProbationCreateAddress(
     noFixedAbode = false,
     startDate = randomZonedDateTime(),
