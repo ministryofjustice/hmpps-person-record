@@ -184,7 +184,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun publishSasAddressArrivedEvent(cprAddressId: UUID?) {
+  fun publishSasAddressArrivedEvent(cprAddressId: UUID) {
     publishDomainEvent(
       SasAddressArrived(
         detailUrl = "/accommodations/1234",

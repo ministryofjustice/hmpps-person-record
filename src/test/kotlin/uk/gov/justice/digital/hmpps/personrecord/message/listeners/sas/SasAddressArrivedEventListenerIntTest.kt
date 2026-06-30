@@ -38,7 +38,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
-      publishSasAddressArrivedEvent(originalAddressEntity.updateId)
+      publishSasAddressArrivedEvent(originalAddressEntity.updateId!!)
 
       awaitAssert {
         val actualAddressEntity = addressRepository.findByUpdateId(originalAddressEntity.updateId!!)!!
@@ -75,7 +75,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
-      publishSasAddressArrivedEvent(originalPreviousAddress.updateId)
+      publishSasAddressArrivedEvent(originalPreviousAddress.updateId!!)
 
       awaitAssert {
         val actualDemotedAddress = addressRepository.findByUpdateId(originalMainAddress.updateId!!)!!
@@ -118,7 +118,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
-      publishSasAddressArrivedEvent(originalMainAddress.updateId)
+      publishSasAddressArrivedEvent(originalMainAddress.updateId!!)
 
       awaitAssert {
         val actualAddress = addressRepository.findByUpdateId(originalMainAddress.updateId!!)!!
@@ -147,7 +147,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       createPersonKey().addPerson(personEntity)
 
       stubGetRequestToSas(null, status = 404)
-      publishSasAddressArrivedEvent(personEntity.addresses.first().updateId)
+      publishSasAddressArrivedEvent(personEntity.addresses.first().updateId!!)
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)
