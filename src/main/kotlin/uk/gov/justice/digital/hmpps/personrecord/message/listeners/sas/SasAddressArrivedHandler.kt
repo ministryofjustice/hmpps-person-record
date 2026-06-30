@@ -27,7 +27,6 @@ class SasAddressArrivedHandler(
     val sasAddress = sasClient.getAddress(event.detailUrl)
     val addressEntity = addressRepository.findByUpdateId(UUID.fromString(event.additionalInformation.cprAddressId))!!
     val personEntity = addressEntity.person!!
-    validateSasAddressElseThrow(sasAddress)
 
     sasAddress.address.isVerified = true
     sasAddress.address.statusCode = AddressStatusCode.M
@@ -38,12 +37,6 @@ class SasAddressArrivedHandler(
       findAddress = { addressEntity },
       eventSource = DomainEventSource.CPR,
     )
-  }
-
-  private fun validateSasAddressElseThrow(sasAddress: SasAddress) {
-    if (sasAddress.address.isVerified == null) throw IllegalStateException("isVerified is null")
-    if (sasAddress.address.statusCode == null) throw IllegalStateException("statusCode is null")
-    if (sasAddress.address.startDate == null) throw IllegalStateException("startDate is null")
   }
 
   private fun PersonEntity.demoteMainAddressIfPresent(sasAddress: SasAddress) {
