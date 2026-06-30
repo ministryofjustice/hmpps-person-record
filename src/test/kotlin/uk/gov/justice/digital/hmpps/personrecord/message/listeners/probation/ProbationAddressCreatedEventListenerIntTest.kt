@@ -35,7 +35,8 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming address created event - address with delius address id already exists - updates address`() {
     val originalProbationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(originalProbationAddress)!!)),
+      createRandomProbationPersonDetails(),
+      configure = addAddressToProbationRecord(Address.from(originalProbationAddress)!!),
     )
     val addressEntityBeforeCreateEvent = personEntity.addresses.first()
 
