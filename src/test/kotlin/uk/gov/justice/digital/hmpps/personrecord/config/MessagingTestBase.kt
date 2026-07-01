@@ -305,7 +305,7 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     ).get()
   }
 
-  fun receiveSingleMessageOnQueue(queue: HmppsQueue?): SQSMessage {
+  fun receiveNextMessageOnQueue(queue: HmppsQueue?): SQSMessage {
     val rawDomainEventMessage = queue?.sqsClient?.receiveMessage(
       ReceiveMessageRequest.builder().queueUrl(queue.queueUrl).maxNumberOfMessages(1).build(),
     )

@@ -276,7 +276,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
   }
 
   fun assertCprAddressCreatedEventPublished(crn: String, cprAddressId: UUID) {
-    val sqsMessage = receiveSingleMessageOnQueue(testOnlyCPRDomainEventsQueue)
+    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
     assertThat(sqsMessage.getEventType()).isEqualTo(CPR_PROBATION_ADDRESS_CREATED)
     assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(DELIUS.identifier))
     val domainEvent: CprAddressCreated = jsonMapper.readValue<CprAddressCreated>(sqsMessage.message)
@@ -291,7 +291,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
   }
 
   fun assertCprAddressUpdatedEventPublished(crn: String, cprAddressId: UUID, deliusAddressId: Long?, eventSource: DomainEventSource) {
-    val sqsMessage = receiveSingleMessageOnQueue(testOnlyCPRDomainEventsQueue)
+    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
     assertThat(sqsMessage.getEventType()).isEqualTo(CPR_PROBATION_ADDRESS_UPDATED)
     assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(eventSource.identifier))
     val domainEvent: CprAddressUpdated = jsonMapper.readValue<CprAddressUpdated>(sqsMessage.message)
@@ -306,7 +306,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
   }
 
   fun assertCprAddressDeletedEventPublished(crn: String, cprAddressId: UUID, deliusAddressId: Long?, eventSource: DomainEventSource) {
-    val sqsMessage = receiveSingleMessageOnQueue(testOnlyCPRDomainEventsQueue)
+    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
     assertThat(sqsMessage.getEventType()).isEqualTo(CPR_PROBATION_ADDRESS_DELETED)
     assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(eventSource.identifier))
     val domainEvent: CprAddressDeleted = jsonMapper.readValue<CprAddressDeleted>(sqsMessage.message)
