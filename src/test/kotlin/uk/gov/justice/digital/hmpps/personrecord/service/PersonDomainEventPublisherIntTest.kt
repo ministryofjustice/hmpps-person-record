@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPrisonerCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
@@ -41,7 +41,7 @@ class PersonDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
     val prisonNumber = randomPrisonNumber()
 
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
-    publishDomainEvent(PrisonPrisonerCreated(personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber)))))
+    publishDomainEvent(PrisonPersonCreated(personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber)))))
 
     awaitNotNull {
       personRepository.findByPrisonNumber(prisonNumber)

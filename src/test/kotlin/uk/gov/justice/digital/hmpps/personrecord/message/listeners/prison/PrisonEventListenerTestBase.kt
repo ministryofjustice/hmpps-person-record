@@ -3,10 +3,10 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPrisonerCreated
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPrisonerMerged
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPrisonerMergedInfo
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPrisonerUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonMerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonMergedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
@@ -14,7 +14,7 @@ class PrisonEventListenerTestBase : MessagingMultiNodeTestBase() {
 
   fun publishPrisonPrisonerCreatedEvent(prisonNumber: String) {
     publishDomainEvent(
-      PrisonPrisonerCreated(
+      PrisonPersonCreated(
         personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))),
       ),
     )
@@ -22,7 +22,7 @@ class PrisonEventListenerTestBase : MessagingMultiNodeTestBase() {
 
   fun publishPrisonPrisonerUpdatedEvent(prisonNumber: String) {
     publishDomainEvent(
-      PrisonPrisonerUpdated(
+      PrisonPersonUpdated(
         personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))),
       ),
     )
@@ -30,9 +30,9 @@ class PrisonEventListenerTestBase : MessagingMultiNodeTestBase() {
 
   fun publishPrisonPrisonerMergedEvent(targetPrisonNumber: String, sourcePrisonNumber: String) {
     publishDomainEvent(
-      PrisonPrisonerMerged(
+      PrisonPersonMerged(
         personReference = PersonReference(listOf(PersonIdentifier("NOMS", targetPrisonNumber))),
-        additionalInformation = PrisonPrisonerMergedInfo(sourcePrisonNumber = sourcePrisonNumber),
+        additionalInformation = PrisonPersonMergedInfo(sourcePrisonNumber = sourcePrisonNumber),
       ),
     )
   }
