@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import java.time.LocalDate
 import java.util.UUID
 
 class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
@@ -77,7 +76,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
         val actualDemotedAddress = addressRepository.findByUpdateId(originalMainAddress.updateId!!)!!
         assertThat(actualDemotedAddress.isVerified).isEqualTo(originalMainAddress.isVerified)
         assertThat(actualDemotedAddress.statusCode).isEqualTo(AddressStatusCode.P)
-        assertThat(actualDemotedAddress.endDate).isEqualTo(LocalDate.now().toUkZonedDateTime())
+        assertThat(actualDemotedAddress.endDate).isEqualTo(sasCallbackResponse.startDate!!.toUkZonedDateTime())
 
         val actualPromotedAddress = addressRepository.findByUpdateId(originalPreviousAddress.updateId!!)!!
         assertThat(actualPromotedAddress.isVerified).isEqualTo(true)

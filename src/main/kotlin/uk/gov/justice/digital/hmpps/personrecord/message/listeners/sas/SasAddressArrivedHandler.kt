@@ -5,14 +5,12 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.client.SasAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.SasClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressArrived
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
-import java.time.LocalDate
 import java.util.UUID
 
 @Component
@@ -43,13 +41,13 @@ class SasAddressArrivedHandler(
     this.addresses
       .filter { it.updateId != sasAddress.cprAddressId }
       .firstOrNull { it.statusCode == AddressStatusCode.M }
-      ?.let { mainAddressEntity ->
-        mainAddressEntity.statusCode = AddressStatusCode.P
-        mainAddressEntity.endDate = LocalDate.now().toUkZonedDateTime()
+      ?.let { mainAddressEntityBeingDemoted ->
+        mainAddressEntityBeingDemoted.statusCode = AddressStatusCode.P
+        mainAddressEntityBeingDemoted.endDate = sasAddress.address.startDate
         addressService.processAddress(
-          address = Address.from(mainAddressEntity),
+          address = Address.from(mainAddressEntityBeingDemoted),
           findPerson = { this },
-          findAddress = { mainAddressEntity },
+          findAddress = { mainAddressEntityBeingDemoted },
           eventSource = DomainEventSource.CPR,
         )
       }
