@@ -32,35 +32,19 @@ class ProbationEventListener(
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
   fun onDomainEvent(rawMessage: String) = domainEventProcessor.processHmppsDomainEvent<HmppsDomainEvent>(rawMessage) { event ->
     when (event) {
-      is ProbationAddressCreated -> processOffenderAddressCreated(event)
-      is ProbationAddressUpdated -> processOffenderAddressUpdated(event)
-      is ProbationAddressDeleted -> processOffenderAddressDeleted(event)
-      is ProbationPersonCreated -> processOffenderCreated(event)
-      is ProbationPersonUpdated -> processOffenderUpdated(event)
+      is ProbationAddressCreated -> upsertAddress(event.crn, event.additionalInformation.deliusAddressId)
+      is ProbationAddressUpdated -> upsertAddress(event.crn, event.additionalInformation.deliusAddressId)
+      is ProbationAddressDeleted -> deleteAddress(event.additionalInformation.deliusAddressId)
+      is ProbationPersonCreated -> updateWholePerson(event.crn)
+      is ProbationPersonUpdated -> updateWholePerson(event.crn)
       else -> log.info("Discarding message, unexpected event: $event")
     }
   }
 
-  private fun processOffenderCreated(event: ProbationPersonCreated) {
-    updateWholePerson(event.crn)
-  }
-
-  private fun processOffenderUpdated(event: ProbationPersonUpdated) {
-    updateWholePerson(event.crn)
-  }
-
-  private fun processOffenderAddressCreated(event: ProbationAddressCreated) {
-    upsertAddress(event.crn, event.additionalInformation.deliusAddressId)
-  }
-
-  private fun processOffenderAddressUpdated(event: ProbationAddressUpdated) {
-    upsertAddress(event.crn, event.additionalInformation.deliusAddressId)
-  }
-
-  private fun processOffenderAddressDeleted(event: ProbationAddressDeleted) {
+  private fun deleteAddress(deliusAddressId: Long) {
     addressService.deleteAddress(
       eventSource = DELIUS,
-      findAddress = { addressRepository.findByDeliusAddressId(event.additionalInformation.deliusAddressId) },
+      findAddress = { addressRepository.findByDeliusAddressId(deliusAddressId) },
     )
   }
 
