@@ -3,23 +3,22 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDateTime
 
 fun PersonEntity.updatePersonEntity(
   person: Person,
 ): PersonEntity {
   when (this.sourceSystem) {
-    SourceSystemType.NOMIS -> fieldsToUpdatePrison(person)
-    SourceSystemType.DELIUS -> fieldsToUpdateProbation(person)
+    NOMIS -> fieldsToUpdatePrison(person)
+    DELIUS -> fieldsToUpdateProbation(person)
     else -> fieldsToUpdate(person)
   }
   return this
 }
 
-private fun PersonEntity.fieldsToUpdatePrison(
-  person: Person,
-) {
+private fun PersonEntity.fieldsToUpdatePrison(person: Person) {
   this.defendantId = person.defendantId
   this.crn = person.crn
   this.prisonNumber = person.prisonNumber
@@ -39,9 +38,7 @@ private fun PersonEntity.fieldsToUpdatePrison(
   this.updateChildEntities(person)
 }
 
-private fun PersonEntity.fieldsToUpdate(
-  person: Person,
-) {
+private fun PersonEntity.fieldsToUpdate(person: Person) {
   this.defendantId = person.defendantId
   this.crn = person.crn
   this.prisonNumber = person.prisonNumber
@@ -59,12 +56,10 @@ private fun PersonEntity.fieldsToUpdate(
   this.birthplace = person.birthplace
   this.birthCountryCode = person.birthCountryCode
   this.nationalityNotes = person.nationalityNotes
-  this.updateChildEntities(person, emptySet())
+  this.updateChildEntities(person)
 }
 
-private fun PersonEntity.fieldsToUpdateProbation(
-  person: Person,
-) {
+private fun PersonEntity.fieldsToUpdateProbation(person: Person) {
   this.defendantId = person.defendantId
   this.crn = person.crn
   this.prisonNumber = person.prisonNumber
