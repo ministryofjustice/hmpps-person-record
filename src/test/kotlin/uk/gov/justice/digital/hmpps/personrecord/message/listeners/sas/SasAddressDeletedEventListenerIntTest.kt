@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.util.UUID
 
@@ -23,11 +23,8 @@ class SasAddressDeletedEventListenerIntTest : ProbationEventListenerTestBase() {
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(0)
-    assertDomainEventPublishedAfterSasEvent(
-      expectedEventType = CPR_PROBATION_ADDRESS_DELETED,
-      crn = personEntity.crn!!,
-      cprAddressUpdateId = personEntity.addresses.first().updateId!!.toString(),
-    )
+    val actualAddress = personEntity.addresses.first()
+    assertCprAddressDeletedEventPublished(personEntity.crn!!, actualAddress.updateId!!, actualAddress.deliusAddressId, CPR)
   }
 
   @Test
@@ -38,7 +35,7 @@ class SasAddressDeletedEventListenerIntTest : ProbationEventListenerTestBase() {
     publishSasAddressDeletedEvent(UUID.randomUUID())
 
     expectNoMessagesOnQueueOrDlq(sasEventsQueue)
-    assertCorrectActionsHappenAfterSasAddressDelete(personEntity.crn!!)
+    assertNoCprActions(personEntity.crn!!)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)

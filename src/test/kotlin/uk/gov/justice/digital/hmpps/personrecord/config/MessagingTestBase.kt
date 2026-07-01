@@ -8,9 +8,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
+import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.HmppsDomainEvent
@@ -365,5 +368,13 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     hmppsQueue.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(hmppsQueue.dlqUrl).build(),
     ).get()
+  }
+
+  fun receiveFirstMessageOnQueue(queue: HmppsQueue?): SQSMessage {
+    expectOneMessageOn(queue)
+    val rawDomainEventMessage = queue?.sqsClient?.receiveMessage(
+      ReceiveMessageRequest.builder().queueUrl(queue.queueUrl).build(),
+    )
+    return rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
   }
 }
