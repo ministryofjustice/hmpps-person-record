@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDeliusAddressId
 
 class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBase() {
 
@@ -13,7 +13,8 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming address deleted event - deletes address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress)!!)),
+      createRandomProbationPersonDetails(),
+      configure = addAddressToProbationRecord(Address.from(probationAddress)!!),
     )
     val addressEntity = personEntity.addresses.first()
 
@@ -32,7 +33,8 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming address deleted event - person with crn does not exist - still deletes address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress)!!)),
+      createRandomProbationPersonDetails(),
+      configure = addAddressToProbationRecord(Address.from(probationAddress)!!),
     )
     val addressEntity = personEntity.addresses.first()
 
@@ -52,7 +54,8 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming address deleted event - cpr address does not exist - does not delete any addresses - does not place on dlq`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress.copy(deliusAddressId = randomDigit().toLong()))!!)),
+      createRandomProbationPersonDetails(),
+      configure = addAddressToProbationRecord(Address.from(probationAddress.copy(deliusAddressId = randomDeliusAddressId()))!!),
     )
 
     publishProbationAddressDeletedEvent(personEntity.crn, probationAddress.deliusAddressId)
