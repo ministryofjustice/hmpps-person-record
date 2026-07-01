@@ -14,7 +14,7 @@ class SasAddressDeletedEventListenerIntTest : ProbationEventListenerTestBase() {
   fun `consume sas delete event - address exists - deletes address`() {
     val personEntity = createPerson(
       createRandomProbationPersonDetails(),
-      configure = addAddressToProbationRecord(Address(postcode = randomPostcode())),
+      configure = addAddressToRecord(Address(postcode = randomPostcode())),
     )
     createPersonKey().addPerson(personEntity)
 
@@ -34,7 +34,7 @@ class SasAddressDeletedEventListenerIntTest : ProbationEventListenerTestBase() {
   fun `consume sas delete event - cpr address does not exist - does not push message to dlq`() {
     val personEntity = createPerson(
       createRandomProbationPersonDetails(),
-      configure = addAddressToProbationRecord(Address(postcode = randomPostcode())),
+      configure = addAddressToRecord(Address(postcode = randomPostcode())),
     )
     createPersonKey().addPerson(personEntity)
 

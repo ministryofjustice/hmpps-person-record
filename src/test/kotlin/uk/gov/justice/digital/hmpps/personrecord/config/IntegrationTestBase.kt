@@ -225,8 +225,8 @@ class IntegrationTestBase {
     dateOfBirth = randomDate(),
   )
 
-  internal fun addAddressToProbationRecord(initialAddress: uk.gov.justice.digital.hmpps.personrecord.model.person.Address): PersonEntity.() -> Unit = {
-    val addresses = listOf(initialAddress)
+  internal fun addAddressToRecord(address: uk.gov.justice.digital.hmpps.personrecord.model.person.Address): PersonEntity.() -> Unit = {
+    val addresses = listOf(address)
     val addressEntities =
       addresses.map { AddressEntity.from(it).also { addressEntity -> addressEntity.person = this } }.toMutableList()
     this.addresses = addressEntities

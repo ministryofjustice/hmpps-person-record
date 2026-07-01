@@ -16,7 +16,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     val originalProbationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails(),
-      configure = addAddressToProbationRecord(
+      configure = addAddressToRecord(
         Address.from(originalProbationAddress)!!,
       ),
     )
@@ -47,7 +47,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     val originalProbationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails(),
-      configure = addAddressToProbationRecord(Address.from(originalProbationAddress)!!),
+      configure = addAddressToRecord(Address.from(originalProbationAddress)!!),
     )
 
     val updatedProbationAddress = originalProbationAddress.copy(notes = randomLowerCaseString())
@@ -64,7 +64,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails(),
-      configure = addAddressToProbationRecord(Address.from(probationAddress)!!),
+      configure = addAddressToRecord(Address.from(probationAddress)!!),
     )
     val cprAddressBeforeUpdate = personEntity.addresses.first()
 

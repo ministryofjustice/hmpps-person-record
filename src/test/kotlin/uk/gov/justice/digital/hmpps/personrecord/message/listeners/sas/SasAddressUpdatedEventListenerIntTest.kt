@@ -36,7 +36,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
       val deliusAddressId = randomDeliusAddressId()
       val existingPersonEntity = createPerson(
         createRandomProbationPersonDetails(),
-        configure = addAddressToProbationRecord(Address(postcode = randomPostcode())),
+        configure = addAddressToRecord(Address(postcode = randomPostcode())),
       )
       val crn = existingPersonEntity.crn
       val existingAddressEntity = existingPersonEntity.addresses.first()
@@ -70,7 +70,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
     fun `address not returned from sas - pushes event to dead letter queue`() {
       val existingPersonEntity = createPerson(
         createRandomProbationPersonDetails(),
-        configure = addAddressToProbationRecord(Address(postcode = randomPostcode())),
+        configure = addAddressToRecord(Address(postcode = randomPostcode())),
       )
       val existingAddressEntity = existingPersonEntity.addresses.first()
       createPersonKey()
@@ -91,7 +91,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
     fun `cpr address does not exist - pushed to dead letter queue`() {
       val existingPersonEntity = createPerson(
         createRandomProbationPersonDetails(),
-        configure = addAddressToProbationRecord(Address(postcode = randomPostcode())),
+        configure = addAddressToRecord(Address(postcode = randomPostcode())),
       )
       createPersonKey()
         .addPerson(existingPersonEntity)
@@ -112,7 +112,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
     fun `cpr person does not exist - pushes to dead letter queue`() {
       val existingPersonEntity = createPerson(
         createRandomProbationPersonDetails(),
-        configure = addAddressToProbationRecord(Address(postcode = randomPostcode())),
+        configure = addAddressToRecord(Address(postcode = randomPostcode())),
       )
       val existingAddressEntity = existingPersonEntity.addresses.first()
       createPersonKey()

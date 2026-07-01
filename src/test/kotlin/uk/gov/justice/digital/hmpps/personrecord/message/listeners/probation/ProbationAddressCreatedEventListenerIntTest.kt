@@ -29,7 +29,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     val originalProbationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails(),
-      configure = addAddressToProbationRecord(Address.from(originalProbationAddress)!!),
+      configure = addAddressToRecord(Address.from(originalProbationAddress)!!),
     )
     val addressEntityBeforeCreateEvent = personEntity.addresses.first()
 
