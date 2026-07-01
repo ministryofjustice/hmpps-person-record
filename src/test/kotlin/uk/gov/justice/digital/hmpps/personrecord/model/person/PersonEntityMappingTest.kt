@@ -61,7 +61,7 @@ class PersonEntityMappingTest {
   fun `should update all entity fields from dto`() {
     // PersonEntity.new calls update which sets values from Person
     val person = createPerson()
-    val entity = PersonEntity.new(person.sourceSystem).updatePersonEntity(person, emptySet())
+    val entity = PersonEntity.new(person.sourceSystem).updatePersonEntity(person)
     val entityProps = PersonEntity::class.memberProperties.filterNot {
       it.name == "id" ||
         it.name == "overrideMarker" ||

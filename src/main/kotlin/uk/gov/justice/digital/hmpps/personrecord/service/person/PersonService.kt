@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
-import kotlin.reflect.KClass
 
 @Component
 class PersonService(
@@ -24,21 +23,20 @@ class PersonService(
 
   fun processPerson(
     person: Person,
-    childrenToIgnore: Set<KClass<*>> = emptySet(),
     findPerson: () -> PersonEntity?,
   ): PersonEntity = findPerson().exists(
     no = {
-      create(person, childrenToIgnore)
+      create(person)
     },
     yes = {
-      update(person, it, childrenToIgnore)
+      update(person, it)
     },
   ).also {
     publisher.publishEvent(PersonProcessingCompleted(it))
   }
 
-  private fun create(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
-    val personEntity = PersonEntity.new(person.sourceSystem).updatePersonEntity(person, childrenToIgnore)
+  private fun create(person: Person): PersonEntity {
+    val personEntity = PersonEntity.new(person.sourceSystem).updatePersonEntity(person)
     personRepository.save(personEntity)
 
     personMatchService.saveToPersonMatch(personEntity)
@@ -49,9 +47,9 @@ class PersonService(
     return personEntity
   }
 
-  private fun update(person: Person, personEntity: PersonEntity, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
+  private fun update(person: Person, personEntity: PersonEntity): PersonEntity {
     val beforeUpdate = PersonMatchRecord.from(personEntity)
-    personEntity.updatePersonEntity(person, childrenToIgnore)
+    personEntity.updatePersonEntity(person)
     personRepository.save(personEntity)
     val matchingFieldsChanged = beforeUpdate.matchingFieldsAreDifferent(personEntity)
     if (matchingFieldsChanged && !personEntity.isPassive()) {

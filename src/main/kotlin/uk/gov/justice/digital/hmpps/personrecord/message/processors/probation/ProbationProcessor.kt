@@ -16,7 +16,7 @@ class ProbationProcessor(
   fun processProbationEvent(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
     val offender = personRepository.findByCrn(person.crn!!)
     person.masterDefendantId = offender?.masterDefendantId
-    return personService.processPerson(person, childrenToIgnore) {
+    return personService.processPerson(person) {
       personRepository.findByCrn(person.crn)
     }
   }
