@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
@@ -80,7 +80,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     review.assertReviewSize(3)
 
     // 4. delete record
-    publishProbationDomainEvent(OFFENDER_DELETION, sourceCrn)
+    publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETION, sourceCrn)
     sourcePerson.assertPersonDeleted()
     review.assertRemoved()
   }
@@ -174,9 +174,9 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     assertThat(targetCluster.getReviews()).hasSize(2)
 
     // 6. delete the cluster with the target person by deleting both records on it
-    publishProbationDomainEvent(OFFENDER_DELETION, targetCrn)
+    publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETION, targetCrn)
     targetPerson.assertPersonDeleted()
-    publishProbationDomainEvent(OFFENDER_DELETION, person3Crn)
+    publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETION, person3Crn)
     targetCluster.assertPersonKeyDeleted()
   }
 

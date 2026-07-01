@@ -11,18 +11,18 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISON_PERSON_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISON_PERSON_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISON_PERSON_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ADDRESS_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ADDRESS_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETION
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_GDPR_DELETION
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_UNMERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 
@@ -47,19 +47,19 @@ fun DomainEvent.getCrn() = this.personReference?.identifiers?.first { it.type ==
   defaultImpl = DomainEvent::class,
 )
 @JsonSubTypes(
-  JsonSubTypes.Type(value = ProbationOffenderCreated::class, name = NEW_OFFENDER_CREATED),
-  JsonSubTypes.Type(value = ProbationOffenderUpdated::class, name = OFFENDER_PERSONAL_DETAILS_UPDATED),
-  JsonSubTypes.Type(value = ProbationOffenderDeleted::class, names = [OFFENDER_DELETION, OFFENDER_GDPR_DELETION]),
-  JsonSubTypes.Type(value = ProbationOffenderMerged::class, name = OFFENDER_MERGED),
-  JsonSubTypes.Type(value = ProbationOffenderUnmerged::class, name = OFFENDER_UNMERGED),
-  JsonSubTypes.Type(value = ProbationOffenderAddressCreated::class, name = OFFENDER_ADDRESS_CREATED),
-  JsonSubTypes.Type(value = ProbationOffenderAddressUpdated::class, name = OFFENDER_ADDRESS_UPDATED),
-  JsonSubTypes.Type(value = ProbationOffenderAddressDeleted::class, name = OFFENDER_ADDRESS_DELETED),
+  JsonSubTypes.Type(value = ProbationPersonCreated::class, name = PROBATION_PERSON_CREATED),
+  JsonSubTypes.Type(value = ProbationPersonUpdated::class, name = PROBATION_PERSON_UPDATED),
+  JsonSubTypes.Type(value = ProbationPersonDeleted::class, names = [PROBATION_PERSON_DELETION, PROBATION_PERSON_GDPR_DELETION]),
+  JsonSubTypes.Type(value = ProbationPersonMerged::class, name = PROBATION_PERSON_MERGED),
+  JsonSubTypes.Type(value = ProbationPersonUnmerged::class, name = PROBATION_PERSON_UNMERGED),
+  JsonSubTypes.Type(value = ProbationAddressCreated::class, name = PROBATION_ADDRESS_CREATED),
+  JsonSubTypes.Type(value = ProbationAddressUpdated::class, name = PROBATION_ADDRESS_UPDATED),
+  JsonSubTypes.Type(value = ProbationAddressDeleted::class, name = PROBATION_ADDRESS_DELETED),
   JsonSubTypes.Type(value = SasAddressUpdated::class, name = SAS_ADDRESS_UPDATED),
   JsonSubTypes.Type(value = SasAddressDeleted::class, name = SAS_ADDRESS_DELETED),
-  JsonSubTypes.Type(value = PrisonPersonCreated::class, name = PRISONER_CREATED),
-  JsonSubTypes.Type(value = PrisonPersonUpdated::class, name = PRISONER_UPDATED),
-  JsonSubTypes.Type(value = PrisonPersonMerged::class, name = PRISONER_MERGED),
+  JsonSubTypes.Type(value = PrisonPersonCreated::class, name = PRISON_PERSON_CREATED),
+  JsonSubTypes.Type(value = PrisonPersonUpdated::class, name = PRISON_PERSON_UPDATED),
+  JsonSubTypes.Type(value = PrisonPersonMerged::class, name = PRISON_PERSON_MERGED),
   JsonSubTypes.Type(value = CprPersonCreated::class, names = [CPR_PRISON_PERSON_CREATED, CPR_PROBATION_PERSON_CREATED, CPR_COURT_PERSON_CREATED]),
   JsonSubTypes.Type(value = CprAddressCreated::class, name = CPR_PROBATION_ADDRESS_CREATED),
   JsonSubTypes.Type(value = CprAddressUpdated::class, name = CPR_PROBATION_ADDRESS_UPDATED),

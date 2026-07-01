@@ -5,11 +5,11 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.HmppsDomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressCreated
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressDeleted
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressUpdated
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderCreated
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationAddressCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationAddressDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationAddressUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -32,32 +32,32 @@ class ProbationEventListener(
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
   fun onDomainEvent(rawMessage: String) = domainEventProcessor.processHmppsDomainEvent<HmppsDomainEvent>(rawMessage) { event ->
     when (event) {
-      is ProbationOffenderAddressCreated -> processOffenderAddressCreated(event)
-      is ProbationOffenderAddressUpdated -> processOffenderAddressUpdated(event)
-      is ProbationOffenderAddressDeleted -> processOffenderAddressDeleted(event)
-      is ProbationOffenderCreated -> processOffenderCreated(event)
-      is ProbationOffenderUpdated -> processOffenderUpdated(event)
+      is ProbationAddressCreated -> processOffenderAddressCreated(event)
+      is ProbationAddressUpdated -> processOffenderAddressUpdated(event)
+      is ProbationAddressDeleted -> processOffenderAddressDeleted(event)
+      is ProbationPersonCreated -> processOffenderCreated(event)
+      is ProbationPersonUpdated -> processOffenderUpdated(event)
       else -> log.info("Discarding message, unexpected event: $event")
     }
   }
 
-  private fun processOffenderCreated(event: ProbationOffenderCreated) {
+  private fun processOffenderCreated(event: ProbationPersonCreated) {
     updateWholePerson(event.crn)
   }
 
-  private fun processOffenderUpdated(event: ProbationOffenderUpdated) {
+  private fun processOffenderUpdated(event: ProbationPersonUpdated) {
     updateWholePerson(event.crn)
   }
 
-  private fun processOffenderAddressCreated(event: ProbationOffenderAddressCreated) {
+  private fun processOffenderAddressCreated(event: ProbationAddressCreated) {
     upsertAddress(event.crn, event.additionalInformation.deliusAddressId)
   }
 
-  private fun processOffenderAddressUpdated(event: ProbationOffenderAddressUpdated) {
+  private fun processOffenderAddressUpdated(event: ProbationAddressUpdated) {
     upsertAddress(event.crn, event.additionalInformation.deliusAddressId)
   }
 
-  private fun processOffenderAddressDeleted(event: ProbationOffenderAddressDeleted) {
+  private fun processOffenderAddressDeleted(event: ProbationAddressDeleted) {
     addressService.deleteAddress(
       eventSource = DELIUS,
       findAddress = { addressRepository.findByDeliusAddressId(event.additionalInformation.deliusAddressId) },
