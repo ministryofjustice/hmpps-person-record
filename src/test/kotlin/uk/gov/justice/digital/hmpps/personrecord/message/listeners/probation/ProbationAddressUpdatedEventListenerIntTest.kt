@@ -5,7 +5,6 @@ import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 
@@ -15,7 +14,10 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming an address updated event - cpr address exists - updates address`() {
     val originalProbationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(originalProbationAddress)!!)),
+      createRandomProbationPersonDetails(),
+      configure = addProbationAddress(
+        originalProbationAddress,
+      ),
     )
     val cprAddressBeforeUpdate = personEntity.addresses.first()
 
@@ -43,7 +45,10 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming an address updated event - no matching fields updated - does not save in person match or trigger recluster`() {
     val originalProbationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(originalProbationAddress)!!)),
+      createRandomProbationPersonDetails(),
+      configure = addProbationAddress(
+        originalProbationAddress,
+      ),
     )
 
     val updatedProbationAddress = originalProbationAddress.copy(notes = randomLowerCaseString())
@@ -59,7 +64,10 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming address updated event - address not retrieved from probation - does not update address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress)!!)),
+      createRandomProbationPersonDetails(),
+      configure = addProbationAddress(
+        probationAddress,
+      ),
     )
     val cprAddressBeforeUpdate = personEntity.addresses.first()
 

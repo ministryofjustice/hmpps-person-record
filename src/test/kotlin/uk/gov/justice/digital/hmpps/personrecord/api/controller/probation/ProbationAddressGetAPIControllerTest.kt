@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus.OK
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
@@ -32,8 +33,9 @@ class ProbationAddressGetAPIControllerTest : WebTestBase() {
     fun `should return canonical address record when record exists`() {
       val crn = randomCrn()
       val person = createPersonWithNewKey(
-        createRandomProbationPersonDetails(crn).copy(
-          addresses = listOf(
+        createRandomProbationPersonDetails(crn),
+        configure = {
+          val addressEntity = AddressEntity.from(
             Address(
               noFixedAbode = randomBoolean(), startDate = randomZonedDateTime(), endDate = randomZonedDateTime(), postcode = randomPostcode(), buildingName = randomName(),
               subBuildingName = randomName(), buildingNumber = randomBuildingNumber(), thoroughfareName = randomName(), dependentLocality = randomName(),
@@ -41,9 +43,12 @@ class ProbationAddressGetAPIControllerTest : WebTestBase() {
               comment = randomName(), isVerified = randomBoolean(), usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
               contacts = listOf(Contact(randomContactType(), randomPhoneNumber(), "+44")),
             ),
-          ),
-        ),
+          )
+          addressEntity.person = this
+          addresses = mutableListOf(addressEntity)
+        },
       )
+
       val expectedAddress = person.addresses.first()
 
       val responseBody = sendGetRequestAsserted<CanonicalAddress>(
@@ -61,8 +66,7 @@ class ProbationAddressGetAPIControllerTest : WebTestBase() {
     @Test
     fun `should return 404 not found when probation record does not exist`() {
       val crn = randomCrn()
-      val otherPerson = createPersonWithNewKey(createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = "ZX1 1AB"))))
-      val otherAddressId = otherPerson.addresses.first().updateId.toString()
+      val otherAddressId = randomUUID().toString()
       val expectedErrorMessage = "Not found: $otherAddressId"
       webTestClient.get()
         .uri(probationAddressApiUrl(crn, otherAddressId))

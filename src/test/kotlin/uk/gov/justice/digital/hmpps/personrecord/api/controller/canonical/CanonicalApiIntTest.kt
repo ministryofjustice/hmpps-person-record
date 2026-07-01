@@ -27,7 +27,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
@@ -103,7 +103,7 @@ class CanonicalApiIntTest : WebTestBase() {
         dateOfBirth = randomDate(),
         disability = randomBoolean(),
         immigrationStatus = randomBoolean(),
-        sourceSystem = DELIUS,
+        sourceSystem = COMMON_PLATFORM,
         titleCode = title.value,
         crn = crn, // this is not realistic - a person will only have one of crn, cid,defendantId or prison number
         sexCode = sex.value,
@@ -193,7 +193,7 @@ class CanonicalApiIntTest : WebTestBase() {
   fun `should return correct date format for addresses`() {
     val startDateTime = randomZonedDateTime()
     val endDateTime = startDateTime.plusYears(10)
-    val person = createRandomProbationPersonDetails().copy(
+    val person = createRandomPrisonPersonDetails().copy(
       addresses = listOf(
         Address(
           noFixedAbode = randomBoolean(), startDate = startDateTime, endDate = endDateTime, postcode = randomPostcode(), buildingName = randomLowerCaseString(),

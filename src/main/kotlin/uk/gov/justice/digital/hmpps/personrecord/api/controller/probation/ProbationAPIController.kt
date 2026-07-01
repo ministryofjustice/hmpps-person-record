@@ -23,7 +23,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_A
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -99,7 +98,7 @@ class ProbationAPIController(
     val person = Person.from(probationCase)
     person.masterDefendantId = masterDefendantId
 
-    val offender: PersonEntity = personService.processPerson(person, setOf(AddressEntity::class)) {
+    val offender: PersonEntity = personService.processPerson(person) {
       personRepository.findByCrn(probationCase.identifiers.crn!!)
     }
 
