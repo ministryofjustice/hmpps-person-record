@@ -32,7 +32,7 @@ data class Prisoner(
   val aliases: List<PrisonerAlias> = emptyList(),
   val emailAddresses: List<EmailAddress> = emptyList(),
   val phoneNumbers: List<PhoneNumber> = emptyList(),
-  val addresses: List<Address> = emptyList(),
+  val addresses: List<PrisonerAddress> = emptyList(),
   val identifiers: List<Identifier> = emptyList(),
   val allConvictedOffences: List<AllConvictedOffences>? = emptyList(),
   val gender: String? = null,
