@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
@@ -47,11 +47,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
         assertThat(actualAddressEntity.startDate!!.toUkLocalDate()).isEqualTo(sasCallbackResponse.startDate)
       }
 
-      assertDomainEventPublishedAfterSasEvent(
-        expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
-        crn = personEntity.crn!!,
-        cprAddressUpdateId = originalAddressEntity.updateId.toString(),
-      )
+      assertCprAddressUpdatedEventPublished(personEntity.crn!!, originalAddressEntity.updateId!!, null, CPR)
     }
 
     @Test
@@ -89,17 +85,8 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
         assertThat(actualPromotedAddress.startDate!!.toUkLocalDate()).isEqualTo(sasCallbackResponse.startDate)
       }
 
-      assertDomainEventPublishedAfterSasEvent(
-        expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
-        crn = personEntity.crn!!,
-        cprAddressUpdateId = originalMainAddress.updateId.toString(),
-      )
-
-      assertDomainEventPublishedAfterSasEvent(
-        expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
-        crn = personEntity.crn!!,
-        cprAddressUpdateId = originalPreviousAddress.updateId.toString(),
-      )
+      assertCprAddressUpdatedEventPublished(personEntity.crn!!, originalMainAddress.updateId!!, null, CPR)
+      assertCprAddressUpdatedEventPublished(personEntity.crn!!, originalPreviousAddress.updateId!!, null, CPR)
     }
 
     @Test
@@ -127,11 +114,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
         assertThat(actualAddress.startDate!!.toUkLocalDate()).isEqualTo(sasCallbackResponse.startDate)
       }
 
-      assertDomainEventPublishedAfterSasEvent(
-        expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
-        crn = personEntity.crn!!,
-        cprAddressUpdateId = originalMainAddress.updateId.toString(),
-      )
+      assertCprAddressUpdatedEventPublished(personEntity.crn!!, originalMainAddress.updateId!!, null, CPR)
     }
   }
 
@@ -161,11 +144,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       assertThat(actualAddressEntity.startDate!!.toUkLocalDate()).isEqualTo(sasCallbackResponse.startDate)
     }
 
-    assertDomainEventPublishedAfterSasEvent(
-      expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
-      crn = personEntity.crn!!,
-      cprAddressUpdateId = originalAddressEntity.updateId.toString(),
-    )
+    assertCprAddressUpdatedEventPublished(personEntity.crn!!, originalAddressEntity.updateId!!, null, CPR)
   }
 
   @Nested

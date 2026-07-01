@@ -26,7 +26,8 @@ class ProbationAddressCircularEventListenerIntTest : ProbationEventListenerTestB
       assertThat(personRepository.findByCrn(crn)?.addresses?.firstOrNull()?.deliusAddressId).isEqualTo(deliusAddressId)
     }
 
-    assertNoCprActionsHappenAfterAddressPatch(crn)
+    expectNoMessagesOnQueueOrDlq(testOnlyCPRDomainEventsQueue)
+    assertNoCprActions(crn)
   }
 
   @Test
@@ -47,6 +48,7 @@ class ProbationAddressCircularEventListenerIntTest : ProbationEventListenerTestB
 
     expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
 
-    assertNoCprActionsHappenAfterAddressPatch(personEntity.crn!!)
+    expectNoMessagesOnQueueOrDlq(testOnlyCPRDomainEventsQueue)
+    assertNoCprActions(personEntity.crn!!)
   }
 }

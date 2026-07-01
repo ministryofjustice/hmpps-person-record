@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDeliusAddressId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -45,11 +44,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
       publishSasAddressUpdatedEvent()
 
       val actualAddress = assertAddressUpdated(crn, sasCallbackResponse, deliusAddressId)
-      assertDomainEventPublishedAfterSasEvent(
-        expectedEventType = CPR_PROBATION_ADDRESS_UPDATED,
-        crn = crn!!,
-        cprAddressUpdateId = actualAddress.updateId.toString(),
-      )
+      assertCprAddressUpdatedEventPublished(crn!!, actualAddress.updateId!!, deliusAddressId, CPR)
     }
   }
 
