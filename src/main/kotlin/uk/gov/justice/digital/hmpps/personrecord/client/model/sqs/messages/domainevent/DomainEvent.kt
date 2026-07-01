@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_ARRIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 
@@ -57,6 +58,7 @@ fun DomainEvent.getCrn() = this.personReference?.identifiers?.first { it.type ==
   JsonSubTypes.Type(value = ProbationOffenderAddressDeleted::class, name = OFFENDER_ADDRESS_DELETED),
   JsonSubTypes.Type(value = SasAddressUpdated::class, name = SAS_ADDRESS_UPDATED),
   JsonSubTypes.Type(value = SasAddressDeleted::class, name = SAS_ADDRESS_DELETED),
+  JsonSubTypes.Type(value = SasAddressArrived::class, name = SAS_ADDRESS_ARRIVED),
   JsonSubTypes.Type(value = PrisonPersonCreated::class, name = PRISONER_CREATED),
   JsonSubTypes.Type(value = PrisonPersonUpdated::class, name = PRISONER_UPDATED),
   JsonSubTypes.Type(value = PrisonPersonMerged::class, name = PRISONER_MERGED),
