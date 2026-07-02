@@ -34,20 +34,13 @@ class ProbationAddressGetAPIControllerTest : WebTestBase() {
       val crn = randomCrn()
       val person = createPersonWithNewKey(
         createRandomProbationPersonDetails(crn),
-        configure = {
-          val addressEntity = AddressEntity.from(
-            Address(
-              noFixedAbode = randomBoolean(), startDate = randomZonedDateTime(), endDate = randomZonedDateTime(), postcode = randomPostcode(), buildingName = randomName(),
-              subBuildingName = randomName(), buildingNumber = randomBuildingNumber(), thoroughfareName = randomName(), dependentLocality = randomName(),
-              postTown = randomName(), county = randomName(), countryCode = randomCountryCode(), uprn = randomUprn(), statusCode = randomAddressStatusCode(),
-              comment = randomName(), isVerified = randomBoolean(), usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
-              contacts = listOf(Contact(randomContactType(), randomPhoneNumber(), "+44")),
-            ),
-          )
-          addressEntity.person = this
-          addresses = mutableListOf(addressEntity)
-        },
-      )
+        configure = addAddressToRecord(Address(
+            noFixedAbode = randomBoolean(), startDate = randomZonedDateTime(), endDate = randomZonedDateTime(), postcode = randomPostcode(), buildingName = randomName(),
+            subBuildingName = randomName(), buildingNumber = randomBuildingNumber(), thoroughfareName = randomName(), dependentLocality = randomName(),
+            postTown = randomName(), county = randomName(), countryCode = randomCountryCode(), uprn = randomUprn(), statusCode = randomAddressStatusCode(),
+            comment = randomName(), isVerified = randomBoolean(), usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
+            contacts = listOf(Contact(randomContactType(), randomPhoneNumber(), "+44")))
+      ))
 
       val expectedAddress = person.addresses.first()
 
