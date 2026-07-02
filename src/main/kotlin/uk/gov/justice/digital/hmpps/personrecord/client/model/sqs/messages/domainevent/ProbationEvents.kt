@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_C
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 
 data class ProbationOffenderCreated(
@@ -17,7 +16,7 @@ data class ProbationOffenderCreated(
 }
 
 data class ProbationOffenderUpdated(
-  override val eventType: String = OFFENDER_PERSONAL_DETAILS_UPDATED,
+  override val eventType: String,
   val personReference: PersonReference,
 ) : HmppsDomainEvent {
   val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
