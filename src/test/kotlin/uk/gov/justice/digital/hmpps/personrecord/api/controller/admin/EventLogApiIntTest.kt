@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_ADMIN_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminEventLogSummary
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -29,7 +30,7 @@ class EventLogApiIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody(AdminEventLogSummary::class.java)
+      .expectBody<AdminEventLogSummary>()
       .returnResult()
       .responseBody!!
 
@@ -100,7 +101,7 @@ class EventLogApiIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody(AdminEventLogSummary::class.java)
+      .expectBody<AdminEventLogSummary>()
       .returnResult()
       .responseBody!!
     return response
