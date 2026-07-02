@@ -51,8 +51,8 @@ fun DomainEvent.getCrn() = this.personReference?.identifiers?.first { it.type ==
   defaultImpl = DomainEvent::class,
 )
 @JsonSubTypes(
-  JsonSubTypes.Type(value = ProbationPersonCreated::class, name = PROBATION_PERSON_CREATED),
-  JsonSubTypes.Type(value = ProbationPersonUpdated::class, names = [PROBATION_PERSON_UPDATED, PROBATION_PERSON_RECOVERED, PROBATION_ALIAS_CREATED, PROBATION_ALIAS_UPDATED, PROBATION_ALIAS_DELETED]),
+  JsonSubTypes.Type(value = ProbationPersonCreated::class, names = [PROBATION_PERSON_CREATED, PROBATION_PERSON_RECOVERED]),
+  JsonSubTypes.Type(value = ProbationPersonUpdated::class, names = [PROBATION_PERSON_UPDATED, PROBATION_ALIAS_CREATED, PROBATION_ALIAS_UPDATED, PROBATION_ALIAS_DELETED]),
   JsonSubTypes.Type(value = ProbationPersonDeleted::class, names = [PROBATION_PERSON_DELETED, PROBATION_PERSON_DELETED_GDPR]),
   JsonSubTypes.Type(value = ProbationPersonMerged::class, name = PROBATION_PERSON_MERGED),
   JsonSubTypes.Type(value = ProbationPersonUnmerged::class, name = PROBATION_PERSON_UNMERGED),
