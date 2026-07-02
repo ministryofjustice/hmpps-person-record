@@ -44,7 +44,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       assertThat(existingAddressEntity.deliusAddressId).isNull()
 
-      publishProbationOffenderAddressCreatedEvent(crn, existingAddressEntity.updateId, deliusAddressId, CPR)
+      publishProbationAddressCreatedEvent(crn, existingAddressEntity.updateId, deliusAddressId, CPR)
 
       awaitNotNull {
         addressRepository.findByDeliusAddressId(deliusAddressId)

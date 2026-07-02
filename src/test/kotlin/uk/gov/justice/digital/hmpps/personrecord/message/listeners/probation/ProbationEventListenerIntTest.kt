@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
@@ -708,7 +708,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
   fun `should not push 404 from delius API to dead letter queue but discard message instead`() {
     val crn = randomCrn()
     stub404Response(probationUrl(crn))
-    publishProbationOffenderCreatedEvent(crn)
+    publishProbationPersonCreatedEvent(crn)
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
   }
 
@@ -718,7 +718,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
     stub5xxResponse(probationUrl(crn), nextScenarioState = "request will fail", "failure")
     stub5xxResponse(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
     stub5xxResponse(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
-    publishProbationOffenderCreatedEvent(crn)
+    publishProbationPersonCreatedEvent(crn)
     expectOneMessageOnDlq(probationEventsQueue)
   }
 
@@ -807,7 +807,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
   ) {
     stubSingleProbationResponse(ApiResponseSetup.from(probationCase))
     publishDomainEvent(
-      ProbationOffenderUpdated(
+      ProbationPersonUpdated(
         eventType = eventType,
         personReference = PersonReference(listOf(PersonIdentifier("CRN", personEntity.crn!!))),
       ),

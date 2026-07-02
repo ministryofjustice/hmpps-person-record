@@ -18,7 +18,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     stubPersonMatchScores()
     stubGetRequestToProbation(probationAddress)
 
-    publishProbationOffenderAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
+    publishProbationAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
 
     val actualAddress = assertAddress(cprPerson.crn!!, probationAddress)
     assertCprAddressCreatedEventPublished(cprPerson.crn, actualAddress.updateId!!)
@@ -38,7 +38,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     val updatedProbationAddress = randomProbationAddress(originalProbationAddress.deliusAddressId)
     stubGetRequestToProbation(updatedProbationAddress)
 
-    publishProbationOffenderAddressCreatedEvent(personEntity.crn, null, originalProbationAddress.deliusAddressId, DELIUS)
+    publishProbationAddressCreatedEvent(personEntity.crn, null, originalProbationAddress.deliusAddressId, DELIUS)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
@@ -57,7 +57,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     createPersonKey().addPerson(cprPerson)
 
     stubGetRequestToProbation(probationAddress, status = 404)
-    publishProbationOffenderAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
+    publishProbationAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
@@ -72,7 +72,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     createPersonKey().addPerson(cprPerson)
 
     stubGetRequestToProbation(probationAddress)
-    publishProbationOffenderAddressCreatedEvent(randomCrn(), null, probationAddress.deliusAddressId, DELIUS)
+    publishProbationAddressCreatedEvent(randomCrn(), null, probationAddress.deliusAddressId, DELIUS)
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
