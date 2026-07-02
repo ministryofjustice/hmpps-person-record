@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETION
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_SELF_HEALED
@@ -160,7 +160,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(recordToDelete)
-      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETION, recordToDelete.crn!!)
+      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, recordToDelete.crn!!)
 
       cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(ACTIVE)
@@ -176,7 +176,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(recordA)
         .addPerson(recordToDelete)
 
-      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETION, recordToDelete.crn!!)
+      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, recordToDelete.crn!!)
 
       cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)

@@ -21,8 +21,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ALIAS_CR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ALIAS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ALIAS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETION
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_GDPR_DELETION
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED_GDPR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_RECOVERED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_UNMERGED
@@ -53,7 +53,7 @@ fun DomainEvent.getCrn() = this.personReference?.identifiers?.first { it.type ==
 @JsonSubTypes(
   JsonSubTypes.Type(value = ProbationPersonCreated::class, name = PROBATION_PERSON_CREATED),
   JsonSubTypes.Type(value = ProbationPersonUpdated::class, names = [PROBATION_PERSON_UPDATED, PROBATION_PERSON_RECOVERED, PROBATION_ALIAS_CREATED, PROBATION_ALIAS_UPDATED, PROBATION_ALIAS_DELETED]),
-  JsonSubTypes.Type(value = ProbationPersonDeleted::class, names = [PROBATION_PERSON_DELETION, PROBATION_PERSON_GDPR_DELETION]),
+  JsonSubTypes.Type(value = ProbationPersonDeleted::class, names = [PROBATION_PERSON_DELETED, PROBATION_PERSON_DELETED_GDPR]),
   JsonSubTypes.Type(value = ProbationPersonMerged::class, name = PROBATION_PERSON_MERGED),
   JsonSubTypes.Type(value = ProbationPersonUnmerged::class, name = PROBATION_PERSON_UNMERGED),
   JsonSubTypes.Type(value = ProbationAddressCreated::class, name = PROBATION_ADDRESS_CREATED),

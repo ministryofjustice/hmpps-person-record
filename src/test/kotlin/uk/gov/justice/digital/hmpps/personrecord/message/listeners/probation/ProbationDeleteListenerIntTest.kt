@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETION
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_GDPR_DELETION
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED_GDPR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -32,7 +32,7 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
           stubPersonMatchScores()
         }
 
-      publishProbationPersonDeletedEvent(PROBATION_PERSON_GDPR_DELETION, crn)
+      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED_GDPR, crn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
@@ -49,7 +49,7 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
     fun `when cluster has one person - deletes person and cluster`() {
       val crn = randomCrn()
       val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
-      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETION, crn)
+      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, crn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
@@ -87,7 +87,7 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
           stubPersonMatchScores()
         }
 
-      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETION, crn)
+      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, crn)
 
       checkTelemetry(CPR_RECORD_DELETED, mapOf("CRN" to crn, "SOURCE_SYSTEM" to "DELIUS"))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_DELETED)
@@ -119,7 +119,7 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
       checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETION, recordBCrn)
+      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, recordBCrn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
@@ -148,7 +148,7 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
       checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETION, recordACrn)
+      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, recordACrn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
@@ -182,7 +182,7 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
       checkEventLogExist(mergedToCrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(mergedFromCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETION, mergedToCrn)
+      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, mergedToCrn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
@@ -226,7 +226,7 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
       checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETION, recordACrn)
+      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, recordACrn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
@@ -272,7 +272,7 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
       checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED, 2)
       checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETION, recordACrn)
+      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, recordACrn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
@@ -325,7 +325,7 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
       checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED, 2)
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETION, recordACrn)
+      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, recordACrn)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
@@ -369,7 +369,7 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
     stubPersonMatchUpsert()
     excludeRecord(personA, personB)
 
-    publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETION, personA.crn!!)
+    publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, personA.crn!!)
 
     checkTelemetry(
       CPR_RECORD_DELETED,
