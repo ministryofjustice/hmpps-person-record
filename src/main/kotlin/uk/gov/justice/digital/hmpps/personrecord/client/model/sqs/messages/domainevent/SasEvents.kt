@@ -7,12 +7,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATE
 data class SasAddressUpdated(
   override val eventType: String = SAS_ADDRESS_UPDATED,
   val detailUrl: String,
-) : HmppsDomainEvent
+) : DomainEvent
 
 data class SasAddressDeleted(
   override val eventType: String = SAS_ADDRESS_DELETED,
   val additionalInformation: SasAddressDeletedInfo,
-) : HmppsDomainEvent
+) : DomainEvent
 
 data class SasAddressDeletedInfo(
   @JsonProperty("corePersonAddressId")

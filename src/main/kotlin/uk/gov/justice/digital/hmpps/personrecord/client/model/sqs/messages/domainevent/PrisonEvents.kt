@@ -8,14 +8,14 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISON_PERSON_UPDA
 data class PrisonPersonCreated(
   override val eventType: String = PRISON_PERSON_CREATED,
   val personReference: PersonReference,
-) : HmppsDomainEvent {
+) : DomainEvent {
   val prisonNumber: String get() = personReference.identifiers?.first { it.type == "NOMS" }?.value!!
 }
 
 data class PrisonPersonUpdated(
   override val eventType: String = PRISON_PERSON_UPDATED,
   val personReference: PersonReference,
-) : HmppsDomainEvent {
+) : DomainEvent {
   val prisonNumber: String get() = personReference.identifiers?.first { it.type == "NOMS" }?.value!!
 }
 
@@ -23,7 +23,7 @@ data class PrisonPersonMerged(
   override val eventType: String = PRISON_PERSON_MERGED,
   val personReference: PersonReference,
   val additionalInformation: PrisonPersonMergedInfo,
-) : HmppsDomainEvent {
+) : DomainEvent {
   val prisonNumber: String get() = personReference.identifiers?.first { it.type == "NOMS" }?.value!!
 }
 
