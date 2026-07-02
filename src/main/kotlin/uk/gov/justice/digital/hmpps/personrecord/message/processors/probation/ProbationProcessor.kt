@@ -5,7 +5,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
-import kotlin.reflect.KClass
 
 @Component
 class ProbationProcessor(
@@ -13,10 +12,10 @@ class ProbationProcessor(
   private val personService: PersonService,
 ) {
 
-  fun processProbationEvent(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()): PersonEntity {
+  fun processProbationEvent(person: Person): PersonEntity {
     val offender = personRepository.findByCrn(person.crn!!)
     person.masterDefendantId = offender?.masterDefendantId
-    return personService.processPerson(person, childrenToIgnore) {
+    return personService.processPerson(person) {
       personRepository.findByCrn(person.crn)
     }
   }
