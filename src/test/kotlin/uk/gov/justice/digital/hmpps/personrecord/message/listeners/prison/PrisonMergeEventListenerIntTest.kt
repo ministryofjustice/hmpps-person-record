@@ -272,7 +272,7 @@ class PrisonMergeEventListenerIntTest : PrisonEventListenerTestBase() {
       stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
       stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
 
-      publishPrisonPrisonerMergedEvent(targetPrisonNumber, sourcePrisonNumber)
+      publishPrisonPersonMergedEvent(targetPrisonNumber, sourcePrisonNumber)
 
       expectOneMessageOnDlq(prisonMergeEventsQueue)
     }

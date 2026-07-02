@@ -14,21 +14,20 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderCreated
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMerged
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMergedInfo
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnmerged
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUnmergedInfo
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonMerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonMergedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonUnmerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonUnmergedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -175,27 +174,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     expectNoMessagesOn(prisonEventsQueue)
   }
 
-  fun publishDomainEvent(eventType: String, domainEvent: DomainEvent, eventSource: DomainEventSource? = null) {
-    val messageAttributes = mutableMapOf(
-      "eventType" to MessageAttributeValue.builder().dataType("String")
-        .stringValue(eventType).build(),
-    )
-    if (eventSource != null) {
-      messageAttributes["eventSource"] = MessageAttributeValue.builder().dataType("String")
-        .stringValue(eventSource.identifier).build()
-    }
-    publishEvent(
-      message = jsonMapper.writeValueAsString(domainEvent),
-      topic = domainEventsTopic,
-      messageAttributes = messageAttributes,
-      eventType = eventType,
-    )
-    expectNoMessagesOn(probationEventsQueue)
-    expectNoMessagesOn(probationMergeEventsQueue)
-    expectNoMessagesOn(prisonMergeEventsQueue)
-    expectNoMessagesOn(prisonEventsQueue)
-  }
-
   private fun publishEvent(
     message: String,
     topic: HmppsTopic?,
@@ -213,8 +191,8 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   ) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
     publishDomainEvent(
-      ProbationOffenderMerged(
-        additionalInformation = ProbationOffenderMergedInfo(
+      ProbationPersonMerged(
+        additionalInformation = ProbationPersonMergedInfo(
           sourceCrn = sourceCrn,
           targetCrn = targetCrn,
         ),
@@ -234,8 +212,8 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     stubSingleProbationResponse(reactivatedSetup, scenario, currentScenarioState, nextScenarioState)
     stubSingleProbationResponse(unmergedSetup, scenario, currentScenarioState, nextScenarioState)
     publishDomainEvent(
-      ProbationOffenderUnmerged(
-        additionalInformation = ProbationOffenderUnmergedInfo(
+      ProbationPersonUnmerged(
+        additionalInformation = ProbationPersonUnmergedInfo(
           reactivatedCrn = reactivatedCrn,
           unmergedCrn = unmergedCrn,
         ),
@@ -251,7 +229,7 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   ) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
     publishDomainEvent(
-      ProbationOffenderCreated(
+      ProbationPersonCreated(
         personReference = PersonReference(listOf(PersonIdentifier("CRN", apiResponseSetup.crn!!))),
       ),
     )
@@ -265,22 +243,19 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   ) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
     publishDomainEvent(
-      ProbationOffenderUpdated(
-        eventType = OFFENDER_PERSONAL_DETAILS_UPDATED,
+      ProbationPersonUpdated(
+        eventType = PROBATION_PERSON_UPDATED,
         personReference = PersonReference(listOf(PersonIdentifier("CRN", apiResponseSetup.crn!!))),
       ),
     )
   }
 
-  fun publishProbationDomainEvent(
-    eventType: String,
-    crn: String,
-    additionalInformation: AdditionalInformation? = null,
-    detailUrl: String? = null,
-  ) {
+  fun publishProbationPersonDeletedEvent(eventType: String, crn: String) {
     publishDomainEvent(
-      eventType,
-      DomainEvent(eventType, detailUrl = detailUrl, personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))), additionalInformation = additionalInformation),
+      ProbationPersonDeleted(
+        eventType = eventType,
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
+      ),
     )
   }
 

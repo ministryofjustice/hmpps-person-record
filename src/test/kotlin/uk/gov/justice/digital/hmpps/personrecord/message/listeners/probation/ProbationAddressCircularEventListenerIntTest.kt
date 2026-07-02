@@ -20,7 +20,7 @@ class ProbationAddressCircularEventListenerIntTest : ProbationEventListenerTestB
     val deliusAddressId = randomDigit().toLong()
 
     assertNull(addressEntity.deliusAddressId)
-    publishProbationOffenderAddressCreatedEvent(crn, addressEntity.updateId, deliusAddressId, CPR)
+    publishProbationAddressCreatedEvent(crn, addressEntity.updateId, deliusAddressId, CPR)
 
     awaitAssert {
       assertThat(personRepository.findByCrn(crn)?.addresses?.firstOrNull()?.deliusAddressId).isEqualTo(deliusAddressId)
@@ -39,7 +39,7 @@ class ProbationAddressCircularEventListenerIntTest : ProbationEventListenerTestB
     )
     val cprAddressBeforeUpdate = personEntity.addresses.first()
 
-    publishProbationOffenderAddressCreatedEvent(personEntity.crn, cprAddressBeforeUpdate.updateId, personEntity.addresses[0].deliusAddressId, CPR)
+    publishProbationAddressCreatedEvent(personEntity.crn, cprAddressBeforeUpdate.updateId, personEntity.addresses[0].deliusAddressId, CPR)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
