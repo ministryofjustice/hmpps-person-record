@@ -98,7 +98,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
 
       val crn = randomCrn()
       val initialAddress = Address.from(createRandomProbationAddress())
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToProbationRecord(initialAddress))
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(initialAddress))
       val addressToCreate = initialAddress.copy(postcode = randomPostcode())
 
       addressService.processAddress(
@@ -132,7 +132,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val initialAddress = Address.from(createRandomProbationAddress())
       val person = createPersonWithNewKey(
         createRandomProbationPersonDetails(crn),
-        configure = addAddressToProbationRecord(
+        configure = addAddressToRecord(
           initialAddress,
         ),
       )
@@ -172,7 +172,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val personEntity = createPersonWithNewKey(
         createRandomProbationPersonDetails(crn),
         configure =
-        addAddressToProbationRecord(Address(postcode = randomPostcode())),
+        addAddressToRecord(Address(postcode = randomPostcode())),
       )
       val addressToDelete = personEntity.addresses.first()
 
