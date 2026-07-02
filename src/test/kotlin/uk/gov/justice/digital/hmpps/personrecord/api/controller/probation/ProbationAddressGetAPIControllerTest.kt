@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus.OK
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
@@ -34,13 +33,16 @@ class ProbationAddressGetAPIControllerTest : WebTestBase() {
       val crn = randomCrn()
       val person = createPersonWithNewKey(
         createRandomProbationPersonDetails(crn),
-        configure = addAddressToRecord(Address(
+        configure = addAddressToRecord(
+          Address(
             noFixedAbode = randomBoolean(), startDate = randomZonedDateTime(), endDate = randomZonedDateTime(), postcode = randomPostcode(), buildingName = randomName(),
             subBuildingName = randomName(), buildingNumber = randomBuildingNumber(), thoroughfareName = randomName(), dependentLocality = randomName(),
             postTown = randomName(), county = randomName(), countryCode = randomCountryCode(), uprn = randomUprn(), statusCode = randomAddressStatusCode(),
             comment = randomName(), isVerified = randomBoolean(), usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
-            contacts = listOf(Contact(randomContactType(), randomPhoneNumber(), "+44")))
-      ))
+            contacts = listOf(Contact(randomContactType(), randomPhoneNumber(), "+44")),
+          ),
+        ),
+      )
 
       val expectedAddress = person.addresses.first()
 

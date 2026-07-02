@@ -28,7 +28,6 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
@@ -76,7 +75,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.time.ZonedDateTime
-import kotlin.collections.mutableListOf
 
 class ProbationApiE2ETest : E2ETestBase() {
 
@@ -165,29 +163,25 @@ class ProbationApiE2ETest : E2ETestBase() {
               Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
             ),
           ),
-          configure = {
-            val addressEntity = AddressEntity.from(
-              Address(
-                noFixedAbode = noFixedAbode,
-                startDate = startDateTime,
-                endDate = endDateTime,
-                postcode = postcode,
-                buildingName = buildingName,
-                buildingNumber = buildingNumber,
-                thoroughfareName = thoroughfareName,
-                dependentLocality = dependentLocality,
-                postTown = postTown,
-                county = county,
-                countryCode = countryCode,
-                uprn = uprn,
-                statusCode = addressStatusCode,
-                comment = comment,
-                usages = listOf(AddressUsage(addressUsageCode, isActive)),
-              ),
-            )
-            addressEntity.person = this
-            addresses = mutableListOf(addressEntity)
-          },
+          configure = addAddressToRecord(
+            Address(
+              noFixedAbode = noFixedAbode,
+              startDate = startDateTime,
+              endDate = endDateTime,
+              postcode = postcode,
+              buildingName = buildingName,
+              buildingNumber = buildingNumber,
+              thoroughfareName = thoroughfareName,
+              dependentLocality = dependentLocality,
+              postTown = postTown,
+              county = county,
+              countryCode = countryCode,
+              uprn = uprn,
+              statusCode = addressStatusCode,
+              comment = comment,
+              usages = listOf(AddressUsage(addressUsageCode, isActive)),
+            ),
+          ),
         )
 
         val responseBody = webTestClient.get()
