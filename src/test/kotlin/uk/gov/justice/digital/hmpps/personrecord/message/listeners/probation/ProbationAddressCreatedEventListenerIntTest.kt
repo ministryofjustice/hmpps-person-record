@@ -29,7 +29,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     val originalProbationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails(),
-      configure = addAddressToProbationRecord(Address.from(originalProbationAddress)!!),
+      configure = addAddressToRecord(Address.from(originalProbationAddress)!!),
     )
     val addressEntityBeforeCreateEvent = personEntity.addresses.first()
 
@@ -53,7 +53,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
   @Test
   fun `consuming address created event - address not retrieved from probation - does not save address`() {
     val probationAddress = randomProbationAddress()
-    val cprPerson = createRandomProbationPersonDetails().copy(addresses = emptyList())
+    val cprPerson = createRandomProbationPersonDetails()
     createPersonKey().addPerson(cprPerson)
 
     stubGetRequestToProbation(probationAddress, status = 404)

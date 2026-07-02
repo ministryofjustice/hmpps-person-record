@@ -1,9 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
 import io.awspring.cloud.sqs.annotation.SqsListener
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.HmppsDomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
@@ -16,9 +19,21 @@ class PrisonEventListener(
 ) {
 
   @SqsListener(Queues.PRISON_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.process(rawMessage) {
-    prisonerSearchClient.getPrisoner(it.getPrisonNumber())?.let { person ->
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processHmppsDomainEvent<HmppsDomainEvent>(rawMessage) { event ->
+    when (event) {
+      is PrisonPersonCreated -> processPrisonEvent(event.prisonNumber)
+      is PrisonPersonUpdated -> processPrisonEvent(event.prisonNumber)
+      else -> log.info("Discarding message, unexpected event: $event")
+    }
+  }
+
+  private fun processPrisonEvent(prisonNumber: String) {
+    prisonerSearchClient.getPrisoner(prisonNumber)?.let { person ->
       prisonEventProcessor.processEvent(person)
     }
+  }
+
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
   }
 }

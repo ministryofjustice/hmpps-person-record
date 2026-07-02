@@ -14,7 +14,7 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails(),
-      configure = addAddressToProbationRecord(Address.from(probationAddress)!!),
+      configure = addAddressToRecord(Address.from(probationAddress)!!),
     )
     val addressEntity = personEntity.addresses.first()
 
@@ -34,7 +34,7 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails(),
-      configure = addAddressToProbationRecord(Address.from(probationAddress)!!),
+      configure = addAddressToRecord(Address.from(probationAddress)!!),
     )
     val addressEntity = personEntity.addresses.first()
 
@@ -55,7 +55,7 @@ class ProbationAddressDeletedEventListenerIntTest : ProbationEventListenerTestBa
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails(),
-      configure = addAddressToProbationRecord(Address.from(probationAddress.copy(deliusAddressId = randomDeliusAddressId()))!!),
+      configure = addAddressToRecord(Address.from(probationAddress.copy(deliusAddressId = randomDeliusAddressId()))!!),
     )
 
     publishProbationAddressDeletedEvent(personEntity.crn, probationAddress.deliusAddressId)

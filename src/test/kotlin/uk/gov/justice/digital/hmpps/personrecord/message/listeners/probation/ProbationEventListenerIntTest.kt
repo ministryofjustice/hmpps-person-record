@@ -8,6 +8,10 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchS
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressUsage
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderUpdated
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
@@ -15,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -34,6 +39,10 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ALIAS_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ALIAS_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ALIAS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_RECOVERED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -252,7 +261,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
     fun `should not update addresses when updating person level data`() {
       val personEntity = createPersonWithNewKey(
         createRandomProbationPersonDetails(),
-        configure = addAddressToProbationRecord(Address(postcode = randomPostcode())),
+        configure = addAddressToRecord(Address(postcode = randomPostcode())),
       )
       val addressEntityBeforePersonUpdatedEvent = personEntity.addresses.first()
 
@@ -668,6 +677,20 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       val updatedEmailEntity = updatedPerson.contacts.getEmail()
       assertThat(updatedEmailEntity?.id).isNotEqualTo(mobilePhoneNumberEntity?.id)
     }
+
+    @Test
+    fun `should update person for other update event types`() {
+      listOf(
+        PROBATION_PERSON_RECOVERED,
+        PROBATION_ALIAS_CREATED,
+        PROBATION_ALIAS_UPDATED,
+        PROBATION_ALIAS_DELETED,
+      ).forEach { eventType ->
+        val entity = createPersonWithNewKey(createRandomProbationPersonDetails())
+        val case = createRandomProbationCase(entity.crn)
+        publishProbationPersonUpdateEventAndAssert(eventType, case, entity)
+      }
+    }
   }
 
   @Test
@@ -775,6 +798,27 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
     val actual = nationalityEntities.map { it.nationalityCode }
     val expected = nationalities.map { NationalityCode.fromProbationMapping(it) }
     assertThat(actual).containsAll(expected)
+  }
+
+  private fun publishProbationPersonUpdateEventAndAssert(
+    eventType: String,
+    probationCase: ProbationCase,
+    personEntity: PersonEntity,
+  ) {
+    stubSingleProbationResponse(ApiResponseSetup.from(probationCase))
+    publishDomainEvent(
+      ProbationOffenderUpdated(
+        eventType = eventType,
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", personEntity.crn!!))),
+      ),
+    )
+
+    checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to personEntity.crn))
+    val actualPersonEntity = personRepository.findByCrn(personEntity.crn!!)!!
+    assertThat(actualPersonEntity.getPrimaryName().firstName).isEqualTo(probationCase.name.firstName)
+    assertThat(actualPersonEntity.getPrimaryName().middleNames).isEqualTo(probationCase.name.middleNames)
+    assertThat(actualPersonEntity.getPrimaryName().lastName).isEqualTo(probationCase.name.lastName)
+    assertThat(actualPersonEntity.religion).isEqualTo(probationCase.religion!!.value)
   }
 
   private fun List<ReferenceEntity>.getCrosFromReferences(): List<ReferenceEntity> = this.filter { it.identifierType == CRO }
