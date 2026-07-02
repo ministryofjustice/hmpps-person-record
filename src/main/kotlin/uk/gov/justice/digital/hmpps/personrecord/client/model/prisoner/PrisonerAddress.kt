@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Address(
+data class PrisonerAddress(
   @JsonProperty("postalCode")
   val postcode: String? = null,
   val fullAddress: String? = null,

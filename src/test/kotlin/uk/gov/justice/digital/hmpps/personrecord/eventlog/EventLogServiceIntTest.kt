@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
@@ -64,7 +65,12 @@ class EventLogServiceIntTest : IntegrationTestBase() {
             Sentences(sentenceDate = LocalDate.of(1980, 1, 1)),
           ),
         ),
-      ).copy(addresses = listOf(Address(postcode = "ZX1 1AB"), Address(postcode = "AB1 2BC"), Address(postcode = "ZX1 1AB"))),
+      ),
+      configure = {
+        val addresses = listOf(Address(postcode = "ZX1 1AB"), Address(postcode = "AB1 2BC"), Address(postcode = "ZX1 1AB"))
+        val addressEntities = addresses.map { AddressEntity.from(it).also { addressEntity -> addressEntity.person = this } }.toMutableList()
+        this.addresses = addressEntities
+      },
     )
 
     val eventLog = eventLogService.logEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_CREATED, personEntity))
