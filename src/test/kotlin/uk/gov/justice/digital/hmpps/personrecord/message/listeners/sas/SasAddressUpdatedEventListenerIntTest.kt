@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDeliusAddressId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import java.util.UUID
 
 class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
@@ -38,10 +37,8 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
         addressRepository.findByDeliusAddressId(deliusAddressId)
       }
 
-      val sasCallbackResponse = createSasAddressGetResponse(crn, existingAddressEntity.updateId)
+      val sasCallbackResponse = createSasAddressGetResponse(crn, existingAddressEntity)
 
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
       stubGetRequestToSas(sasCallbackResponse)
 
       publishSasAddressUpdatedEvent()
@@ -84,8 +81,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
       createPersonKey()
         .addPerson(existingPersonEntity)
 
-      val nonExistingAddressUpdateId = UUID.randomUUID()
-      val sasCallbackResponse = createSasAddressGetResponse(existingPersonEntity.crn, nonExistingAddressUpdateId)
+      val sasCallbackResponse = createSasAddressGetResponse(existingPersonEntity.crn, AddressEntity.from(Address(postcode = randomPostcode())))
 
       stubGetRequestToSas(sasCallbackResponse)
 
@@ -107,7 +103,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
         .addPerson(existingPersonEntity)
 
       val nonExistingPersonCrn = randomCrn()
-      val sasCallbackResponse = createSasAddressGetResponse(nonExistingPersonCrn, existingAddressEntity.updateId)
+      val sasCallbackResponse = createSasAddressGetResponse(nonExistingPersonCrn, existingAddressEntity)
 
       stubGetRequestToSas(sasCallbackResponse)
 

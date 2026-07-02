@@ -227,10 +227,10 @@ class IntegrationTestBase {
   )
 
   internal fun addAddressToRecord(address: Address): PersonEntity.() -> Unit = {
-    val addresses = listOf(address)
-    val addressEntities =
-      addresses.map { AddressEntity.from(it).also { addressEntity -> addressEntity.person = this } }.toMutableList()
-    this.addresses = addressEntities
+    val addressEntity = AddressEntity.from(address).also { addressEntity -> addressEntity.person = this }
+    this.addresses.add(addressEntity)
+    personRepository.save(this)
+    addressRepository.save(addressEntity)
   }
 
   internal fun createRandomProbationAddress(): ProbationCreateAddress = ProbationCreateAddress(

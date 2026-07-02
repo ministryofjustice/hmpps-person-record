@@ -46,7 +46,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
@@ -193,22 +192,22 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun createSasAddressGetResponse(crn: String?, cprAddressUpdateId: UUID?) = SasGetAddressResponse(
+  fun createSasAddressGetResponse(crn: String?, address: AddressEntity) = SasGetAddressResponse(
     data = SasAddressData(
       crn = crn!!,
-      cprAddressId = cprAddressUpdateId.toString(),
+      cprAddressId = address.updateId.toString(),
       startDate = LocalDate.now(),
-      noFixedAbode = randomBoolean(),
-      typeVerified = randomBoolean(),
+      noFixedAbode = address.noFixedAbode,
+      typeVerified = address.isVerified,
       address = SasAddress(
-        postcode = randomPostcode(),
-        subBuildingName = randomName(),
-        buildingName = randomName(),
-        buildingNumber = randomBuildingNumber(),
-        thoroughfareName = randomName(),
-        dependentLocality = randomName(),
-        postTown = randomPostcode(),
-        county = randomName(),
+        postcode = address.postcode,
+        subBuildingName = address.subBuildingName,
+        buildingName = address.buildingName,
+        buildingNumber = address.buildingNumber,
+        thoroughfareName = address.thoroughfareName,
+        dependentLocality = address.dependentLocality,
+        postTown = address.postTown,
+        county = address.county,
         countryCode = "E",
         uprn = randomUprn(),
       ),
