@@ -15,7 +15,10 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming an address updated event - cpr address exists - updates address`() {
     val originalProbationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(originalProbationAddress)!!)),
+      createRandomProbationPersonDetails(),
+      configure = addAddressToRecord(
+        Address.from(originalProbationAddress)!!,
+      ),
     )
     val cprAddressBeforeUpdate = personEntity.addresses.first()
 
@@ -24,7 +27,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     val updatedProbationAddress = randomProbationAddress().copy(deliusAddressId = cprAddressBeforeUpdate.deliusAddressId)
     stubGetRequestToProbation(updatedProbationAddress)
 
-    publishProbationOffenderAddressUpdatedEvent(
+    publishProbationAddressUpdatedEvent(
       personEntity.crn,
       originalProbationAddress.deliusAddressId,
     )
@@ -43,13 +46,14 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming an address updated event - no matching fields updated - does not save in person match or trigger recluster`() {
     val originalProbationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(originalProbationAddress)!!)),
+      createRandomProbationPersonDetails(),
+      configure = addAddressToRecord(Address.from(originalProbationAddress)!!),
     )
 
     val updatedProbationAddress = originalProbationAddress.copy(notes = randomLowerCaseString())
     stubGetRequestToProbation(updatedProbationAddress)
 
-    publishProbationOffenderAddressUpdatedEvent(personEntity.crn, updatedProbationAddress.deliusAddressId)
+    publishProbationAddressUpdatedEvent(personEntity.crn, updatedProbationAddress.deliusAddressId)
 
     wiremock.verify(0, postRequestedFor(urlEqualTo("/person")))
     wiremock.verify(0, getRequestedFor(urlEqualTo("/person/score/.*")))
@@ -59,13 +63,14 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming address updated event - address not retrieved from probation - does not update address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress)!!)),
+      createRandomProbationPersonDetails(),
+      configure = addAddressToRecord(Address.from(probationAddress)!!),
     )
     val cprAddressBeforeUpdate = personEntity.addresses.first()
 
     stubGetRequestToProbation(probationAddress, status = 404)
 
-    publishProbationOffenderAddressUpdatedEvent(personEntity.crn, probationAddress.deliusAddressId)
+    publishProbationAddressUpdatedEvent(personEntity.crn, probationAddress.deliusAddressId)
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
@@ -85,7 +90,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     stubPersonMatchScores()
     stubGetRequestToProbation(probationAddress)
 
-    publishProbationOffenderAddressUpdatedEvent(personEntity.crn, probationAddress.deliusAddressId)
+    publishProbationAddressUpdatedEvent(personEntity.crn, probationAddress.deliusAddressId)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)

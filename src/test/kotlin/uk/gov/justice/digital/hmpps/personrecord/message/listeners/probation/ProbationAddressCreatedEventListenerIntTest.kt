@@ -18,7 +18,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     stubPersonMatchScores()
     stubGetRequestToProbation(probationAddress)
 
-    publishProbationOffenderAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
+    publishProbationAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
 
     val actualAddress = assertAddress(cprPerson.crn!!, probationAddress)
     assertCprAddressCreatedEventPublished(cprPerson.crn, actualAddress.updateId!!)
@@ -28,7 +28,8 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming address created event - address with delius address id already exists - updates address`() {
     val originalProbationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(originalProbationAddress)!!)),
+      createRandomProbationPersonDetails(),
+      configure = addAddressToRecord(Address.from(originalProbationAddress)!!),
     )
     val addressEntityBeforeCreateEvent = personEntity.addresses.first()
 
@@ -37,7 +38,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     val updatedProbationAddress = randomProbationAddress(originalProbationAddress.deliusAddressId)
     stubGetRequestToProbation(updatedProbationAddress)
 
-    publishProbationOffenderAddressCreatedEvent(personEntity.crn, null, originalProbationAddress.deliusAddressId, DELIUS)
+    publishProbationAddressCreatedEvent(personEntity.crn, null, originalProbationAddress.deliusAddressId, DELIUS)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
@@ -52,11 +53,11 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
   @Test
   fun `consuming address created event - address not retrieved from probation - does not save address`() {
     val probationAddress = randomProbationAddress()
-    val cprPerson = createRandomProbationPersonDetails().copy(addresses = emptyList())
+    val cprPerson = createRandomProbationPersonDetails()
     createPersonKey().addPerson(cprPerson)
 
     stubGetRequestToProbation(probationAddress, status = 404)
-    publishProbationOffenderAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
+    publishProbationAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)
@@ -71,7 +72,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     createPersonKey().addPerson(cprPerson)
 
     stubGetRequestToProbation(probationAddress)
-    publishProbationOffenderAddressCreatedEvent(randomCrn(), null, probationAddress.deliusAddressId, DELIUS)
+    publishProbationAddressCreatedEvent(randomCrn(), null, probationAddress.deliusAddressId, DELIUS)
 
     expectNoMessagesOn(probationEventsQueue)
     expectOneMessageOnDlq(probationEventsQueue)

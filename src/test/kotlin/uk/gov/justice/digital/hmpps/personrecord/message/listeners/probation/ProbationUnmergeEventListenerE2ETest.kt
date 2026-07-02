@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED_GDPR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
@@ -52,7 +52,7 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       }
 
       val deletedScope = personRepository.findByCrn(deletedCrn)?.overrideScopes
-      publishProbationDomainEvent(OFFENDER_GDPR_DELETION, deletedCrn)
+      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED_GDPR, deletedCrn)
 
       checkEventLogExist(deletedCrn, CPRLogEvents.CPR_RECORD_DELETED)
 
