@@ -14,7 +14,7 @@ class ProbationAddressCircularEventListenerIntTest : ProbationEventListenerTestB
   fun `given an address created event - event contains CPR event source - updates delius address id only`() {
     val crn = randomCrn()
     val addressCreatedBySas = randomProbationAddress().copy(deliusAddressId = null)
-    val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn = crn).copy(addresses = listOf(Address.from(addressCreatedBySas)!!)))
+    val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn = crn), configure = addAddressToRecord((Address.from(addressCreatedBySas)!!)))
     val addressEntity = personEntity.addresses.first()
 
     val deliusAddressId = randomDigit().toLong()
@@ -34,7 +34,8 @@ class ProbationAddressCircularEventListenerIntTest : ProbationEventListenerTestB
   fun `consuming address updated event - cpr event source - does not update address or publish subsequent events`() {
     val originalProbationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(originalProbationAddress)!!)),
+      createRandomProbationPersonDetails(),
+      configure = addAddressToRecord(Address.from(originalProbationAddress)!!),
     )
     val cprAddressBeforeUpdate = personEntity.addresses.first()
 

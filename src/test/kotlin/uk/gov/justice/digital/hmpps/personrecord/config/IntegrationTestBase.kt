@@ -50,12 +50,13 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Address
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.AllConvictedOffences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAlias
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -67,6 +68,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReviewRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -224,6 +226,13 @@ class IntegrationTestBase {
     dateOfBirth = randomDate(),
   )
 
+  internal fun addAddressToRecord(address: Address): PersonEntity.() -> Unit = {
+    val addresses = listOf(address)
+    val addressEntities =
+      addresses.map { AddressEntity.from(it).also { addressEntity -> addressEntity.person = this } }.toMutableList()
+    this.addresses = addressEntities
+  }
+
   internal fun createRandomProbationAddress(): ProbationCreateAddress = ProbationCreateAddress(
     noFixedAbode = false,
     startDate = randomZonedDateTime(),
@@ -260,13 +269,13 @@ class IntegrationTestBase {
         ),
       ),
       addresses = listOf(
-        Address(
+        PrisonerAddress(
           postcode = randomPostcode(),
           fullAddress = randomFullAddress(),
           noFixedAbode = randomBoolean(),
           startDate = randomDate(),
         ),
-        Address(
+        PrisonerAddress(
           postcode = randomPostcode(),
           fullAddress = randomFullAddress(),
           noFixedAbode = randomBoolean(),

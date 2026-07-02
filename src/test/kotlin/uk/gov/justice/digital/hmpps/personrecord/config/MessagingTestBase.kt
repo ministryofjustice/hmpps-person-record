@@ -27,6 +27,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -243,6 +244,7 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
     publishDomainEvent(
       ProbationPersonUpdated(
+        eventType = PROBATION_PERSON_UPDATED,
         personReference = PersonReference(listOf(PersonIdentifier("CRN", apiResponseSetup.crn!!))),
       ),
     )

@@ -15,7 +15,10 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming an address updated event - cpr address exists - updates address`() {
     val originalProbationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(originalProbationAddress)!!)),
+      createRandomProbationPersonDetails(),
+      configure = addAddressToRecord(
+        Address.from(originalProbationAddress)!!,
+      ),
     )
     val cprAddressBeforeUpdate = personEntity.addresses.first()
 
@@ -43,7 +46,8 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming an address updated event - no matching fields updated - does not save in person match or trigger recluster`() {
     val originalProbationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(originalProbationAddress)!!)),
+      createRandomProbationPersonDetails(),
+      configure = addAddressToRecord(Address.from(originalProbationAddress)!!),
     )
 
     val updatedProbationAddress = originalProbationAddress.copy(notes = randomLowerCaseString())
@@ -59,7 +63,8 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   fun `consuming address updated event - address not retrieved from probation - does not update address`() {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
-      createRandomProbationPersonDetails().copy(addresses = listOf(Address.from(probationAddress)!!)),
+      createRandomProbationPersonDetails(),
+      configure = addAddressToRecord(Address.from(probationAddress)!!),
     )
     val cprAddressBeforeUpdate = personEntity.addresses.first()
 
