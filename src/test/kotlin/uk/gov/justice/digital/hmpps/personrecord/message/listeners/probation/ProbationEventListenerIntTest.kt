@@ -260,7 +260,8 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
     @Test
     fun `should not update addresses when updating person level data`() {
       val personEntity = createPersonWithNewKey(
-        createRandomProbationPersonDetails().copy(addresses = listOf(Address(postcode = randomPostcode()))),
+        createRandomProbationPersonDetails(),
+        configure = addAddressToRecord(Address(postcode = randomPostcode())),
       )
       val addressEntityBeforePersonUpdatedEvent = personEntity.addresses.first()
 
