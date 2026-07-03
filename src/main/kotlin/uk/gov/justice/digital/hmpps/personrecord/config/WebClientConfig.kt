@@ -10,12 +10,12 @@ import java.time.Duration
 
 @Configuration
 class WebClientConfig(
-  @Value("\${person-match.base-url}") val personMatchUrl: String,
-  @Value("\${prisoner-search.base-url}") val prisonerSearchUrl: String,
-  @Value("\${core-person-record-and-delius.base-url}") val corePersonRecordAndDeliusUrl: String,
-  @Value("\${sas.base-url}") val sasUrl: String,
-  @Value("\${service-now.base-url}") val serviceNowUrl: String,
-  @Value("\${retry.timeout}") val timeout: Long,
+  @Value($$"${person-match.base-url}") val personMatchUrl: String,
+  @Value($$"${prisoner-search.base-url}") val prisonerSearchUrl: String,
+  @Value($$"${core-person-record-and-delius.base-url}") val corePersonRecordAndDeliusUrl: String,
+  @Value($$"${sas.base-url}") val sasUrl: String,
+  @Value($$"${service-now.base-url}") val serviceNowUrl: String,
+  @Value($$"${retry.timeout}") val timeout: Long,
 ) {
 
   @Bean
