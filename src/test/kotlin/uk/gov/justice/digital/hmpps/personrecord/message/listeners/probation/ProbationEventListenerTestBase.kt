@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressStat
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressUpdated
@@ -280,7 +281,32 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
   }
 
   fun assertCprAddressUpdatedEventPublished(crn: String, cprAddressId: UUID, deliusAddressId: Long?, eventSource: DomainEventSource) {
-    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
+    assertCprAddressUpdatedEvent(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue), crn, cprAddressId, deliusAddressId, eventSource)
+  }
+
+  data class CprAddressUpdatedEventExpected(
+    val crn: String,
+    val cprAddressId: UUID,
+    val deliusAddressId: Long?,
+    val eventSource: DomainEventSource,
+  )
+
+  fun assertCprAddressUpdatedEventsPublished(vararg expected: CprAddressUpdatedEventExpected) {
+    val messages = List(expected.size) { receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue) }.toMutableList()
+    expected.forEach { expectation ->
+      val match = messages.firstOrNull { message ->
+        message.getEventType() == CPR_PROBATION_ADDRESS_UPDATED &&
+          jsonMapper.readValue<CprAddressUpdated>(message.message).additionalInformation.cprAddressId == expectation.cprAddressId
+      }
+      assertThat(match)
+        .withFailMessage("No CPR address updated event found for cprAddressId ${expectation.cprAddressId}")
+        .isNotNull()
+      messages.remove(match)
+      assertCprAddressUpdatedEvent(match!!, expectation.crn, expectation.cprAddressId, expectation.deliusAddressId, expectation.eventSource)
+    }
+  }
+
+  private fun assertCprAddressUpdatedEvent(sqsMessage: SQSMessage, crn: String, cprAddressId: UUID, deliusAddressId: Long?, eventSource: DomainEventSource) {
     assertThat(sqsMessage.getEventType()).isEqualTo(CPR_PROBATION_ADDRESS_UPDATED)
     assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(eventSource.identifier))
     val domainEvent: CprAddressUpdated = jsonMapper.readValue<CprAddressUpdated>(sqsMessage.message)
