@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.SasClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressArrived
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
@@ -24,6 +25,7 @@ class SasEventListener(
   private val personRepository: PersonRepository,
   private val addressRepository: AddressRepository,
   private val addressService: AddressService,
+  private val sasAddressArrivedHandler: SasAddressArrivedHandler,
 ) {
 
   @SqsListener(SAS_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
@@ -31,6 +33,7 @@ class SasEventListener(
     when (event) {
       is SasAddressUpdated -> processSasAddressUpdated(event)
       is SasAddressDeleted -> processSasAddressDeleted(event)
+      is SasAddressArrived -> sasAddressArrivedHandler.handle(event)
       else -> log.info("Discarding message, unexpected event: $event")
     }
   }
