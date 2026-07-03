@@ -291,7 +291,7 @@ class IntegrationTestBase {
     ),
   )
 
-  internal fun createRandomLibraPersonDetails(cId: String = randomCId()): Person = Person.from(LibraHearingEvent(name = LibraName(firstName = randomName(), lastName = randomName()), cId = cId))
+  internal fun createRandomLibraPersonDetails(cId: String = randomCId()): Person = Person.from(LibraHearingEvent(name = LibraName(firstName = randomName(), lastName = randomName()), cId = cId, defendantAddress = uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Address(postcode = randomPostcode())))
 
   internal fun createRandomCommonPlatformPersonDetails(defendantId: String = randomDefendantId()): Person = Person.from(
     Defendant(
@@ -397,7 +397,7 @@ class IntegrationTestBase {
 
   internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
     person.sourceSystem,
-  ).updatePersonEntity(person, emptySet())
+  ).updatePersonEntity(person)
     .apply(configure)
     .let(personRepository::saveAndFlush)
 
