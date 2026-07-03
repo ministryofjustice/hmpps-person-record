@@ -284,14 +284,14 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     assertCprAddressUpdatedEvent(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue), crn, cprAddressId, deliusAddressId, eventSource)
   }
 
-  data class CprAddressUpdatedEventExpected(
+  data class ExpectedCprAddressUpdatedEvent(
     val crn: String,
     val cprAddressId: UUID,
     val deliusAddressId: Long?,
     val eventSource: DomainEventSource,
   )
 
-  fun assertCprAddressUpdatedEventsPublished(vararg expected: CprAddressUpdatedEventExpected) {
+  fun assertCprAddressUpdatedEventsPublished(vararg expected: ExpectedCprAddressUpdatedEvent) {
     val messages = List(expected.size) { receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue) }.toMutableList()
     expected.forEach { expectation ->
       val match = messages.firstOrNull { message ->

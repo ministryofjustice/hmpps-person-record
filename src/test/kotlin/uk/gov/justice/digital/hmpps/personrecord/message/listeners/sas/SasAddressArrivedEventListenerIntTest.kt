@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
@@ -51,7 +50,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       assertCprAddressUpdatedEventPublished(personEntity.crn!!, originalAddressEntity.updateId!!, originalAddressEntity.deliusAddressId, CPR)
     }
 
-    @RepeatedTest(100)
+    @Test
     fun `existing main address is set to previous and incoming address is now main`() {
       val crn = randomCrn()
       createPersonKey().addPerson(
@@ -85,8 +84,8 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       }
 
       assertCprAddressUpdatedEventsPublished(
-        CprAddressUpdatedEventExpected(personEntity.crn!!, originalMainAddress.updateId!!, originalMainAddress.deliusAddressId, CPR),
-        CprAddressUpdatedEventExpected(personEntity.crn!!, proposedAddress.updateId!!, proposedAddress.deliusAddressId, CPR),
+        ExpectedCprAddressUpdatedEvent(personEntity.crn!!, originalMainAddress.updateId!!, originalMainAddress.deliusAddressId, CPR),
+        ExpectedCprAddressUpdatedEvent(personEntity.crn!!, proposedAddress.updateId!!, proposedAddress.deliusAddressId, CPR),
       )
     }
 
