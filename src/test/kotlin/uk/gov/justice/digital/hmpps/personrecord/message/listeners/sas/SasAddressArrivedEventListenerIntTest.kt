@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.Pro
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.M
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.P
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.PR
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -23,11 +24,11 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
   inner class Successful {
 
     @Test
-    fun `no existing main address exists - promotes address to main`() {
+    fun `no existing main address so incoming address is main`() {
       val personEntity = createPerson(
         createRandomProbationPersonDetails(),
         configure = addAddressToRecord(
-          Address(postcode = randomPostcode(), statusCode = P),
+          Address(postcode = randomPostcode(), statusCode = PR),
         ),
       )
       val originalAddressEntity = personEntity.addresses.first()
@@ -51,7 +52,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
     }
 
     @Test
-    fun `existing main address exists - demotes existing main address - promotes address to main`() {
+    fun `existing main address is set to previous and incoming address is now main`() {
       val crn = randomCrn()
       createPersonKey().addPerson(
         createPerson(
@@ -59,33 +60,33 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
         ).apply(
           addAddressToRecord(Address(postcode = randomPostcode(), statusCode = M)),
         )
-          .apply(addAddressToRecord(Address(postcode = randomPostcode(), statusCode = P))),
+          .apply(addAddressToRecord(Address(postcode = randomPostcode(), statusCode = PR))),
       )
 
       val personEntity = personRepository.findByCrn(crn)!!
       val originalMainAddress = personEntity.addresses.first { it.statusCode == M }
-      val originalPreviousAddress = personEntity.addresses.first { it.statusCode == P }
+      val proposedAddress = personEntity.addresses.first { it.statusCode == PR }
 
-      val sasCallbackResponse = createSasAddressGetResponse(personEntity.crn, originalPreviousAddress).data
+      val sasCallbackResponse = createSasAddressGetResponse(personEntity.crn, proposedAddress).data
         .copy(typeVerified = true, statusCode = SasAddressStatus(M.name), startDate = randomDate())
 
       stubGetRequestToSas(SasGetAddressResponse(sasCallbackResponse))
-      publishSasAddressArrivedEvent(originalPreviousAddress.updateId!!)
+      publishSasAddressArrivedEvent(proposedAddress.updateId!!)
 
       awaitAssert {
-        val actualDemotedAddress = addressRepository.findByUpdateId(originalMainAddress.updateId!!)!!
-        assertThat(actualDemotedAddress.isVerified).isEqualTo(originalMainAddress.isVerified)
-        assertThat(actualDemotedAddress.statusCode).isEqualTo(P)
-        assertThat(actualDemotedAddress.endDate).isEqualTo(sasCallbackResponse.startDate!!.toUkZonedDateTime())
+        val oldMainAddress = addressRepository.findByUpdateId(originalMainAddress.updateId!!)!!
+        assertThat(oldMainAddress.isVerified).isEqualTo(originalMainAddress.isVerified)
+        assertThat(oldMainAddress.statusCode).isEqualTo(P)
+        assertThat(oldMainAddress.endDate).isEqualTo(sasCallbackResponse.startDate!!.toUkZonedDateTime())
 
-        val actualPromotedAddress = addressRepository.findByUpdateId(originalPreviousAddress.updateId!!)!!
-        assertThat(actualPromotedAddress.isVerified).isEqualTo(true)
-        assertThat(actualPromotedAddress.statusCode).isEqualTo(M)
-        assertThat(actualPromotedAddress.startDate!!.toUkLocalDate()).isEqualTo(sasCallbackResponse.startDate)
+        val newMainAddress = addressRepository.findByUpdateId(proposedAddress.updateId!!)!!
+        assertThat(newMainAddress.isVerified).isEqualTo(true)
+        assertThat(newMainAddress.statusCode).isEqualTo(M)
+        assertThat(newMainAddress.startDate!!.toUkLocalDate()).isEqualTo(sasCallbackResponse.startDate)
       }
 
       assertCprAddressUpdatedEventPublished(personEntity.crn!!, originalMainAddress.updateId!!, null, CPR)
-      assertCprAddressUpdatedEventPublished(personEntity.crn!!, originalPreviousAddress.updateId!!, null, CPR)
+      assertCprAddressUpdatedEventPublished(personEntity.crn!!, proposedAddress.updateId!!, null, CPR)
     }
 
     @Test
@@ -120,7 +121,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
     val personEntity = createPerson(
       createRandomProbationPersonDetails(),
       configure = addAddressToRecord(
-        Address(postcode = randomPostcode(), statusCode = P),
+        Address(postcode = randomPostcode(), statusCode = PR),
       ),
     )
     val originalAddressEntity = personEntity.addresses.first()
