@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.M
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.P
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.util.UUID
@@ -51,16 +52,19 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
 
     @Test
     fun `existing main address exists - demotes existing main address - promotes address to main`() {
-      val personEntity = createPerson(
-        createRandomProbationPersonDetails(),
-      ).apply(
-        addAddressToRecord(Address(postcode = randomPostcode(), statusCode = M)),
+      val crn = randomCrn()
+      createPersonKey().addPerson(
+        createPerson(
+          createRandomProbationPersonDetails(crn = crn),
+        ).apply(
+          addAddressToRecord(Address(postcode = randomPostcode(), statusCode = M)),
+        )
+          .apply(addAddressToRecord(Address(postcode = randomPostcode(), statusCode = P))),
       )
-        .apply(addAddressToRecord(Address(postcode = randomPostcode(), statusCode = P)))
 
+      val personEntity = personRepository.findByCrn(crn)!!
       val originalMainAddress = personEntity.addresses.first { it.statusCode == M }
       val originalPreviousAddress = personEntity.addresses.first { it.statusCode == P }
-      createPersonKey().addPerson(personEntity)
 
       val sasCallbackResponse = createSasAddressGetResponse(personEntity.crn, originalPreviousAddress).data
         .copy(typeVerified = true, statusCode = SasAddressStatus(M.name), startDate = randomDate())
