@@ -13,7 +13,7 @@ class ProbationAddressFromCprEventListener(
 ) {
 
   @SqsListener(PROBATION_ADDRESS_EVENT_FROM_CPR_QUEUE, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processHmppsDomainEvent<ProbationAddressCreated>(rawMessage) { event ->
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.process<ProbationAddressCreated>(rawMessage) { event ->
     deliusAddressIdHandler.patchAddress(event)
   }
 }

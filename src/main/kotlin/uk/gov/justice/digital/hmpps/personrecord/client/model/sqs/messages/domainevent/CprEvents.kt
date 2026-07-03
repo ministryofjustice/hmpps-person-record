@@ -11,7 +11,7 @@ data class CprPersonCreated(
   val description: String,
   val detailUrl: String,
   val personReference: PersonReference,
-) : HmppsDomainEvent
+) : DomainEvent
 
 data class CprAddressCreated(
   override val eventType: String,
@@ -21,7 +21,7 @@ data class CprAddressCreated(
   val detailUrl: String,
   val personReference: PersonReference,
   val additionalInformation: CprAddressCreatedInfo,
-) : HmppsDomainEvent
+) : DomainEvent
 
 data class CprAddressCreatedInfo(
   val cprAddressId: UUID,
@@ -36,7 +36,7 @@ data class CprAddressUpdated(
   val detailUrl: String,
   val personReference: PersonReference,
   val additionalInformation: CprAddressUpdatedInfo,
-) : HmppsDomainEvent
+) : DomainEvent
 
 data class CprAddressUpdatedInfo(
   val cprAddressId: UUID,
@@ -50,7 +50,7 @@ data class CprAddressDeleted(
   val description: String,
   val personReference: PersonReference,
   val additionalInformation: CprAddressDeletedInfo,
-) : HmppsDomainEvent
+) : DomainEvent
 
 data class CprAddressDeletedInfo(
   val cprAddressId: UUID,
