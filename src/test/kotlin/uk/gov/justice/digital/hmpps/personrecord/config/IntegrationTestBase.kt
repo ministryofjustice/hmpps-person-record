@@ -110,7 +110,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
@@ -235,8 +234,8 @@ class IntegrationTestBase {
 
   internal fun createRandomProbationAddress(): ProbationCreateAddress = ProbationCreateAddress(
     noFixedAbode = false,
-    startDate = randomZonedDateTime(),
-    endDate = randomZonedDateTime(),
+    startDate = randomDateTime(),
+    endDate = randomDateTime(),
     postcode = randomPostcode(),
     uprn = randomUprn(),
     subBuildingName = randomName(),

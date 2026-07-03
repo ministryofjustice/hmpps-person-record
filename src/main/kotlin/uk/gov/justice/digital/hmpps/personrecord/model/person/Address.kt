@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import kotlin.Boolean
 import kotlin.collections.mapNotNull
@@ -126,8 +127,8 @@ data class Address(
 
     fun from(address: ProbationCreateAddress): Address = Address(
       noFixedAbode = address.noFixedAbode,
-      startDate = address.startDate,
-      endDate = address.endDate,
+      startDate = address.startDate.atZone(ZoneOffset.UTC),
+      endDate = address.endDate?.atZone(ZoneOffset.UTC),
       postcode = address.postcode,
       uprn = address.uprn,
       subBuildingName = address.subBuildingName,

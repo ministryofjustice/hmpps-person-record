@@ -27,7 +27,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
-import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
@@ -74,7 +73,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
-import java.time.ZonedDateTime
 
 class ProbationApiE2ETest : E2ETestBase() {
 
@@ -215,9 +213,9 @@ class ProbationApiE2ETest : E2ETestBase() {
           cprAddressId = person.addresses.first().updateId!!.toString(),
           noFixedAbode = noFixedAbode,
           startDate = startDateTime.toLocalDate().toString(),
-          startDateTime = startDateTime,
+          startDateTime = startDateTime.toLocalDateTime(),
           endDate = endDateTime.toLocalDate().toString(),
-          endDateTime = endDateTime,
+          endDateTime = endDateTime.toLocalDateTime(),
           postcode = postcode,
           buildingName = buildingName,
           buildingNumber = buildingNumber,
@@ -269,7 +267,6 @@ class ProbationApiE2ETest : E2ETestBase() {
 
         assertThat(responseBody.addresses)
           .usingRecursiveComparison()
-          .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
           .isEqualTo(listOf(canonicalAddress))
       }
 
