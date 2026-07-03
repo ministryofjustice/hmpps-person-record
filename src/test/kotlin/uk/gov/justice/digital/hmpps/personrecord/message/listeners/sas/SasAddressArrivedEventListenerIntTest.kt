@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import java.util.UUID
+import java.util.UUID.randomUUID
 
 class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
 
@@ -173,11 +173,12 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       )
       createPersonKey().addPerson(personEntity)
 
+      val wrongCprAddressId = randomUUID()
       val sasCallbackResponse = createSasAddressGetResponse(personEntity.crn, personEntity.addresses.first()).data
-        .copy(typeVerified = true, statusCode = SasAddressStatus(M.name), startDate = randomDate())
+        .copy(typeVerified = true, statusCode = SasAddressStatus(M.name), startDate = randomDate(), cprAddressId = wrongCprAddressId.toString())
 
       stubGetRequestToSas(SasGetAddressResponse(sasCallbackResponse))
-      publishSasAddressArrivedEvent(UUID.randomUUID())
+      publishSasAddressArrivedEvent(wrongCprAddressId)
 
       expectNoMessagesOn(sasEventsQueue)
       expectOneMessageOnDlq(sasEventsQueue)

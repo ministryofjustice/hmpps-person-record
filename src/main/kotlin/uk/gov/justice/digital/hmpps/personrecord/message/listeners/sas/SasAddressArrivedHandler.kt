@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.M
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.P
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
-import java.util.UUID
 
 @Component
 class SasAddressArrivedHandler(
@@ -24,7 +23,7 @@ class SasAddressArrivedHandler(
   @Transactional
   fun handle(event: SasAddressArrived) {
     val newMainAddress = sasClient.getAddress(event.detailUrl)
-    val addressEntity = addressRepository.findByUpdateId(UUID.fromString(event.additionalInformation.cprAddressId))!!
+    val addressEntity = addressRepository.findByUpdateId(newMainAddress.cprAddressId)!!
     val personEntity = addressEntity.person!!
 
     newMainAddress.address.isVerified = true
