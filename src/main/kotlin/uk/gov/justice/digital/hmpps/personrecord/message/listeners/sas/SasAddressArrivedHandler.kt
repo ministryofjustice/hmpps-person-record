@@ -8,8 +8,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.M
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.P
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import java.util.UUID
 
@@ -22,33 +23,33 @@ class SasAddressArrivedHandler(
 
   @Transactional
   fun handle(event: SasAddressArrived) {
-    val sasAddress = sasClient.getAddress(event.detailUrl)
+    val newMainAddress = sasClient.getAddress(event.detailUrl)
     val addressEntity = addressRepository.findByUpdateId(UUID.fromString(event.additionalInformation.cprAddressId))!!
     val personEntity = addressEntity.person!!
 
-    sasAddress.address.isVerified = true
-    sasAddress.address.statusCode = AddressStatusCode.M
-    personEntity.demoteMainAddressIfPresent(sasAddress)
+    newMainAddress.address.isVerified = true
+    newMainAddress.address.statusCode = M
+    personEntity.setMainAddressToPrevious(newMainAddress)
     addressService.processAddress(
-      address = sasAddress.address,
+      address = newMainAddress.address,
       findPerson = { personEntity },
       findAddress = { addressEntity },
-      eventSource = DomainEventSource.CPR,
+      eventSource = CPR,
     )
   }
 
-  private fun PersonEntity.demoteMainAddressIfPresent(sasAddress: SasAddress) {
+  private fun PersonEntity.setMainAddressToPrevious(newMainAddress: SasAddress) {
     this.addresses
-      .filter { it.updateId != sasAddress.cprAddressId }
-      .firstOrNull { it.statusCode == AddressStatusCode.M }
-      ?.let { mainAddressEntityBeingDemoted ->
-        mainAddressEntityBeingDemoted.statusCode = AddressStatusCode.P
-        mainAddressEntityBeingDemoted.endDate = sasAddress.address.startDate
+      .filter { it.updateId != newMainAddress.cprAddressId }
+      .firstOrNull { it.statusCode == M }
+      ?.let { oldMainAddress ->
+        oldMainAddress.statusCode = P
+        oldMainAddress.endDate = newMainAddress.address.startDate
         addressService.processAddress(
-          address = Address.from(mainAddressEntityBeingDemoted),
+          address = Address.from(oldMainAddress),
           findPerson = { this },
-          findAddress = { mainAddressEntityBeingDemoted },
-          eventSource = DomainEventSource.CPR,
+          findAddress = { oldMainAddress },
+          eventSource = CPR,
         )
       }
   }
