@@ -14,7 +14,7 @@ class ProbationDeleteEventListener(
 ) {
 
   @SqsListener(Queues.PROBATION_DELETION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processHmppsDomainEvent<ProbationPersonDeleted>(rawMessage) { event ->
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.process<ProbationPersonDeleted>(rawMessage) { event ->
     probationDeleteProcessor.process(event)
   }
 }
