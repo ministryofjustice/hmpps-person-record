@@ -291,18 +291,18 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     val eventSource: DomainEventSource,
   )
 
-  fun assertCprAddressUpdatedEventsPublished(vararg expected: ExpectedCprAddressUpdatedEvent) {
-    val messages = List(expected.size) { receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue) }.toMutableList()
-    expected.forEach { expectation ->
+  fun assertCprAddressUpdatedEventsPublished(vararg expectedEvents: ExpectedCprAddressUpdatedEvent) {
+    val messages = List(expectedEvents.size) { receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue) }.toMutableList()
+    expectedEvents.forEach { expectedEvent ->
       val match = messages.firstOrNull { message ->
         message.getEventType() == CPR_PROBATION_ADDRESS_UPDATED &&
-          jsonMapper.readValue<CprAddressUpdated>(message.message).additionalInformation.cprAddressId == expectation.cprAddressId
+          jsonMapper.readValue<CprAddressUpdated>(message.message).additionalInformation.cprAddressId == expectedEvent.cprAddressId
       }
       assertThat(match)
-        .withFailMessage("No CPR address updated event found for cprAddressId ${expectation.cprAddressId}")
+        .withFailMessage("No CPR address updated event found for cprAddressId ${expectedEvent.cprAddressId}")
         .isNotNull()
       messages.remove(match)
-      assertCprAddressUpdatedEvent(match!!, expectation.crn, expectation.cprAddressId, expectation.deliusAddressId, expectation.eventSource)
+      assertCprAddressUpdatedEvent(match!!, expectedEvent.crn, expectedEvent.cprAddressId, expectedEvent.deliusAddressId, expectedEvent.eventSource)
     }
   }
 
