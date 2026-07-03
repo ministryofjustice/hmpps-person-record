@@ -11,28 +11,28 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_U
 data class ProbationPersonCreated(
   override val eventType: String = PROBATION_PERSON_CREATED,
   val personReference: PersonReference,
-) : HmppsDomainEvent {
+) : DomainEvent {
   val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
 }
 
 data class ProbationPersonUpdated(
   override val eventType: String,
   val personReference: PersonReference,
-) : HmppsDomainEvent {
+) : DomainEvent {
   val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
 }
 
 data class ProbationPersonDeleted(
   override val eventType: String,
   val personReference: PersonReference,
-) : HmppsDomainEvent {
+) : DomainEvent {
   val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
 }
 
 data class ProbationPersonMerged(
   override val eventType: String = PROBATION_PERSON_MERGED,
   val additionalInformation: ProbationPersonMergedInfo,
-) : HmppsDomainEvent
+) : DomainEvent
 
 data class ProbationPersonMergedInfo(
   @JsonProperty("sourceCRN")
@@ -45,7 +45,7 @@ data class ProbationPersonMergedInfo(
 data class ProbationPersonUnmerged(
   override val eventType: String = PROBATION_PERSON_UNMERGED,
   val additionalInformation: ProbationPersonUnmergedInfo,
-) : HmppsDomainEvent
+) : DomainEvent
 
 data class ProbationPersonUnmergedInfo(
   @JsonProperty("reactivatedCRN")
@@ -59,7 +59,7 @@ data class ProbationAddressCreated(
   override val eventType: String = PROBATION_ADDRESS_CREATED,
   val personReference: PersonReference,
   val additionalInformation: ProbationAddressCreatedInfo,
-) : HmppsDomainEvent {
+) : DomainEvent {
   val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
 }
 
@@ -75,7 +75,7 @@ data class ProbationAddressUpdated(
   override val eventType: String = PROBATION_ADDRESS_UPDATED,
   val personReference: PersonReference,
   val additionalInformation: ProbationAddressUpdatedInfo,
-) : HmppsDomainEvent {
+) : DomainEvent {
   val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
 }
 
@@ -88,7 +88,7 @@ data class ProbationAddressDeleted(
   override val eventType: String = PROBATION_ADDRESS_DELETED,
   val personReference: PersonReference,
   val additionalInformation: ProbationAddressDeletedInfo,
-) : HmppsDomainEvent {
+) : DomainEvent {
   val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
 }
 

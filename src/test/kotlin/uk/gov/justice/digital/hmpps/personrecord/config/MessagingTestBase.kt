@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.HmppsDomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonCreated
@@ -153,7 +153,7 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     } matches { it == 1 }
   }
 
-  fun publishDomainEvent(domainEvent: HmppsDomainEvent, eventSource: DomainEventSource? = null) {
+  fun publishDomainEvent(domainEvent: DomainEvent, eventSource: DomainEventSource? = null) {
     val messageAttributes = mutableMapOf(
       "eventType" to MessageAttributeValue.builder().dataType("String")
         .stringValue(domainEvent.eventType).build(),

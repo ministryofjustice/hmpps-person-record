@@ -4,7 +4,7 @@ import io.awspring.cloud.sqs.annotation.SqsListener
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.HmppsDomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationAddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationAddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationAddressUpdated
@@ -29,7 +29,7 @@ class ProbationEventListener(
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processHmppsDomainEvent<HmppsDomainEvent>(rawMessage) { event ->
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.process<DomainEvent>(rawMessage) { event ->
     when (event) {
       is ProbationAddressCreated -> upsertAddress(event.crn, event.additionalInformation.deliusAddressId)
       is ProbationAddressUpdated -> upsertAddress(event.crn, event.additionalInformation.deliusAddressId)
