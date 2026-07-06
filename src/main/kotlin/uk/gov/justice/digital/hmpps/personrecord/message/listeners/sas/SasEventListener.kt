@@ -33,7 +33,7 @@ class SasEventListener(
     when (event) {
       is SasAddressUpdated -> processSasAddressUpdated(event)
       is SasAddressDeleted -> processSasAddressDeleted(event)
-      is SasAddressArrived -> sasAddressArrivedHandler.handle(event)
+      is SasAddressArrived -> processSasAddressArrived(event)
       else -> log.info("Discarding message, unexpected event: $event")
     }
   }
@@ -53,6 +53,12 @@ class SasEventListener(
       eventSource = CPR,
       findAddress = { addressRepository.findByUpdateId(UUID.fromString(event.additionalInformation.cprAddressId)) },
     )
+  }
+
+  private fun processSasAddressArrived(event: SasAddressArrived) {
+    val newMainAddress = sasClient.getAddress(event.detailUrl)
+    sasAddressArrivedHandler.setMainAddressToPrevious(newMainAddress.cprAddressId, newMainAddress.address.startDate!!)
+    sasAddressArrivedHandler.setProposedAddressToMain(newMainAddress)
   }
 
   companion object {
