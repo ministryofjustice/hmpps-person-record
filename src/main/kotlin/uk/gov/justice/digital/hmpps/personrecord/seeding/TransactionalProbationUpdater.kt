@@ -32,7 +32,16 @@ class TransactionalProbationUpdater(
     personRepository.findByCrn(person.crn!!).exists(
       no = {
         log.error("CRN not found in Database ${person.crn}")
-        personService.processPerson(person, { personRepository.findByCrn(person.crn) })
+        val personEntity = personService.processPerson(person, { personRepository.findByCrn(person.crn) })
+
+        case.addresses.forEach { address ->
+          addressService.processAddress(
+            address = Address.from(address)!!,
+            findPerson = { personEntity },
+            findAddress = { addressRepository.findByDeliusAddressId(address.deliusAddressId) },
+            eventSource = DomainEventSource.DELIUS,
+          )
+        }
         publisher.publishEvent(RecordEventLog(CPR_RECORD_SEEDED, personRepository.findByCrn(person.crn)!!))
       },
       yes = {
