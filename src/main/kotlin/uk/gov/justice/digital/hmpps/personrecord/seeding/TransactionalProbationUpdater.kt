@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_SEEDED
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.updatePersonEntity
 
 @Component
 class TransactionalProbationUpdater(
@@ -30,7 +31,7 @@ class TransactionalProbationUpdater(
       },
       yes = {
         if (it.isNotMerged()) {
-          it.update(person)
+          it.updatePersonEntity(person)
           personRepository.save(it)
         }
       },

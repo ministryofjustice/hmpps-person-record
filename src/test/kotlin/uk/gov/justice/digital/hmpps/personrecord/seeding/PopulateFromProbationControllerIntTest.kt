@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType.APPLICATION_JSON
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
@@ -326,6 +327,124 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
 
           assertThat(updatedPerson?.addresses[1]?.deliusAddressId).isEqualTo(deliusAddressIdTwo)
           checkEventLogExist(probationPerson.crn, CPRLogEvents.CPR_RECORD_SEEDED)
+        }
+      }
+
+      @Test
+      fun `should maintain correct id fields when updating an address`() {
+        val crn = randomCrn()
+        val deliusAddressId = randomDeliusAddressId()
+
+        val baseProbationCase = createRandomProbationCase(crn)
+        val probationPerson = Person.from(baseProbationCase)
+        val personEntity = createPersonWithNewKey(
+          probationPerson,
+          configure = addAddressToRecord(Address.from(createRandomProbationAddress()).copy(deliusAddressId = deliusAddressId)),
+        )
+        val addressUpdateId = personEntity.addresses.first().updateId!!
+
+        val deliusAddressResponse = ApiResponseSetupAddress(
+          noFixedAbode = randomBoolean(),
+          startDateTime = randomZonedDateTime(),
+          endDateTime = randomZonedDateTime(),
+          fullAddress = randomFullAddress(),
+          buildingName = randomLowerCaseString(),
+          addressNumber = randomBuildingNumber(),
+          streetName = randomLowerCaseString(),
+          district = randomLowerCaseString(),
+          townCity = randomLowerCaseString(),
+          county = randomLowerCaseString(),
+          uprn = randomUprn(),
+          notes = randomLowerCaseString(),
+          telephoneNumber = randomPhoneNumber(),
+          isVerified = randomBoolean(),
+          status = ApiResponseSetupAddressStatus(
+            code = randomAddressStatusCode().name,
+            description = randomAddressStatusCode().description,
+          ),
+          usage = ApiResponseSetupAddressUsage(
+            code = randomAddressUsageCode().name,
+            description = randomAddressUsageCode().description,
+          ),
+          postcode = personEntity.addresses[0].postcode,
+          deliusAddressId = deliusAddressId,
+        )
+        val response = ApiResponseSetup.from(baseProbationCase).copy(addresses = listOf(deliusAddressResponse))
+
+        val responseBody = allProbationCasesResponse(listOf(response), 1)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = responseBody)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = responseBody)
+
+        webTestClient.post()
+          .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
+          .contentType(APPLICATION_JSON)
+          .bodyValue(PopulateConfig(0))
+          .exchange()
+          .expectStatus()
+          .isOk
+
+        awaitAssert {
+          val updatedPerson = personRepository.findByCrn(probationPerson.crn!!)
+          val firstAddress = updatedPerson?.addresses?.first()!!
+
+          assertThat(firstAddress.deliusAddressId).isEqualTo(deliusAddressId)
+          assertThat(firstAddress.updateId).isEqualTo(addressUpdateId)
+        }
+      }
+
+      @Test
+      fun `should create address when probation send address with null postcode`() {
+        val crn = randomCrn()
+        val baseProbationCase = createRandomProbationCase(crn)
+        val probationPerson = Person.from(baseProbationCase)
+        createPersonWithNewKey(probationPerson)
+        val deliusAddressId = randomDeliusAddressId()
+
+        val deliusAddressResponse = ApiResponseSetupAddress(
+          noFixedAbode = randomBoolean(),
+          startDateTime = randomZonedDateTime(),
+          endDateTime = randomZonedDateTime(),
+          fullAddress = randomFullAddress(),
+          buildingName = randomLowerCaseString(),
+          addressNumber = randomBuildingNumber(),
+          streetName = randomLowerCaseString(),
+          district = randomLowerCaseString(),
+          townCity = randomLowerCaseString(),
+          county = randomLowerCaseString(),
+          uprn = randomUprn(),
+          notes = randomLowerCaseString(),
+          telephoneNumber = randomPhoneNumber(),
+          isVerified = randomBoolean(),
+          status = ApiResponseSetupAddressStatus(
+            code = randomAddressStatusCode().name,
+            description = randomAddressStatusCode().description,
+          ),
+          usage = ApiResponseSetupAddressUsage(
+            code = randomAddressUsageCode().name,
+            description = randomAddressUsageCode().description,
+          ),
+          postcode = "",
+          deliusAddressId = deliusAddressId,
+        )
+        val response = ApiResponseSetup.from(baseProbationCase).copy(addresses = listOf(deliusAddressResponse))
+
+        val responseBody = allProbationCasesResponse(listOf(response), 1)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = responseBody)
+        stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = responseBody)
+
+        webTestClient.post()
+          .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
+          .contentType(APPLICATION_JSON)
+          .bodyValue(PopulateConfig(0))
+          .exchange()
+          .expectStatus()
+          .isOk
+
+        awaitAssert {
+          val updatedPerson = personRepository.findByCrn(probationPerson.crn!!)
+          val firstAddress = updatedPerson?.addresses!!
+
+          assertThat(firstAddress.size).isEqualTo(1)
         }
       }
 
