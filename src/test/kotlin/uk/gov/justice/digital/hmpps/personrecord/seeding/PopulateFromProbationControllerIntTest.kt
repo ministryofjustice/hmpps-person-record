@@ -157,15 +157,15 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
     inner class SuccessfulProcessing {
 
       @Test
-      fun `should populate addresses from probation single case`() {
+      fun `should update and create addresses from single probation case`() {
         val crn = randomCrn()
-        val baseProbationCase = createRandomProbationCase(crn)
-        val probationPerson = Person.from(baseProbationCase)
-        createPersonWithNewKey(probationPerson)
         val deliusAddressIdOne = randomDeliusAddressId()
         val deliusAddressIdTwo = randomDeliusAddressId()
+        val baseProbationCase = createRandomProbationCase(crn)
+        val probationPerson = Person.from(baseProbationCase)
+        val personEntity = createPersonWithNewKey(probationPerson, configure = addAddressToRecord(Address.from(createRandomProbationAddress()).copy(deliusAddressId = deliusAddressIdOne)))
 
-        val firstAddressSetup = ApiResponseSetupAddress(
+        val firstDeliusAddress = ApiResponseSetupAddress(
           noFixedAbode = randomBoolean(),
           startDateTime = randomZonedDateTime(),
           endDateTime = randomZonedDateTime(),
@@ -188,22 +188,22 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
             code = randomAddressUsageCode().name,
             description = randomAddressUsageCode().description,
           ),
-          postcode = probationPerson.addresses[0].postcode,
+          postcode = personEntity.addresses[0].postcode,
           deliusAddressId = deliusAddressIdOne,
         )
+        val secondDeliusAddress = firstDeliusAddress.copy(deliusAddressId = deliusAddressIdTwo, postcode = randomPostcode())
         val response = ApiResponseSetup.from(baseProbationCase).copy(
           addresses = listOf(
-            firstAddressSetup,
-            ApiResponseSetupAddress(
-              postcode = probationPerson.addresses[1].postcode,
-              deliusAddressId = deliusAddressIdTwo,
-            ),
+            firstDeliusAddress,
+            secondDeliusAddress,
           ),
         )
 
         val responseBody = allProbationCasesResponse(listOf(response), 1)
         stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = responseBody)
         stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = responseBody)
+        stubPersonMatchScores()
+        stubPersonMatchUpsert()
 
         webTestClient.post()
           .uri(ADMIN_POPULATE_FROM_PROBATION_URL)
@@ -213,32 +213,35 @@ class PopulateFromProbationControllerIntTest : WebTestBase() {
           .expectStatus()
           .isOk
 
+        awaitNotNull { addressRepository.findByDeliusAddressId(deliusAddressIdTwo) }
         awaitAssert {
-          val updatedPerson = personRepository.findByCrn(probationPerson.crn!!)
-          val firstAddress = updatedPerson?.addresses?.first()
+          val updatedPerson = personRepository.findByCrn(probationPerson.crn!!)!!
+          val firstAddress = updatedPerson.addresses.first { it.deliusAddressId == deliusAddressIdOne }
+          val secondAddress = updatedPerson.addresses.first { it.deliusAddressId == deliusAddressIdTwo }
 
-          assertThat(firstAddress?.deliusAddressId).isEqualTo(deliusAddressIdOne)
-          assertThat(firstAddress?.postcode).isEqualTo(firstAddressSetup.postcode)
-          assertThat(firstAddress?.fullAddress).isEqualTo(firstAddressSetup.fullAddress)
-          assertThat(firstAddress?.startDate).isEqualTo(firstAddressSetup.startDateTime)
-          assertThat(firstAddress?.endDate).isEqualTo(firstAddressSetup.endDateTime)
-          assertThat(firstAddress?.uprn).isEqualTo(firstAddressSetup.uprn)
-          assertThat(firstAddress?.buildingName).isEqualTo(firstAddressSetup.buildingName)
-          assertThat(firstAddress?.buildingNumber).isEqualTo(firstAddressSetup.addressNumber)
-          assertThat(firstAddress?.comment).isEqualTo(firstAddressSetup.notes)
-          assertThat(firstAddress?.noFixedAbode).isEqualTo(firstAddressSetup.noFixedAbode)
+          assertThat(firstAddress.deliusAddressId).isEqualTo(deliusAddressIdOne)
+          assertThat(firstAddress.postcode).isEqualTo(firstDeliusAddress.postcode)
+          assertThat(firstAddress.fullAddress).isEqualTo(firstDeliusAddress.fullAddress)
+          assertThat(firstAddress.startDate).isEqualTo(firstDeliusAddress.startDateTime)
+          assertThat(firstAddress.endDate).isEqualTo(firstDeliusAddress.endDateTime)
+          assertThat(firstAddress.uprn).isEqualTo(firstDeliusAddress.uprn)
+          assertThat(firstAddress.buildingName).isEqualTo(firstDeliusAddress.buildingName)
+          assertThat(firstAddress.buildingNumber).isEqualTo(firstDeliusAddress.addressNumber)
+          assertThat(firstAddress.comment).isEqualTo(firstDeliusAddress.notes)
+          assertThat(firstAddress.noFixedAbode).isEqualTo(firstDeliusAddress.noFixedAbode)
 
-          assertThat(firstAddress?.thoroughfareName).isEqualTo(firstAddressSetup.streetName)
-          assertThat(firstAddress?.dependentLocality).isEqualTo(firstAddressSetup.district)
-          assertThat(firstAddress?.postTown).isEqualTo(firstAddressSetup.townCity)
-          assertThat(firstAddress?.county).isEqualTo(firstAddressSetup.county)
-          assertThat(firstAddress?.isVerified).isEqualTo(firstAddressSetup.isVerified)
-          assertThat(firstAddress?.contacts?.first()?.contactValue).isEqualTo(firstAddressSetup.telephoneNumber)
-          assertThat(firstAddress?.statusCode).isEqualTo(AddressStatusCode.fromProbation(firstAddressSetup.status!!.code!!))
-          assertThat(firstAddress?.usages?.first()?.usageCode).isEqualTo(AddressUsageCode.from(firstAddressSetup.usage?.code!!))
-          assertThat(firstAddress?.usages?.first()?.active).isEqualTo(true)
+          assertThat(firstAddress.thoroughfareName).isEqualTo(firstDeliusAddress.streetName)
+          assertThat(firstAddress.dependentLocality).isEqualTo(firstDeliusAddress.district)
+          assertThat(firstAddress.postTown).isEqualTo(firstDeliusAddress.townCity)
+          assertThat(firstAddress.county).isEqualTo(firstDeliusAddress.county)
+          assertThat(firstAddress.isVerified).isEqualTo(firstDeliusAddress.isVerified)
+          assertThat(firstAddress.contacts.first().contactValue).isEqualTo(firstDeliusAddress.telephoneNumber)
+          assertThat(firstAddress.statusCode).isEqualTo(AddressStatusCode.fromProbation(firstDeliusAddress.status!!.code!!))
+          assertThat(firstAddress.usages.first().usageCode).isEqualTo(AddressUsageCode.from(firstDeliusAddress.usage?.code!!))
+          assertThat(firstAddress.usages.first().active).isEqualTo(true)
 
-          assertThat(updatedPerson?.addresses[1]?.deliusAddressId).isEqualTo(deliusAddressIdTwo)
+          assertThat(secondAddress.deliusAddressId).isEqualTo(deliusAddressIdTwo)
+          assertThat(secondAddress.postcode).isEqualTo(secondDeliusAddress.postcode)
         }
       }
 
