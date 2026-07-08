@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -12,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliu
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClientPageParams
 
 @RestController
+@Profile("!preprod & !prod")
 class PopulateFromProbationController(
   val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   private val retryableProbationUpdater: RetryableProbationUpdater,
