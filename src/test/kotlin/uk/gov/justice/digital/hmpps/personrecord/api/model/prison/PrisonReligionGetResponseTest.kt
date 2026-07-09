@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
@@ -39,8 +38,8 @@ class PrisonReligionGetResponseTest {
     val expected = PrisonReligionReadResponse(
       prisonNumber = prisonNumber,
       religion = PrisonReligion(
-        religionCode = prisonReligionEntity.code,
-        religionDescription = ReligionCode.valueOf(prisonReligionEntity.code).description,
+        religionCode = prisonReligionEntity.code.name,
+        religionDescription = prisonReligionEntity.code.description,
         changeReasonKnown = prisonReligionEntity.changeReasonKnown,
         comments = prisonReligionEntity.comments,
         startDate = prisonReligionEntity.startDate,
