@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.client
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
 import org.springframework.data.web.PagedModel.PageMetadata
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -66,6 +65,4 @@ class CorePersonRecordAndDeliusClientPageParams(val page: Long, val size: Int) {
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ProbationCases(
   val page: PageMetadata,
-  @JsonProperty("content")
-  val cases: List<ProbationCase> = emptyList(),
 )
