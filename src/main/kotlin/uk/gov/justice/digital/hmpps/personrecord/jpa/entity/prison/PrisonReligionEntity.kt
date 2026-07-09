@@ -37,6 +37,7 @@ class PrisonReligionEntity(
   val prisonNumber: String,
 
   @Column(name = "religion_code", nullable = false)
+  @Enumerated(STRING)
   var code: ReligionCode,
 
   @Column(name = "change_reason_known", nullable = false)
