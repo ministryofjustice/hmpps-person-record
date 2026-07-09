@@ -61,6 +61,7 @@ repositories {
 val test by testing.suites.existing(JvmTestSuite::class)
 
 tasks.register<Test>("initialiseDatabase") {
+  description = "A simple task which starts the Spring ApplicationContext and therefore runs flyway migrations"
   testClassesDirs = files(test.map { it.sources.output.classesDirs })
   classpath = files(test.map { it.sources.runtimeClasspath })
   include("**/InitialiseDatabase.class")
@@ -68,6 +69,7 @@ tasks.register<Test>("initialiseDatabase") {
 }
 
 tasks.register<Test>("e2eTest") {
+  description = "runs end to end tests against docker"
   testClassesDirs = files(test.map { it.sources.output.classesDirs })
   classpath = files(test.map { it.sources.runtimeClasspath })
   include("**/**E2ETest.class")
