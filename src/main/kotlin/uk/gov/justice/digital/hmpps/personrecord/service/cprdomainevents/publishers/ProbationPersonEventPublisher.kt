@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publis
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
@@ -21,22 +21,16 @@ class ProbationPersonEventPublisher(
   override val sourceSystemType = SourceSystemType.DELIUS
 
   override fun onCreate(personCreated: PersonCreated) {
-    publishPersonDomainEvent(
-      personCreated.personEntity,
-      CPR_PROBATION_PERSON_CREATED,
-    )
+    publishPersonDomainEvent(personCreated.personEntity)
   }
 
-  private fun publishPersonDomainEvent(
-    personEntity: PersonEntity,
-    eventType: String,
-  ) {
+  private fun publishPersonDomainEvent(personEntity: PersonEntity) {
     val crn = personEntity.extractSourceSystemId()!!
     val detailUrl = "$baseUrl/person/probation/$crn"
 
     domainEventPublisher.publish(
-      DomainEvent(
-        eventType = eventType,
+      CprPersonCreated(
+        eventType = CPR_PROBATION_PERSON_CREATED,
         description = "A probation person record has been created",
         detailUrl = detailUrl,
         occurredAt = Instant.now().asStringWithUkZone(),

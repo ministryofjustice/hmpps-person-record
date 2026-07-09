@@ -4,8 +4,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMerged
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderMergedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonMerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonMergedInfo
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -276,8 +276,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
 
       publishDomainEvent(
-        ProbationOffenderMerged(
-          additionalInformation = ProbationOffenderMergedInfo(
+        ProbationPersonMerged(
+          additionalInformation = ProbationPersonMergedInfo(
             sourceCrn = sourceCrn,
             targetCrn = targetCrn,
           ),

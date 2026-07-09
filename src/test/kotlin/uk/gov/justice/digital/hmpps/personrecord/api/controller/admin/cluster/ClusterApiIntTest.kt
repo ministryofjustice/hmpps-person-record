@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin.cluster
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -28,7 +29,7 @@ class ClusterApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(AdminClusterDetail::class.java)
+        .expectBody<AdminClusterDetail>()
         .returnResult()
         .responseBody!!
 
@@ -58,7 +59,7 @@ class ClusterApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(AdminClusterDetail::class.java)
+        .expectBody<AdminClusterDetail>()
         .returnResult()
         .responseBody!!
 
@@ -118,7 +119,7 @@ class ClusterApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(AdminClusterDetail::class.java)
+        .expectBody<AdminClusterDetail>()
         .returnResult()
         .responseBody!!
 
@@ -183,7 +184,7 @@ class ClusterApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(AdminClusterDetail::class.java)
+        .expectBody<AdminClusterDetail>()
         .returnResult()
         .responseBody!!
 
@@ -209,7 +210,7 @@ class ClusterApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(AdminClusterDetail::class.java)
+        .expectBody<AdminClusterDetail>()
         .returnResult()
         .responseBody!!
 
@@ -238,7 +239,7 @@ class ClusterApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(AdminClusterDetail::class.java)
+        .expectBody<AdminClusterDetail>()
         .returnResult()
         .responseBody!!
 

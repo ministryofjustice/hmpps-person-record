@@ -50,12 +50,13 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Address
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.AllConvictedOffences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAlias
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -67,6 +68,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReviewRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -78,6 +80,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.review.ClusterType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.updatePersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
@@ -223,6 +226,11 @@ class IntegrationTestBase {
     dateOfBirth = randomDate(),
   )
 
+  internal fun addAddressToRecord(address: Address): PersonEntity.() -> Unit = {
+    val addressEntity = AddressEntity.from(address).also { addressEntity -> addressEntity.person = this }
+    this.addresses.add(addressEntity)
+  }
+
   internal fun createRandomProbationAddress(): ProbationCreateAddress = ProbationCreateAddress(
     noFixedAbode = false,
     startDate = randomZonedDateTime(),
@@ -259,13 +267,13 @@ class IntegrationTestBase {
         ),
       ),
       addresses = listOf(
-        Address(
+        PrisonerAddress(
           postcode = randomPostcode(),
           fullAddress = randomFullAddress(),
           noFixedAbode = randomBoolean(),
           startDate = randomDate(),
         ),
-        Address(
+        PrisonerAddress(
           postcode = randomPostcode(),
           fullAddress = randomFullAddress(),
           noFixedAbode = randomBoolean(),
@@ -281,7 +289,7 @@ class IntegrationTestBase {
     ),
   )
 
-  internal fun createRandomLibraPersonDetails(cId: String = randomCId()): Person = Person.from(LibraHearingEvent(name = LibraName(firstName = randomName(), lastName = randomName()), cId = cId))
+  internal fun createRandomLibraPersonDetails(cId: String = randomCId()): Person = Person.from(LibraHearingEvent(name = LibraName(firstName = randomName(), lastName = randomName()), cId = cId, defendantAddress = uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Address(postcode = randomPostcode())))
 
   internal fun createRandomCommonPlatformPersonDetails(defendantId: String = randomDefendantId()): Person = Person.from(
     Defendant(
@@ -385,7 +393,9 @@ class IntegrationTestBase {
     return personRepository.findByMatchId(personEntity.matchId)!!
   }
 
-  internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(person)
+  internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
+    person.sourceSystem,
+  ).updatePersonEntity(person)
     .apply(configure)
     .let(personRepository::saveAndFlush)
 

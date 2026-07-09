@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
@@ -52,7 +53,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isCreated
-        .expectBody(SysconReligionResponseBody::class.java)
+        .expectBody<SysconReligionResponseBody>()
         .returnResult()
         .responseBody!!
 

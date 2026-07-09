@@ -79,7 +79,7 @@ data class CanonicalIdentifiers(
   companion object {
 
     fun from(personEntities: List<PersonEntity>): CanonicalIdentifiers {
-      val referenceEntities = personEntities.map { it.references }.flatten()
+      val referenceEntities = personEntities.flatMap { it.references }
       return CanonicalIdentifiers(
         crns = personEntities.mapNotNull { it.crn },
         prisonNumbers = personEntities.mapNotNull { it.prisonNumber },

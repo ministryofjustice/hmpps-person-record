@@ -51,7 +51,7 @@ class PersonMatchService(
   }
 
   fun examineIsClusterMergeValid(currentCluster: PersonKeyEntity, matchedClusters: List<PersonKeyEntity>): IsClusterValidResponse = runBlocking {
-    val records = currentCluster.getRecordsMatchIds() + matchedClusters.map { it.getRecordsMatchIds() }.flatten()
+    val records = currentCluster.getRecordsMatchIds() + matchedClusters.flatMap { it.getRecordsMatchIds() }
     records.checkClusterIsValid()
   }
 

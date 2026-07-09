@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
@@ -18,8 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
@@ -45,7 +42,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.lang.Thread.sleep
 import java.time.LocalDate
 
-class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
+class PrisonEventListenerIntTest : PrisonEventListenerTestBase() {
 
   @Test
   fun `should put message on dlq when exception thrown`() {
@@ -53,9 +50,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     stub5xxResponse("/prisoner/$prisonNumber", currentScenarioState = "next request will fail", nextScenarioState = "next request will fail", scenarioName = "processing fail")
     stub5xxResponse("/prisoner/$prisonNumber", "next request will fail", scenarioName = "processing fail")
     stub5xxResponse("/prisoner/$prisonNumber", "next request will fail", scenarioName = "processing fail")
-    val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
-    publishDomainEvent(PRISONER_CREATED, domainEvent)
-
+    publishPrisonPersonCreatedEvent(prisonNumber)
     expectOneMessageOnDlq(prisonEventsQueue)
   }
 
@@ -63,8 +58,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should discard message if prisoner search returns 404`() {
     val prisonNumber = randomPrisonNumber()
     stub404Response("/prisoner/$prisonNumber")
-    val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
-    publishDomainEvent(PRISONER_CREATED, domainEvent)
+    publishPrisonPersonCreatedEvent(prisonNumber)
     waitForMessageToBeProcessedAndDiscarded()
     expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
   }
@@ -105,10 +99,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val gender = randomPrisonSexCode()
 
       stubNoMatchesPersonMatch()
-      prisonDomainEventAndResponseSetup(
-        PRISONER_CREATED,
-        apiResponseSetup = ApiResponseSetup(title = title.key, gender = gender.key, aliases = listOf(ApiResponseSetupAlias(title.key, aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth, aliasGender.key)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))),
-      )
+      prisonCreateEventAndResponseSetup(ApiResponseSetup(title = title.key, gender = gender.key, aliases = listOf(ApiResponseSetupAlias(title.key, aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth, aliasGender.key)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
 
       checkTelemetry(
         CPR_RECORD_CREATED,
@@ -123,7 +114,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().middleNames).isEqualTo("$middleName $middleName")
         assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
         assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
-        assertThat(personEntity.religion).isEqualTo(religion)
+        assertThat(personEntity.religion).isNull()
 
         val populatedReferencesUpdateIdCount = personEntity.references.count { it.updateId != null }
         assertThat(populatedReferencesUpdateIdCount).isEqualTo(4)
@@ -172,39 +163,12 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should check nationality and religion null`() {
-      val prisonNumber = randomPrisonNumber()
-
-      stubNoMatchesPersonMatch()
-      prisonDomainEventAndResponseSetup(
-        PRISONER_CREATED,
-        apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber, nationality = null, religion = null),
-      )
-
-      checkTelemetry(
-        CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
-      )
-
-      awaitAssert {
-        val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
-        assertThat(personEntity.nationalities.size).isEqualTo(0)
-        assertThat(personEntity.religion).isEqualTo(null)
-      }
-
-      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
-    }
-
-    @Test
     fun `should check sentence start date is not populated when primary sentence is false`() {
       val prisonNumber = randomPrisonNumber()
       val sentenceStartDate = randomDate()
 
       stubNoMatchesPersonMatch()
-      prisonDomainEventAndResponseSetup(
-        PRISONER_CREATED,
-        apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber, sentenceStartDate = sentenceStartDate, primarySentence = false),
-      )
+      prisonCreateEventAndResponseSetup(ApiResponseSetup(prisonNumber = prisonNumber, sentenceStartDate = sentenceStartDate, primarySentence = false))
 
       checkTelemetry(
         CPR_RECORD_CREATED,
@@ -222,7 +186,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `should receive the message successfully when prisoner updated event published`() {
       val prisonNumber = randomPrisonNumber()
-      val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+      val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = randomReligion() })
 
       val updatedFirstName = randomName()
       val ethnicity = randomPrisonEthnicity()
@@ -234,10 +198,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val updatedAlias = ApiResponseSetupAlias(title = title.key, firstName = randomName(), lastName = randomName(), gender = updatedAliasGender.key)
 
       stubNoMatchesPersonMatch(matchId = prisoner.matchId)
-      prisonDomainEventAndResponseSetup(
-        PRISONER_UPDATED,
-        apiResponseSetup = ApiResponseSetup(gender = updatedSexCode.key, title = title.key, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity, aliases = listOf(updatedAlias)),
-      )
+      prisonUpdateEventAndResponseSetup(ApiResponseSetup(gender = updatedSexCode.key, title = title.key, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity, aliases = listOf(updatedAlias)))
+
       checkTelemetry(
         CPR_RECORD_UPDATED,
         mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
@@ -257,6 +219,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))
 
         assertThat(personEntity.nationalities.size).isEqualTo(1)
+        assertThat(personEntity.religion).isEqualTo(prisoner.religion)
+        assertThat(personEntity.religion).isNotNull()
         assertThat(personEntity.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.name)
         assertThat(personEntity.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.description)
       }
@@ -269,8 +233,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       stub5xxResponse("/prisoner/$prisonNumber", nextScenarioState = "next request will succeed", scenarioName = "retry")
       stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber), scenarioName = "retry", currentScenarioState = "next request will succeed")
 
-      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
-      publishDomainEvent(PRISONER_CREATED, domainEvent)
+      publishPrisonPersonCreatedEvent(prisonNumber)
 
       checkTelemetry(
         CPR_RECORD_CREATED,
@@ -291,8 +254,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubPrisonResponse(ApiResponseSetup(gender = "Male", prisonNumber = prisonNumber), currentScenarioState = "will succeed")
       stubPersonMatchUpsert(currentScenarioState = "will succeed")
       stubPersonMatchScores(currentScenarioState = "will succeed")
-      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
-      publishDomainEvent(PRISONER_CREATED, domainEvent)
+      publishPrisonPersonCreatedEvent(prisonNumber)
+
       awaitNotNull { personRepository.findByPrisonNumber(prisonNumber = prisonNumber) }
       checkTelemetry(
         CPR_RECORD_CREATED,
@@ -327,9 +290,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       stubPersonMatchUpsert()
       stubNoMatchesPersonMatch()
-      prisonDomainEventAndResponseSetup(
-        PRISONER_CREATED,
-        apiResponseSetup = ApiResponseSetup(
+      prisonCreateEventAndResponseSetup(
+        ApiResponseSetup(
           aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = aliasMiddleName, lastName = aliasLastName, dateOfBirth = aliasDateOfBirth), ApiResponseSetupAlias(firstName = secondAliasFirstName, middleName = secondAliasMiddleName, lastName = secondAliasLastName, dateOfBirth = secondAliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, sentenceStartDate = sentenceStartDate, primarySentence = true, cro = cro,
           addresses = listOf(
             ApiResponseSetupAddress(

@@ -7,20 +7,17 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import kotlin.jvm.optionals.getOrNull
 
-class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
+class PrisonMergeEventListenerIntTest : PrisonEventListenerTestBase() {
 
   private fun prisonURL(prisonNumber: String) = "/prisoner/$prisonNumber"
 
@@ -35,7 +32,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
       stubPersonMatchUpsert()
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
+      prisonMergeEventAndResponseSetup(sourcePrisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
 
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("PRISON_NUMBER" to targetPrisonNumber))
       checkTelemetry(
@@ -61,7 +58,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
       stubDeletePersonMatch()
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber)
+      prisonMergeEventAndResponseSetup(sourcePrisonNumber, targetPrisonNumber)
 
       val targetPerson = awaitNotNull { personRepository.findByPrisonNumber(targetPrisonNumber) }
 
@@ -108,7 +105,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         .addPerson(sourcePerson)
         .addPerson(targetPerson)
 
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
+      prisonMergeEventAndResponseSetup(sourcePrisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
 
       sourcePerson.assertNotLinkedToCluster()
       sourcePerson.assertMergedTo(targetPerson)
@@ -138,7 +135,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         .addPerson(sourcePerson)
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber)
+      prisonMergeEventAndResponseSetup(sourcePrisonNumber, targetPrisonNumber)
 
       sourcePerson.assertNotLinkedToCluster()
       sourcePerson.assertMergedTo(targetPerson)
@@ -176,7 +173,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sourcePerson = createPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber)
+      prisonMergeEventAndResponseSetup(sourcePrisonNumber, targetPrisonNumber)
 
       sourcePerson.assertNotLinkedToCluster()
       sourcePerson.assertMergedTo(targetPerson)
@@ -208,7 +205,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
       val sourceClusterId = sourcePerson.personKey?.id
 
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber)
+      prisonMergeEventAndResponseSetup(sourcePrisonNumber, targetPrisonNumber)
 
       sourcePerson.assertMergedTo(targetPerson)
       sourcePerson.assertNotLinkedToCluster()
@@ -245,7 +242,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stub5xxResponse(prisonURL(targetPrisonNumber), "next request will succeed", "retry")
 
       prisonMergeEventAndResponseSetup(
-        PRISONER_MERGED,
         sourcePrisonNumber,
         targetPrisonNumber,
         scenario = "retry",
@@ -276,10 +272,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
       stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
 
-      val additionalInformation =
-        AdditionalInformation(sourcePrisonNumber = sourcePrisonNumber)
-      val domainEvent = prisonDomainEvent(PRISONER_MERGED, targetPrisonNumber, additionalInformation)
-      publishDomainEvent(PRISONER_MERGED, domainEvent)
+      publishPrisonPersonMergedEvent(targetPrisonNumber, sourcePrisonNumber)
 
       expectOneMessageOnDlq(prisonMergeEventsQueue)
     }
@@ -302,7 +295,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS)) { markAsPassive() }
 
       prisonMergeEventAndResponseSetup(
-        PRISONER_MERGED,
         sourcePrisonNumber = sourcePrisonNumber,
         targetPrisonNumber = targetPrisonNumber,
       )
@@ -339,7 +331,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
       prisonMergeEventAndResponseSetup(
-        PRISONER_MERGED,
         sourcePrisonNumber = sourcePrisonNumber,
         targetPrisonNumber = targetPrisonNumber,
       )

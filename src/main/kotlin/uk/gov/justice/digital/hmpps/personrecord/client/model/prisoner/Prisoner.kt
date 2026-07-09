@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotBlank
 import tools.jackson.databind.annotation.JsonDeserialize
-import uk.gov.justice.digital.hmpps.personrecord.client.model.PhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifierDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
@@ -21,7 +20,6 @@ data class Prisoner(
   val middleNames: String? = null,
   val lastName: String?,
   val nationality: String? = null,
-  val religion: String? = null,
   val ethnicity: String? = null,
   @JsonProperty("pncNumberCanonicalShort")
   @JsonDeserialize(using = PNCIdentifierDeserializer::class)
@@ -33,7 +31,7 @@ data class Prisoner(
   val aliases: List<PrisonerAlias> = emptyList(),
   val emailAddresses: List<EmailAddress> = emptyList(),
   val phoneNumbers: List<PhoneNumber> = emptyList(),
-  val addresses: List<Address> = emptyList(),
+  val addresses: List<PrisonerAddress> = emptyList(),
   val identifiers: List<Identifier> = emptyList(),
   val allConvictedOffences: List<AllConvictedOffences>? = emptyList(),
   val gender: String? = null,
