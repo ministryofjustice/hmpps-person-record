@@ -25,6 +25,7 @@ class SecurityConfiguration {
         "/jobs/deliusreconciliationreport",
         "/admin/recluster",
         "/admin/exclusion/prisoner",
+        "/admin/populate-from-probation",
       )
     }
   }
