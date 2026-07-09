@@ -39,7 +39,7 @@ dependencies {
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
 
-  runtimeOnly("org.postgresql:postgresql:42.7.11")
+  runtimeOnly("org.postgresql:postgresql:42.7.12")
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
