@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.discardNotFoundException
 
 @Component
-class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebClient: WebClient, private val migrationClient: WebClient) {
+class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebClient: WebClient) {
 
   fun getPerson(crn: String): Person {
     val probationCase = getProbationCase(crn)
@@ -44,7 +44,7 @@ class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebCl
       .block()!!,
   )
 
-  fun getProbationCases(params: CorePersonRecordAndDeliusClientPageParams): ProbationCases? = migrationClient
+  fun getProbationCases(params: CorePersonRecordAndDeliusClientPageParams): ProbationCases? = corePersonRecordAndDeliusWebClient
     .get()
     .uri { uriBuilder ->
       uriBuilder
