@@ -78,7 +78,7 @@ data class CanonicalIdentifiers(
   val arrestSummonsNumbers: List<String> = emptyList(),
   @ArraySchema(
     schema = Schema(
-      description = "List of others identifiers",
+      description = "List of other identifiers",
     ),
   )
   val otherIdentifiers: List<String> = emptyList(),
