@@ -24,7 +24,7 @@ class SysconReligionInsertHandler(
     val (personEntity, currentPrisonReligion) = validateRequest(prisonNumber, prisonReligionRequest)
     prisonReligionRepository.deleteAllByPrisonNumber(prisonNumber).also { prisonReligionRepository.flush() }
     val cprReligionIdByNomisId = saveReligionsMapped(prisonNumber, prisonReligionRequest).also {
-      personEntity.religion = currentPrisonReligion.religionCode
+      personEntity.religion = currentPrisonReligion.religionCode.name
       personService.processPerson(Person.from(personEntity)) { personEntity }
     }
     return cprReligionIdByNomisId
