@@ -30,7 +30,7 @@ permissions:
 jobs:
   deploy:
     name: Deploy to ${{ inputs.environment }}
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@85aaea1bb60639a12bb495cdfe8db46c2d61b54d # v2.15.1
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@3d0db04bde36486d182b5c7d4a3bb8794bdeb2c6 # v2.18.0
     secrets: inherit
     with:
       environment: ${{ inputs.environment }}
