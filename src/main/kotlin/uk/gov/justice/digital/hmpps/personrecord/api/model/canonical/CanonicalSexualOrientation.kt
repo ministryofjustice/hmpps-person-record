@@ -7,7 +7,7 @@ data class CanonicalSexualOrientation(
   @Schema(
     description = "Person sexual orientation code",
     example = "HET",
-    allowableValues = ["BIS", "HOM", "HET", "ND", "OTH", "REF", "UNKNOWN"],
+    implementation = SexualOrientation::class,
   )
   val code: String? = null,
   @Schema(description = "Person sexual orientation description", example = "Heterosexual")

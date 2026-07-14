@@ -7,7 +7,7 @@ data class CanonicalTitle(
   @Schema(
     description = "Person title code",
     example = "Mr",
-    allowableValues = ["MR", "MRS", "MISS", "MS", "MX", "REV", "FR", "IMAM", "RABBI", "BR", "SR", "DME", "DR", "LDY", "LRD", "SIR", "UN"],
+    implementation = TitleCode::class,
   )
   val code: String? = null,
   @Schema(description = "Person title description", example = "Mr")

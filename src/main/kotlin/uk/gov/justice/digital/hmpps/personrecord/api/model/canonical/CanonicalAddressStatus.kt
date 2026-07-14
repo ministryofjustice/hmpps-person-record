@@ -7,7 +7,7 @@ data class CanonicalAddressStatus(
   @Schema(
     description = "Address status code",
     example = "M",
-    allowableValues = ["B", "M", "MA", "P", "PR", "PR1", "RJ", "RT", "S", "PM", "UNKNOWN"],
+    implementation = AddressStatusCode::class,
   )
   val code: String? = null,
   @Schema(description = "Address status description", example = "Main")

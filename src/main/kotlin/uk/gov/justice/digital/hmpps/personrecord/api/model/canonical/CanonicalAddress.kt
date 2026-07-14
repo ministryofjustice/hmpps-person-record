@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.extensions.withUkZone
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import java.time.ZonedDateTime
 
 data class CanonicalAddress(
@@ -40,7 +41,7 @@ data class CanonicalAddress(
   @Schema(
     description = "Person address country code",
     example = "GBR",
-    allowableValues = ["AB", "AFGA", "AG", "ALBA", "ALGE", "AMER", "AN", "ANDO", "ANGOL", "ANTIG", "ARGEN", "ARME", "ASM", "AUSI", "AUST", "AZERB", "BAHA", "BAHR", "BANGL", "BARB", "BELA", "BELG", "BELI", "BENI", "BHUT", "BM", "BOLI", "BOSNI", "BRAZ", "BRIT", "BRUN", "BULG", "BURM", "BURU", "CAMB", "CAMER", "CANA", "CAVER", "CCK", "CDR", "CF", "CGB", "CHAD", "CHIL", "CHINA", "COK", "COLO", "COMO", "COND", "CONG", "CONR", "COSRI", "CROAT", "CT", "CUBA", "CXR", "CYPR", "CZEC", "DANE", "DJIB", "DOMI", "DUTCH", "EATIM", "ECUA", "EGYP", "EMIR", "EQUATO", "ERI", "ESTO", "ETHI", "FG", "FIJI", "FILIP", "FINN", "FO", "FREN", "GABO", "GAMB", "GE", "GERM", "GHAN", "GI", "GL", "GLP", "GREE", "GREN", "GRN", "GU", "GUAT", "GUIN", "GUYA", "HAIT", "HKG", "HOND", "HUNG", "HV", "ICE", "INDI", "INDO", "IRAN", "IRAQ", "IRISH", "ISRA", "ITAL", "IVOR", "JAM", "JAP", "JORD", "JSM", "KAZA", "KENY", "KN", "KOS", "KUWA", "KY", "LA", "LATV", "LEBA", "LIBE", "LIBY", "LIEC", "LITHU", "LS", "LUX", "MAC", "MACE", "MALA", "MALD", "MALT", "MAN", "MAR", "MARI", "MAUR", "MEXI", "MG", "MICR", "ML", "MLAW", "MNE", "MO", "MOLD", "MONA", "MONGO", "MORO", "MOTS", "MOZA", "MS", "MTQ", "NAMI", "NAUR", "NCL", "NEPA", "NFK", "NICA", "NIGER", "NIGERIA", "NIU", "NKOR", "NORW", "NZEA", "OMAN", "PAKN", "PALA", "PANA", "PARA", "PCN", "PERU", "PNGU", "POLE", "PORTU", "PRI", "PSE", "PYF", "QUAT", "REF", "REU", "RID", "ROMA", "RUSS", "RWAN", "SAARA", "SALV", "SAMO", "SANM", "SECR", "SENE", "SEYC", "SH", "SILE", "SING", "SKOR", "SLENE", "SLOV", "SOAFR", "SOLO", "SOMA", "SPAN", "SRB", "SRIL", "SRK", "SSUDAN", "STATE", "STLU", "STP", "SUDAN", "SURIN", "SW", "SWAZI", "SWEDE", "SWIS", "SYRI", "TA", "TAIW", "TANZ", "TCI", "THAI", "TKL", "TNGA", "TOGO", "TRIN", "TRS", "TU", "TUNI", "TURK", "TV", "UGAN", "UKRA", "UNKNOWN", "URUG", "UZBE", "VC", "VENE", "VG", "VIET", "VTC", "VY", "WA", "WAL", "YEMIN", "ZAM", "ZIM"],
+    implementation = CountryCode::class,
   )
   val countryCode: String? = null,
   @Schema(description = "Person address uprn", example = "100120991537")
