@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 
 data class CanonicalSex(
-  @Schema(description = "Person sex code", example = "M")
+  @Schema(description = "Person sex code", example = "M", implementation = SexCode::class)
   val code: String? = null,
   @Schema(description = "Person sex description", example = "Male")
   val description: String? = null,
