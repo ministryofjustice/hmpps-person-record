@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas
 
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.SasClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
@@ -18,7 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.SAS_EVENT_
 import java.util.UUID
 
 @Component
-@Profile("!prod")
 class SasEventListener(
   private val domainEventProcessor: DomainEventProcessor,
   private val sasClient: SasClient,
