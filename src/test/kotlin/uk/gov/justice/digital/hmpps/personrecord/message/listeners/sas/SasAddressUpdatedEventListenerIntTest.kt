@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressData
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -183,8 +182,8 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       assertThat(actualAddressEntity.postcode).isEqualTo(expectedSasAddress.address.postcode)
       assertThat(actualAddressEntity.deliusAddressId).isEqualTo(existingDeliusAddressId)
-      assertThat(actualAddressEntity.startDate!!.toUkLocalDate()).isEqualTo(expectedSasAddress.startDate)
-      assertThat(actualAddressEntity.endDate!!.toUkLocalDate()).isEqualTo(expectedSasAddress.endDate)
+      assertThat(actualAddressEntity.startDate!!.toLocalDate()).isEqualTo(expectedSasAddress.startDate)
+      assertThat(actualAddressEntity.endDate!!.toLocalDate()).isEqualTo(expectedSasAddress.endDate)
       assertThat(actualAddressEntity.noFixedAbode).isEqualTo(expectedSasAddress.noFixedAbode)
       assertThat(actualAddressEntity.isVerified).isEqualTo(expectedSasAddress.typeVerified)
       assertThat(actualAddressEntity.subBuildingName).isEqualTo(expectedSasAddress.address.subBuildingName)

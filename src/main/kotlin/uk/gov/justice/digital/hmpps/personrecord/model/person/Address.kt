@@ -5,15 +5,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressData
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toLocalDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
 import kotlin.Boolean
 import kotlin.collections.mapNotNull
 import kotlin.reflect.full.memberProperties
@@ -23,8 +22,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Addres
 
 data class Address(
   val noFixedAbode: Boolean? = null,
-  val startDate: ZonedDateTime? = null,
-  val endDate: ZonedDateTime? = null,
+  val startDate: LocalDateTime? = null,
+  val endDate: LocalDateTime? = null,
   val postcode: String? = null,
   val fullAddress: String? = null,
   val subBuildingName: String? = null,
@@ -58,7 +57,7 @@ data class Address(
     fun from(address: PrisonerAddress): Address? = Address(
       postcode = address.postcode.nullIfBlank(),
       fullAddress = address.fullAddress.nullIfBlank(),
-      startDate = address.startDate?.toUkZonedDateTime(),
+      startDate = address.startDate?.toLocalDateTime(),
       noFixedAbode = address.noFixedAbode,
     ).allPropertiesOrNull()
 
@@ -103,8 +102,8 @@ data class Address(
 
     fun from(address: SysconAddress): Address = Address(
       noFixedAbode = address.noFixedAbode,
-      startDate = address.startDate?.toUkZonedDateTime(),
-      endDate = address.endDate?.toUkZonedDateTime(),
+      startDate = address.startDate?.toLocalDateTime(),
+      endDate = address.endDate?.toLocalDateTime(),
       recordType = when (address.isPrimary) {
         true -> AddressRecordType.PRIMARY
         false -> AddressRecordType.PREVIOUS
@@ -127,8 +126,8 @@ data class Address(
 
     fun from(address: ProbationCreateAddress): Address = Address(
       noFixedAbode = address.noFixedAbode,
-      startDate = address.startDate.atZone(ZoneOffset.UTC),
-      endDate = address.endDate?.atZone(ZoneOffset.UTC),
+      startDate = address.startDate,
+      endDate = address.endDate,
       postcode = address.postcode,
       uprn = address.uprn,
       subBuildingName = address.subBuildingName,
@@ -156,8 +155,8 @@ data class Address(
       postTown = address.address.postTown,
       county = address.address.county,
       uprn = address.address.uprn,
-      startDate = address.startDate?.toUkZonedDateTime(),
-      endDate = address.endDate?.toUkZonedDateTime(),
+      startDate = address.startDate?.toLocalDateTime(),
+      endDate = address.endDate?.toLocalDateTime(),
       isVerified = address.typeVerified,
       statusCode = address.statusCode?.code?.let { AddressStatusCode.valueOf(it) },
       usages = address.usage?.code?.let { listOf(AddressUsage(AddressUsageCode.from(it), true)) } ?: emptyList(),

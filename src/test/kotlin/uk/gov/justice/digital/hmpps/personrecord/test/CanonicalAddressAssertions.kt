@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAd
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContactType
-import uk.gov.justice.digital.hmpps.personrecord.extensions.withUkZone
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 
 fun assertCanonicalAddress(expected: AddressEntity, actual: CanonicalAddress) {
@@ -25,10 +24,10 @@ fun assertCanonicalAddresses(expected: List<AddressEntity>, actual: List<Canonic
 private fun AddressEntity.toCanonicalAddress(): CanonicalAddress = CanonicalAddress(
   cprAddressId = updateId!!.toString(),
   noFixedAbode = noFixedAbode,
-  startDate = startDate?.toLocalDate()?.toString(),
-  startDateTime = startDate?.withUkZone()?.toLocalDateTime(),
-  endDate = endDate?.toLocalDate()?.toString(),
-  endDateTime = endDate?.withUkZone()?.toLocalDateTime(),
+  startDate = startDate?.toString(),
+  startDateTime = startDate,
+  endDate = endDate?.toString(),
+  endDateTime = endDate,
   postcode = postcode,
   subBuildingName = subBuildingName,
   buildingName = buildingName,

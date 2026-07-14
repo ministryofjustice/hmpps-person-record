@@ -35,6 +35,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -44,7 +45,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 
 class LibraApiControllerIntTest : WebTestBase() {
 
@@ -59,8 +59,8 @@ class LibraApiControllerIntTest : WebTestBase() {
       val title = randomTitleCode()
 
       val noFixedAbode = true
-      val startDateTime = randomZonedDateTime()
-      val endDateTime = randomZonedDateTime()
+      val startDateTime = randomDateTime()
+      val endDateTime = randomDateTime()
       val postcode = randomPostcode()
       val sex = randomCommonPlatformSexCode()
 
@@ -157,10 +157,10 @@ class LibraApiControllerIntTest : WebTestBase() {
         CanonicalAddress(
           cprAddressId = person.addresses.first().updateId!!.toString(),
           noFixedAbode = noFixedAbode,
-          startDate = startDateTime.toLocalDate().toString(),
-          startDateTime = startDateTime.toLocalDateTime(),
-          endDate = endDateTime.toLocalDate().toString(),
-          endDateTime = endDateTime.toLocalDateTime(),
+          startDate = startDateTime.toString(),
+          startDateTime = startDateTime,
+          endDate = endDateTime.toString(),
+          endDateTime = endDateTime,
           postcode = postcode,
           buildingName = buildingName,
           buildingNumber = buildingNumber,
