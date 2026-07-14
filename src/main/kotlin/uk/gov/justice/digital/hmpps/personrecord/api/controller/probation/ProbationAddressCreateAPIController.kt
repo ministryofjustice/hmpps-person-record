@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -26,7 +25,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 
 @Tag(name = "Probation")
 @RestController
-@Profile("!prod")
 class ProbationAddressCreateAPIController(
   private val addressService: AddressService,
   private val personRepository: PersonRepository,
