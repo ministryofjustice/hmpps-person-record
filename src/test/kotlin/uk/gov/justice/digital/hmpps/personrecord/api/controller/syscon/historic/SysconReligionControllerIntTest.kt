@@ -41,8 +41,8 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `successful save returns the correct response body`() {
       val prisonNumber = randomPrisonNumber()
-      val currentReligion = createRandomReligion(ReligionCode.AGNO.name, true)
-      val anotherReligion = createRandomReligion(ReligionCode.BAHA.name, false)
+      val currentReligion = createRandomReligion(ReligionCode.AGNO, true)
+      val anotherReligion = createRandomReligion(ReligionCode.BAHA, false)
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val actualResponseBody = webTestClient
@@ -219,8 +219,8 @@ class SysconReligionControllerIntTest : WebTestBase() {
     val actualReligionEntities = awaitNotNull { prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber) }
     val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
 
-    val expectedCurrReligion = requestBody.find { it.current }
-    assertThat(personEntity.religion).isEqualTo(expectedCurrReligion!!.religionCode)
+    val expectedCurrReligion = requestBody.first { it.current }
+    assertThat(personEntity.religion).isEqualTo(expectedCurrReligion.religionCode.name)
     assertThat(actualReligionEntities.size).isEqualTo(requestBody.size)
 
     actualResponseBody.religionMappings.forEach { res ->

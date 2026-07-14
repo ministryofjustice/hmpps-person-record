@@ -78,9 +78,3 @@ enum class ReligionCode(val description: String, val current: Boolean) {
   WELS("Welsh Independent", false),
   ZORO("Zoroastrian", true),
 }
-
-fun String?.toReligionCodeDescription(): String? = try {
-  this?.let { ReligionCode.valueOf(it).description }
-} catch (_: Exception) {
-  null
-}

@@ -39,7 +39,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
 
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
-        assertThat(personEntity.religion).isEqualTo(requestBody.religionCode)
+        assertThat(personEntity.religion).isEqualTo(requestBody.religionCode.name)
 
         val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
         assertThat(actualPrisonReligionEntities).hasSize(1)
@@ -51,7 +51,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
     fun `person has existing current prison religion - does not save prison religion - return internal server error`() {
       val prisonNumber = randomPrisonNumber()
       val existingReligionEntity = PrisonReligionEntity.from(prisonNumber, createRandomReligion())
-      val personEntityWithCurrentReligion = createPerson(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligionEntity.code })
+      val personEntityWithCurrentReligion = createPerson(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligionEntity.code.name })
       prisonReligionRepository.save(existingReligionEntity)
       personRepository.saveAndFlush(personEntityWithCurrentReligion)
 
