@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.extensions.withUkZone
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import java.time.ZonedDateTime
 
 data class CanonicalAddress(
@@ -37,7 +38,11 @@ data class CanonicalAddress(
   val county: String? = null,
   @Schema(description = "Person address country", example = "United Kingdom of Great Britain and Northern Ireland (the)")
   val country: String? = null,
-  @Schema(description = "Person address country code", example = "GBR")
+  @Schema(
+    description = "Person address country code",
+    example = "GBR",
+    implementation = CountryCode::class,
+  )
   val countryCode: String? = null,
   @Schema(description = "Person address uprn", example = "100120991537")
   val uprn: String? = null,
