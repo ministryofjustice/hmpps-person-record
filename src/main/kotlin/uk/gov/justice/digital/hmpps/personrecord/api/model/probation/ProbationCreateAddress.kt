@@ -10,9 +10,9 @@ import java.time.LocalDateTime
 data class ProbationCreateAddress(
   @Schema(description = "Is the person without a permanent residence", example = "false", required = true)
   val noFixedAbode: Boolean,
-  @Schema(description = "The address start date", example = "2026-05-15T11:08:46.347Z", required = true, type = "string", format = "date-time")
+  @Schema(description = "The address start date", example = "2026-05-15T11:08:46.347Z", required = true)
   val startDate: LocalDateTime,
-  @Schema(description = "The address end date", example = "2026-05-15T11:08:46.347Z", type = "string", format = "date-time")
+  @Schema(description = "The address end date", example = "2026-05-15T11:08:46.347Z")
   val endDate: LocalDateTime? = null,
   @Schema(description = "The address postcode", example = "SW1H 9AJ")
   val postcode: String? = null,
