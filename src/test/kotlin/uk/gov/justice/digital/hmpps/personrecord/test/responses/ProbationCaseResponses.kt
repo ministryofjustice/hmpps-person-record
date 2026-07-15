@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
+import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 
 fun probationCaseResponse(probationCase: ApiResponseSetup) = """
@@ -83,8 +84,8 @@ private fun alias(alias: ApiResponseSetupAlias) =
 fun probationAddress(address: ApiResponseSetupAddress) =
   """
     {
-      ${address.startDateTime?.let { """ "startDateTime": "${address.startDateTime}", """.trimIndent() } ?: ""}
-      ${address.endDateTime?.let { """ "endDateTime": "${address.endDateTime}", """.trimIndent() } ?: ""}
+      ${address.startDateTime?.let { """ "startDateTime": "${address.startDateTime.asStringWithUkZone()}", """.trimIndent() } ?: ""}
+      ${address.endDateTime?.let { """ "endDateTime": "${address.endDateTime.asStringWithUkZone()}", """.trimIndent() } ?: ""}
       ${address.noFixedAbode?.let { """ "noFixedAbode": "${address.noFixedAbode}", """.trimIndent() } ?: ""}
       ${address.fullAddress?.let { """ "fullAddress": "${address.fullAddress}", """.trimIndent() } ?: ""}
       ${address.buildingName?.let { """ "buildingName": "${address.buildingName}", """.trimIndent() } ?: ""}
