@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARRE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.OTHR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 
 data class CanonicalIdentifiers(
@@ -75,11 +76,17 @@ data class CanonicalIdentifiers(
     ),
   )
   val arrestSummonsNumbers: List<String> = emptyList(),
+  @ArraySchema(
+    schema = Schema(
+      description = "List of other identifiers",
+    ),
+  )
+  val otherIdentifiers: List<String> = emptyList(),
 ) {
   companion object {
 
     fun from(personEntities: List<PersonEntity>): CanonicalIdentifiers {
-      val referenceEntities = personEntities.map { it.references }.flatten()
+      val referenceEntities = personEntities.flatMap { it.references }
       return CanonicalIdentifiers(
         crns = personEntities.mapNotNull { it.crn },
         prisonNumbers = personEntities.mapNotNull { it.prisonNumber },
@@ -90,6 +97,7 @@ data class CanonicalIdentifiers(
         nationalInsuranceNumbers = referenceEntities.findByIdentifierType(NATIONAL_INSURANCE_NUMBER),
         arrestSummonsNumbers = referenceEntities.findByIdentifierType(ARREST_SUMMONS_NUMBER),
         driverLicenseNumbers = referenceEntities.findByIdentifierType(DRIVER_LICENSE_NUMBER),
+        otherIdentifiers = referenceEntities.findByIdentifierType(OTHR),
       )
     }
 
@@ -107,6 +115,7 @@ data class CanonicalIdentifiers(
         nationalInsuranceNumbers = referenceEntities.findByIdentifierType(NATIONAL_INSURANCE_NUMBER),
         arrestSummonsNumbers = referenceEntities.findByIdentifierType(ARREST_SUMMONS_NUMBER),
         driverLicenseNumbers = referenceEntities.findByIdentifierType(DRIVER_LICENSE_NUMBER),
+        otherIdentifiers = referenceEntities.findByIdentifierType(OTHR),
       )
     }
 

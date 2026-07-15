@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
@@ -40,8 +41,8 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `successful save returns the correct response body`() {
       val prisonNumber = randomPrisonNumber()
-      val currentReligion = createRandomReligion(ReligionCode.AGNO.name, true)
-      val anotherReligion = createRandomReligion(ReligionCode.BAHA.name, false)
+      val currentReligion = createRandomReligion(ReligionCode.AGNO, true)
+      val anotherReligion = createRandomReligion(ReligionCode.BAHA, false)
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val actualResponseBody = webTestClient
@@ -52,7 +53,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isCreated
-        .expectBody(SysconReligionResponseBody::class.java)
+        .expectBody<SysconReligionResponseBody>()
         .returnResult()
         .responseBody!!
 
@@ -218,8 +219,8 @@ class SysconReligionControllerIntTest : WebTestBase() {
     val actualReligionEntities = awaitNotNull { prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber) }
     val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
 
-    val expectedCurrReligion = requestBody.find { it.current }
-    assertThat(personEntity.religion).isEqualTo(expectedCurrReligion!!.religionCode)
+    val expectedCurrReligion = requestBody.first { it.current }
+    assertThat(personEntity.religion).isEqualTo(expectedCurrReligion.religionCode.name)
     assertThat(actualReligionEntities.size).isEqualTo(requestBody.size)
 
     actualResponseBody.religionMappings.forEach { res ->

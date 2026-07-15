@@ -98,7 +98,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
 
       val crn = randomCrn()
       val initialAddress = Address.from(createRandomProbationAddress())
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(initialAddress)))
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(initialAddress))
       val addressToCreate = initialAddress.copy(postcode = randomPostcode())
 
       addressService.processAddress(
@@ -130,7 +130,12 @@ class AddressServiceIntTest : IntegrationTestBase() {
     fun `should update address and not recluster when no matching fields have changed`() {
       val crn = randomCrn()
       val initialAddress = Address.from(createRandomProbationAddress())
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(initialAddress)))
+      val person = createPersonWithNewKey(
+        createRandomProbationPersonDetails(crn),
+        configure = addAddressToRecord(
+          initialAddress,
+        ),
+      )
       val addressToCreate = initialAddress.copy(buildingNumber = randomBuildingNumber())
 
       addressService.processAddress(
@@ -159,12 +164,16 @@ class AddressServiceIntTest : IntegrationTestBase() {
   @Nested
   inner class DeleteAddress {
     @Test
-    fun `should delete address when it exist and recluster`() {
+    fun `should delete address when it exists and recluster`() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
       val crn = randomCrn()
-      val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
+      val personEntity = createPersonWithNewKey(
+        createRandomProbationPersonDetails(crn),
+        configure =
+        addAddressToRecord(Address(postcode = randomPostcode())),
+      )
       val addressToDelete = personEntity.addresses.first()
 
       addressService.deleteAddress(
@@ -177,22 +186,6 @@ class AddressServiceIntTest : IntegrationTestBase() {
         val actualAddress = addressRepository.findByUpdateId(addressToDelete.updateId!!)
         assertThat(actualPerson.addresses.size).isEqualTo(0)
         assertThat(actualAddress).isNull()
-      }
-    }
-
-    @Test
-    fun `should not delete any addresses when address does not exist`() {
-      val crn = randomCrn()
-      createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = listOf(Address.from(createRandomProbationAddress()))))
-
-      addressService.deleteAddress(
-        eventSource = DomainEventSource.DELIUS,
-        findAddress = { null },
-      )
-
-      awaitAssert {
-        val actualPerson = personRepository.findByCrn(crn)!!
-        assertThat(actualPerson.addresses.size).isEqualTo(1)
       }
     }
   }

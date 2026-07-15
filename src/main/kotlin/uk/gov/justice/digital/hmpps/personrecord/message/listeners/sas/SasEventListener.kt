@@ -2,10 +2,10 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas
 
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.SasClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.HmppsDomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressArrived
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
@@ -17,20 +17,21 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.SAS_EVENT_
 import java.util.UUID
 
 @Component
-@Profile("!prod")
 class SasEventListener(
   private val domainEventProcessor: DomainEventProcessor,
   private val sasClient: SasClient,
   private val personRepository: PersonRepository,
   private val addressRepository: AddressRepository,
   private val addressService: AddressService,
+  private val sasAddressArrivedHandler: SasAddressArrivedHandler,
 ) {
 
   @SqsListener(SAS_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processHmppsDomainEvent<HmppsDomainEvent>(rawMessage) { event ->
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.process<DomainEvent>(rawMessage) { event ->
     when (event) {
       is SasAddressUpdated -> processSasAddressUpdated(event)
       is SasAddressDeleted -> processSasAddressDeleted(event)
+      is SasAddressArrived -> processSasAddressArrived(event)
       else -> log.info("Discarding message, unexpected event: $event")
     }
   }
@@ -50,6 +51,12 @@ class SasEventListener(
       eventSource = CPR,
       findAddress = { addressRepository.findByUpdateId(UUID.fromString(event.additionalInformation.cprAddressId)) },
     )
+  }
+
+  private fun processSasAddressArrived(event: SasAddressArrived) {
+    val newMainAddress = sasClient.getAddress(event.detailUrl)
+    sasAddressArrivedHandler.setMainAddressToPrevious(newMainAddress.cprAddressId, newMainAddress.address.startDate!!)
+    sasAddressArrivedHandler.setProposedAddressToMain(newMainAddress)
   }
 
   companion object {

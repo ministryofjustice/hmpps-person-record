@@ -4,7 +4,11 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 
 data class CanonicalEthnicity(
-  @Schema(description = "Person ethnicity code", example = "B9")
+  @Schema(
+    description = "Person ethnicity code",
+    example = "B9",
+    implementation = EthnicityCode::class,
+  )
   val code: String? = null,
   @Schema(description = "Person ethnicity description", example = "Black/Black British : Any other backgr'nd")
   val description: String? = null,

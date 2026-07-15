@@ -59,6 +59,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
@@ -156,28 +157,28 @@ class ProbationApiE2ETest : E2ETestBase() {
                 sexCode = aliasSex2.value,
               ),
             ),
-            addresses = listOf(
-              Address(
-                noFixedAbode = noFixedAbode,
-                startDate = startDateTime,
-                endDate = endDateTime,
-                postcode = postcode,
-                buildingName = buildingName,
-                buildingNumber = buildingNumber,
-                thoroughfareName = thoroughfareName,
-                dependentLocality = dependentLocality,
-                postTown = postTown,
-                county = county,
-                countryCode = countryCode,
-                uprn = uprn,
-                statusCode = addressStatusCode,
-                comment = comment,
-                usages = listOf(AddressUsage(addressUsageCode, isActive)),
-              ),
-            ),
             references = listOf(
               Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
               Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
+            ),
+          ),
+          configure = addAddressToRecord(
+            Address(
+              noFixedAbode = noFixedAbode,
+              startDate = startDateTime,
+              endDate = endDateTime,
+              postcode = postcode,
+              buildingName = buildingName,
+              buildingNumber = buildingNumber,
+              thoroughfareName = thoroughfareName,
+              dependentLocality = dependentLocality,
+              postTown = postTown,
+              county = county,
+              countryCode = countryCode,
+              uprn = uprn,
+              statusCode = addressStatusCode,
+              comment = comment,
+              usages = listOf(AddressUsage(addressUsageCode, isActive)),
             ),
           ),
         )
@@ -293,6 +294,9 @@ class ProbationApiE2ETest : E2ETestBase() {
         val personOneDefendantId = randomDefendantId()
         val personTwoDefendantId = randomDefendantId()
 
+        val otherIdentifierOne = randomLowerCaseString()
+        val otherIdentifierTwo = randomLowerCaseString()
+
         val personOne = createPerson(
           Person(
             firstName = randomName(),
@@ -321,6 +325,10 @@ class ProbationApiE2ETest : E2ETestBase() {
               Reference(
                 identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
                 identifierValue = personOneDriversLicenseNumber,
+              ),
+              Reference(
+                identifierType = IdentifierType.OTHR,
+                identifierValue = otherIdentifierOne,
               ),
             ),
           ),
@@ -355,6 +363,10 @@ class ProbationApiE2ETest : E2ETestBase() {
                 identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
                 identifierValue = personTwoDriversLicenseNumber,
               ),
+              Reference(
+                identifierType = IdentifierType.OTHR,
+                identifierValue = otherIdentifierTwo,
+              ),
             ),
           ),
         )
@@ -374,6 +386,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(responseBody.identifiers.nationalInsuranceNumbers).containsExactly(personOneNationalInsuranceNumber)
         assertThat(responseBody.identifiers.arrestSummonsNumbers).containsExactly(personOneArrestSummonNumber)
         assertThat(responseBody.identifiers.driverLicenseNumbers).containsExactly(personOneDriversLicenseNumber)
+        assertThat(responseBody.identifiers.otherIdentifiers).containsExactly(otherIdentifierOne)
         assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrderElementsOf(
           listOf(
             personOne.crn,

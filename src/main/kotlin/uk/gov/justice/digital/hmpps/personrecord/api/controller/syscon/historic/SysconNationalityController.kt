@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonNationality
@@ -23,7 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Tag(name = "Syscon Sync")
 @RestController
-@PreAuthorize("hasRole('${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}')")
+@PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 class SysconNationalityController(
   private val personRepository: PersonRepository,
   private val personService: PersonService,

@@ -74,6 +74,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
@@ -226,10 +227,8 @@ class IntegrationTestBase {
   )
 
   internal fun addAddressToRecord(address: Address): PersonEntity.() -> Unit = {
-    val addresses = listOf(address)
-    val addressEntities =
-      addresses.map { AddressEntity.from(it).also { addressEntity -> addressEntity.person = this } }.toMutableList()
-    this.addresses = addressEntities
+    val addressEntity = AddressEntity.from(address).also { addressEntity -> addressEntity.person = this }
+    this.addresses.add(addressEntity)
   }
 
   internal fun createRandomProbationAddress(): ProbationCreateAddress = ProbationCreateAddress(
@@ -290,7 +289,7 @@ class IntegrationTestBase {
     ),
   )
 
-  internal fun createRandomLibraPersonDetails(cId: String = randomCId()): Person = Person.from(LibraHearingEvent(name = LibraName(firstName = randomName(), lastName = randomName()), cId = cId))
+  internal fun createRandomLibraPersonDetails(cId: String = randomCId()): Person = Person.from(LibraHearingEvent(name = LibraName(firstName = randomName(), lastName = randomName()), cId = cId, defendantAddress = uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Address(postcode = randomPostcode())))
 
   internal fun createRandomCommonPlatformPersonDetails(defendantId: String = randomDefendantId()): Person = Person.from(
     Defendant(
@@ -313,7 +312,7 @@ class IntegrationTestBase {
     if (index == 0) createRandomReligion(randomReligionCode(), true) else createRandomReligion(randomReligionCode(), false)
   }
 
-  internal fun createRandomReligion(code: String = randomReligionCode(), current: Boolean = true) = PrisonReligionHistory(
+  internal fun createRandomReligion(code: ReligionCode = randomReligionCode(), current: Boolean = true) = PrisonReligionHistory(
     nomisReligionId = randomDigit(10),
     changeReasonKnown = randomBoolean(),
     comments = randomName(),
@@ -396,7 +395,7 @@ class IntegrationTestBase {
 
   internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
     person.sourceSystem,
-  ).updatePersonEntity(person, emptySet())
+  ).updatePersonEntity(person)
     .apply(configure)
     .let(personRepository::saveAndFlush)
 

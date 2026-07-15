@@ -5,7 +5,7 @@ kotlin {
 }
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.5.3"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.5.7"
   kotlin("plugin.spring") version "2.4.0"
   kotlin("jvm") version "2.4.0"
   kotlin("plugin.jpa") version "2.4.0"
@@ -39,7 +39,7 @@ dependencies {
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
 
-  runtimeOnly("org.postgresql:postgresql:42.7.11")
+  runtimeOnly("org.postgresql:postgresql:42.7.13")
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
@@ -61,6 +61,7 @@ repositories {
 val test by testing.suites.existing(JvmTestSuite::class)
 
 tasks.register<Test>("initialiseDatabase") {
+  description = "A simple task which starts the Spring ApplicationContext and therefore runs flyway migrations"
   testClassesDirs = files(test.map { it.sources.output.classesDirs })
   classpath = files(test.map { it.sources.runtimeClasspath })
   include("**/InitialiseDatabase.class")
@@ -68,6 +69,7 @@ tasks.register<Test>("initialiseDatabase") {
 }
 
 tasks.register<Test>("e2eTest") {
+  description = "runs end to end tests against docker"
   testClassesDirs = files(test.map { it.sources.output.classesDirs })
   classpath = files(test.map { it.sources.runtimeClasspath })
   include("**/**E2ETest.class")

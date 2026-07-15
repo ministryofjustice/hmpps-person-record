@@ -34,7 +34,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.AGNO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.BAHA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.HUM
@@ -179,7 +178,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.religionHistory.first().startDate).isEqualTo(existingPrisonReligionEntity.startDate)
       assertThat(responseBody.religionHistory.first().endDate).isEqualTo(existingPrisonReligionEntity.endDate)
       assertThat(responseBody.religionHistory.first().religionCode).isEqualTo(existingPrisonReligionEntity.code)
-      assertThat(responseBody.religionHistory.first().religionDescription).isEqualTo(ReligionCode.valueOf(existingPrisonReligionEntity.code).description)
+      assertThat(responseBody.religionHistory.first().religionDescription).isEqualTo(existingPrisonReligionEntity.code.description)
       assertThat(responseBody.religionHistory.first().changeReasonKnown).isEqualTo(existingPrisonReligionEntity.changeReasonKnown)
       assertThat(responseBody.religionHistory.first().modifyDateTime).isEqualTo(existingPrisonReligionEntity.modifyDateTime)
       assertThat(responseBody.religionHistory.first().modifyUserId).isEqualTo(existingPrisonReligionEntity.modifyUserId)
@@ -201,7 +200,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       sendPostRequestAsserted<Unit>(
         url = "/person/prison/$prisonNumber/religion",
         body = createRandomReligion().copy( // <- first in history to be written
-          religionCode = BAHA.name,
+          religionCode = BAHA,
           startDate = now.minusDays(1),
           endDate = now.minusDays(1),
           current = false,
@@ -215,7 +214,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       sendPostRequestAsserted<Unit>(
         url = "/person/prison/$prisonNumber/religion",
         body = createRandomReligion().copy( // <- second in history to be written
-          religionCode = HUM.name,
+          religionCode = HUM,
           startDate = now.minusDays(1),
           endDate = now,
           current = false,
@@ -229,7 +228,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       sendPostRequestAsserted<Unit>(
         url = "/person/prison/$prisonNumber/religion",
         body = createRandomReligion().copy( // <- most recent in history to be written
-          religionCode = AGNO.name,
+          religionCode = AGNO,
           startDate = now,
           endDate = null,
           modifyDateTime = null,
@@ -258,11 +257,11 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.religionHistory.first().modifyUserId).isNull()
 
       assertThat(responseBody.religionHistory[1].current).isEqualTo(false)
-      assertThat(responseBody.religionHistory[1].religionCode).isEqualTo(HUM.name)
+      assertThat(responseBody.religionHistory[1].religionCode).isEqualTo(HUM)
       assertThat(responseBody.religionHistory[1].startDate).isEqualTo(now.minusDays(1))
       assertThat(responseBody.religionHistory[1].createDateTime.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(nowTime.minusDays(1).minusHours(1).truncatedTo(ChronoUnit.SECONDS))
       assertThat(responseBody.religionHistory[2].current).isEqualTo(false)
-      assertThat(responseBody.religionHistory[2].religionCode).isEqualTo(BAHA.name)
+      assertThat(responseBody.religionHistory[2].religionCode).isEqualTo(BAHA)
       assertThat(responseBody.religionHistory[2].startDate).isEqualTo(now.minusDays(1))
       assertThat(responseBody.religionHistory[2].createDateTime.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(nowTime.minusDays(1).minusHours(2).truncatedTo(ChronoUnit.SECONDS))
     }

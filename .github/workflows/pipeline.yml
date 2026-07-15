@@ -50,7 +50,7 @@ jobs:
     steps:
       - id: app_version
         name: Application version creators
-        uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/build-test-and-deploy/create_app_version@c241b9febb7a4fc11e88d0e781cbdfcf8abd84a5 # v1.0.17
+        uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/build-test-and-deploy/create_app_version@c89a206b6b32888d13f6aec01af0f7694df6b42f # v1.0.19
   gradle_verify:
     name: Validate the kotlin
     uses: ./.github/workflows/gradle_localstack_postgres_verify.yml
@@ -76,7 +76,7 @@ jobs:
           persist-credentials: false
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Setup Java
-        uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5.3.0
+        uses: actions/setup-java@0f481fcb613427c0f801b606911222b5b6f3083a # v5.5.0
         with:
           distribution: 'temurin'
           java-version: '25'
@@ -115,7 +115,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Setup Java
-        uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5.3.0
+        uses: actions/setup-java@0f481fcb613427c0f801b606911222b5b6f3083a # v5.5.0
         with:
           distribution: 'temurin'
           java-version: '25'
@@ -128,7 +128,7 @@ jobs:
         run: |
           export JAVA_OPTS="${{ inputs.java_options }}"
           ./gradlew initialiseDatabase
-      - uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/database_schema_report@c241b9febb7a4fc11e88d0e781cbdfcf8abd84a5 # v1.0.17
+      - uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/database_schema_report@c89a206b6b32888d13f6aec01af0f7694df6b42f # v1.0.19
         with:
           schema: personrecordservice
   deploy_dev:

@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.QUEUE_ADMIN
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
 @AutoConfigureWebTestClient
-open class WebTestSetup : IntegrationTestBase() {
+class WebTestSetup : IntegrationTestBase() {
 
   @Autowired
   lateinit var webTestClient: WebTestClient

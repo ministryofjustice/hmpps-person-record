@@ -50,7 +50,7 @@ class PrisonEventListenerIntTest : PrisonEventListenerTestBase() {
     stub5xxResponse("/prisoner/$prisonNumber", currentScenarioState = "next request will fail", nextScenarioState = "next request will fail", scenarioName = "processing fail")
     stub5xxResponse("/prisoner/$prisonNumber", "next request will fail", scenarioName = "processing fail")
     stub5xxResponse("/prisoner/$prisonNumber", "next request will fail", scenarioName = "processing fail")
-    publishPrisonPrisonerCreatedEvent(prisonNumber)
+    publishPrisonPersonCreatedEvent(prisonNumber)
     expectOneMessageOnDlq(prisonEventsQueue)
   }
 
@@ -58,7 +58,7 @@ class PrisonEventListenerIntTest : PrisonEventListenerTestBase() {
   fun `should discard message if prisoner search returns 404`() {
     val prisonNumber = randomPrisonNumber()
     stub404Response("/prisoner/$prisonNumber")
-    publishPrisonPrisonerCreatedEvent(prisonNumber)
+    publishPrisonPersonCreatedEvent(prisonNumber)
     waitForMessageToBeProcessedAndDiscarded()
     expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
   }
@@ -233,7 +233,7 @@ class PrisonEventListenerIntTest : PrisonEventListenerTestBase() {
       stub5xxResponse("/prisoner/$prisonNumber", nextScenarioState = "next request will succeed", scenarioName = "retry")
       stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber), scenarioName = "retry", currentScenarioState = "next request will succeed")
 
-      publishPrisonPrisonerCreatedEvent(prisonNumber)
+      publishPrisonPersonCreatedEvent(prisonNumber)
 
       checkTelemetry(
         CPR_RECORD_CREATED,
@@ -254,7 +254,7 @@ class PrisonEventListenerIntTest : PrisonEventListenerTestBase() {
       stubPrisonResponse(ApiResponseSetup(gender = "Male", prisonNumber = prisonNumber), currentScenarioState = "will succeed")
       stubPersonMatchUpsert(currentScenarioState = "will succeed")
       stubPersonMatchScores(currentScenarioState = "will succeed")
-      publishPrisonPrisonerCreatedEvent(prisonNumber)
+      publishPrisonPersonCreatedEvent(prisonNumber)
 
       awaitNotNull { personRepository.findByPrisonNumber(prisonNumber = prisonNumber) }
       checkTelemetry(

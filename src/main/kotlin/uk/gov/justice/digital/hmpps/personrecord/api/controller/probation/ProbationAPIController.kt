@@ -23,11 +23,9 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_A
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import java.net.URI
 
@@ -36,7 +34,6 @@ import java.net.URI
 class ProbationAPIController(
   private val personRepository: PersonRepository,
   private val personService: PersonService,
-  private val reclusterService: ReclusterService,
 ) {
   @Operation(
     description = """Retrieve person record by CRN. Role required is **$API_READ_ONLY** . 
@@ -67,7 +64,7 @@ class ProbationAPIController(
   )
   @PreAuthorize("hasRole('$API_READ_ONLY')")
   fun getProbationPerson(
-    @PathVariable(name = "crn") crn: String,
+    @PathVariable crn: String,
   ): ResponseEntity<CanonicalRecord> {
     val personEntity = personRepository.findByCrn(crn) ?: throw ResourceNotFoundException(crn)
     return when {
@@ -91,7 +88,7 @@ class ProbationAPIController(
   @PreAuthorize("hasRole('$PROBATION_API_READ_WRITE')")
   @Transactional(isolation = REPEATABLE_READ)
   fun createProbationPerson(
-    @PathVariable(name = "defendantId") defendantId: String,
+    @PathVariable defendantId: String,
     @RequestBody probationCase: ProbationCase,
   ) {
     val masterDefendantId: String? = retrieveDefendant(defendantId).masterDefendantId
@@ -99,11 +96,9 @@ class ProbationAPIController(
     val person = Person.from(probationCase)
     person.masterDefendantId = masterDefendantId
 
-    val offender: PersonEntity = personService.processPerson(person, setOf(AddressEntity::class)) {
+    personService.processPerson(person) {
       personRepository.findByCrn(probationCase.identifiers.crn!!)
     }
-
-    reclusterService.recluster(offender)
   }
 
   private fun retrieveDefendant(defendantId: String): PersonEntity = personRepository.findByDefendantId(defendantId) ?: throw ResourceNotFoundException(defendantId)

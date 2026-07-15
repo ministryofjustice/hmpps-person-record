@@ -3,27 +3,14 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressData
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressStatus
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDeliusAddressId
-import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
-import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
-import java.time.LocalDate
-import java.util.UUID
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.Address as SasAddress
 
 class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
@@ -43,16 +30,14 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       assertThat(existingAddressEntity.deliusAddressId).isNull()
 
-      publishProbationOffenderAddressCreatedEvent(crn, existingAddressEntity.updateId, deliusAddressId, CPR)
+      publishProbationAddressCreatedEvent(crn, existingAddressEntity.updateId, deliusAddressId, CPR)
 
       awaitNotNull {
         addressRepository.findByDeliusAddressId(deliusAddressId)
       }
 
-      val sasCallbackResponse = createSasAddressGetResponse(crn, existingAddressEntity.updateId)
+      val sasCallbackResponse = createSasAddressGetResponse(crn, existingAddressEntity)
 
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
       stubGetRequestToSas(sasCallbackResponse)
 
       publishSasAddressUpdatedEvent()
@@ -95,8 +80,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
       createPersonKey()
         .addPerson(existingPersonEntity)
 
-      val nonExistingAddressUpdateId = UUID.randomUUID()
-      val sasCallbackResponse = createSasAddressGetResponse(existingPersonEntity.crn, nonExistingAddressUpdateId)
+      val sasCallbackResponse = createSasAddressGetResponse(existingPersonEntity.crn, AddressEntity.from(Address(postcode = randomPostcode())))
 
       stubGetRequestToSas(sasCallbackResponse)
 
@@ -118,7 +102,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
         .addPerson(existingPersonEntity)
 
       val nonExistingPersonCrn = randomCrn()
-      val sasCallbackResponse = createSasAddressGetResponse(nonExistingPersonCrn, existingAddressEntity.updateId)
+      val sasCallbackResponse = createSasAddressGetResponse(nonExistingPersonCrn, existingAddressEntity)
 
       stubGetRequestToSas(sasCallbackResponse)
 
@@ -128,48 +112,6 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
       expectOneMessageOnDlq(sasEventsQueue)
       expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
     }
-  }
-
-  private fun createSasAddressGetResponse(crn: String?, cprAddressUpdateId: UUID?) = SasGetAddressResponse(
-    data = SasAddressData(
-      crn = crn!!,
-      cprAddressId = cprAddressUpdateId.toString(),
-      startDate = LocalDate.now().minusYears(10),
-      endDate = LocalDate.now().plusYears(10),
-      noFixedAbode = randomBoolean(),
-      typeVerified = randomBoolean(),
-      address = SasAddress(
-        postcode = randomPostcode(),
-        subBuildingName = randomName(),
-        buildingName = randomName(),
-        buildingNumber = randomBuildingNumber(),
-        thoroughfareName = randomName(),
-        dependentLocality = randomName(),
-        postTown = randomPostcode(),
-        county = randomName(),
-        countryCode = "E",
-        uprn = randomUprn(),
-      ),
-      statusCode = SasAddressStatus(
-        code = randomAddressStatusCode().name,
-        description = randomLowerCaseString(),
-      ),
-      usage = SasAddressType(
-        code = randomAddressUsageCode().name,
-        description = randomLowerCaseString(),
-      ),
-    ),
-  )
-
-  private fun stubGetRequestToSas(
-    sasCallbackResponse: SasGetAddressResponse? = null,
-    status: Int = 200,
-  ) {
-    stubGetRequest(
-      url = "/accommodations/1234",
-      body = jsonMapper.writeValueAsString(sasCallbackResponse),
-      status = status,
-    )
   }
 
   private fun assertAddressUpdated(crn: String?, expected: SasGetAddressResponse, existingDeliusAddressId: Long): AddressEntity {

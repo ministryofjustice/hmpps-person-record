@@ -8,20 +8,25 @@ import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressUsage
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressData
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressStatus
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressType
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressCreated
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressCreatedInfo
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressDeleted
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressDeletedInfo
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressUpdated
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderAddressUpdatedInfo
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderCreated
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationOffenderDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationAddressCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationAddressCreatedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationAddressDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationAddressDeletedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationAddressUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationAddressUpdatedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressArrived
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressArrivedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeletedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressUpdated
@@ -38,6 +43,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
@@ -51,7 +58,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationAddress
+import java.time.LocalDate
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.Address as SasAddress
 
 class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
 
@@ -109,28 +118,19 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun publishProbationOffenderCreatedEvent(crn: String) {
+  fun publishProbationPersonCreatedEvent(crn: String) {
     publishDomainEvent(
-      ProbationOffenderCreated(
+      ProbationPersonCreated(
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
       ),
     )
   }
 
-  fun publishProbationOffenderDeletedEvent(eventType: String, crn: String) {
+  fun publishProbationAddressCreatedEvent(crn: String?, cprAddressId: UUID?, deliusAddressId: Long?, eventSource: DomainEventSource) {
     publishDomainEvent(
-      ProbationOffenderDeleted(
-        eventType = eventType,
-        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
-      ),
-    )
-  }
-
-  fun publishProbationOffenderAddressCreatedEvent(crn: String?, cprAddressId: UUID?, deliusAddressId: Long?, eventSource: DomainEventSource) {
-    publishDomainEvent(
-      ProbationOffenderAddressCreated(
+      ProbationAddressCreated(
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
-        additionalInformation = ProbationOffenderAddressCreatedInfo(
+        additionalInformation = ProbationAddressCreatedInfo(
           cprAddressId = cprAddressId.toString(),
           deliusAddressId = deliusAddressId!!,
         ),
@@ -139,11 +139,11 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun publishProbationOffenderAddressUpdatedEvent(crn: String?, deliusAddressId: Long?) {
+  fun publishProbationAddressUpdatedEvent(crn: String?, deliusAddressId: Long?) {
     publishDomainEvent(
-      ProbationOffenderAddressUpdated(
+      ProbationAddressUpdated(
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
-        additionalInformation = ProbationOffenderAddressUpdatedInfo(
+        additionalInformation = ProbationAddressUpdatedInfo(
           deliusAddressId = deliusAddressId!!,
         ),
       ),
@@ -153,9 +153,9 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
 
   fun publishProbationAddressDeletedEvent(crn: String?, deliusAddressId: Long?) {
     publishDomainEvent(
-      ProbationOffenderAddressDeleted(
+      ProbationAddressDeleted(
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn!!))),
-        additionalInformation = ProbationOffenderAddressDeletedInfo(
+        additionalInformation = ProbationAddressDeletedInfo(
           deliusAddressId = deliusAddressId!!,
         ),
       ),
@@ -171,6 +171,17 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
+  fun publishSasAddressArrivedEvent(cprAddressId: UUID) {
+    publishDomainEvent(
+      SasAddressArrived(
+        detailUrl = "/accommodations/1234",
+        additionalInformation = SasAddressArrivedInfo(
+          cprAddressId = cprAddressId.toString(),
+        ),
+      ),
+    )
+  }
+
   fun publishSasAddressDeletedEvent(cprAddressId: UUID) {
     publishDomainEvent(
       SasAddressDeleted(
@@ -178,6 +189,47 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
           cprAddressId = cprAddressId.toString(),
         ),
       ),
+    )
+  }
+
+  fun createSasAddressGetResponse(crn: String?, address: AddressEntity) = SasGetAddressResponse(
+    data = SasAddressData(
+      crn = crn!!,
+      cprAddressId = address.updateId.toString(),
+      startDate = LocalDate.now(),
+      noFixedAbode = address.noFixedAbode,
+      typeVerified = address.isVerified,
+      address = SasAddress(
+        postcode = address.postcode,
+        subBuildingName = address.subBuildingName,
+        buildingName = address.buildingName,
+        buildingNumber = address.buildingNumber,
+        thoroughfareName = address.thoroughfareName,
+        dependentLocality = address.dependentLocality,
+        postTown = address.postTown,
+        county = address.county,
+        countryCode = "E",
+        uprn = randomUprn(),
+      ),
+      statusCode = SasAddressStatus(
+        code = randomAddressStatusCode().name,
+        description = randomLowerCaseString(),
+      ),
+      usage = SasAddressType(
+        code = randomAddressUsageCode().name,
+        description = randomLowerCaseString(),
+      ),
+    ),
+  )
+
+  fun stubGetRequestToSas(
+    sasCallbackResponse: SasGetAddressResponse? = null,
+    status: Int = 200,
+  ) {
+    stubGetRequest(
+      url = "/accommodations/1234",
+      body = jsonMapper.writeValueAsString(sasCallbackResponse),
+      status = status,
     )
   }
 
@@ -213,7 +265,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
   }
 
   fun assertCprAddressCreatedEventPublished(crn: String, cprAddressId: UUID) {
-    val sqsMessage = receiveFirstMessageOnQueue(testOnlyCPRDomainEventsQueue)
+    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
     assertThat(sqsMessage.getEventType()).isEqualTo(CPR_PROBATION_ADDRESS_CREATED)
     assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(DELIUS.identifier))
     val domainEvent: CprAddressCreated = jsonMapper.readValue<CprAddressCreated>(sqsMessage.message)
@@ -228,7 +280,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
   }
 
   fun assertCprAddressUpdatedEventPublished(crn: String, cprAddressId: UUID, deliusAddressId: Long?, eventSource: DomainEventSource) {
-    val sqsMessage = receiveFirstMessageOnQueue(testOnlyCPRDomainEventsQueue)
+    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
     assertThat(sqsMessage.getEventType()).isEqualTo(CPR_PROBATION_ADDRESS_UPDATED)
     assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(eventSource.identifier))
     val domainEvent: CprAddressUpdated = jsonMapper.readValue<CprAddressUpdated>(sqsMessage.message)
@@ -243,7 +295,7 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
   }
 
   fun assertCprAddressDeletedEventPublished(crn: String, cprAddressId: UUID, deliusAddressId: Long?, eventSource: DomainEventSource) {
-    val sqsMessage = receiveFirstMessageOnQueue(testOnlyCPRDomainEventsQueue)
+    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
     assertThat(sqsMessage.getEventType()).isEqualTo(CPR_PROBATION_ADDRESS_DELETED)
     assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(eventSource.identifier))
     val domainEvent: CprAddressDeleted = jsonMapper.readValue<CprAddressDeleted>(sqsMessage.message)

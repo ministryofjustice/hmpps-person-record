@@ -28,12 +28,12 @@ class AddressService(
   @Transactional
   fun processAddress(
     address: Address,
-    findPerson: () -> PersonEntity?,
+    findPerson: (() -> PersonEntity?)? = null,
     findAddress: () -> AddressEntity?,
     eventSource: DomainEventSource,
   ): AddressEntity = findAddress().exists(
     no = {
-      create(address, findPerson()!!, eventSource)
+      create(address, findPerson?.invoke()!!, eventSource)
     },
     yes = {
       update(address, it, eventSource)

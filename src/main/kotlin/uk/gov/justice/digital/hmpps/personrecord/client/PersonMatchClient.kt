@@ -23,7 +23,7 @@ class PersonMatchClient(private val personMatchWebClient: WebClient) {
     .uri("/is-cluster-valid")
     .bodyValue(requestBody)
     .retrieve()
-    .bodyToMono(IsClusterValidResponse::class.java)
+    .bodyToMono<IsClusterValidResponse>()
     .block()!!
 
   fun postVisualiseCluster(requestBody: List<String>): VisualiseCluster = personMatchWebClient
@@ -32,7 +32,7 @@ class PersonMatchClient(private val personMatchWebClient: WebClient) {
     .bodyValue(requestBody)
     .retrieve()
     .onStatus({ it.value() == HttpStatus.NOT_FOUND.value() }) { Mono.empty() }
-    .bodyToMono(VisualiseCluster::class.java)
+    .bodyToMono<VisualiseCluster>()
     .block()!!
 
   fun getPersonScores(matchId: String): List<PersonMatchScore> = personMatchWebClient

@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class PrisonEventListenerTestBase : MessagingMultiNodeTestBase() {
 
-  fun publishPrisonPrisonerCreatedEvent(prisonNumber: String) {
+  fun publishPrisonPersonCreatedEvent(prisonNumber: String) {
     publishDomainEvent(
       PrisonPersonCreated(
         personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))),
@@ -20,7 +20,7 @@ class PrisonEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun publishPrisonPrisonerUpdatedEvent(prisonNumber: String) {
+  fun publishPrisonPersonUpdatedEvent(prisonNumber: String) {
     publishDomainEvent(
       PrisonPersonUpdated(
         personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))),
@@ -28,7 +28,7 @@ class PrisonEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun publishPrisonPrisonerMergedEvent(targetPrisonNumber: String, sourcePrisonNumber: String) {
+  fun publishPrisonPersonMergedEvent(targetPrisonNumber: String, sourcePrisonNumber: String) {
     publishDomainEvent(
       PrisonPersonMerged(
         personReference = PersonReference(listOf(PersonIdentifier("NOMS", targetPrisonNumber))),
@@ -50,7 +50,7 @@ class PrisonEventListenerTestBase : MessagingMultiNodeTestBase() {
       nextScenarioState,
     )
 
-    publishPrisonPrisonerCreatedEvent(apiResponseSetup.prisonNumber!!)
+    publishPrisonPersonCreatedEvent(apiResponseSetup.prisonNumber!!)
   }
 
   fun prisonUpdateEventAndResponseSetup(
@@ -66,7 +66,7 @@ class PrisonEventListenerTestBase : MessagingMultiNodeTestBase() {
       nextScenarioState,
     )
 
-    publishPrisonPrisonerCreatedEvent(apiResponseSetup.prisonNumber!!)
+    publishPrisonPersonCreatedEvent(apiResponseSetup.prisonNumber!!)
   }
 
   fun prisonMergeEventAndResponseSetup(
@@ -83,6 +83,6 @@ class PrisonEventListenerTestBase : MessagingMultiNodeTestBase() {
       nextScenarioState,
     )
 
-    publishPrisonPrisonerMergedEvent(targetPrisonNumber, sourcePrisonNumber)
+    publishPrisonPersonMergedEvent(targetPrisonNumber, sourcePrisonNumber)
   }
 }
