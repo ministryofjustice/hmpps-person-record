@@ -125,7 +125,7 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
       assertThat(actualAddressEntity.postcode).isEqualTo(expectedSasAddress.address.postcode)
       assertThat(actualAddressEntity.deliusAddressId).isEqualTo(existingDeliusAddressId)
       assertThat(actualAddressEntity.startDate!!.toLocalDate()).isEqualTo(expectedSasAddress.startDate)
-      assertThat(actualAddressEntity.endDate!!.toLocalDate()).isEqualTo(expectedSasAddress.endDate)
+      assertThat(actualAddressEntity.endDate?.toLocalDate()).isEqualTo(expectedSasAddress.endDate)
       assertThat(actualAddressEntity.noFixedAbode).isEqualTo(expectedSasAddress.noFixedAbode)
       assertThat(actualAddressEntity.isVerified).isEqualTo(expectedSasAddress.typeVerified)
       assertThat(actualAddressEntity.subBuildingName).isEqualTo(expectedSasAddress.address.subBuildingName)
