@@ -36,16 +36,16 @@ class ProbationMergedRecordsResolver(
 
     corePersonRecordAndDeliusClient.getProbationCaseOnly(resolveMergedRecordsConfig.crnToRecreate).let { case ->
       val person = Person.from(case)
-      val personEntity = personService.processPerson(person) { personRepository.findByCrn(person.crn!!) }
+      val personEntity = personService.processPerson(person) { null }
       case.addresses.forEach { address ->
         addressService.processAddress(
           address = Address.from(address)!!,
           findPerson = { personEntity },
-          findAddress = { addressRepository.findByDeliusAddressId(address.deliusAddressId) },
+          findAddress = { null },
           eventSource = DomainEventSource.DELIUS,
         )
       }
-      publisher.publishEvent(RecordEventLog(CPR_RECORD_SEEDED, personRepository.findByCrn(resolveMergedRecordsConfig.crnToRecreate)!!))
+      publisher.publishEvent(RecordEventLog(CPR_RECORD_SEEDED, personEntity))
     }
     log.info("Recreated person with crn ${resolveMergedRecordsConfig.crnToRecreate}")
   }
