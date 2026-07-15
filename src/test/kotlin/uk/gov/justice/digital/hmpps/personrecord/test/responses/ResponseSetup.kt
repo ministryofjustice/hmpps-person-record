@@ -96,8 +96,8 @@ data class ApiResponseSetup(
       addresses = probationCase.addresses.map {
         ApiResponseSetupAddress(
           noFixedAbode = it.noFixedAbode,
-          startDateTime = it.startDateTime,
-          endDateTime = it.endDateTime,
+          startDateTime = it.startDateTime?.toLocalDateTime(),
+          endDateTime = it.endDateTime?.toLocalDateTime(),
           postcode = it.postcode,
           fullAddress = it.fullAddress,
           buildingName = it.buildingName,

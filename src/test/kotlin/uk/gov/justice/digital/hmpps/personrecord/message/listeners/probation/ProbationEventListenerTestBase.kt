@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeletedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
@@ -69,8 +70,8 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     val endDateTime = startDateTime.plusYears(10)
     return ProbationAddress(
       noFixedAbode = true,
-      startDateTime = startDateTime,
-      endDateTime = endDateTime,
+      startDateTime = startDateTime.toZonedDateTime(),
+      endDateTime = endDateTime.toZonedDateTime(),
       postcode = randomPostcode(),
       fullAddress = randomFullAddress(),
       buildingName = randomName(),
@@ -96,8 +97,8 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
       body = probationAddress(
         address = ApiResponseSetupAddress(
           noFixedAbode = probationAddress.noFixedAbode,
-          startDateTime = probationAddress.startDateTime,
-          endDateTime = probationAddress.endDateTime,
+          startDateTime = probationAddress.startDateTime?.toLocalDateTime(),
+          endDateTime = probationAddress.endDateTime?.toLocalDateTime(),
           postcode = probationAddress.postcode,
           fullAddress = probationAddress.fullAddress,
           buildingName = probationAddress.buildingName,
@@ -242,8 +243,8 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
       assertThat(actualAddressEntity.updateId).isNotNull()
       assertThat(actualAddressEntity.updateId!!.toString()).isNotBlank
       assertThat(actualAddressEntity.noFixedAbode).isEqualTo(probationAddress.noFixedAbode)
-      assertThat(actualAddressEntity.startDate).isEqualTo(probationAddress.startDateTime)
-      assertThat(actualAddressEntity.endDate).isEqualTo(probationAddress.endDateTime)
+      assertThat(actualAddressEntity.startDate).isEqualTo(probationAddress.startDateTime?.toLocalDateTime())
+      assertThat(actualAddressEntity.endDate).isEqualTo(probationAddress.endDateTime?.toLocalDateTime())
       assertThat(actualAddressEntity.postcode).isEqualTo(probationAddress.postcode)
       assertThat(actualAddressEntity.fullAddress).isEqualTo(probationAddress.fullAddress)
       assertThat(actualAddressEntity.buildingName).isEqualTo(probationAddress.buildingName)
