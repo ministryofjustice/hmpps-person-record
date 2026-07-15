@@ -96,8 +96,8 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
       body = probationAddress(
         address = ApiResponseSetupAddress(
           noFixedAbode = probationAddress.noFixedAbode,
-          startDateTime = probationAddress.startDateTime?.toLocalDateTime(),
-          endDateTime = probationAddress.endDateTime?.toLocalDateTime(),
+          startDateTime = probationAddress.startDateTime,
+          endDateTime = probationAddress.endDateTime,
           postcode = probationAddress.postcode,
           fullAddress = probationAddress.fullAddress,
           buildingName = probationAddress.buildingName,
