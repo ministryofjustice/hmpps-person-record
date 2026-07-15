@@ -10,8 +10,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAd
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecordView
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
-import java.time.ZonedDateTime
 
 class CanonicalAggregationApiIntTest : WebTestBase() {
 
@@ -105,7 +103,6 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
       assertThat(responseBody.canonicalRecord.addresses)
         .usingRecursiveFieldByFieldElementComparator(
           RecursiveComparisonConfiguration.builder()
-            .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
             .build(),
         )
         .containsExactlyInAnyOrderElementsOf(canonicalAddress)
@@ -139,7 +136,6 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
       assertThat(responseBody.canonicalRecord.addresses)
         .usingRecursiveFieldByFieldElementComparator(
           RecursiveComparisonConfiguration.builder()
-            .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
             .build(),
         )
         .containsExactlyInAnyOrderElementsOf(canonicalAddress)
