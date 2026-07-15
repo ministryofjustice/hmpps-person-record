@@ -28,6 +28,13 @@ class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebCl
     return Person.from(probationCase)
   }
 
+  fun getAddresses(crn: String): List<Address> {
+    val probationCase = getProbationCase(crn)
+      .discardNotFoundException()
+      .block()!!
+    return probationCase.addresses.mapNotNull { Address.from(it) }
+  }
+
   private fun getProbationCase(crn: String): Mono<ProbationCase> = corePersonRecordAndDeliusWebClient
     .get()
     .uri("/probation-cases/{id}", crn)
