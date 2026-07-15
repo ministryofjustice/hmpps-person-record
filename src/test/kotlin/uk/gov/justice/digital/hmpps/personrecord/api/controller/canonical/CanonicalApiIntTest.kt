@@ -141,8 +141,8 @@ class CanonicalApiIntTest : WebTestBase() {
     val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = CanonicalTitle.from(title.value), sex = CanonicalSex.from(sex.value))
     val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
     val canonicalAddress = CanonicalAddress(
-      cprAddressId = person.addresses.first().updateId!!.toString(), noFixedAbode = noFixedAbode, startDate = startDateTime.toString(), startDateTime = startDateTime,
-      endDate = endDateTime.toString(), endDateTime = endDateTime, postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber,
+      cprAddressId = person.addresses.first().updateId!!.toString(), noFixedAbode = noFixedAbode, startDate = startDateTime.toLocalDate().toString(), startDateTime = startDateTime,
+      endDate = endDateTime.toLocalDate().toString(), endDateTime = endDateTime, postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber,
       thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown, county = county, country = countryCode.description, countryCode = countryCode.name,
       uprn = uprn, status = CanonicalAddressStatus.from(addressStatusCode), comment = comment,
       usages = listOf(CanonicalAddressUsage(usageCode = CanonicalAddressUsageCode.from(addressUsageCode), isActive = isActive)),
@@ -212,9 +212,9 @@ class CanonicalApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.addresses.first().startDate).isEqualTo(startDateTime.toString())
+    assertThat(responseBody.addresses.first().startDate).isEqualTo(startDateTime.toLocalDate().toString())
 
-    assertThat(responseBody.addresses.first().endDate).isEqualTo(endDateTime.toString())
+    assertThat(responseBody.addresses.first().endDate).isEqualTo(endDateTime.toLocalDate().toString())
   }
 
   @Test
