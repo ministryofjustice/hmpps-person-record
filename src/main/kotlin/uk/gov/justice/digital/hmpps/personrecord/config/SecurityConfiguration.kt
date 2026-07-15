@@ -25,7 +25,6 @@ class SecurityConfiguration {
         "/jobs/deliusreconciliationreport",
         "/admin/recluster",
         "/admin/exclusion/prisoner",
-        "/admin/resolve-merged-records",
       )
     }
   }
