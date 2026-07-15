@@ -31,7 +31,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeletedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toZonedDateTimeUk
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
@@ -47,7 +46,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
@@ -55,6 +53,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressUsage
@@ -66,12 +65,12 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.Address as Sas
 class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
 
   fun randomProbationAddress(deliusAddressId: Long? = null): ProbationAddress {
-    val startDateTime = randomDateTime()
+    val startDateTime = randomZonedDateTime()
     val endDateTime = startDateTime.plusYears(10)
     return ProbationAddress(
       noFixedAbode = true,
-      startDateTime = startDateTime.toZonedDateTimeUk(),
-      endDateTime = endDateTime.toZonedDateTimeUk(),
+      startDateTime = startDateTime,
+      endDateTime = endDateTime,
       postcode = randomPostcode(),
       fullAddress = randomFullAddress(),
       buildingName = randomName(),
