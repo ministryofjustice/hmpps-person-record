@@ -24,9 +24,9 @@ fun assertCanonicalAddresses(expected: List<AddressEntity>, actual: List<Canonic
 private fun AddressEntity.toCanonicalAddress(): CanonicalAddress = CanonicalAddress(
   cprAddressId = updateId!!.toString(),
   noFixedAbode = noFixedAbode,
-  startDate = startDate?.toString(),
+  startDate = startDate?.toLocalDate()?.toString(),
   startDateTime = startDate,
-  endDate = endDate?.toString(),
+  endDate = endDate?.toLocalDate()?.toString(),
   endDateTime = endDate,
   postcode = postcode,
   subBuildingName = subBuildingName,

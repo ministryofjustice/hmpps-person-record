@@ -157,9 +157,9 @@ class LibraApiControllerIntTest : WebTestBase() {
         CanonicalAddress(
           cprAddressId = person.addresses.first().updateId!!.toString(),
           noFixedAbode = noFixedAbode,
-          startDate = startDateTime.toString(),
+          startDate = startDateTime.toLocalDate().toString(),
           startDateTime = startDateTime,
-          endDate = endDateTime.toString(),
+          endDate = endDateTime.toLocalDate().toString(),
           endDateTime = endDateTime,
           postcode = postcode,
           buildingName = buildingName,
