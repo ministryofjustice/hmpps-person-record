@@ -31,7 +31,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeletedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toZonedDateTime
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toZonedDateTimeUk
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
@@ -70,8 +70,8 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     val endDateTime = startDateTime.plusYears(10)
     return ProbationAddress(
       noFixedAbode = true,
-      startDateTime = startDateTime.toZonedDateTime(),
-      endDateTime = endDateTime.toZonedDateTime(),
+      startDateTime = startDateTime.toZonedDateTimeUk(),
+      endDateTime = endDateTime.toZonedDateTimeUk(),
       postcode = randomPostcode(),
       fullAddress = randomFullAddress(),
       buildingName = randomName(),
