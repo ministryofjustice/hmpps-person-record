@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifie
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
@@ -39,6 +38,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
@@ -54,8 +54,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientat
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
-import java.time.ZonedDateTime
 
 class CanonicalApiIntTest : WebTestBase() {
 
@@ -67,8 +65,8 @@ class CanonicalApiIntTest : WebTestBase() {
     val title = randomTitleCode()
     val pnc = randomLongPnc()
     val noFixedAbode = true
-    val startDateTime = randomZonedDateTime()
-    val endDateTime = randomZonedDateTime()
+    val startDateTime = randomDateTime()
+    val endDateTime = randomDateTime()
     val postcode = randomPostcode()
     val nationality = randomNationalityCode()
     val religion = randomReligion()
@@ -185,13 +183,12 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
     assertThat(responseBody.addresses)
       .usingRecursiveComparison()
-      .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
       .isEqualTo(listOf(canonicalAddress))
   }
 
   @Test
   fun `should return correct date format for addresses`() {
-    val startDateTime = randomZonedDateTime()
+    val startDateTime = randomDateTime()
     val endDateTime = startDateTime.plusYears(10)
     val person = createRandomPrisonPersonDetails().copy(
       addresses = listOf(
@@ -215,11 +212,9 @@ class CanonicalApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    val expectedStartDate = startDateTime.toLocalDate().toString()
-    assertThat(responseBody.addresses.first().startDate).isEqualTo(expectedStartDate)
+    assertThat(responseBody.addresses.first().startDate).isEqualTo(startDateTime.toLocalDate().toString())
 
-    val expectedEndDate = endDateTime.toLocalDate().toString()
-    assertThat(responseBody.addresses.first().endDate).isEqualTo(expectedEndDate)
+    assertThat(responseBody.addresses.first().endDate).isEqualTo(endDateTime.toLocalDate().toString())
   }
 
   @Test

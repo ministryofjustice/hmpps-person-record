@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.M
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.P
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Component
@@ -32,13 +32,13 @@ class SasAddressArrivedHandler(
   }
 
   @Transactional
-  fun setMainAddressToPrevious(cprAddressId: UUID, startDate: ZonedDateTime) {
+  fun setMainAddressToPrevious(cprAddressId: UUID, startDate: LocalDateTime) {
     val addressEntity = addressRepository.findByUpdateId(cprAddressId)!!
     val personEntity = addressEntity.person!!
     personEntity.setMainAddressToPrevious(cprAddressId, startDate)
   }
 
-  fun PersonEntity.setMainAddressToPrevious(cprAddressId: UUID, startDate: ZonedDateTime) {
+  fun PersonEntity.setMainAddressToPrevious(cprAddressId: UUID, startDate: LocalDateTime) {
     this.addresses
       .filter { it.updateId != cprAddressId }
       .firstOrNull { it.statusCode == M }

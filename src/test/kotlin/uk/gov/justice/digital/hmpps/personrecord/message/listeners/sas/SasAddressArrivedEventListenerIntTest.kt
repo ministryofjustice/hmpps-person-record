@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasGetAddressResponse
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toLocalDateTime
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListenerTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.M
@@ -44,7 +43,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
         val actualAddressEntity = addressRepository.findByUpdateId(originalAddressEntity.updateId!!)!!
         assertThat(actualAddressEntity.isVerified).isEqualTo(true)
         assertThat(actualAddressEntity.statusCode).isEqualTo(M)
-        assertThat(actualAddressEntity.startDate!!.toUkLocalDate()).isEqualTo(sasCallbackResponse.startDate)
+        assertThat(actualAddressEntity.startDate!!.toLocalDate()).isEqualTo(sasCallbackResponse.startDate)
       }
 
       assertCprAddressUpdatedEventPublished(personEntity.crn!!, originalAddressEntity.updateId!!, originalAddressEntity.deliusAddressId, CPR)
@@ -75,12 +74,12 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
         val oldMainAddress = addressRepository.findByUpdateId(originalMainAddress.updateId!!)!!
         assertThat(oldMainAddress.isVerified).isEqualTo(originalMainAddress.isVerified)
         assertThat(oldMainAddress.statusCode).isEqualTo(P)
-        assertThat(oldMainAddress.endDate).isEqualTo(sasCallbackResponse.startDate!!.toUkZonedDateTime())
+        assertThat(oldMainAddress.endDate).isEqualTo(sasCallbackResponse.startDate!!.toLocalDateTime())
 
         val newMainAddress = addressRepository.findByUpdateId(proposedAddress.updateId!!)!!
         assertThat(newMainAddress.isVerified).isEqualTo(true)
         assertThat(newMainAddress.statusCode).isEqualTo(M)
-        assertThat(newMainAddress.startDate!!.toUkLocalDate()).isEqualTo(sasCallbackResponse.startDate)
+        assertThat(newMainAddress.startDate!!.toLocalDate()).isEqualTo(sasCallbackResponse.startDate)
       }
 
       assertCprAddressUpdatedEventPublished(personEntity.crn!!, originalMainAddress.updateId!!, originalMainAddress.deliusAddressId, CPR)
@@ -107,7 +106,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
         val actualAddress = addressRepository.findByUpdateId(originalMainAddress.updateId!!)!!
         assertThat(actualAddress.isVerified).isEqualTo(true)
         assertThat(actualAddress.statusCode).isEqualTo(M)
-        assertThat(actualAddress.startDate!!.toUkLocalDate()).isEqualTo(sasCallbackResponse.startDate)
+        assertThat(actualAddress.startDate!!.toLocalDate()).isEqualTo(sasCallbackResponse.startDate)
       }
 
       assertCprAddressUpdatedEventPublished(personEntity.crn!!, originalMainAddress.updateId!!, originalMainAddress.deliusAddressId, CPR)
@@ -136,7 +135,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
       val actualAddressEntity = addressRepository.findByUpdateId(originalAddressEntity.updateId!!)!!
       assertThat(actualAddressEntity.isVerified).isEqualTo(true)
       assertThat(actualAddressEntity.statusCode).isEqualTo(M)
-      assertThat(actualAddressEntity.startDate!!.toUkLocalDate()).isEqualTo(sasCallbackResponse.startDate)
+      assertThat(actualAddressEntity.startDate!!.toLocalDate()).isEqualTo(sasCallbackResponse.startDate)
     }
 
     assertCprAddressUpdatedEventPublished(personEntity.crn!!, originalAddressEntity.updateId!!, originalAddressEntity.deliusAddressId, CPR)

@@ -27,7 +27,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
-import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
@@ -55,6 +54,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
@@ -73,9 +73,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
-import java.time.ZonedDateTime
 
 class ProbationApiE2ETest : E2ETestBase() {
 
@@ -96,8 +94,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         val title = randomTitleCode()
         val pnc = randomLongPnc()
         val noFixedAbode = true
-        val startDateTime = randomZonedDateTime()
-        val endDateTime = randomZonedDateTime()
+        val startDateTime = randomDateTime()
+        val endDateTime = randomDateTime()
         val postcode = randomPostcode()
         val nationality = randomNationalityCode()
         val religion = randomReligion()
@@ -270,7 +268,6 @@ class ProbationApiE2ETest : E2ETestBase() {
 
         assertThat(responseBody.addresses)
           .usingRecursiveComparison()
-          .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
           .isEqualTo(listOf(canonicalAddress))
       }
 
@@ -464,7 +461,7 @@ class ProbationApiE2ETest : E2ETestBase() {
     inner class ErrorScenarios {
 
       @Test
-      fun `should return not found 404 with userMessage to show that the prisonNumber is not found`() {
+      fun `should return not found 404 with userMessage`() {
         val crn = randomCrn()
         val expectedErrorMessage = "Not found: $crn"
         webTestClient.get()

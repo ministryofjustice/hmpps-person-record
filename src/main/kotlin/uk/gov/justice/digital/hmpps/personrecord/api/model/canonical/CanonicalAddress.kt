@@ -1,11 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
 import io.swagger.v3.oas.annotations.media.Schema
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
-import uk.gov.justice.digital.hmpps.personrecord.extensions.withUkZone
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
 
 data class CanonicalAddress(
   @Schema(description = "CPR address Id", example = "ec4c7479-218c-4f11-a02d-edd749820679")
@@ -15,11 +13,11 @@ data class CanonicalAddress(
   @Schema(description = "Person address start date", example = "2020-02-26")
   val startDate: String? = null,
   @Schema(description = "Person address start date time", example = "2026-02-26T11:08:46.347Z")
-  val startDateTime: ZonedDateTime? = null,
+  val startDateTime: LocalDateTime? = null,
   @Schema(description = "Person address end date", example = "2023-07-15")
   val endDate: String? = null,
   @Schema(description = "Person address end date time", example = "2026-07-15T11:08:46.347Z")
-  val endDateTime: ZonedDateTime? = null,
+  val endDateTime: LocalDateTime? = null,
   @Schema(description = "Person address postcode", example = "SW1H 9AJ")
   val postcode: String? = null,
   @Schema(description = "Person address sub building name", example = "Sub building 2")
@@ -62,10 +60,10 @@ data class CanonicalAddress(
     fun from(addressEntity: AddressEntity): CanonicalAddress = CanonicalAddress(
       cprAddressId = addressEntity.updateId!!.toString(),
       noFixedAbode = addressEntity.noFixedAbode,
-      startDate = addressEntity.startDate?.toUkLocalDate()?.toString(),
-      startDateTime = addressEntity.startDate?.withUkZone(),
-      endDate = addressEntity.endDate?.toUkLocalDate()?.toString(),
-      endDateTime = addressEntity.endDate?.withUkZone(),
+      startDate = addressEntity.startDate?.toLocalDate()?.toString(),
+      startDateTime = addressEntity.startDate,
+      endDate = addressEntity.endDate?.toLocalDate()?.toString(),
+      endDateTime = addressEntity.endDate,
       postcode = addressEntity.postcode,
       subBuildingName = addressEntity.subBuildingName,
       buildingName = addressEntity.buildingName,

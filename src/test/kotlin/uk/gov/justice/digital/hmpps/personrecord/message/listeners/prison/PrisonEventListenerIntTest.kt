@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toLocalDateTime
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
@@ -140,7 +140,7 @@ class PrisonEventListenerIntTest : PrisonEventListenerTestBase() {
         assertThat(personEntity.addresses[0].updateId).isNotNull()
         assertThat(personEntity.addresses[0].postcode).isEqualTo(postcode)
         assertThat(personEntity.addresses[0].fullAddress).isEqualTo(fullAddress)
-        assertThat(personEntity.addresses[0].startDate).isEqualTo(LocalDate.of(1970, 1, 1).toUkZonedDateTime())
+        assertThat(personEntity.addresses[0].startDate).isEqualTo(LocalDate.of(1970, 1, 1).toLocalDateTime())
         assertThat(personEntity.addresses[0].noFixedAbode).isEqualTo(true)
 
         assertThat(personEntity.contacts.size).isEqualTo(3)

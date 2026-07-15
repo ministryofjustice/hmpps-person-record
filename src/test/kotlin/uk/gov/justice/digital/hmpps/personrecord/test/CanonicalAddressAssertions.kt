@@ -7,22 +7,17 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAd
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContactType
-import uk.gov.justice.digital.hmpps.personrecord.extensions.withUkZone
-import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
-import java.time.ZonedDateTime
 
 fun assertCanonicalAddress(expected: AddressEntity, actual: CanonicalAddress) {
   assertThat(actual)
     .usingRecursiveComparison()
-    .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
     .isEqualTo(expected.toCanonicalAddress())
 }
 
 fun assertCanonicalAddresses(expected: List<AddressEntity>, actual: List<CanonicalAddress>) {
   assertThat(actual)
     .usingRecursiveComparison()
-    .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
     .isEqualTo(expected.map { it.toCanonicalAddress() })
 }
 
@@ -30,9 +25,9 @@ private fun AddressEntity.toCanonicalAddress(): CanonicalAddress = CanonicalAddr
   cprAddressId = updateId!!.toString(),
   noFixedAbode = noFixedAbode,
   startDate = startDate?.toLocalDate()?.toString(),
-  startDateTime = startDate?.withUkZone(),
+  startDateTime = startDate,
   endDate = endDate?.toLocalDate()?.toString(),
-  endDateTime = endDate?.withUkZone(),
+  endDateTime = endDate,
   postcode = postcode,
   subBuildingName = subBuildingName,
   buildingName = buildingName,
