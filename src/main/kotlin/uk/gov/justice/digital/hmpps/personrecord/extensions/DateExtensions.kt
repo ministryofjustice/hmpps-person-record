@@ -11,8 +11,6 @@ private val UK_ZONE: ZoneId = ZoneId.of("Europe/London")
 
 fun Instant.asStringWithUkZone(): String = ISO_OFFSET_DATE_TIME.withZone(UK_ZONE).format(this)
 
-fun LocalDateTime.asStringWithUkZone(): String = ISO_OFFSET_DATE_TIME.withZone(UK_ZONE).format(this.atZone(UK_ZONE))
-
 fun LocalDate.toLocalDateTime(): LocalDateTime = this.atStartOfDay()
 fun LocalDateTime.toZonedDateTimeUk(): ZonedDateTime = this.atZone(UK_ZONE)
 fun ZonedDateTime.toLocalDateTimeUk(): LocalDateTime = this.withZoneSameInstant(UK_ZONE).toLocalDateTime()
