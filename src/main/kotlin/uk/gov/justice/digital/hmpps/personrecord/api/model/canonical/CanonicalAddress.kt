@@ -55,9 +55,9 @@ data class CanonicalAddress(
     fun from(addressEntity: AddressEntity): CanonicalAddress = CanonicalAddress(
       cprAddressId = addressEntity.updateId!!.toString(),
       noFixedAbode = addressEntity.noFixedAbode,
-      startDate = addressEntity.startDate?.toLocalDate().toString(),
+      startDate = addressEntity.startDate?.toLocalDate()?.toString(),
       startDateTime = addressEntity.startDate,
-      endDate = addressEntity.endDate?.toLocalDate().toString(),
+      endDate = addressEntity.endDate?.toLocalDate()?.toString(),
       endDateTime = addressEntity.endDate,
       postcode = addressEntity.postcode,
       subBuildingName = addressEntity.subBuildingName,
