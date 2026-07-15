@@ -238,12 +238,10 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
 
   @Test
   fun `should ignore merged records`() {
-    val person1 = createPerson(createRandomProbationPersonDetails())
-    val person2 = createPerson(createRandomProbationPersonDetails())
-    createPersonKey()
-      .addPerson(person1)
-    createPersonKey()
-      .addPerson(person2)
+    val person1 = createRandomProbationPersonDetails()
+    val person2 = createRandomProbationPersonDetails()
+    createPersonWithNewKey(person1)
+    createPersonWithNewKey(person2)
 
     val person3 = createRandomProbationPersonDetails()
     val person4 = createRandomProbationPersonDetails()
@@ -261,8 +259,8 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
     )
     val tenHoursAgo = LocalDateTime.now().minusHours(HOURS_TO_CHOOSE_FROM)
 
-    personRepository.updateLastModifiedDate(person1.crn!!, tenHoursAgo.plusMinutes(1))
-    personRepository.updateLastModifiedDate(person2.crn!!, tenHoursAgo.plusMinutes(2))
+    personRepository.updateLastModifiedDate(person1.crn, tenHoursAgo.plusMinutes(1))
+    personRepository.updateLastModifiedDate(person2.crn, tenHoursAgo.plusMinutes(2))
     personRepository.updateLastModifiedDate(person3.crn!!, tenHoursAgo.plusMinutes(2))
     personRepository.updateLastModifiedDate(person4.crn!!, tenHoursAgo.plusMinutes(2))
 

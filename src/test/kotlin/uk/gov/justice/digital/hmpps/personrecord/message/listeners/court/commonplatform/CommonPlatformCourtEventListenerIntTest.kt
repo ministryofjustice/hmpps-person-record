@@ -60,7 +60,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNum
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import java.nio.charset.Charset
-import java.time.LocalDateTime.now
 import java.util.UUID
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -119,7 +118,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val defendantId = randomDefendantId()
     val pnc = randomLongPnc()
     val cro = randomCro()
-    val personKey = createPersonKey()
     val ethnicity = randomCommonPlatformEthnicity()
 
     val person = Person(
@@ -128,20 +126,17 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       sourceSystem = COMMON_PLATFORM,
     )
 
-    val personEntity = PersonEntity(
-      defendantId = person.defendantId,
-      crn = person.crn,
-      prisonNumber = person.prisonNumber,
-      masterDefendantId = person.masterDefendantId,
-      sourceSystem = person.sourceSystem,
-      religion = person.religion,
-      matchId = UUID.randomUUID(),
-      cId = person.cId,
-      lastModified = now(),
+    val personEntity = createPersonWithNewKey(
+      Person(
+        defendantId = person.defendantId,
+        crn = person.crn,
+        prisonNumber = person.prisonNumber,
+        masterDefendantId = person.masterDefendantId,
+        sourceSystem = person.sourceSystem,
+        religion = person.religion,
+        cId = person.cId,
+      ),
     )
-    personEntity.personKey = personKey
-    personKeyRepository.saveAndFlush(personKey)
-    personRepository.saveAndFlush(personEntity)
     stubNoMatchesPersonMatch(matchId = personEntity.matchId)
 
     val changedLastName = randomName()
