@@ -448,7 +448,7 @@ class ProbationApiE2ETest : E2ETestBase() {
     inner class ErrorScenarios {
 
       @Test
-      fun `should return not found 404 with userMessage to show that the prisonNumber is not found`() {
+      fun `should return not found 404 with userMessage`() {
         val crn = randomCrn()
         val expectedErrorMessage = "Not found: $crn"
         webTestClient.get()
