@@ -53,7 +53,7 @@ hmpps.sqs:
       queueName: cpr_delius_offender_events_queue
       dlqName: cpr_delius_offender_events_queue_dlq
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "probation-case.engagement.created", "probation-case.address.created", "probation-case.address.updated", "probation-case.address.deleted","probation-case.personal-details.updated", "probation-case.alias.created","probation-case.alias.updated","probation-case.alias.deleted", "probation-case.engagement.recovered", "probation-case.additional-identifier.created" ],"eventSource": [{"exists": false},{"anything-but": ["core-person-record"]}]}'
+      subscribeFilter: '{"eventType":[ "probation-case.engagement.created", "probation-case.address.created", "probation-case.address.updated", "probation-case.address.deleted","probation-case.personal-details.updated", "probation-case.alias.created","probation-case.alias.updated","probation-case.alias.deleted", "probation-case.engagement.recovered", "probation-case.additional-identifier.created", "probation-case.additional-identifier.deleted" ],"eventSource": [{"exists": false},{"anything-but": ["core-person-record"]}]}'
       dlqMaxReceiveCount: 2
     cprdeliusaddresseventsfromcprqueue:
       queueName: cpr_delius_address_events_from_cpr_queue

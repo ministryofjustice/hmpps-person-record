@@ -44,6 +44,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ALIAS_DE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ALIAS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_RECOVERED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_REFERENCE_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_REFERENCE_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -687,6 +688,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
         PROBATION_ALIAS_UPDATED,
         PROBATION_ALIAS_DELETED,
         PROBATION_REFERENCE_CREATED,
+        PROBATION_REFERENCE_DELETED,
       ).forEach { eventType ->
         val entity = createPersonWithNewKey(createRandomProbationPersonDetails())
         val case = createRandomProbationCase(entity.crn)
