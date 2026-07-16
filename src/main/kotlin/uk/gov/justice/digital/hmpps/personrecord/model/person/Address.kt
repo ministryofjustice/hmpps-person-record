@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerA
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressData
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toLocalDateTime
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toLocalDateTimeUk
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
@@ -63,8 +64,8 @@ data class Address(
 
     fun from(address: ProbationAddress): Address? = Address(
       noFixedAbode = address.noFixedAbode,
-      startDate = address.startDateTime,
-      endDate = address.endDateTime,
+      startDate = address.startDateTime?.toLocalDateTimeUk(),
+      endDate = address.endDateTime?.toLocalDateTimeUk(),
       postcode = address.postcode.nullIfBlank(),
       fullAddress = address.fullAddress.nullIfBlank(),
       buildingName = address.buildingName.nullIfBlank(),
