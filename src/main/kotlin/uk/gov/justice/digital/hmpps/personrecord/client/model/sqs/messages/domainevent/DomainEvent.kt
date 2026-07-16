@@ -27,6 +27,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_U
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_REFERENCE_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_REFERENCE_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_REFERENCE_RECOVERED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_ARRIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
@@ -39,7 +40,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATE
 )
 @JsonSubTypes(
   JsonSubTypes.Type(value = ProbationPersonCreated::class, names = [PROBATION_PERSON_CREATED, PROBATION_PERSON_RECOVERED]),
-  JsonSubTypes.Type(value = ProbationPersonUpdated::class, names = [PROBATION_PERSON_UPDATED, PROBATION_ALIAS_CREATED, PROBATION_ALIAS_UPDATED, PROBATION_ALIAS_DELETED, PROBATION_REFERENCE_CREATED, PROBATION_REFERENCE_DELETED]),
+  JsonSubTypes.Type(value = ProbationPersonUpdated::class, names = [PROBATION_PERSON_UPDATED, PROBATION_ALIAS_CREATED, PROBATION_ALIAS_UPDATED, PROBATION_ALIAS_DELETED, PROBATION_REFERENCE_CREATED, PROBATION_REFERENCE_DELETED, PROBATION_REFERENCE_RECOVERED]),
   JsonSubTypes.Type(value = ProbationPersonDeleted::class, names = [PROBATION_PERSON_DELETED, PROBATION_PERSON_DELETED_GDPR]),
   JsonSubTypes.Type(value = ProbationPersonMerged::class, name = PROBATION_PERSON_MERGED),
   JsonSubTypes.Type(value = ProbationPersonUnmerged::class, name = PROBATION_PERSON_UNMERGED),
