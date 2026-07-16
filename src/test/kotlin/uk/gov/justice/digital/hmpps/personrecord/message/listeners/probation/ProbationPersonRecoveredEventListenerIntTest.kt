@@ -84,5 +84,6 @@ class ProbationPersonRecoveredEventListenerIntTest : ProbationEventListenerTestB
       val personEntity = personRepository.findByCrn(crn)
       assertThat(personEntity).isNull()
     }
+    expectNoMessagesOnQueueOrDlq(probationEventsQueue)
   }
 }
