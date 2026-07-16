@@ -356,6 +356,15 @@ class IntegrationTestBase {
     }
   }
 
+  internal fun checkEventLogDoesNotExist(
+    sourceSystemId: String,
+    event: CPRLogEvents,
+  ) {
+    checkEventLog(sourceSystemId, event) { logEvents ->
+      assertThat(logEvents).`as`("Unexpected event log $event with data $logEvents").isEmpty()
+    }
+  }
+
   internal fun checkEventLog(
     sourceSystemId: String,
     event: CPRLogEvents,
