@@ -13,21 +13,21 @@ data class ProbationPersonCreated(
   override val eventType: String = PROBATION_PERSON_CREATED,
   val personReference: PersonReference,
 ) : DomainEvent {
-  val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
+  val crn: String get() = personReference.getCrn()
 }
 
 data class ProbationPersonUpdated(
   override val eventType: String,
   val personReference: PersonReference,
 ) : DomainEvent {
-  val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
+  val crn: String get() = personReference.getCrn()
 }
 
 data class ProbationPersonDeleted(
   override val eventType: String,
   val personReference: PersonReference,
 ) : DomainEvent {
-  val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
+  val crn: String get() = personReference.getCrn()
 }
 
 data class ProbationPersonRecovered(
@@ -68,7 +68,7 @@ data class ProbationAddressCreated(
   val personReference: PersonReference,
   val additionalInformation: ProbationAddressCreatedInfo,
 ) : DomainEvent {
-  val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
+  val crn: String get() = personReference.getCrn()
 }
 
 data class ProbationAddressCreatedInfo(
@@ -84,7 +84,7 @@ data class ProbationAddressUpdated(
   val personReference: PersonReference,
   val additionalInformation: ProbationAddressUpdatedInfo,
 ) : DomainEvent {
-  val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
+  val crn: String get() = personReference.getCrn()
 }
 
 data class ProbationAddressUpdatedInfo(
@@ -97,10 +97,12 @@ data class ProbationAddressDeleted(
   val personReference: PersonReference,
   val additionalInformation: ProbationAddressDeletedInfo,
 ) : DomainEvent {
-  val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
+  val crn: String get() = personReference.getCrn()
 }
 
 data class ProbationAddressDeletedInfo(
   @JsonProperty("addressId")
   val deliusAddressId: Long,
 )
+
+private fun PersonReference.getCrn() = this.identifiers?.first { it.type == "CRN" }?.value!!

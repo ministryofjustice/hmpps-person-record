@@ -251,8 +251,8 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
       assertThat(actualAddressEntity.updateId).isNotNull()
       assertThat(actualAddressEntity.updateId!!.toString()).isNotBlank
       assertThat(actualAddressEntity.noFixedAbode).isEqualTo(probationAddress.noFixedAbode)
-      assertThat(actualAddressEntity.startDate).isEqualTo(probationAddress.startDateTime?.toLocalDateTime())
-      assertThat(actualAddressEntity.endDate).isEqualTo(probationAddress.endDateTime?.toLocalDateTime())
+      assertThat(actualAddressEntity.startDate).isEqualTo(probationAddress.startDateTime)
+      assertThat(actualAddressEntity.endDate).isEqualTo(probationAddress.endDateTime)
       assertThat(actualAddressEntity.postcode).isEqualTo(probationAddress.postcode)
       assertThat(actualAddressEntity.fullAddress).isEqualTo(probationAddress.fullAddress)
       assertThat(actualAddressEntity.buildingName).isEqualTo(probationAddress.buildingName)
