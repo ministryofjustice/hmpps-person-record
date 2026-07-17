@@ -3,17 +3,17 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.probation
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(name = "ProbationCreateAddress")
 data class ProbationCreateAddress(
   @Schema(description = "Is the person without a permanent residence", example = "false", required = true)
   val noFixedAbode: Boolean,
-  @Schema(description = "The address start date", example = "2026-05-15T11:08:46.347", required = true)
-  val startDate: LocalDateTime,
-  @Schema(description = "The address end date", example = "2026-05-15T11:08:46.347")
-  val endDate: LocalDateTime? = null,
+  @Schema(description = "The address start date", example = "2026-05-15T11:08:46.347Z", required = true)
+  val startDate: ZonedDateTime,
+  @Schema(description = "The address end date", example = "2026-05-15T11:08:46.347Z")
+  val endDate: ZonedDateTime? = null,
   @Schema(description = "The address postcode", example = "SW1H 9AJ")
   val postcode: String? = null,
   @Schema(description = "The address unique property reference number", example = "100120991537")

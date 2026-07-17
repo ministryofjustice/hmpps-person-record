@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
@@ -35,7 +36,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -45,6 +45,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
+import java.time.ZonedDateTime
 
 class LibraApiControllerIntTest : WebTestBase() {
 
@@ -59,8 +61,8 @@ class LibraApiControllerIntTest : WebTestBase() {
       val title = randomTitleCode()
 
       val noFixedAbode = true
-      val startDateTime = randomDateTime()
-      val endDateTime = randomDateTime()
+      val startDateTime = randomZonedDateTime()
+      val endDateTime = randomZonedDateTime()
       val postcode = randomPostcode()
       val sex = randomCommonPlatformSexCode()
 
@@ -199,6 +201,7 @@ class LibraApiControllerIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
       assertThat(responseBody.addresses)
         .usingRecursiveComparison()
+        .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
         .isEqualTo(listOf(canonicalAddress))
     }
 
