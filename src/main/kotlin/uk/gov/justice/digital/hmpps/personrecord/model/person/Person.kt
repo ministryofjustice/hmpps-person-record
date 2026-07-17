@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -46,7 +47,7 @@ data class Person(
   var masterDefendantId: String? = null,
   var nationalities: List<NationalityCode> = emptyList(),
   var nationalityNotes: String? = null,
-  val religion: String? = null,
+  val religion: ReligionCode? = null,
   val ethnicityCode: EthnicityCode? = null,
   val contacts: List<Contact> = emptyList(),
   var addresses: List<Address> = emptyList(),
@@ -98,7 +99,7 @@ data class Person(
         sentences = probationCase.sentences?.map { SentenceInfo.from(it) } ?: emptyList(),
         sexCode = SexCode.from(probationCase),
         sexualOrientation = SexualOrientation.fromProbation(probationCase),
-        religion = probationCase.religion?.value,
+        religion = probationCase.religion?.value?.let { ReligionCode.valueOf(it) },
         genderIdentity = GenderIdentityCode.from(probationCase),
         selfDescribedGenderIdentity = probationCase.selfDescribedGenderIdentity,
       )
@@ -240,7 +241,7 @@ data class Person(
         sourceSystem = NOMIS,
         nationalities = listOf(prisoner.demographicAttributes.nationalityCode).mapNotNull { it },
         nationalityNotes = prisoner.demographicAttributes.nationalityNote.nullIfBlank(),
-        religion = prisoner.demographicAttributes.religionCode.nullIfBlank(),
+        religion = prisoner.demographicAttributes.religionCode?.let { ReligionCode.valueOf(it) },
         sentences = prisoner.sentences.map { SentenceInfo(it.sentenceDate) },
         sexCode = prisoner.demographicAttributes.sexCode,
         sexualOrientation = prisoner.demographicAttributes.sexualOrientation,

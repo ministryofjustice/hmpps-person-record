@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import java.util.UUID
 
 class SysconReligionControllerIntTest : WebTestBase() {
@@ -140,7 +140,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `should return a 400 when more than one current religion is sent`() {
       val prisonNumber = randomPrisonNumber()
-      val religions = listOf(createRandomReligion(randomReligionCode(), true), createRandomReligion(randomReligionCode(), true))
+      val religions = listOf(createRandomReligion(randomReligion(), true), createRandomReligion(randomReligion(), true))
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
       val reqBody = PrisonReligionRequest(religions)
 
@@ -159,7 +159,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `should return a 400 when no current religion is sent`() {
       val prisonNumber = randomPrisonNumber()
-      val religions = listOf(createRandomReligion(randomReligionCode(), false), createRandomReligion(randomReligionCode(), false))
+      val religions = listOf(createRandomReligion(randomReligion(), false), createRandomReligion(randomReligion(), false))
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
       val reqBody = PrisonReligionRequest(religions)
 
@@ -220,7 +220,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
 
     val expectedCurrReligion = requestBody.first { it.current }
-    assertThat(personEntity.religion).isEqualTo(expectedCurrReligion.religionCode.name)
+    assertThat(personEntity.religion).isEqualTo(expectedCurrReligion.religionCode)
     assertThat(actualReligionEntities.size).isEqualTo(requestBody.size)
 
     actualResponseBody.religionMappings.forEach { res ->

@@ -147,7 +147,7 @@ class CanonicalApiIntTest : WebTestBase() {
       uprn = uprn, status = CanonicalAddressStatus.from(addressStatusCode), comment = comment,
       usages = listOf(CanonicalAddressUsage(usageCode = CanonicalAddressUsageCode.from(addressUsageCode), isActive = isActive)),
     )
-    val canonicalReligion = CanonicalReligion(code = religion, description = religion)
+    val canonicalReligion = CanonicalReligion(code = religion.name, description = religion.description)
 
     val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromPrison(ethnicity))
 

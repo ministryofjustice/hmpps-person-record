@@ -110,9 +110,7 @@ fun randomProbationNationalityCode(): String = PROBATION_NATIONALITY_MAPPING.ent
 
 fun randomCommonPlatformNationalityCode(): String = COMMON_PLATFORM_NATIONALITY_MAPPING.entries.random().key
 
-fun randomReligionCode(): ReligionCode = ReligionCode.entries.random()
-
-fun randomReligion(): String = ReligionCode.entries.random().description
+fun randomReligion(): ReligionCode = ReligionCode.entries.random()
 
 fun randomCountryCode(): CountryCode = CountryCode.entries.random()
 

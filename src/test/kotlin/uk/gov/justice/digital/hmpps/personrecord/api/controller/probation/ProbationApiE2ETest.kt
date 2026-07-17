@@ -231,7 +231,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           comment = comment,
           usages = listOf(CanonicalAddressUsage(CanonicalAddressUsageCode.from(addressUsageCode), isActive)),
         )
-        val canonicalReligion = CanonicalReligion(code = religion, description = religion)
+        val canonicalReligion = CanonicalReligion(code = religion.name, description = religion.description)
         val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromProbation(ethnicity))
         assertThat(responseBody.cprUUID).isNull()
         assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)

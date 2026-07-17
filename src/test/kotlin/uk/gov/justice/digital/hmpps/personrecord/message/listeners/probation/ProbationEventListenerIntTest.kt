@@ -178,7 +178,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
         sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
         gender = gender.key,
         sexualOrientation = sexualOrientation.key,
-        religion = religion,
+        religion = religion.name,
       )
       probationCreateEventAndResponseSetup(apiResponse)
 
@@ -341,7 +341,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
 
       assertThat(updatedPersonEntity.getPrimaryName().titleCode).isEqualTo(TitleCode.from(changedPersonDetails.title?.value))
       assertThat(updatedPersonEntity.sexualOrientation).isEqualTo(SexualOrientation.fromProbation(changedPersonDetails))
-      assertThat(updatedPersonEntity.religion).isEqualTo(changedPersonDetails.religion?.value)
+      assertThat(updatedPersonEntity.religion!!.name).isEqualTo(changedPersonDetails.religion?.value)
       assertThat(updatedPersonEntity.genderIdentity).isEqualTo(GenderIdentityCode.from(changedPersonDetails))
       assertThat(updatedPersonEntity.selfDescribedGenderIdentity).isEqualTo(changedPersonDetails.selfDescribedGenderIdentity)
       assertThat(updatedPersonEntity.getAliases()[0].sexCode).isEqualTo(SexCode.from(changedPersonDetails.aliases?.first()))
@@ -818,7 +818,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
     assertThat(actualPersonEntity.getPrimaryName().firstName).isEqualTo(probationCase.name.firstName)
     assertThat(actualPersonEntity.getPrimaryName().middleNames).isEqualTo(probationCase.name.middleNames)
     assertThat(actualPersonEntity.getPrimaryName().lastName).isEqualTo(probationCase.name.lastName)
-    assertThat(actualPersonEntity.religion).isEqualTo(probationCase.religion!!.value)
+    assertThat(actualPersonEntity.religion!!.name).isEqualTo(probationCase.religion!!.value)
   }
 
   private fun List<ReferenceEntity>.getCrosFromReferences(): List<ReferenceEntity> = this.filter { it.identifierType == CRO }
