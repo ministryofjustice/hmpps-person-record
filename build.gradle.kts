@@ -13,10 +13,6 @@ plugins {
   id("org.owasp.dependencycheck") version "12.2.2"
 }
 
-dependencyCheck {
-  nvd.datafeedUrl = "file:///opt/vulnz/cache"
-}
-
 configurations {
   testImplementation { exclude(group = "org.junit.vintage") }
 }
