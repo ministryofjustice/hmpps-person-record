@@ -12,11 +12,11 @@ data class CanonicalAddress(
   val noFixedAbode: Boolean? = null,
   @Schema(description = "Person address start date", example = "2020-02-26")
   val startDate: String? = null,
-  @Schema(description = "Person address start date time (always midnight)", example = "2026-02-26T00:00:00")
+  @Schema(description = "Person address start date time", example = "2026-02-26T11:08:46.347Z")
   val startDateTime: LocalDateTime? = null,
   @Schema(description = "Person address end date", example = "2023-07-15")
   val endDate: String? = null,
-  @Schema(description = "Person address end date time (always midnight)", example = "2026-07-15T00:00:00")
+  @Schema(description = "Person address end date time", example = "2026-07-15T11:08:46.347Z")
   val endDateTime: LocalDateTime? = null,
   @Schema(description = "Person address postcode", example = "SW1H 9AJ")
   val postcode: String? = null,
