@@ -34,7 +34,7 @@ data class ProbationPersonRecovered(
   override val eventType: String = PROBATION_PERSON_RECOVERED,
   val personReference: PersonReference,
 ) : DomainEvent {
-  val crn: String get() = personReference.identifiers?.first { it.type == "CRN" }?.value!!
+  val crn: String get() = personReference.getCrn()
 }
 
 data class ProbationPersonMerged(
