@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
@@ -34,6 +35,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNum
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import java.time.ZonedDateTime
 
 class PrisonAPIGetControllerIntTest : WebTestBase() {
 
@@ -145,6 +147,7 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
 
       assertThat(responseBody.addresses.sortedBy { it.cprAddressId })
         .usingRecursiveComparison()
+        .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
         .isEqualTo(listOf(canonicalAddress, canonicalAddress2).sortedBy { it.cprAddressId })
     }
 
