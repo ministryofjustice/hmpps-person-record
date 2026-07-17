@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 data class ApiResponseSetupIdentifier(val type: String, val value: String)
 data class ApiResponseSetupAdditionalIdentifier(val type: String, val value: String)
@@ -20,9 +20,9 @@ data class ApiResponseSetupContact(val type: ContactType, val value: String)
 data class ApiResponseSetupAddress(
   val noFixedAbode: Boolean? = null,
   val startDate: LocalDate? = null,
-  val startDateTime: LocalDateTime? = null,
+  val startDateTime: ZonedDateTime? = null,
   val endDate: LocalDate? = null,
-  val endDateTime: LocalDateTime? = null,
+  val endDateTime: ZonedDateTime? = null,
   val postcode: String?,
   val fullAddress: String? = null,
   val buildingName: String? = null,
