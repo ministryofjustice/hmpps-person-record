@@ -9,10 +9,12 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationAddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationAddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonRecovered
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationPersonRecoveredEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
@@ -21,11 +23,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.PROBATION_
 @Component
 class ProbationEventListener(
   private val domainEventProcessor: DomainEventProcessor,
-  private val eventProcessor: ProbationEventProcessor,
+  private val probationEventProcessor: ProbationEventProcessor,
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   private val personRepository: PersonRepository,
   private val addressRepository: AddressRepository,
   private val addressService: AddressService,
+  private val probationPersonRecoveredEventProcessor: ProbationPersonRecoveredEventProcessor,
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
@@ -36,6 +39,7 @@ class ProbationEventListener(
       is ProbationAddressDeleted -> deleteAddress(event.additionalInformation.deliusAddressId)
       is ProbationPersonCreated -> updateWholePerson(event.crn)
       is ProbationPersonUpdated -> updateWholePerson(event.crn)
+      is ProbationPersonRecovered -> probationPersonRecoveredEventProcessor.process(event)
       else -> log.info("Discarding message, unexpected event: $event")
     }
   }
@@ -59,7 +63,7 @@ class ProbationEventListener(
 
   private fun updateWholePerson(crn: String) {
     corePersonRecordAndDeliusClient.getPerson(crn).let {
-      eventProcessor.processEvent(it)
+      probationEventProcessor.processEvent(it)
     }
   }
 
