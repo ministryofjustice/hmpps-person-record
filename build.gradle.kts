@@ -13,10 +13,6 @@ plugins {
   id("org.owasp.dependencycheck") version "12.2.2"
 }
 
-dependencyCheck {
-  nvd.datafeedUrl = "file:///opt/vulnz/cache"
-}
-
 configurations {
   testImplementation { exclude(group = "org.junit.vintage") }
 }
@@ -39,7 +35,7 @@ dependencies {
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
 
-  runtimeOnly("org.postgresql:postgresql:42.7.12")
+  runtimeOnly("org.postgresql:postgresql:42.7.13")
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 

@@ -33,7 +33,7 @@ class PrisonReligionInsertHandler(
   ): String {
     val prisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, prisonReligionHistory))
 
-    personEntity.religion = prisonReligionHistory.religionCode
+    personEntity.religion = prisonReligionHistory.religionCode.name
     personService.processPerson(Person.from(personEntity)) { personEntity }
     return prisonReligionEntity.updateId.toString()
   }

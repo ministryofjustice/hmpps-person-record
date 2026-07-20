@@ -9,14 +9,14 @@ data class PrisonPersonCreated(
   override val eventType: String = PRISON_PERSON_CREATED,
   val personReference: PersonReference,
 ) : DomainEvent {
-  val prisonNumber: String get() = personReference.identifiers?.first { it.type == "NOMS" }?.value!!
+  val prisonNumber: String get() = personReference.getPrisonNumber()
 }
 
 data class PrisonPersonUpdated(
   override val eventType: String = PRISON_PERSON_UPDATED,
   val personReference: PersonReference,
 ) : DomainEvent {
-  val prisonNumber: String get() = personReference.identifiers?.first { it.type == "NOMS" }?.value!!
+  val prisonNumber: String get() = personReference.getPrisonNumber()
 }
 
 data class PrisonPersonMerged(
@@ -24,10 +24,12 @@ data class PrisonPersonMerged(
   val personReference: PersonReference,
   val additionalInformation: PrisonPersonMergedInfo,
 ) : DomainEvent {
-  val prisonNumber: String get() = personReference.identifiers?.first { it.type == "NOMS" }?.value!!
+  val prisonNumber: String get() = personReference.getPrisonNumber()
 }
 
 data class PrisonPersonMergedInfo(
   @JsonProperty("removedNomsNumber")
   val sourcePrisonNumber: String,
 )
+
+private fun PersonReference.getPrisonNumber() = this.identifiers?.first { it.type == "NOMS" }?.value!!

@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic
 
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -8,7 +9,7 @@ data class PrisonReligionHistory(
   @Schema(description = "The nomis religion id", example = "1234", required = true)
   val nomisReligionId: String,
   @Schema(description = "The religion code", example = "AGNO", required = true)
-  val religionCode: String,
+  val religionCode: ReligionCode,
   @Schema(description = "The religion change reason known", example = "true")
   val changeReasonKnown: Boolean,
   @Schema(description = "The religion comments", example = "Foo Bar")

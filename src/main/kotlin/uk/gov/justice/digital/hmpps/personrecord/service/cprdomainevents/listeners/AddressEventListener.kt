@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listeners
 
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
@@ -8,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.AddressEventPublisher
 
-@Profile("!prod")
 @Component
 class AddressEventListener(addressEventPublishers: List<AddressEventPublisher>) {
 

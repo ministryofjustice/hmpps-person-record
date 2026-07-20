@@ -4,7 +4,11 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 
 data class CanonicalSexualOrientation(
-  @Schema(description = "Person sexual orientation code", example = "HET")
+  @Schema(
+    description = "Person sexual orientation code",
+    example = "HET",
+    implementation = SexualOrientation::class,
+  )
   val code: String? = null,
   @Schema(description = "Person sexual orientation description", example = "Heterosexual")
   val description: String? = null,

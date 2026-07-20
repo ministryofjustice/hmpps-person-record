@@ -4,7 +4,11 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 
 data class CanonicalAddressStatus(
-  @Schema(description = "Address status code", example = "M")
+  @Schema(
+    description = "Address status code",
+    example = "M",
+    implementation = AddressStatusCode::class,
+  )
   val code: String? = null,
   @Schema(description = "Address status description", example = "Main")
   val description: String? = null,
