@@ -61,7 +61,8 @@ enum class AddressUsageCode(val description: String, val current: Boolean) {
   CS06("Case File Checked Out", false),
 
   // CPR
-  UNKNOWN("Unknown", false);
+  UNKNOWN("Unknown", false),
+  ;
 
   companion object {
     fun from(value: String): AddressUsageCode = entries.associateBy { it.name }.getOrDefault(value, UNKNOWN)
