@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationAddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationAddressUpdatedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonRecovered
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressArrived
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressArrivedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeleted
@@ -121,6 +122,14 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
   fun publishProbationPersonCreatedEvent(crn: String) {
     publishDomainEvent(
       ProbationPersonCreated(
+        personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
+      ),
+    )
+  }
+
+  fun publishProbationPersonRecoveredEvent(crn: String) {
+    publishDomainEvent(
+      ProbationPersonRecovered(
         personReference = PersonReference(listOf(PersonIdentifier("CRN", crn))),
       ),
     )
