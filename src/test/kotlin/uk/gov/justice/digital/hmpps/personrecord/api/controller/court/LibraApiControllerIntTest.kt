@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDateTime
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
@@ -46,7 +46,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
-import java.time.ZonedDateTime
 
 class LibraApiControllerIntTest : WebTestBase() {
 
@@ -160,9 +159,9 @@ class LibraApiControllerIntTest : WebTestBase() {
           cprAddressId = person.addresses.first().updateId!!.toString(),
           noFixedAbode = noFixedAbode,
           startDate = startDateTime.toLocalDate().toString(),
-          startDateTime = startDateTime,
+          startDateTime = startDateTime.toUkLocalDateTime(),
           endDate = endDateTime.toLocalDate().toString(),
-          endDateTime = endDateTime,
+          endDateTime = endDateTime.toUkLocalDateTime(),
           postcode = postcode,
           buildingName = buildingName,
           buildingNumber = buildingNumber,
@@ -201,7 +200,6 @@ class LibraApiControllerIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
       assertThat(responseBody.addresses)
         .usingRecursiveComparison()
-        .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
         .isEqualTo(listOf(canonicalAddress))
     }
 
