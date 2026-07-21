@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAl
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
@@ -39,7 +38,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonsNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
@@ -53,8 +51,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
@@ -76,10 +72,8 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
       val startDateTime = randomZonedDateTime()
       val endDateTime = randomZonedDateTime()
       val nationality = randomNationalityCode()
-      val religion = randomReligion()
       val ethnicity = randomCommonPlatformEthnicity()
       val sex = randomCommonPlatformSexCode()
-      val sexualOrientation = randomPrisonSexualOrientation().value
 
       val buildingName = randomName()
       val buildingNumber = randomBuildingNumber()
@@ -95,10 +89,7 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
       val comment = randomName()
 
       val cro = randomCro()
-      val crn = randomCrn()
       val defendantId = randomDefendantId()
-      val prisonNumber = randomPrisonNumber()
-      val cid = randomCId()
 
       val address = Address(
         noFixedAbode = noFixedAbode,
@@ -123,17 +114,10 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
           lastName = randomName(),
           middleNames = randomName(),
           dateOfBirth = randomDate(),
-          disability = randomBoolean(),
-          immigrationStatus = randomBoolean(),
           sourceSystem = COMMON_PLATFORM,
           titleCode = title.value,
-          crn = crn,
           sexCode = sex.value,
-          sexualOrientation = sexualOrientation,
-          prisonNumber = prisonNumber,
           nationalities = listOf(nationality),
-          religion = religion,
-          cId = cid,
           ethnicityCode = EthnicityCode.fromCommonPlatform(ethnicity),
           defendantId = defendantId,
           aliases = listOf(
@@ -177,7 +161,6 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
       val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
       val primaryAddressEntity = person.addresses.first { it.recordType == PRIMARY }
       val previousAddressEntity = person.addresses.first { it.recordType == PREVIOUS }
-      val canonicalReligion = CanonicalReligion(code = religion, description = religion)
       val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromCommonPlatform(ethnicity))
 
       assertThat(responseBody.cprUUID).isNull()
@@ -199,19 +182,12 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
       assertThat(responseBody.sex.code).isEqualTo(sex.value.name)
       assertThat(responseBody.sex.description).isEqualTo(sex.value.description)
-      assertThat(responseBody.sexualOrientation.code).isEqualTo(sexualOrientation.name)
-      assertThat(responseBody.sexualOrientation.description).isEqualTo(sexualOrientation.description)
-      assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
-      assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
       assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
       assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity.description)
       assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
       assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
       assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
-      assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
       assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
-      assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
-      assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
       assertCanonicalAddresses(listOf(primaryAddressEntity, previousAddressEntity), responseBody.addresses)
     }
 
@@ -247,16 +223,12 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.ethnicity.description).isNull()
       assertThat(responseBody.sex.code).isNull()
       assertThat(responseBody.sex.description).isNull()
-      assertThat(responseBody.religion.code).isNull()
-      assertThat(responseBody.religion.description).isNull()
       assertThat(responseBody.title.code).isNull()
       assertThat(responseBody.title.description).isNull()
       assertThat(responseBody.ethnicity.code).isNull()
       assertThat(responseBody.ethnicity.description).isNull()
       assertThat(responseBody.sex.code).isNull()
       assertThat(responseBody.sex.description).isNull()
-      assertThat(responseBody.religion.code).isNull()
-      assertThat(responseBody.religion.description).isNull()
       assertThat(responseBody.nationalities).isEmpty()
       assertThat(responseBody.aliases).isEmpty()
       assertThat(responseBody.addresses).isEmpty()
@@ -350,7 +322,6 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
           dateOfBirth = randomDate(),
           sourceSystem = COMMON_PLATFORM,
           nationalities = listOf(randomNationalityCode()),
-          religion = randomReligion(),
           defendantId = personOneDefendantId,
           masterDefendantId = personOneDefendantId,
           references = listOf(
@@ -381,7 +352,6 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
           sourceSystem = DELIUS,
           crn = personTwoCrn,
           nationalities = listOf(randomNationalityCode()),
-          religion = randomReligion(),
           references = listOf(
             Reference(identifierType = CRO, identifierValue = personTwoCro),
             Reference(identifierType = PNC, identifierValue = personTwoPnc),

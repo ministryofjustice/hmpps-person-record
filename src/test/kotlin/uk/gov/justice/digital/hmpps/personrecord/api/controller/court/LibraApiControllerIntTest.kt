@@ -90,11 +90,8 @@ class LibraApiControllerIntTest : WebTestBase() {
           dateOfBirth = randomDate(),
           sourceSystem = LIBRA,
           titleCode = title.value,
-
           sexCode = sex.value,
-
           cId = cid,
-
           aliases = listOf(
             Alias(
               firstName = firstName,
@@ -146,6 +143,7 @@ class LibraApiControllerIntTest : WebTestBase() {
         .expectBody<CanonicalRecord>()
         .returnResult()
         .responseBody!!
+
       val canonicalAlias =
         CanonicalAlias(
           firstName = firstName,
@@ -154,6 +152,7 @@ class LibraApiControllerIntTest : WebTestBase() {
           title = CanonicalTitle.from(title.value),
           sex = CanonicalSex.from(sex.value),
         )
+
       val canonicalAddress =
         CanonicalAddress(
           cprAddressId = person.addresses.first().updateId!!.toString(),
@@ -234,16 +233,12 @@ class LibraApiControllerIntTest : WebTestBase() {
       assertThat(responseBody.ethnicity.description).isNull()
       assertThat(responseBody.sex.code).isNull()
       assertThat(responseBody.sex.description).isNull()
-      assertThat(responseBody.religion.code).isNull()
-      assertThat(responseBody.religion.description).isNull()
       assertThat(responseBody.title.code).isNull()
       assertThat(responseBody.title.description).isNull()
       assertThat(responseBody.ethnicity.code).isNull()
       assertThat(responseBody.ethnicity.description).isNull()
       assertThat(responseBody.sex.code).isNull()
       assertThat(responseBody.sex.description).isNull()
-      assertThat(responseBody.religion.code).isNull()
-      assertThat(responseBody.religion.description).isNull()
       assertThat(responseBody.nationalities).isEmpty()
       assertThat(responseBody.aliases).isEmpty()
       assertThat(responseBody.addresses).isEmpty()
@@ -341,8 +336,6 @@ class LibraApiControllerIntTest : WebTestBase() {
           dateOfBirth = randomDate(),
           sourceSystem = LIBRA,
           nationalities = listOf(randomNationalityCode()),
-          religion = randomReligion(),
-
           cId = personOneCId,
           references = listOf(
             Reference(
@@ -366,7 +359,6 @@ class LibraApiControllerIntTest : WebTestBase() {
           sourceSystem = SourceSystemType.DELIUS,
           crn = personTwoCrn,
           nationalities = listOf(randomNationalityCode()),
-          religion = randomReligion(),
           references = listOf(
             Reference(
               identifierType = CRO,
