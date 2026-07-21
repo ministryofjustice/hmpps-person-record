@@ -54,7 +54,7 @@ repositories {
   mavenCentral()
 }
 
-val test by testing.suites.existing(JvmTestSuite::class)
+val test = testing.suites.named<JvmTestSuite>(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)
 
 tasks.register<Test>("initialiseDatabase") {
   description = "A simple task which starts the Spring ApplicationContext and therefore runs flyway migrations"
