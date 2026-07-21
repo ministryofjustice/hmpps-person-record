@@ -52,7 +52,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNum
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -300,7 +299,6 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
           crn = personOneCrn,
           prisonNumber = randomPrisonNumber(),
           nationalities = listOf(randomNationalityCode()),
-          religion = randomReligion(),
           cId = randomCId(),
           defendantId = personOneDefendantId,
           masterDefendantId = personOneDefendantId,
@@ -333,7 +331,6 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
           crn = personTwoCrn,
           prisonNumber = randomPrisonNumber(),
           nationalities = listOf(randomNationalityCode()),
-          religion = randomReligion(),
           cId = randomCId(),
           defendantId = personTwoDefendantId,
           masterDefendantId = personTwoDefendantId,
