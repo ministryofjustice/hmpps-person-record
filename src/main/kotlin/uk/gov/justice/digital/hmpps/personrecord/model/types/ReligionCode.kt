@@ -77,4 +77,11 @@ enum class ReligionCode(val description: String, val current: Boolean) {
   UR("United Reformed", false),
   WELS("Welsh Independent", false),
   ZORO("Zoroastrian", true),
+  ;
+
+  companion object {
+    fun fromProbation(code: String?): String? = PROBATION_RELIGION_CODE_MAPPING[code]?.let {
+      return it.name
+    }
+  }
 }

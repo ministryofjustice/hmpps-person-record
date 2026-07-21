@@ -107,7 +107,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationGenderIdent
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexualOrientation
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
@@ -221,7 +220,7 @@ class IntegrationTestBase {
     ethnicity = Value(randomProbationEthnicity()),
     nationality = Value(randomProbationNationalityCode()),
     sexualOrientation = Value(randomProbationSexualOrientation().key),
-    religion = Value(randomReligion()),
+    religion = Value(randomReligionCode().name),
     genderIdentity = Value(randomProbationGenderIdentity().key),
     selfDescribedGenderIdentity = randomName(),
     dateOfBirth = randomDate(),
