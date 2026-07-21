@@ -9,7 +9,7 @@ plugins {
   kotlin("plugin.spring") version "2.4.10"
   kotlin("jvm") version "2.4.10"
   kotlin("plugin.jpa") version "2.4.10"
-  id("org.jetbrains.kotlinx.kover") version "0.9.8"
+  id("org.jetbrains.kotlinx.kover") version "0.9.9"
   id("org.owasp.dependencycheck") version "12.2.2"
 }
 
