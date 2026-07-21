@@ -29,7 +29,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-      val requestBody = createRandomReligion()
+      val requestBody = createPrisonReligionHistory()
       sendPostRequestAsserted<PrisonReligionSaveResponse>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
@@ -50,12 +50,12 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
     @Test
     fun `person has existing current prison religion - does not save prison religion - return internal server error`() {
       val prisonNumber = randomPrisonNumber()
-      val existingReligionEntity = PrisonReligionEntity.from(prisonNumber, createRandomReligion())
+      val existingReligionEntity = PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory())
       val personEntityWithCurrentReligion = createPerson(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligionEntity.code.name })
       prisonReligionRepository.save(existingReligionEntity)
       personRepository.saveAndFlush(personEntityWithCurrentReligion)
 
-      val requestBody = createRandomReligion()
+      val requestBody = createPrisonReligionHistory()
       sendPostRequestAsserted<Unit>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
@@ -77,7 +77,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-      val requestBody = createRandomReligion()
+      val requestBody = createPrisonReligionHistory()
       val responseBody = sendPostRequestAsserted<PrisonReligionSaveResponse>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
@@ -101,7 +101,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-      val requestBody = createRandomReligion()
+      val requestBody = createPrisonReligionHistory()
       sendPostRequestAsserted<Unit>(
         url = prisonReligionPostEndpoint(randomPrisonNumber()),
         body = requestBody,
@@ -126,7 +126,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       sendPostRequestAsserted<Unit>(
         url = prisonReligionPostEndpoint(randomPrisonNumber()),
-        body = createRandomReligion(),
+        body = createPrisonReligionHistory(),
         roles = listOf(),
         expectedStatus = HttpStatus.UNAUTHORIZED,
         sendAuthorised = false,
@@ -137,7 +137,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
     fun `should return Access Denied 403 when role is wrong`() {
       sendPostRequestAsserted<Unit>(
         url = prisonReligionPostEndpoint(randomPrisonNumber()),
-        body = createRandomReligion(),
+        body = createPrisonReligionHistory(),
         roles = listOf("UNSUPPORTED_ROLE"),
         expectedStatus = HttpStatus.FORBIDDEN,
       )
