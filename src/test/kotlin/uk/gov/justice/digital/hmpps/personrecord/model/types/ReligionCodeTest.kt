@@ -2,13 +2,13 @@ package uk.gov.justice.digital.hmpps.personrecord.model.types
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 
 class ReligionCodeTest {
 
   @Test
   fun `should map known religion code correctly`() {
-    val validReligion = randomReligionCode().name
+    val validReligion = randomReligion()
     val code = ReligionCode.fromProbation(validReligion)
     assertThat(code).isEqualTo(validReligion)
   }

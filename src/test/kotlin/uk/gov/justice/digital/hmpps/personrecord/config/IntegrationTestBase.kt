@@ -107,6 +107,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationGenderIdent
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexualOrientation
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
@@ -220,7 +221,7 @@ class IntegrationTestBase {
     ethnicity = Value(randomProbationEthnicity()),
     nationality = Value(randomProbationNationalityCode()),
     sexualOrientation = Value(randomProbationSexualOrientation().key),
-    religion = Value(randomReligionCode().name),
+    religion = Value(randomReligion()),
     genderIdentity = Value(randomProbationGenderIdentity().key),
     selfDescribedGenderIdentity = randomName(),
     dateOfBirth = randomDate(),
@@ -308,11 +309,7 @@ class IntegrationTestBase {
     ),
   )
 
-  internal fun createRandomReligions(): List<PrisonReligionHistory> = List((4..20).random()) { index ->
-    if (index == 0) createRandomReligion(randomReligionCode(), true) else createRandomReligion(randomReligionCode(), false)
-  }
-
-  internal fun createRandomReligion(code: ReligionCode = randomReligionCode(), current: Boolean = true) = PrisonReligionHistory(
+  internal fun createPrisonReligionHistory(code: ReligionCode = randomReligionCode(), current: Boolean = true) = PrisonReligionHistory(
     nomisReligionId = randomDigit(10),
     changeReasonKnown = randomBoolean(),
     comments = randomName(),
