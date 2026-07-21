@@ -177,7 +177,7 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
       val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
       val primaryAddressEntity = person.addresses.first { it.recordType == PRIMARY }
       val previousAddressEntity = person.addresses.first { it.recordType == PREVIOUS }
-      val canonicalReligion = CanonicalReligion(code = religion, description = religion)
+      val canonicalReligion = CanonicalReligion(code = religion.name, description = religion.description)
       val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromCommonPlatform(ethnicity))
 
       assertThat(responseBody.cprUUID).isNull()

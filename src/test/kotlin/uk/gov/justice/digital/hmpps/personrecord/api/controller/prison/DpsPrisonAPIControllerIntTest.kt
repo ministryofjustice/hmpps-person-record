@@ -140,7 +140,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         usages = address2.usages.map { CanonicalAddressUsage(CanonicalAddressUsageCode.from(it.usageCode), it.active) },
       )
 
-      val canonicalReligion = CanonicalReligion(code = prisonPerson.religion, description = prisonPerson.religion)
+      val canonicalReligion = CanonicalReligion(code = prisonPerson.religion?.name, description = prisonPerson.religion?.description)
       val canonicalEthnicity = CanonicalEthnicity.from(prisonPerson.ethnicityCode)
       assertThat(responseBody.cprUUID).isNull()
       assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)

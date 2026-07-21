@@ -16,9 +16,9 @@ data class CanonicalReligion(
 ) {
   companion object {
 
-    fun from(religion: String?) = CanonicalReligion(
-      code = religion,
-      description = religion,
+    fun from(religion: ReligionCode?) = CanonicalReligion(
+      code = religion?.name,
+      description = religion?.description,
     )
   }
 }

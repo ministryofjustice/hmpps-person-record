@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import java.util.UUID
 
 class PrisonReligionGetResponseTest {
@@ -21,7 +21,7 @@ class PrisonReligionGetResponseTest {
       id = 1,
       updateId = UUID.randomUUID(),
       prisonNumber = prisonNumber,
-      code = randomReligionCode(),
+      code = randomReligion(),
       changeReasonKnown = randomBoolean(),
       comments = randomLowerCaseString(),
       startDate = randomDate(),
