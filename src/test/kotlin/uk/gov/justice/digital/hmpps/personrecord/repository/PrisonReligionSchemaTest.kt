@@ -17,8 +17,8 @@ class PrisonReligionSchemaTest : IntegrationTestBase() {
   @Test
   fun `should fail to insert multiple current religions`() {
     val prisonNumber = randomPrisonNumber()
-    val religion = PrisonReligionEntity.from(prisonNumber, createRandomReligion(current = true))
-    val religion2 = PrisonReligionEntity.from(prisonNumber, createRandomReligion(current = true))
+    val religion = PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory())
+    val religion2 = PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory())
     assertThrows(DataIntegrityViolationException::class.java) {
       prisonReligionRepository.saveAndFlush(religion)
       prisonReligionRepository.saveAndFlush(religion2)
