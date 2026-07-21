@@ -23,7 +23,7 @@ class PrisonReligionGetApiControllerIntTest : WebTestBase() {
     @Test
     fun `should return prison religion by cpr religion id`() {
       val prisonNumber = randomPrisonNumber()
-      val prisonReligion = createRandomReligion()
+      val prisonReligion = createPrisonReligionHistory()
       val existingReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, prisonReligion))
 
       val responseBody = sendGetRequestAsserted<PrisonReligionReadResponse>(

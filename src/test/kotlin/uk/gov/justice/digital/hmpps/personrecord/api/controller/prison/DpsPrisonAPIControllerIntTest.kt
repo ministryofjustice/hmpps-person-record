@@ -76,7 +76,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         .addPerson(prisonPerson)
 
       val person = cluster.personEntities.first()
-      val existingPrisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createRandomReligion()))
+      val existingPrisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory()))
 
       val responseBody = sendGetRequestAsserted<DpsPrisonRecordTest>(
         url = prisonApiUrl(prisonNumber),
@@ -199,7 +199,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
 
       sendPostRequestAsserted<Unit>(
         url = "/person/prison/$prisonNumber/religion",
-        body = createRandomReligion().copy( // <- first in history to be written
+        body = createPrisonReligionHistory().copy( // <- first in history to be written
           religionCode = BAHA,
           startDate = now.minusDays(1),
           endDate = now.minusDays(1),
@@ -213,7 +213,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
 
       sendPostRequestAsserted<Unit>(
         url = "/person/prison/$prisonNumber/religion",
-        body = createRandomReligion().copy( // <- second in history to be written
+        body = createPrisonReligionHistory().copy( // <- second in history to be written
           religionCode = HUM,
           startDate = now.minusDays(1),
           endDate = now,
@@ -227,7 +227,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
 
       sendPostRequestAsserted<Unit>(
         url = "/person/prison/$prisonNumber/religion",
-        body = createRandomReligion().copy( // <- most recent in history to be written
+        body = createPrisonReligionHistory().copy( // <- most recent in history to be written
           religionCode = AGNO,
           startDate = now,
           endDate = null,

@@ -41,8 +41,8 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `successful save returns the correct response body`() {
       val prisonNumber = randomPrisonNumber()
-      val currentReligion = createRandomReligion(ReligionCode.AGNO, true)
-      val anotherReligion = createRandomReligion(ReligionCode.BAHA, false)
+      val currentReligion = createPrisonReligionHistory(ReligionCode.AGNO, true)
+      val anotherReligion = createPrisonReligionHistory(ReligionCode.BAHA, false)
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val actualResponseBody = webTestClient
@@ -91,7 +91,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `request contains duplicate nomis id - does not save religions`() {
       val prisonNumber = randomPrisonNumber()
-      val currentReligion = createRandomReligion()
+      val currentReligion = createPrisonReligionHistory()
       val anotherReligionWithDuplicateNomisReligionId = currentReligion.copy(comments = randomLowerCaseString())
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
@@ -123,7 +123,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     fun `should return a 404 when the person does not exist`() {
       val prisonNumber = randomPrisonNumber()
       val expectedErrorMessage = "Not found: $prisonNumber"
-      val religions = createRandomReligions() + createRandomReligion(current = false)
+      val religions = createRandomReligions() + createPrisonReligionHistory(current = false)
 
       webTestClient.post()
         .uri(religionUrl(prisonNumber))
@@ -140,7 +140,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `should return a 400 when more than one current religion is sent`() {
       val prisonNumber = randomPrisonNumber()
-      val religions = listOf(createRandomReligion(randomReligionCode(), true), createRandomReligion(randomReligionCode(), true))
+      val religions = listOf(createPrisonReligionHistory(), createPrisonReligionHistory())
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
       val reqBody = PrisonReligionRequest(religions)
 
@@ -159,7 +159,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     @Test
     fun `should return a 400 when no current religion is sent`() {
       val prisonNumber = randomPrisonNumber()
-      val religions = listOf(createRandomReligion(randomReligionCode(), false), createRandomReligion(randomReligionCode(), false))
+      val religions = listOf(createPrisonReligionHistory(randomReligionCode(), false), createPrisonReligionHistory(randomReligionCode(), false))
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
       val reqBody = PrisonReligionRequest(religions)
 
@@ -241,4 +241,8 @@ class SysconReligionControllerIntTest : WebTestBase() {
   }
 
   private fun religionUrl(prisonNumber: String) = "/syscon-sync/religion/$prisonNumber"
+
+  private fun createRandomReligions(): List<PrisonReligionHistory> = List((4..20).random()) { index ->
+    if (index == 0) createPrisonReligionHistory(randomReligionCode(), true) else createPrisonReligionHistory(randomReligionCode(), false)
+  }
 }
