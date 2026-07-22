@@ -39,11 +39,11 @@ class MigrateUnknownAddressUsageCodesControllerIntTest : WebTestBase() {
       val postcode = randomPostcode()
       createPersonWithNewKey(
         Person.from(probationCase),
-        configure = addAddressToRecord(Address(postcode = postcode, deliusAddressId = deliusAddressId1, usages = listOf(AddressUsage(UNKNOWN, randomBoolean()))))
+        configure = addAddressToRecord(Address(postcode = postcode, deliusAddressId = deliusAddressId1, usages = listOf(AddressUsage(UNKNOWN, randomBoolean())))),
       )
       createPersonWithNewKey(
         Person.from(probationCase).copy(crn = randomCrn()),
-        configure = addAddressToRecord(Address(postcode = postcode, deliusAddressId = deliusAddressId2, usages = listOf(AddressUsage(UNKNOWN, randomBoolean()))))
+        configure = addAddressToRecord(Address(postcode = postcode, deliusAddressId = deliusAddressId2, usages = listOf(AddressUsage(UNKNOWN, randomBoolean())))),
       )
 
       val usageCode = randomAddressUsageCode()
