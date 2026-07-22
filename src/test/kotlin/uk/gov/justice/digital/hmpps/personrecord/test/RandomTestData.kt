@@ -118,7 +118,7 @@ fun randomCountryCode(): CountryCode = CountryCode.entries.random()
 
 fun randomAddressStatusCode(): AddressStatusCode = AddressStatusCode.entries.random()
 
-fun randomAddressUsageCode(): AddressUsageCode = AddressUsageCode.entries.random()
+fun randomAddressUsageCode(): AddressUsageCode = AddressUsageCode.entries.filterNot { it == AddressUsageCode.UNKNOWN }.random()
 
 fun randomContactType(): ContactType = ContactType.entries.random()
 
