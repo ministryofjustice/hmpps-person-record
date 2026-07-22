@@ -1,15 +1,16 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatus.OK
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode.UNKNOWN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDeliusAddressId
@@ -20,6 +21,11 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationAddress
 
 class MigrateUnknownAddressUsageCodesControllerIntTest : WebTestBase() {
+
+  @BeforeEach
+  fun cleanup() {
+    deleteAllPersonData()
+  }
 
   @Test
   fun `should populate unknown address usage codes`() {
@@ -32,7 +38,7 @@ class MigrateUnknownAddressUsageCodesControllerIntTest : WebTestBase() {
         Address(
           postcode = postcode,
           deliusAddressId = deliusAddressId,
-          usages = listOf(AddressUsage(AddressUsageCode.UNKNOWN, randomBoolean())),
+          usages = listOf(AddressUsage(UNKNOWN, randomBoolean())),
         ),
       ),
     )
@@ -53,8 +59,9 @@ class MigrateUnknownAddressUsageCodesControllerIntTest : WebTestBase() {
     sendPostRequestAsserted<String>(
       url = "/admin/migrate-unknown-address-usage-codes",
       body = "",
-      expectedStatus = HttpStatus.OK,
-      roles = listOf("ROLE_ADMIN"),
+      expectedStatus = OK,
+      sendAuthorised = false,
+      roles = listOf(),
     ).returnResult().responseBody!!
 
     awaitAssert {
