@@ -40,7 +40,7 @@ class MigrateUnknownAddressUsageCodesController(
             val deliusAddress = corePersonRecordAndDeliusClient.getAddress(address.deliusAddressId!!)
             addressService.processAddress(
               address = deliusAddress!!,
-              findAddress =  { address },
+              findAddress = { address },
               eventSource = DomainEventSource.DELIUS,
             )
           }

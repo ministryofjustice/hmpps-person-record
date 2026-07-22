@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressUsage
-import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
@@ -15,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDeliusAddressId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressUsage
@@ -34,9 +32,9 @@ class MigrateUnknownAddressUsageCodesControllerIntTest : WebTestBase() {
         Address(
           postcode = postcode,
           deliusAddressId = deliusAddressId,
-          usages = listOf(AddressUsage(AddressUsageCode.UNKNOWN, randomBoolean()))
-        )
-      )
+          usages = listOf(AddressUsage(AddressUsageCode.UNKNOWN, randomBoolean())),
+        ),
+      ),
     )
 
     val usageCode = randomAddressUsageCode()
@@ -47,9 +45,9 @@ class MigrateUnknownAddressUsageCodesControllerIntTest : WebTestBase() {
         deliusAddressId = deliusAddressId,
         usage = ProbationAddressUsage(
           code = usageCode.name,
-          description = usageCode.description
-        )
-      )
+          description = usageCode.description,
+        ),
+      ),
     )
 
     sendPostRequestAsserted<String>(
