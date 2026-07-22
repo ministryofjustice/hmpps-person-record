@@ -9,20 +9,16 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
-import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
 @RestController
 class MigrateUnknownAddressUsageCodesController(
   private val addressRepository: AddressRepository,
-  private val addressService: AddressService,
-  private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
+  private val retryableAddressMigrator: RetryableAddressMigrator,
+
 ) {
 
   @Hidden
@@ -36,13 +32,8 @@ class MigrateUnknownAddressUsageCodesController(
     CoroutineScope(Dispatchers.Default).launch {
       val executionResults = forPage { page ->
         run {
-          page.content.forEach { address ->
-            val deliusAddress = corePersonRecordAndDeliusClient.getAddress(address.deliusAddressId!!)
-            addressService.processAddress(
-              address = deliusAddress!!,
-              findAddress = { address },
-              eventSource = DomainEventSource.DELIUS,
-            )
+          page.content.forEach {
+            retryableAddressMigrator.migrateUsage(it)
           }
         }
       }
@@ -54,13 +45,13 @@ class MigrateUnknownAddressUsageCodesController(
     }
   }
 
-  private inline fun forPage(page: (Page<AddressEntity>) -> Unit): ExecutionResult {
+  private inline fun forPage(page: (Page<Long>) -> Unit): ExecutionResult {
     var pageNumber = 0
-    var addresses: Page<AddressEntity>
+    var addresses: Page<Long>
     val elapsedTime: Duration = measureTime {
       do {
         val pageable = PageRequest.of(pageNumber, BATCH_SIZE)
-        addresses = addressRepository.findByUsagesUsageCode(AddressUsageCode.UNKNOWN, pageable)
+        addresses = addressRepository.findAddressDeliusAddressIdByUsagesUsageCode(AddressUsageCode.UNKNOWN, pageable)
         page(addresses)
         log.info(JOB_NAME + "${pageNumber + 1}/${addresses.totalPages}")
         pageNumber++
