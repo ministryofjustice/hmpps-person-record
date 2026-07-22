@@ -309,11 +309,7 @@ class IntegrationTestBase {
     ),
   )
 
-  internal fun createRandomReligions(): List<PrisonReligionHistory> = List((4..20).random()) { index ->
-    if (index == 0) createRandomReligion(randomReligionCode(), true) else createRandomReligion(randomReligionCode(), false)
-  }
-
-  internal fun createRandomReligion(code: ReligionCode = randomReligionCode(), current: Boolean = true) = PrisonReligionHistory(
+  internal fun createPrisonReligionHistory(code: ReligionCode = randomReligionCode(), current: Boolean = true) = PrisonReligionHistory(
     nomisReligionId = randomDigit(10),
     changeReasonKnown = randomBoolean(),
     comments = randomName(),
@@ -354,6 +350,15 @@ class IntegrationTestBase {
   ) {
     checkEventLog(sourceSystemId, event) { logEvents ->
       assertThat(logEvents).`as`("Missing event log $event and actual data $logEvents").hasSize(times)
+    }
+  }
+
+  internal fun checkEventLogDoesNotExist(
+    sourceSystemId: String,
+    event: CPRLogEvents,
+  ) {
+    checkEventLog(sourceSystemId, event) { logEvents ->
+      assertThat(logEvents).`as`("Unexpected event log $event with data $logEvents").isEmpty()
     }
   }
 

@@ -23,7 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
@@ -52,10 +52,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNum
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
 class DpsPrisonAPIControllerIntTest : WebTestBase() {
@@ -78,7 +76,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         .addPerson(prisonPerson)
 
       val person = cluster.personEntities.first()
-      val existingPrisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createRandomReligion()))
+      val existingPrisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory()))
 
       val responseBody = sendGetRequestAsserted<DpsPrisonRecordTest>(
         url = prisonApiUrl(prisonNumber),
@@ -101,9 +99,9 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         cprAddressId = address.updateId!!.toString(),
         noFixedAbode = address.noFixedAbode,
         startDate = address.startDate?.toLocalDate()?.toString(),
-        startDateTime = address.startDate,
+        startDateTime = address.startDate?.toUkLocalDateTime(),
         endDate = address.endDate?.toLocalDate()?.toString(),
-        endDateTime = address.endDate,
+        endDateTime = address.endDate?.toUkLocalDateTime(),
         postcode = address.postcode,
         buildingName = address.buildingName,
         buildingNumber = address.buildingNumber,
@@ -123,9 +121,9 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         cprAddressId = address2.updateId!!.toString(),
         noFixedAbode = address2.noFixedAbode,
         startDate = address2.startDate?.toLocalDate()?.toString(),
-        startDateTime = address2.startDate,
+        startDateTime = address2.startDate?.toUkLocalDateTime(),
         endDate = address2.endDate?.toLocalDate()?.toString(),
-        endDateTime = address2.endDate,
+        endDateTime = address2.endDate?.toUkLocalDateTime(),
         postcode = address2.postcode,
         buildingName = address2.buildingName,
         buildingNumber = address2.buildingNumber,
@@ -174,7 +172,6 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
 
       assertThat(responseBody.addresses)
         .usingRecursiveComparison()
-        .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
         .isEqualTo(listOf(canonicalAddress, canonicalAddress2))
 
       assertThat(responseBody.religionHistory.size).isEqualTo(1)
@@ -202,7 +199,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
 
       sendPostRequestAsserted<Unit>(
         url = "/person/prison/$prisonNumber/religion",
-        body = createRandomReligion().copy( // <- first in history to be written
+        body = createPrisonReligionHistory().copy( // <- first in history to be written
           religionCode = BAHA,
           startDate = now.minusDays(1),
           endDate = now.minusDays(1),
@@ -216,7 +213,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
 
       sendPostRequestAsserted<Unit>(
         url = "/person/prison/$prisonNumber/religion",
-        body = createRandomReligion().copy( // <- second in history to be written
+        body = createPrisonReligionHistory().copy( // <- second in history to be written
           religionCode = HUM,
           startDate = now.minusDays(1),
           endDate = now,
@@ -230,7 +227,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
 
       sendPostRequestAsserted<Unit>(
         url = "/person/prison/$prisonNumber/religion",
-        body = createRandomReligion().copy( // <- most recent in history to be written
+        body = createPrisonReligionHistory().copy( // <- most recent in history to be written
           religionCode = AGNO,
           startDate = now,
           endDate = null,
@@ -302,7 +299,6 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
           crn = personOneCrn,
           prisonNumber = randomPrisonNumber(),
           nationalities = listOf(randomNationalityCode()),
-          religion = randomReligion(),
           cId = randomCId(),
           defendantId = personOneDefendantId,
           masterDefendantId = personOneDefendantId,
@@ -335,7 +331,6 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
           crn = personTwoCrn,
           prisonNumber = randomPrisonNumber(),
           nationalities = listOf(randomNationalityCode()),
-          religion = randomReligion(),
           cId = randomCId(),
           defendantId = personTwoDefendantId,
           masterDefendantId = personTwoDefendantId,

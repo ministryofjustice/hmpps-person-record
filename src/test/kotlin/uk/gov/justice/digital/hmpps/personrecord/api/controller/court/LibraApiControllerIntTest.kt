@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDateTime
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
@@ -42,11 +42,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
-import java.time.ZonedDateTime
 
 class LibraApiControllerIntTest : WebTestBase() {
 
@@ -91,11 +89,8 @@ class LibraApiControllerIntTest : WebTestBase() {
           dateOfBirth = randomDate(),
           sourceSystem = LIBRA,
           titleCode = title.value,
-
           sexCode = sex.value,
-
           cId = cid,
-
           aliases = listOf(
             Alias(
               firstName = firstName,
@@ -147,6 +142,7 @@ class LibraApiControllerIntTest : WebTestBase() {
         .expectBody<CanonicalRecord>()
         .returnResult()
         .responseBody!!
+
       val canonicalAlias =
         CanonicalAlias(
           firstName = firstName,
@@ -155,14 +151,15 @@ class LibraApiControllerIntTest : WebTestBase() {
           title = CanonicalTitle.from(title.value),
           sex = CanonicalSex.from(sex.value),
         )
+
       val canonicalAddress =
         CanonicalAddress(
           cprAddressId = person.addresses.first().updateId!!.toString(),
           noFixedAbode = noFixedAbode,
           startDate = startDateTime.toLocalDate().toString(),
-          startDateTime = startDateTime,
+          startDateTime = startDateTime.toUkLocalDateTime(),
           endDate = endDateTime.toLocalDate().toString(),
-          endDateTime = endDateTime,
+          endDateTime = endDateTime.toUkLocalDateTime(),
           postcode = postcode,
           buildingName = buildingName,
           buildingNumber = buildingNumber,
@@ -201,7 +198,6 @@ class LibraApiControllerIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
       assertThat(responseBody.addresses)
         .usingRecursiveComparison()
-        .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
         .isEqualTo(listOf(canonicalAddress))
     }
 
@@ -236,16 +232,12 @@ class LibraApiControllerIntTest : WebTestBase() {
       assertThat(responseBody.ethnicity.description).isNull()
       assertThat(responseBody.sex.code).isNull()
       assertThat(responseBody.sex.description).isNull()
-      assertThat(responseBody.religion.code).isNull()
-      assertThat(responseBody.religion.description).isNull()
       assertThat(responseBody.title.code).isNull()
       assertThat(responseBody.title.description).isNull()
       assertThat(responseBody.ethnicity.code).isNull()
       assertThat(responseBody.ethnicity.description).isNull()
       assertThat(responseBody.sex.code).isNull()
       assertThat(responseBody.sex.description).isNull()
-      assertThat(responseBody.religion.code).isNull()
-      assertThat(responseBody.religion.description).isNull()
       assertThat(responseBody.nationalities).isEmpty()
       assertThat(responseBody.aliases).isEmpty()
       assertThat(responseBody.addresses).isEmpty()
@@ -343,8 +335,6 @@ class LibraApiControllerIntTest : WebTestBase() {
           dateOfBirth = randomDate(),
           sourceSystem = LIBRA,
           nationalities = listOf(randomNationalityCode()),
-          religion = randomReligion(),
-
           cId = personOneCId,
           references = listOf(
             Reference(
@@ -368,7 +358,6 @@ class LibraApiControllerIntTest : WebTestBase() {
           sourceSystem = SourceSystemType.DELIUS,
           crn = personTwoCrn,
           nationalities = listOf(randomNationalityCode()),
-          religion = randomReligion(),
           references = listOf(
             Reference(
               identifierType = CRO,

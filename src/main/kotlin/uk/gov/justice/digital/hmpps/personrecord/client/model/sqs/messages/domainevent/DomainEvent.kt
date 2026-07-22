@@ -39,9 +39,10 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATE
   visible = true,
 )
 @JsonSubTypes(
-  JsonSubTypes.Type(value = ProbationPersonCreated::class, names = [PROBATION_PERSON_CREATED, PROBATION_PERSON_RECOVERED]),
+  JsonSubTypes.Type(value = ProbationPersonCreated::class, name = PROBATION_PERSON_CREATED),
   JsonSubTypes.Type(value = ProbationPersonUpdated::class, names = [PROBATION_PERSON_UPDATED, PROBATION_ALIAS_CREATED, PROBATION_ALIAS_UPDATED, PROBATION_ALIAS_DELETED, PROBATION_REFERENCE_CREATED, PROBATION_REFERENCE_DELETED, PROBATION_REFERENCE_RECOVERED]),
   JsonSubTypes.Type(value = ProbationPersonDeleted::class, names = [PROBATION_PERSON_DELETED, PROBATION_PERSON_DELETED_GDPR]),
+  JsonSubTypes.Type(value = ProbationPersonRecovered::class, name = PROBATION_PERSON_RECOVERED),
   JsonSubTypes.Type(value = ProbationPersonMerged::class, name = PROBATION_PERSON_MERGED),
   JsonSubTypes.Type(value = ProbationPersonUnmerged::class, name = PROBATION_PERSON_UNMERGED),
   JsonSubTypes.Type(value = ProbationAddressCreated::class, name = PROBATION_ADDRESS_CREATED),

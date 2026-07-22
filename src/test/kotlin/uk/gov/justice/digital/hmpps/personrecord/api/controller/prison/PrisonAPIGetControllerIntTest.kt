@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.zonedDateTimeComparator
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDateTime
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
@@ -35,7 +35,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNum
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import java.time.ZonedDateTime
 
 class PrisonAPIGetControllerIntTest : WebTestBase() {
 
@@ -74,9 +73,9 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
         cprAddressId = address.updateId!!.toString(),
         noFixedAbode = address.noFixedAbode,
         startDate = address.startDate?.toLocalDate()?.toString(),
-        startDateTime = address.startDate,
+        startDateTime = address.startDate?.toUkLocalDateTime(),
         endDate = address.endDate?.toLocalDate()?.toString(),
-        endDateTime = address.endDate,
+        endDateTime = address.endDate?.toUkLocalDateTime(),
         postcode = address.postcode,
         buildingName = address.buildingName,
         buildingNumber = address.buildingNumber,
@@ -96,9 +95,9 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
         cprAddressId = address2.updateId!!.toString(),
         noFixedAbode = address2.noFixedAbode,
         startDate = address2.startDate?.toLocalDate()?.toString(),
-        startDateTime = address2.startDate,
+        startDateTime = address2.startDate?.toUkLocalDateTime(),
         endDate = address2.endDate?.toLocalDate()?.toString(),
-        endDateTime = address2.endDate,
+        endDateTime = address2.endDate?.toUkLocalDateTime(),
         postcode = address2.postcode,
         buildingName = address2.buildingName,
         buildingNumber = address2.buildingNumber,
@@ -147,7 +146,6 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
 
       assertThat(responseBody.addresses.sortedBy { it.cprAddressId })
         .usingRecursiveComparison()
-        .withComparatorForType(zonedDateTimeComparator, ZonedDateTime::class.java)
         .isEqualTo(listOf(canonicalAddress, canonicalAddress2).sortedBy { it.cprAddressId })
     }
 

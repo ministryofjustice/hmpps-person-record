@@ -112,7 +112,7 @@ fun randomCommonPlatformNationalityCode(): String = COMMON_PLATFORM_NATIONALITY_
 
 fun randomReligionCode(): ReligionCode = ReligionCode.entries.random()
 
-fun randomReligion(): String = ReligionCode.entries.random().description
+fun randomReligion(): String = randomReligionCode().name
 
 fun randomCountryCode(): CountryCode = CountryCode.entries.random()
 

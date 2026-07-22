@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.extensions
 
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -18,4 +19,5 @@ fun LocalDate.toUkZonedDateTime(): ZonedDateTime = this.atStartOfDay(UK_ZONE)
 
 // ZonedDateTime extensions
 fun ZonedDateTime.toUkLocalDate(): LocalDate = this.withZoneSameInstant(UK_ZONE).toLocalDate()
+fun ZonedDateTime.toUkLocalDateTime(): LocalDateTime = this.withZoneSameInstant(UK_ZONE).toLocalDateTime()
 fun ZonedDateTime.withUkZone(): ZonedDateTime = this.withZoneSameInstant(UK_ZONE)
