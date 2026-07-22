@@ -30,10 +30,8 @@ class MigrateUnknownAddressUsageCodesController(
   suspend fun migrate() {
     CoroutineScope(Dispatchers.Default).launch {
       val executionResults = forPage { page ->
-        run {
-          page.content.forEach {
-            retryableAddressMigrator.migrateUsage(it)
-          }
+        page.content.forEach {
+          retryableAddressMigrator.migrateUsage(it)
         }
       }
       log.info(
