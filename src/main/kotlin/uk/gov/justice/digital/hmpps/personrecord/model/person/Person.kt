@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -98,7 +99,7 @@ data class Person(
         sentences = probationCase.sentences?.map { SentenceInfo.from(it) } ?: emptyList(),
         sexCode = SexCode.from(probationCase),
         sexualOrientation = SexualOrientation.fromProbation(probationCase),
-        religion = probationCase.religion?.value,
+        religion = ReligionCode.fromProbation(probationCase.religion?.value),
         genderIdentity = GenderIdentityCode.from(probationCase),
         selfDescribedGenderIdentity = probationCase.selfDescribedGenderIdentity,
       )
