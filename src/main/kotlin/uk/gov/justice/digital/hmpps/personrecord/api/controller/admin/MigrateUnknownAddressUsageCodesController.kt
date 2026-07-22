@@ -10,7 +10,6 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
@@ -51,7 +50,7 @@ class MigrateUnknownAddressUsageCodesController(
     val elapsedTime: Duration = measureTime {
       do {
         val pageable = PageRequest.of(pageNumber, BATCH_SIZE)
-        addresses = addressRepository.findAddressDeliusAddressIdByUsagesUsageCode(AddressUsageCode.UNKNOWN, pageable)
+        addresses = addressRepository.findDeliusAddressIdByUnknownUsageCode(pageable)
         page(addresses)
         log.info(JOB_NAME + "${pageNumber + 1}/${addresses.totalPages}")
         pageNumber++
