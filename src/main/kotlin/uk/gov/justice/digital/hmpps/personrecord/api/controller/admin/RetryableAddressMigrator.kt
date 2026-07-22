@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin
 
 import jakarta.persistence.OptimisticLockException
+import org.slf4j.LoggerFactory
 import org.springframework.dao.CannotAcquireLockException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
@@ -10,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliu
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.DiscardableNotFoundException
 
 @Service
 class RetryableAddressMigrator(
@@ -27,11 +29,20 @@ class RetryableAddressMigrator(
     ],
   )
   fun migrateUsage(deliusAddressId: Long) {
-    val deliusAddress = corePersonRecordAndDeliusClient.getAddress(deliusAddressId)
-    addressService.processAddress(
-      address = deliusAddress!!,
-      findAddress = { addressRepository.findByDeliusAddressId(deliusAddressId) },
-      eventSource = DELIUS,
-    )
+    try {
+      corePersonRecordAndDeliusClient.getAddressIgnoreNotFound(deliusAddressId)?.let {
+        addressService.processAddress(
+          address = it,
+          findAddress = { addressRepository.findByDeliusAddressId(deliusAddressId) },
+          eventSource = DELIUS,
+        )
+      }
+    } catch (_: DiscardableNotFoundException) {
+      log.info("Address with deliusAddressId $deliusAddressId not found in Delius, discarding")
+    }
+  }
+
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
