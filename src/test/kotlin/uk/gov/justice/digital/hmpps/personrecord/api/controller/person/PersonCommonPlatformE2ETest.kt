@@ -65,7 +65,7 @@ class PersonCommonPlatformE2ETest : E2ETestBase() {
       val nonMatchingCommonPlatformPerson = createRandomCommonPlatformPersonDetails()
 
       createPersonKey()
-        .addPerson(createPerson(nonMatchingCommonPlatformPerson))
+        .addPerson(nonMatchingCommonPlatformPerson)
 
       createPersonKey()
         .addPerson(probationPerson)
@@ -83,11 +83,10 @@ class PersonCommonPlatformE2ETest : E2ETestBase() {
     fun `should return no match status when 2 common platform records are matched but no probation record`() {
       val commonPlatformData = createRandomCommonPlatformPersonDetails()
 
-      val commonPlatformPersonOne = createPerson(commonPlatformData)
-      val commonPlatformPersonTwo = createPerson(commonPlatformData.copy(defendantId = randomDefendantId()))
+      val commonPlatformPersonTwo = commonPlatformData.copy(defendantId = randomDefendantId())
 
       createPersonKey()
-        .addPerson(commonPlatformPersonOne)
+        .addPerson(commonPlatformData)
         .addPerson(commonPlatformPersonTwo)
 
       webTestClient.get()

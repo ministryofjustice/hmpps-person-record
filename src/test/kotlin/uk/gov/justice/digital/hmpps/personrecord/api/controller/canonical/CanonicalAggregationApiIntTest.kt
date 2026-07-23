@@ -147,13 +147,10 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
     @Test
     fun `should return latest modified from 2 records combining`() {
       val prisonDetails = createRandomPrisonPersonDetails()
-      val probationDetails = createRandomProbationPersonDetails()
-
-      val prisonPerson = createPerson(prisonDetails)
-      val latestPerson = createPerson(probationDetails)
+      val latestPerson = createRandomProbationPersonDetails()
 
       val personKey = createPersonKey()
-        .addPerson(prisonPerson)
+        .addPerson(prisonDetails)
         .addPerson(latestPerson)
 
       val responseBody = webTestClient.get()
@@ -166,19 +163,18 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
         .returnResult()
         .responseBody!!
 
-      val canonicalSentences = prisonPerson.sentenceInfo.mapNotNull { it.sentenceDate } + latestPerson.sentenceInfo.mapNotNull { it.sentenceDate }
+      val canonicalSentences = prisonDetails.sentences.mapNotNull { it.sentenceDate } + latestPerson.sentences.mapNotNull { it.sentenceDate }
 
-      assertThat(responseBody.canonicalRecord.firstName).isEqualTo(probationDetails.firstName)
+      assertThat(responseBody.canonicalRecord.firstName).isEqualTo(latestPerson.firstName)
       assertThat(responseBody.sentences.toList()).containsAll(canonicalSentences)
     }
 
     @Test
     fun `should return latest modified from 2 records deduplicating`() {
-      val prisonDetails = createRandomPrisonPersonDetails()
+      val prisonPerson = createRandomPrisonPersonDetails()
       val probationDetails = createRandomProbationPersonDetails()
 
-      val prisonPerson = createPerson(prisonDetails)
-      val latestPerson = createPerson(probationDetails.copy(sentences = probationDetails.sentences + prisonDetails.sentences))
+      val latestPerson = probationDetails.copy(sentences = probationDetails.sentences + prisonPerson.sentences)
 
       val personKey = createPersonKey()
         .addPerson(prisonPerson)
@@ -194,7 +190,7 @@ class CanonicalAggregationApiIntTest : WebTestBase() {
         .returnResult()
         .responseBody!!
 
-      val canonicalSentences = prisonPerson.sentenceInfo.map { it.sentenceDate } + latestPerson.sentenceInfo.map { it.sentenceDate }
+      val canonicalSentences = prisonPerson.sentences.map { it.sentenceDate } + latestPerson.sentences.map { it.sentenceDate }
 
       assertThat(responseBody.canonicalRecord.firstName).isEqualTo(probationDetails.firstName)
       assertThat(responseBody.sentences.toList()).containsAll(canonicalSentences)
