@@ -17,10 +17,10 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
 
     @Test
     fun `deletes person by prison number`() {
-      val personToBeDeleted = createPerson(createRandomPrisonPersonDetails())
+      val personToBeDeleted = createRandomPrisonPersonDetails()
       val cluster = createPersonKey()
         .addPerson(personToBeDeleted)
-        .addPerson(createPerson(createRandomPrisonPersonDetails()))
+        .addPerson(createRandomPrisonPersonDetails())
         .also {
           stubDeletePersonMatch()
           stubPersonMatchScores()

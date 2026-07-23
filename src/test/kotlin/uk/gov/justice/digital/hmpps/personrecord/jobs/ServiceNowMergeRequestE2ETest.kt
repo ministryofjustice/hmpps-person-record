@@ -277,8 +277,8 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
 
   @Test
   fun `should ignore records in NEEDS_ATTENTION`() {
-    val person1 = createPerson(createRandomProbationPersonDetails())
-    val person2 = createPerson(createRandomProbationPersonDetails())
+    val person1 = createRandomProbationPersonDetails()
+    val person2 = createRandomProbationPersonDetails()
     createPersonKey()
       .addPerson(person1)
       .addPerson(person2)
