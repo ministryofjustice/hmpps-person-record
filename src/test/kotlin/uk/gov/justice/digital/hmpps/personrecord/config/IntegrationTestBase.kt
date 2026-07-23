@@ -367,6 +367,8 @@ class IntegrationTestBase {
 
   internal fun <T> awaitNotNull(function: () -> T?): T = await atMost (Duration.ofSeconds(3)) untilNotNull function
 
+  fun PersonKeyEntity.findByCrn(crn: String) = this.personEntities.first { it.crn == crn }
+
   internal fun createPersonKey(status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
     personKeyEntity.apply {
