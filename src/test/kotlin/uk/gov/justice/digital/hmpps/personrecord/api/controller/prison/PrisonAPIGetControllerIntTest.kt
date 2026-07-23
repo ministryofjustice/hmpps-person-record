@@ -157,64 +157,51 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
       val personOneArrestSummonNumber = randomArrestSummonsNumber()
       val personOneDriversLicenseNumber = randomDriverLicenseNumber()
 
-      val personOnePrison = createPerson(
-        createRandomPrisonPersonDetails().copy(
-          references = listOf(
-            Reference(identifierType = CRO, identifierValue = personOneCro),
-            Reference(identifierType = PNC, identifierValue = personOnePnc),
-            Reference(
-              identifierType = NATIONAL_INSURANCE_NUMBER,
-              identifierValue = personOneNationalInsuranceNumber,
-            ),
-            Reference(
-              identifierType = ARREST_SUMMONS_NUMBER,
-              identifierValue = personOneArrestSummonNumber,
-            ),
-            Reference(
-              identifierType = DRIVER_LICENSE_NUMBER,
-              identifierValue = personOneDriversLicenseNumber,
-            ),
+      val personOnePrison = createRandomPrisonPersonDetails().copy(
+        references = listOf(
+          Reference(identifierType = CRO, identifierValue = personOneCro),
+          Reference(identifierType = PNC, identifierValue = personOnePnc),
+          Reference(
+            identifierType = NATIONAL_INSURANCE_NUMBER,
+            identifierValue = personOneNationalInsuranceNumber,
+          ),
+          Reference(
+            identifierType = ARREST_SUMMONS_NUMBER,
+            identifierValue = personOneArrestSummonNumber,
+          ),
+          Reference(
+            identifierType = DRIVER_LICENSE_NUMBER,
+            identifierValue = personOneDriversLicenseNumber,
           ),
         ),
       )
 
-      val personTwoProbation = createPerson(
-        createRandomProbationPersonDetails().copy(
-          references = randomFullSetOfReferences(),
-        ),
+      val personTwoProbation = createRandomProbationPersonDetails().copy(
+        references = randomFullSetOfReferences(),
       )
 
-      val personThreeCommonPlatform = createPerson(
-        createRandomCommonPlatformPersonDetails().copy(
-          references = randomFullSetOfReferences(),
-        ),
-      )
-      val personFourLibra = createPerson(
-        createRandomLibraPersonDetails().copy(
-          references = randomFullSetOfReferences(),
-        ),
-      )
-      val personFivePrison = createPerson(
-        createRandomPrisonPersonDetails().copy(
-          references = randomFullSetOfReferences(),
-        ),
+      val personThreeCommonPlatform = createRandomCommonPlatformPersonDetails().copy(
+        references = randomFullSetOfReferences(),
       )
 
-      val personSixProbation = createPerson(
-        createRandomProbationPersonDetails().copy(
-          references = randomFullSetOfReferences(),
-        ),
+      val personFourLibra = createRandomLibraPersonDetails().copy(
+        references = randomFullSetOfReferences(),
       )
 
-      val personSevenCommonPlatform = createPerson(
-        createRandomCommonPlatformPersonDetails().copy(
-          references = randomFullSetOfReferences(),
-        ),
+      val personFivePrison = createRandomPrisonPersonDetails().copy(
+        references = randomFullSetOfReferences(),
       )
-      val personEightLibra = createPerson(
-        createRandomLibraPersonDetails().copy(
-          references = randomFullSetOfReferences(),
-        ),
+
+      val personSixProbation = createRandomProbationPersonDetails().copy(
+        references = randomFullSetOfReferences(),
+      )
+
+      val personSevenCommonPlatform = createRandomCommonPlatformPersonDetails().copy(
+        references = randomFullSetOfReferences(),
+      )
+
+      val personEightLibra = createRandomLibraPersonDetails().copy(
+        references = randomFullSetOfReferences(),
       )
 
       createPersonKey()
