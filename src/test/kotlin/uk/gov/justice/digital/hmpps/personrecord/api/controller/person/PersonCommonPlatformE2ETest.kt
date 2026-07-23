@@ -24,12 +24,9 @@ class PersonCommonPlatformE2ETest : E2ETestBase() {
       val probationPerson = Person.from(createRandomProbationCase())
       val commonPlatformPerson = probationPerson.copy(crn = null, sourceSystem = COMMON_PLATFORM, defendantId = defendantId)
 
-      val matchingProbationPerson = createPerson(probationPerson)
-      val matchingCommonPlatformPerson = createPerson(commonPlatformPerson)
-
       createPersonKey()
-        .addPerson(matchingProbationPerson)
-        .addPerson(matchingCommonPlatformPerson)
+        .addPerson(probationPerson)
+        .addPerson(commonPlatformPerson)
 
       webTestClient.get()
         .uri(matchDetailsUrl(defendantId))
@@ -47,14 +44,11 @@ class PersonCommonPlatformE2ETest : E2ETestBase() {
       val probationPerson = Person.from(createRandomProbationCase())
       val commonPlatformPersonMatchWeightApproxNine = probationPerson.copy(crn = null, sourceSystem = COMMON_PLATFORM, defendantId = defendantId, addresses = listOf(), firstName = randomName(), lastName = randomName(), middleNames = randomName(), sentences = listOf(), aliases = listOf())
 
-      val possiblyMatchingProbationPerson = createPerson(probationPerson)
-      val possiblyMatchingCommonPlatformPerson = createPerson(commonPlatformPersonMatchWeightApproxNine)
+      createPersonKey()
+        .addPerson(probationPerson)
 
       createPersonKey()
-        .addPerson(possiblyMatchingProbationPerson)
-
-      createPersonKey()
-        .addPerson(possiblyMatchingCommonPlatformPerson)
+        .addPerson(commonPlatformPersonMatchWeightApproxNine)
 
       webTestClient.get()
         .uri(matchDetailsUrl(defendantId))
