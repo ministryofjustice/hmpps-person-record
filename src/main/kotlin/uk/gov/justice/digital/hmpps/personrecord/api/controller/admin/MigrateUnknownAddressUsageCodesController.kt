@@ -43,17 +43,16 @@ class MigrateUnknownAddressUsageCodesController(
   }
 
   private inline fun forPage(page: (Page<Long>) -> Unit): ExecutionResult {
-    var pageNumber = 0
     var addresses: Page<Long>
     val elapsedTime: Duration = measureTime {
       do {
-        val pageable = PageRequest.of(pageNumber, BATCH_SIZE)
+        val pageable = PageRequest.of(0, BATCH_SIZE)
         addresses = addressRepository.findDeliusAddressIdByUnknownUsageCode(pageable)
         page(addresses)
-        log.info(JOB_NAME + "${pageNumber + 1}/${addresses.totalPages}")
-        pageNumber++
+        log.info(JOB_NAME + "Processing batch, ${addresses.totalPages} pages remaining")
       } while (addresses.hasNext())
     }
+
     return ExecutionResult(
       totalPages = addresses.totalPages,
       totalElements = addresses.totalElements,
