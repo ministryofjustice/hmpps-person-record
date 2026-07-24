@@ -191,7 +191,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
     @Test
     fun `should sort religions by start date and created date newest first`() {
       val prisonNumber = randomPrisonNumber()
-      val person = createPerson(createRandomPrisonPersonDetails(prisonNumber = prisonNumber))
+      val person = createRandomPrisonPersonDetails(prisonNumber = prisonNumber)
       createPersonKey()
         .addPerson(person)
       val now = LocalDate.now()
@@ -289,66 +289,62 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       val personOneDefendantId = randomDefendantId()
       val personTwoDefendantId = randomDefendantId()
 
-      val personOne = createPerson(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = NOMIS,
-          crn = personOneCrn,
-          prisonNumber = randomPrisonNumber(),
-          nationalities = listOf(randomNationalityCode()),
-          cId = randomCId(),
-          defendantId = personOneDefendantId,
-          masterDefendantId = personOneDefendantId,
-          references = listOf(
-            Reference(identifierType = CRO, identifierValue = personOneCro),
-            Reference(identifierType = PNC, identifierValue = personOnePnc),
-            Reference(
-              identifierType = NATIONAL_INSURANCE_NUMBER,
-              identifierValue = personOneNationalInsuranceNumber,
-            ),
-            Reference(
-              identifierType = ARREST_SUMMONS_NUMBER,
-              identifierValue = personOneArrestSummonNumber,
-            ),
-            Reference(
-              identifierType = DRIVER_LICENSE_NUMBER,
-              identifierValue = personOneDriversLicenseNumber,
-            ),
+      val personOne = Person(
+        firstName = randomName(),
+        lastName = randomName(),
+        middleNames = randomName(),
+        dateOfBirth = randomDate(),
+        sourceSystem = NOMIS,
+        crn = personOneCrn,
+        prisonNumber = randomPrisonNumber(),
+        nationalities = listOf(randomNationalityCode()),
+        cId = randomCId(),
+        defendantId = personOneDefendantId,
+        masterDefendantId = personOneDefendantId,
+        references = listOf(
+          Reference(identifierType = CRO, identifierValue = personOneCro),
+          Reference(identifierType = PNC, identifierValue = personOnePnc),
+          Reference(
+            identifierType = NATIONAL_INSURANCE_NUMBER,
+            identifierValue = personOneNationalInsuranceNumber,
+          ),
+          Reference(
+            identifierType = ARREST_SUMMONS_NUMBER,
+            identifierValue = personOneArrestSummonNumber,
+          ),
+          Reference(
+            identifierType = DRIVER_LICENSE_NUMBER,
+            identifierValue = personOneDriversLicenseNumber,
           ),
         ),
       )
 
-      val personTwo = createPerson(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = NOMIS,
-          crn = personTwoCrn,
-          prisonNumber = randomPrisonNumber(),
-          nationalities = listOf(randomNationalityCode()),
-          cId = randomCId(),
-          defendantId = personTwoDefendantId,
-          masterDefendantId = personTwoDefendantId,
-          references = listOf(
-            Reference(identifierType = CRO, identifierValue = personTwoCro),
-            Reference(identifierType = PNC, identifierValue = personTwoPnc),
-            Reference(
-              identifierType = NATIONAL_INSURANCE_NUMBER,
-              identifierValue = personTwoNationalInsuranceNumber,
-            ),
-            Reference(
-              identifierType = ARREST_SUMMONS_NUMBER,
-              identifierValue = personTwoArrestSummonNumber,
-            ),
-            Reference(
-              identifierType = DRIVER_LICENSE_NUMBER,
-              identifierValue = personTwoDriversLicenseNumber,
-            ),
+      val personTwo = Person(
+        firstName = randomName(),
+        lastName = randomName(),
+        middleNames = randomName(),
+        dateOfBirth = randomDate(),
+        sourceSystem = NOMIS,
+        crn = personTwoCrn,
+        prisonNumber = randomPrisonNumber(),
+        nationalities = listOf(randomNationalityCode()),
+        cId = randomCId(),
+        defendantId = personTwoDefendantId,
+        masterDefendantId = personTwoDefendantId,
+        references = listOf(
+          Reference(identifierType = CRO, identifierValue = personTwoCro),
+          Reference(identifierType = PNC, identifierValue = personTwoPnc),
+          Reference(
+            identifierType = NATIONAL_INSURANCE_NUMBER,
+            identifierValue = personTwoNationalInsuranceNumber,
+          ),
+          Reference(
+            identifierType = ARREST_SUMMONS_NUMBER,
+            identifierValue = personTwoArrestSummonNumber,
+          ),
+          Reference(
+            identifierType = DRIVER_LICENSE_NUMBER,
+            identifierValue = personTwoDriversLicenseNumber,
           ),
         ),
       )

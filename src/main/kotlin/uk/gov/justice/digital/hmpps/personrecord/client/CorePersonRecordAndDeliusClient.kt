@@ -38,16 +38,6 @@ class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebCl
     .retrieve()
     .bodyToMono<ProbationCase>()
 
-  fun getAddressIgnoreNotFound(deliusAddressId: Long): Address? = Address.from(
-    corePersonRecordAndDeliusWebClient
-      .get()
-      .uri("/address/{id}", deliusAddressId)
-      .retrieve()
-      .bodyToMono<ProbationAddress>()
-      .discardNotFoundException()
-      .block()!!,
-  )
-
   fun getAddress(deliusAddressId: Long): Address? = Address.from(
     corePersonRecordAndDeliusWebClient
       .get()

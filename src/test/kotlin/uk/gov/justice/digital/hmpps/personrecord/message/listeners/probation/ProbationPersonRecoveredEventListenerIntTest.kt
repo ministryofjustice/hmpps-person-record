@@ -59,7 +59,7 @@ class ProbationPersonRecoveredEventListenerIntTest : ProbationEventListenerTestB
     )
     publishProbationPersonRecoveredEvent(crn)
 
-    checkEventLogDoesNotExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
+    checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED, 0)
     checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_UPDATED, 2) // address updates only, no matching fields changed on person
 
     awaitAssert {
@@ -77,8 +77,8 @@ class ProbationPersonRecoveredEventListenerIntTest : ProbationEventListenerTestB
     stub404Response(probationUrl(crn))
     publishProbationPersonRecoveredEvent(crn)
 
-    checkEventLogDoesNotExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
-    checkEventLogDoesNotExist(crn, CPRLogEvents.CPR_RECORD_UPDATED)
+    checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED, 0)
+    checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_UPDATED, 0)
 
     awaitAssert {
       val personEntity = personRepository.findByCrn(crn)

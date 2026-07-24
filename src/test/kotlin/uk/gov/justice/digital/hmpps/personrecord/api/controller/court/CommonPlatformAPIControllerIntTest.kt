@@ -313,62 +313,59 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
 
       val personOneDefendantId = randomDefendantId()
 
-      val personOne = createPerson(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = COMMON_PLATFORM,
-          nationalities = listOf(randomNationalityCode()),
-          defendantId = personOneDefendantId,
-          masterDefendantId = personOneDefendantId,
-          references = listOf(
-            Reference(identifierType = CRO, identifierValue = personOneCro),
-            Reference(identifierType = PNC, identifierValue = personOnePnc),
-            Reference(
-              identifierType = NATIONAL_INSURANCE_NUMBER,
-              identifierValue = personOneNationalInsuranceNumber,
-            ),
-            Reference(
-              identifierType = ARREST_SUMMONS_NUMBER,
-              identifierValue = personOneArrestSummonNumber,
-            ),
-            Reference(
-              identifierType = DRIVER_LICENSE_NUMBER,
-              identifierValue = personOneDriversLicenseNumber,
-            ),
+      val personOne = Person(
+        firstName = randomName(),
+        lastName = randomName(),
+        middleNames = randomName(),
+        dateOfBirth = randomDate(),
+        sourceSystem = COMMON_PLATFORM,
+        nationalities = listOf(randomNationalityCode()),
+        defendantId = personOneDefendantId,
+        masterDefendantId = personOneDefendantId,
+        references = listOf(
+          Reference(identifierType = CRO, identifierValue = personOneCro),
+          Reference(identifierType = PNC, identifierValue = personOnePnc),
+          Reference(
+            identifierType = NATIONAL_INSURANCE_NUMBER,
+            identifierValue = personOneNationalInsuranceNumber,
+          ),
+          Reference(
+            identifierType = ARREST_SUMMONS_NUMBER,
+            identifierValue = personOneArrestSummonNumber,
+          ),
+          Reference(
+            identifierType = DRIVER_LICENSE_NUMBER,
+            identifierValue = personOneDriversLicenseNumber,
           ),
         ),
       )
 
-      val personTwo = createPerson(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = DELIUS,
-          crn = personTwoCrn,
-          nationalities = listOf(randomNationalityCode()),
-          references = listOf(
-            Reference(identifierType = CRO, identifierValue = personTwoCro),
-            Reference(identifierType = PNC, identifierValue = personTwoPnc),
-            Reference(
-              identifierType = NATIONAL_INSURANCE_NUMBER,
-              identifierValue = personTwoNationalInsuranceNumber,
-            ),
-            Reference(
-              identifierType = ARREST_SUMMONS_NUMBER,
-              identifierValue = personTwoArrestSummonNumber,
-            ),
-            Reference(
-              identifierType = DRIVER_LICENSE_NUMBER,
-              identifierValue = personTwoDriversLicenseNumber,
-            ),
+      val personTwo = Person(
+        firstName = randomName(),
+        lastName = randomName(),
+        middleNames = randomName(),
+        dateOfBirth = randomDate(),
+        sourceSystem = DELIUS,
+        crn = personTwoCrn,
+        nationalities = listOf(randomNationalityCode()),
+        references = listOf(
+          Reference(identifierType = CRO, identifierValue = personTwoCro),
+          Reference(identifierType = PNC, identifierValue = personTwoPnc),
+          Reference(
+            identifierType = NATIONAL_INSURANCE_NUMBER,
+            identifierValue = personTwoNationalInsuranceNumber,
+          ),
+          Reference(
+            identifierType = ARREST_SUMMONS_NUMBER,
+            identifierValue = personTwoArrestSummonNumber,
+          ),
+          Reference(
+            identifierType = DRIVER_LICENSE_NUMBER,
+            identifierValue = personTwoDriversLicenseNumber,
           ),
         ),
       )
+
       createPersonKey().addPerson(personOne).addPerson(personTwo)
 
       val responseBody = webTestClient.get()

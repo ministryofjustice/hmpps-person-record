@@ -327,58 +327,54 @@ class LibraApiControllerIntTest : WebTestBase() {
 
       val personOneCId = randomCId()
 
-      val personOne = createPerson(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = LIBRA,
-          nationalities = listOf(randomNationalityCode()),
-          cId = personOneCId,
-          references = listOf(
-            Reference(
-              identifierType = CRO,
-              identifierValue = personOneCro,
-            ),
-            Reference(
-              identifierType = PNC,
-              identifierValue = personOnePnc,
-            ),
+      val personOne = Person(
+        firstName = randomName(),
+        lastName = randomName(),
+        middleNames = randomName(),
+        dateOfBirth = randomDate(),
+        sourceSystem = LIBRA,
+        nationalities = listOf(randomNationalityCode()),
+        cId = personOneCId,
+        references = listOf(
+          Reference(
+            identifierType = CRO,
+            identifierValue = personOneCro,
+          ),
+          Reference(
+            identifierType = PNC,
+            identifierValue = personOnePnc,
           ),
         ),
       )
 
-      val personTwo = createPerson(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = SourceSystemType.DELIUS,
-          crn = personTwoCrn,
-          nationalities = listOf(randomNationalityCode()),
-          references = listOf(
-            Reference(
-              identifierType = CRO,
-              identifierValue = personTwoCro,
-            ),
-            Reference(
-              identifierType = PNC,
-              identifierValue = personTwoPnc,
-            ),
-            Reference(
-              identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
-              identifierValue = personTwoNationalInsuranceNumber,
-            ),
-            Reference(
-              identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
-              identifierValue = personTwoArrestSummonNumber,
-            ),
-            Reference(
-              identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
-              identifierValue = personTwoDriversLicenseNumber,
-            ),
+      val personTwo = Person(
+        firstName = randomName(),
+        lastName = randomName(),
+        middleNames = randomName(),
+        dateOfBirth = randomDate(),
+        sourceSystem = SourceSystemType.DELIUS,
+        crn = personTwoCrn,
+        nationalities = listOf(randomNationalityCode()),
+        references = listOf(
+          Reference(
+            identifierType = CRO,
+            identifierValue = personTwoCro,
+          ),
+          Reference(
+            identifierType = PNC,
+            identifierValue = personTwoPnc,
+          ),
+          Reference(
+            identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+            identifierValue = personTwoNationalInsuranceNumber,
+          ),
+          Reference(
+            identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
+            identifierValue = personTwoArrestSummonNumber,
+          ),
+          Reference(
+            identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
+            identifierValue = personTwoDriversLicenseNumber,
           ),
         ),
       )
