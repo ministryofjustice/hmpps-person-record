@@ -17,6 +17,6 @@ interface AddressRepository : JpaRepository<AddressEntity, Long> {
 
   fun findByDeliusAddressId(id: Long?): AddressEntity?
 
-  @Query("select a.deliusAddressId from AddressEntity a join a.usages u where u.usageCode = 'UNKNOWN' order by a.id desc")
+  @Query("select a.deliusAddressId from AddressEntity a join a.usages u where u.usageCode = 'UNKNOWN'")
   fun findDeliusAddressIdByUnknownUsageCode(pageable: Pageable): Page<Long>
 }
