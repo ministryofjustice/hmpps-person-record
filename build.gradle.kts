@@ -29,10 +29,6 @@ dependencies {
   implementation("software.amazon.sns:sns-extended-client:2.1.0")
   implementation("com.jayway.jsonpath:json-path:3.0.0")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
-  constraints {
-    implementation("org.webjars:swagger-ui:5.32.11")
-  }
-
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
 
   runtimeOnly("org.postgresql:postgresql:42.7.13")
