@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
+import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchDetailsResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
@@ -65,4 +66,11 @@ class PersonMatchClient(private val personMatchWebClient: WebClient) {
     .toBodilessEntity()
     .discardNotFoundException()
     .block()
+
+  fun vettingSearch(vettingSearchRequest: VettingSearchRequest) = personMatchWebClient
+    .get()
+    .uri("/person/search")
+    .retrieve()
+    .bodyToMono<List<PersonMatchScore>>()
+    .block()!!
 }
