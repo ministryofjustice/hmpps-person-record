@@ -10,4 +10,12 @@ enum class UUIDStatusType {
 
   @Deprecated("Clusters are no longer merged")
   RECLUSTER_MERGE,
+  ;
+
+  companion object {
+    fun UUIDStatusType.toVettingStatus(): String = when (this) {
+      ACTIVE -> "HIGH_CONFIDENCE_MATCH"
+      else -> "LOW_CONFIDENCE_MATCH"
+    }
+  }
 }

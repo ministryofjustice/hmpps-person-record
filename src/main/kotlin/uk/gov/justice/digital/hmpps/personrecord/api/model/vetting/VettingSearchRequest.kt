@@ -7,8 +7,8 @@ import java.time.LocalDate
 data class VettingSearchRequest(
   val fullName: String,
   val dateOfBirth: LocalDate,
-  val firstNameAliases: List<String>,
-  val lastNameAliases: List<String>,
-  val dateOfBirthAliases: List<LocalDate>,
-  val postcodes: List<String>,
+  val firstNameAliases: List<String> = emptyList(),
+  val lastNameAliases: List<String> = emptyList(),
+  val dateOfBirthAliases: List<LocalDate> = emptyList(),
+  val postcodes: List<String> = emptyList(),
 )

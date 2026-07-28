@@ -68,9 +68,11 @@ class PersonMatchClient(private val personMatchWebClient: WebClient) {
     .block()
 
   fun vettingSearch(vettingSearchRequest: VettingSearchRequest) = personMatchWebClient
-    .get()
+    .post()
     .uri("/person/search")
+    .bodyValue(vettingSearchRequest)
     .retrieve()
+    .onStatus({ it.value() == HttpStatus.NOT_FOUND.value() }) { Mono.empty() }
     .bodyToMono<List<PersonMatchScore>>()
     .block()!!
 }

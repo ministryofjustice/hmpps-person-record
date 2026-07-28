@@ -10,15 +10,15 @@ data class VettingSearchResponse(
   val name: VettingName,
   val aliases: List<Alias>,
   val addresses: List<Address>,
-  val identifiers: List<CanonicalIdentifiers>,
+  val identifiers: CanonicalIdentifiers,
   val sourceSystem: SourceSystemType,
   val status: String,
   val linkedRecords: List<VettingSearchResponse>,
 )
 
 data class VettingName(
-  val firstName: String,
-  val middleNames: String,
-  val lastName: String,
-  val dateOfBirth: LocalDate,
+  val firstName: String?,
+  val middleNames: String?,
+  val lastName: String?,
+  val dateOfBirth: LocalDate?,
 )

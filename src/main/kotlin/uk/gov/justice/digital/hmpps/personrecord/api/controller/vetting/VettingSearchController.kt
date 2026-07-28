@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingSearch
 
 @Tag(name = "Vetting Search")
 @RestController
-@Profile("dev")
+@Profile("!preprod & !prod")
 class VettingSearchController(
   private val vettingSearchHandler: VettingSearchHandler,
 ) {
@@ -37,7 +37,7 @@ class VettingSearchController(
     ),
   )
   @PreAuthorize("hasRole('$API_READ_ONLY')")
-  @GetMapping
+  @PostMapping("/person/search")
   fun vettingSearch(
     @RequestBody vettingSearchRequest: VettingSearchRequest,
   ): ResponseEntity<VettingSearchResponse> {
