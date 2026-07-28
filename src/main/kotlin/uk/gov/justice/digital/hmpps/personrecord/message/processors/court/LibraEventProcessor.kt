@@ -23,7 +23,7 @@ class LibraEventProcessor(
     val person = Person.from(libraHearingEvent)
     val personEntity = when {
       libraHearingEvent.isPerson() && person.isPerson() -> transactionalLibraProcessor.processLibraPerson(person)
-      else -> log.info("Libra event is not for a person, skipping processing for defendantType: ${libraHearingEvent.defendantType}")
+      else -> log.info("Skipping non-person Libra event with cId ${libraHearingEvent.cId} and defendantType ${libraHearingEvent.defendantType}")
         .let { null }
     }
     val updatedMessage = addCprUUIDToLibra(sqsMessage.message, personEntity)
