@@ -7,16 +7,12 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionMapping
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionSaveResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionUpdateRequest
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.generateUUIDString
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -35,11 +31,11 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
       val existingReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory(code = ReligionCode.AGNO)))
       val existingPersonEntity = personRepository.saveAndFlush(createPerson(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligionEntity.code.name }))
       val requestBody = createRandomReligionUpdateRequest()
-      val responseBody = sendPutRequestAsserted<PrisonReligionSaveResponse>(
+      sendPutRequestAsserted<Void>(
         url = prisonReligionPutEndpoint(prisonNumber, existingReligionEntity.updateId.toString()),
         body = requestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.OK,
+        expectedStatus = HttpStatus.NO_CONTENT,
       ).also { prisonReligionRepository.flush() }
 
       awaitAssert {
@@ -54,71 +50,16 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
         assertThat(actualPrisonReligion.comments).isEqualTo(requestBody.comments)
         assertThat(actualPrisonReligion.modifyDateTime).isEqualTo(requestBody.modifyDateTime)
         assertThat(actualPrisonReligion.modifyUserId).isEqualTo(requestBody.modifyUserId)
-        assertThat(actualPrisonReligion.endDate).isEqualTo(requestBody.endDate)
-        assertThat(actualPrisonReligion.prisonRecordType).isEqualTo(PrisonRecordType.from(requestBody.current))
+        assertThat(actualPrisonReligion.endDate).isEqualTo(existingReligionEntity.endDate)
+        assertThat(actualPrisonReligion.prisonRecordType).isEqualTo(existingReligionEntity.prisonRecordType)
         assertThat(actualPrisonReligion.createDateTime).isEqualTo(existingReligionEntity.createDateTime)
         assertThat(actualPrisonReligion.createUserId).isEqualTo(existingReligionEntity.createUserId)
-
-        val expectedResponseBody = PrisonReligionSaveResponse(prisonNumber, PrisonReligionMapping(requestBody.nomisReligionId, existingReligionEntity.updateId.toString()))
-        responseBody.isEqualTo(expectedResponseBody)
-      }
-    }
-
-    @Test
-    fun `prison religion exists - demoting a current religion - update prison religion`() {
-      val prisonNumber = randomPrisonNumber()
-      val existingCurrentReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory(code = ReligionCode.AGNO)))
-      val existingPersonEntity = createPerson(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingCurrentReligionEntity.code.name })
-      personRepository.saveAndFlush(existingPersonEntity)
-
-      val requestBody = createRandomReligionUpdateRequest(current = false)
-      sendPutRequestAsserted<PrisonReligionSaveResponse>(
-        url = prisonReligionPutEndpoint(prisonNumber, existingCurrentReligionEntity.updateId.toString()),
-        body = requestBody,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.OK,
-      )
-
-      awaitAssert {
-        val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
-        assertThat(actualPersonEntity.religion).isEqualTo(existingPersonEntity.religion)
-
-        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
-        assertThat(actualPrisonReligionEntities.first().prisonRecordType).isEqualTo(PrisonRecordType.HISTORIC)
       }
     }
   }
 
   @Nested
   inner class Validation {
-
-    @Test
-    fun `prison religion exists - promoting a non current religion - returns 400 bad request`() {
-      val prisonNumber = randomPrisonNumber()
-      val existingCurrentReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory(code = ReligionCode.AGNO)))
-      val existingNonCurrentReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory(current = false, code = ReligionCode.BAHA)))
-      val existingPersonEntity = createPerson(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingCurrentReligionEntity.code.name })
-      personRepository.saveAndFlush(existingPersonEntity)
-
-      val requestBody = createRandomReligionUpdateRequest(current = true)
-      sendPutRequestAsserted<Unit>(
-        url = prisonReligionPutEndpoint(prisonNumber, existingNonCurrentReligionEntity.updateId.toString()),
-        body = requestBody,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.BAD_REQUEST,
-      )
-
-      awaitAssert {
-        val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
-        assertThat(actualPersonEntity.religion).isEqualTo(existingPersonEntity.religion)
-
-        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber).associateBy { it.id }
-        assertThat(actualPrisonReligionEntities.keys).hasSize(2)
-        assertThat(actualPrisonReligionEntities[existingCurrentReligionEntity.id]).usingRecursiveComparison().isEqualTo(existingCurrentReligionEntity)
-        assertThat(actualPrisonReligionEntities[existingNonCurrentReligionEntity.id]).usingRecursiveComparison().isEqualTo(existingNonCurrentReligionEntity)
-      }
-    }
-
     @Test
     fun `prison religion does not exist - returns 404 not found`() {
       val prisonNumber = randomPrisonNumber()
@@ -161,13 +102,10 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
     }
   }
 
-  private fun createRandomReligionUpdateRequest(current: Boolean = true) = PrisonReligionUpdateRequest(
-    nomisReligionId = randomPrisonNumber(),
+  private fun createRandomReligionUpdateRequest() = PrisonReligionUpdateRequest(
     comments = randomName(),
-    endDate = randomDate(),
     modifyDateTime = randomDateTime(),
     modifyUserId = randomName(),
-    current = current,
   )
 
   private fun prisonReligionPutEndpoint(prisonNumber: String, cprReligionId: String) = "/person/prison/$prisonNumber/religion/$cprReligionId"

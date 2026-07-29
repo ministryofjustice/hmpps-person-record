@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligio
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
@@ -31,6 +32,13 @@ class PrisonReligionInsertHandler(
     prisonReligionHistory: PrisonReligionHistory,
     personEntity: PersonEntity,
   ): String {
+    prisonReligionRepository.findByPrisonNumberAndCurrentPrisonRecordType(prisonNumber)?.let { existingCurrent ->
+      existingCurrent.endDate = prisonReligionHistory.startDate
+      existingCurrent.prisonRecordType = PrisonRecordType.HISTORIC
+      existingCurrent.modifyUserId = prisonReligionHistory.createUserId
+      existingCurrent.modifyDateTime = prisonReligionHistory.createDateTime
+      prisonReligionRepository.saveAndFlush(existingCurrent)
+    }
     val prisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, prisonReligionHistory))
 
     personEntity.religion = prisonReligionHistory.religionCode.name

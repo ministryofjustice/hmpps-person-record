@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
@@ -81,14 +82,13 @@ class PrisonReligionAPIController(
     ),
   )
   @PutMapping("/{prisonNumber}/religion/{cprReligionId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
   fun updatePrisonReligion(
     @PathVariable("prisonNumber") prisonNumber: String,
     @PathVariable("cprReligionId") cprReligionId: String,
     @RequestBody requestBody: PrisonReligionUpdateRequest,
-  ): ResponseEntity<PrisonReligionSaveResponse> {
-    val prisonReligionMapping = prisonReligionUpdateHandler.handleUpdate(cprReligionId, requestBody)
-    val responseBody = PrisonReligionSaveResponse(prisonNumber, prisonReligionMapping)
-    return ResponseEntity(responseBody, HttpStatus.OK)
+  ) {
+    prisonReligionUpdateHandler.handleUpdate(cprReligionId, requestBody)
   }
 
   @Operation(
