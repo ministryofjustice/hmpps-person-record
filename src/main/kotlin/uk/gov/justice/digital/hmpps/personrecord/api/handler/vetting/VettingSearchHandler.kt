@@ -21,17 +21,18 @@ class VettingSearchHandler(
 ) {
 
   fun search(vettingSearchRequest: VettingSearchRequest): VettingSearchResponse? {
-    val matchScores = personMatchClient.vettingSearch(vettingSearchRequest)
+    val matchScores = personMatchClient.vettingSearch(vettingSearchRequest).sortedBy { it.candidateMatchProbability }
+    val matchingPersonEntities = matchScores.map { personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))!! }
     if (matchScores.isEmpty()) {
       return null
     }
 
-    val matchingPersonEntities = matchScores.map { personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))!! }
-    val strongestMatchingPerson = matchingPersonEntities.first { it.matchId.toString() == matchScores.first().candidateMatchId }
-    val weakerMatchingPersons = matchingPersonEntities.filter { it != strongestMatchingPerson }
+    val strongestMatchScore = matchScores.last()
+    val strongestMatchPerson = matchingPersonEntities.first { it.matchId.toString() == strongestMatchScore.candidateMatchId }
+    val weakestMatchPerson = matchingPersonEntities.filter { it != strongestMatchPerson }
 
-    val rootSearchResponse = toVettingSearchResponse(strongestMatchingPerson)
-    val linkedRecords = weakerMatchingPersons.map { toVettingSearchResponse(it) }
+    val rootSearchResponse = toVettingSearchResponse(strongestMatchPerson)
+    val linkedRecords = weakestMatchPerson.map { toVettingSearchResponse(it) }
     rootSearchResponse.linkedRecords = linkedRecords
     return rootSearchResponse
   }
