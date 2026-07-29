@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.handler.vetting.VettingSear
 import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingSearchResponse
 
-@Tag(name = "Vetting Search")
+@Tag(name = "Vetting")
 @RestController
 @Profile("!preprod & !prod")
 class VettingSearchController(
