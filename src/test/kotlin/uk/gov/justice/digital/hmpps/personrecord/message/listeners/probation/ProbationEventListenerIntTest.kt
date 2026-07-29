@@ -80,6 +80,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupContact
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import java.util.UUID
 
 class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
@@ -711,11 +712,32 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
   }
 
   @Test
-  fun `should not push 404 from delius API to dead letter queue but discard message instead`() {
+  fun `should retry 404 from delius API until a successful response is returned`() {
     val crn = randomCrn()
-    stub404Response(probationUrl(crn))
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+    stubGetRequest(
+      scenarioName = "retry-404",
+      currentScenarioState = "Started",
+      nextScenarioState = "request-succeeded",
+      url = probationUrl(crn),
+      body = "",
+      status = 404,
+    )
+    stubGetRequest(
+      scenarioName = "retry-404",
+      currentScenarioState = "request-succeeded",
+      nextScenarioState = "request-succeeded",
+      url = probationUrl(crn),
+      body = probationCaseResponse(ApiResponseSetup(crn = crn)),
+      status = 200,
+    )
+
     publishProbationPersonCreatedEvent(crn)
+
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+    checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
   }
 
   @Test
