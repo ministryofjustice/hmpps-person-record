@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.handler.vetting
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingMatchStatus.Companion.toVettingStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingName
 import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingSearchResponse
@@ -11,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.Companion.toVettingStatus
 import java.util.UUID
 
 @Component

@@ -5,6 +5,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import java.time.LocalDate
 
 data class VettingSearchResponse(
@@ -13,7 +15,7 @@ data class VettingSearchResponse(
   val addresses: List<Address>,
   val identifiers: List<Reference>,
   val sourceSystem: SourceSystemType,
-  val status: String,
+  val status: VettingMatchStatus,
   @field:Schema(
     example = """[{"name":{"firstName":"John","middleNames":"John","lastName":"Doe"},"aliases":[],"addresses":[],"identifiers":[],"sourceSystem":"NOMIS","status":"HIGH_CONFIDENCE_MATCH"}]""",
   )
@@ -26,3 +28,16 @@ data class VettingName(
   val lastName: String?,
   val dateOfBirth: LocalDate?,
 )
+
+enum class VettingMatchStatus {
+  HIGH_CONFIDENCE_MATCH,
+  LOW_CONFIDENCE_MATCH,
+  ;
+
+  companion object {
+    fun UUIDStatusType.toVettingStatus(): VettingMatchStatus = when (this) {
+      ACTIVE -> HIGH_CONFIDENCE_MATCH
+      else -> LOW_CONFIDENCE_MATCH
+    }
+  }
+}

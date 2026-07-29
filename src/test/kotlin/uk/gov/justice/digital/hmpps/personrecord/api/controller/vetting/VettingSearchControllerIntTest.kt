@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
+import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingMatchStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
@@ -70,7 +71,7 @@ class VettingSearchControllerIntTest : WebTestBase() {
       assertThat(strongestPersonFromResponse.name.lastName).isEqualTo(strongestPersonPrimaryPseudonym.lastName)
       assertThat(strongestPersonFromResponse.name.dateOfBirth).isEqualTo(strongestPersonPrimaryPseudonym.dateOfBirth)
       assertThat(strongestPersonFromResponse.sourceSystem).isEqualTo(strongestMatchPersonEntity.sourceSystem)
-      assertThat(strongestPersonFromResponse.status).isEqualTo("HIGH_CONFIDENCE_MATCH")
+      assertThat(strongestPersonFromResponse.status).isEqualTo(VettingMatchStatus.HIGH_CONFIDENCE_MATCH)
       assertThat(strongestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(strongestMatchPersonEntity.getAliases().map { Alias.from(it) })
       assertThat(strongestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(strongestMatchPersonEntity.references.map { Reference.from(it) })
       assertThat(strongestPersonFromResponse.addresses).hasSize(strongestMatchPersonEntity.addresses.size)
@@ -82,7 +83,7 @@ class VettingSearchControllerIntTest : WebTestBase() {
       assertThat(weakestPersonFromResponse.name.lastName).isEqualTo(weakestPersonPrimaryPseudonym.lastName)
       assertThat(weakestPersonFromResponse.name.dateOfBirth).isEqualTo(weakestPersonPrimaryPseudonym.dateOfBirth)
       assertThat(weakestPersonFromResponse.sourceSystem).isEqualTo(weakestMatchPersonEntity.sourceSystem)
-      assertThat(weakestPersonFromResponse.status).isEqualTo("HIGH_CONFIDENCE_MATCH")
+      assertThat(weakestPersonFromResponse.status).isEqualTo(VettingMatchStatus.HIGH_CONFIDENCE_MATCH)
       assertThat(weakestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(weakestMatchPersonEntity.getAliases().map { Alias.from(it) })
       assertThat(weakestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(weakestMatchPersonEntity.references.map { Reference.from(it) })
       assertThat(strongestPersonFromResponse.addresses).hasSize(weakestMatchPersonEntity.addresses.size)
