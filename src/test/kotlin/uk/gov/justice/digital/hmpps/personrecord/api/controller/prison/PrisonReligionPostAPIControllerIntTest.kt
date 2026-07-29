@@ -48,28 +48,35 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `person has existing current prison religion - does not save prison religion - return internal server error`() {
+    fun `person has existing current prison religion - saves new prison religion - updates current religion`() {
       val prisonNumber = randomPrisonNumber()
       val existingReligionEntity = PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory())
       val personEntityWithCurrentReligion = createPerson(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligionEntity.code.name })
       prisonReligionRepository.save(existingReligionEntity)
       personRepository.saveAndFlush(personEntityWithCurrentReligion)
 
-      val requestBody = createPrisonReligionHistory()
+      val requestBody = createPrisonReligionHistory().copy(startDate = existingReligionEntity.startDate.plusDays(1))
       sendPostRequestAsserted<Unit>(
         url = prisonReligionPostEndpoint(prisonNumber),
         body = requestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.INTERNAL_SERVER_ERROR,
+        expectedStatus = HttpStatus.CREATED,
       )
 
-      awaitAssert {
-        val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
-        assertThat(actualPersonEntity.religion).isEqualTo(actualPersonEntity.religion)
+      val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
+      assertThat(actualPersonEntity.religion).isEqualTo(actualPersonEntity.religion)
 
-        val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
-        assertThat(actualPrisonReligionEntities).hasSize(1)
-      }
+      val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
+      assertThat(actualPrisonReligionEntities).hasSize(2)
+      val actualPrisonReligion = actualPrisonReligionEntities.first()
+      assertThat(actualPrisonReligion.prisonRecordType).isEqualTo(PrisonRecordType.CURRENT)
+      assertPrisonReligionEntityColumns(prisonNumber, actualPrisonReligion, requestBody)
+
+      val actualPreviousPrisonReligion = actualPrisonReligionEntities[1]
+      assertThat(actualPreviousPrisonReligion.prisonRecordType).isEqualTo(PrisonRecordType.HISTORIC)
+      assertThat(actualPreviousPrisonReligion.endDate).isEqualTo(requestBody.startDate)
+      assertThat(actualPreviousPrisonReligion.modifyUserId).isEqualTo(requestBody.createUserId)
+      assertThat(actualPreviousPrisonReligion.modifyDateTime).isEqualTo(requestBody.createDateTime)
     }
 
     @Test
