@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingName
 import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
@@ -25,10 +26,18 @@ class VettingSearchHandler(
       return null
     }
 
-    val strongestPersonMatchScore = matchScores.first()
-    val personEntity = personRepository.findByMatchId(UUID.fromString(strongestPersonMatchScore.candidateMatchId))!!
-    val mainPseudonym = personEntity.pseudonyms.first { it.nameType == NameType.PRIMARY }
+    val matchingPersonEntities = matchScores.map { personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))!! }
+    val strongestMatchingPerson = matchingPersonEntities.first { it.matchId.toString() == matchScores.first().candidateMatchId }
+    val weakerMatchingPersons = matchingPersonEntities.filter { it != strongestMatchingPerson }
 
+    val rootSearchResponse = toVettingSearchResponse(strongestMatchingPerson)
+    val linkedRecords = weakerMatchingPersons.map { toVettingSearchResponse(it) }
+    rootSearchResponse.linkedRecords = linkedRecords
+    return rootSearchResponse
+  }
+
+  fun toVettingSearchResponse(personEntity: PersonEntity): VettingSearchResponse {
+    val mainPseudonym = personEntity.pseudonyms.first { it.nameType == NameType.PRIMARY }
     return VettingSearchResponse(
       name = VettingName(
         firstName = mainPseudonym.firstName,
@@ -41,7 +50,6 @@ class VettingSearchHandler(
       identifiers = CanonicalIdentifiers.from(personEntity), // TODO: this will include identifiers from other persons in the cluster? We have 'linkedRecords'?
       sourceSystem = personEntity.sourceSystem,
       status = personEntity.personKey!!.status.toVettingStatus(),
-      linkedRecords = emptyList(),
     )
   }
 }

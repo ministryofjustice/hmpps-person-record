@@ -13,7 +13,7 @@ data class VettingSearchResponse(
   val identifiers: CanonicalIdentifiers,
   val sourceSystem: SourceSystemType,
   val status: String,
-  val linkedRecords: List<VettingSearchResponse>,
+  var linkedRecords: List<VettingSearchResponse> = emptyList(),
 )
 
 data class VettingName(
