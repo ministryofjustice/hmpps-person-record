@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingSearch
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
@@ -71,6 +72,7 @@ class VettingSearchControllerIntTest : WebTestBase() {
       assertThat(strongestPersonFromResponse.sourceSystem).isEqualTo(strongestMatchPersonEntity.sourceSystem)
       assertThat(strongestPersonFromResponse.status).isEqualTo("HIGH_CONFIDENCE_MATCH")
       assertThat(strongestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(strongestMatchPersonEntity.getAliases().map { Alias.from(it) })
+      assertThat(strongestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(strongestMatchPersonEntity.references.map { Reference.from(it) })
       assertThat(strongestPersonFromResponse.addresses).hasSize(strongestMatchPersonEntity.addresses.size)
 
       val weakestPersonFromResponse = strongestPersonFromResponse.linkedRecords.first()
@@ -82,6 +84,7 @@ class VettingSearchControllerIntTest : WebTestBase() {
       assertThat(weakestPersonFromResponse.sourceSystem).isEqualTo(weakestMatchPersonEntity.sourceSystem)
       assertThat(weakestPersonFromResponse.status).isEqualTo("HIGH_CONFIDENCE_MATCH")
       assertThat(weakestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(weakestMatchPersonEntity.getAliases().map { Alias.from(it) })
+      assertThat(weakestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(weakestMatchPersonEntity.references.map { Reference.from(it) })
       assertThat(strongestPersonFromResponse.addresses).hasSize(weakestMatchPersonEntity.addresses.size)
     }
   }
