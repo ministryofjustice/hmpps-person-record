@@ -163,6 +163,27 @@ class VettingSearchControllerIntTest : WebTestBase() {
       assertThat(vettingSearchResponse.data.last().name.firstName).isEqualTo(strongestPersonFromCluster2.getPrimaryName().firstName)
       assertThat(vettingSearchResponse.data.last().linkedRecords).hasSize(1)
     }
+
+    @Test
+    fun `no matches found - should return empty list`() {
+      authSetup()
+      stubPostRequest(
+        url = "/person/search",
+        responseBody = jsonMapper.writeValueAsString(emptyList<PersonMatchScore>()),
+      )
+
+      val vettingSearchResponse = sendPostRequestAsserted<VettingSearchResponse>(
+        url = "/person/search",
+        roles = listOf(API_READ_ONLY),
+        expectedStatus = HttpStatus.OK,
+        body = VettingSearchRequest(
+          fullName = """${randomLowerCaseString()} ${randomLowerCaseString()} ${randomLowerCaseString()}""",
+          dateOfBirth = randomDate(),
+        ),
+      ).returnResult().responseBody!!
+
+      assertThat(vettingSearchResponse.data).isEmpty()
+    }
   }
 
   @Nested

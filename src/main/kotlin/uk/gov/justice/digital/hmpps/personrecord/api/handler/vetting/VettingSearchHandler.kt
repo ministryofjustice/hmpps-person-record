@@ -21,10 +21,8 @@ class VettingSearchHandler(
   private val personMatchClient: PersonMatchClient,
 ) {
 
-  fun search(vettingSearchRequest: VettingSearchRequest): VettingSearchResponse? {
+  fun search(vettingSearchRequest: VettingSearchRequest): VettingSearchResponse {
     val personMatchScoresSorted = getPersonMatchScoresSortedByMatchProbabilityDescending(vettingSearchRequest)
-    if (personMatchScoresSorted.isEmpty()) return null
-
     val strongestPersonsAcrossUniqueClusters = findStrongestPersonsAcrossUniqueClusters(personMatchScoresSorted)
     return constructSearchResult(strongestPersonsAcrossUniqueClusters)
   }
