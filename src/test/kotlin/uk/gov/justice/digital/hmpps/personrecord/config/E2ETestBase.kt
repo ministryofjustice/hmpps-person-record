@@ -48,6 +48,7 @@ class E2ETestBase : MessagingTestBase() {
     name = name.copy(firstName = randomName(), middleNames = randomName()),
     identifiers = this.identifiers.copy(cro = null),
     sentences = emptyList(),
+    dateOfBirth = randomDate(),
   )
 
   internal fun ProbationCase.withChangedMatchDetails(): ProbationCase = this.copy(
