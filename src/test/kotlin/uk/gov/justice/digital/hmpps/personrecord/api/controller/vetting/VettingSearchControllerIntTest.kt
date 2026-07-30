@@ -5,10 +5,13 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
+import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingMatchStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
@@ -39,7 +42,7 @@ class VettingSearchControllerIntTest : WebTestBase() {
         ),
         PersonMatchScore(
           candidateMatchId = weakestMatchPersonEntity.matchId.toString(),
-          candidateMatchProbability = 0.9888F,
+          candidateMatchProbability = 0.8888F,
           candidateMatchWeight = JOIN_THRESHOLD + 1,
           candidateShouldJoin = true,
           candidateShouldFracture = false,
@@ -65,27 +68,28 @@ class VettingSearchControllerIntTest : WebTestBase() {
       assertThat(vettingSearchResponse.data).hasSize(1)
       assertThat(vettingSearchResponse.data.first().linkedRecords).hasSize(1)
 
-//      assertThat(vettingSearchResponse.name.firstName).isEqualTo(strongestPersonPrimaryPseudonym.firstName)
-//      assertThat(vettingSearchResponse.name.middleNames).isEqualTo(strongestPersonPrimaryPseudonym.middleNames)
-//      assertThat(vettingSearchResponse.name.lastName).isEqualTo(strongestPersonPrimaryPseudonym.lastName)
-//      assertThat(vettingSearchResponse.name.dateOfBirth).isEqualTo(strongestPersonPrimaryPseudonym.dateOfBirth)
-//      assertThat(vettingSearchResponse.sourceSystem).isEqualTo(strongestMatchPersonEntity.sourceSystem)
-//      assertThat(vettingSearchResponse.status).isEqualTo(VettingMatchStatus.HIGH_CONFIDENCE_MATCH)
-//      assertThat(vettingSearchResponse.aliases).usingRecursiveComparison().isEqualTo(strongestMatchPersonEntity.getAliases().map { Alias.from(it) })
-//      assertThat(vettingSearchResponse.identifiers).usingRecursiveComparison().isEqualTo(strongestMatchPersonEntity.references.map { Reference.from(it) })
-//      assertThat(vettingSearchResponse.addresses).hasSize(strongestMatchPersonEntity.addresses.size)
-//
-//      val weakestPersonFromResponse = vettingSearchResponse.linkedRecords.first()
-//      val weakestPersonPrimaryPseudonym = weakestMatchPersonEntity.pseudonyms.first { it.nameType == NameType.PRIMARY }
-//      assertThat(weakestPersonFromResponse.name.firstName).isEqualTo(weakestPersonPrimaryPseudonym.firstName)
-//      assertThat(weakestPersonFromResponse.name.middleNames).isEqualTo(weakestPersonPrimaryPseudonym.middleNames)
-//      assertThat(weakestPersonFromResponse.name.lastName).isEqualTo(weakestPersonPrimaryPseudonym.lastName)
-//      assertThat(weakestPersonFromResponse.name.dateOfBirth).isEqualTo(weakestPersonPrimaryPseudonym.dateOfBirth)
-//      assertThat(weakestPersonFromResponse.sourceSystem).isEqualTo(weakestMatchPersonEntity.sourceSystem)
-//      assertThat(weakestPersonFromResponse.status).isEqualTo(VettingMatchStatus.HIGH_CONFIDENCE_MATCH)
-//      assertThat(weakestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(weakestMatchPersonEntity.getAliases().map { Alias.from(it) })
-//      assertThat(weakestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(weakestMatchPersonEntity.references.map { Reference.from(it) })
-//      assertThat(vettingSearchResponse.addresses).hasSize(weakestMatchPersonEntity.addresses.size)
+      val strongestPersonFromResponse = vettingSearchResponse.data.first()
+      assertThat(strongestPersonFromResponse.name.firstName).isEqualTo(strongestPersonPrimaryPseudonym.firstName)
+      assertThat(strongestPersonFromResponse.name.middleNames).isEqualTo(strongestPersonPrimaryPseudonym.middleNames)
+      assertThat(strongestPersonFromResponse.name.lastName).isEqualTo(strongestPersonPrimaryPseudonym.lastName)
+      assertThat(strongestPersonFromResponse.name.dateOfBirth).isEqualTo(strongestPersonPrimaryPseudonym.dateOfBirth)
+      assertThat(strongestPersonFromResponse.sourceSystem).isEqualTo(strongestMatchPersonEntity.sourceSystem)
+      assertThat(strongestPersonFromResponse.status).isEqualTo(VettingMatchStatus.HIGH_CONFIDENCE_MATCH)
+      assertThat(strongestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(strongestMatchPersonEntity.getAliases().map { Alias.from(it) })
+      assertThat(strongestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(strongestMatchPersonEntity.references.map { Reference.from(it) })
+      assertThat(strongestPersonFromResponse.addresses).hasSize(strongestMatchPersonEntity.addresses.size)
+
+      val weakestPersonFromResponse = vettingSearchResponse.data.first().linkedRecords.first()
+      val weakestPersonPrimaryPseudonym = weakestMatchPersonEntity.pseudonyms.first { it.nameType == NameType.PRIMARY }
+      assertThat(weakestPersonFromResponse.name.firstName).isEqualTo(weakestPersonPrimaryPseudonym.firstName)
+      assertThat(weakestPersonFromResponse.name.middleNames).isEqualTo(weakestPersonPrimaryPseudonym.middleNames)
+      assertThat(weakestPersonFromResponse.name.lastName).isEqualTo(weakestPersonPrimaryPseudonym.lastName)
+      assertThat(weakestPersonFromResponse.name.dateOfBirth).isEqualTo(weakestPersonPrimaryPseudonym.dateOfBirth)
+      assertThat(weakestPersonFromResponse.sourceSystem).isEqualTo(weakestMatchPersonEntity.sourceSystem)
+      assertThat(weakestPersonFromResponse.status).isEqualTo(VettingMatchStatus.HIGH_CONFIDENCE_MATCH)
+      assertThat(weakestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(weakestMatchPersonEntity.getAliases().map { Alias.from(it) })
+      assertThat(weakestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(weakestMatchPersonEntity.references.map { Reference.from(it) })
+      assertThat(weakestPersonFromResponse.addresses).hasSize(weakestMatchPersonEntity.addresses.size)
     }
 
     @Test
