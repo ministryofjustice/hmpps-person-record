@@ -111,6 +111,20 @@ class VettingSearchControllerIntTest : WebTestBase() {
 
       val personMatchScores = listOf(
         PersonMatchScore(
+          candidateMatchId = strongestPersonFromCluster2.matchId.toString(),
+          candidateMatchProbability = 0.8888F,
+          candidateMatchWeight = JOIN_THRESHOLD + 1,
+          candidateShouldJoin = true,
+          candidateShouldFracture = false,
+        ),
+        PersonMatchScore(
+          candidateMatchId = weakestPersonFromCluster2.matchId.toString(),
+          candidateMatchProbability = 0.6666F,
+          candidateMatchWeight = JOIN_THRESHOLD + 1,
+          candidateShouldJoin = true,
+          candidateShouldFracture = false,
+        ),
+        PersonMatchScore(
           candidateMatchId = strongestPersonFromCluster1.matchId.toString(),
           candidateMatchProbability = 0.9999F,
           candidateMatchWeight = JOIN_THRESHOLD + 1,
@@ -119,21 +133,7 @@ class VettingSearchControllerIntTest : WebTestBase() {
         ),
         PersonMatchScore(
           candidateMatchId = weakestPersonFromCluster1.matchId.toString(),
-          candidateMatchProbability = 0.6666F,
-          candidateMatchWeight = JOIN_THRESHOLD + 1,
-          candidateShouldJoin = true,
-          candidateShouldFracture = false,
-        ),
-        PersonMatchScore(
-          candidateMatchId = strongestPersonFromCluster2.matchId.toString(),
-          candidateMatchProbability = 0.9988F,
-          candidateMatchWeight = JOIN_THRESHOLD + 1,
-          candidateShouldJoin = true,
-          candidateShouldFracture = false,
-        ),
-        PersonMatchScore(
-          candidateMatchId = weakestPersonFromCluster2.matchId.toString(),
-          candidateMatchProbability = 0.6666F,
+          candidateMatchProbability = 0.7777F,
           candidateMatchWeight = JOIN_THRESHOLD + 1,
           candidateShouldJoin = true,
           candidateShouldFracture = false,
@@ -157,7 +157,10 @@ class VettingSearchControllerIntTest : WebTestBase() {
         ),
       ).returnResult().responseBody!!
       assertThat(vettingSearchResponse.data).hasSize(2)
+      assertThat(vettingSearchResponse.data.first().name.firstName).isEqualTo(strongestPersonFromCluster1.getPrimaryName().firstName)
       assertThat(vettingSearchResponse.data.first().linkedRecords).hasSize(1)
+
+      assertThat(vettingSearchResponse.data.last().name.firstName).isEqualTo(strongestPersonFromCluster2.getPrimaryName().firstName)
       assertThat(vettingSearchResponse.data.last().linkedRecords).hasSize(1)
     }
   }
