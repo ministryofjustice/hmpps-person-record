@@ -22,24 +22,19 @@ class VettingSearchHandler(
 ) {
 
   fun search(vettingSearchRequest: VettingSearchRequest): VettingSearchResponse {
-    val personMatchScoresSorted = getPersonMatchScoresSortedByMatchWeightDescending(vettingSearchRequest)
-    val strongestPersonsAcrossUniqueClusters = findStrongestPersonsAcrossUniqueClusters(personMatchScoresSorted)
-    return constructSearchResult(strongestPersonsAcrossUniqueClusters)
+    val personMatchScoresSortedDescending = getPersonMatchScoresSortedByMatchWeightDescending(vettingSearchRequest)
+    val strongestPersonsAcrossUniqueClusters = findStrongestPersonsAcrossUniqueClusters(personMatchScoresSortedDescending)
+    return buildSearchResult(strongestPersonsAcrossUniqueClusters)
   }
 
-  private fun getPersonMatchScoresSortedByMatchWeightDescending(vettingSearchRequest: VettingSearchRequest) = personMatchClient.vettingSearch(vettingSearchRequest).sortedByDescending { it.candidateMatchWeight }
+  private fun getPersonMatchScoresSortedByMatchWeightDescending(vettingSearchRequest: VettingSearchRequest) = personMatchClient.vettingSearch(vettingSearchRequest)
+    .sortedByDescending { it.candidateMatchWeight }
 
-  private fun findStrongestPersonsAcrossUniqueClusters(personMatchScoresSortedDescending: List<PersonMatchScore>): List<PersonEntity> {
-    val strongestPersonsInClusters = mutableMapOf<Long, PersonEntity>()
-    personMatchScoresSortedDescending.forEach {
-      val personEntity = personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))!!
-      if (strongestPersonsInClusters.contains(personEntity.personKey!!.id!!)) return@forEach
-      strongestPersonsInClusters[personEntity.personKey!!.id!!] = personEntity
-    }
-    return strongestPersonsInClusters.values.toList()
-  }
+  private fun findStrongestPersonsAcrossUniqueClusters(personMatchScoresSortedDescending: List<PersonMatchScore>) = personMatchScoresSortedDescending
+    .map { personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))!! }
+    .distinctBy { it.personKey!!.id!! }
 
-  private fun constructSearchResult(personEntities: List<PersonEntity>): VettingSearchResponse {
+  private fun buildSearchResult(personEntities: List<PersonEntity>): VettingSearchResponse {
     val searchDataOrderedByMatchProbability = personEntities.map { personEntity ->
       val rootPersonData = toVettingSearchData(personEntity)
       val childPersonData = personEntity.personKey!!.personEntities
