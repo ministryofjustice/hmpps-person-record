@@ -34,16 +34,16 @@ class VettingSearchControllerIntTest : WebTestBase() {
 
       val personMatchScores = listOf(
         PersonMatchScore(
-          candidateMatchId = strongestMatchPersonEntity.matchId.toString(),
+          candidateMatchId = weakestMatchPersonEntity.matchId.toString(),
           candidateMatchProbability = 0.9999F,
-          candidateMatchWeight = JOIN_THRESHOLD + 1,
+          candidateMatchWeight = 24.0000F,
           candidateShouldJoin = true,
           candidateShouldFracture = false,
         ),
         PersonMatchScore(
-          candidateMatchId = weakestMatchPersonEntity.matchId.toString(),
-          candidateMatchProbability = 0.8888F,
-          candidateMatchWeight = JOIN_THRESHOLD + 1,
+          candidateMatchId = strongestMatchPersonEntity.matchId.toString(),
+          candidateMatchProbability = 0.9999F,
+          candidateMatchWeight = 90.0000F,
           candidateShouldJoin = true,
           candidateShouldFracture = false,
         ),
@@ -112,29 +112,29 @@ class VettingSearchControllerIntTest : WebTestBase() {
       val personMatchScores = listOf(
         PersonMatchScore(
           candidateMatchId = strongestPersonFromCluster2.matchId.toString(),
-          candidateMatchProbability = 0.8888F,
-          candidateMatchWeight = JOIN_THRESHOLD + 1,
+          candidateMatchProbability = 0.9999F,
+          candidateMatchWeight = 80.0000F,
           candidateShouldJoin = true,
           candidateShouldFracture = false,
         ),
         PersonMatchScore(
           candidateMatchId = weakestPersonFromCluster2.matchId.toString(),
-          candidateMatchProbability = 0.6666F,
-          candidateMatchWeight = JOIN_THRESHOLD + 1,
+          candidateMatchProbability = 0.9999F,
+          candidateMatchWeight = 60.0000F,
+          candidateShouldJoin = true,
+          candidateShouldFracture = false,
+        ),
+        PersonMatchScore(
+          candidateMatchId = weakestPersonFromCluster1.matchId.toString(),
+          candidateMatchProbability = 0.9999F,
+          candidateMatchWeight = 50.0000F,
           candidateShouldJoin = true,
           candidateShouldFracture = false,
         ),
         PersonMatchScore(
           candidateMatchId = strongestPersonFromCluster1.matchId.toString(),
           candidateMatchProbability = 0.9999F,
-          candidateMatchWeight = JOIN_THRESHOLD + 1,
-          candidateShouldJoin = true,
-          candidateShouldFracture = false,
-        ),
-        PersonMatchScore(
-          candidateMatchId = weakestPersonFromCluster1.matchId.toString(),
-          candidateMatchProbability = 0.7777F,
-          candidateMatchWeight = JOIN_THRESHOLD + 1,
+          candidateMatchWeight = 90.0000F,
           candidateShouldJoin = true,
           candidateShouldFracture = false,
         ),

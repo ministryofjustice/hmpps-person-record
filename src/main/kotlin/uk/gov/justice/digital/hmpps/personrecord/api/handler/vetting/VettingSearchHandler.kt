@@ -22,12 +22,12 @@ class VettingSearchHandler(
 ) {
 
   fun search(vettingSearchRequest: VettingSearchRequest): VettingSearchResponse {
-    val personMatchScoresSorted = getPersonMatchScoresSortedByMatchProbabilityDescending(vettingSearchRequest)
+    val personMatchScoresSorted = getPersonMatchScoresSortedByMatchWeightDescending(vettingSearchRequest)
     val strongestPersonsAcrossUniqueClusters = findStrongestPersonsAcrossUniqueClusters(personMatchScoresSorted)
     return constructSearchResult(strongestPersonsAcrossUniqueClusters)
   }
 
-  private fun getPersonMatchScoresSortedByMatchProbabilityDescending(vettingSearchRequest: VettingSearchRequest) = personMatchClient.vettingSearch(vettingSearchRequest).sortedByDescending { it.candidateMatchProbability }
+  private fun getPersonMatchScoresSortedByMatchWeightDescending(vettingSearchRequest: VettingSearchRequest) = personMatchClient.vettingSearch(vettingSearchRequest).sortedByDescending { it.candidateMatchWeight }
 
   private fun findStrongestPersonsAcrossUniqueClusters(personMatchScoresSortedDescending: List<PersonMatchScore>): List<PersonEntity> {
     val strongestPersonsInClusters = mutableMapOf<Long, PersonEntity>()
