@@ -1,0 +1,152 @@
+openapi: 3.0.3
+info:
+  title: CPR Refernece data
+  version: 1.0.0
+  description: Collection of APIs for CPR reference data
+
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/ftl/Syscon-Person-Religion-API/1.0.0
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/ftl/Person-Religion-API/1.0.0
+  - url: https://api.yourdomain.tld
+
+tags:
+  - name: CPR Reference data APIs
+    description: Collection of endpoints for CDPS-CPR API.
+
+paths:
+  /person/reference-data/type/{type}:
+    get:
+      summary: Get reference data by type
+      operationId: getReferenceDataByType
+
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            example: religion
+
+        - name: page
+          in: query
+          required: false
+          description: Page number (0-based)
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+
+        - name: size
+          in: query
+          required: false
+          description: Number of records per page
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+
+      responses:
+        '200':
+          description: Reference data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferenceDataResponse'
+
+components:
+  schemas:
+
+    ReferenceDataResponse:
+      type: object
+      properties:
+        type:
+          type: string
+          example: religion
+
+        pagination:
+          $ref: '#/components/schemas/PaginationMetadata'
+
+        values:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReferenceDataItem'
+
+      required:
+        - type
+        - pagination
+        - values
+
+    PaginationMetadata:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 0
+
+        size:
+          type: integer
+          example: 20
+
+        totalCount:
+          type: integer
+          example: 125
+
+        totalPages:
+          type: integer
+          example: 7
+
+        hasNext:
+          type: boolean
+          example: true
+
+        hasPrevious:
+          type: boolean
+          example: false
+
+      required:
+        - page
+        - size
+        - totalCount
+        - totalPages
+        - hasNext
+        - hasPrevious
+
+    ReferenceDataItem:
+      type: object
+      properties:
+        code:
+          type: string
+          example: ADV
+          description: Reference data code
+
+        description:
+          type: string
+          example: Adventist
+          description: Reference data description
+
+        active:
+          type: boolean
+          example: false
+          description: Indicates whether the reference data value is active
+
+      required:
+        - code
+        - description
+        - active
+
+    # ---------- Common Error ----------
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 404
+        error:
+          type: string
+          example: Not Found
+        message:
+          type: string
+          example: "CPR religion not found"
