@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.handler.prison
 
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
@@ -11,6 +12,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.religion.ReligionCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
@@ -18,6 +21,7 @@ class PrisonReligionInsertHandler(
   private val prisonReligionRepository: PrisonReligionRepository,
   private val personRepository: PersonRepository,
   private val personService: PersonService,
+  private val publisher: ApplicationEventPublisher,
 ) {
 
   @Transactional
@@ -40,8 +44,8 @@ class PrisonReligionInsertHandler(
       prisonReligionRepository.saveAndFlush(existingCurrent)
     }
     val prisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, prisonReligionHistory))
-
     personEntity.religion = prisonReligionHistory.religionCode
+    publisher.publishEvent(ReligionCreated(DomainEventSource.NOMIS, prisonReligionEntity))
     personService.processPerson(Person.from(personEntity)) { personEntity }
     return prisonReligionEntity.updateId.toString()
   }
