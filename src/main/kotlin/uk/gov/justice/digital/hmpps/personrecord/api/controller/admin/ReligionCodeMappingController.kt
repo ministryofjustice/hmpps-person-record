@@ -18,13 +18,23 @@ class ReligionCodeMappingController(
 
   private val religionCodesByOldCodes = ReligionCode.entries.associateBy { it.description }
 
+  private val alternativeCodesByNewCodes = mapOf(
+    "Christian" to ReligionCode.CHRST,
+    "Church of England (Anglican)" to ReligionCode.COFE,
+    "Roman Catholic" to ReligionCode.RC,
+    "No Religion" to ReligionCode.NIL,
+  )
+
   @PutMapping("/admin/religion-code-mappings")
   @Transactional
   suspend fun mapOldReligionCodes() {
     CoroutineScope(Dispatchers.Default).launch {
       val personsWithOldReligionCodes = personRepository.findAllPersonsWithOldReligionCodes()
-      personsWithOldReligionCodes.forEach {
-        it.religion = religionCodesByOldCodes.getOrDefault(it.religion, null)?.name
+      personsWithOldReligionCodes.forEach { personEntity ->
+        val religionCode = religionCodesByOldCodes[personEntity.religion] ?: alternativeCodesByNewCodes[personEntity.religion]
+        if (religionCode != null) {
+          personEntity.religion = religionCode.name
+        }
       }
       personRepository.saveAll(personsWithOldReligionCodes)
     }
