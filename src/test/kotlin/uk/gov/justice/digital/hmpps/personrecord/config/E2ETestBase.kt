@@ -45,8 +45,10 @@ class E2ETestBase : MessagingTestBase() {
   Remove matching fields to reduce match weight below the join threshold but keep above fracture threshold
    */
   internal fun ProbationCase.aboveFracture(): ProbationCase = this.copy(
-    name = name.copy(firstName = randomName()),
-    identifiers = this.identifiers.copy(pnc = null, cro = null),
+    name = name.copy(firstName = randomName(), middleNames = randomName()),
+    identifiers = this.identifiers.copy(cro = null),
+    sentences = emptyList(),
+    dateOfBirth = randomDate(),
   )
 
   internal fun ProbationCase.withChangedMatchDetails(): ProbationCase = this.copy(
