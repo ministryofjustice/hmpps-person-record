@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.VETTING_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingMatchStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingReference
@@ -58,7 +58,7 @@ class VettingSearchControllerIntTest : WebTestBase() {
       val strongestPersonPrimaryPseudonym = strongestMatchPersonEntity.pseudonyms.first { it.nameType == NameType.PRIMARY }
       val vettingSearchResponse = sendPostRequestAsserted<VettingSearchResponse>(
         url = "/person/search",
-        roles = listOf(API_READ_ONLY),
+        roles = listOf(VETTING_READ_ONLY),
         expectedStatus = HttpStatus.OK,
         body = VettingSearchRequest(
           fullName = """${strongestPersonPrimaryPseudonym.firstName} ${strongestPersonPrimaryPseudonym.middleNames} ${strongestPersonPrimaryPseudonym.lastName}""",
@@ -149,7 +149,7 @@ class VettingSearchControllerIntTest : WebTestBase() {
       val search = strongestPersonFromCluster1.pseudonyms.first { it.nameType == NameType.PRIMARY }
       val vettingSearchResponse = sendPostRequestAsserted<VettingSearchResponse>(
         url = "/person/search",
-        roles = listOf(API_READ_ONLY),
+        roles = listOf(VETTING_READ_ONLY),
         expectedStatus = HttpStatus.OK,
         body = VettingSearchRequest(
           fullName = """${search.firstName} ${search.middleNames} ${search.lastName}""",
@@ -174,7 +174,7 @@ class VettingSearchControllerIntTest : WebTestBase() {
 
       val vettingSearchResponse = sendPostRequestAsserted<VettingSearchResponse>(
         url = "/person/search",
-        roles = listOf(API_READ_ONLY),
+        roles = listOf(VETTING_READ_ONLY),
         expectedStatus = HttpStatus.OK,
         body = VettingSearchRequest(
           fullName = """${randomLowerCaseString()} ${randomLowerCaseString()} ${randomLowerCaseString()}""",
