@@ -24,7 +24,7 @@ class ReligionCodeMappingController(
     CoroutineScope(Dispatchers.Default).launch {
       val personsWithOldReligionCodes = personRepository.findAllPersonsWithOldReligionCodes()
       personsWithOldReligionCodes.forEach {
-        it.religion = religionCodesByOldCodes[it.religion!!]!!.name
+        it.religion = religionCodesByOldCodes.getOrDefault(it.religion, null)?.name
       }
       personRepository.saveAll(personsWithOldReligionCodes)
     }
