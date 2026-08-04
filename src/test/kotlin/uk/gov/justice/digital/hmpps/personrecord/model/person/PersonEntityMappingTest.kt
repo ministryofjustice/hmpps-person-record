@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -121,7 +122,7 @@ class PersonEntityMappingTest {
     birthCountryCode = randomCountryCode(),
     nationalities = mutableListOf(NationalityEntity(nationalityCode = NationalityCode.CDR)),
     nationalityNotes = randomName(),
-    religion = randomReligion(),
+    religion = ReligionCode.valueOf(randomReligion()),
     sexualOrientation = SexualOrientation.fromPrison(randomPrisonSexualOrientation().key),
     ethnicityCode = randomPrisonEthnicityCode(),
     genderIdentity = GenderIdentityCode.GISD,

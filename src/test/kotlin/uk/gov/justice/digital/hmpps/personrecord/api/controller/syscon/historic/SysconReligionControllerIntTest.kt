@@ -220,7 +220,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
 
     val expectedCurrReligion = requestBody.first { it.current }
-    assertThat(personEntity.religion).isEqualTo(expectedCurrReligion.religionCode.name)
+    assertThat(personEntity.religion).isEqualTo(expectedCurrReligion.religionCode)
     assertThat(actualReligionEntities.size).isEqualTo(requestBody.size)
 
     actualResponseBody.religionMappings.forEach { res ->
