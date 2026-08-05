@@ -37,6 +37,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
@@ -70,7 +71,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientat
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
@@ -99,7 +99,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         val endDateTime = randomZonedDateTime()
         val postcode = randomPostcode()
         val nationality = randomNationalityCode()
-        val religion = randomReligion()
+        val religion = ReligionCode.entries.random()
         val ethnicity = randomCommonPlatformEthnicity()
         val primarySex = randomProbationSexCode()
         val aliasSex1 = randomProbationSexCode()
@@ -138,7 +138,7 @@ class ProbationApiE2ETest : E2ETestBase() {
             sexualOrientation = sexualOrientation,
             prisonNumber = prisonNumber,
             nationalities = listOf(nationality),
-            religion = religion,
+            religion = religion.name,
             ethnicityCode = EthnicityCode.fromCommonPlatform(ethnicity),
             aliases = listOf(
               Alias(
@@ -232,7 +232,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           comment = comment,
           usages = listOf(CanonicalAddressUsage(CanonicalAddressUsageCode.from(addressUsageCode), isActive)),
         )
-        val canonicalReligion = CanonicalReligion(code = religion, description = religion)
+        val canonicalReligion = CanonicalReligion(code = religion.name, description = religion.description)
         val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromProbation(ethnicity))
         assertThat(responseBody.cprUUID).isNull()
         assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)

@@ -264,7 +264,7 @@ data class Person(
       masterDefendantId = existingPersonEntity.masterDefendantId,
       nationalities = existingPersonEntity.nationalities.map { it.nationalityCode },
       nationalityNotes = existingPersonEntity.nationalityNotes,
-      religion = existingPersonEntity.religion,
+      religion = existingPersonEntity.religion?.name,
       ethnicityCode = existingPersonEntity.ethnicityCode,
       contacts = existingPersonEntity.contacts.map { Contact.from(it) },
       addresses = existingPersonEntity.addresses.map { Address.from(it) },
