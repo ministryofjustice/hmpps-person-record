@@ -169,5 +169,5 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
     assertThat(actual.modifyUserId).isEqualTo(expected.modifyUserId)
   }
 
-  private fun prisonReligionPostEndpoint(prisonNumber: String) = "/person/prison/$prisonNumber/religion"
+  private fun prisonReligionPostEndpoint(prisonNumber: String) = "/syscon-sync/person/$prisonNumber/religion"
 }
