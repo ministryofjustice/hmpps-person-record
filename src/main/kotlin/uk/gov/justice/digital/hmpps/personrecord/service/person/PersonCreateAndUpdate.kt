@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDateTime
@@ -43,7 +44,7 @@ private fun PersonEntity.fieldsToUpdate(person: Person) {
   this.crn = person.crn
   this.prisonNumber = person.prisonNumber
   this.masterDefendantId = person.masterDefendantId
-  this.religion = person.religion
+  this.religion = person.religion?.let { ReligionCode.valueOf(it) }
   this.cId = person.cId
   this.sexualOrientation = person.sexualOrientation
   this.lastModified = LocalDateTime.now()
@@ -64,7 +65,7 @@ private fun PersonEntity.fieldsToUpdateProbation(person: Person) {
   this.crn = person.crn
   this.prisonNumber = person.prisonNumber
   this.masterDefendantId = person.masterDefendantId
-  this.religion = person.religion
+  this.religion = person.religion?.let { ReligionCode.valueOf(it) }
   this.cId = person.cId
   this.sexualOrientation = person.sexualOrientation
   this.lastModified = LocalDateTime.now()

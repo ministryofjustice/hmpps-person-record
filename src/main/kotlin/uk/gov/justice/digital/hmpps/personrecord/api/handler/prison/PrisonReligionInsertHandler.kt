@@ -41,7 +41,7 @@ class PrisonReligionInsertHandler(
     }
     val prisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, prisonReligionHistory))
 
-    personEntity.religion = prisonReligionHistory.religionCode.name
+    personEntity.religion = prisonReligionHistory.religionCode
     personService.processPerson(Person.from(personEntity)) { personEntity }
     return prisonReligionEntity.updateId.toString()
   }

@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
@@ -186,7 +187,7 @@ class PrisonEventListenerIntTest : PrisonEventListenerTestBase() {
     @Test
     fun `should receive the message successfully when prisoner updated event published`() {
       val prisonNumber = randomPrisonNumber()
-      val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = randomReligion() })
+      val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = ReligionCode.valueOf(randomReligion()) })
 
       val updatedFirstName = randomName()
       val ethnicity = randomPrisonEthnicity()
