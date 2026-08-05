@@ -52,7 +52,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
@@ -110,7 +110,7 @@ class CanonicalApiIntTest : WebTestBase() {
         sexualOrientation = sexualOrientation,
         prisonNumber = prisonNumber,
         nationalities = listOf(nationality),
-        religion = religion.name,
+        religion = religion,
         cId = cid,
         ethnicityCode = EthnicityCode.fromPrison(ethnicity),
         defendantId = defendantId,
@@ -468,7 +468,7 @@ class CanonicalApiIntTest : WebTestBase() {
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
         nationalities = listOf(randomNationalityCode()),
-        religion = randomReligion(),
+        religion = randomReligionCode(),
         masterDefendantId = randomDefendantId(),
       ),
     )

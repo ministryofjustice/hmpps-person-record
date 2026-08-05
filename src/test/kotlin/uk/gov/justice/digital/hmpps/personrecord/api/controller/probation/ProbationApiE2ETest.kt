@@ -138,7 +138,7 @@ class ProbationApiE2ETest : E2ETestBase() {
             sexualOrientation = sexualOrientation,
             prisonNumber = prisonNumber,
             nationalities = listOf(nationality),
-            religion = religion.name,
+            religion = religion,
             ethnicityCode = EthnicityCode.fromCommonPlatform(ethnicity),
             aliases = listOf(
               Alias(
