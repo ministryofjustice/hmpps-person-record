@@ -20,25 +20,23 @@ class PrisonReligionEventPublisher(
 ) : ReligionEventPublisher {
   override val sourceSystemType = SourceSystemType.NOMIS
   override fun onCreate(religionCreated: ReligionCreated) = with(religionCreated.prisonReligionEntity) {
-    val personNumber = prisonNumber
     domainEventPublisher.publish(
       CprReligionCreated(
         eventType = CPR_PRISON_RELIGION_CREATED,
         description = "A religion has been created for a person",
         cprReligionId = religionCreated.prisonReligionEntity.updateId!!,
-        personReference = PersonReference(identifiers = listOf(PersonIdentifier("prisonNumber", personNumber))),
+        personReference = PersonReference(identifiers = listOf(PersonIdentifier("NOMS", prisonNumber))),
       ),
       attributes = mapOf("eventSource" to religionCreated.domainEventSource.identifier),
     )
   }
   override fun onUpdate(religionUpdated: ReligionUpdated) = with(religionUpdated.prisonReligionEntity) {
-    val personNumber = prisonNumber
     domainEventPublisher.publish(
       CprReligionUpdated(
         eventType = CPR_PRISON_RELIGION_UPDATED,
         description = "A religion has been updated for a person",
         cprReligionId = religionUpdated.prisonReligionEntity.updateId!!,
-        personReference = PersonReference(identifiers = listOf(PersonIdentifier("prisonNumber", personNumber))),
+        personReference = PersonReference(identifiers = listOf(PersonIdentifier("NOMS", prisonNumber))),
       ),
       attributes = mapOf("eventSource" to religionUpdated.domainEventSource.identifier),
     )
