@@ -13,12 +13,12 @@ class ReligionEventListener(religionEventPublishers: List<ReligionEventPublisher
   private val publishersBySourceSystem = religionEventPublishers.associateBy { it.sourceSystemType }
 
   @TransactionalEventListener
-  fun onReligionUpdated(religionCreated: ReligionCreated) {
+  fun onReligionCreated(religionCreated: ReligionCreated) {
     publishersBySourceSystem[SourceSystemType.NOMIS]?.onCreate(religionCreated)
   }
 
   @TransactionalEventListener
-  fun onAddressUpdated(religionUpdated: ReligionUpdated) {
+  fun onReligionUpdated(religionUpdated: ReligionUpdated) {
     publishersBySourceSystem[SourceSystemType.NOMIS]?.onUpdate(religionUpdated)
   }
 }

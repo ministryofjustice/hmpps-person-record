@@ -48,11 +48,11 @@ class ReligionDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
     assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(NOMIS.identifier))
     val domainEvent: CprReligionCreated = jsonMapper.readValue<CprReligionCreated>(sqsMessage.message)
     assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_RELIGION_CREATED)
-    assertThat(domainEvent.description).isEqualTo("A religion has been created for a person")
-    assertThat(domainEvent.cprReligionId.toString()).isEqualTo(cprReligionId)
+    assertThat(domainEvent.description).isEqualTo("A prison religion has been created for a person")
+    assertThat(domainEvent.additionalInformation.cprReligionId.toString()).isEqualTo(cprReligionId)
     assertThat(domainEvent.occurredAt).isNotNull()
     assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
-    assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("NOMS")
+    assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("prisonNumber")
     assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(prisonNumber)
   }
 
@@ -80,10 +80,10 @@ class ReligionDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
     val domainEvent: CprReligionUpdated = jsonMapper.readValue<CprReligionUpdated>(sqsMessage.message)
     assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_RELIGION_UPDATED)
     assertThat(domainEvent.description).isEqualTo("A religion has been updated for a person")
-    assertThat(domainEvent.cprReligionId.toString()).isEqualTo(existingReligionEntity.updateId.toString())
+    assertThat(domainEvent.additionalInformation.cprReligionId.toString()).isEqualTo(existingReligionEntity.updateId.toString())
     assertThat(domainEvent.occurredAt).isNotNull()
     assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
-    assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("NOMS")
+    assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("prisonNumber")
     assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(prisonNumber)
   }
 }
