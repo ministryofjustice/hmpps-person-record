@@ -80,8 +80,8 @@ enum class ReligionCode(val description: String, val current: Boolean) {
   ;
 
   companion object {
-    fun fromProbation(code: String?): String? = PROBATION_RELIGION_CODE_MAPPING[code]?.let {
-      return it.name
+    fun fromProbation(code: String?): ReligionCode? = PROBATION_RELIGION_CODE_MAPPING[code]?.let {
+      return it
     }
   }
 }
