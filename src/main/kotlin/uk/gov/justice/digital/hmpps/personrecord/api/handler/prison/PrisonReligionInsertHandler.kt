@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.religion.ReligionCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
@@ -45,7 +46,7 @@ class PrisonReligionInsertHandler(
     }
     val prisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, prisonReligionHistory))
     personEntity.religion = prisonReligionHistory.religionCode
-    publisher.publishEvent(ReligionCreated(DomainEventSource.NOMIS, prisonReligionEntity))
+    publisher.publishEvent(ReligionCreated(DomainEventSource.NOMIS, prisonReligionEntity, SourceSystemType.NOMIS))
     personService.processPerson(Person.from(personEntity)) { personEntity }
     return prisonReligionEntity.updateId.toString()
   }

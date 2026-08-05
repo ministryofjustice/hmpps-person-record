@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.Resou
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionUpdateRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.religion.ReligionUpdated
 import java.util.UUID
@@ -31,7 +32,7 @@ class PrisonReligionUpdateHandler(private val prisonReligionRepository: PrisonRe
     existingPrisonReligion.modifyDateTime = updateRequest.modifyDateTime
     existingPrisonReligion.modifyUserId = updateRequest.modifyUserId
     val prisonReligionEntity = prisonReligionRepository.save(existingPrisonReligion)
-    publisher.publishEvent(ReligionUpdated(DomainEventSource.NOMIS, prisonReligionEntity))
+    publisher.publishEvent(ReligionUpdated(DomainEventSource.NOMIS, prisonReligionEntity, SourceSystemType.NOMIS))
     return prisonReligionEntity
   }
 }

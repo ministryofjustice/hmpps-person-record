@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listen
 
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.religion.ReligionCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.religion.ReligionUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.ReligionEventPublisher
@@ -14,11 +13,11 @@ class ReligionEventListener(religionEventPublishers: List<ReligionEventPublisher
 
   @TransactionalEventListener
   fun onReligionCreated(religionCreated: ReligionCreated) {
-    publishersBySourceSystem[SourceSystemType.NOMIS]?.onCreate(religionCreated)
+    publishersBySourceSystem[religionCreated.sourceSystemType]?.onCreate(religionCreated)
   }
 
   @TransactionalEventListener
   fun onReligionUpdated(religionUpdated: ReligionUpdated) {
-    publishersBySourceSystem[SourceSystemType.NOMIS]?.onUpdate(religionUpdated)
+    publishersBySourceSystem[religionUpdated.sourceSystemType]?.onUpdate(religionUpdated)
   }
 }
