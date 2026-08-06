@@ -108,5 +108,5 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
     modifyUserId = randomName(),
   )
 
-  private fun prisonReligionPutEndpoint(prisonNumber: String, cprReligionId: String) = "/person/prison/$prisonNumber/religion/$cprReligionId"
+  private fun prisonReligionPutEndpoint(prisonNumber: String, cprReligionId: String) = "/syscon-sync/person/$prisonNumber/religion/$cprReligionId"
 }
