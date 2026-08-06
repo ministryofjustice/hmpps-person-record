@@ -1,15 +1,15 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller.vetting
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.search
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_SEARCH_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingAlias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingMatchStatus
-import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingReference
-import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingSearchRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.vetting.VettingSearchResponse
+import uk.gov.justice.digital.hmpps.personrecord.api.model.search.PersonSearchRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.search.PersonSearchResponse
+import uk.gov.justice.digital.hmpps.personrecord.api.model.search.SearchAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.search.SearchMatchStatus
+import uk.gov.justice.digital.hmpps.personrecord.api.model.search.SearchReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
-class VettingSearchControllerIntTest : WebTestBase() {
+class PersonSearchControllerIntTest : WebTestBase() {
 
   @Nested
   inner class Success {
@@ -56,39 +56,39 @@ class VettingSearchControllerIntTest : WebTestBase() {
       )
 
       val strongestPersonPrimaryPseudonym = strongestMatchPersonEntity.pseudonyms.first { it.nameType == NameType.PRIMARY }
-      val vettingSearchResponse = sendPostRequestAsserted<VettingSearchResponse>(
+      val personSearchResponse = sendPostRequestAsserted<PersonSearchResponse>(
         url = "/person/search",
         roles = listOf(API_SEARCH_ONLY),
         expectedStatus = HttpStatus.OK,
-        body = VettingSearchRequest(
+        body = PersonSearchRequest(
           fullName = """${strongestPersonPrimaryPseudonym.firstName} ${strongestPersonPrimaryPseudonym.middleNames} ${strongestPersonPrimaryPseudonym.lastName}""",
           dateOfBirth = strongestPersonPrimaryPseudonym.dateOfBirth!!,
         ),
       ).returnResult().responseBody!!
-      assertThat(vettingSearchResponse.data).hasSize(1)
-      assertThat(vettingSearchResponse.data.first().linkedRecords).hasSize(1)
+      assertThat(personSearchResponse.data).hasSize(1)
+      assertThat(personSearchResponse.data.first().linkedRecords).hasSize(1)
 
-      val strongestPersonFromResponse = vettingSearchResponse.data.first()
+      val strongestPersonFromResponse = personSearchResponse.data.first()
       assertThat(strongestPersonFromResponse.name.firstName).isEqualTo(strongestPersonPrimaryPseudonym.firstName)
       assertThat(strongestPersonFromResponse.name.middleNames).isEqualTo(strongestPersonPrimaryPseudonym.middleNames)
       assertThat(strongestPersonFromResponse.name.lastName).isEqualTo(strongestPersonPrimaryPseudonym.lastName)
       assertThat(strongestPersonFromResponse.name.dateOfBirth).isEqualTo(strongestPersonPrimaryPseudonym.dateOfBirth)
       assertThat(strongestPersonFromResponse.sourceSystem).isEqualTo(strongestMatchPersonEntity.sourceSystem)
-      assertThat(strongestPersonFromResponse.status).isEqualTo(VettingMatchStatus.HIGH_CONFIDENCE_MATCH)
-      assertThat(strongestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(strongestMatchPersonEntity.getAliases().map { VettingAlias.from(it) })
-      assertThat(strongestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(strongestMatchPersonEntity.references.map { VettingReference.from(it) })
+      assertThat(strongestPersonFromResponse.status).isEqualTo(SearchMatchStatus.HIGH_CONFIDENCE_MATCH)
+      assertThat(strongestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(strongestMatchPersonEntity.getAliases().map { SearchAlias.from(it) })
+      assertThat(strongestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(strongestMatchPersonEntity.references.map { SearchReference.from(it) })
       assertThat(strongestPersonFromResponse.addresses).hasSize(strongestMatchPersonEntity.addresses.size)
 
-      val weakestPersonFromResponse = vettingSearchResponse.data.first().linkedRecords.first()
+      val weakestPersonFromResponse = personSearchResponse.data.first().linkedRecords.first()
       val weakestPersonPrimaryPseudonym = weakestMatchPersonEntity.pseudonyms.first { it.nameType == NameType.PRIMARY }
       assertThat(weakestPersonFromResponse.name.firstName).isEqualTo(weakestPersonPrimaryPseudonym.firstName)
       assertThat(weakestPersonFromResponse.name.middleNames).isEqualTo(weakestPersonPrimaryPseudonym.middleNames)
       assertThat(weakestPersonFromResponse.name.lastName).isEqualTo(weakestPersonPrimaryPseudonym.lastName)
       assertThat(weakestPersonFromResponse.name.dateOfBirth).isEqualTo(weakestPersonPrimaryPseudonym.dateOfBirth)
       assertThat(weakestPersonFromResponse.sourceSystem).isEqualTo(weakestMatchPersonEntity.sourceSystem)
-      assertThat(weakestPersonFromResponse.status).isEqualTo(VettingMatchStatus.HIGH_CONFIDENCE_MATCH)
-      assertThat(weakestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(weakestMatchPersonEntity.getAliases().map { VettingAlias.from(it) })
-      assertThat(weakestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(weakestMatchPersonEntity.references.map { VettingReference.from(it) })
+      assertThat(weakestPersonFromResponse.status).isEqualTo(SearchMatchStatus.HIGH_CONFIDENCE_MATCH)
+      assertThat(weakestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(weakestMatchPersonEntity.getAliases().map { SearchAlias.from(it) })
+      assertThat(weakestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(weakestMatchPersonEntity.references.map { SearchReference.from(it) })
       assertThat(weakestPersonFromResponse.addresses).hasSize(weakestMatchPersonEntity.addresses.size)
     }
 
@@ -147,21 +147,21 @@ class VettingSearchControllerIntTest : WebTestBase() {
       )
 
       val search = strongestPersonFromCluster1.pseudonyms.first { it.nameType == NameType.PRIMARY }
-      val vettingSearchResponse = sendPostRequestAsserted<VettingSearchResponse>(
+      val personSearchResponse = sendPostRequestAsserted<PersonSearchResponse>(
         url = "/person/search",
         roles = listOf(API_SEARCH_ONLY),
         expectedStatus = HttpStatus.OK,
-        body = VettingSearchRequest(
+        body = PersonSearchRequest(
           fullName = """${search.firstName} ${search.middleNames} ${search.lastName}""",
           dateOfBirth = search.dateOfBirth!!,
         ),
       ).returnResult().responseBody!!
-      assertThat(vettingSearchResponse.data).hasSize(2)
-      assertThat(vettingSearchResponse.data.first().name.firstName).isEqualTo(strongestPersonFromCluster1.getPrimaryName().firstName)
-      assertThat(vettingSearchResponse.data.first().linkedRecords).hasSize(1)
+      assertThat(personSearchResponse.data).hasSize(2)
+      assertThat(personSearchResponse.data.first().name.firstName).isEqualTo(strongestPersonFromCluster1.getPrimaryName().firstName)
+      assertThat(personSearchResponse.data.first().linkedRecords).hasSize(1)
 
-      assertThat(vettingSearchResponse.data.last().name.firstName).isEqualTo(strongestPersonFromCluster2.getPrimaryName().firstName)
-      assertThat(vettingSearchResponse.data.last().linkedRecords).hasSize(1)
+      assertThat(personSearchResponse.data.last().name.firstName).isEqualTo(strongestPersonFromCluster2.getPrimaryName().firstName)
+      assertThat(personSearchResponse.data.last().linkedRecords).hasSize(1)
     }
 
     @Test
@@ -172,17 +172,17 @@ class VettingSearchControllerIntTest : WebTestBase() {
         responseBody = jsonMapper.writeValueAsString(emptyList<PersonMatchScore>()),
       )
 
-      val vettingSearchResponse = sendPostRequestAsserted<VettingSearchResponse>(
+      val personSearchResponse = sendPostRequestAsserted<PersonSearchResponse>(
         url = "/person/search",
         roles = listOf(API_SEARCH_ONLY),
         expectedStatus = HttpStatus.OK,
-        body = VettingSearchRequest(
+        body = PersonSearchRequest(
           fullName = """${randomLowerCaseString()} ${randomLowerCaseString()} ${randomLowerCaseString()}""",
           dateOfBirth = randomDate(),
         ),
       ).returnResult().responseBody!!
 
-      assertThat(vettingSearchResponse.data).isEmpty()
+      assertThat(personSearchResponse.data).isEmpty()
     }
   }
 
@@ -193,7 +193,7 @@ class VettingSearchControllerIntTest : WebTestBase() {
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       sendPostRequestAsserted<Unit>(
         url = "/person/search",
-        body = VettingSearchRequest(
+        body = PersonSearchRequest(
           fullName = """${randomLowerCaseString()} ${randomLowerCaseString()} ${randomLowerCaseString()}""",
           dateOfBirth = randomDate(),
         ),
@@ -207,7 +207,7 @@ class VettingSearchControllerIntTest : WebTestBase() {
     fun `should return Access Denied 403 when role is wrong`() {
       sendPostRequestAsserted<Unit>(
         url = "/person/search",
-        body = VettingSearchRequest(
+        body = PersonSearchRequest(
           fullName = """${randomLowerCaseString()} ${randomLowerCaseString()} ${randomLowerCaseString()}""",
           dateOfBirth = randomDate(),
         ),

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.model.vetting
+package uk.gov.justice.digital.hmpps.personrecord.api.model.search
 
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -19,29 +19,29 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTI
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
-data class VettingSearchResponse(val data: List<VettingSearchData>)
+data class PersonSearchResponse(val data: List<SearchData>)
 
-data class VettingSearchData(
-  val name: VettingName,
-  val aliases: List<VettingAlias>,
-  val addresses: List<VettingAddress>,
-  val identifiers: List<VettingReference>,
+data class SearchData(
+  val name: SearchName,
+  val aliases: List<SearchAlias>,
+  val addresses: List<SearchAddress>,
+  val identifiers: List<SearchReference>,
   val sourceSystem: SourceSystemType,
-  val status: VettingMatchStatus,
+  val status: SearchMatchStatus,
   @field:Schema(
     example = """[{"name":{"firstName":"John","middleNames":"John","lastName":"Doe"},"aliases":[],"addresses":[],"identifiers":[],"sourceSystem":"NOMIS","status":"HIGH_CONFIDENCE_MATCH"}]""",
   )
-  var linkedRecords: List<VettingSearchData> = emptyList(),
+  var linkedRecords: List<SearchData> = emptyList(),
 )
 
-data class VettingName(
+data class SearchName(
   val firstName: String?,
   val middleNames: String?,
   val lastName: String?,
   val dateOfBirth: LocalDate?,
 )
 
-data class VettingAlias(
+data class SearchAlias(
   val firstName: String? = null,
   val lastName: String? = null,
   val middleNames: String? = null,
@@ -50,7 +50,7 @@ data class VettingAlias(
   val sexCode: SexCode? = null,
 ) {
   companion object {
-    fun from(pseudonymEntity: PseudonymEntity): VettingAlias = VettingAlias(
+    fun from(pseudonymEntity: PseudonymEntity): SearchAlias = SearchAlias(
       titleCode = pseudonymEntity.titleCode,
       firstName = pseudonymEntity.firstName,
       middleNames = pseudonymEntity.middleNames,
@@ -61,7 +61,7 @@ data class VettingAlias(
   }
 }
 
-data class VettingAddress(
+data class SearchAddress(
   val noFixedAbode: Boolean? = null,
   val startDate: ZonedDateTime? = null,
   val endDate: ZonedDateTime? = null,
@@ -77,13 +77,13 @@ data class VettingAddress(
   val countryCode: CountryCode? = null,
   val uprn: String? = null,
   val comment: String? = null,
-  val contacts: List<VettingContact> = emptyList(),
+  val contacts: List<SearchContact> = emptyList(),
   var statusCode: AddressStatusCode? = null,
-  var usages: List<VettingAddressUsage> = emptyList(),
+  var usages: List<SearchAddressUsage> = emptyList(),
   var typeVerified: Boolean? = null,
 ) {
   companion object {
-    fun from(addressEntity: AddressEntity) = VettingAddress(
+    fun from(addressEntity: AddressEntity) = SearchAddress(
       postcode = addressEntity.postcode,
       fullAddress = addressEntity.fullAddress,
       startDate = addressEntity.startDate,
@@ -101,31 +101,31 @@ data class VettingAddress(
       comment = addressEntity.comment,
       statusCode = addressEntity.statusCode,
       typeVerified = addressEntity.isVerified,
-      usages = addressEntity.usages.map { VettingAddressUsage.from(it) },
-      contacts = addressEntity.contacts.map { VettingContact.from(it) },
+      usages = addressEntity.usages.map { SearchAddressUsage.from(it) },
+      contacts = addressEntity.contacts.map { SearchContact.from(it) },
     )
   }
 }
 
-data class VettingAddressUsage(
+data class SearchAddressUsage(
   val addressUsageCode: AddressUsageCode,
   val isActive: Boolean,
 ) {
   companion object {
-    fun from(addressUsageEntity: AddressUsageEntity) = VettingAddressUsage(
+    fun from(addressUsageEntity: AddressUsageEntity) = SearchAddressUsage(
       addressUsageCode = addressUsageEntity.usageCode,
       isActive = addressUsageEntity.active,
     )
   }
 }
 
-data class VettingContact(
+data class SearchContact(
   val type: ContactType,
   val value: String? = null,
   val extension: String? = null,
 ) {
   companion object {
-    fun from(contactEntity: ContactEntity) = VettingContact(
+    fun from(contactEntity: ContactEntity) = SearchContact(
       type = contactEntity.contactType,
       value = contactEntity.contactValue,
       extension = contactEntity.extension,
@@ -133,13 +133,13 @@ data class VettingContact(
   }
 }
 
-data class VettingReference(
+data class SearchReference(
   val type: IdentifierType,
   val value: String? = null,
   val comment: String? = null,
 ) {
   companion object {
-    fun from(referenceEntity: ReferenceEntity) = VettingReference(
+    fun from(referenceEntity: ReferenceEntity) = SearchReference(
       type = referenceEntity.identifierType,
       value = referenceEntity.identifierValue,
       comment = referenceEntity.comment,
@@ -147,13 +147,13 @@ data class VettingReference(
   }
 }
 
-enum class VettingMatchStatus {
+enum class SearchMatchStatus {
   HIGH_CONFIDENCE_MATCH,
   LOW_CONFIDENCE_MATCH,
   ;
 
   companion object {
-    fun UUIDStatusType.toVettingStatus(): VettingMatchStatus = when (this) {
+    fun UUIDStatusType.toSearchStatus(): SearchMatchStatus = when (this) {
       ACTIVE -> HIGH_CONFIDENCE_MATCH
       else -> LOW_CONFIDENCE_MATCH
     }

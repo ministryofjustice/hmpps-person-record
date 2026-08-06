@@ -1,10 +1,10 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.model.vetting
+package uk.gov.justice.digital.hmpps.personrecord.api.model.search
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class VettingSearchRequest(
+data class PersonSearchRequest(
   val fullName: String,
   val dateOfBirth: LocalDate,
   val firstNameAliases: List<String> = emptyList(),
