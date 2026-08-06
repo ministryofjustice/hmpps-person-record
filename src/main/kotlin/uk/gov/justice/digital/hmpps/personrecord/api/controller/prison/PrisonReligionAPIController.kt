@@ -105,7 +105,7 @@ class PrisonReligionAPIController(
     security = [SecurityRequirement(name = "api-role")],
   )
   @GetMapping("/syscon-sync/person/{prisonNumber}/religion/{cprReligionId}")
-  fun getPrisonReligionSycon(
+  fun getPrisonReligionSyscon(
     @PathVariable prisonNumber: String,
     @PathVariable cprReligionId: String,
   ): ResponseEntity<PrisonReligionReadResponse> = getPrisonReligion(prisonNumber, cprReligionId)
