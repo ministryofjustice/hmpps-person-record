@@ -27,7 +27,7 @@ class PersonSearchController(
   @ApiResponses(
     ApiResponse(
       responseCode = "200",
-      description = "The root objects in the array will be ordered by the strongest match descending.",
+      description = "The objects in the top level array will be ordered by the strongest match descending (first record strongest, last record weakest).",
       content = [
         Content(
           mediaType = "application/json",
