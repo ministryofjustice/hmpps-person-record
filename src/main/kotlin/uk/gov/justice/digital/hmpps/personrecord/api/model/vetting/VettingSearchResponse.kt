@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
@@ -81,9 +80,7 @@ data class VettingAddress(
   val contacts: List<VettingContact> = emptyList(),
   var statusCode: AddressStatusCode? = null,
   var usages: List<VettingAddressUsage> = emptyList(),
-  var recordType: AddressRecordType? = null,
-  var deliusAddressId: Long? = null,
-  var isVerified: Boolean? = null,
+  var typeVerified: Boolean? = null,
 ) {
   companion object {
     fun from(addressEntity: AddressEntity) = VettingAddress(
@@ -102,10 +99,8 @@ data class VettingAddress(
       countryCode = addressEntity.countryCode,
       uprn = addressEntity.uprn,
       comment = addressEntity.comment,
-      recordType = addressEntity.recordType,
       statusCode = addressEntity.statusCode,
-      deliusAddressId = addressEntity.deliusAddressId,
-      isVerified = addressEntity.isVerified,
+      typeVerified = addressEntity.isVerified,
       usages = addressEntity.usages.map { VettingAddressUsage.from(it) },
       contacts = addressEntity.contacts.map { VettingContact.from(it) },
     )
@@ -125,28 +120,28 @@ data class VettingAddressUsage(
 }
 
 data class VettingContact(
-  val contactType: ContactType,
-  val contactValue: String? = null,
+  val type: ContactType,
+  val value: String? = null,
   val extension: String? = null,
 ) {
   companion object {
     fun from(contactEntity: ContactEntity) = VettingContact(
-      contactType = contactEntity.contactType,
-      contactValue = contactEntity.contactValue,
+      type = contactEntity.contactType,
+      value = contactEntity.contactValue,
       extension = contactEntity.extension,
     )
   }
 }
 
 data class VettingReference(
-  val identifierType: IdentifierType,
-  val identifierValue: String? = null,
+  val type: IdentifierType,
+  val value: String? = null,
   val comment: String? = null,
 ) {
   companion object {
     fun from(referenceEntity: ReferenceEntity) = VettingReference(
-      identifierType = referenceEntity.identifierType,
-      identifierValue = referenceEntity.identifierValue,
+      type = referenceEntity.identifierType,
+      value = referenceEntity.identifierValue,
       comment = referenceEntity.comment,
     )
   }
