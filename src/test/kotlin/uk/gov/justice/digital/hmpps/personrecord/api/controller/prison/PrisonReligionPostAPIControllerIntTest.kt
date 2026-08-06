@@ -39,7 +39,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
 
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
-        assertThat(personEntity.religion).isEqualTo(requestBody.religionCode.name)
+        assertThat(personEntity.religion).isEqualTo(requestBody.religionCode)
 
         val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
         assertThat(actualPrisonReligionEntities).hasSize(1)
@@ -51,7 +51,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
     fun `person has existing current prison religion - saves new prison religion - updates current religion`() {
       val prisonNumber = randomPrisonNumber()
       val existingReligionEntity = PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory())
-      val personEntityWithCurrentReligion = createPerson(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligionEntity.code.name })
+      val personEntityWithCurrentReligion = createPerson(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligionEntity.code })
       prisonReligionRepository.save(existingReligionEntity)
       personRepository.saveAndFlush(personEntityWithCurrentReligion)
 
@@ -169,5 +169,5 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
     assertThat(actual.modifyUserId).isEqualTo(expected.modifyUserId)
   }
 
-  private fun prisonReligionPostEndpoint(prisonNumber: String) = "/person/prison/$prisonNumber/religion"
+  private fun prisonReligionPostEndpoint(prisonNumber: String) = "/syscon-sync/person/$prisonNumber/religion"
 }

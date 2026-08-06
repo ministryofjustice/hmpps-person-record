@@ -27,6 +27,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
@@ -51,7 +52,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
@@ -70,7 +71,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val endDateTime = randomZonedDateTime()
     val postcode = randomPostcode()
     val nationality = randomNationalityCode()
-    val religion = randomReligion()
+    val religion = ReligionCode.entries.random()
     val ethnicity = randomPrisonEthnicity()
     val sex = randomPrisonSexCode()
     val sexualOrientation = randomPrisonSexualOrientation().value
@@ -148,7 +149,7 @@ class CanonicalApiIntTest : WebTestBase() {
       uprn = uprn, status = CanonicalAddressStatus.from(addressStatusCode), comment = comment,
       usages = listOf(CanonicalAddressUsage(usageCode = CanonicalAddressUsageCode.from(addressUsageCode), isActive = isActive)),
     )
-    val canonicalReligion = CanonicalReligion(code = religion, description = religion)
+    val canonicalReligion = CanonicalReligion(code = religion.name, description = religion.description)
 
     val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromPrison(ethnicity))
 
@@ -467,7 +468,7 @@ class CanonicalApiIntTest : WebTestBase() {
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
         nationalities = listOf(randomNationalityCode()),
-        religion = randomReligion(),
+        religion = randomReligionCode(),
         masterDefendantId = randomDefendantId(),
       ),
     )

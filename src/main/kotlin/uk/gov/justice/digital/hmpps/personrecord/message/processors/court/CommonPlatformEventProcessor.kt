@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
 import com.jayway.jsonpath.JsonPath
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.services.s3.S3AsyncClient
@@ -30,10 +31,6 @@ class CommonPlatformEventProcessor(
   private val s3AsyncClient: S3AsyncClient,
 ) {
 
-  companion object {
-    const val MAX_MESSAGE_SIZE = 245 * 1024
-  }
-
   fun processEvent(sqsMessage: SQSMessage) {
     val commonPlatformHearing: String = when {
       sqsMessage.isLargeMessage() -> runBlocking { getPayloadFromS3(sqsMessage) }
@@ -45,11 +42,11 @@ class CommonPlatformEventProcessor(
     val defendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .asSequence()
       .flatMap { it.defendants }
-      .filterNot { it.isYouth ?: false }
+      .filterOrLog({ !(it.isYouth ?: false) }, { "Skipping youth Common Platform defendant with defendantId ${it.id} and masterDefendantId ${it.masterDefendantId}" })
       .distinctBy { it.id }
       .map { populateIdentifiersFromDefendantWhenMissing(it) }
       .map { Person.from(it) }
-      .filter { it.isPerson() }
+      .filterOrLog({ it.isPerson() }, { "Skipping non-person Common Platform defendant with defendantId ${it.defendantId} and masterDefendantId ${it.masterDefendantId}" })
       .map { keepFormerAddress(it) }
       .map {
         transactionalCommonPlatformProcessor.processCommonPlatformPerson(it)
@@ -118,5 +115,20 @@ class CommonPlatformEventProcessor(
   private fun keepFormerAddress(person: Person): Person {
     person.addresses = CommonPlatformAddressBuilder.build(person, personRepository.findByDefendantId(person.defendantId!!))
     return person
+  }
+
+  companion object {
+    const val MAX_MESSAGE_SIZE = 245 * 1024
+
+    private val log = LoggerFactory.getLogger(this::class.java)
+
+    private inline fun <T> Sequence<T>.filterOrLog(
+      crossinline predicate: (T) -> Boolean,
+      crossinline message: (T) -> String,
+    ): Sequence<T> = filter {
+      val keep = predicate(it)
+      if (!keep) log.info(message(it))
+      keep
+    }
   }
 }
