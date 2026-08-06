@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligio
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import java.time.LocalDate
 
 class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
 
@@ -74,7 +75,7 @@ class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
 
       val actualPreviousPrisonReligion = actualPrisonReligionEntities[1]
       assertThat(actualPreviousPrisonReligion.prisonRecordType).isEqualTo(PrisonRecordType.HISTORIC)
-      assertThat(actualPreviousPrisonReligion.endDate).isEqualTo(requestBody.startDate)
+      assertThat(actualPreviousPrisonReligion.endDate).isEqualTo(LocalDate.now())
       assertThat(actualPreviousPrisonReligion.modifyUserId).isEqualTo(requestBody.createUserId)
       assertThat(actualPreviousPrisonReligion.modifyDateTime).isEqualTo(requestBody.createDateTime)
     }
