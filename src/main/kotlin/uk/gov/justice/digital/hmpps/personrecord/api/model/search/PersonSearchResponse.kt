@@ -66,14 +66,14 @@ data class SearchIdentifier(
 }
 
 enum class SearchMatchStatus {
-  HIGH_CONFIDENCE_MATCH,
-  LOW_CONFIDENCE_MATCH,
+  TRUSTED,
+  NOT_TRUSTED,
   ;
 
   companion object {
     fun UUIDStatusType.toSearchStatus(): SearchMatchStatus = when (this) {
-      ACTIVE -> HIGH_CONFIDENCE_MATCH
-      else -> LOW_CONFIDENCE_MATCH
+      ACTIVE -> TRUSTED
+      else -> NOT_TRUSTED
     }
   }
 }
