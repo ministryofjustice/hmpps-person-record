@@ -111,11 +111,3 @@ class PrisonReligionAPIController(
   ): ResponseEntity<PrisonReligionReadResponse> = getPrisonReligion(prisonNumber, cprReligionId)
 
 }
-
-
-
-
-
-
-
-}
