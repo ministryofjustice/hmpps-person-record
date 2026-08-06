@@ -29,19 +29,18 @@ import java.util.UUID
 @Tag(name = "Prison")
 @RestController
 @PreAuthorize("hasRole('${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}')")
-@RequestMapping("/person/prison", produces = [MediaType.APPLICATION_JSON_VALUE])
+@RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
 class PrisonReligionAPIController(
   private val prisonReligionInsertHandler: PrisonReligionInsertHandler,
   private val prisonReligionUpdateHandler: PrisonReligionUpdateHandler,
   private val prisonReligionRepository: PrisonReligionRepository,
 ) {
-
   @Operation(
     description = """Save prison religion record by Prison Number. Role required is **${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
     security = [SecurityRequirement(name = "api-role")],
   )
   @ResponseStatus(HttpStatus.CREATED)
-  @PostMapping("/{prisonNumber}/religion")
+  @PostMapping("/person/prison/{prisonNumber}/religion", "/syscon-sync/person/{prisonNumber}/religion")
   fun savePrisonReligion(
     @PathVariable prisonNumber: String,
     @RequestBody prisonReligionHistoryRequest: PrisonReligionHistory,
@@ -54,7 +53,7 @@ class PrisonReligionAPIController(
     description = """Update prison religion record by Prison Number. Role required is **${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
     security = [SecurityRequirement(name = "api-role")],
   )
-  @PutMapping("/{prisonNumber}/religion/{cprReligionId}")
+  @PutMapping("/person/prison/{prisonNumber}/religion/{cprReligionId}", "/syscon-sync/person/{prisonNumber}/religion/{cprReligionId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun updatePrisonReligion(
     @PathVariable prisonNumber: String,
@@ -68,7 +67,7 @@ class PrisonReligionAPIController(
     description = """Get prison religion record by Prison Number. Role required is **${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
     security = [SecurityRequirement(name = "api-role")],
   )
-  @GetMapping("/{prisonNumber}/religion/{cprReligionId}")
+  @GetMapping("/person/prison/{prisonNumber}/religion/{cprReligionId}", "/syscon-sync/person/{prisonNumber}/religion/{cprReligionId}")
   fun getPrisonReligion(
     @PathVariable prisonNumber: String,
     @PathVariable cprReligionId: String,
