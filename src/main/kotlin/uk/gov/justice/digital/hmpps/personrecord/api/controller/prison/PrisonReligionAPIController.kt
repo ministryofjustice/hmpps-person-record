@@ -109,5 +109,4 @@ class PrisonReligionAPIController(
     @PathVariable prisonNumber: String,
     @PathVariable cprReligionId: String,
   ): ResponseEntity<PrisonReligionReadResponse> = getPrisonReligion(prisonNumber, cprReligionId)
-
 }
