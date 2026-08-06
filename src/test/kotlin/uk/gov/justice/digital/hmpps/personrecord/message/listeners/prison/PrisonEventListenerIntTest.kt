@@ -32,7 +32,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomShortPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
@@ -84,7 +84,7 @@ class PrisonEventListenerIntTest : PrisonEventListenerTestBase() {
       val postcode = randomPostcode()
       val fullAddress = randomFullAddress()
       val nationality = randomPrisonNationalityCode()
-      val religion = randomReligion()
+      val religion = randomReligionCode()
       val personDateOfBirth = randomDate()
       val nationalInsuranceNumber = randomNationalInsuranceNumber()
       val driverLicenseNumber = randomDriverLicenseNumber()
@@ -99,7 +99,7 @@ class PrisonEventListenerIntTest : PrisonEventListenerTestBase() {
       val gender = randomPrisonSexCode()
 
       stubNoMatchesPersonMatch()
-      prisonCreateEventAndResponseSetup(ApiResponseSetup(title = title.key, gender = gender.key, aliases = listOf(ApiResponseSetupAlias(title.key, aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth, aliasGender.key)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
+      prisonCreateEventAndResponseSetup(ApiResponseSetup(title = title.key, gender = gender.key, aliases = listOf(ApiResponseSetupAlias(title.key, aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth, aliasGender.key)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion.name, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
 
       checkTelemetry(
         CPR_RECORD_CREATED,
@@ -186,7 +186,7 @@ class PrisonEventListenerIntTest : PrisonEventListenerTestBase() {
     @Test
     fun `should receive the message successfully when prisoner updated event published`() {
       val prisonNumber = randomPrisonNumber()
-      val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = randomReligion() })
+      val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = randomReligionCode() })
 
       val updatedFirstName = randomName()
       val ethnicity = randomPrisonEthnicity()

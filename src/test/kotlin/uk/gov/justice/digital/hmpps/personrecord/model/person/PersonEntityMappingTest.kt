@@ -35,7 +35,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientation
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import java.util.UUID.randomUUID
@@ -121,7 +121,7 @@ class PersonEntityMappingTest {
     birthCountryCode = randomCountryCode(),
     nationalities = mutableListOf(NationalityEntity(nationalityCode = NationalityCode.CDR)),
     nationalityNotes = randomName(),
-    religion = randomReligion(),
+    religion = randomReligionCode(),
     sexualOrientation = SexualOrientation.fromPrison(randomPrisonSexualOrientation().key),
     ethnicityCode = randomPrisonEthnicityCode(),
     genderIdentity = GenderIdentityCode.GISD,
@@ -151,7 +151,7 @@ class PersonEntityMappingTest {
     masterDefendantId = randomDefendantId(),
     nationalities = listOf(randomNationalityCode()),
     nationalityNotes = randomName(),
-    religion = randomReligion(),
+    religion = randomReligionCode(),
     ethnicityCode = EthnicityCode.O1,
     contacts = listOf(Contact(contactType = ContactType.HOME, contactValue = randomName())),
     addresses = listOf(Address(noFixedAbode = randomBoolean(), startDate = randomZonedDateTime(), endDate = randomZonedDateTime(), postcode = randomPostcode(), buildingName = randomName(), buildingNumber = randomBuildingNumber(), thoroughfareName = randomName(), dependentLocality = randomName(), postTown = randomName())),
