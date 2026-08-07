@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -13,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.OTHR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
 data class CanonicalIdentifiers(
   @ArraySchema(
     schema = Schema(
