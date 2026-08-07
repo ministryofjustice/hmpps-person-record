@@ -24,7 +24,7 @@ class PrisonReligionMergeHandler(
     val fromHistory: List<PrisonReligionEntity> = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(from.prisonNumber!!)
     val toHistory: List<PrisonReligionEntity> = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(to.prisonNumber!!)
 
-    // Choose the current religion with the latest start date and set the religion on the from person
+    // Choose the current religion with the latest start date and set the religion on the to person
     val currentReligions = (fromHistory + toHistory).filter { it.prisonRecordType == CURRENT }
     if (currentReligions.size > 1) {
       val toBeHistoric = currentReligions.minBy { it.startDate }
