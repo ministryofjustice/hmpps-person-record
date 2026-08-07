@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.CURRENT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.HISTORIC
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import java.time.LocalDate
 
 @Component
 class PrisonReligionMergeHandler(
@@ -25,12 +26,12 @@ class PrisonReligionMergeHandler(
     val toHistory: List<PrisonReligionEntity> = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(to.prisonNumber!!)
 
     // Choose the current religion with the latest start date and set the religion on the to person
-    val currentReligions = (fromHistory + toHistory).filter { it.prisonRecordType == CURRENT }
-    if (currentReligions.size > 1) {
-      val toBeHistoric = currentReligions.minBy { it.startDate }
-      val current = currentReligions.maxBy { it.startDate }
+    val currentReligions = (fromHistory + toHistory).filter { it.prisonRecordType == CURRENT }.sortedBy { it.startDate }
+    if (currentReligions.size == 2) {
+      val toBeHistoric = currentReligions[0]
+      val current = currentReligions[1]
       toBeHistoric.prisonRecordType = HISTORIC
-      toBeHistoric.endDate = current.startDate
+      toBeHistoric.endDate = LocalDate.now()
       prisonReligionRepository.saveAndFlush(toBeHistoric)
       to.religion = current.code
       personService.processPerson(Person.from(to)) { to }
