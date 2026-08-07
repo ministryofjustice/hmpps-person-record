@@ -35,7 +35,7 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
       val fromPrisoner = createPerson(createRandomPrisonPersonDetails())
       val toPrisoner = createPerson(createRandomPrisonPersonDetails())
 
-      val prisonerFromreligionHistory = listOf(
+      val prisonerFromReligionHistory = listOf(
         prisonReligionEntity {
           it.prisonNumber = fromPrisoner.prisonNumber!!
           it.startDate = LocalDate.of(2021, 1, 25)
@@ -63,14 +63,14 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
           it.prisonRecordType = CURRENT
         },
       )
-      prisonReligionRepository.saveAll(prisonerFromreligionHistory + prisonerToreligionHistory)
+      prisonReligionRepository.saveAll(prisonerFromReligionHistory + prisonerToreligionHistory)
 
       // Method under test
       prisonReligionMergeHandler.handleMerge(fromPrisoner, toPrisoner)
 
       assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(fromPrisoner.prisonNumber!!)).isEmpty()
       val prisonerFromReligionHistoryMerged = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisoner.prisonNumber!!)
-      assertThat(prisonerFromReligionHistoryMerged).hasSize((prisonerFromreligionHistory + prisonerToreligionHistory).size)
+      assertThat(prisonerFromReligionHistoryMerged).hasSize((prisonerFromReligionHistory + prisonerToreligionHistory).size)
       // Only one current religion and it was the one that had the latest start date
       val currentReligions = prisonerFromReligionHistoryMerged.filter { it.prisonRecordType == CURRENT }
       assertThat(currentReligions).hasSize(1)
@@ -109,12 +109,12 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
     private fun prisonReligionEntity(config: (PrisonReligionEntity) -> Unit): PrisonReligionEntity {
       val entity = PrisonReligionEntity(
         prisonRecordType = HISTORIC,
-        prisonNumber = "",
+        prisonNumber = "A1234BC",
         code = ADV,
         changeReasonKnown = false,
         startDate = LocalDate.now(),
         createDateTime = LocalDateTime.now(),
-        createUserId = "ABC",
+        createUserId = "abcdefg",
       )
       config(entity)
       return entity
