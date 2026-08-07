@@ -49,7 +49,7 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
           it.prisonRecordType = CURRENT
         },
       )
-      val prisonerToreligionHistory = listOf(
+      val prisonerToReligionHistory = listOf(
         prisonReligionEntity {
           it.prisonNumber = toPrisoner.prisonNumber!!
           it.startDate = LocalDate.of(2021, 1, 1)
@@ -63,21 +63,21 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
           it.prisonRecordType = CURRENT
         },
       )
-      prisonReligionRepository.saveAll(prisonerFromReligionHistory + prisonerToreligionHistory)
+      prisonReligionRepository.saveAll(prisonerFromReligionHistory + prisonerToReligionHistory)
 
       // Method under test
       prisonReligionMergeHandler.handleMerge(fromPrisoner, toPrisoner)
 
       assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(fromPrisoner.prisonNumber!!)).isEmpty()
       val prisonerFromReligionHistoryMerged = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisoner.prisonNumber!!)
-      assertThat(prisonerFromReligionHistoryMerged).hasSize((prisonerFromReligionHistory + prisonerToreligionHistory).size)
+      assertThat(prisonerFromReligionHistoryMerged).hasSize((prisonerFromReligionHistory + prisonerToReligionHistory).size)
       // Only one current religion and it was the one that had the latest start date
       val currentReligions = prisonerFromReligionHistoryMerged.filter { it.prisonRecordType == CURRENT }
       assertThat(currentReligions).hasSize(1)
       val currentReligion = currentReligions.single()
       assertThat(currentReligion.code).isEqualTo(BAHA)
-      // The religion that is no longer current should have an end date set to the start date of the one which is current
-      assertThat(prisonerFromReligionHistoryMerged.first { it.code == DRU }.endDate).isEqualTo(currentReligion.startDate)
+      // The religion that is no longer current should have an end date set to now
+      assertThat(prisonerFromReligionHistoryMerged.first { it.code == DRU }.endDate).isEqualTo(LocalDate.now())
       // Check that the to person has the correct religion
       assertThat(personRepository.findByPrisonNumber(toPrisoner.prisonNumber!!)?.religion).isEqualTo(currentReligion.code)
     }
