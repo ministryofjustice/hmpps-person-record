@@ -119,6 +119,6 @@ data class CanonicalIdentifiers(
       )
     }
 
-    fun List<ReferenceEntity>.findByIdentifierType(identifierType: IdentifierType): List<String> = this.filter { it.identifierType == identifierType }.mapNotNull { it.identifierValue }
+    private fun List<ReferenceEntity>.findByIdentifierType(identifierType: IdentifierType): List<String> = this.filter { it.identifierType == identifierType }.mapNotNull { it.identifierValue }
   }
 }
