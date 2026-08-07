@@ -65,8 +65,6 @@ class PersonSearchControllerIntTest : WebTestBase() {
           dateOfBirth = strongestPersonPrimaryPseudonym.dateOfBirth!!,
         ),
       ).returnResult().responseBody!!
-      println(jsonMapper.writeValueAsString("==========="))
-      println(jsonMapper.writeValueAsString(personSearchResponse))
       assertThat(personSearchResponse.data).hasSize(1)
       assertThat(personSearchResponse.data.first().linkedRecords).hasSize(1)
 
