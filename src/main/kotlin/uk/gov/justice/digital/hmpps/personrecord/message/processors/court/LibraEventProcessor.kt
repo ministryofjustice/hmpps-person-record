@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
 import com.jayway.jsonpath.JsonPath
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.readValue
@@ -23,8 +22,7 @@ class LibraEventProcessor(
     val person = Person.from(libraHearingEvent)
     val personEntity = when {
       libraHearingEvent.isPerson() && person.isPerson() -> transactionalLibraProcessor.processLibraPerson(person)
-      else -> log.info("Skipping non-person Libra event with cId ${libraHearingEvent.cId} and defendantType ${libraHearingEvent.defendantType}")
-        .let { null }
+      else -> null
     }
     val updatedMessage = addCprUUIDToLibra(sqsMessage.message, personEntity)
     courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
@@ -45,9 +43,5 @@ class LibraEventProcessor(
     }
 
     return messageParser.jsonString()
-  }
-
-  companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
