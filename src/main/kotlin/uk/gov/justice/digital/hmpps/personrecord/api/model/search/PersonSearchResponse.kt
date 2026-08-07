@@ -51,17 +51,19 @@ data class SearchData(
 
 fun CanonicalIdentifiers.Companion.forSinglePerson(personEntity: PersonEntity): CanonicalIdentifiers {
   val referenceEntities = personEntity.references
+    .groupBy { it.identifierType }
+    .mapValues { entry -> entry.value.mapNotNull { it.identifierValue } }
   return CanonicalIdentifiers(
     crns = personEntity.crn?.let { listOf(it) } ?: emptyList(),
     prisonNumbers = personEntity.prisonNumber?.let { listOf(it) } ?: emptyList(),
     defendantIds = personEntity.defendantId?.let { listOf(it) } ?: emptyList(),
     cids = personEntity.cId?.let { listOf(it) } ?: emptyList(),
-    cros = referenceEntities.findByIdentifierType(CRO),
-    pncs = referenceEntities.findByIdentifierType(PNC),
-    nationalInsuranceNumbers = referenceEntities.findByIdentifierType(NATIONAL_INSURANCE_NUMBER),
-    arrestSummonsNumbers = referenceEntities.findByIdentifierType(ARREST_SUMMONS_NUMBER),
-    driverLicenseNumbers = referenceEntities.findByIdentifierType(DRIVER_LICENSE_NUMBER),
-    otherIdentifiers = referenceEntities.findByIdentifierType(OTHR),
+    cros = referenceEntities.getOrDefault(CRO, emptyList()),
+    pncs = referenceEntities.getOrDefault(PNC, emptyList()),
+    nationalInsuranceNumbers = referenceEntities.getOrDefault(NATIONAL_INSURANCE_NUMBER, emptyList()),
+    arrestSummonsNumbers = referenceEntities.getOrDefault(ARREST_SUMMONS_NUMBER, emptyList()),
+    driverLicenseNumbers = referenceEntities.getOrDefault(DRIVER_LICENSE_NUMBER, emptyList()),
+    otherIdentifiers = referenceEntities.getOrDefault(OTHR, emptyList()),
   )
 }
 
