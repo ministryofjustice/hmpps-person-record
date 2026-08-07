@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.handler.search
 
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.PersonSearchResponse
@@ -16,9 +17,17 @@ class PersonSearchHandler(
   private val personMatchClient: PersonMatchClient,
 ) {
 
+  private val logger = LoggerFactory.getLogger(PersonSearchHandler::class.java)
+
   fun search(personSearchRequest: PersonSearchRequest): PersonSearchResponse {
+    logger.info("===========================")
     val personMatchScoresSortedDescending = getPersonMatchScoresSortedByMatchWeightDescending(personSearchRequest)
+    logger.info("Total matches found ${personMatchScoresSortedDescending.size}")
+    personMatchScoresSortedDescending.forEach { logger.info(it.toString()) }
     val strongestPersonsAcrossUniqueClusters = findStrongestPersonsAcrossUniqueClusters(personMatchScoresSortedDescending)
+    logger.info("Strongest matches ${strongestPersonsAcrossUniqueClusters.size}")
+    strongestPersonsAcrossUniqueClusters.forEach { logger.info(it.toString()) }
+    logger.info("===========================")
     return buildSearchResult(strongestPersonsAcrossUniqueClusters)
   }
 
