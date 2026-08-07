@@ -73,5 +73,5 @@ class PrisonReligionGetApiControllerIntTest : WebTestBase() {
     }
   }
 
-  private fun prisonReligionGetEndpoint(prisonNumber: String, cprReligionId: String) = "/person/prison/$prisonNumber/religion/$cprReligionId"
+  private fun prisonReligionGetEndpoint(prisonNumber: String, cprReligionId: String) = "/syscon-sync/person/$prisonNumber/religion/$cprReligionId"
 }

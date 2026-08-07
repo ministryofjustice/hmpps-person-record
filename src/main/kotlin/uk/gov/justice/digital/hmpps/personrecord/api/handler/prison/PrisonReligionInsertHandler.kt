@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonRel
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import java.time.LocalDate
 
 @Component
 class PrisonReligionInsertHandler(
@@ -33,7 +34,8 @@ class PrisonReligionInsertHandler(
     personEntity: PersonEntity,
   ): String {
     prisonReligionRepository.findByPrisonNumberAndCurrentPrisonRecordType(prisonNumber)?.let { existingCurrent ->
-      existingCurrent.endDate = prisonReligionHistory.startDate
+      // duplicate existing Prison API behaviour in that end date set to today, rather than the start of the new record
+      existingCurrent.endDate = LocalDate.now()
       existingCurrent.prisonRecordType = PrisonRecordType.HISTORIC
       existingCurrent.modifyUserId = prisonReligionHistory.createUserId
       existingCurrent.modifyDateTime = prisonReligionHistory.createDateTime
