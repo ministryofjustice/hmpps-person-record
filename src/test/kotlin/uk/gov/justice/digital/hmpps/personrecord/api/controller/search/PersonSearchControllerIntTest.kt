@@ -6,11 +6,10 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_SEARCH_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifiers
+import uk.gov.justice.digital.hmpps.personrecord.api.model.search.CanonicalSearchIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.PersonSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.SearchStatus
-import uk.gov.justice.digital.hmpps.personrecord.api.model.search.forSinglePerson
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
@@ -66,6 +65,8 @@ class PersonSearchControllerIntTest : WebTestBase() {
           dateOfBirth = strongestPersonPrimaryPseudonym.dateOfBirth!!,
         ),
       ).returnResult().responseBody!!
+      println(jsonMapper.writeValueAsString("==========="))
+      println(jsonMapper.writeValueAsString(personSearchResponse))
       assertThat(personSearchResponse.data).hasSize(1)
       assertThat(personSearchResponse.data.first().linkedRecords).hasSize(1)
 
@@ -77,7 +78,7 @@ class PersonSearchControllerIntTest : WebTestBase() {
       assertThat(strongestPersonFromResponse.sourceSystem).isEqualTo(strongestMatchPersonEntity.sourceSystem)
       assertThat(strongestPersonFromResponse.status).isEqualTo(SearchStatus.TRUSTED)
       assertThat(strongestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(CanonicalAlias.from(strongestMatchPersonEntity))
-      assertThat(strongestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(CanonicalIdentifiers.forSinglePerson(strongestMatchPersonEntity))
+      assertThat(strongestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(CanonicalSearchIdentifiers.forSinglePerson(strongestMatchPersonEntity))
       assertThat(strongestPersonFromResponse.addresses).hasSize(strongestMatchPersonEntity.addresses.size)
 
       val weakestPersonFromResponse = personSearchResponse.data.first().linkedRecords.first()
@@ -89,7 +90,7 @@ class PersonSearchControllerIntTest : WebTestBase() {
       assertThat(weakestPersonFromResponse.sourceSystem).isEqualTo(weakestMatchPersonEntity.sourceSystem)
       assertThat(weakestPersonFromResponse.status).isEqualTo(SearchStatus.TRUSTED)
       assertThat(weakestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(CanonicalAlias.from(weakestMatchPersonEntity))
-      assertThat(weakestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(CanonicalIdentifiers.forSinglePerson(weakestMatchPersonEntity))
+      assertThat(weakestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(CanonicalSearchIdentifiers.forSinglePerson(weakestMatchPersonEntity))
       assertThat(weakestPersonFromResponse.addresses).hasSize(weakestMatchPersonEntity.addresses.size)
     }
 
