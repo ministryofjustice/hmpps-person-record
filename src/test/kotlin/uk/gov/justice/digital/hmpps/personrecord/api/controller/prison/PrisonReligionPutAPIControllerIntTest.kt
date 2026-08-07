@@ -29,7 +29,7 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
     fun `prison religion exists - updates prison religion - returns correct response body`() {
       val prisonNumber = randomPrisonNumber()
       val existingReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory(code = ReligionCode.AGNO)))
-      val existingPersonEntity = personRepository.saveAndFlush(createPerson(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligionEntity.code.name }))
+      val existingPersonEntity = personRepository.saveAndFlush(createPerson(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligionEntity.code }))
       val requestBody = createRandomReligionUpdateRequest()
       sendPutRequestAsserted<Void>(
         url = prisonReligionPutEndpoint(prisonNumber, existingReligionEntity.updateId.toString()),
@@ -108,5 +108,5 @@ class PrisonReligionPutAPIControllerIntTest : WebTestBase() {
     modifyUserId = randomName(),
   )
 
-  private fun prisonReligionPutEndpoint(prisonNumber: String, cprReligionId: String) = "/person/prison/$prisonNumber/religion/$cprReligionId"
+  private fun prisonReligionPutEndpoint(prisonNumber: String, cprReligionId: String) = "/syscon-sync/person/$prisonNumber/religion/$cprReligionId"
 }

@@ -139,7 +139,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         usages = address2.usages.map { CanonicalAddressUsage(CanonicalAddressUsageCode.from(it.usageCode), it.active) },
       )
 
-      val canonicalReligion = CanonicalReligion(code = prisonPerson.religion, description = prisonPerson.religion)
+      val canonicalReligion = CanonicalReligion(code = prisonPerson.religion?.name, description = prisonPerson.religion?.description)
       val canonicalEthnicity = CanonicalEthnicity.from(prisonPerson.ethnicityCode)
       assertThat(responseBody.cprUUID).isNull()
       assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
@@ -198,7 +198,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       val nowTime = LocalDateTime.now()
 
       sendPostRequestAsserted<Unit>(
-        url = "/person/prison/$prisonNumber/religion",
+        url = "/syscon-sync/person/$prisonNumber/religion",
         body = createPrisonReligionHistory().copy( // <- first in history to be written
           religionCode = BAHA,
           startDate = now.minusDays(1),
@@ -212,7 +212,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       )
 
       sendPostRequestAsserted<Unit>(
-        url = "/person/prison/$prisonNumber/religion",
+        url = "/syscon-sync/person/$prisonNumber/religion",
         body = createPrisonReligionHistory().copy( // <- second in history to be written
           religionCode = HUM,
           startDate = now.minusDays(1),
@@ -226,7 +226,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       )
 
       sendPostRequestAsserted<Unit>(
-        url = "/person/prison/$prisonNumber/religion",
+        url = "/syscon-sync/person/$prisonNumber/religion",
         body = createPrisonReligionHistory().copy( // <- most recent in history to be written
           religionCode = AGNO,
           startDate = now,
