@@ -76,7 +76,7 @@ class PersonSearchControllerIntTest : WebTestBase() {
       assertThat(strongestPersonFromResponse.sourceSystem).isEqualTo(strongestMatchPersonEntity.sourceSystem)
       assertThat(strongestPersonFromResponse.status).isEqualTo(SearchStatus.TRUSTED)
       assertThat(strongestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(CanonicalAlias.from(strongestMatchPersonEntity))
-      assertThat(strongestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(CanonicalSearchIdentifiers.forSinglePerson(strongestMatchPersonEntity))
+      assertThat(strongestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(CanonicalSearchIdentifiers.from(strongestMatchPersonEntity))
       assertThat(strongestPersonFromResponse.addresses).hasSize(strongestMatchPersonEntity.addresses.size)
 
       val weakestPersonFromResponse = personSearchResponse.data.first().linkedRecords.first()
@@ -88,7 +88,7 @@ class PersonSearchControllerIntTest : WebTestBase() {
       assertThat(weakestPersonFromResponse.sourceSystem).isEqualTo(weakestMatchPersonEntity.sourceSystem)
       assertThat(weakestPersonFromResponse.status).isEqualTo(SearchStatus.TRUSTED)
       assertThat(weakestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(CanonicalAlias.from(weakestMatchPersonEntity))
-      assertThat(weakestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(CanonicalSearchIdentifiers.forSinglePerson(weakestMatchPersonEntity))
+      assertThat(weakestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(CanonicalSearchIdentifiers.from(weakestMatchPersonEntity))
       assertThat(weakestPersonFromResponse.addresses).hasSize(weakestMatchPersonEntity.addresses.size)
     }
 

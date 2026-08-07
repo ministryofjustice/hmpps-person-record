@@ -1,19 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.search
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonUnwrapped
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.SearchStatus.Companion.toSearchStatus
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.OTHR
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
@@ -43,7 +35,7 @@ data class SearchData(
         ),
         aliases = CanonicalAlias.from(personEntity) ?: emptyList(),
         addresses = personEntity.addresses.map { CanonicalAddress.from(it) },
-        identifiers = CanonicalSearchIdentifiers.forSinglePerson(personEntity),
+        identifiers = CanonicalSearchIdentifiers.from(personEntity),
         sourceSystem = personEntity.sourceSystem,
         status = personEntity.personKey!!.status.toSearchStatus(),
       )
@@ -51,33 +43,32 @@ data class SearchData(
   }
 }
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 data class CanonicalSearchIdentifiers(
   val crn: String? = null,
   val prisonNumber: String? = null,
   val defendantId: String? = null,
   val cid: String? = null,
-  @JsonUnwrapped
-  val canonicalIdentifiers: CanonicalIdentifiers,
+  val pncs: List<String> = emptyList(),
+  val cros: List<String> = emptyList(),
+  val nationalInsuranceNumbers: List<String> = emptyList(),
+  val driverLicenseNumbers: List<String> = emptyList(),
+  val arrestSummonsNumbers: List<String> = emptyList(),
+  val otherIdentifiers: List<String> = emptyList(),
 ) {
   companion object {
-    fun forSinglePerson(personEntity: PersonEntity): CanonicalSearchIdentifiers {
-      val referenceEntities = personEntity.references
-        .groupBy { it.identifierType }
-        .mapValues { entry -> entry.value.mapNotNull { it.identifierValue } }
+    fun from(personEntity: PersonEntity): CanonicalSearchIdentifiers {
+      val canonicalIdentifiers = CanonicalIdentifiers.from(listOf(personEntity))
       return CanonicalSearchIdentifiers(
-        crn = personEntity.crn,
-        prisonNumber = personEntity.prisonNumber,
-        defendantId = personEntity.defendantId,
-        cid = personEntity.cId,
-        canonicalIdentifiers = CanonicalIdentifiers(
-          cros = referenceEntities.getOrDefault(CRO, emptyList()),
-          pncs = referenceEntities.getOrDefault(PNC, emptyList()),
-          nationalInsuranceNumbers = referenceEntities.getOrDefault(NATIONAL_INSURANCE_NUMBER, emptyList()),
-          arrestSummonsNumbers = referenceEntities.getOrDefault(ARREST_SUMMONS_NUMBER, emptyList()),
-          driverLicenseNumbers = referenceEntities.getOrDefault(DRIVER_LICENSE_NUMBER, emptyList()),
-          otherIdentifiers = referenceEntities.getOrDefault(OTHR, emptyList()),
-        ),
+        crn = canonicalIdentifiers.crns.firstOrNull(),
+        prisonNumber = canonicalIdentifiers.prisonNumbers.firstOrNull(),
+        defendantId = canonicalIdentifiers.defendantIds.firstOrNull(),
+        cid = canonicalIdentifiers.cids.firstOrNull(),
+        pncs = canonicalIdentifiers.pncs,
+        cros = canonicalIdentifiers.cros,
+        nationalInsuranceNumbers = canonicalIdentifiers.nationalInsuranceNumbers,
+        driverLicenseNumbers = canonicalIdentifiers.driverLicenseNumbers,
+        arrestSummonsNumbers = canonicalIdentifiers.arrestSummonsNumbers,
+        otherIdentifiers = canonicalIdentifiers.otherIdentifiers,
       )
     }
   }
