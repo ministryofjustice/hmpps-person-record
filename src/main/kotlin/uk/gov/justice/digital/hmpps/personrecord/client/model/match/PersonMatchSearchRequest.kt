@@ -17,10 +17,10 @@ data class PersonMatchSearchRequest(
     fun from(personSearchRequest: PersonSearchRequest): PersonMatchSearchRequest = PersonMatchSearchRequest(
       fullName = """${personSearchRequest.firstName} ${personSearchRequest.middleName} ${personSearchRequest.lastName}""",
       dateOfBirth = personSearchRequest.dateOfBirth,
-      firstNameAliases = personSearchRequest.firstNameAliases,
-      lastNameAliases = personSearchRequest.lastNameAliases,
-      dateOfBirthAliases = personSearchRequest.dateOfBirthAliases,
-      postcodes = personSearchRequest.postcodes,
+      firstNameAliases = personSearchRequest.firstNameAliases ?: emptyList(),
+      lastNameAliases = personSearchRequest.lastNameAliases ?: emptyList(),
+      dateOfBirthAliases = personSearchRequest.dateOfBirthAliases ?: emptyList(),
+      postcodes = personSearchRequest.postcodes ?: emptyList(),
     )
   }
 }
