@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: CPR Refernece data
+  title: CPR Reference data
   version: 1.0.0
   description: Collection of APIs for CPR reference data
 
@@ -21,7 +21,6 @@ paths:
     get:
       summary: Get reference data by type
       operationId: getReferenceDataByType
-
       parameters:
         - name: type
           in: path
@@ -32,21 +31,15 @@ paths:
 
         - name: page
           in: query
-          required: false
-          description: Page number (0-based)
           schema:
             type: integer
             default: 0
-            minimum: 0
 
         - name: size
           in: query
-          required: false
-          description: Number of records per page
           schema:
             type: integer
             default: 20
-            minimum: 1
 
       responses:
         '200':
@@ -55,57 +48,92 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReferenceDataResponse'
+              example:
+                pagination:
+                  page: 0
+                  size: 20
+                  totalCount: 3
+                  totalPages: 1
+                  hasNext: false
+                  hasPrevious: false
+                values:
+                  - type: religion
+                    code: ADV
+                    description: Adventist
+                    active: false
+                  - type: religion
+                    code: AGNO
+                    description: Agnostic
+                    active: true
+
+  /person/reference-data/type/all-types:
+    get:
+      summary: Get all reference data types
+      operationId: getAllReferenceData
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+
+      responses:
+        '200':
+          description: All reference data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferenceDataResponse'
+              example:
+                pagination:
+                  page: 0
+                  size: 20
+                  totalCount: 6
+                  totalPages: 1
+                  hasNext: false
+                  hasPrevious: false
+                values:
+                  - type: religion
+                    code: ADV
+                    description: Adventist
+                    active: false
+                  - type: religion
+                    code: AGNO
+                    description: Agnostic
+                    active: true
+                  - type: gender
+                    code: MALE
+                    description: Male
+                    active: true
+                  - type: gender
+                    code: FEMALE
+                    description: Female
+                    active: true
 
 components:
   schemas:
 
     ReferenceDataResponse:
       type: object
+      required:
+        - pagination
+        - values
       properties:
-        type:
-          type: string
-          example: religion
-
         pagination:
-          $ref: '#/components/schemas/PaginationMetadata'
-
+          $ref: '#/components/schemas/Pagination'
         values:
           type: array
           items:
             $ref: '#/components/schemas/ReferenceDataItem'
 
-      required:
-        - type
-        - pagination
-        - values
-
-    PaginationMetadata:
+    Pagination:
       type: object
-      properties:
-        page:
-          type: integer
-          example: 0
-
-        size:
-          type: integer
-          example: 20
-
-        totalCount:
-          type: integer
-          example: 125
-
-        totalPages:
-          type: integer
-          example: 7
-
-        hasNext:
-          type: boolean
-          example: true
-
-        hasPrevious:
-          type: boolean
-          example: false
-
       required:
         - page
         - size
@@ -113,40 +141,43 @@ components:
         - totalPages
         - hasNext
         - hasPrevious
+      properties:
+        page:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 20
+        totalCount:
+          type: integer
+          example: 125
+        totalPages:
+          type: integer
+          example: 7
+        hasNext:
+          type: boolean
+          example: true
+        hasPrevious:
+          type: boolean
+          example: false
 
     ReferenceDataItem:
       type: object
-      properties:
-        code:
-          type: string
-          example: ADV
-          description: Reference data code
-
-        description:
-          type: string
-          example: Adventist
-          description: Reference data description
-
-        active:
-          type: boolean
-          example: false
-          description: Indicates whether the reference data value is active
-
       required:
+        - type
         - code
         - description
         - active
-
-    # ---------- Common Error ----------
-    ErrorResponse:
-      type: object
       properties:
-        status:
-          type: integer
-          example: 404
-        error:
+        type:
           type: string
-          example: Not Found
-        message:
+          example: religion
+        code:
           type: string
-          example: "CPR religion not found"
+          example: ADV
+        description:
+          type: string
+          example: Adventist
+        active:
+          type: boolean
+          example: false
