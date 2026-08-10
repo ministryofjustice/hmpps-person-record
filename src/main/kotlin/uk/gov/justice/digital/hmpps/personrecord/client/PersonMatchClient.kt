@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchD
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.visualisecluster.VisualiseCluster
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -65,4 +66,13 @@ class PersonMatchClient(private val personMatchWebClient: WebClient) {
     .toBodilessEntity()
     .discardNotFoundException()
     .block()
+
+  fun search(personMatchSearchRequest: PersonMatchSearchRequest) = personMatchWebClient
+    .post()
+    .uri("/person/search")
+    .bodyValue(personMatchSearchRequest)
+    .retrieve()
+    .onStatus({ it.value() == HttpStatus.NOT_FOUND.value() }) { Mono.empty() }
+    .bodyToMono<List<PersonMatchScore>>()
+    .block()!!
 }
