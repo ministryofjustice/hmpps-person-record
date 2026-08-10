@@ -79,7 +79,7 @@ class ReligionDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
     assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(NOMIS.identifier))
     val domainEvent: CprReligionUpdated = jsonMapper.readValue<CprReligionUpdated>(sqsMessage.message)
     assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_RELIGION_UPDATED)
-    assertThat(domainEvent.description).isEqualTo("A religion has been updated for a person")
+    assertThat(domainEvent.description).isEqualTo("A prison religion has been updated for a person")
     assertThat(domainEvent.additionalInformation.cprReligionId.toString()).isEqualTo(existingReligionEntity.updateId.toString())
     assertThat(domainEvent.occurredAt).isNotNull()
     assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)

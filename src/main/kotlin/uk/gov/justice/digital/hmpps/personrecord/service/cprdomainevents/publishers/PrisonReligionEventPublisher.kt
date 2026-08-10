@@ -26,6 +26,7 @@ class PrisonReligionEventPublisher(
       CprReligionCreated(
         eventType = CPR_PRISON_RELIGION_CREATED,
         description = "A prison religion has been created for a person",
+        detailUrl = "$baseUrl/person/prison/$prisonNumber/religion/$updateId",
         additionalInformation = CprReligionCreatedInfo(religionCreated.prisonReligionEntity.updateId!!),
         personReference = PersonReference(identifiers = listOf(PersonIdentifier("prisonNumber", prisonNumber))),
       ),
@@ -36,7 +37,8 @@ class PrisonReligionEventPublisher(
     domainEventPublisher.publish(
       CprReligionUpdated(
         eventType = CPR_PRISON_RELIGION_UPDATED,
-        description = "A religion has been updated for a person",
+        description = "A prison religion has been updated for a person",
+        detailUrl = "$baseUrl/person/prison/$prisonNumber/religion/$updateId",
         additionalInformation = CprReligionUpdatedInfo(religionUpdated.prisonReligionEntity.updateId!!),
         personReference = PersonReference(identifiers = listOf(PersonIdentifier("prisonNumber", prisonNumber))),
       ),
