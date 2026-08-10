@@ -68,7 +68,7 @@ paths:
 
   /person/reference-data/type/all-types:
     get:
-      summary: Get all reference data types
+      summary: Get reference data for all types
       operationId: getAllReferenceData
       parameters:
         - name: page
