@@ -719,6 +719,14 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
     stubGetRequest(
       scenarioName = "retry-404",
       currentScenarioState = "Started",
+      nextScenarioState = "second-404",
+      url = probationUrl(crn),
+      body = "",
+      status = 404,
+    )
+    stubGetRequest(
+      scenarioName = "retry-404",
+      currentScenarioState = "second-404",
       nextScenarioState = "request-succeeded",
       url = probationUrl(crn),
       body = "",
