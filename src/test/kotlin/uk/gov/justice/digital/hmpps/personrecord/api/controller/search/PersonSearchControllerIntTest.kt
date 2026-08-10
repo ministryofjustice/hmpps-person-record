@@ -61,7 +61,8 @@ class PersonSearchControllerIntTest : WebTestBase() {
         roles = listOf(API_SEARCH_ONLY),
         expectedStatus = HttpStatus.OK,
         body = PersonSearchRequest(
-          fullName = """${strongestPersonPrimaryPseudonym.firstName} ${strongestPersonPrimaryPseudonym.middleNames} ${strongestPersonPrimaryPseudonym.lastName}""",
+          firstName = strongestPersonPrimaryPseudonym.firstName!!,
+          lastName = strongestPersonPrimaryPseudonym.lastName!!,
           dateOfBirth = strongestPersonPrimaryPseudonym.dateOfBirth!!,
         ),
       ).returnResult().responseBody!!
@@ -152,7 +153,8 @@ class PersonSearchControllerIntTest : WebTestBase() {
         roles = listOf(API_SEARCH_ONLY),
         expectedStatus = HttpStatus.OK,
         body = PersonSearchRequest(
-          fullName = """${search.firstName} ${search.middleNames} ${search.lastName}""",
+          firstName = search.firstName!!,
+          lastName = search.lastName!!,
           dateOfBirth = search.dateOfBirth!!,
         ),
       ).returnResult().responseBody!!
@@ -177,7 +179,8 @@ class PersonSearchControllerIntTest : WebTestBase() {
         roles = listOf(API_SEARCH_ONLY),
         expectedStatus = HttpStatus.OK,
         body = PersonSearchRequest(
-          fullName = """${randomLowerCaseString()} ${randomLowerCaseString()} ${randomLowerCaseString()}""",
+          firstName = randomLowerCaseString(),
+          lastName = randomLowerCaseString(),
           dateOfBirth = randomDate(),
         ),
       ).returnResult().responseBody!!
@@ -194,7 +197,8 @@ class PersonSearchControllerIntTest : WebTestBase() {
       sendPostRequestAsserted<Unit>(
         url = "/person/search",
         body = PersonSearchRequest(
-          fullName = """${randomLowerCaseString()} ${randomLowerCaseString()} ${randomLowerCaseString()}""",
+          firstName = randomLowerCaseString(),
+          lastName = randomLowerCaseString(),
           dateOfBirth = randomDate(),
         ),
         roles = listOf(),
@@ -208,7 +212,8 @@ class PersonSearchControllerIntTest : WebTestBase() {
       sendPostRequestAsserted<Unit>(
         url = "/person/search",
         body = PersonSearchRequest(
-          fullName = """${randomLowerCaseString()} ${randomLowerCaseString()} ${randomLowerCaseString()}""",
+          firstName = randomLowerCaseString(),
+          lastName = randomLowerCaseString(),
           dateOfBirth = randomDate(),
         ),
         roles = listOf("UNSUPPORTED_ROLE"),
