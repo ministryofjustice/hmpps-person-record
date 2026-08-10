@@ -49,6 +49,7 @@ class ReligionDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
     val domainEvent: CprReligionCreated = jsonMapper.readValue<CprReligionCreated>(sqsMessage.message)
     assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_RELIGION_CREATED)
     assertThat(domainEvent.description).isEqualTo("A prison religion has been created for a person")
+    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/prison/$prisonNumber/religion/$cprReligionId")
     assertThat(domainEvent.additionalInformation.cprReligionId.toString()).isEqualTo(cprReligionId)
     assertThat(domainEvent.occurredAt).isNotNull()
     assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
@@ -59,10 +60,10 @@ class ReligionDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should publish a CPR religion updated domain event when a religion is updated in nomis`() {
     val prisonNumber = randomPrisonNumber()
-    val existingReligionEntity = prisonReligionRepository.saveAndFlush(PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory()))
+    val cprReligionId = prisonReligionRepository.saveAndFlush(PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory())).updateId.toString()
 
     prisonReligionUpdateHandler.handleUpdate(
-      existingReligionEntity.updateId.toString(),
+      cprReligionId,
       PrisonReligionUpdateRequest(
         modifyUserId = "A user",
         modifyDateTime = LocalDateTime.now(),
@@ -80,7 +81,8 @@ class ReligionDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
     val domainEvent: CprReligionUpdated = jsonMapper.readValue<CprReligionUpdated>(sqsMessage.message)
     assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_RELIGION_UPDATED)
     assertThat(domainEvent.description).isEqualTo("A prison religion has been updated for a person")
-    assertThat(domainEvent.additionalInformation.cprReligionId.toString()).isEqualTo(existingReligionEntity.updateId.toString())
+    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/prison/$prisonNumber/religion/$cprReligionId")
+    assertThat(domainEvent.additionalInformation.cprReligionId.toString()).isEqualTo(cprReligionId)
     assertThat(domainEvent.occurredAt).isNotNull()
     assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
     assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("prisonNumber")
