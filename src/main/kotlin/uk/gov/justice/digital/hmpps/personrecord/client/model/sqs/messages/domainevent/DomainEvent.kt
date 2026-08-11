@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_RELIGION_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_RELIGION_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
@@ -58,6 +60,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATE
   JsonSubTypes.Type(value = CprAddressCreated::class, name = CPR_PROBATION_ADDRESS_CREATED),
   JsonSubTypes.Type(value = CprAddressUpdated::class, name = CPR_PROBATION_ADDRESS_UPDATED),
   JsonSubTypes.Type(value = CprAddressDeleted::class, name = CPR_PROBATION_ADDRESS_DELETED),
+  JsonSubTypes.Type(value = CprReligionCreated::class, name = CPR_PRISON_RELIGION_CREATED),
+  JsonSubTypes.Type(value = CprReligionUpdated::class, name = CPR_PRISON_RELIGION_UPDATED),
 )
 @JsonIgnoreProperties(ignoreUnknown = true)
 sealed interface DomainEvent {

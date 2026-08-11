@@ -32,3 +32,6 @@ const val CPR_COURT_PERSON_CREATED = "core-person-record.court.record.created"
 const val CPR_PROBATION_ADDRESS_CREATED = "core-person-record.probation.address.created"
 const val CPR_PROBATION_ADDRESS_UPDATED = "core-person-record.probation.address.updated"
 const val CPR_PROBATION_ADDRESS_DELETED = "core-person-record.probation.address.deleted"
+
+const val CPR_PRISON_RELIGION_CREATED = "core-person-record.prison.religion.created"
+const val CPR_PRISON_RELIGION_UPDATED = "core-person-record.prison.religion.updated"
