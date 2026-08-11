@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.ReligionEventPublisher
 
 @Component
-@Profile("!preprod & !prod")
+@Profile("!prod")
 class ReligionEventListener(religionEventPublishers: List<ReligionEventPublisher>) {
 
   private val publishersBySourceSystem = religionEventPublishers.associateBy { it.sourceSystemType }
