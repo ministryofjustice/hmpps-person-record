@@ -1,183 +1,347 @@
-openapi: 3.0.3
-info:
-  title: CPR Reference data
-  version: 1.0.0
-  description: Collection of APIs for CPR reference data
-
-servers:
-  # Added by API Auto Mocking Plugin
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/ftl/Syscon-Person-Religion-API/1.0.0
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/ftl/Person-Religion-API/1.0.0
-  - url: https://api.yourdomain.tld
-
-tags:
-  - name: CPR Reference data APIs
-    description: Collection of endpoints for CDPS-CPR API.
-
-paths:
-  /person/reference-data/type/{type}:
-    get:
-      summary: Get reference data by type
-      operationId: getReferenceDataByType
-      parameters:
-        - name: type
-          in: path
-          required: true
-          schema:
-            type: string
-            example: religion
-
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 0
-
-        - name: size
-          in: query
-          schema:
-            type: integer
-            default: 20
-
-      responses:
-        '200':
-          description: Reference data retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReferenceDataResponse'
-              example:
-                pagination:
-                  page: 0
-                  size: 20
-                  totalCount: 3
-                  totalPages: 1
-                  hasNext: false
-                  hasPrevious: false
-                values:
-                  - type: religion
-                    code: ADV
-                    description: Adventist
-                    active: false
-                  - type: religion
-                    code: AGNO
-                    description: Agnostic
-                    active: true
-
-  /person/reference-data/type/all-types:
-    get:
-      summary: Get reference data for all types
-      operationId: getAllReferenceData
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 0
-
-        - name: size
-          in: query
-          schema:
-            type: integer
-            default: 20
-
-      responses:
-        '200':
-          description: All reference data retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReferenceDataResponse'
-              example:
-                pagination:
-                  page: 0
-                  size: 20
-                  totalCount: 6
-                  totalPages: 1
-                  hasNext: false
-                  hasPrevious: false
-                values:
-                  - type: religion
-                    code: ADV
-                    description: Adventist
-                    active: false
-                  - type: religion
-                    code: AGNO
-                    description: Agnostic
-                    active: true
-                  - type: gender
-                    code: MALE
-                    description: Male
-                    active: true
-                  - type: gender
-                    code: FEMALE
-                    description: Female
-                    active: true
-
-components:
-  schemas:
-
-    ReferenceDataResponse:
-      type: object
-      required:
-        - pagination
-        - values
-      properties:
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-        values:
-          type: array
-          items:
-            $ref: '#/components/schemas/ReferenceDataItem'
-
-    Pagination:
-      type: object
-      required:
-        - page
-        - size
-        - totalCount
-        - totalPages
-        - hasNext
-        - hasPrevious
-      properties:
-        page:
-          type: integer
-          example: 0
-        size:
-          type: integer
-          example: 20
-        totalCount:
-          type: integer
-          example: 125
-        totalPages:
-          type: integer
-          example: 7
-        hasNext:
-          type: boolean
-          example: true
-        hasPrevious:
-          type: boolean
-          example: false
-
-    ReferenceDataItem:
-      type: object
-      required:
-        - type
-        - code
-        - description
-        - active
-      properties:
-        type:
-          type: string
-          example: religion
-        code:
-          type: string
-          example: ADV
-        description:
-          type: string
-          example: Adventist
-        active:
-          type: boolean
-          example: false
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "CPR Reference data",
+    "version": "1.0.0",
+    "description": "Collection of APIs for CPR reference data"
+  },
+  "servers": [
+    {
+      "description": "SwaggerHub API Auto Mocking",
+      "url": "https://virtserver.swaggerhub.com/ftl/Syscon-Person-Religion-API/1.0.0"
+    },
+    {
+      "description": "SwaggerHub API Auto Mocking",
+      "url": "https://virtserver.swaggerhub.com/ftl/Person-Religion-API/1.0.0"
+    },
+    {
+      "url": "https://api.yourdomain.tld"
+    }
+  ],
+  "tags": [
+    {
+      "name": "CPR Reference data APIs",
+      "description": "Collection of endpoints for CDPS-CPR API."
+    }
+  ],
+  "paths": {
+    "/person/reference-data": {
+      "get": {
+        "summary": "Get available reference data types",
+        "operationId": "getReferenceDataTypes",
+        "parameters": [
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reference data types retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceDataTypeResponse"
+                },
+                "example": {
+                  "values": [
+                    {
+                      "type": "religion"
+                    },
+                    {
+                      "type": "sex"
+                    },
+                    {
+                      "type": "nationality"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/person/reference-data/type/{type}": {
+      "get": {
+        "summary": "Get reference data by type",
+        "operationId": "getReferenceDataByType",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "religion"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reference data retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceDataResponse"
+                },
+                "example": {
+                  "pagination": {
+                    "page": 0,
+                    "size": 20,
+                    "totalCount": 3,
+                    "totalPages": 1,
+                    "hasNext": false,
+                    "hasPrevious": false
+                  },
+                  "values": [
+                    {
+                      "type": "religion",
+                      "code": "ADV",
+                      "description": "Adventist",
+                      "active": false
+                    },
+                    {
+                      "type": "religion",
+                      "code": "AGNO",
+                      "description": "Agnostic",
+                      "active": true
+                    },
+                    {
+                      "type": "religion",
+                      "code": "APO",
+                      "description": "Apostolic",
+                      "active": false
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/person/reference-data/types": {
+      "get": {
+        "summary": "Get reference data for all types",
+        "operationId": "getAllReferenceData",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All reference data retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceDataResponse"
+                },
+                "example": {
+                  "pagination": {
+                    "page": 0,
+                    "size": 20,
+                    "totalCount": 6,
+                    "totalPages": 1,
+                    "hasNext": false,
+                    "hasPrevious": false
+                  },
+                  "values": [
+                    {
+                      "type": "religion",
+                      "code": "ADV",
+                      "description": "Adventist",
+                      "active": false
+                    },
+                    {
+                      "type": "religion",
+                      "code": "AGNO",
+                      "description": "Agnostic",
+                      "active": true
+                    },
+                    {
+                      "type": "sex",
+                      "code": "MALE",
+                      "description": "Male",
+                      "active": true
+                    },
+                    {
+                      "type": "sex",
+                      "code": "FEMALE",
+                      "description": "Female",
+                      "active": true
+                    },
+                    {
+                      "type": "nationality",
+                      "code": "GBR",
+                      "description": "British",
+                      "active": true
+                    },
+                    {
+                      "type": "nationality",
+                      "code": "IND",
+                      "description": "Indian",
+                      "active": true
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Pagination": {
+        "type": "object",
+        "required": [
+          "page",
+          "size",
+          "totalCount",
+          "totalPages",
+          "hasNext",
+          "hasPrevious"
+        ],
+        "properties": {
+          "page": {
+            "type": "integer",
+            "example": 0
+          },
+          "size": {
+            "type": "integer",
+            "example": 20
+          },
+          "totalCount": {
+            "type": "integer",
+            "example": 100
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 5
+          },
+          "hasNext": {
+            "type": "boolean",
+            "example": true
+          },
+          "hasPrevious": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "ReferenceDataType": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "religion"
+          }
+        }
+      },
+      "ReferenceDataTypeResponse": {
+        "type": "object",
+        "required": [
+          "pagination",
+          "values"
+        ],
+        "properties": {
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReferenceDataType"
+            }
+          }
+        }
+      },
+      "ReferenceDataItem": {
+        "type": "object",
+        "required": [
+          "type",
+          "code",
+          "description",
+          "active"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "religion"
+          },
+          "code": {
+            "type": "string",
+            "example": "ADV"
+          },
+          "description": {
+            "type": "string",
+            "example": "Adventist"
+          },
+          "active": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "ReferenceDataResponse": {
+        "type": "object",
+        "required": [
+          "pagination",
+          "values"
+        ],
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReferenceDataItem"
+            }
+          }
+        }
+      }
+    }
+  }
+}
