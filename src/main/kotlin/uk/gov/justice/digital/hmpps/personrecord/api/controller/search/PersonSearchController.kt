@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.search.PersonSearchRe
 
 @Tag(name = "Search")
 @RestController
-@Profile("!preprod & !prod")
+@Profile("!prod")
 class PersonSearchController(
   private val personSearchHandler: PersonSearchHandler,
 ) {

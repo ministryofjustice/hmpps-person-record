@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.search.PersonSearchRe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.SearchData
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import java.util.UUID
@@ -31,7 +32,7 @@ class PersonSearchHandler(
     return buildSearchResult(strongestPersonsAcrossUniqueClusters)
   }
 
-  private fun getPersonMatchScoresSortedByMatchWeightDescending(personSearchRequest: PersonSearchRequest) = personMatchClient.searchPerson(personSearchRequest)
+  private fun getPersonMatchScoresSortedByMatchWeightDescending(personSearchRequest: PersonSearchRequest) = personMatchClient.searchPerson(PersonMatchSearchRequest.from(personSearchRequest))
     .sortedByDescending { it.candidateMatchWeight }
 
   private fun findStrongestPersonsAcrossUniqueClusters(personMatchScoresSortedDescending: List<PersonMatchScore>) = personMatchScoresSortedDescending
