@@ -60,4 +60,36 @@ class PersonMatchRecordTest {
     assertThat(personMatchRecord.overrideMarker).isEqualTo(overrideMarker.toString())
     assertThat(personMatchRecord.overrideScopes).isEqualTo(listOf(overrideScope1.toString(), overrideScope2.toString()))
   }
+
+  @Test
+  fun `should use defendant id for person match master defendant id field`() {
+    val personEntity = PersonEntity(
+      pseudonyms = mutableListOf(
+        PseudonymEntity(nameType = NameType.PRIMARY, dateOfBirth = randomDate()),
+      ),
+      defendantId = "defendant-id",
+      masterDefendantId = "master-defendant-id",
+      matchId = UUID.randomUUID(),
+      sourceSystem = DELIUS,
+    )
+
+    val personMatchRecord = PersonMatchRecord.from(personEntity)
+    assertThat(personMatchRecord.masterDefendantId).isEqualTo("defendant-id")
+  }
+
+  @Test
+  fun `should fallback to master defendant id when defendant id is absent`() {
+    val personEntity = PersonEntity(
+      pseudonyms = mutableListOf(
+        PseudonymEntity(nameType = NameType.PRIMARY, dateOfBirth = randomDate()),
+      ),
+      defendantId = null,
+      masterDefendantId = "defendant-id",
+      matchId = UUID.randomUUID(),
+      sourceSystem = DELIUS,
+    )
+
+    val personMatchRecord = PersonMatchRecord.from(personEntity)
+    assertThat(personMatchRecord.masterDefendantId).isEqualTo("defendant-id")
+  }
 }

@@ -591,7 +591,7 @@ class ProbationApiE2ETest : E2ETestBase() {
       }
 
       @Test
-      fun `should retain master defendant id on update on probation record`() {
+      fun `should retain defendant id in master defendant id on update on probation record`() {
         val defendantId = randomDefendantId()
 
         val defendant = createRandomCommonPlatformPersonDetails(defendantId)
@@ -621,7 +621,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to probationCase.identifiers.crn),
         )
 
-        assertThat(offender.masterDefendantId).isEqualTo(defendant.masterDefendantId)
+        assertThat(offender.masterDefendantId).isEqualTo(defendant.defendantId)
       }
 
       @Test

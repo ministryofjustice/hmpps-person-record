@@ -91,10 +91,9 @@ class ProbationAPIController(
     @PathVariable defendantId: String,
     @RequestBody probationCase: ProbationCase,
   ) {
-    val masterDefendantId: String? = retrieveDefendant(defendantId).masterDefendantId
+    val defendantID: String? = retrieveDefendant(defendantId).defendantId
 
-    val person = Person.from(probationCase)
-    person.masterDefendantId = masterDefendantId
+    val person = Person.from(probationCase).copy(masterDefendantId = defendantID)
 
     personService.processPerson(person) {
       personRepository.findByCrn(probationCase.identifiers.crn!!)

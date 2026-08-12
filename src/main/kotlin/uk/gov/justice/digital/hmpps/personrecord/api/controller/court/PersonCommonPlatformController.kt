@@ -27,7 +27,10 @@ class PersonCommonPlatformController(
     val personEntity = personRepository.findByDefendantId(defendantId)
       ?: return ResponseEntity.notFound().build()
 
-    return ResponseEntity.ok().body(MatchDetailsResponse(personMatchClient.getPersonBestMatch(personEntity.matchId.toString(), SourceSystemType.DELIUS).matchStatus))
+    val matchStatus = personMatchClient.getPersonBestMatch(personEntity.matchId.toString(), SourceSystemType.DELIUS)?.matchStatus
+      ?: MatchStatus.NO_MATCH
+
+    return ResponseEntity.ok().body(MatchDetailsResponse(matchStatus))
   }
 }
 

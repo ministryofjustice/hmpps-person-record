@@ -42,7 +42,7 @@ data class PersonMatchRecord(
       pncs = personEntity.references.getPNCs().distinct().sorted(),
       sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.map { it.toString() }.distinct().sorted(),
       sourceSystemId = personEntity.extractSourceSystemId(),
-      masterDefendantId = personEntity.masterDefendantId,
+      masterDefendantId = personEntity.defendantId ?: personEntity.masterDefendantId,
       overrideMarker = personEntity.overrideMarker?.toString(),
       overrideScopes = personEntity.overrideScopes.map { overrideScope -> overrideScope.scope.toString() },
     )

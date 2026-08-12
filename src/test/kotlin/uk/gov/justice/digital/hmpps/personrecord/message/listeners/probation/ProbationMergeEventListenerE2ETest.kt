@@ -184,10 +184,8 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
   fun `processes offender merge event with records on same cluster`() {
     val sourceMasterDefendantId = randomDefendantId()
     val targetMasterDefendantId = randomDefendantId()
-    val sourcePersonDetails = createRandomProbationPersonDetails()
-    sourcePersonDetails.masterDefendantId = sourceMasterDefendantId
-    val targetPersonDetails = createRandomProbationPersonDetails()
-    targetPersonDetails.masterDefendantId = targetMasterDefendantId
+    val sourcePersonDetails = createRandomProbationPersonDetails().copy(masterDefendantId = sourceMasterDefendantId)
+    val targetPersonDetails = createRandomProbationPersonDetails().copy(masterDefendantId = targetMasterDefendantId)
 
     val sourcePerson = createPerson(sourcePersonDetails)
     val targetPerson = createPerson(targetPersonDetails)

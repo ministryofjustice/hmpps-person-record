@@ -21,8 +21,8 @@ class PersonCommonPlatformE2ETest : E2ETestBase() {
     fun `should return match status when common platform record matches a probation record`() {
       val defendantId = randomDefendantId()
 
-      val probationPerson = Person.from(createRandomProbationCase())
-      val commonPlatformPerson = probationPerson.copy(crn = null, sourceSystem = COMMON_PLATFORM, defendantId = defendantId)
+      val probationPerson = Person.from(createRandomProbationCase()).copy(masterDefendantId = defendantId)
+      val commonPlatformPerson = probationPerson.copy(crn = null, sourceSystem = COMMON_PLATFORM, defendantId = defendantId, masterDefendantId = null)
 
       createPersonKey()
         .addPerson(probationPerson)

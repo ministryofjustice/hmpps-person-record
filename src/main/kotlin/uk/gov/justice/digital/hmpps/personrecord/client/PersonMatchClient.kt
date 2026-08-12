@@ -4,6 +4,7 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchDetailsResponse
@@ -43,12 +44,13 @@ class PersonMatchClient(private val personMatchWebClient: WebClient) {
     .bodyToMono<List<PersonMatchScore>>()
     .block()!!
 
-  fun getPersonBestMatch(matchId: String, sourceSystem: SourceSystemType): PersonMatchDetailsResponse = personMatchWebClient
+  fun getPersonBestMatch(matchId: String, sourceSystem: SourceSystemType): PersonMatchDetailsResponse? = personMatchWebClient
     .get()
     .uri("/person/best-match/{sourceSystemName}/{id}", sourceSystem.name, matchId)
     .retrieve()
     .bodyToMono<PersonMatchDetailsResponse>()
-    .block()!!
+    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+    .block()
 
   fun postPerson(personMatchRecord: PersonMatchRecord) = personMatchWebClient
     .post()

@@ -33,8 +33,7 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       createPersonKey().addPerson(deleted)
       val remainingPersonData = createRandomProbationCase(remainingCrn)
       val masterDefendantId = randomDefendantId()
-      val remainingPerson = Person.from(remainingPersonData)
-      remainingPerson.masterDefendantId = masterDefendantId
+      val remainingPerson = Person.from(remainingPersonData).copy(masterDefendantId = masterDefendantId)
       val remaining = createPerson(remainingPerson)
 
       probationMergeEventAndResponseSetup(remainingCrn, deletedCrn)
@@ -73,8 +72,7 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       val cluster = createPersonKey().addPerson(unmergedPerson)
       val reactivatedPersonData = createRandomProbationCase(reactivatedCrn)
       val masterDefendantId = randomDefendantId()
-      val reactivatedPerson = Person.from(reactivatedPersonData)
-      reactivatedPerson.masterDefendantId = masterDefendantId
+      val reactivatedPerson = Person.from(reactivatedPersonData).copy(masterDefendantId = masterDefendantId)
       val reactivatedPersonEntity = createPerson(reactivatedPerson)
 
       probationMergeEventAndResponseSetup(reactivatedCrn, unmergedCrn)
