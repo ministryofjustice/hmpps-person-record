@@ -14,7 +14,7 @@ class ProbationProcessor(
 
   fun processProbationEvent(person: Person): PersonEntity {
     val offender = personRepository.findByCrn(person.crn!!)
-    val personWithDefendantId = person.copy(masterDefendantId = offender?.defendantId)
+    val personWithDefendantId = person.copy(masterDefendantId = offender?.defendantId ?: offender?.masterDefendantId)
     return personService.processPerson(personWithDefendantId) {
       personRepository.findByCrn(person.crn)
     }
