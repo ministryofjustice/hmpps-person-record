@@ -3,8 +3,8 @@ package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listen
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPrisonPersonReligionsMerged
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPrisonPersonReligionsMergedInfo
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprSysconSyncPrisonPersonMerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprSysconSyncPrisonPersonMergedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -21,11 +21,11 @@ class SysconSyncPrisonPersonMergedEventListener(
 
   @TransactionalEventListener
   fun onSysconSyncPrisonPersonMerged(sysconSyncPrisonPersonMerged: SysconSyncPrisonPersonMerged) = domainEventPublisher.publish(
-    CprPrisonPersonReligionsMerged(
+    CprSysconSyncPrisonPersonMerged(
       eventType = SYSCON_SYNC_PRISON_PERSON_MERGED,
       description = "A prison person has been merged",
       personReferenceTo = sysconSyncPrisonPersonMerged.to.prisonPersonIdentifier(),
-      additionalInformation = CprPrisonPersonReligionsMergedInfo(sysconSyncPrisonPersonMerged.from?.prisonPersonIdentifier()),
+      additionalInformation = CprSysconSyncPrisonPersonMergedInfo(sysconSyncPrisonPersonMerged.from?.prisonPersonIdentifier()),
     ),
     attributes = mapOf("eventSource" to CPR.identifier),
   )

@@ -57,17 +57,17 @@ data class CprAddressDeletedInfo(
   val deliusAddressId: Long? = null,
 )
 
-data class CprPrisonPersonReligionsMerged(
+data class CprSysconSyncPrisonPersonMerged (
   override val eventType: String,
   val version: Int = 1,
   val occurredAt: String = Instant.now().asStringWithUkZone(),
   val description: String,
   val detailUrl: String = "",
   val personReferenceTo: PersonReference,
-  val additionalInformation: CprPrisonPersonReligionsMergedInfo,
+  val additionalInformation: CprSysconSyncPrisonPersonMergedInfo,
 ) : DomainEvent
 
-data class CprPrisonPersonReligionsMergedInfo(
+data class CprSysconSyncPrisonPersonMergedInfo(
   val personReferenceFrom: PersonReference? = null,
 )
 
