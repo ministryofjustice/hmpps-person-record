@@ -31,7 +31,7 @@ class PersonSearchHandler(
     return buildSearchResult(strongestPersonsAcrossUniqueClusters)
   }
 
-  private fun getPersonMatchScoresSortedByMatchWeightDescending(personSearchRequest: PersonSearchRequest) = personMatchClient.search(personSearchRequest)
+  private fun getPersonMatchScoresSortedByMatchWeightDescending(personSearchRequest: PersonSearchRequest) = personMatchClient.searchPerson(personSearchRequest)
     .sortedByDescending { it.candidateMatchWeight }
 
   private fun findStrongestPersonsAcrossUniqueClusters(personMatchScoresSortedDescending: List<PersonMatchScore>) = personMatchScoresSortedDescending
