@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
 
-class PrisonReligionPostAPIControllerIntTest : WebTestBase() {
+class SysconSyncPrisonReligionPostAPIControllerIntTest : WebTestBase() {
 
   @Autowired
   private lateinit var prisonReligionRepository: PrisonReligionRepository

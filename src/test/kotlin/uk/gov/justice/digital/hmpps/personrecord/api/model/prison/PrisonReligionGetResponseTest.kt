@@ -49,6 +49,7 @@ class PrisonReligionGetResponseTest {
         current = prisonReligionEntity.prisonRecordType.value,
         createDateTime = prisonReligionEntity.createDateTime,
         createUserId = prisonReligionEntity.createUserId,
+        cprReligionId = prisonReligionEntity.updateId.toString(),
       ),
     )
     assertThat(actual).usingRecursiveComparison().isEqualTo(expected)

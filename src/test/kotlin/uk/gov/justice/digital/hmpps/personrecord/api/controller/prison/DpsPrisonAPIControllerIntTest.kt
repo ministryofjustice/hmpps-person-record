@@ -186,6 +186,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.religionHistory.first().createUserId).isEqualTo(existingPrisonReligionEntity.createUserId)
       assertThat(responseBody.religionHistory.first().current).isEqualTo(existingPrisonReligionEntity.prisonRecordType.value)
       assertThat(responseBody.religionHistory.first().endDate).isEqualTo(existingPrisonReligionEntity.endDate)
+      assertThat(responseBody.religionHistory.first().cprReligionId).isEqualTo(existingPrisonReligionEntity.updateId.toString())
     }
 
     @Test
