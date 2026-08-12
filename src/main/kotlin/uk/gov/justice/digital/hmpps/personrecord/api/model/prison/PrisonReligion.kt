@@ -17,7 +17,7 @@ data class PrisonReligion(
   val current: Boolean,
   val createDateTime: LocalDateTime,
   val createUserId: String,
-  val updatedId: String? = null,
+  val cprReligionId: String? = null,
 ) {
   companion object {
     fun from(prisonReligionEntity: PrisonReligionEntity): PrisonReligion = PrisonReligion(
@@ -32,7 +32,7 @@ data class PrisonReligion(
       current = prisonReligionEntity.prisonRecordType.value,
       createDateTime = prisonReligionEntity.createDateTime,
       createUserId = prisonReligionEntity.createUserId,
-      updatedId = prisonReligionEntity.updateId?.toString(),
+      cprReligionId = prisonReligionEntity.updateId?.toString(),
     )
   }
 }
