@@ -1,25 +1,45 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
-import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonMerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonMergedInfo
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonMergeEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.CURRENT
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.AGNO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.CALV
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.PrisonReligionMergeHandlerIntTest.Companion.prisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
+import java.time.LocalDate
 import kotlin.jvm.optionals.getOrNull
 
 class PrisonMergeEventListenerIntTest : PrisonEventListenerTestBase() {
 
   private fun prisonURL(prisonNumber: String) = "/prisoner/$prisonNumber"
+
+  @Autowired
+  lateinit var prisonReligionRepository: PrisonReligionRepository
+
+  @Autowired
+  lateinit var prisonMergeEventProcessor: PrisonMergeEventProcessor
 
   @Nested
   inner class MissingFromRecord {
@@ -85,6 +105,69 @@ class PrisonMergeEventListenerIntTest : PrisonEventListenerTestBase() {
     }
   }
 
+  // TODO this is a proof of concept and would need to be rationalised when taking this code forward.
+  @Nested
+  inner class MergingReligion {
+
+    @BeforeEach
+    fun beforeEach() {
+      stubPersonMatchUpsert()
+      stubDeletePersonMatch()
+    }
+
+    fun prisonResponseSetupForMergeEvent(
+      targetPrisonNumber: String,
+      scenario: String = BASE_SCENARIO,
+      currentScenarioState: String = STARTED,
+      nextScenarioState: String = STARTED,
+    ) {
+      stubPrisonResponse(
+        ApiResponseSetup(prisonNumber = targetPrisonNumber),
+        scenario,
+        currentScenarioState,
+        nextScenarioState,
+      )
+    }
+
+    @Test
+    fun `religion history is correctly merged`() {
+      val toPrisonNumber = randomPrisonNumber()
+      val fromPrisonNumber = randomPrisonNumber()
+
+      val fromPerson = createPerson(Person(prisonNumber = fromPrisonNumber, sourceSystem = NOMIS))
+      val toPerson = createPerson(Person(prisonNumber = toPrisonNumber, sourceSystem = NOMIS))
+
+      prisonReligionRepository.saveAll(
+        listOf(
+          prisonReligionEntity {
+            it.prisonRecordType = CURRENT
+            it.prisonNumber = fromPerson.prisonNumber!!
+            it.startDate = LocalDate.of(2021, 1, 25)
+            it.code = AGNO
+          },
+          prisonReligionEntity {
+            it.prisonRecordType = CURRENT
+            it.prisonNumber = toPerson.prisonNumber!!
+            it.startDate = LocalDate.of(2021, 1, 1)
+            it.code = CALV
+          },
+        ),
+      )
+
+      prisonResponseSetupForMergeEvent(targetPrisonNumber = toPrisonNumber)
+
+      // Call the processor directly as we are not testing raising events, and it causes async issues if we do.
+      prisonMergeEventProcessor.processEvent(
+        PrisonPersonMerged(
+          personReference = PersonReference(listOf(PersonIdentifier("NOMS", toPrisonNumber))),
+          additionalInformation = PrisonPersonMergedInfo(sourcePrisonNumber = fromPrisonNumber),
+        ),
+      )
+
+      assertThat(personRepository.findByPrisonNumber(toPerson.prisonNumber!!)?.religion).isEqualTo(AGNO)
+    }
+  }
+
   @Nested
   inner class SuccessfulProcessing {
 
@@ -105,7 +188,10 @@ class PrisonMergeEventListenerIntTest : PrisonEventListenerTestBase() {
         .addPerson(sourcePerson)
         .addPerson(targetPerson)
 
-      prisonMergeEventAndResponseSetup(sourcePrisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
+      prisonMergeEventAndResponseSetup(
+        sourcePrisonNumber = sourcePrisonNumber,
+        targetPrisonNumber = targetPrisonNumber,
+      )
 
       sourcePerson.assertNotLinkedToCluster()
       sourcePerson.assertMergedTo(targetPerson)
@@ -269,8 +355,18 @@ class PrisonMergeEventListenerIntTest : PrisonEventListenerTestBase() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
       stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure")
-      stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
-      stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
+      stub5xxResponse(
+        prisonURL(targetPrisonNumber),
+        "PrisonMergeEventProcessingWillFail",
+        "failure",
+        "PrisonMergeEventProcessingWillFail",
+      )
+      stub5xxResponse(
+        prisonURL(targetPrisonNumber),
+        "PrisonMergeEventProcessingWillFail",
+        "failure",
+        "PrisonMergeEventProcessingWillFail",
+      )
 
       publishPrisonPersonMergedEvent(targetPrisonNumber, sourcePrisonNumber)
 
@@ -292,7 +388,8 @@ class PrisonMergeEventListenerIntTest : PrisonEventListenerTestBase() {
       val sourcePrisonNumber = randomPrisonNumber()
 
       val sourcePerson = createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
-      val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS)) { markAsPassive() }
+      val targetPerson =
+        createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS)) { markAsPassive() }
 
       prisonMergeEventAndResponseSetup(
         sourcePrisonNumber = sourcePrisonNumber,
@@ -327,7 +424,8 @@ class PrisonMergeEventListenerIntTest : PrisonEventListenerTestBase() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
 
-      val sourcePerson = createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS)) { markAsPassive() }
+      val sourcePerson =
+        createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS)) { markAsPassive() }
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
       prisonMergeEventAndResponseSetup(

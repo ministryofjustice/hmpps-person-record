@@ -57,7 +57,7 @@ data class CprAddressDeletedInfo(
   val deliusAddressId: Long? = null,
 )
 
-data class CprSysconSyncPrisonPersonMerged (
+data class CprSysconSyncPrisonPersonMerged(
   override val eventType: String,
   val version: Int = 1,
   val occurredAt: String = Instant.now().asStringWithUkZone(),

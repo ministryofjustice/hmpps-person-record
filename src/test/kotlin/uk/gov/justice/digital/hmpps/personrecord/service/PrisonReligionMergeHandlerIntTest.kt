@@ -69,7 +69,8 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
       prisonReligionMergeHandler.handleMerge(fromPrisoner, toPrisoner)
 
       assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(fromPrisoner.prisonNumber!!)).isEmpty()
-      val prisonerFromReligionHistoryMerged = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisoner.prisonNumber!!)
+      val prisonerFromReligionHistoryMerged =
+        prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisoner.prisonNumber!!)
       assertThat(prisonerFromReligionHistoryMerged).hasSize((prisonerFromReligionHistory + prisonerToReligionHistory).size)
       // Only one current religion and it was the one that had the latest start date
       val currentReligions = prisonerFromReligionHistoryMerged.filter { it.prisonRecordType == CURRENT }
@@ -99,14 +100,17 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
 
       // The religion should have been moved to the to person
       assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(fromPrisoner.prisonNumber!!)).isEmpty()
-      val prisonerFromReligionHistoryMerged = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisoner.prisonNumber!!)
+      val prisonerFromReligionHistoryMerged =
+        prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisoner.prisonNumber!!)
       assertThat(prisonerFromReligionHistoryMerged).hasSize(1)
       assertThat(prisonerFromReligionHistoryMerged.single().code).isEqualTo(EODX)
       assertThat(prisonerFromReligionHistoryMerged.single().prisonRecordType).isEqualTo(CURRENT)
       assertThat(personRepository.findByPrisonNumber(toPrisoner.prisonNumber!!)?.religion).isEqualTo(EODX)
     }
+  }
 
-    private fun prisonReligionEntity(config: (PrisonReligionEntity) -> Unit): PrisonReligionEntity {
+  companion object {
+    fun prisonReligionEntity(config: (PrisonReligionEntity) -> Unit): PrisonReligionEntity {
       val entity = PrisonReligionEntity(
         prisonRecordType = HISTORIC,
         prisonNumber = "A1234BC",

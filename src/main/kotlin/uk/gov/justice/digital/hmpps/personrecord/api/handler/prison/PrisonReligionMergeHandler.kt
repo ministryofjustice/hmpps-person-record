@@ -21,22 +21,30 @@ class PrisonReligionMergeHandler(
     if (from?.prisonNumber == null || to?.prisonNumber == null) {
       return
     }
-    val fromHistory: List<PrisonReligionEntity> = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(from.prisonNumber!!)
-    val toHistory: List<PrisonReligionEntity> = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(to.prisonNumber!!)
+    val fromHistory: List<PrisonReligionEntity> =
+      prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(from.prisonNumber!!)
+    val toHistory: List<PrisonReligionEntity> =
+      prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(to.prisonNumber!!)
 
-    // Choose the current religion with the latest start date and set the religion on the to person
-    val currentReligions = (fromHistory + toHistory).filter { it.prisonRecordType == CURRENT }.sortedBy { it.startDate }
-    if (currentReligions.size == 2) {
-      val toBeHistoric = currentReligions[0]
-      val current = currentReligions[1]
-      toBeHistoric.prisonRecordType = HISTORIC
-      toBeHistoric.endDate = LocalDate.now()
-      prisonReligionRepository.saveAndFlush(toBeHistoric)
-      to.religion = current.code
-      personRepository.saveAndFlush(to)
+    // Choose the current religion with the latest start date
+    val currentReligions =
+      (fromHistory + toHistory).filter { it.prisonRecordType == CURRENT }.sortedByDescending { it.startDate }
+    val currentReligion = currentReligions.firstOrNull()
+    if (currentReligions.size > 1) {
+      currentReligions.drop(1).forEach { toBeHistoric ->
+        toBeHistoric.prisonRecordType = HISTORIC
+        toBeHistoric.endDate = LocalDate.now()
+        prisonReligionRepository.saveAndFlush(toBeHistoric)
+      }
     }
 
     // Put all of the religions on the to person
-    fromHistory.forEach { it.prisonNumber = to.prisonNumber!! }
+    prisonReligionRepository.saveAllAndFlush(fromHistory.onEach { it.prisonNumber = to.prisonNumber!! })
+
+    // Set the current religion on the to person
+    currentReligion?.let {
+      to.religion = it.code
+      personRepository.saveAndFlush(to)
+    }
   }
 }
