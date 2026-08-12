@@ -9,23 +9,23 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.religion.PrisonPersonReligionsMerged
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.religion.SysconSyncPrisonPersonMerged
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISON_PERSON_RELIGIONS_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.SYSCON_SYNC_PRISON_PERSON_MERGED
 
 @Component
-class ReligionsMergedEventListener(
+class SysconSyncPrisonPersonMergedEventListener(
   private val domainEventPublisher: DomainEventPublisher,
   @Value($$"${core-person-record.base-url}") private val baseUrl: String,
 ) {
 
   @TransactionalEventListener
-  fun onReligionsMerged(prisonPersonReligionsMerged: PrisonPersonReligionsMerged) = domainEventPublisher.publish(
+  fun onSysconSyncPrisonPersonMerged(sysconSyncPrisonPersonMerged: SysconSyncPrisonPersonMerged) = domainEventPublisher.publish(
     CprPrisonPersonReligionsMerged(
-      eventType = PRISON_PERSON_RELIGIONS_MERGED,
-      description = "A prison religions has been merged",
-      personReferenceTo = prisonPersonReligionsMerged.to.prisonPersonIdentifier(),
-      additionalInformation = CprPrisonPersonReligionsMergedInfo(prisonPersonReligionsMerged.from.prisonPersonIdentifier()),
+      eventType = SYSCON_SYNC_PRISON_PERSON_MERGED,
+      description = "A prison person has been merged",
+      personReferenceTo = sysconSyncPrisonPersonMerged.to.prisonPersonIdentifier(),
+      additionalInformation = CprPrisonPersonReligionsMergedInfo(sysconSyncPrisonPersonMerged.from?.prisonPersonIdentifier()),
     ),
     attributes = mapOf("eventSource" to CPR.identifier),
   )

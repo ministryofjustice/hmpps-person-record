@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.prison
 
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionMergeHandler
@@ -7,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonMerged
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.religion.SysconSyncPrisonPersonMerged
 import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
@@ -17,6 +19,7 @@ class PrisonMergeEventProcessor(
   private val prisonerSearchClient: PrisonerSearchClient,
   private val personService: PersonService,
   private val prisonReligionMergeHandler: PrisonReligionMergeHandler,
+  private val publisher: ApplicationEventPublisher,
 ) {
 
   @Transactional
@@ -28,6 +31,7 @@ class PrisonMergeEventProcessor(
       prisonReligionMergeHandler.handleMerge(from, to)
       val processedTo: PersonEntity = personService.processPerson(it.doNotReclusterOnUpdate()) { to }
       mergeService.processMerge(from, processedTo)
+      publisher.publishEvent(SysconSyncPrisonPersonMerged(from, to!!))
     }
   }
 }

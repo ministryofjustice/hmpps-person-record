@@ -4,7 +4,7 @@ const val PRISON_PERSON_CREATED = "prisoner-offender-search.prisoner.created"
 const val PRISON_PERSON_UPDATED = "prisoner-offender-search.prisoner.updated"
 const val PRISON_PERSON_MERGED = "prison-offender-events.prisoner.merged"
 
-const val PRISON_PERSON_RELIGIONS_MERGED = "prison-offender-events.prisoner-religions.merged"
+const val SYSCON_SYNC_PRISON_PERSON_MERGED = "core-person-record.syscon-sync.prisoner.merged"
 
 const val PROBATION_PERSON_CREATED = "probation-case.engagement.created"
 const val PROBATION_PERSON_UPDATED = "probation-case.personal-details.updated"

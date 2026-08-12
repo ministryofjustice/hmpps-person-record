@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events
 
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 
-data class PrisonPersonReligionsMerged(
+data class SysconSyncPrisonPersonMerged(
   val from: PersonEntity?,
   val to: PersonEntity,
 )
