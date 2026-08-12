@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ActorType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ConfidenceType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import java.time.LocalDate
 import java.util.UUID
 
@@ -63,33 +64,35 @@ class PersonMatchRecordTest {
 
   @Test
   fun `should use defendant id for person match master defendant id field`() {
+    val defendantId = randomDefendantId()
     val personEntity = PersonEntity(
       pseudonyms = mutableListOf(
         PseudonymEntity(nameType = NameType.PRIMARY, dateOfBirth = randomDate()),
       ),
-      defendantId = "defendant-id",
-      masterDefendantId = "master-defendant-id",
+      defendantId = defendantId,
+      masterDefendantId = randomDefendantId(),
       matchId = UUID.randomUUID(),
       sourceSystem = DELIUS,
     )
 
     val personMatchRecord = PersonMatchRecord.from(personEntity)
-    assertThat(personMatchRecord.masterDefendantId).isEqualTo("defendant-id")
+    assertThat(personMatchRecord.masterDefendantId).isEqualTo(defendantId)
   }
 
   @Test
   fun `should fallback to master defendant id when defendant id is absent`() {
+    val masterDefendantId = randomDefendantId()
     val personEntity = PersonEntity(
       pseudonyms = mutableListOf(
         PseudonymEntity(nameType = NameType.PRIMARY, dateOfBirth = randomDate()),
       ),
       defendantId = null,
-      masterDefendantId = "defendant-id",
+      masterDefendantId = masterDefendantId,
       matchId = UUID.randomUUID(),
       sourceSystem = DELIUS,
     )
 
     val personMatchRecord = PersonMatchRecord.from(personEntity)
-    assertThat(personMatchRecord.masterDefendantId).isEqualTo("defendant-id")
+    assertThat(personMatchRecord.masterDefendantId).isEqualTo(masterDefendantId)
   }
 }
