@@ -1,25 +1,27 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.handler.prison
 
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.CURRENT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.HISTORIC
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.religion.PrisonPersonReligionsMerged
 import java.time.LocalDate
 
 @Component
 class PrisonReligionMergeHandler(
   private val prisonReligionRepository: PrisonReligionRepository,
-  private val personService: PersonService,
+  private val personRepository: PersonRepository,
+  private val publisher: ApplicationEventPublisher,
 ) {
 
   @Transactional
-  fun handleMerge(from: PersonEntity?, to: PersonEntity) {
-    if (from?.prisonNumber == null || to.prisonNumber == null) {
+  fun handleMerge(from: PersonEntity?, to: PersonEntity?) {
+    if (from?.prisonNumber == null || to?.prisonNumber == null) {
       return
     }
     val fromHistory: List<PrisonReligionEntity> = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(from.prisonNumber!!)
@@ -34,10 +36,11 @@ class PrisonReligionMergeHandler(
       toBeHistoric.endDate = LocalDate.now()
       prisonReligionRepository.saveAndFlush(toBeHistoric)
       to.religion = current.code
-      personService.processPerson(Person.from(to)) { to }
+      personRepository.saveAndFlush(to)
     }
 
     // Put all of the religions on the to person
     fromHistory.forEach { it.prisonNumber = to.prisonNumber!! }
+    publisher.publishEvent(PrisonPersonReligionsMerged(from, to))
   }
 }
