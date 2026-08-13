@@ -59,8 +59,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     stubGetRequestToProbation(probationAddress, status = 404)
     publishProbationAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
 
-    expectNoMessagesOn(probationEventsQueue)
-    expectOneMessageOnDlq(probationEventsQueue)
+    expectNoMessagesOnQueueOrDlq(probationEventsQueue)
     expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
     assertThat(personRepository.findByCrn(cprPerson.crn!!)!!.addresses.size).isEqualTo(0)
   }

@@ -72,8 +72,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
 
     publishProbationAddressUpdatedEvent(personEntity.crn, probationAddress.deliusAddressId)
 
-    expectNoMessagesOn(probationEventsQueue)
-    expectOneMessageOnDlq(probationEventsQueue)
+    expectNoMessagesOnQueueOrDlq(probationEventsQueue)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)

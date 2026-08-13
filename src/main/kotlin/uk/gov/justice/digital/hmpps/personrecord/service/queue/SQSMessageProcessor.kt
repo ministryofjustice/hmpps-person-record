@@ -25,7 +25,7 @@ class SQSMessageProcessor(
         NOTIFICATION -> action(sqsMessage)
       }
     } catch (_: DiscardableNotFoundException) {
-      log.info("Discarding message for status code")
+      log.error("Discarding message of type ${sqsMessage.getEventType()} due to discardable not found exception")
     }
   }
 
