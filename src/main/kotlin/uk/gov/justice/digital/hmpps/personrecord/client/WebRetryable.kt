@@ -17,7 +17,7 @@ annotation class WebRetryable(
 
   @get:AliasFor(annotation = Retryable::class, attribute = "retryFor")
   val retryFor: Array<KClass<out Throwable>> = [
-    WebClientResponseException.NotFound::class
+    WebClientResponseException.NotFound::class,
   ],
 
   @get:AliasFor(annotation = Retryable::class, attribute = "backoff")
