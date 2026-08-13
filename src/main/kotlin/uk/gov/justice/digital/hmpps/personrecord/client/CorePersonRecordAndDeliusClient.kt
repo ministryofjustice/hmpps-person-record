@@ -16,6 +16,7 @@ class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebCl
   @WebRetryable
   fun getProbationCase(crn: String): ProbationCase = fetchProbationCase(crn).block()!!
 
+  @WebRetryable
   fun getAddress(deliusAddressId: Long): Address? = Address.from(
     corePersonRecordAndDeliusWebClient
       .get()

@@ -66,6 +66,25 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
   }
 
   @Test
+  fun `consuming address created event - initial 404 from probation but retry succeeds - saves the address`() {
+    val probationAddress = randomProbationAddress()
+    val cprPerson = createRandomProbationPersonDetails()
+    createPersonKey().addPerson(cprPerson)
+
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+    stubGetRequestToProbation(probationAddress, status = 404, scenarioName = "retry-address", nextScenarioState = "retry-success")
+    stubGetRequestToProbation(probationAddress, status = 200, scenarioName = "retry-address", currentScenarioState = "retry-success")
+    publishProbationAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
+
+    expectNoMessagesOnQueueOrDlq(probationEventsQueue)
+    expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+    val personEntity = personRepository.findByCrn(cprPerson.crn!!)!!
+    assertThat(personEntity.addresses.size).isEqualTo(1)
+    assertCprAddressCreatedEventPublished(cprPerson.crn, personEntity.addresses.first().updateId!!)
+  }
+
+  @Test
   fun `consuming address created event - cpr person does not exist - does not save address`() {
     val probationAddress = randomProbationAddress()
     val cprPerson = createRandomProbationPersonDetails().copy(addresses = emptyList())
