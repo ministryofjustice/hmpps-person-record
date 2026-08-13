@@ -17,14 +17,14 @@ class ProbationUnmergeEventProcessor(
   fun processEvent(domainEvent: ProbationPersonUnmerged) {
     val unmergedCrn = domainEvent.additionalInformation.unmergedCrn
     val existingPerson = corePersonRecordAndDeliusClient
-      .getPersonErrorIfNotFound(unmergedCrn)
+      .getPerson(unmergedCrn)
       .let {
         probationProcessor.processProbationEvent(it)
       }
 
     val reactivatedCrn = domainEvent.additionalInformation.reactivatedCrn
     val reactivatedPerson = corePersonRecordAndDeliusClient
-      .getPersonErrorIfNotFound(reactivatedCrn)
+      .getPerson(reactivatedCrn)
       .let {
         probationProcessor.processProbationEvent(it.doNotLinkOnCreate())
       }

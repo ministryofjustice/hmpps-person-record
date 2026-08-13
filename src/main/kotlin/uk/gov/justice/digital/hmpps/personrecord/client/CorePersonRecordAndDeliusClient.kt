@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.queue.discardNotFoundException
 
 @Component
 class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebClient: WebClient) {
@@ -24,15 +23,7 @@ class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebCl
     return Person.from(probationCase)
   }
 
-  fun getPersonErrorIfNotFound(crn: String): Person {
-    val probationCase = fetchProbationCase(crn)
-      .block()!!
-    return Person.from(probationCase)
-  }
-
-  fun getProbationCase(crn: String): ProbationCase = fetchProbationCase(crn)
-    .discardNotFoundException()
-    .block()!!
+  fun getProbationCase(crn: String): ProbationCase = fetchProbationCase(crn).block()!!
 
   private fun fetchProbationCase(crn: String): Mono<ProbationCase> = corePersonRecordAndDeliusWebClient
     .get()
