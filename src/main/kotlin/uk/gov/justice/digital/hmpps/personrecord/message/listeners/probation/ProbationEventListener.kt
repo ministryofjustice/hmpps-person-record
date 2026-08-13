@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepositor
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationPersonRecoveredEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
@@ -62,8 +63,8 @@ class ProbationEventListener(
   }
 
   private fun updateWholePerson(crn: String) {
-    corePersonRecordAndDeliusClient.getPerson(crn).let {
-      probationEventProcessor.processEvent(it)
+    corePersonRecordAndDeliusClient.getProbationCase(crn).let {
+      probationEventProcessor.processEvent(Person.from(it))
     }
   }
 
