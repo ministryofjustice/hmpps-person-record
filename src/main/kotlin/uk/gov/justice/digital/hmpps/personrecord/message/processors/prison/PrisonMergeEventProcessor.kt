@@ -16,7 +16,7 @@ class PrisonMergeEventProcessor(
   private val mergeService: MergeService,
   private val prisonerSearchClient: PrisonerSearchClient,
   private val personService: PersonService,
-  private val prisonReligionMergeHandler: PrisonReligionMergeHandler,
+  private val prisonReligionMergeHandler: PrisonReligionMergeHandler?,
 ) {
 
   @Transactional
@@ -25,7 +25,7 @@ class PrisonMergeEventProcessor(
     prisonerSearchClient.getPrisoner(prisonNumber)?.let {
       val from: PersonEntity? = personRepository.findByPrisonNumber(domainEvent.additionalInformation.sourcePrisonNumber)
       val to = personRepository.findByPrisonNumber(prisonNumber)
-      prisonReligionMergeHandler.handleMerge(from, to)
+      prisonReligionMergeHandler?.handleMerge(from, to)
       val processedTo: PersonEntity = personService.processPerson(it.doNotReclusterOnUpdate()) { to }
       mergeService.processMerge(from, processedTo)
     }
