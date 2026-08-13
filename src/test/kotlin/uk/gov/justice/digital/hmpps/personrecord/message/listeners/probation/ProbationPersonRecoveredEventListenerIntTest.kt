@@ -71,7 +71,7 @@ class ProbationPersonRecoveredEventListenerIntTest : ProbationEventListenerTestB
   }
 
   @Test
-  fun `should not recreate person if person does not exist in delius`() {
+  fun `should fail to process if person does not exist in delius`() {
     val crn = randomCrn()
 
     stub404Response(probationUrl(crn))
@@ -84,6 +84,6 @@ class ProbationPersonRecoveredEventListenerIntTest : ProbationEventListenerTestB
       val personEntity = personRepository.findByCrn(crn)
       assertThat(personEntity).isNull()
     }
-    expectNoMessagesOnQueueOrDlq(probationEventsQueue)
+    expectOneMessageOnDlq(probationEventsQueue)
   }
 }
