@@ -52,6 +52,7 @@ dependencies {
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.5.0")
   testImplementation("org.springframework.boot:spring-boot-starter-webclient-test")
   testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
+  testImplementation("org.springframework.boot:spring-boot-webmvc-test")
   testImplementation("au.com.dius.pact.provider:junit5spring:4.7.1")
 }
 
@@ -60,6 +61,27 @@ repositories {
 }
 
 val test by testing.suites.existing(JvmTestSuite::class)
+
+sourceSets {
+  create("pactTest") {
+    kotlin.srcDir("src/pactTest/kotlin")
+    resources.srcDir("src/pactTest/resources")
+    compileClasspath += sourceSets.main.get().output + sourceSets.test.get().output
+    runtimeClasspath += sourceSets.main.get().output + sourceSets.test.get().output
+  }
+}
+
+val pactTestImplementation: Configuration by configurations.getting {
+  extendsFrom(configurations.getByName("testImplementation"))
+}
+
+configurations.getByName("pactTestRuntimeOnly") {
+  extendsFrom(configurations.getByName("testRuntimeOnly"))
+}
+
+// Associate pactTest compilation with test compilation so pactTest can see
+// `internal` members (e.g. E2ETestBase.jwtAuthorisationHelper) declared in src/test.
+kotlin.target.compilations.getByName("pactTest").associateWith(kotlin.target.compilations.getByName("test"))
 
 tasks.register<Test>("initialiseDatabase") {
   testClassesDirs = files(test.map { it.sources.output.classesDirs })
@@ -83,17 +105,35 @@ tasks.register<Test>("pactTest") {
   val authUser = System.getProperty("pactbroker.auth.username") ?: System.getenv("PACT_BROKER_USERNAME")
   val authPass = System.getProperty("pactbroker.auth.password") ?: System.getenv("PACT_BROKER_PASSWORD")
 
-  systemProperty("pact.provider.tag", System.getenv("PACT_PROVIDER_TAG") ?: "")
+  // Real git SHA - identifies exactly which build was verified (used when publishing verification results)
   systemProperty("pact.provider.version", System.getenv("PACT_PROVIDER_VERSION") ?: "")
+  // Real git branch name - NOT 'HEAD' - used when publishing verification results
+  systemProperty("pact.provider.branch", System.getenv("PACT_PROVIDER_BRANCH") ?: "")
   systemProperty("pact.verifier.publishResults", System.getenv("PACT_PUBLISH_RESULTS") ?: "false")
   systemProperty("pactbroker.host", brokerHost)
   systemProperty("pactbroker.url", brokerUrl)
   systemProperty("pactbroker.auth.username", authUser)
   systemProperty("pactbroker.auth.password", authPass)
+  // Read by the @PactBroker annotation itself (a different property to pact.provider.branch above) -
+  // sent as providerVersionBranch in the for-verification request; required for the matchingBranch selector to resolve.
+  systemProperty("pactbroker.providerBranch", System.getenv("PACT_PROVIDER_BRANCH") ?: "")
+  // Verify pacts from the provider's main branch and from any consumer branch matching this branch name.
+  // Also verify against a named consumer branch when triggered by the broker webhook (coordinated changes).
+  val consumer = System.getenv("PACT_CONSUMER")
+  val consumerBranch = System.getenv("PACT_CONSUMER_BRANCH")
+  val selectors = mutableListOf<Map<String, Any>>(
+    mapOf("mainBranch" to true),
+    mapOf("matchingBranch" to true),
+  )
+  if (!consumer.isNullOrBlank() && !consumerBranch.isNullOrBlank()) {
+    selectors.add(mapOf("pacticipant" to consumer, "branch" to consumerBranch))
+  }
+  systemProperty("pactbroker.consumerversionselectors.rawjson", groovy.json.JsonOutput.toJson(selectors))
+  // Required to avoid a chicken-and-egg deadlock when onboarding a brand new consumer/provider pairing
+  systemProperty("pactbroker.enablePending", "true")
 
-  testClassesDirs = files(test.map { it.sources.output.classesDirs })
-  classpath = files(test.map { it.sources.runtimeClasspath })
-  include("**/**PactTest.class")
+  testClassesDirs = files(sourceSets["pactTest"].output.classesDirs)
+  classpath = sourceSets["pactTest"].runtimeClasspath
   onlyIf { gradle.startParameter.taskNames.contains("pactTest") }
 }
 
@@ -101,7 +141,6 @@ tasks {
   test {
     exclude("**/InitialiseDatabase.class")
     exclude("**/**E2ETest.class")
-    exclude("**/**PactTest.class")
   }
 
   getByName("check") {
