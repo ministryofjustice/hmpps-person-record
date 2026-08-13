@@ -17,11 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebClient: WebClient) {
 
   @CprRetryable(retryFor = [WebClientResponseException.NotFound::class])
-  fun getPerson(crn: String): Person {
-    val probationCase = fetchProbationCase(crn)
-      .block()!!
-    return Person.from(probationCase)
-  }
+  fun getPerson(crn: String): Person = Person.from(getProbationCase(crn))
 
   fun getProbationCase(crn: String): ProbationCase = fetchProbationCase(crn).block()!!
 
