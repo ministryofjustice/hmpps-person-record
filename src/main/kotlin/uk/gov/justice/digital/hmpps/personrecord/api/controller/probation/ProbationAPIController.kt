@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus.MOVED_PERMANENTLY
 import org.springframework.http.ResponseEntity
@@ -108,8 +109,13 @@ class ProbationAPIController(
       return
     }
 
-    require(defendant.overrideMarker == null && offender.overrideMarker == null) {
-      "Cannot assign include override marker to records with existing override markers"
+    if (defendant.overrideMarker != null || offender.overrideMarker != null) {
+      log.warn(
+        "Skipping include override markers for defendantId {} and offenderCrn {} due to existing override markers.",
+        defendant.defendantId,
+        offender.crn,
+      )
+      return
     }
 
     overrideService.systemInclude(defendant, offender)
@@ -125,4 +131,8 @@ class ProbationAPIController(
   private fun <T : Any> respondWithRedirect(crn: String): ResponseEntity<T> = ResponseEntity.status(MOVED_PERMANENTLY)
     .location(URI("/person/probation/$crn"))
     .build()
+
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
 }
