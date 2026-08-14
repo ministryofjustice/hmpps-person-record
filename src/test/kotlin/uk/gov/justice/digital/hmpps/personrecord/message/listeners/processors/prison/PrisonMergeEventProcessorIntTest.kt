@@ -10,21 +10,17 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonMerged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonMergedInfo
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonMergeEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.CURRENT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.HISTORIC
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.ADV
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.AGNO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.CALV
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 class PrisonMergeEventProcessorIntTest : MessagingMultiNodeTestBase() {
 
@@ -86,26 +82,9 @@ class PrisonMergeEventProcessorIntTest : MessagingMultiNodeTestBase() {
   }
 
   companion object {
-
     fun prisonPersonMerged(toPrisonNumber: String, fromPrisonNumber: String) = PrisonPersonMerged(
       personReference = PersonReference(listOf(PersonIdentifier("NOMS", toPrisonNumber))),
       additionalInformation = PrisonPersonMergedInfo(sourcePrisonNumber = fromPrisonNumber),
-    )
-
-    fun prisonReligionEntity(
-      prisonNumber: String,
-      startDate: LocalDate,
-      endDate: LocalDate? = null,
-      code: ReligionCode = ADV,
-      createdUserId: String = "abcdefg",
-    ) = PrisonReligionEntity(
-      prisonRecordType = if (endDate == null) CURRENT else HISTORIC,
-      prisonNumber = prisonNumber,
-      code = code,
-      changeReasonKnown = false,
-      startDate = startDate,
-      createDateTime = LocalDateTime.now(),
-      createUserId = createdUserId,
     )
   }
 }

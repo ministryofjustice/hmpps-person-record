@@ -6,18 +6,14 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionMergeHandler
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.CURRENT
-import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.HISTORIC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.ADV
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.AGNO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.BAHA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.CALV
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.DRU
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.EODX
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
 
@@ -36,32 +32,30 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
       val toPrisoner = createPerson(createRandomPrisonPersonDetails())
 
       val prisonerFromReligionHistory = listOf(
-        prisonReligionEntity {
-          it.prisonNumber = fromPrisoner.prisonNumber!!
-          it.startDate = LocalDate.of(2021, 1, 25)
-          it.endDate = LocalDate.of(2021, 4, 12)
-          it.code = AGNO
-        },
-        prisonReligionEntity {
-          it.prisonNumber = fromPrisoner.prisonNumber!!
-          it.startDate = LocalDate.of(2021, 4, 12)
-          it.code = BAHA
-          it.prisonRecordType = CURRENT
-        },
+        prisonReligionEntity(
+          prisonNumber = fromPrisoner.prisonNumber!!,
+          startDate = LocalDate.of(2021, 1, 25),
+          endDate = LocalDate.of(2021, 4, 12),
+          code = ADV,
+        ),
+        prisonReligionEntity(
+          prisonNumber = fromPrisoner.prisonNumber!!,
+          startDate = LocalDate.of(2021, 4, 12),
+          code = BAHA,
+        ),
       )
       val prisonerToReligionHistory = listOf(
-        prisonReligionEntity {
-          it.prisonNumber = toPrisoner.prisonNumber!!
-          it.startDate = LocalDate.of(2021, 1, 1)
-          it.endDate = LocalDate.of(2021, 4, 24)
-          it.code = CALV
-        },
-        prisonReligionEntity {
-          it.prisonNumber = toPrisoner.prisonNumber!!
-          it.startDate = LocalDate.of(2021, 4, 10)
-          it.code = DRU
-          it.prisonRecordType = CURRENT
-        },
+        prisonReligionEntity(
+          toPrisoner.prisonNumber!!,
+          startDate = LocalDate.of(2021, 1, 1),
+          endDate = LocalDate.of(2021, 4, 24),
+          CALV,
+        ),
+        prisonReligionEntity(
+          toPrisoner.prisonNumber!!,
+          startDate = LocalDate.of(2021, 4, 10),
+          code = DRU,
+        ),
       )
       prisonReligionRepository.saveAll(prisonerFromReligionHistory + prisonerToReligionHistory)
 
@@ -87,12 +81,12 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
       val fromPrisoner = createPerson(createRandomPrisonPersonDetails())
       val toPrisoner = createPerson(createRandomPrisonPersonDetails())
       val prisonerFromReligionHistory =
-        prisonReligionEntity {
-          it.prisonNumber = fromPrisoner.prisonNumber!!
-          it.startDate = LocalDate.of(2021, 1, 25)
-          it.endDate = LocalDate.of(2021, 4, 12)
-          it.code = EODX
-        }
+        prisonReligionEntity(
+          prisonNumber = fromPrisoner.prisonNumber!!,
+          startDate = LocalDate.of(2021, 1, 25),
+          endDate = LocalDate.of(2021, 4, 12),
+          code = EODX,
+        )
       prisonReligionRepository.save(prisonerFromReligionHistory)
 
       // Method under test
@@ -106,22 +100,6 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
       assertThat(prisonerFromReligionHistoryMerged.single().code).isEqualTo(EODX)
       assertThat(prisonerFromReligionHistoryMerged.single().prisonRecordType).isEqualTo(CURRENT)
       assertThat(personRepository.findByPrisonNumber(toPrisoner.prisonNumber!!)?.religion).isEqualTo(EODX)
-    }
-  }
-
-  companion object {
-    fun prisonReligionEntity(config: (PrisonReligionEntity) -> Unit): PrisonReligionEntity {
-      val entity = PrisonReligionEntity(
-        prisonRecordType = HISTORIC,
-        prisonNumber = "A1234BC",
-        code = ADV,
-        changeReasonKnown = false,
-        startDate = LocalDate.now(),
-        createDateTime = LocalDateTime.now(),
-        createUserId = "abcdefg",
-      )
-      config(entity)
-      return entity
     }
   }
 }
