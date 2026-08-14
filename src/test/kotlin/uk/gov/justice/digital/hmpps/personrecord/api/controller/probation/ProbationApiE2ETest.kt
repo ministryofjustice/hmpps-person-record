@@ -531,7 +531,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           gender = Value(randomProbationSexCode().key),
           nationality = Value(randomProbationNationalityCode()),
         )
-        createPersonWithNewKey(defendant)
+        val defendantRecord = createPersonWithNewKey(defendant)
         webTestClient.put()
           .uri(probationApiUrl(defendantId))
           .authorised(listOf(PROBATION_API_READ_WRITE))
@@ -541,9 +541,11 @@ class ProbationApiE2ETest : E2ETestBase() {
           .isOk
 
         val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+        val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
 
-        offender.personKey?.assertClusterStatus(ACTIVE)
-        offender.personKey?.assertClusterIsOfSize(2)
+        offender.assertIncluded(defendantRecord)
+        assertThat(offender.overrideMarker).isNotNull()
+        assertThat(updatedDefendant.masterDefendantId).isEqualTo(defendant.masterDefendantId)
 
         assertThat(offender.getPnc()).isEqualTo(probationCase.identifiers.pnc)
         assertThat(offender.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(probationCase.ethnicity?.value))
@@ -573,6 +575,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.contacts.getEmail()?.contactValue).isEqualTo(probationCase.contactDetails?.email)
         assertThat(offender.matchId).isNotNull()
         assertThat(offender.lastModified).isNotNull()
+        assertThat(offender.masterDefendantId).isNull()
         assertThat(offender.nationalities.size).isEqualTo(1)
         assertThat(offender.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.name)
         assertThat(offender.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.description)
@@ -591,7 +594,7 @@ class ProbationApiE2ETest : E2ETestBase() {
       }
 
       @Test
-      fun `should retain master defendant id on update on probation record`() {
+      fun `should keep include override marker and clear master defendant id on probation record update`() {
         val defendantId = randomDefendantId()
 
         val defendant = createRandomCommonPlatformPersonDetails(defendantId)
@@ -600,7 +603,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
           dateOfBirth = defendant.dateOfBirth,
         )
-        createPersonWithNewKey(defendant)
+        val defendantRecord = createPersonWithNewKey(defendant)
         webTestClient.put()
           .uri(probationApiUrl(defendantId))
           .authorised(listOf(PROBATION_API_READ_WRITE))
@@ -611,8 +614,8 @@ class ProbationApiE2ETest : E2ETestBase() {
 
         val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
 
-        offender.personKey?.assertClusterStatus(ACTIVE)
-        offender.personKey?.assertClusterIsOfSize(2)
+        offender.assertIncluded(defendantRecord)
+        assertThat(offender.masterDefendantId).isNull()
 
         probationUpdateEventAndResponseSetup(ApiResponseSetup.from(probationCase.aboveFracture()))
 
@@ -621,7 +624,9 @@ class ProbationApiE2ETest : E2ETestBase() {
           mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to probationCase.identifiers.crn),
         )
 
-        assertThat(offender.masterDefendantId).isEqualTo(defendant.masterDefendantId)
+        val updatedOffender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+        updatedOffender.assertIncluded(defendantRecord)
+        assertThat(updatedOffender.masterDefendantId).isNull()
       }
 
       @Test
@@ -661,6 +666,8 @@ class ProbationApiE2ETest : E2ETestBase() {
 
         offender.personKey?.assertClusterStatus(ACTIVE)
         offender.personKey?.assertClusterIsOfSize(2)
+        offender.assertIncluded(defendant)
+        assertThat(offender.masterDefendantId).isNull()
       }
     }
 

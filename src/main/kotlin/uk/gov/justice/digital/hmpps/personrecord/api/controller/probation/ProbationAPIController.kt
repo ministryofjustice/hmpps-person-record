@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import java.net.URI
 
@@ -34,6 +35,7 @@ import java.net.URI
 class ProbationAPIController(
   private val personRepository: PersonRepository,
   private val personService: PersonService,
+  private val overrideService: OverrideService,
 ) {
   @Operation(
     description = """Retrieve person record by CRN. Role required is **$API_READ_ONLY** . 
@@ -91,17 +93,32 @@ class ProbationAPIController(
     @PathVariable defendantId: String,
     @RequestBody probationCase: ProbationCase,
   ) {
-    val masterDefendantId: String? = retrieveDefendant(defendantId).masterDefendantId
-
+    val defendant = retrieveDefendant(defendantId)
     val person = Person.from(probationCase)
-    person.masterDefendantId = masterDefendantId
-
-    personService.processPerson(person) {
+    val offender = personService.processPerson(person) {
       personRepository.findByCrn(probationCase.identifiers.crn!!)
     }
+    assignOverrideMarker(defendant, offender)
   }
 
   private fun retrieveDefendant(defendantId: String): PersonEntity = personRepository.findByDefendantId(defendantId) ?: throw ResourceNotFoundException(defendantId)
+
+  private fun assignOverrideMarker(defendant: PersonEntity, offender: PersonEntity) {
+    if (recordsAreIncluded(defendant, offender)) {
+      return
+    }
+
+    require(defendant.overrideMarker == null && offender.overrideMarker == null) {
+      "Cannot assign include override marker to records with existing override markers"
+    }
+
+    overrideService.systemInclude(defendant, offender)
+    personRepository.saveAll(listOf(defendant, offender))
+  }
+
+  private fun recordsAreIncluded(defendant: PersonEntity, offender: PersonEntity): Boolean = defendant.overrideMarker != null &&
+    defendant.overrideMarker == offender.overrideMarker &&
+    defendant.getScopes().intersect(offender.getScopes()).isNotEmpty()
 
   private fun getMergedToCrn(personEntity: PersonEntity): String = personRepository.findByIdOrNull(personEntity.mergedTo!!)!!.crn!!
 
