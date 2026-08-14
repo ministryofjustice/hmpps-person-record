@@ -9,12 +9,15 @@ import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.discardNotFoundException
 
 @Component
 class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebClient: WebClient) {
 
   @WebRetryable
-  fun getProbationCase(crn: String): ProbationCase = fetchProbationCase(crn).block()!!
+  fun getProbationCase(crn: String): ProbationCase = fetchProbationCase(crn)
+    .discardNotFoundException()
+    .block()!!
 
   @WebRetryable
   fun getAddress(deliusAddressId: Long): Address? = Address.from(
@@ -23,6 +26,7 @@ class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebCl
       .uri("/address/{id}", deliusAddressId)
       .retrieve()
       .bodyToMono<ProbationAddress>()
+      .discardNotFoundException()
       .block()!!,
   )
 

@@ -4,6 +4,7 @@ import org.springframework.core.annotation.AliasFor
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Retryable
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.DiscardableNotFoundException
 import kotlin.reflect.KClass
 
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
@@ -18,6 +19,7 @@ annotation class WebRetryable(
   @get:AliasFor(annotation = Retryable::class, attribute = "retryFor")
   val retryFor: Array<KClass<out Throwable>> = [
     WebClientResponseException.NotFound::class,
+    DiscardableNotFoundException::class,
   ],
 
   @get:AliasFor(annotation = Retryable::class, attribute = "backoff")
