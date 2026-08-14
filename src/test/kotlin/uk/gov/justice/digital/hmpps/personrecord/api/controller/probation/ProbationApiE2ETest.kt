@@ -41,7 +41,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -531,7 +530,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           gender = Value(randomProbationSexCode().key),
           nationality = Value(randomProbationNationalityCode()),
         )
-        val defendantRecord = createPersonWithNewKey(defendant)
+        createPersonWithNewKey(defendant)
         webTestClient.put()
           .uri(probationApiUrl(defendantId))
           .authorised(listOf(PROBATION_API_READ_WRITE))
@@ -541,14 +540,6 @@ class ProbationApiE2ETest : E2ETestBase() {
           .isOk
 
         val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
-        val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
-
-        offender.assertIncluded(defendantRecord)
-        assertThat(offender.overrideMarker).isNotNull()
-        assertThat(updatedDefendant.masterDefendantId).isEqualTo(defendant.masterDefendantId)
-        offender.personKey?.assertClusterStatus(ACTIVE)
-        offender.personKey?.assertClusterIsOfSize(2)
-
         assertThat(offender.getPnc()).isEqualTo(probationCase.identifiers.pnc)
         assertThat(offender.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(probationCase.ethnicity?.value))
         assertThat(offender.getCro()).isEqualTo(probationCase.identifiers.cro)
@@ -596,6 +587,33 @@ class ProbationApiE2ETest : E2ETestBase() {
       }
 
       @Test
+      fun `should assign include override marker to defendant and offender for create`() {
+        val defendantId = randomDefendantId()
+        val defendant = createRandomCommonPlatformPersonDetails(defendantId)
+        val probationCase = ProbationCase(
+          name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
+          identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
+          dateOfBirth = defendant.dateOfBirth,
+        )
+        val defendantRecord = createPersonWithNewKey(defendant)
+
+        webTestClient.put()
+          .uri(probationApiUrl(defendantId))
+          .authorised(listOf(PROBATION_API_READ_WRITE))
+          .bodyValue(probationCase)
+          .exchange()
+          .expectStatus()
+          .isOk
+
+        val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+        val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
+
+        offender.assertIncluded(updatedDefendant)
+        offender.assertHasOverrideMarker()
+        updatedDefendant.assertHasOverrideMarker()
+      }
+
+      @Test
       fun `should keep include override marker and clear master defendant id on probation record update`() {
         val defendantId = randomDefendantId()
 
@@ -632,7 +650,7 @@ class ProbationApiE2ETest : E2ETestBase() {
       }
 
       @Test
-      fun `should set probation and court records that are on different clusters onto same cluster`() {
+      fun `should keep include override marker when probation and court records are on different clusters`() {
         val defendantId = randomDefendantId()
 
         val person = createRandomCommonPlatformPersonDetails(defendantId)
@@ -664,10 +682,6 @@ class ProbationApiE2ETest : E2ETestBase() {
           mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
         )
 
-        defendant.personKey?.assertPersonKeyDeleted()
-
-        offender.personKey?.assertClusterStatus(ACTIVE)
-        offender.personKey?.assertClusterIsOfSize(2)
         offender.assertIncluded(defendant)
         assertThat(offender.masterDefendantId).isNull()
       }
