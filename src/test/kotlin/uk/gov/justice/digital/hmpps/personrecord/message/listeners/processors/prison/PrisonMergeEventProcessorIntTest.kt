@@ -59,9 +59,7 @@ class PrisonMergeEventProcessorIntTest : MessagingMultiNodeTestBase() {
       stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonerNumber))
 
       // Method under test
-      prisonMergeEventProcessor.processEvent(
-        prisonPersonMerged(toPrisonerNumber, fromPrisonerNumber),
-      )
+      prisonMergeEventProcessor.processEvent(fromPrisonNumber = fromPrisonerNumber, toPrisonNumber = toPrisonerNumber)
 
       assertThat(personRepository.findByPrisonNumber(toPrisonerNumber)?.religion).isNull()
     }
@@ -100,9 +98,7 @@ class PrisonMergeEventProcessorIntTest : MessagingMultiNodeTestBase() {
       stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonerNumber))
 
       // Method under test
-      prisonMergeEventProcessor.processEvent(
-        prisonPersonMerged(toPrisonerNumber, fromPrisonerNumber),
-      )
+      prisonMergeEventProcessor.processEvent(fromPrisonNumber = fromPrisonerNumber, toPrisonNumber = toPrisonerNumber)
 
       assertThat(personRepository.findByPrisonNumber(toPrisonerNumber)?.religion).isEqualTo(AGNO)
       assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonerNumber))
