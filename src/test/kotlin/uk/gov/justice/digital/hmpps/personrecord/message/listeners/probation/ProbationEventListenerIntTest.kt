@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -72,7 +73,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationGenderIdent
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexualOrientation
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAdditionalIdentifier
@@ -80,6 +80,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupContact
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import java.util.UUID
 
 class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
@@ -113,7 +114,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       val aliasGender = randomProbationSexCode()
       val gender = randomProbationSexCode()
       val sexualOrientation = randomProbationSexualOrientation()
-      val religion = randomReligion()
+      val religion = ReligionCode.entries.random()
 
       val homePhoneNumber = randomPhoneNumber()
       val mobilePhoneNumber = randomPhoneNumber()
@@ -181,7 +182,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
         sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
         gender = gender.key,
         sexualOrientation = sexualOrientation.key,
-        religion = religion,
+        religion = religion.name,
       )
       probationCreateEventAndResponseSetup(apiResponse)
 
@@ -344,7 +345,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
 
       assertThat(updatedPersonEntity.getPrimaryName().titleCode).isEqualTo(TitleCode.from(changedPersonDetails.title?.value))
       assertThat(updatedPersonEntity.sexualOrientation).isEqualTo(SexualOrientation.fromProbation(changedPersonDetails))
-      assertThat(updatedPersonEntity.religion).isEqualTo(changedPersonDetails.religion?.value)
+      assertThat(updatedPersonEntity.religion!!.name).isEqualTo(changedPersonDetails.religion?.value)
       assertThat(updatedPersonEntity.genderIdentity).isEqualTo(GenderIdentityCode.from(changedPersonDetails))
       assertThat(updatedPersonEntity.selfDescribedGenderIdentity).isEqualTo(changedPersonDetails.selfDescribedGenderIdentity)
       assertThat(updatedPersonEntity.getAliases()[0].sexCode).isEqualTo(SexCode.from(changedPersonDetails.aliases?.first()))
@@ -711,11 +712,40 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
   }
 
   @Test
-  fun `should not push 404 from delius API to dead letter queue but discard message instead`() {
+  fun `should retry 404 from delius API until a successful response is returned`() {
     val crn = randomCrn()
-    stub404Response(probationUrl(crn))
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+    stubGetRequest(
+      scenarioName = "retry-404",
+      currentScenarioState = "Started",
+      nextScenarioState = "second-404",
+      url = probationUrl(crn),
+      body = "",
+      status = 404,
+    )
+    stubGetRequest(
+      scenarioName = "retry-404",
+      currentScenarioState = "second-404",
+      nextScenarioState = "request-succeeded",
+      url = probationUrl(crn),
+      body = "",
+      status = 404,
+    )
+    stubGetRequest(
+      scenarioName = "retry-404",
+      currentScenarioState = "request-succeeded",
+      nextScenarioState = "request-succeeded",
+      url = probationUrl(crn),
+      body = probationCaseResponse(ApiResponseSetup(crn = crn)),
+      status = 200,
+    )
+
     publishProbationPersonCreatedEvent(crn)
+
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+    checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
   }
 
   @Test
@@ -824,7 +854,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
     assertThat(actualPersonEntity.getPrimaryName().firstName).isEqualTo(probationCase.name.firstName)
     assertThat(actualPersonEntity.getPrimaryName().middleNames).isEqualTo(probationCase.name.middleNames)
     assertThat(actualPersonEntity.getPrimaryName().lastName).isEqualTo(probationCase.name.lastName)
-    assertThat(actualPersonEntity.religion).isEqualTo(probationCase.religion!!.value)
+    assertThat(actualPersonEntity.religion!!.name).isEqualTo(probationCase.religion!!.value)
   }
 
   private fun List<ReferenceEntity>.getCrosFromReferences(): List<ReferenceEntity> = this.filter { it.identifierType == CRO }

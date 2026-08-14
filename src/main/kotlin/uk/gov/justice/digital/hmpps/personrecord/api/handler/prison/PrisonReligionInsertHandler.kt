@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.handler.prison
 
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
@@ -11,13 +12,18 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.religion.ReligionCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import java.time.LocalDate
 
 @Component
 class PrisonReligionInsertHandler(
   private val prisonReligionRepository: PrisonReligionRepository,
   private val personRepository: PersonRepository,
   private val personService: PersonService,
+  private val publisher: ApplicationEventPublisher,
 ) {
 
   @Transactional
@@ -33,15 +39,16 @@ class PrisonReligionInsertHandler(
     personEntity: PersonEntity,
   ): String {
     prisonReligionRepository.findByPrisonNumberAndCurrentPrisonRecordType(prisonNumber)?.let { existingCurrent ->
-      existingCurrent.endDate = prisonReligionHistory.startDate
+      // duplicate existing Prison API behaviour in that end date set to today, rather than the start of the new record
+      existingCurrent.endDate = LocalDate.now()
       existingCurrent.prisonRecordType = PrisonRecordType.HISTORIC
       existingCurrent.modifyUserId = prisonReligionHistory.createUserId
       existingCurrent.modifyDateTime = prisonReligionHistory.createDateTime
       prisonReligionRepository.saveAndFlush(existingCurrent)
     }
     val prisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, prisonReligionHistory))
-
-    personEntity.religion = prisonReligionHistory.religionCode.name
+    personEntity.religion = prisonReligionHistory.religionCode
+    publisher.publishEvent(ReligionCreated(DomainEventSource.NOMIS, prisonReligionEntity, SourceSystemType.NOMIS))
     personService.processPerson(Person.from(personEntity)) { personEntity }
     return prisonReligionEntity.updateId.toString()
   }

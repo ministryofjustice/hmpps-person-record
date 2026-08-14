@@ -56,3 +56,31 @@ data class CprAddressDeletedInfo(
   val cprAddressId: UUID,
   val deliusAddressId: Long? = null,
 )
+
+data class CprReligionCreated(
+  override val eventType: String,
+  val version: Int = 1,
+  val occurredAt: String = Instant.now().asStringWithUkZone(),
+  val description: String,
+  val personReference: PersonReference,
+  val additionalInformation: CprReligionCreatedInfo,
+  val detailUrl: String = "",
+) : DomainEvent
+
+data class CprReligionCreatedInfo(
+  val cprReligionId: UUID,
+)
+
+data class CprReligionUpdated(
+  override val eventType: String,
+  val version: Int = 1,
+  val occurredAt: String = Instant.now().asStringWithUkZone(),
+  val description: String,
+  val additionalInformation: CprReligionUpdatedInfo,
+  val personReference: PersonReference,
+  val detailUrl: String = "",
+) : DomainEvent
+
+data class CprReligionUpdatedInfo(
+  val cprReligionId: UUID,
+)

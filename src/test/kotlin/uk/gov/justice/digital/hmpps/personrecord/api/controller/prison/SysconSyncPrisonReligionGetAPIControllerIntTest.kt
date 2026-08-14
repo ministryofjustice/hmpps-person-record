@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonRel
 import uk.gov.justice.digital.hmpps.personrecord.test.generateUUIDString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
-class PrisonReligionGetApiControllerIntTest : WebTestBase() {
+class SysconSyncPrisonReligionGetAPIControllerIntTest : WebTestBase() {
 
   @Autowired
   private lateinit var prisonReligionRepository: PrisonReligionRepository
@@ -73,5 +73,5 @@ class PrisonReligionGetApiControllerIntTest : WebTestBase() {
     }
   }
 
-  private fun prisonReligionGetEndpoint(prisonNumber: String, cprReligionId: String) = "/person/prison/$prisonNumber/religion/$cprReligionId"
+  private fun prisonReligionGetEndpoint(prisonNumber: String, cprReligionId: String) = "/syscon-sync/person/$prisonNumber/religion/$cprReligionId"
 }

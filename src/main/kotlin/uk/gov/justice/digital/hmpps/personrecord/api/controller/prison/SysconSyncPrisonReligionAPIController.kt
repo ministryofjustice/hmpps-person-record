@@ -26,22 +26,21 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.P
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import java.util.UUID
 
-@Tag(name = "Prison")
+@Tag(name = "Syscon Sync")
 @RestController
 @PreAuthorize("hasRole('${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}')")
-@RequestMapping("/person/prison", produces = [MediaType.APPLICATION_JSON_VALUE])
-class PrisonReligionAPIController(
+@RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
+class SysconSyncPrisonReligionAPIController(
   private val prisonReligionInsertHandler: PrisonReligionInsertHandler,
   private val prisonReligionUpdateHandler: PrisonReligionUpdateHandler,
   private val prisonReligionRepository: PrisonReligionRepository,
 ) {
-
   @Operation(
     description = """Save prison religion record by Prison Number. Role required is **${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
     security = [SecurityRequirement(name = "api-role")],
   )
   @ResponseStatus(HttpStatus.CREATED)
-  @PostMapping("/{prisonNumber}/religion")
+  @PostMapping("/syscon-sync/person/{prisonNumber}/religion")
   fun savePrisonReligion(
     @PathVariable prisonNumber: String,
     @RequestBody prisonReligionHistoryRequest: PrisonReligionHistory,
@@ -54,7 +53,7 @@ class PrisonReligionAPIController(
     description = """Update prison religion record by Prison Number. Role required is **${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
     security = [SecurityRequirement(name = "api-role")],
   )
-  @PutMapping("/{prisonNumber}/religion/{cprReligionId}")
+  @PutMapping("/syscon-sync/person/{prisonNumber}/religion/{cprReligionId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun updatePrisonReligion(
     @PathVariable prisonNumber: String,
@@ -68,7 +67,7 @@ class PrisonReligionAPIController(
     description = """Get prison religion record by Prison Number. Role required is **${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
     security = [SecurityRequirement(name = "api-role")],
   )
-  @GetMapping("/{prisonNumber}/religion/{cprReligionId}")
+  @GetMapping("/syscon-sync/person/{prisonNumber}/religion/{cprReligionId}")
   fun getPrisonReligion(
     @PathVariable prisonNumber: String,
     @PathVariable cprReligionId: String,
