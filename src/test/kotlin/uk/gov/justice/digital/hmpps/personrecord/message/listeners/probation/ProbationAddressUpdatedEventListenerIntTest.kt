@@ -5,10 +5,14 @@ import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.boot.test.system.CapturedOutput
+import org.springframework.boot.test.system.OutputCaptureExtension
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 
+@ExtendWith(OutputCaptureExtension::class)
 class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
   @Test
@@ -60,7 +64,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
   }
 
   @Test
-  fun `consuming address updated event - address not retrieved from probation - does not update address`() {
+  fun `consuming address updated event - address not retrieved from probation - does not update address`(output: CapturedOutput) {
     val probationAddress = randomProbationAddress()
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails(),
@@ -72,13 +76,13 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
 
     publishProbationAddressUpdatedEvent(personEntity.crn, probationAddress.deliusAddressId)
 
-    expectNoMessagesOn(probationEventsQueue)
-    expectOneMessageOnDlq(probationEventsQueue)
+    expectNoMessagesOnQueueOrDlq(probationEventsQueue)
 
     val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
     assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
     val cprAddressAfterUpdate = actualPersonEntity.addresses.first()
     assertThat(cprAddressAfterUpdate).usingRecursiveComparison().isEqualTo(cprAddressBeforeUpdate)
+    awaitAssert { assertThat(output.all).contains("Discarding message of type probation-case.address.updated due to discardable not found exception") }
   }
 
   @Test
