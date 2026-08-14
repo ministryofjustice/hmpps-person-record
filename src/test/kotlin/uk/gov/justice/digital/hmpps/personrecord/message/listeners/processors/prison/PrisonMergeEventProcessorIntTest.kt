@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonMerged
@@ -29,6 +30,39 @@ class PrisonMergeEventProcessorIntTest : MessagingMultiNodeTestBase() {
 
   @Autowired
   lateinit var prisonReligionRepository: PrisonReligionRepository
+
+  @Nested
+  @ActiveProfiles("prod")
+  inner class ShouldNotMergeReligionsInProd {
+    @BeforeEach
+    fun beforeEach() {
+      stubPersonMatchUpsert()
+      stubDeletePersonMatch()
+    }
+
+    @Test
+    fun `Should not merge the religions while prod profile is set`() {
+      val toPrisonNumber = randomPrisonNumber()
+      val fromPrisonNumber = randomPrisonNumber()
+      createPerson(Person(prisonNumber = toPrisonNumber, sourceSystem = NOMIS))
+      createPerson(Person(prisonNumber = fromPrisonNumber, sourceSystem = NOMIS))
+      prisonReligionRepository.save(
+        prisonReligionEntity(
+          prisonNumber = toPrisonNumber,
+          startDate = LocalDate.of(2021, 1, 1),
+          code = CALV,
+        ),
+      )
+      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
+
+      // Method under test
+      prisonMergeEventProcessor.processEvent(
+        prisonPersonMerged(toPrisonNumber, fromPrisonNumber),
+      )
+
+      assertThat(personRepository.findByPrisonNumber(toPrisonNumber)?.religion).isNull()
+    }
+  }
 
   @Nested
   inner class MergingReligion {
