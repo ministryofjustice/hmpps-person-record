@@ -2,10 +2,13 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.boot.test.system.CapturedOutput
+import org.springframework.boot.test.system.OutputCaptureExtension
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-
+@ExtendWith(OutputCaptureExtension::class)
 class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
   @Test
@@ -51,7 +54,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
   }
 
   @Test
-  fun `consuming address created event - address not retrieved from probation - does not save address`() {
+  fun `consuming address created event - address not retrieved from probation - does not save address`(output: CapturedOutput) {
     val probationAddress = randomProbationAddress()
     val cprPerson = createRandomProbationPersonDetails()
     createPersonKey().addPerson(cprPerson)
@@ -59,10 +62,10 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     stubGetRequestToProbation(probationAddress, status = 404)
     publishProbationAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
 
-    expectNoMessagesOn(probationEventsQueue)
-    expectOneMessageOnDlq(probationEventsQueue)
+    expectNoMessagesOnQueueOrDlq(probationEventsQueue)
     expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
     assertThat(personRepository.findByCrn(cprPerson.crn!!)!!.addresses.size).isEqualTo(0)
+    awaitAssert { assertThat(output.all).contains("Discarding message of type probation-case.address.created due to discardable not found exception") }
   }
 
   @Test

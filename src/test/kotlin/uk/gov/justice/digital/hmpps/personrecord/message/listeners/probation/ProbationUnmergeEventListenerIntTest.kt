@@ -4,6 +4,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.boot.test.system.CapturedOutput
+import org.springframework.boot.test.system.OutputCaptureExtension
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonUnmerged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonUnmergedInfo
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
@@ -15,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
+@ExtendWith(OutputCaptureExtension::class)
 class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Nested
@@ -326,7 +330,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should push 404 to dead letter queue`() {
+    fun `should discard if a 404 is received after retrying`(output: CapturedOutput) {
       val reactivatedCrn = randomCrn()
       val unmergedCrn = randomCrn()
       stub404Response(probationUrl(unmergedCrn))
@@ -339,7 +343,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           ),
         ),
       )
-      expectOneMessageOnDlq(probationMergeEventsQueue)
+      expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
+      awaitAssert { assertThat(output.all).contains("Discarding message of type probation-case.unmerge.completed due to discardable not found exception") }
     }
   }
 }
