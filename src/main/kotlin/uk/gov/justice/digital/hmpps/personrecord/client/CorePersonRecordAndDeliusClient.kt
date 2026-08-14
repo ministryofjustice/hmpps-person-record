@@ -4,48 +4,29 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.springframework.data.web.PagedModel.PageMetadata
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
-import uk.gov.justice.digital.hmpps.personrecord.CprRetryable
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.discardNotFoundException
 
 @Component
 class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebClient: WebClient) {
 
-  @CprRetryable(retryFor = [WebClientResponseException.NotFound::class])
-  fun getPerson(crn: String): Person {
-    val probationCase = fetchProbationCase(crn)
-      .block()!!
-    return Person.from(probationCase)
-  }
-
-  fun getPersonErrorIfNotFound(crn: String): Person {
-    val probationCase = fetchProbationCase(crn)
-      .block()!!
-    return Person.from(probationCase)
-  }
-
+  @WebRetryable
   fun getProbationCase(crn: String): ProbationCase = fetchProbationCase(crn)
     .discardNotFoundException()
     .block()!!
 
-  private fun fetchProbationCase(crn: String): Mono<ProbationCase> = corePersonRecordAndDeliusWebClient
-    .get()
-    .uri("/probation-cases/{id}", crn)
-    .retrieve()
-    .bodyToMono<ProbationCase>()
-
+  @WebRetryable
   fun getAddress(deliusAddressId: Long): Address? = Address.from(
     corePersonRecordAndDeliusWebClient
       .get()
       .uri("/address/{id}", deliusAddressId)
       .retrieve()
       .bodyToMono<ProbationAddress>()
+      .discardNotFoundException()
       .block()!!,
   )
 
@@ -62,6 +43,12 @@ class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebCl
     .retrieve()
     .bodyToMono<ProbationCases>()
     .block()
+
+  private fun fetchProbationCase(crn: String): Mono<ProbationCase> = corePersonRecordAndDeliusWebClient
+    .get()
+    .uri("/probation-cases/{id}", crn)
+    .retrieve()
+    .bodyToMono<ProbationCase>()
 }
 
 class CorePersonRecordAndDeliusClientPageParams(val page: Long, val size: Int) {

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
@@ -90,7 +91,13 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun stubGetRequestToProbation(probationAddress: ProbationAddress, status: Int = 200) {
+  fun stubGetRequestToProbation(
+    probationAddress: ProbationAddress,
+    scenarioName: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = STARTED,
+    status: Int = 200,
+  ) {
     stubGetRequest(
       url = "/address/${probationAddress.deliusAddressId}",
       status = status,
@@ -116,6 +123,9 @@ class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
           telephoneNumber = probationAddress.telephoneNumber,
         ),
       ),
+      scenarioName = scenarioName,
+      currentScenarioState = currentScenarioState,
+      nextScenarioState = nextScenarioState,
     )
   }
 
