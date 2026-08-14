@@ -546,6 +546,8 @@ class ProbationApiE2ETest : E2ETestBase() {
         offender.assertIncluded(defendantRecord)
         assertThat(offender.overrideMarker).isNotNull()
         assertThat(updatedDefendant.masterDefendantId).isEqualTo(defendant.masterDefendantId)
+        offender.personKey?.assertClusterStatus(ACTIVE)
+        offender.personKey?.assertClusterIsOfSize(2)
 
         assertThat(offender.getPnc()).isEqualTo(probationCase.identifiers.pnc)
         assertThat(offender.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(probationCase.ethnicity?.value))
