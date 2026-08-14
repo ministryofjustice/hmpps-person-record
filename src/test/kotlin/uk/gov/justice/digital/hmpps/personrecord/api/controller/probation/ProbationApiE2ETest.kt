@@ -614,6 +614,35 @@ class ProbationApiE2ETest : E2ETestBase() {
       }
 
       @Test
+      fun `should assign include override marker for create with minimal probation data`() {
+        val defendantId = randomDefendantId()
+        val defendant = createRandomCommonPlatformPersonDetails(defendantId)
+        val probationCase = ProbationCase(
+          name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
+          identifiers = Identifiers(crn = randomCrn()),
+          dateOfBirth = defendant.dateOfBirth,
+        )
+        val defendantRecord = createPersonWithNewKey(defendant)
+
+        webTestClient.put()
+          .uri(probationApiUrl(defendantId))
+          .authorised(listOf(PROBATION_API_READ_WRITE))
+          .bodyValue(probationCase)
+          .exchange()
+          .expectStatus()
+          .isOk
+
+        val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+        val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
+
+        offender.assertIncluded(updatedDefendant)
+        assertThat(offender.getPrimaryName().firstName).isEqualTo(probationCase.name.firstName)
+        assertThat(offender.getPrimaryName().lastName).isEqualTo(probationCase.name.lastName)
+        assertThat(offender.getPrimaryName().dateOfBirth).isEqualTo(probationCase.dateOfBirth)
+        assertThat(offender.masterDefendantId).isNull()
+      }
+
+      @Test
       fun `should keep include override marker and clear master defendant id on probation record update`() {
         val defendantId = randomDefendantId()
 
