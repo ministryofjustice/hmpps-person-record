@@ -42,28 +42,28 @@ class PrisonMergeEventProcessorIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `Should not merge the religions while prod profile is set`() {
-      val toPrisonNumber = randomPrisonNumber()
-      val fromPrisonNumber = randomPrisonNumber()
+      val toPrisonerNumber = randomPrisonNumber()
+      val fromPrisonerNumber = randomPrisonNumber()
       createPersonKey()
-        .addPerson(Person(prisonNumber = toPrisonNumber, sourceSystem = NOMIS))
+        .addPerson(Person(prisonNumber = toPrisonerNumber, sourceSystem = NOMIS))
         .addPerson(
-          Person(prisonNumber = fromPrisonNumber, sourceSystem = NOMIS),
+          Person(prisonNumber = fromPrisonerNumber, sourceSystem = NOMIS),
         )
       prisonReligionRepository.save(
         prisonReligionEntity(
-          prisonNumber = toPrisonNumber,
+          prisonNumber = toPrisonerNumber,
           startDate = LocalDate.of(2021, 1, 1),
           code = CALV,
         ),
       )
-      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
+      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonerNumber))
 
       // Method under test
       prisonMergeEventProcessor.processEvent(
-        prisonPersonMerged(toPrisonNumber, fromPrisonNumber),
+        prisonPersonMerged(toPrisonerNumber, fromPrisonerNumber),
       )
 
-      assertThat(personRepository.findByPrisonNumber(toPrisonNumber)?.religion).isNull()
+      assertThat(personRepository.findByPrisonNumber(toPrisonerNumber)?.religion).isNull()
     }
   }
 
@@ -78,33 +78,34 @@ class PrisonMergeEventProcessorIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `Should merge the religions to the to person`() {
-      val toPrisonNumber = randomPrisonNumber()
-      val fromPrisonNumber = randomPrisonNumber()
-      createPerson(Person(prisonNumber = toPrisonNumber, sourceSystem = NOMIS))
-      createPerson(Person(prisonNumber = fromPrisonNumber, sourceSystem = NOMIS))
+      val toPrisonerNumber = randomPrisonNumber()
+      val fromPrisonerNumber = randomPrisonNumber()
+      createPersonKey()
+        .addPerson(Person(prisonNumber = toPrisonerNumber, sourceSystem = NOMIS))
+        .addPerson(Person(prisonNumber = fromPrisonerNumber, sourceSystem = NOMIS))
       prisonReligionRepository.saveAll(
         listOf(
           prisonReligionEntity(
-            prisonNumber = toPrisonNumber,
+            prisonNumber = toPrisonerNumber,
             startDate = LocalDate.of(2021, 1, 1),
             code = CALV,
           ),
           prisonReligionEntity(
-            prisonNumber = fromPrisonNumber,
+            prisonNumber = fromPrisonerNumber,
             startDate = LocalDate.of(2021, 1, 25),
             code = AGNO,
           ),
         ),
       )
-      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
+      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonerNumber))
 
       // Method under test
       prisonMergeEventProcessor.processEvent(
-        prisonPersonMerged(toPrisonNumber, fromPrisonNumber),
+        prisonPersonMerged(toPrisonerNumber, fromPrisonerNumber),
       )
 
-      assertThat(personRepository.findByPrisonNumber(toPrisonNumber)?.religion).isEqualTo(AGNO)
-      assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonNumber))
+      assertThat(personRepository.findByPrisonNumber(toPrisonerNumber)?.religion).isEqualTo(AGNO)
+      assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonerNumber))
         .satisfiesExactly(
           {
             assertThat(it.code).isEqualTo(AGNO)
