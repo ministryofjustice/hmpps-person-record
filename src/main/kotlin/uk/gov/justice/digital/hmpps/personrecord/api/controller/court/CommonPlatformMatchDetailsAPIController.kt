@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 @RestController
 @RequestMapping("/person/commonplatform")
 @PreAuthorize("hasRole('$API_READ_ONLY')")
-class PersonCommonPlatformController(
+class CommonPlatformMatchDetailsAPIController(
   private val personRepository: PersonRepository,
   private val personMatchClient: PersonMatchClient,
 ) {
