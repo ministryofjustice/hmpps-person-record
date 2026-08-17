@@ -19,7 +19,7 @@ class ProbationOverrideHandler(
 
     overrideService.systemInclude(defendant, offender)
     personRepository.saveAll(listOf(defendant, offender))
-    reclusterService.recluster(defendant)
+    offender.personKey?.let { reclusterService.recluster(offender) }
   }
 
   private fun recordsAreIncluded(defendant: PersonEntity, offender: PersonEntity): Boolean = defendant.overrideMarker != null &&

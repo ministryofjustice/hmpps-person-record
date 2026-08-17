@@ -633,6 +633,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
 
         offender.assertIncluded(updatedDefendant)
+        assertThat(offender.personKey).isEqualTo(updatedDefendant.personKey)
       }
     }
 
