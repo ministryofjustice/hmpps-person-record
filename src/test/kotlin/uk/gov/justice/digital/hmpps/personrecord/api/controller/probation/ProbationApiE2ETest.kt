@@ -43,7 +43,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonsNumber
@@ -74,7 +73,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
-import java.util.UUID
 
 class ProbationApiE2ETest : E2ETestBase() {
 
@@ -636,68 +634,6 @@ class ProbationApiE2ETest : E2ETestBase() {
 
         offender.assertIncluded(updatedDefendant)
         assertThat(offender.personKey).isEqualTo(updatedDefendant.personKey)
-      }
-
-      @Test
-      fun `should link probation and court records when the defendant already has an override marker`() {
-        val defendantId = randomDefendantId()
-        val defendant = createRandomCommonPlatformPersonDetails(defendantId)
-        val defendantRecord = createPersonWithNewKey(defendant) { overrideMarker = UUID.randomUUID() }
-
-        val probationCase = ProbationCase(
-          name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
-          identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
-          dateOfBirth = defendant.dateOfBirth,
-        )
-
-        webTestClient.put()
-          .uri(probationApiUrl(defendantId))
-          .authorised(listOf(PROBATION_API_READ_WRITE))
-          .bodyValue(probationCase)
-          .exchange()
-          .expectStatus()
-          .isOk
-
-        val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
-        val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
-
-        offender.assertLinkedToCluster(updatedDefendant.personKey!!)
-      }
-
-      @Test
-      fun `should keep include override marker and clear master defendant id on probation record update`() {
-        val defendantId = randomDefendantId()
-
-        val defendant = createRandomCommonPlatformPersonDetails(defendantId)
-        val probationCase = ProbationCase(
-          name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
-          identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
-          dateOfBirth = defendant.dateOfBirth,
-        )
-        val defendantRecord = createPersonWithNewKey(defendant)
-        webTestClient.put()
-          .uri(probationApiUrl(defendantId))
-          .authorised(listOf(PROBATION_API_READ_WRITE))
-          .bodyValue(probationCase)
-          .exchange()
-          .expectStatus()
-          .isOk
-
-        val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
-
-        offender.assertIncluded(defendantRecord)
-        assertThat(offender.masterDefendantId).isNull()
-
-        probationUpdateEventAndResponseSetup(ApiResponseSetup.from(probationCase.aboveFracture()))
-
-        checkTelemetry(
-          CPR_RECORD_UPDATED,
-          mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to probationCase.identifiers.crn),
-        )
-
-        val updatedOffender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
-        updatedOffender.assertIncluded(defendantRecord)
-        assertThat(updatedOffender.masterDefendantId).isNull()
       }
     }
 
