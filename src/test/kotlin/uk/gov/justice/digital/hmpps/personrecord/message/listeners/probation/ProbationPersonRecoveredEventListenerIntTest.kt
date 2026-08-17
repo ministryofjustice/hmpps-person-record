@@ -2,6 +2,9 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.boot.test.system.CapturedOutput
+import org.springframework.boot.test.system.OutputCaptureExtension
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -9,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
+@ExtendWith(OutputCaptureExtension::class)
 class ProbationPersonRecoveredEventListenerIntTest : ProbationEventListenerTestBase() {
 
   @Test
@@ -71,7 +75,7 @@ class ProbationPersonRecoveredEventListenerIntTest : ProbationEventListenerTestB
   }
 
   @Test
-  fun `should not recreate person if person does not exist in delius`() {
+  fun `should not recreate person if person does not exist in delius`(output: CapturedOutput) {
     val crn = randomCrn()
 
     stub404Response(probationUrl(crn))
@@ -85,5 +89,6 @@ class ProbationPersonRecoveredEventListenerIntTest : ProbationEventListenerTestB
       assertThat(personEntity).isNull()
     }
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
+    awaitAssert { assertThat(output.all).contains("Discarding message of type probation-case.engagement.recovered due to discardable not found exception") }
   }
 }

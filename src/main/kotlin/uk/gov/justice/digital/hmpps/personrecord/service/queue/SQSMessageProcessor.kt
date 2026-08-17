@@ -7,9 +7,9 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.core.publisher.Mono
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.readValue
-import uk.gov.justice.digital.hmpps.personrecord.CprRetryable
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.jpa.DatabaseRetryable
 import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 
 @Component
@@ -17,7 +17,7 @@ class SQSMessageProcessor(
   private val jsonMapper: JsonMapper,
 ) {
 
-  @CprRetryable
+  @DatabaseRetryable
   fun process(rawMessage: String, action: (sqsMessage: SQSMessage) -> Unit) = TimeoutExecutor.runWithTimeout {
     val sqsMessage = jsonMapper.readValue<SQSMessage>(rawMessage)
     try {
@@ -25,7 +25,7 @@ class SQSMessageProcessor(
         NOTIFICATION -> action(sqsMessage)
       }
     } catch (_: DiscardableNotFoundException) {
-      log.info("Discarding message for status code")
+      log.error("Discarding message of type ${sqsMessage.getEventType()} due to discardable not found exception")
     }
   }
 
