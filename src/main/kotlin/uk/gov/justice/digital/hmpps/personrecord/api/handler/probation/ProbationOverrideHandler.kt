@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.handler.probation
 
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -18,25 +17,12 @@ class ProbationOverrideHandler(
       return
     }
 
-    if (defendant.overrideMarker != null || offender.overrideMarker != null) {
-      log.warn(
-        "Skipping include override markers for defendantId {} and offenderCrn {} due to existing override markers.",
-        defendant.defendantId,
-        offender.crn,
-      )
-      return
-    }
-
     overrideService.systemInclude(defendant, offender)
     personRepository.saveAll(listOf(defendant, offender))
-    offender.personKey?.let { reclusterService.recluster(offender) }
+    reclusterService.recluster(defendant)
   }
 
   private fun recordsAreIncluded(defendant: PersonEntity, offender: PersonEntity): Boolean = defendant.overrideMarker != null &&
     defendant.overrideMarker == offender.overrideMarker &&
     defendant.getScopes().intersect(offender.getScopes()).isNotEmpty()
-
-  companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
 }

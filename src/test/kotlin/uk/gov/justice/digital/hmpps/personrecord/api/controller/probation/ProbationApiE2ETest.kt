@@ -74,6 +74,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
+import java.util.UUID
 
 class ProbationApiE2ETest : E2ETestBase() {
 
@@ -587,7 +588,7 @@ class ProbationApiE2ETest : E2ETestBase() {
       }
 
       @Test
-      fun `should assign include override marker to defendant and offender for create`() {
+      fun `should link probation and court records to the same person key for create`() {
         val defendantId = randomDefendantId()
         val defendant = createRandomCommonPlatformPersonDetails(defendantId)
         val probationCase = ProbationCase(
@@ -608,9 +609,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
         val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
 
-        offender.assertIncluded(updatedDefendant)
-        offender.assertHasOverrideMarker()
-        updatedDefendant.assertHasOverrideMarker()
+        offender.assertLinkedToCluster(updatedDefendant.personKey!!)
       }
 
       @Test
@@ -640,6 +639,32 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.getPrimaryName().lastName).isEqualTo(probationCase.name.lastName)
         assertThat(offender.getPrimaryName().dateOfBirth).isEqualTo(probationCase.dateOfBirth)
         assertThat(offender.masterDefendantId).isNull()
+      }
+
+      @Test
+      fun `should link probation and court records when the defendant already has an override marker`() {
+        val defendantId = randomDefendantId()
+        val defendant = createRandomCommonPlatformPersonDetails(defendantId)
+        val defendantRecord = createPersonWithNewKey(defendant) { overrideMarker = UUID.randomUUID() }
+
+        val probationCase = ProbationCase(
+          name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
+          identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
+          dateOfBirth = defendant.dateOfBirth,
+        )
+
+        webTestClient.put()
+          .uri(probationApiUrl(defendantId))
+          .authorised(listOf(PROBATION_API_READ_WRITE))
+          .bodyValue(probationCase)
+          .exchange()
+          .expectStatus()
+          .isOk
+
+        val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+        val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
+
+        offender.assertLinkedToCluster(updatedDefendant.personKey!!)
       }
 
       @Test
@@ -676,43 +701,6 @@ class ProbationApiE2ETest : E2ETestBase() {
         val updatedOffender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
         updatedOffender.assertIncluded(defendantRecord)
         assertThat(updatedOffender.masterDefendantId).isNull()
-      }
-
-      @Test
-      fun `should keep include override marker when probation and court records are on different clusters`() {
-        val defendantId = randomDefendantId()
-
-        val person = createRandomCommonPlatformPersonDetails(defendantId)
-        val defendant = createPersonWithNewKey(person)
-
-        val crn = randomCrn()
-        probationCreateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(crn)))
-
-        val offender = awaitNotNull { personRepository.findByCrn(crn) }
-
-        assertThat(offender.personKey?.personUUID.toString()).isNotEqualTo(defendant.personKey?.personUUID.toString())
-
-        val probationCase = ProbationCase(
-          name = ProbationCaseName(firstName = person.firstName, lastName = person.lastName),
-          identifiers = Identifiers(crn = crn, pnc = person.getPnc(), cro = person.getCro()),
-          dateOfBirth = person.dateOfBirth,
-        )
-
-        webTestClient.put()
-          .uri(probationApiUrl(defendantId))
-          .authorised(listOf(PROBATION_API_READ_WRITE))
-          .bodyValue(probationCase)
-          .exchange()
-          .expectStatus()
-          .isOk
-
-        checkTelemetry(
-          CPR_RECORD_UPDATED,
-          mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
-        )
-
-        offender.assertIncluded(defendant)
-        assertThat(offender.masterDefendantId).isNull()
       }
     }
 
