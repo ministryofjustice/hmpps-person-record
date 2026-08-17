@@ -44,8 +44,11 @@ class PrisonMergeEventProcessorIntTest : MessagingMultiNodeTestBase() {
     fun `Should not merge the religions while prod profile is set`() {
       val toPrisonNumber = randomPrisonNumber()
       val fromPrisonNumber = randomPrisonNumber()
-      createPerson(Person(prisonNumber = toPrisonNumber, sourceSystem = NOMIS))
-      createPerson(Person(prisonNumber = fromPrisonNumber, sourceSystem = NOMIS))
+      createPersonKey()
+        .addPerson(Person(prisonNumber = toPrisonNumber, sourceSystem = NOMIS))
+        .addPerson(
+          Person(prisonNumber = fromPrisonNumber, sourceSystem = NOMIS),
+        )
       prisonReligionRepository.save(
         prisonReligionEntity(
           prisonNumber = toPrisonNumber,
