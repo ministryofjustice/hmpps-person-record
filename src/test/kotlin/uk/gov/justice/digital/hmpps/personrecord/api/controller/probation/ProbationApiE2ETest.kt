@@ -41,10 +41,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonsNumber
@@ -541,10 +539,6 @@ class ProbationApiE2ETest : E2ETestBase() {
           .isOk
 
         val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
-
-        offender.personKey?.assertClusterStatus(ACTIVE)
-        offender.personKey?.assertClusterIsOfSize(2)
-
         assertThat(offender.getPnc()).isEqualTo(probationCase.identifiers.pnc)
         assertThat(offender.ethnicityCode).isEqualTo(EthnicityCode.fromProbation(probationCase.ethnicity?.value))
         assertThat(offender.getCro()).isEqualTo(probationCase.identifiers.cro)
@@ -573,6 +567,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.contacts.getEmail()?.contactValue).isEqualTo(probationCase.contactDetails?.email)
         assertThat(offender.matchId).isNotNull()
         assertThat(offender.lastModified).isNotNull()
+        assertThat(offender.masterDefendantId).isNull()
         assertThat(offender.nationalities.size).isEqualTo(1)
         assertThat(offender.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.name)
         assertThat(offender.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.description)
@@ -591,16 +586,16 @@ class ProbationApiE2ETest : E2ETestBase() {
       }
 
       @Test
-      fun `should retain master defendant id on update on probation record`() {
+      fun `should link probation and court records to the same person key for create`() {
         val defendantId = randomDefendantId()
-
         val defendant = createRandomCommonPlatformPersonDetails(defendantId)
         val probationCase = ProbationCase(
           name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
           identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
           dateOfBirth = defendant.dateOfBirth,
         )
-        createPersonWithNewKey(defendant)
+        val defendantRecord = createPersonWithNewKey(defendant)
+
         webTestClient.put()
           .uri(probationApiUrl(defendantId))
           .authorised(listOf(PROBATION_API_READ_WRITE))
@@ -610,39 +605,21 @@ class ProbationApiE2ETest : E2ETestBase() {
           .isOk
 
         val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+        val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
 
-        offender.personKey?.assertClusterStatus(ACTIVE)
-        offender.personKey?.assertClusterIsOfSize(2)
-
-        probationUpdateEventAndResponseSetup(ApiResponseSetup.from(probationCase.aboveFracture()))
-
-        checkTelemetry(
-          CPR_RECORD_UPDATED,
-          mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to probationCase.identifiers.crn),
-        )
-
-        assertThat(offender.masterDefendantId).isEqualTo(defendant.masterDefendantId)
+        offender.assertLinkedToCluster(updatedDefendant.personKey!!)
       }
 
       @Test
-      fun `should set probation and court records that are on different clusters onto same cluster`() {
+      fun `should assign include override marker for create with minimal probation data`() {
         val defendantId = randomDefendantId()
-
-        val person = createRandomCommonPlatformPersonDetails(defendantId)
-        val defendant = createPersonWithNewKey(person)
-
-        val crn = randomCrn()
-        probationCreateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(crn)))
-
-        val offender = awaitNotNull { personRepository.findByCrn(crn) }
-
-        assertThat(offender.personKey?.personUUID.toString()).isNotEqualTo(defendant.personKey?.personUUID.toString())
-
+        val defendant = createRandomCommonPlatformPersonDetails(defendantId)
         val probationCase = ProbationCase(
-          name = ProbationCaseName(firstName = person.firstName, lastName = person.lastName),
-          identifiers = Identifiers(crn = crn, pnc = person.getPnc(), cro = person.getCro()),
-          dateOfBirth = person.dateOfBirth,
+          name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
+          identifiers = Identifiers(crn = randomCrn()),
+          dateOfBirth = defendant.dateOfBirth,
         )
+        val defendantRecord = createPersonWithNewKey(defendant)
 
         webTestClient.put()
           .uri(probationApiUrl(defendantId))
@@ -652,15 +629,11 @@ class ProbationApiE2ETest : E2ETestBase() {
           .expectStatus()
           .isOk
 
-        checkTelemetry(
-          CPR_RECORD_UPDATED,
-          mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
-        )
+        val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+        val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
 
-        defendant.personKey?.assertPersonKeyDeleted()
-
-        offender.personKey?.assertClusterStatus(ACTIVE)
-        offender.personKey?.assertClusterIsOfSize(2)
+        offender.assertIncluded(updatedDefendant)
+        offender.assertLinkedToCluster(updatedDefendant.personKey!!)
       }
     }
 

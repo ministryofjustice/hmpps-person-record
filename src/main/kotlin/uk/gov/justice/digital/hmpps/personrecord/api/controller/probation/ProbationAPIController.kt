@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.probation.ProbationOverrideHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -34,6 +35,7 @@ import java.net.URI
 class ProbationAPIController(
   private val personRepository: PersonRepository,
   private val personService: PersonService,
+  private val probationOverrideHandler: ProbationOverrideHandler,
 ) {
   @Operation(
     description = """Retrieve person record by CRN. Role required is **$API_READ_ONLY** . 
@@ -91,14 +93,12 @@ class ProbationAPIController(
     @PathVariable defendantId: String,
     @RequestBody probationCase: ProbationCase,
   ) {
-    val masterDefendantId: String? = retrieveDefendant(defendantId).masterDefendantId
-
+    val defendant = retrieveDefendant(defendantId)
     val person = Person.from(probationCase)
-    person.masterDefendantId = masterDefendantId
-
-    personService.processPerson(person) {
+    val offender = personService.processPerson(person) {
       personRepository.findByCrn(probationCase.identifiers.crn!!)
     }
+    probationOverrideHandler.assignIncludeOverrideAndRecluster(defendant, offender)
   }
 
   private fun retrieveDefendant(defendantId: String): PersonEntity = personRepository.findByDefendantId(defendantId) ?: throw ResourceNotFoundException(defendantId)
