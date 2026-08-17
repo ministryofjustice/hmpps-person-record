@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType.PREVIOUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType.PRIMARY
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
@@ -435,6 +436,27 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
 
       assertThat(responseBody.identifiers.crns.size).isEqualTo(1)
       assertThat(responseBody.identifiers.crns.first()).isEqualTo(crn)
+    }
+
+    @Test
+    fun `should only return main address in response`() {
+      val defendantId = randomDefendantId()
+      val mainAddress = Address.from(createRandomCommonPlatformAddress())!!.copy(statusCode = AddressStatusCode.M)
+      val previousAddress = Address.from(createRandomCommonPlatformAddress())!!.copy(statusCode = AddressStatusCode.P)
+      createPersonWithNewKey(createRandomCommonPlatformPersonDetails(defendantId).copy(addresses = listOf(mainAddress, previousAddress)))
+
+      val responseBody = webTestClient.get()
+        .uri(commonPlatformApiUrl(defendantId))
+        .authorised(listOf(API_READ_ONLY))
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody<CanonicalRecord>()
+        .returnResult()
+        .responseBody!!
+
+      assertThat(responseBody.addresses.size).isEqualTo(1)
+      assertThat(responseBody.addresses.first().status.code).isEqualTo(AddressStatusCode.M.name)
     }
   }
 
