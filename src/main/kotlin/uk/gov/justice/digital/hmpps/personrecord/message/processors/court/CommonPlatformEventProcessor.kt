@@ -14,11 +14,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.LargeMessageBo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.CourtMessagePublisher
 
 @Component
@@ -50,7 +53,7 @@ class CommonPlatformEventProcessor(
       .map { populateIdentifiersFromDefendantWhenMissing(it) }
       .map { Person.from(it) }
       .filter { it.isPerson() }
-      .map { keepFormerAddress(it) }
+      .map { keepFormerAddresses(it) }
       .map {
         transactionalCommonPlatformProcessor.processCommonPlatformPerson(it)
       }
@@ -115,8 +118,25 @@ class CommonPlatformEventProcessor(
     }
   }
 
-  private fun keepFormerAddress(person: Person): Person {
-    person.addresses = CommonPlatformAddressBuilder.build(person, personRepository.findByDefendantId(person.defendantId!!))
+  private fun keepFormerAddresses(person: Person): Person {
+    val mainAddress = person.addresses.firstOrNull()
+    if (mainAddress == null) {
+      person.addresses = personRepository.findByDefendantId(person.defendantId!!)?.addresses?.map { Address.from(it) } ?: emptyList()
+      return person
+    }
+    val existingAddressesDemoted = personRepository.findByDefendantId(person.defendantId!!)?.addresses?.let {
+      setAddressesToPrevious(mainAddress, it)
+    } ?: emptyList()
+
+    person.addresses = existingAddressesDemoted + mainAddress
     return person
+  }
+
+  private fun setAddressesToPrevious(mainAddress: Address, existingAddressEntities: List<AddressEntity>): List<Address> {
+    val existingAddresses = existingAddressEntities
+      .map { Address.from(it) }
+      .filter { it.copy(statusCode = null) != mainAddress.copy(statusCode = null) }
+    existingAddresses.forEach { it.statusCode = AddressStatusCode.P }
+    return existingAddresses
   }
 }

@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType.PREVIOUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType.PRIMARY
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
@@ -130,8 +131,8 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
             ),
           ),
           addresses = listOf(
-            address.copy(postcode = randomPostcode()).setToPrevious(),
-            address.copy(postcode = randomPostcode()).setToPrimary(),
+            address.copy(postcode = randomPostcode(), statusCode = AddressStatusCode.P),
+            address.copy(postcode = randomPostcode(), statusCode = AddressStatusCode.M),
           ),
           references = listOf(
             Reference(identifierType = PNC, identifierValue = pnc),
