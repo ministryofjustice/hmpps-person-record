@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclusterval
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.visualisecluster.VisualiseCluster
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.discardNotFoundException
+import java.util.UUID
 
 @Component
 class PersonMatchClient(private val personMatchWebClient: WebClient) {
@@ -67,12 +68,19 @@ class PersonMatchClient(private val personMatchWebClient: WebClient) {
     .discardNotFoundException()
     .block()
 
-  fun search(personMatchSearchRequest: PersonMatchSearchRequest) = personMatchWebClient
+  fun searchPerson(personMatchSearchRequest: PersonMatchSearchRequest) = personMatchWebClient
     .post()
     .uri("/person/search")
     .bodyValue(personMatchSearchRequest)
     .retrieve()
     .onStatus({ it.value() == HttpStatus.NOT_FOUND.value() }) { Mono.empty() }
+    .bodyToMono<List<PersonMatchScore>>()
+    .block()!!
+
+  fun searchCandidates(matchId: UUID) = personMatchWebClient
+    .get()
+    .uri("/person/search/{id}", matchId.toString())
+    .retrieve()
     .bodyToMono<List<PersonMatchScore>>()
     .block()!!
 }
