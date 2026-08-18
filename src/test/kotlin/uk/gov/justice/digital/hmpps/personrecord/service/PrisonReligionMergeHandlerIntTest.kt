@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligi
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.CURRENT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.ADV
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.BAHA
@@ -112,6 +113,44 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
           .single { it.prisonRecordType == CURRENT }
       assertThat(currentReligion.code).isEqualTo(BAHA)
       assertThat(personRepository.findByPrisonNumber(toPrisonerNumber)?.religion).isEqualTo(BAHA)
+    }
+
+    @Test
+    fun `should leave only one null end date when multiple religions are current before merge`() {
+      val fromPrisonerNumber = randomPrisonNumber()
+      val toPrisonerNumber = randomPrisonNumber()
+      val personKey = createPersonKey()
+        .addPerson(createRandomPrisonPersonDetails(fromPrisonerNumber))
+        .addPerson(createRandomPrisonPersonDetails(toPrisonerNumber))
+
+      val fromPrisonerReligionHistory = listOf(
+        prisonReligionEntity(
+          prisonNumber = fromPrisonerNumber,
+          startDate = LocalDate.of(2021, 4, 12),
+          code = BAHA,
+          prisonRecordType = PrisonRecordType.HISTORIC,
+        ),
+        prisonReligionEntity(
+          prisonNumber = fromPrisonerNumber,
+          startDate = LocalDate.of(2021, 4, 11),
+          code = DRU,
+        ),
+      )
+      val toPrisonerReligionHistory = listOf(
+        prisonReligionEntity(
+          prisonNumber = toPrisonerNumber,
+          startDate = LocalDate.of(2021, 4, 10),
+          code = ADV,
+        ),
+      )
+
+      prisonReligionRepository.saveAll(fromPrisonerReligionHistory + toPrisonerReligionHistory)
+
+      prisonReligionMergeHandler.handleMerge(personKey.getPrisoner(fromPrisonerNumber), personKey.getPrisoner(toPrisonerNumber))
+
+      val mergedHistory = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonerNumber)
+      assertThat(mergedHistory.filter { it.endDate == null && it.prisonRecordType == CURRENT }).hasSize(1)
+      assertThat(mergedHistory.filter { it.endDate == LocalDate.now() }).hasSize(2)
     }
 
     @Test
