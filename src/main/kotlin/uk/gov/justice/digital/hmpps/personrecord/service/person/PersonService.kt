@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -21,6 +22,7 @@ class PersonService(
   private val publisher: ApplicationEventPublisher,
 ) {
 
+  @Transactional
   fun processPerson(
     person: Person,
     findPerson: () -> PersonEntity?,
