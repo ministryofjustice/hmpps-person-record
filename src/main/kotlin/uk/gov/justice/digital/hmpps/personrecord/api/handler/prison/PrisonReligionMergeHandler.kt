@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonRel
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.CURRENT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.HISTORIC
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Profile("!prod")
 @Component
@@ -34,13 +35,7 @@ class PrisonReligionMergeHandler(
         .sortedWith(compareByDescending<PrisonReligionEntity> { it.startDate }.thenByDescending { it.createDateTime })
     val currentReligion = currentReligions.firstOrNull()
     if (currentReligions.size > 1) {
-      currentReligions.drop(1).forEach { toBeHistoric ->
-        toBeHistoric.prisonRecordType = HISTORIC
-        if (toBeHistoric.endDate == null) {
-          toBeHistoric.endDate = LocalDate.now()
-        }
-        prisonReligionRepository.saveAndFlush(toBeHistoric)
-      }
+      currentReligions.drop(1).forEach { it.makeHistoric() }
     }
 
     // Put all of the religions on the to person
@@ -50,8 +45,35 @@ class PrisonReligionMergeHandler(
     currentReligion?.let {
       to.religion = it.code
       personRepository.saveAndFlush(to)
-      it.prisonRecordType = CURRENT
-      prisonReligionRepository.saveAndFlush(it)
+      it.makeCurrent()
     }
+  }
+
+  private fun PrisonReligionEntity.makeCurrent() {
+    if (prisonRecordType != CURRENT) {
+      prisonRecordType = CURRENT
+      prisonReligionRepository.saveAndFlush(setModified())
+    }
+  }
+
+  private fun PrisonReligionEntity.makeHistoric() {
+    var modified = false
+    if (prisonRecordType != HISTORIC) {
+      prisonRecordType = HISTORIC
+      modified = true
+    }
+    if (endDate == null) {
+      endDate = LocalDate.now()
+      modified = true
+    }
+    if (modified) {
+      prisonReligionRepository.saveAndFlush(setModified())
+    }
+  }
+
+  private fun PrisonReligionEntity.setModified(): PrisonReligionEntity {
+    modifyDateTime = LocalDateTime.now()
+    modifyUserId = "CORE_PERSON_RECORD_API"
+    return this
   }
 }
