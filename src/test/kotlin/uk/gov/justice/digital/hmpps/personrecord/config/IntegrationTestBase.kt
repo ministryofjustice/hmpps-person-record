@@ -332,13 +332,14 @@ class IntegrationTestBase {
     endDate: LocalDate? = null,
     code: ReligionCode = ADV,
     createdUserId: String = "abcdefg",
+    createDateTime: LocalDateTime = LocalDateTime.now(),
   ) = PrisonReligionEntity(
     prisonRecordType = if (endDate == null) CURRENT else HISTORIC,
     prisonNumber = prisonNumber,
     code = code,
     changeReasonKnown = false,
     startDate = startDate,
-    createDateTime = LocalDateTime.now(),
+    createDateTime = createDateTime,
     createUserId = createdUserId,
   )
 

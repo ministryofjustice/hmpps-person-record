@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.DRU
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.EODX
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
 
@@ -80,6 +81,37 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
       assertThat(prisonerFromReligionHistoryMerged.first { it.code == DRU }.endDate).isEqualTo(LocalDate.now())
       // Check that the to person has the correct religion
       assertThat(personRepository.findByPrisonNumber(toPrisonerNumber)?.religion).isEqualTo(currentReligion.code)
+    }
+
+    @Test
+    fun `should use create date time when current religions have the same start date`() {
+      val fromPrisonerNumber = randomPrisonNumber()
+      val toPrisonerNumber = randomPrisonNumber()
+      val personKey = createPersonKey()
+        .addPerson(createRandomPrisonPersonDetails(fromPrisonerNumber))
+        .addPerson(createRandomPrisonPersonDetails(toPrisonerNumber))
+
+      val olderReligion = prisonReligionEntity(
+        prisonNumber = fromPrisonerNumber,
+        startDate = LocalDate.of(2021, 4, 12),
+        code = ADV,
+        createDateTime = LocalDateTime.of(2021, 4, 12, 10, 0),
+      )
+      val newerReligion = prisonReligionEntity(
+        prisonNumber = toPrisonerNumber,
+        startDate = LocalDate.of(2021, 4, 12),
+        code = BAHA,
+        createDateTime = LocalDateTime.of(2021, 4, 12, 11, 0),
+      )
+      prisonReligionRepository.saveAll(listOf(olderReligion, newerReligion))
+
+      prisonReligionMergeHandler.handleMerge(personKey.getPrisoner(fromPrisonerNumber), personKey.getPrisoner(toPrisonerNumber))
+
+      val currentReligion =
+        prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonerNumber)
+          .single { it.prisonRecordType == CURRENT }
+      assertThat(currentReligion.code).isEqualTo(BAHA)
+      assertThat(personRepository.findByPrisonNumber(toPrisonerNumber)?.religion).isEqualTo(BAHA)
     }
 
     @Test
