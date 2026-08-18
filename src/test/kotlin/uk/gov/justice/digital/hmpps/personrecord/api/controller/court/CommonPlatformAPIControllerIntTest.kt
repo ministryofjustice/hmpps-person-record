@@ -129,8 +129,8 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
             ),
           ),
           addresses = listOf(
-            address.copy(postcode = randomPostcode(), statusCode = AddressStatusCode.M),
             address.copy(postcode = randomPostcode(), statusCode = AddressStatusCode.P),
+            address.copy(postcode = randomPostcode(), statusCode = AddressStatusCode.M),
           ),
           references = listOf(
             Reference(identifierType = PNC, identifierValue = pnc),
