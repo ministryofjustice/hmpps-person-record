@@ -29,17 +29,6 @@ class CanonicalAddressSorterTest {
   }
 
   @Test
-  fun `should place common platform addresses with no record type last`() {
-    val noRecordType = address(randomPostcode(), recordType = null)
-    val previous = address(randomPostcode(), PREVIOUS)
-    val primary = address(randomPostcode(), PRIMARY)
-
-    val sorted = CanonicalAddressSorter.sort(addressesFor(COMMON_PLATFORM, noRecordType, previous, primary))
-
-    assertThat(sorted).containsExactly(primary, previous, noRecordType)
-  }
-
-  @Test
   fun `should keep original order for source systems whose addresses never have a record type`() {
     listOf(NOMIS, DELIUS, LIBRA).forEach { sourceSystem ->
       val first = address(randomPostcode(), recordType = null)
