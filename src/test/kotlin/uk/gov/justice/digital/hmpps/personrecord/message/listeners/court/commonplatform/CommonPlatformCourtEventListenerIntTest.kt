@@ -851,7 +851,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
 
       val existingPerson = personRepository.save(person)
-      assertThat(existingPerson.addresses).hasSize(1) // cause originally was passing in no address but I now add status by default
+      assertThat(existingPerson.addresses).hasSize(1)
       assertThat(existingPerson.addresses.first().recordType).isEqualTo(null)
       assertThat(existingPerson.addresses.first().postcode).isEqualTo(postcode)
 
