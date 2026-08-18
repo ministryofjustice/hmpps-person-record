@@ -30,12 +30,15 @@ class PrisonReligionMergeHandler(
 
     // Choose the current religion with the latest start date
     val currentReligions =
-      (fromHistory + toHistory).filter { it.prisonRecordType == CURRENT }.sortedByDescending { it.startDate }
+      (fromHistory + toHistory).filter { it.endDate == null || it.prisonRecordType == CURRENT }
+        .sortedWith(compareByDescending<PrisonReligionEntity> { it.startDate }.thenByDescending { it.createDateTime })
     val currentReligion = currentReligions.firstOrNull()
     if (currentReligions.size > 1) {
       currentReligions.drop(1).forEach { toBeHistoric ->
         toBeHistoric.prisonRecordType = HISTORIC
-        toBeHistoric.endDate = LocalDate.now()
+        if (toBeHistoric.endDate == null) {
+          toBeHistoric.endDate = LocalDate.now()
+        }
         prisonReligionRepository.saveAndFlush(toBeHistoric)
       }
     }
@@ -43,10 +46,12 @@ class PrisonReligionMergeHandler(
     // Put all of the religions on the to person
     prisonReligionRepository.saveAllAndFlush(fromHistory.onEach { it.prisonNumber = to.prisonNumber!! })
 
-    // Set the current religion on the to person
+    // Set the current religion on the to person and make sure its current
     currentReligion?.let {
       to.religion = it.code
       personRepository.saveAndFlush(to)
+      it.prisonRecordType = CURRENT
+      prisonReligionRepository.saveAndFlush(it)
     }
   }
 }
