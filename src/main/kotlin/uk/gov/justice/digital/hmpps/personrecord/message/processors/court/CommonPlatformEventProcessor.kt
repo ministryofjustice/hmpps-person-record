@@ -53,7 +53,7 @@ class CommonPlatformEventProcessor(
       .map { populateIdentifiersFromDefendantWhenMissing(it) }
       .map { Person.from(it) }
       .filter { it.isPerson() }
-      .map { keepFormerAddresses(it) }
+      .map { createNewRepresentationOfAddresses(it) }
       .map {
         transactionalCommonPlatformProcessor.processCommonPlatformPerson(it)
       }
@@ -118,25 +118,21 @@ class CommonPlatformEventProcessor(
     }
   }
 
-  private fun keepFormerAddresses(person: Person): Person {
+  private fun createNewRepresentationOfAddresses(person: Person): Person {
     val mainAddress = person.addresses.firstOrNull()
-    if (mainAddress == null) {
-      person.addresses = personRepository.findByDefendantId(person.defendantId!!)?.addresses?.map { Address.from(it) } ?: emptyList()
-      return person
-    }
-    val existingAddressesDemoted = personRepository.findByDefendantId(person.defendantId!!)?.addresses?.let {
-      setAddressesToPrevious(mainAddress, it)
-    } ?: emptyList()
+    val existingAddresses = personRepository.findByDefendantId(person.defendantId!!)?.addresses.orEmpty()
 
-    person.addresses = existingAddressesDemoted + mainAddress
+    person.addresses = mainAddress?.let { mainAddress ->
+      setAddressesToPrevious(mainAddress, existingAddresses) + mainAddress
+    } ?: existingAddresses.map { Address.from(it) }
+
     return person
   }
 
-  private fun setAddressesToPrevious(mainAddress: Address, existingAddressEntities: List<AddressEntity>): List<Address> {
-    val existingAddresses = existingAddressEntities
-      .map { Address.from(it) }
-      .filter { it.copy(statusCode = null) != mainAddress.copy(statusCode = null) }
-    existingAddresses.forEach { it.statusCode = AddressStatusCode.P }
-    return existingAddresses
-  }
+  private fun setAddressesToPrevious(mainAddress: Address, existingAddressEntities: List<AddressEntity>) = existingAddressEntities
+    .map { Address.from(it) }
+    .filterNot { existingAddress -> existingAddress.isSameAddressAs(mainAddress) }
+    .onEach { it.statusCode = AddressStatusCode.P }
+
+  private fun Address.isSameAddressAs(mainAddress: Address) = copy(statusCode = null) == mainAddress.copy(statusCode = null)
 }
