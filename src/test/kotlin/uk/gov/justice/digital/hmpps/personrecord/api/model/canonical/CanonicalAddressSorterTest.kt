@@ -4,9 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType.PREVIOUS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType.PRIMARY
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -18,21 +16,21 @@ import java.util.UUID
 class CanonicalAddressSorterTest {
 
   @Test
-  fun `should order common platform addresses primary first then previous preserving original order`() {
-    val previousOne = address(randomPostcode(), PREVIOUS)
-    val primary = address(randomPostcode(), PRIMARY)
-    val previousTwo = address(randomPostcode(), PREVIOUS)
+  fun `should order common platform addresses main first then previous preserving original order`() {
+    val previousOne = address(randomPostcode(), AddressStatusCode.P)
+    val main = address(randomPostcode(), AddressStatusCode.M)
+    val previousTwo = address(randomPostcode(), AddressStatusCode.P)
 
-    val sorted = CanonicalAddressSorter.sort(addressesFor(COMMON_PLATFORM, previousOne, primary, previousTwo))
+    val sorted = CanonicalAddressSorter.sort(addressesFor(COMMON_PLATFORM, previousOne, main, previousTwo))
 
-    assertThat(sorted).containsExactly(primary, previousOne, previousTwo)
+    assertThat(sorted).containsExactly(main, previousOne, previousTwo)
   }
 
   @Test
-  fun `should keep original order for source systems whose addresses never have a record type`() {
+  fun `should keep original order for source systems`() {
     listOf(NOMIS, DELIUS, LIBRA).forEach { sourceSystem ->
-      val first = address(randomPostcode(), recordType = null)
-      val second = address(randomPostcode(), recordType = null)
+      val first = address(randomPostcode())
+      val second = address(randomPostcode())
 
       val sorted = CanonicalAddressSorter.sort(addressesFor(sourceSystem, first, second))
 
@@ -53,9 +51,9 @@ class CanonicalAddressSorterTest {
     return addresses.toList()
   }
 
-  private fun address(postcode: String, recordType: AddressRecordType?): AddressEntity = AddressEntity(
+  private fun address(postcode: String, recordType: AddressStatusCode? = null): AddressEntity = AddressEntity(
     updateId = UUID.randomUUID(),
     postcode = postcode,
-    recordType = recordType,
+    statusCode = recordType,
   )
 }
