@@ -154,6 +154,37 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `should set modify date time when merge updates an existing religion`() {
+      val fromPrisonerNumber = randomPrisonNumber()
+      val toPrisonerNumber = randomPrisonNumber()
+      val personKey = createPersonKey()
+        .addPerson(createRandomPrisonPersonDetails(fromPrisonerNumber))
+        .addPerson(createRandomPrisonPersonDetails(toPrisonerNumber))
+
+      val fromReligion = prisonReligionEntity(
+        prisonNumber = fromPrisonerNumber,
+        startDate = LocalDate.of(2021, 4, 12),
+        code = BAHA,
+      )
+      val toReligion = prisonReligionEntity(
+        prisonNumber = toPrisonerNumber,
+        startDate = LocalDate.of(2021, 4, 10),
+        code = DRU,
+      )
+      prisonReligionRepository.saveAll(listOf(fromReligion, toReligion))
+
+      prisonReligionMergeHandler.handleMerge(personKey.getPrisoner(fromPrisonerNumber), personKey.getPrisoner(toPrisonerNumber))
+
+      val updatedReligion =
+        prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonerNumber)
+          .single { it.code == DRU }
+
+      assertThat(updatedReligion.endDate).isEqualTo(LocalDate.now())
+      assertThat(updatedReligion.modifyDateTime).isNotNull()
+      assertThat(updatedReligion.modifyUserId).isNotNull()
+    }
+
+    @Test
     fun `should merge religion history when only one prisoner has a history`() {
       val fromPrisonerNumber = randomPrisonNumber()
       val toPrisonerNumber = randomPrisonNumber()
