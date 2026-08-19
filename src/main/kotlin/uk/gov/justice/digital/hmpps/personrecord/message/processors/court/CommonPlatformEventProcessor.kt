@@ -53,7 +53,7 @@ class CommonPlatformEventProcessor(
       .map { populateIdentifiersFromDefendantWhenMissing(it) }
       .map { Person.from(it) }
       .filter { it.isPerson() }
-      .map { createNewRepresentationOfAddresses(it) }
+      .map { keepFormerAddresses(it) }
       .map {
         transactionalCommonPlatformProcessor.processCommonPlatformPerson(it)
       }
@@ -118,7 +118,7 @@ class CommonPlatformEventProcessor(
     }
   }
 
-  private fun createNewRepresentationOfAddresses(person: Person): Person {
+  private fun keepFormerAddresses(person: Person): Person {
     val mainAddress = person.addresses.firstOrNull()
     val existingAddresses = personRepository.findByDefendantId(person.defendantId!!)?.addresses.orEmpty()
 
