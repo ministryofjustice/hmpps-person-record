@@ -20,9 +20,15 @@ interface AddressRepository : JpaRepository<AddressEntity, Long> {
       select a.* from person p
       join address a on a.fk_person_id = p.id
       where p.source_system = 'COMMON_PLATFORM'
+      and a.id > :latestAddressId
       and a.status_code is null
+      order by a.id asc
+      limit :batchSize;
     """,
     nativeQuery = true,
   )
-  fun findAllByCommonPlatformByNullStatusCode(): List<AddressEntity>
+  fun findByIdGreaterThanAndStatusCodeIsNullOrderedByIdAsc(
+    batchSize: Int,
+    latestAddressId: Long,
+  ): List<AddressEntity>
 }
