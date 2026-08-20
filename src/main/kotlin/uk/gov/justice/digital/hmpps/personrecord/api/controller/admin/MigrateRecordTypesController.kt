@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Limit
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import kotlin.time.measureTime
 
 @Hidden
@@ -34,7 +36,11 @@ class MigrateRecordTypesController(
   private suspend fun runMigration(migrationRequest: RecordTypeMigrationDetails) {
     var lastPersonId = 0L
     while (true) {
-      val batchOfCommonPlatformPersons = personRepository.findByIdGreaterThanAndSourceSystemIsCommonPlatformOrderedByIdAsc(migrationRequest.personBatchSize, lastPersonId)
+      val batchOfCommonPlatformPersons = personRepository.findByIdGreaterThanAndSourceSystemOrderByIdAsc(
+        id = lastPersonId,
+        sourceSystem = SourceSystemType.COMMON_PLATFORM,
+        limit = Limit.of(migrationRequest.personBatchSize),
+      )
       if (batchOfCommonPlatformPersons.isEmpty()) {
         break
       }
