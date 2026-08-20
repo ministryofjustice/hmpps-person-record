@@ -21,8 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType.PREVIOUS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType.PRIMARY
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
@@ -130,8 +129,8 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
             ),
           ),
           addresses = listOf(
-            address.copy(postcode = randomPostcode()).setToPrevious(),
-            address.copy(postcode = randomPostcode()).setToPrimary(),
+            address.copy(postcode = randomPostcode(), statusCode = AddressStatusCode.P),
+            address.copy(postcode = randomPostcode(), statusCode = AddressStatusCode.M),
           ),
           references = listOf(
             Reference(identifierType = PNC, identifierValue = pnc),
@@ -158,8 +157,8 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
         sex = CanonicalSex.from(sex.value),
       )
       val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
-      val primaryAddressEntity = person.addresses.first { it.recordType == PRIMARY }
-      val previousAddressEntity = person.addresses.first { it.recordType == PREVIOUS }
+      val primaryAddressEntity = person.addresses.first { it.statusCode == AddressStatusCode.M }
+      val previousAddressEntity = person.addresses.first { it.statusCode == AddressStatusCode.P }
       val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromCommonPlatform(ethnicity))
 
       assertThat(responseBody.cprUUID).isNull()
