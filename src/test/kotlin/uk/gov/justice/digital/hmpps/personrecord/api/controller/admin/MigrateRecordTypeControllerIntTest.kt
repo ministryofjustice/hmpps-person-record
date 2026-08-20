@@ -61,6 +61,42 @@ class MigrateRecordTypeControllerIntTest : WebTestBase() {
     }
   }
 
+  @Test
+  fun `handles migrations that exceed batch size`() {
+    val person1 = createRandomCommonPlatformPersonDetails()
+    person1.addresses = listOf(address(AddressRecordType.PREVIOUS), address(AddressRecordType.PRIMARY))
+    createPersonKey().addPerson(person1)
+
+    val person2 = createRandomCommonPlatformPersonDetails()
+    person2.addresses = listOf(address(AddressRecordType.PREVIOUS), address(AddressRecordType.PRIMARY))
+    createPersonKey().addPerson(person2)
+
+    val person3 = createRandomCommonPlatformPersonDetails()
+    person3.addresses = listOf(address(AddressRecordType.PREVIOUS), address(AddressRecordType.PRIMARY))
+    createPersonKey().addPerson(person3)
+
+    sendPostRequestAsserted<String>(
+      url = "/admin/migrate-record-types",
+      expectedStatus = HttpStatus.OK,
+      body = """{ "batchSize": 2 }""",
+      roles = emptyList(),
+    )
+
+    awaitAssert {
+      val personOneAddresses = personRepository.findByDefendantId(person1.defendantId!!)!!.addresses.sortedBy { it.id }
+      assertThat(personOneAddresses.first().statusCode).isEqualTo(AddressStatusCode.P)
+      assertThat(personOneAddresses.last().statusCode).isEqualTo(AddressStatusCode.M)
+
+      val personTwoAddresses = personRepository.findByDefendantId(person2.defendantId!!)!!.addresses.sortedBy { it.id }
+      assertThat(personTwoAddresses.first().statusCode).isEqualTo(AddressStatusCode.P)
+      assertThat(personTwoAddresses.last().statusCode).isEqualTo(AddressStatusCode.M)
+
+      val personThreeAddresses = personRepository.findByDefendantId(person3.defendantId!!)!!.addresses.sortedBy { it.id }
+      assertThat(personThreeAddresses.first().statusCode).isEqualTo(AddressStatusCode.P)
+      assertThat(personThreeAddresses.last().statusCode).isEqualTo(AddressStatusCode.M)
+    }
+  }
+
   private fun address(addressRecordType: AddressRecordType?, postCode: String = randomPostcode()) = Address(
     postcode = postCode,
     buildingName = randomName(),
