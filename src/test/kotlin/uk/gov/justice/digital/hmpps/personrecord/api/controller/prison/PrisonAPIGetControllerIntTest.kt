@@ -229,10 +229,10 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.nationalInsuranceNumbers).containsExactly(personOneNationalInsuranceNumber)
       assertThat(responseBody.identifiers.arrestSummonsNumbers).containsExactly(personOneArrestSummonNumber)
       assertThat(responseBody.identifiers.driverLicenseNumbers).containsExactly(personOneDriversLicenseNumber)
-      assertThat(responseBody.identifiers.crns).containsExactly(personTwoProbation.crn, personSixProbation.crn)
-      assertThat(responseBody.identifiers.defendantIds).containsExactly(personThreeCommonPlatform.defendantId, personSevenCommonPlatform.defendantId)
-      assertThat(responseBody.identifiers.prisonNumbers).containsExactly(personOnePrison.prisonNumber, personFivePrison.prisonNumber)
-      assertThat(responseBody.identifiers.cids).containsExactly(personFourLibra.cId, personEightLibra.cId)
+      assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrder(personTwoProbation.crn, personSixProbation.crn)
+      assertThat(responseBody.identifiers.defendantIds).containsExactlyInAnyOrder(personThreeCommonPlatform.defendantId, personSevenCommonPlatform.defendantId)
+      assertThat(responseBody.identifiers.prisonNumbers).containsExactlyInAnyOrder(personOnePrison.prisonNumber, personFivePrison.prisonNumber)
+      assertThat(responseBody.identifiers.cids).containsExactlyInAnyOrder(personFourLibra.cId, personEightLibra.cId)
     }
 
     private fun randomFullSetOfReferences(): List<Reference> = listOf(
