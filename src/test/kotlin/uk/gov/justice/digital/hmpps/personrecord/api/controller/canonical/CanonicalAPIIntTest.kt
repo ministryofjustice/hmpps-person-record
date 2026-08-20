@@ -57,7 +57,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 
-class CanonicalApiIntTest : WebTestBase() {
+class CanonicalAPIIntTest : WebTestBase() {
 
   @Test
   fun `should return ok for get canonical record`() {
