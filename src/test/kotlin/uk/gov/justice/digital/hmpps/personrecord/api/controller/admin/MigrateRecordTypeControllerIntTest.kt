@@ -40,7 +40,7 @@ class MigrateRecordTypeControllerIntTest : WebTestBase() {
   @Test
   fun `set the latest inserted address as main and others as previous when person has an address with null record type`() {
     val person = createRandomCommonPlatformPersonDetails()
-    person.addresses = listOf(address(null, "AA1 BB1"), address(null, "CC1 EE2"))
+    person.addresses = listOf(address(null), address(null))
     createPersonKey().addPerson(person)
 
     sendPostRequestAsserted<String>(
@@ -51,9 +51,9 @@ class MigrateRecordTypeControllerIntTest : WebTestBase() {
     )
 
     awaitAssert {
-      val addresses = personRepository.findByDefendantId(person.defendantId!!)!!.addresses
-      val previousAddress = addresses.first { it.postcode == "AA1 BB1" }
-      val mainAddress = addresses.first { it.postcode == "CC1 EE2" }
+      val addresses = personRepository.findByDefendantId(person.defendantId!!)!!.addresses.sortedBy { it.id }
+      val previousAddress = addresses.first()
+      val mainAddress = addresses.last()
       assertThat(previousAddress.statusCode).isEqualTo(AddressStatusCode.P)
       assertThat(previousAddress.recordType).isEqualTo(null)
       assertThat(mainAddress.statusCode).isEqualTo(AddressStatusCode.M)
