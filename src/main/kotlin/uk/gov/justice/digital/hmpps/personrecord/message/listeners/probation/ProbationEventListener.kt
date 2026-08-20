@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.Pr
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.PROBATION_EVENT_QUEUE_ID
 
@@ -31,7 +30,6 @@ class ProbationEventListener(
   private val addressRepository: AddressRepository,
   private val addressService: AddressService,
   private val probationPersonRecoveredEventProcessor: ProbationPersonRecoveredEventProcessor,
-  private val personService: PersonService,
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
