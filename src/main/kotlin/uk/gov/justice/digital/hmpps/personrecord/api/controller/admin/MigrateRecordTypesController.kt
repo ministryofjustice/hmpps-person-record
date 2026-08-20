@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
@@ -31,8 +33,21 @@ class MigrateRecordTypesController(
   }
 
   private suspend fun doMigration() {
-    // paginate
-    val allCommonPlatformAddressWithARecordType = addressRepository.findAllByCommonPlatform()
-    logger.info("Found '${allCommonPlatformAddressWithARecordType.size}' COMMON_PLATFORM addresses")
+    val allCommonPlatformAddressWithARecordType = addressRepository.findAllByCommonPlatformByNullStatusCode()
+    logger.info("Found '${allCommonPlatformAddressWithARecordType.size}' COMMON_PLATFORM addresses with a null status code")
+
+    allCommonPlatformAddressWithARecordType.forEach { addresses ->
+      when (addresses.recordType) {
+        AddressRecordType.PRIMARY -> {
+          addresses.statusCode = AddressStatusCode.M
+          addressRepository.save(addresses)
+        }
+        AddressRecordType.PREVIOUS -> {
+          addresses.statusCode = AddressStatusCode.P
+          addressRepository.save(addresses)
+        }
+        null -> {}
+      }
+    }
   }
 }
