@@ -23,8 +23,7 @@ class ProbationPersonRecoveredEventProcessor(
 
   @Transactional
   fun process(event: ProbationPersonRecovered) {
-    val probationCase = corePersonRecordAndDeliusClient.getProbationCase(event.crn)
-    probationCase.let { case ->
+    corePersonRecordAndDeliusClient.getProbationCase(event.crn).let { case ->
       val personEntity = personService.processPerson(Person.from(case)) { personRepository.findByCrn(event.crn) }
       case.addresses.forEach { address ->
         addressService.processAddress(
