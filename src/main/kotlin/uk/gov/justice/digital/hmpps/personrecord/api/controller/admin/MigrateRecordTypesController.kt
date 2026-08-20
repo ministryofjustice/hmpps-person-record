@@ -34,14 +34,14 @@ class MigrateRecordTypesController(
   private suspend fun runMigration(migrationRequest: RecordTypeMigrationDetails) {
     var lastPersonId = 0L
     while (true) {
-      val batchOfCommonPlatformPersons = personRepository.findByIdGreaterThanAndSourceSystemIsCommonPlatformOrderedByIdAsc(migrationRequest.batchSize, lastPersonId)
+      val batchOfCommonPlatformPersons = personRepository.findByIdGreaterThanAndSourceSystemIsCommonPlatformOrderedByIdAsc(migrationRequest.personBatchSize, lastPersonId)
       if (batchOfCommonPlatformPersons.isEmpty()) {
         break
       }
       val elapsedTime = measureTime {
         migrateBatch(batchOfCommonPlatformPersons)
       }
-      logger.info("Batch migration of '${migrationRequest.batchSize}' completed in '${elapsedTime.inWholeSeconds}' seconds")
+      logger.info("Batch migration of '${migrationRequest.personBatchSize}' completed in '${elapsedTime.inWholeSeconds}' seconds")
       lastPersonId = batchOfCommonPlatformPersons.last().id!!
     }
   }
@@ -63,6 +63,6 @@ class MigrateRecordTypesController(
   }
 
   data class RecordTypeMigrationDetails(
-    val batchSize: Int,
+    val personBatchSize: Int,
   )
 }

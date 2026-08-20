@@ -22,7 +22,7 @@ class MigrateRecordTypeControllerIntTest : WebTestBase() {
     sendPostRequestAsserted<String>(
       url = "/admin/migrate-record-types",
       expectedStatus = HttpStatus.OK,
-      body = """{ "batchSize": 3 }""",
+      body = """{ "personBatchSize": 3 }""",
       roles = emptyList(),
     )
 
@@ -46,7 +46,7 @@ class MigrateRecordTypeControllerIntTest : WebTestBase() {
     sendPostRequestAsserted<String>(
       url = "/admin/migrate-record-types",
       expectedStatus = HttpStatus.OK,
-      body = """{ "batchSize": 3 }""",
+      body = """{ "personBatchSize": 3 }""",
       roles = emptyList(),
     )
 
@@ -78,7 +78,7 @@ class MigrateRecordTypeControllerIntTest : WebTestBase() {
     sendPostRequestAsserted<String>(
       url = "/admin/migrate-record-types",
       expectedStatus = HttpStatus.OK,
-      body = """{ "batchSize": 2 }""",
+      body = """{ "personBatchSize": 2 }""",
       roles = emptyList(),
     )
 
