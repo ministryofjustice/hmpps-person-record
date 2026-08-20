@@ -46,7 +46,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 
-class LibraApiControllerIntTest : WebTestBase() {
+class LibraAPIControllerIntTest : WebTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
