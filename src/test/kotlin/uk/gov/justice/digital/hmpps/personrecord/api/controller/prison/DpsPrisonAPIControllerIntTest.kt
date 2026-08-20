@@ -367,30 +367,10 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.nationalInsuranceNumbers).containsExactly(personOneNationalInsuranceNumber)
       assertThat(responseBody.identifiers.arrestSummonsNumbers).containsExactly(personOneArrestSummonNumber)
       assertThat(responseBody.identifiers.driverLicenseNumbers).containsExactly(personOneDriversLicenseNumber)
-      assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrderElementsOf(
-        listOf(
-          personOne.crn,
-          personTwo.crn,
-        ),
-      )
-      assertThat(responseBody.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(
-        listOf(
-          personOne.defendantId,
-          personTwo.defendantId,
-        ),
-      )
-      assertThat(responseBody.identifiers.prisonNumbers).containsExactlyInAnyOrderElementsOf(
-        listOf(
-          personOne.prisonNumber,
-          personTwo.prisonNumber,
-        ),
-      )
-      assertThat(responseBody.identifiers.cids).containsExactlyInAnyOrderElementsOf(
-        listOf(
-          personOne.cId,
-          personTwo.cId,
-        ),
-      )
+      assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrder(personOne.crn, personTwo.crn)
+      assertThat(responseBody.identifiers.defendantIds).containsExactlyInAnyOrder(personOne.defendantId, personTwo.defendantId)
+      assertThat(responseBody.identifiers.prisonNumbers).containsExactlyInAnyOrder(personOne.prisonNumber, personTwo.prisonNumber)
+      assertThat(responseBody.identifiers.cids).containsExactlyInAnyOrder(personOne.cId, personTwo.cId)
     }
 
     @Test
