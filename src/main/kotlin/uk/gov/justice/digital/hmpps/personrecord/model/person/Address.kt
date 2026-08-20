@@ -49,6 +49,7 @@ data class Address(
     when (val value = prop.call(this)) {
       null -> false
       is Collection<*> -> value.isNotEmpty()
+      is Enum<*> -> false
       else -> true
     }
   }
@@ -89,6 +90,7 @@ data class Address(
       thoroughfareName = address?.address3.nullIfBlank(),
       dependentLocality = address?.address4.nullIfBlank(),
       postTown = address?.address5.nullIfBlank(),
+      statusCode = AddressStatusCode.M,
     ).allPropertiesOrNull()
 
     fun from(address: LibraAddress?): Address? = Address(
@@ -187,15 +189,5 @@ data class Address(
       usages = addressEntity.usages.map { AddressUsage.from(it) },
       contacts = addressEntity.contacts.map { Contact.from(it) },
     )
-  }
-
-  fun setToPrimary(): Address {
-    this.recordType = AddressRecordType.PRIMARY
-    return this
-  }
-
-  fun setToPrevious(): Address {
-    this.recordType = AddressRecordType.PREVIOUS
-    return this
   }
 }
