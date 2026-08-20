@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
@@ -22,25 +23,25 @@ class MigrateRecordTypesController(
   private val logger = LoggerFactory.getLogger(MigrateRecordTypesController::class.java)
 
   @PostMapping("/admin/migrate-record-types")
-  suspend fun migrate(): String {
+  suspend fun migrate(@RequestBody migrationRequest: RecordTypeMigrationDetails): String {
     CoroutineScope(Dispatchers.Default).launch {
-      val elapsedTime = measureTime { runMigration() }
+      val elapsedTime = measureTime { runMigration(migrationRequest) }
       logger.info("Full migration time of record types completed in '${elapsedTime.inWholeSeconds}' seconds")
     }
     return "OK"
   }
 
-  private suspend fun runMigration() {
+  private suspend fun runMigration(migrationRequest: RecordTypeMigrationDetails) {
     var lastId = 0L
     while (true) {
-      val batchCPAddressWithNullStatusCode = addressRepository.findByIdGreaterThanAndStatusCodeIsNullOrderedByIdAsc(1000, lastId)
+      val batchCPAddressWithNullStatusCode = addressRepository.findByIdGreaterThanAndStatusCodeIsNullOrderedByIdAsc(migrationRequest.batchSize, lastId)
       if (batchCPAddressWithNullStatusCode.isEmpty()) {
         break
       }
       val elapsedTime = measureTime {
         migrateBatch(batchCPAddressWithNullStatusCode)
       }
-      logger.info("Batch migration of record types completed in '${elapsedTime.inWholeSeconds}' seconds")
+      logger.info("Batch migration of '${migrationRequest.batchSize}' address completed in '${elapsedTime.inWholeSeconds}' seconds")
       lastId = batchCPAddressWithNullStatusCode.last().id!!
     }
   }
@@ -61,4 +62,8 @@ class MigrateRecordTypesController(
       addressRepository.saveAll(addressesForPerson)
     }
   }
+
+  data class RecordTypeMigrationDetails(
+    val batchSize: Int,
+  )
 }
