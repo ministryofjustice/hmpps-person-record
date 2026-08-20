@@ -15,12 +15,15 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonMergeEventProcessor
 
 @Tag(name = "Syscon Sync")
 @RestController
 @PreAuthorize("hasRole('${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
-class SysconSyncPrisonMergeAPIController {
+class SysconSyncPrisonMergeAPIController(
+  private val prisonMergeEventProcessor: PrisonMergeEventProcessor,
+) {
   @Operation(
     description = """Processes a prisoner merge record by Prison Number. Role required is **${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
     security = [SecurityRequirement(name = "api-role")],
@@ -31,7 +34,10 @@ class SysconSyncPrisonMergeAPIController {
     @PathVariable prisonNumber: String,
     @RequestBody prisonMergeRequest: PrisonMerge,
   ) {
-    log.info("Ignoring prison merge for prison number: {} from prison number: {}", prisonNumber, prisonMergeRequest.fromPrisonNumber)
+    prisonMergeEventProcessor.processEvent(
+      fromPrisonNumber = prisonMergeRequest.fromPrisonNumber,
+      toPrisonNumber = prisonNumber,
+    )
   }
 
   private companion object {

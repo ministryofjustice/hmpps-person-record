@@ -75,6 +75,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.CURRENT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.HISTORIC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
@@ -332,13 +333,15 @@ class IntegrationTestBase {
     endDate: LocalDate? = null,
     code: ReligionCode = ADV,
     createdUserId: String = "abcdefg",
+    createDateTime: LocalDateTime = LocalDateTime.now(),
+    prisonRecordType: PrisonRecordType = if (endDate == null) CURRENT else HISTORIC,
   ) = PrisonReligionEntity(
-    prisonRecordType = if (endDate == null) CURRENT else HISTORIC,
+    prisonRecordType = prisonRecordType,
     prisonNumber = prisonNumber,
     code = code,
     changeReasonKnown = false,
     startDate = startDate,
-    createDateTime = LocalDateTime.now(),
+    createDateTime = createDateTime,
     createUserId = createdUserId,
   )
 
