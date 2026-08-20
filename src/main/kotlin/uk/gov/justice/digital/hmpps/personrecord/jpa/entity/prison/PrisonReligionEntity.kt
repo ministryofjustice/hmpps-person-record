@@ -34,7 +34,7 @@ class PrisonReligionEntity(
   var updateId: UUID? = null,
 
   @Column(name = "prison_number", nullable = false)
-  val prisonNumber: String,
+  var prisonNumber: String,
 
   @Column(name = "religion_code", nullable = false)
   @Enumerated(STRING)

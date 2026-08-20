@@ -60,6 +60,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.review.ReviewEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
@@ -74,7 +75,11 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.CURRENT
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.HISTORIC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.ADV
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
@@ -115,6 +120,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import java.time.Duration
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -320,6 +326,23 @@ class IntegrationTestBase {
     current = current,
     createDateTime = randomDateTime(),
     createUserId = randomName(),
+  )
+  internal fun prisonReligionEntity(
+    prisonNumber: String,
+    startDate: LocalDate,
+    endDate: LocalDate? = null,
+    code: ReligionCode = ADV,
+    createdUserId: String = "abcdefg",
+    createDateTime: LocalDateTime = LocalDateTime.now(),
+    prisonRecordType: PrisonRecordType = if (endDate == null) CURRENT else HISTORIC,
+  ) = PrisonReligionEntity(
+    prisonRecordType = prisonRecordType,
+    prisonNumber = prisonNumber,
+    code = code,
+    changeReasonKnown = false,
+    startDate = startDate,
+    createDateTime = createDateTime,
+    createUserId = createdUserId,
   )
 
   internal fun checkTelemetry(

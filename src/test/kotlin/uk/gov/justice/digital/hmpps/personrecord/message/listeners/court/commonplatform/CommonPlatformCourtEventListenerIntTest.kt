@@ -27,7 +27,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
@@ -738,7 +738,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val person = awaitNotNull { personRepository.findByDefendantId(defendantId) }
       assertThat(person.addresses).hasSize(1)
-      assertThat(person.addresses.getPrimary().first().postcode).isEqualTo(postcode1)
+      assertThat(person.addresses.getMain().first().postcode).isEqualTo(postcode1)
 
       val postcode2 = randomPostcode()
 
@@ -764,7 +764,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         personRepository.findByDefendantId(defendantId)
       }
       assertThat(updatedPerson.addresses).hasSize(2)
-      assertThat(updatedPerson.addresses.getPrimary().first().postcode).isEqualTo(postcode2)
+      assertThat(updatedPerson.addresses.getMain().first().postcode).isEqualTo(postcode2)
       assertThat(updatedPerson.addresses.getPrevious().first().postcode).isEqualTo(postcode1)
     }
 
@@ -785,13 +785,13 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val person = awaitNotNull { personRepository.findByDefendantId(defendantId) }
       assertThat(person.addresses).hasSize(1)
-      assertThat(person.addresses.getPrimary().first().postcode).isEqualTo(address.postcode)
+      assertThat(person.addresses.getMain().first().postcode).isEqualTo(address.postcode)
 
       publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = address))))
 
       val updatedPerson = awaitNotNull { personRepository.findByDefendantId(defendantId) }
       assertThat(updatedPerson.addresses).hasSize(1)
-      assertThat(updatedPerson.addresses.getPrimary().first().postcode).isEqualTo(address.postcode)
+      assertThat(updatedPerson.addresses.getMain().first().postcode).isEqualTo(address.postcode)
     }
 
     @Test
@@ -811,7 +811,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val person = awaitNotNull { personRepository.findByDefendantId(defendantId) }
       assertThat(person.addresses).hasSize(1)
-      assertThat(person.addresses.getPrimary().first().postcode).isEqualTo(address.postcode)
+      assertThat(person.addresses.getMain().first().postcode).isEqualTo(address.postcode)
 
       val secondAddress = CommonPlatformHearingSetupAddress(
         buildingName = randomName(),
@@ -826,14 +826,14 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val updatedPerson = awaitNotNull { personRepository.findByDefendantId(defendantId) }
       assertThat(updatedPerson.addresses).hasSize(2)
-      assertThat(updatedPerson.addresses.getPrimary().first().postcode).isEqualTo(secondAddress.postcode)
+      assertThat(updatedPerson.addresses.getMain().first().postcode).isEqualTo(secondAddress.postcode)
       assertThat(updatedPerson.addresses.getPrevious().first().postcode).isEqualTo(address.postcode)
 
       publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = address))))
 
       val reUpdatedPerson = awaitNotNull { personRepository.findByDefendantId(defendantId) }
       assertThat(reUpdatedPerson.addresses).hasSize(2)
-      assertThat(reUpdatedPerson.addresses.getPrimary().first().postcode).isEqualTo(address.postcode)
+      assertThat(reUpdatedPerson.addresses.getMain().first().postcode).isEqualTo(address.postcode)
       assertThat(reUpdatedPerson.addresses.getPrevious().first().postcode).isEqualTo(secondAddress.postcode)
     }
 
@@ -873,12 +873,12 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val updatedPerson = awaitNotNull { personRepository.findByDefendantId(existingPerson.defendantId!!) }
       assertThat(updatedPerson.addresses).hasSize(2)
-      assertThat(updatedPerson.addresses.getPrimary().first().postcode).isEqualTo(updatedAddress.postcode)
+      assertThat(updatedPerson.addresses.getMain().first().postcode).isEqualTo(updatedAddress.postcode)
       assertThat(updatedPerson.addresses.getPrevious().first().postcode).isEqualTo(postcode)
     }
 
     @Test
-    fun `should move primary to previous and not store blank address`() {
+    fun `should keep existing main address when being sent a blank address`() {
       val defendantId = randomDefendantId()
 
       val address = CommonPlatformHearingSetupAddress(
@@ -906,7 +906,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val updatedPerson = awaitNotNull { personRepository.findByDefendantId(defendantId) }
       assertThat(updatedPerson.addresses).hasSize(1)
-      assertThat(updatedPerson.addresses.getPrevious().first().postcode).isEqualTo(address.postcode)
+      assertThat(updatedPerson.addresses.getMain().first().postcode).isEqualTo(address.postcode)
     }
   }
 
@@ -963,7 +963,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkEventLogExist(defendantId, CPRLogEvents.CPR_UUID_CREATED)
     }
   }
-  private fun List<AddressEntity>.getPrimary(): List<AddressEntity> = this.getByType(AddressRecordType.PRIMARY)
-  private fun List<AddressEntity>.getPrevious(): List<AddressEntity> = this.getByType(AddressRecordType.PREVIOUS)
-  private fun List<AddressEntity>.getByType(type: AddressRecordType): List<AddressEntity> = this.filter { it.recordType == type }
+  private fun List<AddressEntity>.getMain(): List<AddressEntity> = this.getByType(AddressStatusCode.M)
+  private fun List<AddressEntity>.getPrevious(): List<AddressEntity> = this.getByType(AddressStatusCode.P)
+  private fun List<AddressEntity>.getByType(type: AddressStatusCode): List<AddressEntity> = this.filter { it.statusCode == type }
 }
