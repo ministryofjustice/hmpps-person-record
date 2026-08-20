@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import java.util.UUID
 
-class CanonicalApiServerErrorTest : WebTestBase() {
+class CanonicalAPIServerErrorTest : WebTestBase() {
 
   @MockitoSpyBean
   override lateinit var personKeyRepository: PersonKeyRepository
