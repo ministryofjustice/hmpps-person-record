@@ -74,7 +74,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
-class ProbationApiE2ETest : E2ETestBase() {
+class ProbationAPIControllerE2ETest : E2ETestBase() {
 
   @Nested
   inner class GetRecord {
