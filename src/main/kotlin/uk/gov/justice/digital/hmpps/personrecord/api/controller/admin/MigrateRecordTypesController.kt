@@ -50,6 +50,8 @@ class MigrateRecordTypesController(
   private fun migrateBatch(batchOfPersons: List<PersonEntity>) {
     batchOfPersons.forEach { personEntity ->
       val personAddressSorted = personEntity.addresses.sortedBy { it.id }
+      if (personAddressSorted.isEmpty()) return@forEach
+
       val latestAddressEntity = personAddressSorted.last()
       latestAddressEntity.statusCode = AddressStatusCode.M
 
