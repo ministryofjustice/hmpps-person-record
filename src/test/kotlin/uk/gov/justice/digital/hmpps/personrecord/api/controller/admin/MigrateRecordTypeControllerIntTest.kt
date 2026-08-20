@@ -14,14 +14,10 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 class MigrateRecordTypeControllerIntTest : WebTestBase() {
 
   @Test
-  fun `populates CP address status codes that are null if record type is not null`() {
-    val p1 = createRandomCommonPlatformPersonDetails()
-    p1.addresses = listOf(address(AddressRecordType.PRIMARY), address(AddressRecordType.PREVIOUS))
-    val p2 = createRandomCommonPlatformPersonDetails()
-    p2.addresses = listOf(address(null))
-
-    createPersonKey().addPerson(p1)
-    createPersonKey().addPerson(p2)
+  fun `populates CP address status codes that are null`() {
+    val person = createRandomCommonPlatformPersonDetails()
+    person.addresses = listOf(address(AddressRecordType.PREVIOUS), address(AddressRecordType.PRIMARY))
+    createPersonKey().addPerson(person)
 
     sendPostRequestAsserted<String>(
       url = "/admin/migrate-record-types",
@@ -31,21 +27,42 @@ class MigrateRecordTypeControllerIntTest : WebTestBase() {
     )
 
     awaitAssert {
-      val person1 = personRepository.findByDefendantId(p1.defendantId!!)!!
-      val person2 = personRepository.findByDefendantId(p2.defendantId!!)!!
-
-      assertThat(person1.addresses.first().statusCode).isEqualTo(AddressStatusCode.M)
-      assertThat(person1.addresses.first().recordType).isEqualTo(AddressRecordType.PRIMARY)
-      assertThat(person1.addresses.last().statusCode).isEqualTo(AddressStatusCode.P)
-      assertThat(person1.addresses.last().recordType).isEqualTo(AddressRecordType.PREVIOUS)
-
-      assertThat(person2.addresses.first().statusCode).isNull()
-      assertThat(person2.addresses.first().recordType).isNull()
+      val addresses = personRepository.findByDefendantId(person.defendantId!!)!!.addresses.sortedBy { it.id }
+      val previousAddress = addresses.first()
+      val mainAddress = addresses.last()
+      assertThat(previousAddress.statusCode).isEqualTo(AddressStatusCode.P)
+      assertThat(previousAddress.recordType).isEqualTo(AddressRecordType.PREVIOUS)
+      assertThat(mainAddress.statusCode).isEqualTo(AddressStatusCode.M)
+      assertThat(mainAddress.recordType).isEqualTo(AddressRecordType.PRIMARY)
     }
   }
 
-  private fun address(addressRecordType: AddressRecordType?) = Address(
-    postcode = randomPostcode(),
+  @Test
+  fun `set the latest inserted address as main and others as previous when person has an address with null record type`() {
+    val person = createRandomCommonPlatformPersonDetails()
+    person.addresses = listOf(address(null, "AA1 BB1"), address(null, "CC1 EE2"))
+    createPersonKey().addPerson(person)
+
+    sendPostRequestAsserted<String>(
+      url = "/admin/migrate-record-types",
+      expectedStatus = HttpStatus.OK,
+      body = "",
+      roles = emptyList(),
+    )
+
+    awaitAssert {
+      val addresses = personRepository.findByDefendantId(person.defendantId!!)!!.addresses
+      val previousAddress = addresses.first { it.postcode == "AA1 BB1" }
+      val mainAddress = addresses.first { it.postcode == "CC1 EE2" }
+      assertThat(previousAddress.statusCode).isEqualTo(AddressStatusCode.P)
+      assertThat(previousAddress.recordType).isEqualTo(null)
+      assertThat(mainAddress.statusCode).isEqualTo(AddressStatusCode.M)
+      assertThat(mainAddress.recordType).isEqualTo(null)
+    }
+  }
+
+  private fun address(addressRecordType: AddressRecordType?, postCode: String = randomPostcode()) = Address(
+    postcode = postCode,
     buildingName = randomName(),
     buildingNumber = randomBuildingNumber(),
     thoroughfareName = randomName(),

@@ -33,21 +33,31 @@ class MigrateRecordTypesController(
   }
 
   private suspend fun doMigration() {
-    val allCommonPlatformAddressWithARecordType = addressRepository.findAllByCommonPlatformByNullStatusCode()
-    logger.info("Found '${allCommonPlatformAddressWithARecordType.size}' COMMON_PLATFORM addresses with a null status code")
+    val allCommonPlatformAddressWithNullStatusCode = addressRepository.findAllByCommonPlatformByNullStatusCode()
+    logger.info("Found '${allCommonPlatformAddressWithNullStatusCode.size}' COMMON_PLATFORM addresses with a null status code")
+    val cpAddressByPersonIdentifier = allCommonPlatformAddressWithNullStatusCode.groupBy { it.person!!.id!! }
 
-    allCommonPlatformAddressWithARecordType.forEach { addresses ->
-      when (addresses.recordType) {
-        AddressRecordType.PRIMARY -> {
-          addresses.statusCode = AddressStatusCode.M
-          addressRepository.save(addresses)
+    cpAddressByPersonIdentifier.forEach { (_, addressesForPerson) ->
+      addressesForPerson.forEach { address ->
+        when (address.recordType) {
+          AddressRecordType.PRIMARY -> {
+            address.statusCode = AddressStatusCode.M
+          }
+          AddressRecordType.PREVIOUS -> {
+            address.statusCode = AddressStatusCode.P
+          }
+          null -> {
+            val addressesSortedByAddressId = addressesForPerson.sortedBy { it.id }
+            val latestAddress = addressesSortedByAddressId.last()
+            latestAddress.statusCode = AddressStatusCode.M
+
+            addressesSortedByAddressId
+              .filter { it.id != latestAddress.id }
+              .onEach { it.statusCode = AddressStatusCode.P }
+          }
         }
-        AddressRecordType.PREVIOUS -> {
-          addresses.statusCode = AddressStatusCode.P
-          addressRepository.save(addresses)
-        }
-        null -> {}
       }
+      addressRepository.saveAll(addressesForPerson)
     }
   }
 }
