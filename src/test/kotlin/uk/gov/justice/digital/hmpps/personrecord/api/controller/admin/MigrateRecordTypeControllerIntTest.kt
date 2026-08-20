@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 class MigrateRecordTypeControllerIntTest : WebTestBase() {
 
   @Test
-  fun `populates CP addresses status codes that are null`() {
+  fun `populates CP address status codes that are null if record type is not null`() {
     val p1 = createRandomCommonPlatformPersonDetails()
     p1.addresses = listOf(address(AddressRecordType.PRIMARY), address(AddressRecordType.PREVIOUS))
     val p2 = createRandomCommonPlatformPersonDetails()
@@ -35,8 +35,12 @@ class MigrateRecordTypeControllerIntTest : WebTestBase() {
       val person2 = personRepository.findByDefendantId(p2.defendantId!!)!!
 
       assertThat(person1.addresses.first().statusCode).isEqualTo(AddressStatusCode.M)
+      assertThat(person1.addresses.first().recordType).isEqualTo(AddressRecordType.PRIMARY)
       assertThat(person1.addresses.last().statusCode).isEqualTo(AddressStatusCode.P)
+      assertThat(person1.addresses.last().recordType).isEqualTo(AddressRecordType.PREVIOUS)
+
       assertThat(person2.addresses.first().statusCode).isNull()
+      assertThat(person2.addresses.first().recordType).isNull()
     }
   }
 
