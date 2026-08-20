@@ -97,6 +97,32 @@ class MigrateRecordTypeControllerIntTest : WebTestBase() {
     }
   }
 
+  @Test
+  fun `continues running migration after some persons have no addresses`() {
+    val person1 = createRandomCommonPlatformPersonDetails()
+    createPersonKey().addPerson(person1)
+
+    val person2 = createRandomCommonPlatformPersonDetails()
+    person2.addresses = listOf(address(AddressRecordType.PREVIOUS), address(AddressRecordType.PRIMARY))
+    createPersonKey().addPerson(person2)
+
+    sendPostRequestAsserted<String>(
+      url = "/admin/migrate-record-types",
+      expectedStatus = HttpStatus.OK,
+      body = """{ "personBatchSize": 3 }""",
+      roles = emptyList(),
+    ).returnResult()
+
+    awaitAssert {
+      val personOneAddresses = personRepository.findByDefendantId(person1.defendantId!!)!!.addresses
+      assertThat(personOneAddresses).isEmpty()
+
+      val personTwoAddresses = personRepository.findByDefendantId(person2.defendantId!!)!!.addresses.sortedBy { it.id }
+      assertThat(personTwoAddresses.first().statusCode).isEqualTo(AddressStatusCode.P)
+      assertThat(personTwoAddresses.last().statusCode).isEqualTo(AddressStatusCode.M)
+    }
+  }
+
   private fun address(addressRecordType: AddressRecordType?, postCode: String = randomPostcode()) = Address(
     postcode = postCode,
     buildingName = randomName(),
