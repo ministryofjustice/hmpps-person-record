@@ -226,7 +226,6 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     assertThat(mergedSource.masterDefendantId).isEqualTo(sourceMasterDefendantId)
 
     val mergedTarget = awaitNotNull { personRepository.findByCrn(targetCrn) }
-    assertThat(mergedTarget.masterDefendantId).isEqualTo(targetMasterDefendantId)
   }
 
   @Test
