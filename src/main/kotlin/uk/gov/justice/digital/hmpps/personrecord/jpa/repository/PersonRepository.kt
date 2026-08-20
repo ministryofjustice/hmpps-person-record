@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -30,4 +31,20 @@ interface PersonRepository : JpaRepository<PersonEntity, Long> {
   fun findByLastModifiedAfter(
     lastModifiedAfter: LocalDateTime,
   ): MutableList<PersonEntity>
+
+  @Query(
+    value = """
+      select p.* from person p
+      join address a on a.fk_person_id = p.id
+      where p.source_system = 'COMMON_PLATFORM'
+      and p.id > :latestPersonId
+      order by p.id asc
+      limit :batchSize;
+    """,
+    nativeQuery = true,
+  )
+  fun findByIdGreaterThanAndSourceSystemIsCommonPlatformOrderedByIdAsc(
+    batchSize: Int,
+    latestPersonId: Long,
+  ): List<PersonEntity>
 }
