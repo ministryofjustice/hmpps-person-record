@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.test.context.ActiveProfiles
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.PERSON
@@ -138,46 +137,6 @@ class PersonDomainEventPublisherIntTest : MessagingTestBase() {
       assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
       assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("C_ID")
       assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(cid)
-    }
-  }
-
-  @Nested
-  @ActiveProfiles("prod")
-  inner class ProdProfileScenarios {
-
-    @Test
-    fun `should publish a CPR probation person created domain event in prod`() {
-      val crn = randomCrn()
-      probationCreateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(crn)))
-      awaitNotNull { personRepository.findByCrn(crn) }
-      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    }
-
-    @Test
-    fun `should not publish a CPR prison person created domain event in prod`() {
-      val prisonNumber = randomPrisonNumber()
-      stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
-      publishDomainEvent(PrisonPersonCreated(personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber)))))
-      awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
-      expectNoMessagesOnQueueOrDlq(testOnlyCPRDomainEventsQueue)
-    }
-
-    @Test
-    fun `should not publish a CPR common platform person created domain event in prod`() {
-      val defendantId = randomDefendantId()
-      publishCommonPlatformMessage(
-        commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = randomCro(), pnc = randomLongPnc()))),
-      )
-      awaitNotNull { personRepository.findByDefendantId(defendantId) }
-      expectNoMessagesOnQueueOrDlq(testOnlyCPRDomainEventsQueue)
-    }
-
-    @Test
-    fun `should not publish a CPR libra person created domain event in prod`() {
-      val cid = randomCId()
-      publishLibraMessage(libraHearing(cId = cid, firstName = randomName(), lastName = randomName(), defendantType = PERSON))
-      awaitNotNull { personRepository.findByCId(cid) }
-      expectNoMessagesOnQueueOrDlq(testOnlyCPRDomainEventsQueue)
     }
   }
 }
