@@ -35,4 +35,21 @@ class OverrideServiceIntTest : IntegrationTestBase() {
     personC.assertExcluded(personD)
     personA.assertIncluded(personC)
   }
+
+  @Test
+  fun `record can be included to more than one other record at different times`() {
+    val personA = createPerson(createRandomProbationPersonDetails())
+    val personB = createPerson(createRandomProbationPersonDetails())
+    val personC = createPerson(createRandomProbationPersonDetails())
+    createPersonKey()
+      .addPerson(personA)
+      .addPerson(personB)
+      .addPerson(personC)
+
+    includeRecords(personA, personB)
+    includeRecords(personB, personC)
+
+    personA.assertIncluded(personB)
+    personB.assertIncluded(personC)
+  }
 }
