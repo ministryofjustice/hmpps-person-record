@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import tools.jackson.module.kotlin.readValue
@@ -12,7 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
@@ -28,7 +29,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
-class PersonDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
+class PersonDomainEventPublisherIntTest : MessagingTestBase() {
 
   @BeforeEach
   fun setup() {
@@ -36,110 +37,106 @@ class PersonDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
     stubPersonMatchScores()
   }
 
-  @Test
-  fun `should publish a CPR person created domain event when a person is created in nomis`() {
-    val prisonNumber = randomPrisonNumber()
+  @Nested
+  inner class SuccessScenarios {
 
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
-    publishDomainEvent(PrisonPersonCreated(personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber)))))
+    @Test
+    fun `should publish a CPR person created domain event when a person is created in nomis`() {
+      val prisonNumber = randomPrisonNumber()
 
-    awaitNotNull {
-      personRepository.findByPrisonNumber(prisonNumber)
+      stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
+      publishDomainEvent(PrisonPersonCreated(personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber)))))
+
+      awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
+
+      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+      val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
+        ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
+      )
+      val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
+      assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_PERSON_CREATED))
+      val domainEvent: CprPersonCreated = jsonMapper.readValue<CprPersonCreated>(sqsMessage.message)
+      assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_PERSON_CREATED)
+      assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/prison/$prisonNumber")
+      assertThat(domainEvent.description).isEqualTo("A prison person record has been created")
+      assertThat(domainEvent.occurredAt).isNotNull()
+      assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
+      assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("prisonNumber")
+      assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(prisonNumber)
     }
 
-    expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-    )
-    val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_PERSON_CREATED))
-    val domainEvent: CprPersonCreated = jsonMapper.readValue<CprPersonCreated>(sqsMessage.message)
-    assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_PERSON_CREATED)
-    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/prison/$prisonNumber")
-    assertThat(domainEvent.description).isEqualTo("A prison person record has been created")
-    assertThat(domainEvent.occurredAt).isNotNull()
-    assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
-    assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("prisonNumber")
-    assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(prisonNumber)
-  }
+    @Test
+    fun `should publish a CPR person created domain event when a person is created in delius`() {
+      val crn = randomCrn()
 
-  @Test
-  fun `should publish a CPR person created domain event when a person is created in delius`() {
-    val crn = randomCrn()
+      probationCreateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(crn)))
 
-    probationCreateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(crn)))
+      awaitNotNull { personRepository.findByCrn(crn) }
 
-    awaitNotNull {
-      personRepository.findByCrn(crn)
+      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+      val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
+        ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
+      )
+      val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
+      assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_CREATED))
+      val domainEvent: CprPersonCreated = jsonMapper.readValue<CprPersonCreated>(sqsMessage.message)
+      assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_CREATED)
+      assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn")
+      assertThat(domainEvent.description).isEqualTo("A probation person record has been created")
+      assertThat(domainEvent.occurredAt).isNotNull()
+      assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
+      assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("CRN")
+      assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(crn)
     }
 
-    expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-    )
-    val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_CREATED))
-    val domainEvent: CprPersonCreated = jsonMapper.readValue<CprPersonCreated>(sqsMessage.message)
-    assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_CREATED)
-    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn")
-    assertThat(domainEvent.description).isEqualTo("A probation person record has been created")
-    assertThat(domainEvent.occurredAt).isNotNull()
-    assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
-    assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("CRN")
-    assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(crn)
-  }
+    @Test
+    fun `should publish a CPR person created domain event when a person is created in common platform`() {
+      val defendantId = randomDefendantId()
 
-  @Test
-  fun `should publish a CPR person created domain event when a person is created in common platform`() {
-    val defendantId = randomDefendantId()
+      publishCommonPlatformMessage(
+        commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = randomCro(), pnc = randomLongPnc()))),
+      )
 
-    publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = randomCro(), pnc = randomLongPnc()))),
-    )
+      awaitNotNull { personRepository.findByDefendantId(defendantId) }
 
-    awaitNotNull {
-      personRepository.findByDefendantId(defendantId)
+      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+      val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
+        ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
+      )
+      val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
+      assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_COURT_PERSON_CREATED))
+      val domainEvent: CprPersonCreated = jsonMapper.readValue<CprPersonCreated>(sqsMessage.message)
+      assertThat(domainEvent.eventType).isEqualTo(CPR_COURT_PERSON_CREATED)
+      assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/commonplatform/$defendantId")
+      assertThat(domainEvent.description).isEqualTo("A court person record has been created")
+      assertThat(domainEvent.occurredAt).isNotNull()
+      assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
+      assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("DEFENDANT_ID")
+      assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(defendantId)
     }
 
-    expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-    )
-    val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_COURT_PERSON_CREATED))
-    val domainEvent: CprPersonCreated = jsonMapper.readValue<CprPersonCreated>(sqsMessage.message)
-    assertThat(domainEvent.eventType).isEqualTo(CPR_COURT_PERSON_CREATED)
-    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/commonplatform/$defendantId")
-    assertThat(domainEvent.description).isEqualTo("A court person record has been created")
-    assertThat(domainEvent.occurredAt).isNotNull()
-    assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
-    assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("DEFENDANT_ID")
-    assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(defendantId)
-  }
+    @Test
+    fun `should publish a CPR person created domain event when a person is created in libra`() {
+      val cid = randomCId()
 
-  @Test
-  fun `should publish a CPR person created domain event when a person is created in libra`() {
-    val cid = randomCId()
+      publishLibraMessage(libraHearing(cId = cid, firstName = randomName(), lastName = randomName(), defendantType = PERSON))
 
-    publishLibraMessage(libraHearing(cId = cid, firstName = randomName(), lastName = randomName(), defendantType = PERSON))
+      awaitNotNull { personRepository.findByCId(cid) }
 
-    awaitNotNull {
-      personRepository.findByCId(cid)
+      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+      val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
+        ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
+      )
+      val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
+      assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_COURT_PERSON_CREATED))
+      val domainEvent: CprPersonCreated = jsonMapper.readValue<CprPersonCreated>(sqsMessage.message)
+      assertThat(domainEvent.eventType).isEqualTo(CPR_COURT_PERSON_CREATED)
+      assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/libra/$cid")
+      assertThat(domainEvent.description).isEqualTo("A court person record has been created")
+      assertThat(domainEvent.occurredAt).isNotNull()
+      assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
+      assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("C_ID")
+      assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(cid)
     }
-
-    expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-    )
-    val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_COURT_PERSON_CREATED))
-    val domainEvent: CprPersonCreated = jsonMapper.readValue<CprPersonCreated>(sqsMessage.message)
-    assertThat(domainEvent.eventType).isEqualTo(CPR_COURT_PERSON_CREATED)
-    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/libra/$cid")
-    assertThat(domainEvent.description).isEqualTo("A court person record has been created")
-    assertThat(domainEvent.occurredAt).isNotNull()
-    assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
-    assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("C_ID")
-    assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(cid)
   }
 }
