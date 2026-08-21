@@ -31,10 +31,6 @@ class OverrideService(
     }
   }
 
-  fun recordsAreIncluded(first: PersonEntity, second: PersonEntity): Boolean = first.overrideMarker != null &&
-    first.overrideMarker == second.overrideMarker &&
-    first.getScopes().intersect(second.getScopes()).isNotEmpty()
-
   private fun createScope(): OverrideScopeEntity = overrideScopeRepository.save(
     OverrideScopeEntity.new(ConfidenceType.VERIFIED, ActorType.SYSTEM),
   )
