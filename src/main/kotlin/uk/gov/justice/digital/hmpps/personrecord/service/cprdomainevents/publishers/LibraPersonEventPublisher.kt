@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers
 
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
@@ -13,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublis
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
 import java.time.Instant
 
+@Profile("!preprod & !prod")
 @Component
 class LibraPersonEventPublisher(
   private val domainEventPublisher: DomainEventPublisher,
