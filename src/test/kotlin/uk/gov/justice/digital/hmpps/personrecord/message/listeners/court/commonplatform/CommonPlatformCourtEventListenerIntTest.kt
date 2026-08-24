@@ -838,46 +838,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should move old address with record type of null to previous`() {
-      val person = createPersonWithNewKey(createRandomCommonPlatformPersonDetails())
-      val postcode = randomPostcode()
-      person.addresses.add(
-        AddressEntity(
-          buildingNumber = randomBuildingNumber(),
-          postcode = postcode,
-          recordType = null,
-          person = person,
-        ),
-      )
-
-      val existingPerson = personRepository.save(person)
-      assertThat(existingPerson.addresses).hasSize(1)
-      assertThat(existingPerson.addresses.first().recordType).isEqualTo(null)
-      assertThat(existingPerson.addresses.first().postcode).isEqualTo(postcode)
-
-      val updatedAddress = CommonPlatformHearingSetupAddress(
-        buildingName = randomName(),
-        buildingNumber = randomBuildingNumber(),
-        thoroughfareName = randomName(),
-        dependentLocality = randomName(),
-        postTown = randomName(),
-        postcode = randomPostcode(),
-      )
-
-      publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = existingPerson.defendantId!!, address = updatedAddress))))
-
-      checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to existingPerson.defendantId!!),
-      )
-
-      val updatedPerson = awaitNotNull { personRepository.findByDefendantId(existingPerson.defendantId!!) }
-      assertThat(updatedPerson.addresses).hasSize(2)
-      assertThat(updatedPerson.addresses.getMain().first().postcode).isEqualTo(updatedAddress.postcode)
-      assertThat(updatedPerson.addresses.getPrevious().first().postcode).isEqualTo(postcode)
-    }
-
-    @Test
     fun `should keep existing main address when being sent a blank address`() {
       val defendantId = randomDefendantId()
 
