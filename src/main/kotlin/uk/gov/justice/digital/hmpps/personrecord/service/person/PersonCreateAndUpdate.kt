@@ -63,7 +63,6 @@ private fun PersonEntity.fieldsToUpdateProbation(person: Person) {
   this.defendantId = person.defendantId
   this.crn = person.crn
   this.prisonNumber = person.prisonNumber
-  this.masterDefendantId = person.masterDefendantId
   this.religion = person.religion
   this.cId = person.cId
   this.sexualOrientation = person.sexualOrientation
