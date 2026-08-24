@@ -12,18 +12,31 @@ class MultiApplicationContextExtension :
   BeforeAllCallback,
   AfterAllCallback {
 
-  private var instance1: ConfigurableApplicationContext? = null
+  companion object {
+    private val NAMESPACE = ExtensionContext.Namespace.create(MultiApplicationContextExtension::class.java)
+    private const val CONTEXT = "secondary-context"
+  }
 
   override fun beforeAll(context: ExtensionContext) {
-    val existingContext = SpringExtension.getApplicationContext(context)
+    val store = context.getStore(NAMESPACE)
 
-    instance1 = SpringApplicationBuilder(HmppsPersonRecord::class.java)
-      .profiles(*existingContext.environment.activeProfiles, "test-instance-1")
+    // This test class/container already has its secondary context.
+    if (store.get(CONTEXT) != null) {
+      return
+    }
+
+    val primaryContext = SpringExtension.getApplicationContext(context)
+
+    val secondaryContext = SpringApplicationBuilder(HmppsPersonRecord::class.java)
+      .profiles(*primaryContext.environment.activeProfiles, "test-instance-1")
       .run()
+
+    store.put(CONTEXT, secondaryContext)
   }
 
   override fun afterAll(context: ExtensionContext) {
-    instance1?.close()
-    instance1 = null
+    context.getStore(NAMESPACE)
+      .remove(CONTEXT, ConfigurableApplicationContext::class.java)
+      ?.close()
   }
 }
