@@ -43,7 +43,7 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
           PrisonAliasesAndIdentifiersRequest(
             aliases = listOf(
               PrisonAlias(
-                nomisAliasId = 10000L,
+                nomisOffenderId = 10000L,
                 titleCode = TitleCode.MR,
                 firstName = "firstName",
                 middleNames = "middleName",
