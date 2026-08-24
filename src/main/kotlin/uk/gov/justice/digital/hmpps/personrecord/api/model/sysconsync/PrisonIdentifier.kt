@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 
 data class Identifier(
   @Schema(description = "The nomis identifier id", example = "4567")
@@ -19,10 +20,3 @@ data class NomisIdentifierId(
   @Schema(description = "The sequence index for the identifier on the offender", example = "10000")
   val nomisSequence: Int,
 )
-
-enum class IdentifierType {
-  PNC,
-  CRO,
-  NINO,
-  DL,
-}
