@@ -19,10 +19,10 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 @Tag(name = "Syscon Sync")
 @RestController
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
-class SysconMigratePrisonAliasesIdentifiersAPIController {
+class SysconSyncPrisonAliasesIdentifiersAPIController {
 
   @Operation(description = "Save the prison aliases and identifers for the given prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.")
-  @PostMapping("/syscon-migration/aliases-identifiers/{prisonNumber}")
+  @PostMapping("/syscon-sync/aliases-identifiers/{prisonNumber}")
   @ApiResponses(
     ApiResponse(
       responseCode = "201",

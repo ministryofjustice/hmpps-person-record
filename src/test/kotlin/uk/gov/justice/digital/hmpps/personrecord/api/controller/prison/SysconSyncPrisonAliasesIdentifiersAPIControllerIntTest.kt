@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
 
-class SysconMigratePrisonAliasesIdentifiersControllerIntTest : WebTestBase() {
+class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
   @Nested
   inner class Validation {
@@ -82,5 +82,5 @@ class SysconMigratePrisonAliasesIdentifiersControllerIntTest : WebTestBase() {
     }
   }
 
-  private fun aliasesIdentifiersUrl(prisonNumber: String) = "/syscon-migration/aliases-identifiers/$prisonNumber"
+  private fun aliasesIdentifiersUrl(prisonNumber: String) = "/syscon-sync/aliases-identifiers/$prisonNumber"
 }
