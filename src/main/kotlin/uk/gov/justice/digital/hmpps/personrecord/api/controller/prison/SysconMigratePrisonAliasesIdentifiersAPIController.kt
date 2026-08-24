@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -22,7 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 class SysconMigratePrisonAliasesIdentifiersAPIController {
 
   @Operation(description = "Save the prison aliases and identifers for the given prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.")
-  @PostMapping("/syscon-migration/aliases-idenifiers/{prisonNumber}")
+  @PostMapping("/syscon-migration/aliases-identifiers/{prisonNumber}")
   @ApiResponses(
     ApiResponse(
       responseCode = "201",
