@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Identifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.NomisIdentifierId
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAliasesAndIdentifiersRequest
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -21,7 +22,7 @@ class SysconMigratePrisonAliasesIdentifiersControllerIntTest : WebTestBase() {
     @Test
     fun `should respond with 501 as not currently implemented`() {
       webTestClient.post()
-        .uri(alaisesIdentifiersUrl(randomPrisonNumber()))
+        .uri(aliasesIdentifiersUrl(randomPrisonNumber()))
         .bodyValue(PrisonAliasesAndIdentifiersRequest(aliases = emptyList(), identifiers = emptyList()))
         .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
         .exchange()
@@ -37,7 +38,7 @@ class SysconMigratePrisonAliasesIdentifiersControllerIntTest : WebTestBase() {
     fun `should return Access Denied 403 when role is wrong`() {
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.post()
-        .uri(alaisesIdentifiersUrl(randomPrisonNumber()))
+        .uri(aliasesIdentifiersUrl(randomPrisonNumber()))
         .bodyValue(
           PrisonAliasesAndIdentifiersRequest(
             aliases = listOf(
@@ -54,7 +55,7 @@ class SysconMigratePrisonAliasesIdentifiersControllerIntTest : WebTestBase() {
             ),
             identifiers = listOf(
               Identifier(
-                nomisIdentifierId = 10000L,
+                nomisIdentifierId = NomisIdentifierId(nomisOffenderId = 10000L, nomisSequence = 0),
                 type = IdentifierType.PNC,
                 value = "2000/1234567A",
                 comment = "comment",
@@ -74,12 +75,12 @@ class SysconMigratePrisonAliasesIdentifiersControllerIntTest : WebTestBase() {
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       webTestClient.post()
-        .uri(alaisesIdentifiersUrl(randomPrisonNumber()))
+        .uri(aliasesIdentifiersUrl(randomPrisonNumber()))
         .exchange()
         .expectStatus()
         .isUnauthorized
     }
   }
 
-  private fun alaisesIdentifiersUrl(prisonNumber: String) = "/syscon-migration/aliases-identifiers/$prisonNumber"
+  private fun aliasesIdentifiersUrl(prisonNumber: String) = "/syscon-migration/aliases-identifiers/$prisonNumber"
 }

@@ -4,13 +4,20 @@ import io.swagger.v3.oas.annotations.media.Schema
 
 data class Identifier(
   @Schema(description = "The nomis identifier id", example = "4567")
-  val nomisIdentifierId: Long,
+  val nomisIdentifierId: NomisIdentifierId,
   @Schema(description = "The identifier type", example = "PNC")
   val type: IdentifierType,
   @Schema(description = "The identifier value", example = "2000/1234567A")
   val value: String,
   @Schema(description = "The identifier comment", example = "Some comment")
   val comment: String? = null,
+)
+
+data class NomisIdentifierId(
+  @Schema(description = "The nomis offender id for this identifier", example = "10000")
+  val nomisOffenderId: Long,
+  @Schema(description = "The sequence index for the identifier on the offender", example = "10000")
+  val nomisSequence: Int,
 )
 
 enum class IdentifierType {

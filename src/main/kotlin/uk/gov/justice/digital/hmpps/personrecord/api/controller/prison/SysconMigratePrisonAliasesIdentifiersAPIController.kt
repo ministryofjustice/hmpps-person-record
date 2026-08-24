@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAliasesAndIdentifiersRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAlaisesAndIdentifiersResponseBody
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasesAndIdentifiersResponseBody
 
 @Tag(name = "Syscon Sync")
 @RestController
@@ -32,5 +32,5 @@ class SysconMigratePrisonAliasesIdentifiersAPIController {
   fun saveAliasesAndIdentifiers(
     @PathVariable prisonNumber: String,
     @Valid @RequestBody aliasAndIdentifiersRequest: PrisonAliasesAndIdentifiersRequest,
-  ): ResponseEntity<SysconAlaisesAndIdentifiersResponseBody> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+  ): ResponseEntity<SysconAliasesAndIdentifiersResponseBody> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
 }
