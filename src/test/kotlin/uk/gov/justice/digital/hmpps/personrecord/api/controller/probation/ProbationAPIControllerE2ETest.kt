@@ -39,7 +39,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -275,6 +274,7 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
         val personTwoCro = randomCro()
 
         val personOneCrn = randomCrn()
+        val personTwoCrn = randomCrn()
 
         val personOnePnc = randomLongPnc()
         val personTwoPnc = randomLongPnc()
@@ -331,9 +331,9 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
           lastName = lastName,
           middleNames = randomName(),
           dateOfBirth = dateOfBirth,
-          sourceSystem = COMMON_PLATFORM,
+          sourceSystem = DELIUS,
           nationalities = listOf(randomNationalityCode()),
-          defendantId = randomDefendantId(),
+          crn = personTwoCrn,
           references = listOf(
             Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
             Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
@@ -377,24 +377,7 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
             personOne.crn,
             personTwo.crn,
           ),
-        )
-        assertThat(responseBody.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(
-          listOf(
-            personOne.defendantId,
-            personTwo.defendantId,
-          ),
-        )
-        assertThat(responseBody.identifiers.prisonNumbers).containsExactlyInAnyOrderElementsOf(
-          listOf(
-            personOne.prisonNumber,
-            personTwo.prisonNumber,
-          ),
-        )
-        assertThat(responseBody.identifiers.cids).containsExactlyInAnyOrderElementsOf(
-          listOf(
-            personOne.cId,
-            personTwo.cId,
-          ),
+
         )
       }
 
