@@ -9,5 +9,5 @@ data class PrisonAliasesAndIdentifiersRequest(
   val aliases: List<PrisonAlias>,
   @Valid
   @NotEmpty
-  val identifiers: List<Identifier>,
+  val identifiers: List<PrisonIdentifier>,
 )

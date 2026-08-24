@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 
-data class Identifier(
+data class PrisonIdentifier(
   @Schema(description = "The nomis identifier id", example = "4567")
   val nomisIdentifierId: NomisIdentifierId,
   @Schema(description = "The identifier type", example = "PNC")
