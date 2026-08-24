@@ -8,12 +8,12 @@ data class SysconAliasesAndIdentifiersResponseBody(
 
 data class SysconAliasMapping(
   val nomisAliasId: String,
-  val cprReligionId: String,
+  val cprAliasId: String,
 )
 
 data class SysconIdentifierMapping(
   val nomisIdentifierId: NomisIdentifierId,
-  val cprReligionId: String,
+  val cprIdentifierId: String,
 )
 
 data class NomisIdentifierId(
