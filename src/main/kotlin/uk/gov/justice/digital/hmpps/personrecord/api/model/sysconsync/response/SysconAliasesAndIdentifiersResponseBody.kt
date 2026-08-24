@@ -1,13 +1,14 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response
 
 data class SysconAliasesAndIdentifiersResponseBody(
+
   val prisonNumber: String,
   val aliasesMappings: List<SysconAliasMapping>,
   val identifiersMappings: List<SysconIdentifierMapping>,
 )
 
 data class SysconAliasMapping(
-  val nomisAliasId: String,
+  val nomisOffenderId: Long,
   val cprAliasId: String,
 )
 

@@ -6,8 +6,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import java.time.LocalDate
 
 data class PrisonAlias(
-  @Schema(description = "The nomis alias id", example = "2378")
-  val nomisAliasId: Long,
+  @Schema(description = "The nomis offender id for this alias", example = "10000")
+  val nomisOffenderId: Long,
   @Schema(description = "The alias title code", example = "MR")
   val titleCode: TitleCode? = null,
   @Schema(description = "The alias first name", example = "Jon")

@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 
 data class PrisonIdentifier(
-  @Schema(description = "The nomis identifier id", example = "4567")
+  @Schema(description = "The nomis identifier id")
   val nomisIdentifierId: NomisIdentifierId,
   @Schema(description = "The identifier type", example = "PNC")
   val type: IdentifierType,
@@ -17,6 +17,6 @@ data class PrisonIdentifier(
 data class NomisIdentifierId(
   @Schema(description = "The nomis offender id for this identifier", example = "10000")
   val nomisOffenderId: Long,
-  @Schema(description = "The sequence index for the identifier on the offender", example = "10000")
+  @Schema(description = "The sequence index for the identifier on the offender", example = "1")
   val nomisSequence: Int,
 )
