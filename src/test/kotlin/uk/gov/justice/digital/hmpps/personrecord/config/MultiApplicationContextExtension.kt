@@ -12,11 +12,6 @@ class MultiApplicationContextExtension :
   BeforeAllCallback,
   AfterAllCallback {
 
-  companion object {
-    private val NAMESPACE = ExtensionContext.Namespace.create(MultiApplicationContextExtension::class.java)
-    private const val CONTEXT = "secondary-context"
-  }
-
   override fun beforeAll(context: ExtensionContext) {
     val store = context.getStore(NAMESPACE)
 
@@ -38,5 +33,10 @@ class MultiApplicationContextExtension :
     context.getStore(NAMESPACE)
       .remove(CONTEXT, ConfigurableApplicationContext::class.java)
       ?.close()
+  }
+
+  companion object {
+    private val NAMESPACE = ExtensionContext.Namespace.create(MultiApplicationContextExtension::class.java)
+    private const val CONTEXT = "secondary-context"
   }
 }
