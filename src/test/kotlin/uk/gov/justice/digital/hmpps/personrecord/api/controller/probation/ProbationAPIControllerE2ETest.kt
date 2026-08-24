@@ -274,7 +274,6 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
         val personTwoCro = randomCro()
 
         val personOneCrn = randomCrn()
-        val personTwoCrn = randomCrn()
 
         val personOnePnc = randomLongPnc()
         val personTwoPnc = randomLongPnc()
@@ -291,11 +290,12 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
         val otherIdentifierOne = randomLowerCaseString()
         val otherIdentifierTwo = randomLowerCaseString()
 
+        val dateOfBirth = randomDate()
         val personOne = Person(
           firstName = randomName(),
           lastName = randomName(),
           middleNames = randomName(),
-          dateOfBirth = randomDate(),
+          dateOfBirth = dateOfBirth,
           sourceSystem = DELIUS,
           crn = personOneCrn,
           nationalities = listOf(randomNationalityCode()),
@@ -325,10 +325,10 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
           firstName = randomName(),
           lastName = randomName(),
           middleNames = randomName(),
-          dateOfBirth = randomDate(),
+          dateOfBirth = dateOfBirth,
           sourceSystem = DELIUS,
           nationalities = listOf(randomNationalityCode()),
-          crn = personTwoCrn,
+          crn = personOneCrn,
           references = listOf(
             Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
             Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
