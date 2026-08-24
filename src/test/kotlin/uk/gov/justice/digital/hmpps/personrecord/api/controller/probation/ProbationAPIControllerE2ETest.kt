@@ -40,7 +40,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
@@ -48,7 +47,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonsNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -290,9 +288,6 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
         val personOneDriversLicenseNumber = randomDriverLicenseNumber()
         val personTwoDriversLicenseNumber = randomDriverLicenseNumber()
 
-        val personOneDefendantId = randomDefendantId()
-        val personTwoDefendantId = randomDefendantId()
-
         val otherIdentifierOne = randomLowerCaseString()
         val otherIdentifierTwo = randomLowerCaseString()
 
@@ -301,13 +296,9 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
           lastName = randomName(),
           middleNames = randomName(),
           dateOfBirth = randomDate(),
-          sourceSystem = NOMIS,
+          sourceSystem = DELIUS,
           crn = personOneCrn,
-          prisonNumber = randomPrisonNumber(),
           nationalities = listOf(randomNationalityCode()),
-          cId = randomCId(),
-          defendantId = personOneDefendantId,
-          masterDefendantId = personOneDefendantId,
           references = listOf(
             Reference(identifierType = IdentifierType.CRO, identifierValue = personOneCro),
             Reference(identifierType = IdentifierType.PNC, identifierValue = personOnePnc),
@@ -335,13 +326,9 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
           lastName = randomName(),
           middleNames = randomName(),
           dateOfBirth = randomDate(),
-          sourceSystem = NOMIS,
-          crn = personTwoCrn,
-          prisonNumber = randomPrisonNumber(),
+          sourceSystem = DELIUS,
           nationalities = listOf(randomNationalityCode()),
-          cId = randomCId(),
-          defendantId = personTwoDefendantId,
-          masterDefendantId = personTwoDefendantId,
+          crn = personTwoCrn,
           references = listOf(
             Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
             Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
