@@ -39,6 +39,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -291,9 +292,13 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
         val otherIdentifierTwo = randomLowerCaseString()
 
         val dateOfBirth = randomDate()
+
+        val firstName = randomName()
+        val lastName = randomName()
+
         val personOne = Person(
-          firstName = randomName(),
-          lastName = randomName(),
+          firstName = firstName,
+          lastName = lastName,
           middleNames = randomName(),
           dateOfBirth = dateOfBirth,
           sourceSystem = DELIUS,
@@ -322,13 +327,13 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
         )
 
         val personTwo = Person(
-          firstName = randomName(),
-          lastName = randomName(),
+          firstName = firstName,
+          lastName = lastName,
           middleNames = randomName(),
           dateOfBirth = dateOfBirth,
-          sourceSystem = DELIUS,
+          sourceSystem = COMMON_PLATFORM,
           nationalities = listOf(randomNationalityCode()),
-          crn = personOneCrn,
+          defendantId = randomDefendantId(),
           references = listOf(
             Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
             Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
