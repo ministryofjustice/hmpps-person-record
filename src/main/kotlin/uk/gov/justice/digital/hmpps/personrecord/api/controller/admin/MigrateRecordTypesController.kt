@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import kotlin.time.measureTime
@@ -55,15 +56,12 @@ class MigrateRecordTypesController(
   @Transactional
   private fun migrateBatch(batchOfPersons: List<PersonEntity>) {
     batchOfPersons.forEach { personEntity ->
-      val personAddressSorted = personEntity.addresses.sortedBy { it.id }
-      if (personAddressSorted.isEmpty()) return@forEach
-
-      val latestAddressEntity = personAddressSorted.last()
-      latestAddressEntity.statusCode = AddressStatusCode.M
-
-      personAddressSorted.forEach { addressEntity ->
-        if (addressEntity.id != latestAddressEntity.id) {
-          addressEntity.statusCode = AddressStatusCode.P
+      val addressesWithNoStatusCode = personEntity.addresses.filter { it.statusCode == null }
+      if (addressesWithNoStatusCode.isEmpty()) return@forEach
+      addressesWithNoStatusCode.forEach { addressEntity ->
+        when (addressEntity.recordType) {
+          AddressRecordType.PRIMARY, null -> addressEntity.statusCode = AddressStatusCode.M
+          AddressRecordType.PREVIOUS -> addressEntity.statusCode = AddressStatusCode.P
         }
       }
     }
