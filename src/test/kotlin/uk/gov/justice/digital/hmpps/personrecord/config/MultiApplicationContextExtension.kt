@@ -8,7 +8,9 @@ import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.personrecord.HmppsPersonRecord
 
-class MultiApplicationContextExtension : BeforeAllCallback, AfterAllCallback {
+class MultiApplicationContextExtension :
+  BeforeAllCallback,
+  AfterAllCallback {
 
   private var instance1: ConfigurableApplicationContext? = null
 
