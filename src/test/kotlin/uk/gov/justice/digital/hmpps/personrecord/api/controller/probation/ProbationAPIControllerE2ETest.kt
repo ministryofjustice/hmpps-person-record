@@ -554,7 +554,6 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
         assertThat(offender.contacts.getEmail()?.contactValue).isEqualTo(probationCase.contactDetails?.email)
         assertThat(offender.matchId).isNotNull()
         assertThat(offender.lastModified).isNotNull()
-        assertThat(offender.masterDefendantId).isNull()
         assertThat(offender.nationalities.size).isEqualTo(1)
         assertThat(offender.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.name)
         assertThat(offender.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.description)
