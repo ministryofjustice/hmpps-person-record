@@ -769,7 +769,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should not move primary address to previous if duplicate address on update`() {
+    fun `should not move main address to previous if duplicate address on update`() {
       val defendantId = randomDefendantId()
 
       val address = CommonPlatformHearingSetupAddress(
@@ -795,7 +795,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should move previous address to primary if update contains a previous address`() {
+    fun `should move previous address to main if update contains a previous address`() {
       val defendantId = randomDefendantId()
 
       val address = CommonPlatformHearingSetupAddress(
