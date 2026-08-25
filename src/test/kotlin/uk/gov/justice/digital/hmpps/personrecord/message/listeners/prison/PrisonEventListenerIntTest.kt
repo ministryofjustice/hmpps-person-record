@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
@@ -362,17 +363,13 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   private fun prisonUpdateEventAndResponseSetup(
     apiResponseSetup: ApiResponseSetup,
-    scenario: String = BASE_SCENARIO,
-    currentScenarioState: String = STARTED,
-    nextScenarioState: String = STARTED,
   ) {
-    stubPrisonResponse(
-      apiResponseSetup,
-      scenario,
-      currentScenarioState,
-      nextScenarioState,
-    )
+    stubPrisonResponse(apiResponseSetup)
 
-    publishPrisonPersonCreatedEvent(apiResponseSetup.prisonNumber!!)
+    publishDomainEvent(
+      PrisonPersonUpdated(
+        personReference = PersonReference(listOf(PersonIdentifier("NOMS", apiResponseSetup.prisonNumber!!))),
+      ),
+    )
   }
 }
