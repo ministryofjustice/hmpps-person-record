@@ -6,10 +6,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Limit
+import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.personrecord.jpa.DatabaseRetryable
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
@@ -21,6 +23,7 @@ import kotlin.time.measureTime
 @RestController
 class MigrateRecordTypesController(
   private val personRepository: PersonRepository,
+  private val migrateBatchRetryable: MigrateBatchRetryable,
 ) {
 
   private val logger = LoggerFactory.getLogger(MigrateRecordTypesController::class.java)
@@ -46,15 +49,31 @@ class MigrateRecordTypesController(
         break
       }
       val elapsedTime = measureTime {
-        migrateBatch(batchOfCommonPlatformPersons)
+        migrateBatchRetryable.migrateBatch(batchOfCommonPlatformPersons)
       }
       logger.info("Batch migration of '${migrationRequest.personBatchSize}' completed in '${elapsedTime.inWholeSeconds}' seconds")
       lastPersonId = batchOfCommonPlatformPersons.last().id!!
     }
   }
 
+  data class RecordTypeMigrationDetails(
+    val personBatchSize: Int,
+  )
+}
+
+@Component
+class MigrateBatchRetryable(private val migrateBatch: MigrateBatch) {
+  @DatabaseRetryable
+  fun migrateBatch(batchOfPersons: List<PersonEntity>) {
+    migrateBatch.migrate(batchOfPersons)
+  }
+}
+
+@Component
+class MigrateBatch(private val personRepository: PersonRepository) {
+
   @Transactional
-  private fun migrateBatch(batchOfPersons: List<PersonEntity>) {
+  fun migrate(batchOfPersons: List<PersonEntity>) {
     batchOfPersons.forEach { personEntity ->
       val addressesWithNoStatusCode = personEntity.addresses.filter { it.statusCode == null }
       if (addressesWithNoStatusCode.isEmpty()) return@forEach
@@ -67,8 +86,4 @@ class MigrateRecordTypesController(
     }
     personRepository.saveAll(batchOfPersons)
   }
-
-  data class RecordTypeMigrationDetails(
-    val personBatchSize: Int,
-  )
 }
