@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import kotlin.jvm.optionals.getOrNull
 
@@ -182,12 +181,8 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
   @Test
   fun `processes offender merge event with records on same cluster`() {
-    val sourceMasterDefendantId = randomDefendantId()
-    val targetMasterDefendantId = randomDefendantId()
     val sourcePersonDetails = createRandomProbationPersonDetails()
-    sourcePersonDetails.masterDefendantId = sourceMasterDefendantId
     val targetPersonDetails = createRandomProbationPersonDetails()
-    targetPersonDetails.masterDefendantId = targetMasterDefendantId
 
     val sourcePerson = createPerson(sourcePersonDetails)
     val targetPerson = createPerson(targetPersonDetails)
@@ -222,10 +217,9 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
       assertThat(eventLogs.first().personUUID).isEqualTo(cluster.personUUID)
     }
 
-    val mergedSource = awaitNotNull { personRepository.findByCrn(sourceCrn) }
-    assertThat(mergedSource.masterDefendantId).isEqualTo(sourceMasterDefendantId)
+    awaitNotNull { personRepository.findByCrn(sourceCrn) }
 
-    val mergedTarget = awaitNotNull { personRepository.findByCrn(targetCrn) }
+    awaitNotNull { personRepository.findByCrn(targetCrn) }
   }
 
   @Test

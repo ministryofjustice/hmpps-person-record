@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED_GDPR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
@@ -32,9 +31,7 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       val deleted = createPerson(createRandomProbationPersonDetails(deletedCrn))
       createPersonKey().addPerson(deleted)
       val remainingPersonData = createRandomProbationCase(remainingCrn)
-      val masterDefendantId = randomDefendantId()
       val remainingPerson = Person.from(remainingPersonData)
-      remainingPerson.masterDefendantId = masterDefendantId
       val remaining = createPerson(remainingPerson)
 
       probationMergeEventAndResponseSetup(remainingCrn, deletedCrn)
@@ -72,9 +69,7 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       val unmergedPerson = createPerson(createRandomProbationPersonDetails(unmergedCrn))
       val cluster = createPersonKey().addPerson(unmergedPerson)
       val reactivatedPersonData = createRandomProbationCase(reactivatedCrn)
-      val masterDefendantId = randomDefendantId()
       val reactivatedPerson = Person.from(reactivatedPersonData)
-      reactivatedPerson.masterDefendantId = masterDefendantId
       val reactivatedPersonEntity = createPerson(reactivatedPerson)
 
       probationMergeEventAndResponseSetup(reactivatedCrn, unmergedCrn)
