@@ -8,6 +8,8 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlia
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAliasesAndIdentifiersRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
@@ -51,6 +53,10 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
                 dateOfBirth = LocalDate.of(1990, 1, 1),
                 sexCode = SexCode.M,
                 isPrimary = true,
+                birthPlace = "London",
+                birthCountry = CountryCode.UKR,
+                ethnicity = EthnicityCode.A1,
+                createDate = LocalDate.of(2020, 1, 1),
               ),
             ),
             identifiers = listOf(
@@ -59,6 +65,9 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
                 type = IdentifierType.PNC,
                 value = "2000/1234567A",
                 comment = "comment",
+                issuedAuthority = "Police",
+                issuedDate = LocalDate.of(2020, 1, 1),
+                verified = true,
               ),
             ),
           ),
