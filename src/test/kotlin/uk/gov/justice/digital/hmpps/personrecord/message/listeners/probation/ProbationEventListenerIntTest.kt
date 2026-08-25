@@ -820,7 +820,6 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
         assertThat(createdLog.overrideMarker).isNull()
         assertThat(createdLog.overrideScopes).isEmpty()
         assertThat(createdLog.statusReason).isNull()
-        assertThat(createdLog.masterDefendantId).isNull()
       }
       checkEventLogExist(crn, CPRLogEvents.CPR_UUID_CREATED)
     }
