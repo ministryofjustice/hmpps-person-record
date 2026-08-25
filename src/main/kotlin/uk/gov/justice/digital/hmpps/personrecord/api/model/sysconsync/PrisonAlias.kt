@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import java.time.LocalDate
@@ -22,4 +24,12 @@ data class PrisonAlias(
   val sexCode: SexCode? = null,
   @Schema(description = "Indicates if this is a primary alias", example = "true")
   val isPrimary: Boolean? = null,
+  @Schema(description = "Birth place of this offender record")
+  val birthPlace: String?,
+  @Schema(description = "Birth country of this offender record")
+  val birthCountry: CountryCode?,
+  @Schema(description = "Ethnicity of this offender record")
+  val ethnicity: EthnicityCode?,
+  @Schema(description = "Date this offender record was created")
+  val createDate: LocalDate?,
 )
