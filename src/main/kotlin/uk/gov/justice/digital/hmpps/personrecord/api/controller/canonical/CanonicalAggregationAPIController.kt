@@ -14,7 +14,7 @@ import java.util.UUID
 @Hidden
 @RestController
 @PreAuthorize("hasRole('$PERSON_RECORD_ADMIN_READ_ONLY')")
-class CanonicalAggregationApiController(
+class CanonicalAggregationAPIController(
   private val personKeyRepository: PersonKeyRepository,
   private val canonicalAggregationEngine: CanonicalAggregationEngine,
 ) {

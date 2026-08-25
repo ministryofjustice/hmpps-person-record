@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CO
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 
-class PersonCommonPlatformE2ETest : E2ETestBase() {
+class CommonPlatformMatchDetailsE2ETest : E2ETestBase() {
 
   @Nested
   inner class SuccessfulProcessing {

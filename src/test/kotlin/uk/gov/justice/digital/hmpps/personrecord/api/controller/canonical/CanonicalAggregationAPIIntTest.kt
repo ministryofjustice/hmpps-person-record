@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAl
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecordView
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 
-class CanonicalAggregationApiIntTest : WebTestBase() {
+class CanonicalAggregationAPIIntTest : WebTestBase() {
 
   @Nested
   inner class Aliases {

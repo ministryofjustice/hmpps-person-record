@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
@@ -28,7 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
-class PersonDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
+class PersonDomainEventPublisherIntTest : MessagingTestBase() {
 
   @BeforeEach
   fun setup() {
@@ -43,9 +43,7 @@ class PersonDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
     publishDomainEvent(PrisonPersonCreated(personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber)))))
 
-    awaitNotNull {
-      personRepository.findByPrisonNumber(prisonNumber)
-    }
+    awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
     val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
@@ -69,9 +67,7 @@ class PersonDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
 
     probationCreateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(crn)))
 
-    awaitNotNull {
-      personRepository.findByCrn(crn)
-    }
+    awaitNotNull { personRepository.findByCrn(crn) }
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
     val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
@@ -97,9 +93,7 @@ class PersonDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = randomCro(), pnc = randomLongPnc()))),
     )
 
-    awaitNotNull {
-      personRepository.findByDefendantId(defendantId)
-    }
+    awaitNotNull { personRepository.findByDefendantId(defendantId) }
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
     val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
@@ -123,9 +117,7 @@ class PersonDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
 
     publishLibraMessage(libraHearing(cId = cid, firstName = randomName(), lastName = randomName(), defendantType = PERSON))
 
-    awaitNotNull {
-      personRepository.findByCId(cid)
-    }
+    awaitNotNull { personRepository.findByCId(cid) }
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
     val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(

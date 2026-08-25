@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.message.UnmergeService
 class ProbationUnmergeEventProcessor(
   private val unmergeService: UnmergeService,
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
-  private val probationProcessor: ProbationProcessor,
+  private val probationEventProcessor: ProbationEventProcessor,
 ) {
 
   @Transactional
@@ -20,7 +20,7 @@ class ProbationUnmergeEventProcessor(
     val existingPerson = corePersonRecordAndDeliusClient
       .getProbationCase(unmergedCrn)
       .let {
-        probationProcessor.processProbationEvent(Person.from(it))
+        probationEventProcessor.processPerson(Person.from(it))
       }
 
     val reactivatedCrn = domainEvent.additionalInformation.reactivatedCrn
@@ -28,7 +28,7 @@ class ProbationUnmergeEventProcessor(
       .getProbationCase(reactivatedCrn)
       .let {
         val person = Person.from(it)
-        probationProcessor.processProbationEvent(person.doNotLinkOnCreate())
+        probationEventProcessor.processPerson(person.doNotLinkOnCreate())
       }
 
     unmergeService.processUnmerge(reactivatedPerson, existingPerson)
