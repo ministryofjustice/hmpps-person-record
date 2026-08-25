@@ -22,7 +22,7 @@ class MigrateRecordTypeControllerIntTest : WebTestBase() {
     sendPostRequestAsserted<String>(
       url = "/admin/migrate-record-types",
       expectedStatus = HttpStatus.OK,
-      body = """{ "personBatchSize": 3 }""",
+      body = """{ "personBatchSize": 3, "startFromPersonId": 0 }""",
       roles = emptyList(),
     )
 
@@ -46,7 +46,7 @@ class MigrateRecordTypeControllerIntTest : WebTestBase() {
     sendPostRequestAsserted<String>(
       url = "/admin/migrate-record-types",
       expectedStatus = HttpStatus.OK,
-      body = """{ "personBatchSize": 3 }""",
+      body = """{ "personBatchSize": 3, "startFromPersonId": 0 }""",
       roles = emptyList(),
     )
 
@@ -73,7 +73,7 @@ class MigrateRecordTypeControllerIntTest : WebTestBase() {
     sendPostRequestAsserted<String>(
       url = "/admin/migrate-record-types",
       expectedStatus = HttpStatus.OK,
-      body = """{ "personBatchSize": 2 }""",
+      body = """{ "personBatchSize": 2, "startFromPersonId": 0 }""",
       roles = emptyList(),
     )
 
@@ -104,7 +104,7 @@ class MigrateRecordTypeControllerIntTest : WebTestBase() {
     sendPostRequestAsserted<String>(
       url = "/admin/migrate-record-types",
       expectedStatus = HttpStatus.OK,
-      body = """{ "personBatchSize": 3 }""",
+      body = """{ "personBatchSize": 3, "startFromPersonId": 0 }""",
       roles = emptyList(),
     ).returnResult()
 

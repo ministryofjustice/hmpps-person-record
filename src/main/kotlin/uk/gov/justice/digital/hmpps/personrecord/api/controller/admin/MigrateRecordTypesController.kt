@@ -31,6 +31,7 @@ class MigrateRecordTypesController(
   @PostMapping("/admin/migrate-record-types")
   suspend fun migrate(@RequestBody migrationRequest: RecordTypeMigrationDetails): String {
     CoroutineScope(Dispatchers.Default).launch {
+      logger.info("Starting migrating for record types. Person batch size of '${migrationRequest.personBatchSize}' starting from person '${migrationRequest.startFromPersonId}'")
       val elapsedTime = measureTime { runMigration(migrationRequest) }
       logger.info("Full migration time of record types completed in '${elapsedTime.inWholeSeconds}' seconds")
     }
@@ -38,7 +39,7 @@ class MigrateRecordTypesController(
   }
 
   private suspend fun runMigration(migrationRequest: RecordTypeMigrationDetails) {
-    var lastPersonId = 0L
+    var lastPersonId = migrationRequest.startFromPersonId
     while (true) {
       val batchOfCommonPlatformPersons = personRepository.findByIdGreaterThanAndSourceSystemOrderByIdAsc(
         id = lastPersonId,
@@ -51,13 +52,14 @@ class MigrateRecordTypesController(
       val elapsedTime = measureTime {
         migrateBatchRetryable.migrateBatch(batchOfCommonPlatformPersons)
       }
-      logger.info("Batch migration of '${migrationRequest.personBatchSize}' completed in '${elapsedTime.inWholeSeconds}' seconds")
       lastPersonId = batchOfCommonPlatformPersons.last().id!!
+      logger.info("Batch migration of '${migrationRequest.personBatchSize}' completed in '${elapsedTime.inWholeSeconds}' seconds. Last person id was '$lastPersonId'")
     }
   }
 
   data class RecordTypeMigrationDetails(
     val personBatchSize: Int,
+    val startFromPersonId: Long,
   )
 }
 
