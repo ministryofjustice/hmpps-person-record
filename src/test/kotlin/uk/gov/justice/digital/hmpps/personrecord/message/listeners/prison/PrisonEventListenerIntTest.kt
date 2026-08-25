@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
-import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -345,25 +344,13 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
-  private fun prisonCreateEventAndResponseSetup(
-    apiResponseSetup: ApiResponseSetup,
-    scenario: String = BASE_SCENARIO,
-    currentScenarioState: String = STARTED,
-    nextScenarioState: String = STARTED,
-  ) {
-    stubPrisonResponse(
-      apiResponseSetup,
-      scenario,
-      currentScenarioState,
-      nextScenarioState,
-    )
+  private fun prisonCreateEventAndResponseSetup(apiResponseSetup: ApiResponseSetup) {
+    stubPrisonResponse(apiResponseSetup)
 
     publishPrisonPersonCreatedEvent(apiResponseSetup.prisonNumber!!)
   }
 
-  private fun prisonUpdateEventAndResponseSetup(
-    apiResponseSetup: ApiResponseSetup,
-  ) {
+  private fun prisonUpdateEventAndResponseSetup(apiResponseSetup: ApiResponseSetup) {
     stubPrisonResponse(apiResponseSetup)
 
     publishDomainEvent(
