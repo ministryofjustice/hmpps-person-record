@@ -64,7 +64,7 @@ class ProbationEventListener(
 
   private fun updateWholePerson(crn: String) {
     corePersonRecordAndDeliusClient.getProbationCase(crn).let {
-      probationEventProcessor.processEvent(Person.from(it))
+      probationEventProcessor.processPerson(Person.from(it))
     }
   }
 
