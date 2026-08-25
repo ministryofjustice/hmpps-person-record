@@ -7,7 +7,6 @@ object Queues {
 
   // PRISON
   const val PRISON_EVENT_QUEUE_ID = "cprnomiseventsqueue"
-  const val PRISON_MERGE_EVENT_QUEUE_ID = "cprnomismergeeventsqueue"
 
   // PROBATION
   const val PROBATION_DELETION_EVENT_QUEUE_ID = "cprdeliusdeleteeventsqueue"
