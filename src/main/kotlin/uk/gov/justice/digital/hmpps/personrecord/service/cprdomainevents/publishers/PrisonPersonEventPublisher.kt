@@ -27,9 +27,7 @@ class PrisonPersonEventPublisher(
     publishPersonDomainEvent(personCreated.personEntity)
   }
 
-  override fun onDelete(personDeleted: PersonDeleted) {
-    TODO("Not yet implemented")
-  }
+  override fun onDelete(personDeleted: PersonDeleted) { }
 
   private fun publishPersonDomainEvent(personEntity: PersonEntity) {
     val prisonNumber = personEntity.extractSourceSystemId()!!

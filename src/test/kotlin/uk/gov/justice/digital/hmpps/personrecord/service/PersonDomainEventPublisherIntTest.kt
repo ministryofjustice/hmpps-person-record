@@ -3,8 +3,13 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
+import org.springframework.test.web.reactive.server.WebTestClient
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import tools.jackson.module.kotlin.readValue
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.QUEUE_ADMIN
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.PERSON
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
@@ -14,11 +19,13 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
@@ -30,8 +37,18 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
+import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
+@AutoConfigureWebTestClient
 class PersonDomainEventPublisherIntTest : MessagingTestBase() {
+
+  @Autowired
+  lateinit var webTestClient: WebTestClient
+
+  @Autowired
+  internal lateinit var jwtAuthorisationHelper: JwtAuthorisationHelper
+
+  fun WebTestClient.RequestHeadersSpec<*>.authorised(roles: List<String> = listOf(QUEUE_ADMIN)): WebTestClient.RequestBodySpec = headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = roles)) as WebTestClient.RequestBodySpec
 
   @BeforeEach
   fun setup() {
@@ -136,6 +153,41 @@ class PersonDomainEventPublisherIntTest : MessagingTestBase() {
     assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
     assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("C_ID")
     assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(cid)
+  }
+
+  @Test
+  fun `should not publish a CPR person deleted domain event when a person is deleted in nomis`() {
+    val prisonNumber = randomPrisonNumber()
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
+    publishDomainEvent(PrisonPersonCreated(personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber)))))
+    val personCreated = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
+    expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+    testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
+      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
+    )
+
+    stubDeletePersonMatch()
+    webTestClient.delete()
+      .uri("/person/prison/$prisonNumber")
+      .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+      .exchange()
+      .expectStatus()
+      .isOk
+
+    checkTelemetry(
+      event = TelemetryEventType.CPR_RECORD_DELETED,
+      expected = mapOf(
+        "UUID" to personCreated.personKey!!.personUUID.toString(),
+        EventKeys.IS_OVERRIDE_MARKER_DELETE.name to "false",
+      ),
+    )
+
+    checkEventLogExist(
+      sourceSystemId = personCreated.prisonNumber!!,
+      event = CPRLogEvents.CPR_RECORD_DELETED,
+    )
+
+    expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
   }
 
   @Test
