@@ -13,16 +13,8 @@ class LinkCourtAndProbationRecordsHandler(
   private val reclusterService: ReclusterService,
 ) {
   fun linkAndRecluster(defendant: PersonEntity, offender: PersonEntity) {
-    if (recordsAreIncluded(defendant, offender)) {
-      return
-    }
-
     overrideService.systemInclude(defendant, offender)
     personRepository.saveAll(listOf(defendant, offender))
     offender.personKey?.let { reclusterService.recluster(offender) }
   }
-
-  private fun recordsAreIncluded(defendant: PersonEntity, offender: PersonEntity): Boolean = defendant.overrideMarker != null &&
-    defendant.overrideMarker == offender.overrideMarker &&
-    defendant.getScopes().intersect(offender.getScopes()).isNotEmpty()
 }
