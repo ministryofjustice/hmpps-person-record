@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.person
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Identifier as SysconIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonIdentifier as SysconIdentifier
 
 data class Reference(
   val identifierType: IdentifierType,
