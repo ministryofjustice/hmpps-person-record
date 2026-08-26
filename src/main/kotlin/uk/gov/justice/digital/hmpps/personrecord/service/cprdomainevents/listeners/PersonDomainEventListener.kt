@@ -20,6 +20,8 @@ class PersonDomainEventListener(personEventPublishers: List<PersonEventPublisher
   @TransactionalEventListener
   fun onPersonUpdated(personUpdated: PersonUpdated) {
     val sourceSystem = personUpdated.personEntity.sourceSystem
-    publishersBySourceSystem[sourceSystem]?.onUpdate(personUpdated)
+    if (personUpdated.personHasChanged()) {
+      publishersBySourceSystem[sourceSystem]?.onUpdate(personUpdated)
+    }
   }
 }
