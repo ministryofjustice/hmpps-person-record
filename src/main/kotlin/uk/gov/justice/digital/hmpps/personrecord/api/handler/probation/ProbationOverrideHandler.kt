@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.Reclu
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 
 @Component
-class LinkCourtAndProbationRecordsHandler(
+class ProbationOverrideHandler(
   private val overrideService: OverrideService,
   private val reclusterService: ReclusterService,
 ) {
