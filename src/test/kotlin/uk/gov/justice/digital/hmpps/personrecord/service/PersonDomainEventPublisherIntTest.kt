@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Defend
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
@@ -16,6 +17,8 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
@@ -133,5 +136,33 @@ class PersonDomainEventPublisherIntTest : MessagingTestBase() {
     assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
     assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("C_ID")
     assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(cid)
+  }
+
+  @Test
+  fun `should publish a CPR person deleted domain event when a person is deleted in delius`() {
+    val crn = randomCrn()
+    probationCreateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(crn)))
+    awaitNotNull { personRepository.findByCrn(crn) }
+    expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+    testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
+      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
+    )
+
+    stubDeletePersonMatch()
+    publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, crn)
+
+    expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+    val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
+      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
+    )
+    val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
+    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_DELETED))
+    val domainEvent: CprPersonDeleted = jsonMapper.readValue<CprPersonDeleted>(sqsMessage.message)
+    assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_DELETED)
+    assertThat(domainEvent.description).isEqualTo("A probation person record has been deleted")
+    assertThat(domainEvent.occurredAt).isNotNull()
+    assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
+    assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("CRN")
+    assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(crn)
   }
 }
