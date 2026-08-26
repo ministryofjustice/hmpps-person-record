@@ -548,6 +548,11 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
         CPR_RECORD_CREATED,
         mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
       )
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
+        29
+      )
     }
 
     @Test

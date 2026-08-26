@@ -9,8 +9,10 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonMatchChecker
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonProcessingCompleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordPersonTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Component
 class PersonService(
@@ -62,6 +64,7 @@ class PersonService(
     if (personMatchChecker.isDifferentFrom(personEntity)) {
       publisher.publishEvent(PersonUpdated(personEntity, matchingFieldsChanged))
     }
+    publisher.publishEvent(RecordPersonTelemetry(TelemetryEventType.CPR_RECORD_UPDATED, personEntity))
 
     return personEntity
   }
