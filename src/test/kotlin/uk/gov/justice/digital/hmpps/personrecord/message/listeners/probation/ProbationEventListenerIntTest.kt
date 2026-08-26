@@ -551,7 +551,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       checkTelemetry(
         CPR_RECORD_UPDATED,
         mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
-        29
+        29,
       )
     }
 
