@@ -15,6 +15,6 @@ class LinkCourtAndProbationRecordsHandler(
   fun linkAndRecluster(defendant: PersonEntity, offender: PersonEntity) {
     overrideService.systemInclude(defendant, offender)
     personRepository.saveAll(listOf(defendant, offender))
-    offender.personKey?.let { reclusterService.recluster(offender) }
+    reclusterService.recluster(offender)
   }
 }
