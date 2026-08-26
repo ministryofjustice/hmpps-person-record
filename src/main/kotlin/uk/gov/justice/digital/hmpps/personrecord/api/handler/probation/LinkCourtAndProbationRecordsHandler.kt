@@ -7,12 +7,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.Reclu
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 
 @Component
-class ProbationOverrideHandler(
+class LinkCourtAndProbationRecordsHandler(
   private val overrideService: OverrideService,
   private val personRepository: PersonRepository,
   private val reclusterService: ReclusterService,
 ) {
-  fun assignIncludeOverrideAndRecluster(defendant: PersonEntity, offender: PersonEntity) {
+  fun linkAndRecluster(defendant: PersonEntity, offender: PersonEntity) {
     if (recordsAreIncluded(defendant, offender)) {
       return
     }
