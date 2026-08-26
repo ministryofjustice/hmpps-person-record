@@ -94,8 +94,7 @@ class ProbationAPIController(
     @RequestBody probationCase: ProbationCase,
   ) {
     val defendant = retrieveDefendant(defendantId)
-    val person = Person.from(probationCase)
-    val offender = personService.processPerson(person) {
+    val offender = personService.processPerson(Person.from(probationCase)) {
       personRepository.findByCrn(probationCase.identifiers.crn!!)
     }
     linkCourtAndProbationRecordsHandler.linkAndRecluster(defendant, offender)
