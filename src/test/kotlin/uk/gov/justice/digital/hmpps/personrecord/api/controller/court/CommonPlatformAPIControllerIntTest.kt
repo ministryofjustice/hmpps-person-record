@@ -456,6 +456,24 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.addresses.size).isEqualTo(1)
       assertThat(responseBody.addresses.first().status.code).isEqualTo(AddressStatusCode.M.name)
     }
+
+    @Test
+    fun `should return no address when main address is null`() {
+      val defendantId = randomDefendantId()
+      createPersonWithNewKey(createRandomCommonPlatformPersonDetails(defendantId))
+
+      val responseBody = webTestClient.get()
+        .uri(commonPlatformApiUrl(defendantId))
+        .authorised(listOf(API_READ_ONLY))
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody<CanonicalRecord>()
+        .returnResult()
+        .responseBody!!
+
+      assertThat(responseBody.addresses).isEmpty()
+    }
   }
 
   @Nested
