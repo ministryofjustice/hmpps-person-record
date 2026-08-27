@@ -713,7 +713,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should add new address to current and move old to previous`() {
+    fun `should set new address to main and set old address to previous`() {
       val defendantId = randomDefendantId()
 
       val postcode1 = randomPostcode()
