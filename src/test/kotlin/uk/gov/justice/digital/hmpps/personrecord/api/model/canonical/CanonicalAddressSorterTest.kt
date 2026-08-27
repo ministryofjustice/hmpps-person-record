@@ -51,9 +51,9 @@ class CanonicalAddressSorterTest {
     return addresses.toList()
   }
 
-  private fun address(postcode: String, recordType: AddressStatusCode? = null): AddressEntity = AddressEntity(
+  private fun address(postcode: String, statusCode: AddressStatusCode? = null): AddressEntity = AddressEntity(
     updateId = UUID.randomUUID(),
     postcode = postcode,
-    statusCode = recordType,
+    statusCode = statusCode,
   )
 }
