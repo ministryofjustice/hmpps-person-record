@@ -252,7 +252,7 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
           sourceSystem = COMMON_PLATFORM,
           defendantId = defendantId,
           aliases = listOf(Alias(firstName = aliasFirstName)),
-          addresses = listOf(Address(postcode = postcode)),
+          addresses = listOf(Address(postcode = postcode, statusCode = AddressStatusCode.M)),
         ),
 
       )
@@ -286,8 +286,8 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.addresses.first().countryCode).isNull()
       assertThat(responseBody.addresses.first().uprn).isNull()
       assertThat(responseBody.addresses.first().status).isNotNull()
-      assertThat(responseBody.addresses.first().status.code).isNull()
-      assertThat(responseBody.addresses.first().status.description).isNull()
+      assertThat(responseBody.addresses.first().status.code).isEqualTo(AddressStatusCode.M.name)
+      assertThat(responseBody.addresses.first().status.description).isEqualTo(AddressStatusCode.M.description)
       assertThat(responseBody.addresses.first().usages.size).isEqualTo(0)
     }
 
