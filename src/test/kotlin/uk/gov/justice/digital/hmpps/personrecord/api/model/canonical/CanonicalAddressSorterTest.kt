@@ -1,11 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
@@ -45,35 +43,6 @@ class CanonicalAddressSorterTest {
   @Test
   fun `should return empty list unchanged`() {
     assertThat(CanonicalAddressSorter.sort(emptyList())).isEmpty()
-  }
-
-  @Nested
-  inner class Temp {
-    @Test
-    fun `no updates to address for person since flow change - maintains sorting by record type for existing addresses`() {
-      val previous = address(randomPostcode())
-      previous.recordType = AddressRecordType.PREVIOUS
-      val primary = address(randomPostcode())
-      primary.recordType = AddressRecordType.PRIMARY
-
-      val sorted = CanonicalAddressSorter.sort(addressesFor(COMMON_PLATFORM, previous, primary))
-
-      assertThat(sorted).containsExactly(primary, previous)
-    }
-
-    @Test
-    fun `updates to address for person after flow change - sorts by status code`() {
-      val previous = address(randomPostcode())
-      previous.statusCode = AddressStatusCode.P
-      previous.recordType = AddressRecordType.PREVIOUS
-      val primary = address(randomPostcode())
-      primary.statusCode = AddressStatusCode.M
-      primary.recordType = AddressRecordType.PRIMARY
-
-      val sorted = CanonicalAddressSorter.sort(addressesFor(COMMON_PLATFORM, previous, primary))
-
-      assertThat(sorted).containsExactly(primary, previous)
-    }
   }
 
   private fun addressesFor(sourceSystem: SourceSystemType, vararg addresses: AddressEntity): List<AddressEntity> {
