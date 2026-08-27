@@ -157,8 +157,8 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
         sex = CanonicalSex.from(sex.value),
       )
       val canonicalNationality = listOf(CanonicalNationality(nationality.name, nationality.description))
+      assertThat(responseBody.addresses.size).isEqualTo(1)
       val mainAddressEntity = person.addresses.first { it.statusCode == AddressStatusCode.M }
-      val previousAddressEntity = person.addresses.first { it.statusCode == AddressStatusCode.P }
       val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromCommonPlatform(ethnicity))
 
       assertThat(responseBody.cprUUID).isNull()
@@ -186,7 +186,7 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
       assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
       assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
-      assertCanonicalAddresses(listOf(mainAddressEntity, previousAddressEntity), responseBody.addresses)
+      assertCanonicalAddresses(listOf(mainAddressEntity), responseBody.addresses)
     }
 
     @Test
