@@ -125,6 +125,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Address as CommonPlatformAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name as LibraName
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -236,6 +237,15 @@ class IntegrationTestBase {
     val addressEntity = AddressEntity.from(address).also { addressEntity -> addressEntity.person = this }
     this.addresses.add(addressEntity)
   }
+
+  internal fun createRandomCommonPlatformAddress(): CommonPlatformAddress = CommonPlatformAddress(
+    address1 = randomName(),
+    address2 = randomName(),
+    address3 = randomName(),
+    address4 = randomName(),
+    address5 = randomName(),
+    postcode = randomPostcode(),
+  )
 
   internal fun createRandomProbationAddress(): ProbationCreateAddress = ProbationCreateAddress(
     noFixedAbode = false,
