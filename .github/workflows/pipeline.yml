@@ -50,7 +50,7 @@ jobs:
     steps:
       - id: app_version
         name: Application version creators
-        uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/build-test-and-deploy/create_app_version@22d87963ea96458c47d7c1dff8670448a0be99ec # v1.1.1
+        uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/build-test-and-deploy/create_app_version@1061afed0f02c82850314e2fc29711523139e574 # v1.1.2
   gradle_verify:
     name: Validate the kotlin
     uses: ./.github/workflows/gradle_localstack_postgres_verify.yml
@@ -61,7 +61,7 @@ jobs:
       java-options: "${{ inputs.java_options }}"
       java-version: '25'
       postgres-tag: '17.9-alpine'
-      localstack-tag: '4'
+      localstack-tag: 'community-archive'
       postgres-username: 'root'
       postgres-password: 'dev'
       localstack-services: 'sqs,sns,s3'
@@ -128,7 +128,7 @@ jobs:
         run: |
           export JAVA_OPTS="${{ inputs.java_options }}"
           ./gradlew initialiseDatabase
-      - uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/database_schema_report@22d87963ea96458c47d7c1dff8670448a0be99ec # v1.1.1
+      - uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/database_schema_report@1061afed0f02c82850314e2fc29711523139e574 # v1.1.2
         with:
           schema: personrecordservice
   deploy_dev:
