@@ -16,7 +16,7 @@ class GetCommonPlatformPersonHandler(
     val canonicalRecord = CanonicalRecord.from(personEntity)
     // We are filtering out previous address because COMMON_PLATFORM only ever send us one address (unable to determine if it's a create or update).
     // We keep the previous addresses purely for matching purposes only.
-    val addresses = canonicalRecord.addresses.filter { it.status.code != AddressStatusCode.P.name }
-    return canonicalRecord.copy(addresses = addresses)
+    val mainAddress = canonicalRecord.addresses.singleOrNull { it.status.code == AddressStatusCode.M.name }
+    return canonicalRecord.copy(addresses = listOfNotNull(mainAddress))
   }
 }
