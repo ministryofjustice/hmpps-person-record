@@ -18,6 +18,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
@@ -223,7 +225,7 @@ class PersonDomainEventPublisherIntTest : MessagingTestBase() {
     }
 
     @Test
-    fun `should not publish a CPR person updated domain event when a nomis person is updated`() {
+    fun `should not publish a CPR person updated domain event when nomis person data changes`() {
       val prisonNumber = randomPrisonNumber()
 
       stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
@@ -259,6 +261,77 @@ class PersonDomainEventPublisherIntTest : MessagingTestBase() {
       checkTelemetry(
         CPR_RECORD_UPDATED,
         mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+      )
+      expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
+    }
+
+    @Test
+    fun `should not publish a CPR person updated domain event when common platform person data changes`() {
+      val defendantId = randomDefendantId()
+
+      publishCommonPlatformMessage(
+        commonPlatformHearing(
+          listOf(
+            CommonPlatformHearingSetup(
+              defendantId = defendantId,
+              cro = randomCro(),
+              pnc = randomLongPnc(),
+            ),
+          ),
+        ),
+      )
+
+      awaitNotNull { personRepository.findByDefendantId(defendantId) }
+
+      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+      purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
+      publishCommonPlatformMessage(
+        commonPlatformHearing(
+          listOf(
+            CommonPlatformHearingSetup(
+              defendantId = defendantId,
+              cro = randomCro(),
+              pnc = randomLongPnc(),
+            ),
+          ),
+        ),
+      )
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("SOURCE_SYSTEM" to COMMON_PLATFORM.name, "DEFENDANT_ID" to defendantId),
+      )
+      expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
+    }
+
+    @Test
+    fun `should not publish a CPR person updated domain event when libra person data changes`() {
+      val cid = randomCId()
+
+      publishLibraMessage(
+        libraHearing(
+          cId = cid,
+          firstName = randomName(),
+          lastName = randomName(),
+          defendantType = PERSON,
+        ),
+      )
+
+      awaitNotNull { personRepository.findByCId(cid) }
+
+      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+
+      purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
+      publishLibraMessage(
+        libraHearing(
+          cId = cid,
+          firstName = randomName(),
+          lastName = randomName(),
+          defendantType = PERSON,
+        ),
+      )
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("SOURCE_SYSTEM" to LIBRA.name, "C_ID" to cid),
       )
       expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
     }
