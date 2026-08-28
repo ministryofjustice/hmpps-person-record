@@ -7,6 +7,6 @@ data class PersonUpdated(
   val personEntity: PersonEntity,
   private val personChangeChecker: PersonChangeChecker,
 ) {
-  fun personHasChanged(): Boolean = personChangeChecker.isDifferentFrom(personEntity)
+  fun personHasChanged(): Boolean = personChangeChecker.anyFieldsHaveChanged(personEntity)
   fun matchingFieldsHaveChanged(): Boolean = personChangeChecker.matchingFieldsHaveChanged(personEntity)
 }

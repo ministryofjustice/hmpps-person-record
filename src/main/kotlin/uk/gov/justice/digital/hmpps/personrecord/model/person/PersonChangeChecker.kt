@@ -7,7 +7,7 @@ class PersonChangeChecker(originalPersonEntity: PersonEntity) {
   val originalPerson = Person.from(originalPersonEntity)
   val originalMatchRecord = PersonMatchRecord.from(originalPersonEntity)
 
-  fun isDifferentFrom(newPerson: PersonEntity): Boolean = originalPerson != Person.from(newPerson)
+  fun anyFieldsHaveChanged(newPerson: PersonEntity): Boolean = originalPerson != Person.from(newPerson)
 
-  fun matchingFieldsHaveChanged(updatedPersonEntity: PersonEntity): Boolean = originalMatchRecord.matchingFieldsAreDifferent(updatedPersonEntity)
+  fun matchingFieldsHaveChanged(newPerson: PersonEntity): Boolean = originalMatchRecord.matchingFieldsAreDifferent(newPerson)
 }
