@@ -3,48 +3,21 @@ package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publis
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonCreated
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
-import java.time.Instant
 
 @Profile("!preprod & !prod")
 @Component
 class CommonPlatformPersonEventPublisher(
-  private val domainEventPublisher: DomainEventPublisher,
+  domainEventPublisher: DomainEventPublisher,
   @Value($$"${core-person-record.base-url}") private val baseUrl: String,
-) : PersonEventPublisher {
+) : PersonEventPublisher(domainEventPublisher, baseUrl) {
   override val sourceSystemType = SourceSystemType.COMMON_PLATFORM
-
-  override fun onCreate(personCreated: PersonCreated) {
-    publishPersonDomainEvent(personCreated.personEntity)
-  }
-
-  override fun onDelete(personDeleted: PersonDeleted) { }
-
-  private fun publishPersonDomainEvent(personEntity: PersonEntity) {
-    val defendantId = personEntity.extractSourceSystemId()!!
-    val detailUrl = "$baseUrl/person/commonplatform/$defendantId"
-
-    domainEventPublisher.publish(
-      CprPersonCreated(
-        eventType = CPR_COURT_PERSON_CREATED,
-        description = "A court person record has been created",
-        detailUrl = detailUrl,
-        occurredAt = Instant.now().asStringWithUkZone(),
-        personReference = PersonReference(
-          identifiers = listOf(
-            PersonIdentifier("DEFENDANT_ID", defendantId),
-          ),
-        ),
-      ),
-    )
-  }
+  override val createEventType = CPR_COURT_PERSON_CREATED
+  override val deleteEventType = "core-person-record.court.record.deleted"
+  override val path = "/person/commonplatform/"
+  override val createDescription = "A court person record has been created"
+  override val deleteDescription = "A prison person record has been deleted"
+  override val sourceSystemIdField = "DEFENDANT_ID"
 }
