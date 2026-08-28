@@ -15,12 +15,15 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
@@ -206,7 +209,7 @@ class PersonDomainEventPublisherIntTest : MessagingTestBase() {
     }
 
     @Test
-    fun `should not publish a CPR person update domain event when no delius person data changes`() {
+    fun `should not publish a CPR person updated domain event when no delius person data changes`() {
       val crn = randomCrn()
       val personDetails = createRandomProbationCase(crn)
 
@@ -216,6 +219,47 @@ class PersonDomainEventPublisherIntTest : MessagingTestBase() {
       purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
 
       probationUpdateEventAndResponseSetup(ApiResponseSetup.from(personDetails))
+      expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
+    }
+
+    @Test
+    fun `should not publish a CPR person updated domain event when a nomis person is updated`() {
+      val prisonNumber = randomPrisonNumber()
+
+      stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
+      publishDomainEvent(
+        PrisonPersonCreated(
+          personReference = PersonReference(
+            listOf(
+              PersonIdentifier(
+                "NOMS",
+                prisonNumber,
+              ),
+            ),
+          ),
+        ),
+      )
+
+      awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
+      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+      purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
+      stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
+      publishDomainEvent(
+        PrisonPersonUpdated(
+          personReference = PersonReference(
+            listOf(
+              PersonIdentifier(
+                "NOMS",
+                prisonNumber,
+              ),
+            ),
+          ),
+        ),
+      )
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+      )
       expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
     }
   }
