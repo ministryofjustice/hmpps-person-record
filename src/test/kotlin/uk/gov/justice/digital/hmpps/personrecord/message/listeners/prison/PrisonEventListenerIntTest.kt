@@ -4,6 +4,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonUpdated
+import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
@@ -42,7 +47,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.lang.Thread.sleep
 import java.time.LocalDate
 
-class PrisonEventListenerIntTest : PrisonEventListenerTestBase() {
+class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should put message on dlq when exception thrown`() {
@@ -329,5 +334,29 @@ class PrisonEventListenerIntTest : PrisonEventListenerTestBase() {
 
   private fun waitForMessageToBeProcessedAndDiscarded() {
     sleep(500)
+  }
+
+  private fun publishPrisonPersonCreatedEvent(prisonNumber: String) {
+    publishDomainEvent(
+      PrisonPersonCreated(
+        personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))),
+      ),
+    )
+  }
+
+  private fun prisonCreateEventAndResponseSetup(apiResponseSetup: ApiResponseSetup) {
+    stubPrisonResponse(apiResponseSetup)
+
+    publishPrisonPersonCreatedEvent(apiResponseSetup.prisonNumber!!)
+  }
+
+  private fun prisonUpdateEventAndResponseSetup(apiResponseSetup: ApiResponseSetup) {
+    stubPrisonResponse(apiResponseSetup)
+
+    publishDomainEvent(
+      PrisonPersonUpdated(
+        personReference = PersonReference(listOf(PersonIdentifier("NOMS", apiResponseSetup.prisonNumber!!))),
+      ),
+    )
   }
 }

@@ -30,7 +30,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import java.time.LocalDate
 import java.util.UUID
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner as SysconPrisoner
 
 data class Person(
   val personId: UUID? = null,
@@ -216,36 +215,6 @@ data class Person(
         nationalities = nationalities,
         sentences = prisoner.allConvictedOffences?.mapNotNull { SentenceInfo.from(it) } ?: emptyList(),
         sexCode = SexCode.from(prisoner),
-      )
-    }
-
-    fun from(prisoner: SysconPrisoner, prisonNumber: String): Person {
-      val primaryAlias = prisoner.pseudonyms.firstOrNull { it.isPrimary == true } ?: throw IllegalArgumentException("No primary alias was found for update on prisoner $prisonNumber")
-
-      val references = prisoner.pseudonyms
-        .flatMap { it.identifiers.toList() }
-        .map { Reference.from(it) }
-
-      return Person(
-        prisonNumber = prisonNumber,
-        titleCode = primaryAlias.titleCode,
-        firstName = primaryAlias.firstName.nullIfBlank(),
-        middleNames = primaryAlias.middleNames?.nullIfBlank(),
-        lastName = primaryAlias.lastName.nullIfBlank(),
-        dateOfBirth = primaryAlias.dateOfBirth,
-        ethnicityCode = prisoner.demographicAttributes.ethnicityCode,
-        aliases = prisoner.pseudonyms.map { Alias.from(it) },
-        contacts = prisoner.personContacts.map { contact -> Contact(contact.type, contact.value) },
-        addresses = prisoner.addresses.map { Address.from(it) },
-        references = references,
-        sourceSystem = NOMIS,
-        nationalities = listOf(prisoner.demographicAttributes.nationalityCode).mapNotNull { it },
-        nationalityNotes = prisoner.demographicAttributes.nationalityNote.nullIfBlank(),
-        religion = prisoner.demographicAttributes.religionCode.nullIfBlank()?.let { ReligionCode.valueOf(it) },
-        sentences = prisoner.sentences.map { SentenceInfo(it.sentenceDate) },
-        sexCode = prisoner.demographicAttributes.sexCode,
-        sexualOrientation = prisoner.demographicAttributes.sexualOrientation,
-        birthCountryCode = prisoner.demographicAttributes.birthCountryCode,
       )
     }
 

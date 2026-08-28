@@ -16,7 +16,6 @@ import jakarta.persistence.Table
 import jakarta.persistence.Version
 import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import java.time.ZonedDateTime
@@ -102,10 +101,6 @@ class AddressEntity(
   var uprn: String? = null,
 
   @Enumerated(STRING)
-  @Column(name = "record_type")
-  var recordType: AddressRecordType? = null,
-
-  @Enumerated(STRING)
   @Column(name = "status_code")
   var statusCode: AddressStatusCode? = null,
 
@@ -138,7 +133,6 @@ class AddressEntity(
     this.statusCode = address.statusCode
     this.deliusAddressId = this.deliusAddressId ?: address.deliusAddressId
     this.isVerified = address.isVerified
-    this.recordType = address.recordType
     updateChildEntities(address)
   }
 
