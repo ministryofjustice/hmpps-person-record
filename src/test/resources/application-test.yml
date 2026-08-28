@@ -46,7 +46,7 @@ hmpps.sqs:
     testcprdomaineventsqueue:
       queueName: test_only_cpr_domain_events_queue
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "core-person-record.prison.record.created", "core-person-record.probation.record.created", "core-person-record.probation.record.deleted", "core-person-record.court.record.created", "core-person-record.probation.address.created", "core-person-record.probation.address.updated", "core-person-record.probation.address.deleted", "core-person-record.prison.religion.created", "core-person-record.prison.religion.updated"] }'
+      subscribeFilter: '{"eventType":[ "core-person-record.prison.record.created", "core-person-record.prison.record.deleted", "core-person-record.probation.record.created", "core-person-record.probation.record.deleted", "core-person-record.court.record.created", "core-person-record.probation.address.created", "core-person-record.probation.address.updated", "core-person-record.probation.address.deleted", "core-person-record.prison.religion.created", "core-person-record.prison.religion.updated"] }'
       dlqName: test_only_cpr_domain_events_queue_dlq
       dlqMaxReceiveCount: 2
     cprdeliusoffendereventsqueue:
