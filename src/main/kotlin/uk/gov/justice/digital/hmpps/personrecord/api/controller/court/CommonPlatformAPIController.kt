@@ -13,15 +13,14 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.court.GetCommonPlatformPersonHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 
 @Tag(name = "Court")
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
 class CommonPlatformAPIController(
-  private val personRepository: PersonRepository,
+  private val getCommonPlatformPersonHandler: GetCommonPlatformPersonHandler,
 ) {
   @Operation(
     description = """Retrieve person record by Defendant ID. Role required is **$API_READ_ONLY** . 
@@ -46,10 +45,7 @@ class CommonPlatformAPIController(
   fun getCommonPlatformPerson(
     @PathVariable(name = "defendantId") defendantID: String,
   ): ResponseEntity<*> {
-    val personEntity = personRepository.findByDefendantId(defendantID)
-    return when {
-      personEntity == null -> throw ResourceNotFoundException(defendantID)
-      else -> ResponseEntity.ok(CanonicalRecord.from(personEntity))
-    }
+    val canonicalRecord = getCommonPlatformPersonHandler.get(defendantID)
+    return ResponseEntity.ok(canonicalRecord)
   }
 }
