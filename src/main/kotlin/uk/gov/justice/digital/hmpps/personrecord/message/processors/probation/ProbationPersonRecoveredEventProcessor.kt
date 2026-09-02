@@ -12,16 +12,16 @@ import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 
 @Component
 class ProbationPersonRecoveredEventProcessor(
-  private val probationProcessor: ProbationProcessor,
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   private val addressService: AddressService,
   private val addressRepository: AddressRepository,
+  private val probationEventProcessor: ProbationEventProcessor,
 ) {
 
   @Transactional
   fun process(event: ProbationPersonRecovered) {
     corePersonRecordAndDeliusClient.getProbationCase(event.crn).let { case ->
-      val personEntity = probationProcessor.processProbationEvent(Person.from(case))
+      val personEntity = probationEventProcessor.processPerson(Person.from(case))
       case.addresses.forEach { address ->
         addressService.processAddress(
           address = Address.from(address)!!,
