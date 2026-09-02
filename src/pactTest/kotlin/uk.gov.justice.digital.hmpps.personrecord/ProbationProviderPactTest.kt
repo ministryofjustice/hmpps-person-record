@@ -12,8 +12,12 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.probation.ProbationOverrideHandler
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import org.springframework.beans.factory.annotation.Autowired
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import org.apache.hc.core5.http.HttpRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
@@ -27,6 +31,18 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ON
 class ProbationProviderPactTest {
   @MockitoBean
   lateinit var addressRepository: AddressRepository
+
+  @MockitoBean
+  lateinit var addressService: AddressService
+
+  @MockitoBean
+  lateinit var personRepository: PersonRepository
+
+  @MockitoBean
+  lateinit var personService: PersonService
+
+  @MockitoBean
+  lateinit var probationOverrideHandler: ProbationOverrideHandler
 
   @LocalServerPort
   private var port: Int = 0
