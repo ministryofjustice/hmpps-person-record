@@ -3,12 +3,16 @@ package uk.gov.justice.digital.hmpps.personrecord
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.probation.ProbationAPIController
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.probation.ProbationAddressCreateAPIController
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.probation.ProbationAddressGetAPIController
 import uk.gov.justice.digital.hmpps.personrecord.config.SecurityConfiguration
 
 @TestConfiguration
 //@EnableWebMvc
 @Import(
+  ProbationAPIController::class,
+  ProbationAddressCreateAPIController::class,
   ProbationAddressGetAPIController::class,
   SecurityConfiguration::class,
 )
