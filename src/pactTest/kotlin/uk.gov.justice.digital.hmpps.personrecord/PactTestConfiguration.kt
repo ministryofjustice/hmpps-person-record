@@ -1,14 +1,14 @@
 package uk.gov.justice.digital.hmpps.personrecord
 
-import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.SpringBootConfiguration
 import org.springframework.context.annotation.Import
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.probation.ProbationAPIController
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.probation.ProbationAddressCreateAPIController
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.probation.ProbationAddressGetAPIController
 import uk.gov.justice.digital.hmpps.personrecord.config.SecurityConfiguration
 
-@TestConfiguration
+@SpringBootConfiguration
 //@EnableWebMvc
 @Import(
   ProbationAPIController::class,
@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.SecurityConfiguration
   ProbationAddressGetAPIController::class,
   SecurityConfiguration::class,
 )
-@SpringBootApplication(
+@EnableAutoConfiguration(
   excludeName = [
     "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration",
     "org.springframework.boot.data.jpa.autoconfigure.DataJpaRepositoriesAutoConfiguration",
