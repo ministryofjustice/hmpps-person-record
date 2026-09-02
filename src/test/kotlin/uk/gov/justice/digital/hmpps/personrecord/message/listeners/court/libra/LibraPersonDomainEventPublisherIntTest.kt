@@ -110,6 +110,8 @@ class LibraPersonDomainEventPublisherIntTest : MessagingTestBase() {
 class PreProd : MessagingTestBase() {
   @Test
   fun `should not publish CPR person domain events from libra messages`() {
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
     val cid = randomCId()
 
     publishLibraMessage(
@@ -151,6 +153,8 @@ class PreProd : MessagingTestBase() {
 class Prod : MessagingTestBase() {
   @Test
   fun `should not publish CPR person domain events from libra messages`() {
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
     val cid = randomCId()
 
     publishLibraMessage(

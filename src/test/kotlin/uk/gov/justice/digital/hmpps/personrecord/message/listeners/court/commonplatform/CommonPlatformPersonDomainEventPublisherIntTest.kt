@@ -121,6 +121,8 @@ class PreProd : MessagingTestBase() {
 
   @Test
   fun `should not publish CPR person domain events from common platform messages`() {
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
     val defendantId = randomDefendantId()
 
     publishCommonPlatformMessage(
@@ -166,6 +168,8 @@ class PreProd : MessagingTestBase() {
 class Prod : MessagingTestBase() {
   @Test
   fun `should not publish CPR person domain events from common platform messages`() {
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
     val defendantId = randomDefendantId()
 
     publishCommonPlatformMessage(

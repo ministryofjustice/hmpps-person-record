@@ -126,6 +126,8 @@ class PrisonPersonDomainEventPublisherIntTest : MessagingTestBase() {
 class PreProd : MessagingTestBase() {
   @Test
   fun `should not publish CPR person domain events from nomis messages`() {
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
     val prisonNumber = randomPrisonNumber()
 
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
@@ -171,6 +173,8 @@ class PreProd : MessagingTestBase() {
 class Prod : MessagingTestBase() {
   @Test
   fun `should not publish CPR person domain events from nomis messages`() {
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
     val prisonNumber = randomPrisonNumber()
 
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
