@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
@@ -26,6 +27,10 @@ class LibraPersonEventPublisher(
   override fun onCreate(personCreated: PersonCreated) {
     publishPersonDomainEvent(personCreated.personEntity)
   }
+
+  override fun onUpdate(personUpdated: PersonUpdated) = Unit
+
+  override fun onDelete(personDeleted: PersonDeleted) = Unit
 
   private fun publishPersonDomainEvent(personEntity: PersonEntity) {
     val cId = personEntity.extractSourceSystemId()!!
@@ -45,6 +50,4 @@ class LibraPersonEventPublisher(
       ),
     )
   }
-
-  override fun onUpdate(personUpdated: PersonUpdated) = Unit
 }

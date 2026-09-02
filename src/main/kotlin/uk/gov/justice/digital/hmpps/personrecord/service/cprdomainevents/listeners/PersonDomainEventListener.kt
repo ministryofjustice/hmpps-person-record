@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listen
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.PersonEventPublisher
 
@@ -23,5 +24,11 @@ class PersonDomainEventListener(personEventPublishers: List<PersonEventPublisher
     if (personUpdated.personHasChanged()) {
       publishersBySourceSystem[sourceSystem]?.onUpdate(personUpdated)
     }
+  }
+
+  @TransactionalEventListener
+  fun onPersonDeleted(personDeleted: PersonDeleted) {
+    val sourceSystem = personDeleted.personEntity.sourceSystem
+    publishersBySourceSystem[sourceSystem]?.onDelete(personDeleted)
   }
 }

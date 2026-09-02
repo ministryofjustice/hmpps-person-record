@@ -22,6 +22,14 @@ data class CprPersonUpdated(
   val personReference: PersonReference,
 ) : DomainEvent
 
+data class CprPersonDeleted(
+  override val eventType: String,
+  val version: Int = 1,
+  val occurredAt: String,
+  val description: String,
+  val personReference: PersonReference,
+) : DomainEvent
+
 data class CprAddressCreated(
   override val eventType: String,
   val version: Int = 1,
