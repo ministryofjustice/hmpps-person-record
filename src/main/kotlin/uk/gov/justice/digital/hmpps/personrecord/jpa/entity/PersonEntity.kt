@@ -226,7 +226,7 @@ class PersonEntity(
     this.sentenceInfo.addAll(sentences)
   }
 
-  private fun updatePersonReferences(references: List<ReferenceEntity>) {
+  fun updatePersonReferences(references: List<ReferenceEntity>) {
     this.references.clear()
     references.forEach { referenceEntity -> referenceEntity.person = this }
     this.references.addAll(references)
@@ -254,7 +254,7 @@ class PersonEntity(
     this.nationalities.addAll(nationalities)
   }
 
-  private fun updatePseudonyms(pseudonyms: List<PseudonymEntity>) {
+  fun updatePseudonyms(pseudonyms: List<PseudonymEntity>) {
     this.pseudonyms.clear()
     pseudonyms.forEach { pseudonymEntity -> pseudonymEntity.person = this }
     this.pseudonyms.addAll(pseudonyms)
