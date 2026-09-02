@@ -5,7 +5,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecke
 
 data class PersonUpdated(
   val personEntity: PersonEntity,
-  val personChangeChecker: PersonChangeChecker,
+  private val personChangeChecker: PersonChangeChecker,
 ) {
+  fun personHasChanged(): Boolean = personChangeChecker.anyFieldsHaveChanged(personEntity)
   fun matchingFieldsHaveChanged(): Boolean = personChangeChecker.matchingFieldsHaveChanged(personEntity)
 }
