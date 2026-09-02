@@ -4,8 +4,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import tools.jackson.module.kotlin.readValue
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED_GDPR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
@@ -43,6 +46,8 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
       person.assertPersonDeleted()
       personKey.assertClusterStatus(UUIDStatusType.ACTIVE)
       personKey.assertClusterIsOfSize(1)
+
+      assertCprPersonDeletedEventPublished(crn)
     }
 
     @Test
@@ -385,5 +390,16 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
 
     personB.assertHasOverrideMarker()
     personB.assertOverrideScopeSize(1)
+  }
+
+  fun assertCprPersonDeletedEventPublished(crn: String) {
+    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
+    assertThat(sqsMessage.getEventType()).isEqualTo(CPR_PROBATION_PERSON_DELETED)
+    val domainEvent: CprPersonDeleted = jsonMapper.readValue<CprPersonDeleted>(sqsMessage.message)
+    assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_DELETED)
+    assertThat(domainEvent.description).isEqualTo("A probation person record has been deleted")
+    assertThat(domainEvent.occurredAt).isNotNull()
+    assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
+    assertThat(domainEvent.personReference.identifiers?.first { it.type == "CRN" }?.value).isEqualTo(crn)
   }
 }

@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
 import java.time.Instant
@@ -25,6 +26,8 @@ class CommonPlatformPersonEventPublisher(
   override fun onCreate(personCreated: PersonCreated) {
     publishPersonDomainEvent(personCreated.personEntity)
   }
+
+  override fun onDelete(personDeleted: PersonDeleted) { }
 
   private fun publishPersonDomainEvent(personEntity: PersonEntity) {
     val defendantId = personEntity.extractSourceSystemId()!!
