@@ -58,3 +58,4 @@ sonar-project.properties
 .vscode
 bin
 .DS_Store
+/.env
