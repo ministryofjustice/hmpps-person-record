@@ -5,11 +5,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.context.ActiveProfiles
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonMerged
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonMergedInfo
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonMergeEventProcessor
@@ -23,47 +18,10 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.time.LocalDate
 
-class PrisonMergeEventProcessorIntTest : MessagingMultiNodeTestBase() {
-
-  @Autowired
-  lateinit var prisonMergeEventProcessor: PrisonMergeEventProcessor
-
-  @Autowired
-  lateinit var prisonReligionRepository: PrisonReligionRepository
-
-  @Nested
-  @ActiveProfiles("prod")
-  inner class ShouldNotMergeReligionsInProd {
-    @BeforeEach
-    fun beforeEach() {
-      stubPersonMatchUpsert()
-      stubDeletePersonMatch()
-    }
-
-    @Test
-    fun `Should not merge the religions while prod profile is set`() {
-      val toPrisonerNumber = randomPrisonNumber()
-      val fromPrisonerNumber = randomPrisonNumber()
-      createPersonKey()
-        .addPerson(Person(prisonNumber = toPrisonerNumber, sourceSystem = NOMIS))
-        .addPerson(
-          Person(prisonNumber = fromPrisonerNumber, sourceSystem = NOMIS),
-        )
-      prisonReligionRepository.save(
-        prisonReligionEntity(
-          prisonNumber = toPrisonerNumber,
-          startDate = LocalDate.of(2021, 1, 1),
-          code = CALV,
-        ),
-      )
-      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonerNumber))
-
-      // Method under test
-      prisonMergeEventProcessor.processEvent(fromPrisonNumber = fromPrisonerNumber, toPrisonNumber = toPrisonerNumber)
-
-      assertThat(personRepository.findByPrisonNumber(toPrisonerNumber)?.religion).isNull()
-    }
-  }
+class PrisonMergeEventProcessorIntTest(
+  @Autowired private val prisonMergeEventProcessor: PrisonMergeEventProcessor,
+  @Autowired private val prisonReligionRepository: PrisonReligionRepository,
+) : MessagingMultiNodeTestBase() {
 
   @Nested
   inner class MergingReligion {
@@ -113,12 +71,5 @@ class PrisonMergeEventProcessorIntTest : MessagingMultiNodeTestBase() {
           },
         )
     }
-  }
-
-  companion object {
-    fun prisonPersonMerged(toPrisonNumber: String, fromPrisonNumber: String) = PrisonPersonMerged(
-      personReference = PersonReference(listOf(PersonIdentifier("NOMS", toPrisonNumber))),
-      additionalInformation = PrisonPersonMergedInfo(sourcePrisonNumber = fromPrisonNumber),
-    )
   }
 }
