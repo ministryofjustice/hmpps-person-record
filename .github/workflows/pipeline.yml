@@ -61,7 +61,7 @@ jobs:
       java-options: "${{ inputs.java_options }}"
       java-version: '25'
       postgres-tag: '17.9-alpine'
-      localstack-tag: '4'
+      localstack-tag: 'community-archive'
       postgres-username: 'root'
       postgres-password: 'dev'
       localstack-services: 'sqs,sns,s3'
