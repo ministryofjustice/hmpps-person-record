@@ -65,7 +65,7 @@ val pactTest = testing.suites.create<JvmTestSuite>("pactTest") {
     }
   }
   dependencies {
-    implementation(sourceSets.named("main").get().output)
+    implementation(files(sourceSets.named("main").get().output, sourceSets.named("main").get().compileClasspath))
     implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.0")
     implementation("au.com.dius.pact.provider:junit5spring:4.7.1")
   }
