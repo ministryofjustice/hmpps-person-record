@@ -61,13 +61,14 @@ val pactTest = testing.suites.create<JvmTestSuite>("pactTest") {
       srcDirs("src/pactTest/kotlin")
     }
     resources {
-      srcDirs("src/pactTest/resources")
+      srcDirs("src/test/resources")
     }
   }
   dependencies {
     implementation(files(sourceSets.named("main").get().output, sourceSets.named("main").get().compileClasspath))
     implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.0")
     implementation("au.com.dius.pact.provider:junit5spring:4.7.1")
+    implementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
   }
 }
 
@@ -114,8 +115,17 @@ tasks.named<Test>("pactTest") {
   description = "Run and publish Pact provider tests"
   group = "verification"
   // --- Broker connection ---
-  // Full URL is not sensitive so hardcoded here; credentials come from CI secrets / local env vars
-  systemProperty("pactbroker.url", "https://pact-broker-prod.apps.live-1.cloud-platform.service.justice.gov.uk")
+  // These properties are used when @PactBroker is enabled on the provider test class.
+  // Keep URL fallback so uncommenting @PactBroker works locally without extra setup.
+  systemProperty(
+    "pactbroker.url",
+    System.getProperty("pactbroker.url")
+      ?: System.getenv("PACT_BROKER_URL")
+      ?: "https://pact-broker-prod.apps.live-1.cloud-platform.service.justice.gov.uk",
+  )
+  systemProperty("pactbroker.host", System.getProperty("pactbroker.host") ?: System.getenv("PACT_BROKER_HOST") ?: "")
+  systemProperty("pactbroker.port", System.getProperty("pactbroker.port") ?: System.getenv("PACT_BROKER_PORT") ?: "")
+  systemProperty("pactbroker.scheme", System.getProperty("pactbroker.scheme") ?: System.getenv("PACT_BROKER_SCHEME") ?: "")
   systemProperty("pactbroker.auth.username", System.getenv("PACT_BROKER_USERNAME") ?: "")
   systemProperty("pactbroker.auth.password", System.getenv("PACT_BROKER_PASSWORD") ?: "")
 
@@ -136,6 +146,8 @@ tasks.named<Test>("pactTest") {
   // --- Publishing verification results back to the broker ---
   systemProperty("pact.provider.version", System.getenv("GITHUB_SHA") ?: "local")
   systemProperty("pact.provider.branch", System.getenv("GITHUB_BRANCH") ?: "local")
+  systemProperty("pactbroker.providerBranch", System.getenv("GITHUB_BRANCH") ?: "local")
+  systemProperty("pactbroker.enablePending", System.getenv("PACT_ENABLE_PENDING") ?: "true")
   // Only publish results in CI — prevents local runs polluting the broker's can-i-deploy history
   systemProperty("pact.verifier.publishResults", System.getenv("PACT_PUBLISH_RESULTS") ?: "false")
 }

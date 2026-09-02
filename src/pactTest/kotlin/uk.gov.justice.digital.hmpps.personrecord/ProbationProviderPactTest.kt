@@ -4,18 +4,20 @@ import au.com.dius.pact.provider.junit5.PactVerificationContext
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider
 import au.com.dius.pact.provider.junitsupport.Provider
 import au.com.dius.pact.provider.junitsupport.State
-import au.com.dius.pact.provider.junitsupport.loader.PactBroker
 import au.com.dius.pact.provider.junit5.HttpTestTarget
+import au.com.dius.pact.provider.junitsupport.loader.PactFolder
 import org.apache.hc.core5.http.HttpRequest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestTemplate
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
@@ -27,7 +29,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.M
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode.GBR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
@@ -36,6 +37,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.AGNO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
@@ -45,8 +47,11 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
 
+@ActiveProfiles("test")
 @Provider("hmpps-person-record")
-@PactBroker
+@PactFolder("src/pactTest/resources/pacts")
+// Switch to broker loading by uncommenting this and commenting out @PactFolder.
+// @PactBroker(url = "\${pactbroker.url}")
 @SpringBootTest(
   classes = [PactTestConfiguration::class],
   webEnvironment = RANDOM_PORT
@@ -91,38 +96,30 @@ class ProbationProviderPactTest {
 
   @State("An address exists for CRN and address ID")
   fun `an address exists for CRN and address ID`() {
-    Mockito.doAnswer { invocation ->
+    whenever(addressRepository.findByUpdateIdAndPersonCrn(any(), any())).thenAnswer { invocation ->
       buildAddressEntity(
         crn = invocation.arguments[1] as String,
         cprAddressId = invocation.arguments[0] as UUID,
       )
-    }.`when`(addressRepository).findByUpdateIdAndPersonCrn(
-      ArgumentMatchers.any(UUID::class.java),
-      ArgumentMatchers.anyString(),
-    )
+    }
   }
 
   @State("A probation address can be created for CRN")
   fun `a probation address can be created for CRN`() {
-    Mockito.doReturn(
+    whenever(addressService.processAddress(any(), any(), any(), eq(CPR))).thenReturn(
       AddressEntity(
         updateId = createdAddressId,
         statusCode = M,
         isVerified = true,
       ),
-    ).`when`(addressService).processAddress(
-      ArgumentMatchers.any() as Address,
-      ArgumentMatchers.any() as () -> PersonEntity?,
-      ArgumentMatchers.any() as () -> AddressEntity?,
-      ArgumentMatchers.eq(uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR),
     )
   }
 
   @State("A probation person exists for CRN")
   fun `a probation person exists for CRN`() {
-    Mockito.doAnswer { invocation ->
+    whenever(personRepository.findByCrn(any())).thenAnswer { invocation ->
       buildPersonEntity(invocation.arguments[0] as String)
-    }.`when`(personRepository).findByCrn(ArgumentMatchers.anyString())
+    }
   }
 
   private fun rolesFor(request: HttpRequest): List<String> = when (request.method.uppercase()) {
@@ -183,4 +180,5 @@ class ProbationProviderPactTest {
     statusCode = M,
     isVerified = true,
   )
+
 }
