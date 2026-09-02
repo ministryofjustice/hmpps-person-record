@@ -24,7 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ON
   classes = [PactTestConfiguration::class],
   webEnvironment = RANDOM_PORT
 )
-class ContractVerificationTest {
+class ProbationProviderPactTest {
   @MockitoBean
   lateinit var addressRepository: AddressRepository
 
