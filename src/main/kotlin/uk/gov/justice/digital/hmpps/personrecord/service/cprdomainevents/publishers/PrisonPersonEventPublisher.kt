@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_UPDATED
 
 @Profile("!preprod & !prod")
 @Component
@@ -15,7 +16,7 @@ class PrisonPersonEventPublisher(
 ) : PersonEventPublisher(domainEventPublisher, baseUrl) {
   override val sourceSystemType = SourceSystemType.NOMIS
   override val createEventType = CPR_PRISON_PERSON_CREATED
-  override val updateEventType = "core-person-record.prison.record.updated"
+  override val updateEventType = CPR_PRISON_PERSON_UPDATED
   override val path = "/person/prison/"
   override val createdDescription = "A prison person record has been created"
   override val updatedDescription = "A prison person record has been updated"

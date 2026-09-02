@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_UPDATED
 
 @Profile("!preprod & !prod")
 @Component
@@ -15,7 +16,7 @@ class LibraPersonEventPublisher(
 ) : PersonEventPublisher(domainEventPublisher, baseUrl) {
   override val sourceSystemType = SourceSystemType.LIBRA
   override val createEventType = CPR_COURT_PERSON_CREATED
-  override val updateEventType = "core-person-record.court.record.updated"
+  override val updateEventType = CPR_COURT_PERSON_UPDATED
   override val path = "/person/libra/"
   override val createdDescription = "A court person record has been created"
   override val updatedDescription = "A court person record has been updated"
