@@ -252,6 +252,15 @@ data class Person(
     )
   }
 
+  fun primaryAlias() = Alias(
+    firstName = firstName,
+    lastName = lastName,
+    middleNames = middleNames,
+    titleCode = titleCode,
+    dateOfBirth = dateOfBirth,
+    sexCode = sexCode,
+  )
+
   fun doNotReclusterOnUpdate(): Person {
     this.behaviour.reclusterOnUpdate = false
     return this

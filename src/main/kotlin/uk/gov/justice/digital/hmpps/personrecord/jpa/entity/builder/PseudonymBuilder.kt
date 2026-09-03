@@ -10,23 +10,23 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 object PseudonymBuilder {
 
   fun buildPseudonyms(person: Person, personEntity: PersonEntity): List<PseudonymEntity> {
-    // We need to allow for sematically identical pseudonyms at present.
+    // We need to allow for semantically identical pseudonyms at present.
     // Therefore, we need to check that we don't match the same pseudonym multiple times.
-    val alreadyMatchedIds = personEntity.pseudonyms.mapNotNull { it.id }.associateWith { false }.toMutableMap()
-    val pseudonyms = (listOf(person.currentAlias()) + person.aliases).mapIndexedNotNull { index, alias ->
+    val alreadyMatchedIds = mutableSetOf<Long>()
+    val allPseudonyms = listOf(person.primaryAlias()) + person.aliases
+    return allPseudonyms.mapIndexedNotNull { index, pseudonym ->
       val nameType = if (index == 0) NameType.PRIMARY else NameType.ALIAS
-      alias.existsIn(
+      pseudonym.existsIn(
         childEntities = personEntity.pseudonyms,
         match = { ref, entity -> entity.matches(ref, nameType, alreadyMatchedIds) },
         yes = { it },
-        no = { alias.from(nameType) },
+        no = { pseudonym.from(nameType) },
       )
     }
-    return pseudonyms
   }
 }
 
-fun Alias.from(nameType: NameType): PseudonymEntity? = when {
+private fun Alias.from(nameType: NameType): PseudonymEntity? = when {
   isAliasPresent(firstName, middleNames, lastName) ->
     PseudonymEntity(
       firstName = firstName,
@@ -43,24 +43,18 @@ fun Alias.from(nameType: NameType): PseudonymEntity? = when {
 private fun PseudonymEntity.matches(
   alias: Alias,
   nameType: NameType,
-  alreadyMatchedIds: MutableMap<Long, Boolean>,
+  matchedPseudonymIds: MutableSet<Long>,
 ): Boolean {
-  val alreadyMatched = alreadyMatchedIds[this.id] ?: false
-  if (this.id != null && !alreadyMatched && alias == Alias.from(this) && this.nameType == nameType) {
-    alreadyMatchedIds[this.id!!] = true
-    return true
+  if (id == null ||
+    id in matchedPseudonymIds ||
+    this.nameType != nameType ||
+    alias != Alias.from(this)
+  ) {
+    return false
   }
-  return false
+  matchedPseudonymIds += id!!
+  return true
 }
 
 private fun isAliasPresent(firstName: String?, middleNames: String?, surname: String?): Boolean = sequenceOf(firstName, middleNames, surname)
   .filterNotNull().any { it.isNotBlank() }
-
-private fun Person.currentAlias() = Alias(
-  firstName = firstName,
-  lastName = lastName,
-  middleNames = middleNames,
-  titleCode = titleCode,
-  dateOfBirth = dateOfBirth,
-  sexCode = sexCode,
-)

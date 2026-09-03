@@ -33,7 +33,11 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
   @Autowired
   lateinit var pseudonymRepository: PseudonymRepository
 
-  private fun assertExpectedPseudonymMapping(actual: SysconAliasMapping, expectedCprPseudonymId: String, expectedNomisOffenderId: Long) = assertThat(actual).isEqualTo(
+  private fun assertExpectedPseudonymMapping(
+    actual: SysconAliasMapping,
+    expectedCprPseudonymId: String,
+    expectedNomisOffenderId: Long,
+  ) = assertThat(actual).isEqualTo(
     SysconAliasMapping(
       nomisOffenderId = expectedNomisOffenderId,
       cprAliasId = expectedCprPseudonymId,
@@ -48,13 +52,7 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
     fun `should have the correct profile active`() {
       val prisonNumber = randomPrisonNumber()
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
-      webTestClient
-        .post()
-        .uri(aliasesIdentifiersUrl(prisonNumber))
-        .bodyValue(validRequestBody())
-        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
+      postAndExpect(prisonNumber, validRequestBody())
         .isEqualTo(HttpStatus.NOT_IMPLEMENTED)
     }
   }
@@ -67,13 +65,8 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
       val requestBody = validRequestBody()
-      val response = webTestClient
-        .post()
-        .uri(aliasesIdentifiersUrl(prisonNumber))
-        .bodyValue(requestBody)
-        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
+
+      val response = postAndExpect(prisonNumber, requestBody)
         .isCreated
         .expectBody<SysconAliasesAndIdentifiersResponseBody>()
         .returnResult()
@@ -85,11 +78,11 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
       // Assert that the pseudonyms and references have been created correctly
       assertThat(pseudonyms).hasSize(2)
-      assertPseudonymMatchesRequest(pseudonyms[0], requestBody.aliases[0])
-      assertPseudonymMatchesRequest(pseudonyms[1], requestBody.aliases[1])
+      assertPseudonymMatchesRequest(pseudonym = pseudonyms[0], request = requestBody.aliases[0])
+      assertPseudonymMatchesRequest(pseudonym = pseudonyms[1], request = requestBody.aliases[1])
       assertThat(references).hasSize(2)
-      assertReferenceMatchesRequest(references[0], requestBody.identifiers[0])
-      assertReferenceMatchesRequest(references[1], requestBody.identifiers[1])
+      assertReferenceMatchesRequest(referenceEntity = references[0], request = requestBody.identifiers[0])
+      assertReferenceMatchesRequest(referenceEntity = references[1], request = requestBody.identifiers[1])
 
       // Assert that the top level person attributes have been updated from the primary pseudonym
       val primaryPseudonym = requestBody.aliases.first { it.isPrimary!! }
@@ -100,10 +93,65 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       // Assert that the mappings are as expected in the response body
       assertThat(response.prisonNumber).isEqualTo(prisonNumber)
       assertThat(response.identifiersMappings).hasSize(2)
-      assertExpectedReferenceMapping(response.identifiersMappings[0], references[0].updateId.toString(), requestBody.identifiers[0].nomisIdentifierId)
-      assertExpectedReferenceMapping(response.identifiersMappings[1], references[1].updateId.toString(), requestBody.identifiers[1].nomisIdentifierId)
-      assertExpectedPseudonymMapping(response.aliasesMappings[0], pseudonyms[0].updateId.toString(), requestBody.aliases[0].nomisOffenderId)
-      assertExpectedPseudonymMapping(response.aliasesMappings[1], pseudonyms[1].updateId.toString(), requestBody.aliases[1].nomisOffenderId)
+      assertExpectedReferenceMapping(
+        actual = response.identifiersMappings[0],
+        expectedCprReferenceId = references[0].updateId.toString(),
+        expectedNomisIdentifierId = requestBody.identifiers[0].nomisIdentifierId,
+      )
+      assertExpectedReferenceMapping(
+        actual = response.identifiersMappings[1],
+        expectedCprReferenceId = references[1].updateId.toString(),
+        expectedNomisIdentifierId = requestBody.identifiers[1].nomisIdentifierId,
+      )
+      assertExpectedPseudonymMapping(
+        actual = response.aliasesMappings[0],
+        expectedCprPseudonymId = pseudonyms[0].updateId.toString(),
+        expectedNomisOffenderId = requestBody.aliases[0].nomisOffenderId,
+      )
+      assertExpectedPseudonymMapping(
+        actual = response.aliasesMappings[1],
+        expectedCprPseudonymId = pseudonyms[1].updateId.toString(),
+        expectedNomisOffenderId = requestBody.aliases[1].nomisOffenderId,
+      )
+    }
+
+    @Test
+    fun `successful save sematically identical pseudonyms`() {
+      val prisonNumber = randomPrisonNumber()
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      val sematicallyIdenticalPseudonym = validRequestBody().aliases.first()
+      val semanticallyIdenticalPseudonymRequest = validRequestBody().copy(
+        aliases = listOf(
+          sematicallyIdenticalPseudonym.copy(nomisOffenderId = 10000L, isPrimary = true),
+          sematicallyIdenticalPseudonym.copy(nomisOffenderId = 10001L, isPrimary = false),
+        ),
+      )
+
+      val response = postAndExpect(prisonNumber, requestBody = semanticallyIdenticalPseudonymRequest)
+        .isCreated
+        .expectBody<SysconAliasesAndIdentifiersResponseBody>()
+        .returnResult()
+        .responseBody!!
+
+      val person = personRepository.findByPrisonNumber(prisonNumber)!!
+      val pseudonyms = person.pseudonyms
+      // Assert that we have two pseudonyms in the database, even though they are semantically identical
+      assertThat(pseudonyms[0].id).isNotEqualTo(pseudonyms[1].id) // Expect different ids
+      assertPseudonymMatchesRequest(pseudonym = pseudonyms[0], request = sematicallyIdenticalPseudonym)
+      assertPseudonymMatchesRequest(pseudonym = pseudonyms[1], request = sematicallyIdenticalPseudonym)
+
+      // Assert that the mappings are as expected in the response body
+      assertThat(response.aliasesMappings).hasSize(2)
+      assertExpectedPseudonymMapping(
+        response.aliasesMappings[0],
+        expectedCprPseudonymId = pseudonyms[0].updateId.toString(),
+        expectedNomisOffenderId = semanticallyIdenticalPseudonymRequest.aliases[0].nomisOffenderId,
+      )
+      assertExpectedPseudonymMapping(
+        actual = response.aliasesMappings[1],
+        expectedCprPseudonymId = pseudonyms[1].updateId.toString(),
+        expectedNomisOffenderId = semanticallyIdenticalPseudonymRequest.aliases[1].nomisOffenderId,
+      )
     }
 
     @Test
@@ -115,14 +163,7 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       assertThat(pseudonymsToBeDeleted[0].id).isNotNull()
       assertThat(pseudonymsToBeDeleted[1].id).isNotNull()
 
-      webTestClient
-        .post()
-        .uri(aliasesIdentifiersUrl(prisonNumber))
-        .bodyValue(validRequestBody())
-        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
-        .exchange()
-        .expectStatus()
-        .isCreated
+      postAndExpect(prisonNumber, validRequestBody()).isCreated
 
       // Check that we can no longer find the orphaned pseudonyms in the repository
       val orphanedPseudonyms = pseudonymsToBeDeleted.map { pseudonymRepository.findById(it.id!!) }
@@ -133,14 +174,6 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
   @Nested
   inner class Validation {
 
-    private fun postAndExpect(prisonNumber: String, requestBody: PrisonAliasesAndIdentifiersRequest) = webTestClient
-      .post()
-      .uri(aliasesIdentifiersUrl(prisonNumber))
-      .bodyValue(requestBody)
-      .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
-      .exchange()
-      .expectStatus()
-
     @Test
     fun `should respond with bad request when no pseudonyms are posted`() {
       val noPseudonymRequestBody = validRequestBody().copy(aliases = emptyList())
@@ -149,7 +182,8 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
     @Test
     fun `should return bad request when there is no primary pseudonym`() {
-      val noPrimaryPseudonymRequestBody = validRequestBody().copy(aliases = validRequestBody().aliases.map { it.copy(isPrimary = false) })
+      val noPrimaryPseudonymRequestBody =
+        validRequestBody().copy(aliases = validRequestBody().aliases.map { it.copy(isPrimary = false) })
       postAndExpect(randomPrisonNumber(), noPrimaryPseudonymRequestBody).isBadRequest.expectBody()
         .jsonPath("userMessage")
         .value<String> { userMessage ->
@@ -159,7 +193,8 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
     @Test
     fun `should return bad request when there is more than one primary pseudonym`() {
-      val multiplePrimaryPseudonymRequestBody = validRequestBody().copy(aliases = validRequestBody().aliases.map { it.copy(isPrimary = true) })
+      val multiplePrimaryPseudonymRequestBody =
+        validRequestBody().copy(aliases = validRequestBody().aliases.map { it.copy(isPrimary = true) })
       postAndExpect(randomPrisonNumber(), multiplePrimaryPseudonymRequestBody).isBadRequest.expectBody()
         .jsonPath("userMessage")
         .value<String> { userMessage ->
@@ -169,7 +204,8 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
     @Test
     fun `should return bad request when there are duplicate nomis ids on the pseudonyms`() {
-      val multiplePrimaryPseudonymRequestBody = validRequestBody().copy(aliases = validRequestBody().aliases.map { it.copy(nomisOffenderId = 10000L) })
+      val multiplePrimaryPseudonymRequestBody =
+        validRequestBody().copy(aliases = validRequestBody().aliases.map { it.copy(nomisOffenderId = 10000L) })
       postAndExpect(randomPrisonNumber(), multiplePrimaryPseudonymRequestBody).isBadRequest.expectBody()
         .jsonPath("userMessage")
         .value<String> { userMessage ->
@@ -179,7 +215,17 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
     @Test
     fun `should return bad request when there are duplicate nomis ids on the reference`() {
-      val multiplePrimaryPseudonymRequestBody = validRequestBody().copy(identifiers = validRequestBody().identifiers.map { it.copy(nomisIdentifierId = RequestNomisIdentifierId(nomisOffenderId = 10000L, nomisSequence = 0)) })
+      val multiplePrimaryPseudonymRequestBody =
+        validRequestBody().copy(
+          identifiers = validRequestBody().identifiers.map {
+            it.copy(
+              nomisIdentifierId = RequestNomisIdentifierId(
+                nomisOffenderId = 10000L,
+                nomisSequence = 0,
+              ),
+            )
+          },
+        )
       postAndExpect(randomPrisonNumber(), multiplePrimaryPseudonymRequestBody).isBadRequest.expectBody()
         .jsonPath("userMessage")
         .value<String> { userMessage ->
@@ -284,7 +330,11 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
     assertThat(sexCode).isEqualTo(request.sexCode)
   }
 
-  private fun assertExpectedReferenceMapping(actual: SysconIdentifierMapping, expectedCprReferenceId: String, expectedNomisIdentifierId: RequestNomisIdentifierId) = assertThat(actual).isEqualTo(
+  private fun assertExpectedReferenceMapping(
+    actual: SysconIdentifierMapping,
+    expectedCprReferenceId: String,
+    expectedNomisIdentifierId: RequestNomisIdentifierId,
+  ) = assertThat(actual).isEqualTo(
     SysconIdentifierMapping(
       nomisIdentifierId = ResponseNomisIdentifierId(
         nomisOffenderId = expectedNomisIdentifierId.nomisOffenderId,
@@ -293,4 +343,12 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       cprIdentifierId = expectedCprReferenceId,
     ),
   )
+
+  private fun postAndExpect(prisonNumber: String, requestBody: PrisonAliasesAndIdentifiersRequest) = webTestClient
+    .post()
+    .uri(aliasesIdentifiersUrl(prisonNumber))
+    .bodyValue(requestBody)
+    .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+    .exchange()
+    .expectStatus()
 }
