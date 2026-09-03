@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
@@ -8,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonIden
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasesAndIdentifiersResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconIdentifierMapping
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -16,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReferenceReposit
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
-import org.springframework.context.annotation.Profile
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.NomisIdentifierId as RequestNomisIdentifierId
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.NomisIdentifierId as ResponseNomisIdentifierId
 
@@ -35,19 +36,16 @@ class SysconAliasesAndIdentifiersMigrationHandler(
     prisonAliasesAndIdentifiersRequest: PrisonAliasesAndIdentifiersRequest,
   ): SysconAliasesAndIdentifiersResponseBody {
     validateRequest(prisonNumber, prisonAliasesAndIdentifiersRequest)
-
-    val (aliasMappings, aliasEntities) = handleAliasesInsert(prisonAliasesAndIdentifiersRequest.aliases)
-    val (identifierMappings, identifierEntities) = handleIdentifiersInsert(prisonAliasesAndIdentifiersRequest.identifiers)
-
     val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw IllegalArgumentException("Person with $prisonNumber not found")
+    val identifierMappings = handleIdentifiersInsert(prisonAliasesAndIdentifiersRequest.identifiers, person)
+    val aliasMappings = handleAliasesInsert(prisonAliasesAndIdentifiersRequest.aliases, person)
+
     val currentAlias = prisonAliasesAndIdentifiersRequest.aliases.first { it.isPrimary == true }
     person.ethnicityCode = currentAlias.ethnicity
     person.birthCountryCode = currentAlias.birthCountry
     person.birthplace = currentAlias.birthPlace
-    person.updatePseudonyms(aliasEntities)
-    person.updatePersonReferences(identifierEntities)
     val updatedPerson = personRepository.saveAndFlush(person)
-    personService.processPerson(Person.from(updatedPerson)) { updatedPerson } // TODO Do we need to do this?
+    personService.processPerson(Person.from(updatedPerson)) { updatedPerson }
 
     return SysconAliasesAndIdentifiersResponseBody(
       aliasesMappings = aliasMappings,
@@ -57,20 +55,24 @@ class SysconAliasesAndIdentifiersMigrationHandler(
     )
   }
 
-  private fun handleAliasesInsert(aliases: List<PrisonAlias>): Pair<List<SysconAliasMapping>, List<PseudonymEntity>> {
-    val aliasEntities = pseudonymRepository.saveAllAndFlush(aliases.map { it.toEntity() })
+  private fun handleAliasesInsert(aliases: List<PrisonAlias>, personEntity: PersonEntity): List<SysconAliasMapping> {
+    val aliasEntities = pseudonymRepository.saveAllAndFlush(aliases.map { it.toEntity(personEntity) }) //  Guarantee ordering
+    personEntity.updatePseudonyms(aliasEntities)
+    personRepository.saveAndFlush(personEntity)
     val aliasMappings = aliases
       .zip(aliasEntities)
       .map { (alias, entity) -> SysconAliasMapping(alias.nomisOffenderId, entity.updateId.toString()) }
-    return aliasMappings to aliasEntities
+    return aliasMappings
   }
 
-  private fun handleIdentifiersInsert(identifiers: List<PrisonIdentifier>): Pair<List<SysconIdentifierMapping>, List<ReferenceEntity>> {
-    val identifierEntities = referenceRepository.saveAllAndFlush(identifiers.map { it.toEntity() })
+  private fun handleIdentifiersInsert(identifiers: List<PrisonIdentifier>, personEntity: PersonEntity): List<SysconIdentifierMapping> {
+    val identifierEntities = referenceRepository.saveAllAndFlush(identifiers.map { it.toEntity(personEntity) }) // Guarantee ordering
+    personEntity.updatePersonReferences(identifierEntities)
+    personRepository.saveAndFlush(personEntity)
     val identifierMappings = identifiers
       .zip(identifierEntities)
       .map { (identifier, entity) -> SysconIdentifierMapping(identifier.nomisIdentifierId.toId(), entity.updateId.toString()) }
-    return identifierMappings to identifierEntities
+    return identifierMappings
   }
 
   private fun validateRequest(prisonNumber: String, prisonAliasesAndIdentifiersRequest: PrisonAliasesAndIdentifiersRequest) {
@@ -102,7 +104,7 @@ class SysconAliasesAndIdentifiersMigrationHandler(
    * - birthPlace: This field is mapped to the PersonEntity.
    * - ethnicity: This field is mapped to the PersonEntity.
    */
-  fun PrisonAlias.toEntity(): PseudonymEntity = PseudonymEntity(
+  fun PrisonAlias.toEntity(personEntity: PersonEntity): PseudonymEntity = PseudonymEntity(
     titleCode = titleCode,
     firstName = firstName,
     middleNames = middleNames,
@@ -110,6 +112,7 @@ class SysconAliasesAndIdentifiersMigrationHandler(
     dateOfBirth = dateOfBirth,
     sexCode = sexCode,
     nameType = if (isPrimary == true) NameType.PRIMARY else NameType.ALIAS,
+    person = personEntity,
   )
 
   /**
@@ -117,12 +120,12 @@ class SysconAliasesAndIdentifiersMigrationHandler(
    * - issuedDate: This field is not mapped.
    * - verified: This field is not mapped.
    */
-  fun PrisonIdentifier.toEntity(): ReferenceEntity = ReferenceEntity(
+  fun PrisonIdentifier.toEntity(personEntity: PersonEntity): ReferenceEntity = ReferenceEntity(
     identifierType = type,
     identifierValue = value,
     comment = comment,
+    person = personEntity,
   )
 
-  fun RequestNomisIdentifierId.toId(): ResponseNomisIdentifierId =
-    ResponseNomisIdentifierId(nomisOffenderId, nomisSequence)
+  fun RequestNomisIdentifierId.toId(): ResponseNomisIdentifierId = ResponseNomisIdentifierId(nomisOffenderId, nomisSequence)
 }

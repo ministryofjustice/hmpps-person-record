@@ -12,8 +12,6 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import org.hibernate.annotations.Generated
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
@@ -71,33 +69,4 @@ class PseudonymEntity(
 
   @Version
   var version: Int = 0,
-) {
-  companion object {
-    fun primaryNameFrom(person: Person): PseudonymEntity = PseudonymEntity(
-      firstName = person.firstName,
-      middleNames = person.middleNames,
-      lastName = person.lastName,
-      nameType = NameType.PRIMARY,
-      titleCode = person.titleCode,
-      dateOfBirth = person.dateOfBirth,
-      sexCode = person.sexCode,
-    )
-
-    fun aliasFrom(alias: Alias): PseudonymEntity? = when {
-      isAliasPresent(alias.firstName, alias.middleNames, alias.lastName) ->
-        PseudonymEntity(
-          firstName = alias.firstName,
-          middleNames = alias.middleNames,
-          lastName = alias.lastName,
-          dateOfBirth = alias.dateOfBirth,
-          nameType = NameType.ALIAS,
-          titleCode = alias.titleCode,
-          sexCode = alias.sexCode,
-        )
-      else -> null
-    }
-
-    private fun isAliasPresent(firstName: String?, middleNames: String?, surname: String?): Boolean = sequenceOf(firstName, middleNames, surname)
-      .filterNotNull().any { it.isNotBlank() }
-  }
-}
+)

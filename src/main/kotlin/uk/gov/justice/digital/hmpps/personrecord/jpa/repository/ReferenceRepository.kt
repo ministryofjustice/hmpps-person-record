@@ -5,7 +5,4 @@ import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 
 @Repository
-interface ReferenceRepository : JpaRepository<ReferenceEntity, Long> {
-
-
-}
+interface ReferenceRepository : JpaRepository<ReferenceEntity, Long>

@@ -13,8 +13,6 @@ data class PrisonIdentifier(
   val value: String,
   @Schema(description = "The identifier comment", example = "Some comment")
   val comment: String? = null,
-  @Schema(description = "The issued authority", example = "Police")
-  val issuedAuthority: String?,
   @Schema(description = "The issued date")
   val issuedDate: LocalDate?,
   @Schema(description = "Verified")
