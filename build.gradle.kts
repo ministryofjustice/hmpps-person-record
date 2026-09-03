@@ -68,6 +68,12 @@ tasks.register<Test>("e2eTest") {
   onlyIf { gradle.startParameter.taskNames.contains("e2eTest") }
 }
 
+tasks.register<Exec>("setUpS3Bucket") {
+  description = "creates S3 buckets in localstack for testing"
+  executable = "sh"
+  args = listOf("-c", "./src/test/resources/localstack/setup-aws.sh")
+}
+
 tasks {
   test {
     exclude("**/InitialiseDatabase.class")
@@ -75,7 +81,7 @@ tasks {
   }
 
   getByName("check") {
-    dependsOn(":ktlintCheck")
+    dependsOn(":ktlintCheck", "setUpS3Bucket")
   }
 
   getByName("koverHtmlReport") {
