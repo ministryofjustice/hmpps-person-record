@@ -91,15 +91,14 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       assertReferenceMatchesRequest(references[0], requestBody.identifiers[0])
       assertReferenceMatchesRequest(references[1], requestBody.identifiers[1])
 
-      // Assert that the top level person attributes have been updated from the primary alias
-      val primaryAlias = requestBody.aliases.first { it.isPrimary!! }
-      assertThat(person.ethnicityCode).isEqualTo(primaryAlias.ethnicity)
-      assertThat(person.birthplace).isEqualTo(primaryAlias.birthPlace)
-      assertThat(person.birthCountryCode).isEqualTo(primaryAlias.birthCountry)
+      // Assert that the top level person attributes have been updated from the primary pseudonym
+      val primaryPseudonym = requestBody.aliases.first { it.isPrimary!! }
+      assertThat(person.ethnicityCode).isEqualTo(primaryPseudonym.ethnicity)
+      assertThat(person.birthplace).isEqualTo(primaryPseudonym.birthPlace)
+      assertThat(person.birthCountryCode).isEqualTo(primaryPseudonym.birthCountry)
 
       // Assert that the mappings are as expected in the response body
       assertThat(response.prisonNumber).isEqualTo(prisonNumber)
-      assertThat(response.cprId).isEqualTo(prisonNumber)
       assertThat(response.identifiersMappings).hasSize(2)
       assertExpectedReferenceMapping(response.identifiersMappings[0], references[0].updateId.toString(), requestBody.identifiers[0].nomisIdentifierId)
       assertExpectedReferenceMapping(response.identifiersMappings[1], references[1].updateId.toString(), requestBody.identifiers[1].nomisIdentifierId)
@@ -108,7 +107,7 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `successful save deletes orphaned aliases`() {
+    fun `successful save deletes orphaned pseudonyms`() {
       val prisonNumber = randomPrisonNumber()
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
       val pseudonymsToBeDeleted = personRepository.findByPrisonNumber(prisonNumber)!!.pseudonyms
@@ -134,14 +133,58 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
   @Nested
   inner class Validation {
 
+    private fun postAndExpect(prisonNumber: String, requestBody: PrisonAliasesAndIdentifiersRequest) = webTestClient
+      .post()
+      .uri(aliasesIdentifiersUrl(prisonNumber))
+      .bodyValue(requestBody)
+      .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+      .exchange()
+      .expectStatus()
+
     @Test
-    fun `should respond with bad request when no aliases are posted`() {
-      sendPostRequestAsserted<Unit>(
-        url = aliasesIdentifiersUrl(randomPrisonNumber()),
-        body = PrisonAliasesAndIdentifiersRequest(aliases = emptyList(), identifiers = emptyList()),
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.BAD_REQUEST,
-      )
+    fun `should respond with bad request when no pseudonyms are posted`() {
+      val noPseudonymRequestBody = validRequestBody().copy(aliases = emptyList())
+      postAndExpect(randomPrisonNumber(), noPseudonymRequestBody).isBadRequest
+    }
+
+    @Test
+    fun `should return bad request when there is no primary pseudonym`() {
+      val noPrimaryPseudonymRequestBody = validRequestBody().copy(aliases = validRequestBody().aliases.map { it.copy(isPrimary = false) })
+      postAndExpect(randomPrisonNumber(), noPrimaryPseudonymRequestBody).isBadRequest.expectBody()
+        .jsonPath("userMessage")
+        .value<String> { userMessage ->
+          assertThat(userMessage).contains("There must be exactly one primary pseudonym")
+        }
+    }
+
+    @Test
+    fun `should return bad request when there is more than one primary pseudonym`() {
+      val multiplePrimaryPseudonymRequestBody = validRequestBody().copy(aliases = validRequestBody().aliases.map { it.copy(isPrimary = true) })
+      postAndExpect(randomPrisonNumber(), multiplePrimaryPseudonymRequestBody).isBadRequest.expectBody()
+        .jsonPath("userMessage")
+        .value<String> { userMessage ->
+          assertThat(userMessage).contains("There must be exactly one primary pseudonym")
+        }
+    }
+
+    @Test
+    fun `should return bad request when there are duplicate nomis ids on the pseudonyms`() {
+      val multiplePrimaryPseudonymRequestBody = validRequestBody().copy(aliases = validRequestBody().aliases.map { it.copy(nomisOffenderId = 10000L) })
+      postAndExpect(randomPrisonNumber(), multiplePrimaryPseudonymRequestBody).isBadRequest.expectBody()
+        .jsonPath("userMessage")
+        .value<String> { userMessage ->
+          assertThat(userMessage).contains("Duplicate nomis pseudonym ids were detected")
+        }
+    }
+
+    @Test
+    fun `should return bad request when there are duplicate nomis ids on the reference`() {
+      val multiplePrimaryPseudonymRequestBody = validRequestBody().copy(identifiers = validRequestBody().identifiers.map { it.copy(nomisIdentifierId = RequestNomisIdentifierId(nomisOffenderId = 10000L, nomisSequence = 0)) })
+      postAndExpect(randomPrisonNumber(), multiplePrimaryPseudonymRequestBody).isBadRequest.expectBody()
+        .jsonPath("userMessage")
+        .value<String> { userMessage ->
+          assertThat(userMessage).contains("Duplicate nomis reference ids were detected")
+        }
     }
   }
 
@@ -216,7 +259,7 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
         verified = true,
       ),
       PrisonIdentifier(
-        nomisIdentifierId = RequestNomisIdentifierId(nomisOffenderId = 10001L, nomisSequence = 0),
+        nomisIdentifierId = RequestNomisIdentifierId(nomisOffenderId = 10000L, nomisSequence = 1),
         type = IdentifierType.PNC,
         value = "2001/1234567B",
         comment = "DVLA",

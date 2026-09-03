@@ -37,62 +37,61 @@ class SysconAliasesAndIdentifiersMigrationHandler(
   ): SysconAliasesAndIdentifiersResponseBody {
     validateRequest(prisonNumber, prisonAliasesAndIdentifiersRequest)
     val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw IllegalArgumentException("Person with $prisonNumber not found")
-    val identifierMappings = handleIdentifiersInsert(prisonAliasesAndIdentifiersRequest.identifiers, person)
-    val aliasMappings = handleAliasesInsert(prisonAliasesAndIdentifiersRequest.aliases, person)
+    val referenceMappings = handleReferencesInsert(prisonAliasesAndIdentifiersRequest.identifiers, person)
+    val pseudonymMappings = handlePseudonymsInsert(prisonAliasesAndIdentifiersRequest.aliases, person)
 
-    val currentAlias = prisonAliasesAndIdentifiersRequest.aliases.first { it.isPrimary == true }
-    person.ethnicityCode = currentAlias.ethnicity
-    person.birthCountryCode = currentAlias.birthCountry
-    person.birthplace = currentAlias.birthPlace
+    val currentPseudonym = prisonAliasesAndIdentifiersRequest.aliases.first { it.isPrimary == true }
+    person.ethnicityCode = currentPseudonym.ethnicity
+    person.birthCountryCode = currentPseudonym.birthCountry
+    person.birthplace = currentPseudonym.birthPlace
     val updatedPerson = personRepository.saveAndFlush(person)
     personService.processPerson(Person.from(updatedPerson)) { updatedPerson }
 
     return SysconAliasesAndIdentifiersResponseBody(
-      aliasesMappings = aliasMappings,
-      identifiersMappings = identifierMappings,
+      aliasesMappings = pseudonymMappings,
+      identifiersMappings = referenceMappings,
       prisonNumber = prisonNumber,
-      cprId = prisonNumber,
     )
   }
 
-  private fun handleAliasesInsert(aliases: List<PrisonAlias>, personEntity: PersonEntity): List<SysconAliasMapping> {
-    val aliasEntities = pseudonymRepository.saveAllAndFlush(aliases.map { it.toEntity(personEntity) }) //  Guarantee ordering
-    personEntity.updatePseudonyms(aliasEntities)
+  private fun handlePseudonymsInsert(pseudonyms: List<PrisonAlias>, personEntity: PersonEntity): List<SysconAliasMapping> {
+    val pseudonymEntities = pseudonymRepository.saveAllAndFlush(pseudonyms.map { it.toEntity(personEntity) }) //  Guarantee ordering
+    personEntity.updatePseudonyms(pseudonymEntities)
     personRepository.saveAndFlush(personEntity)
-    val aliasMappings = aliases
-      .zip(aliasEntities)
+    val pseudonymMappings = pseudonyms
+      .zip(pseudonymEntities)
       .map { (alias, entity) -> SysconAliasMapping(alias.nomisOffenderId, entity.updateId.toString()) }
-    return aliasMappings
+    return pseudonymMappings
   }
 
-  private fun handleIdentifiersInsert(identifiers: List<PrisonIdentifier>, personEntity: PersonEntity): List<SysconIdentifierMapping> {
-    val identifierEntities = referenceRepository.saveAllAndFlush(identifiers.map { it.toEntity(personEntity) }) // Guarantee ordering
-    personEntity.updatePersonReferences(identifierEntities)
+  private fun handleReferencesInsert(references: List<PrisonIdentifier>, personEntity: PersonEntity): List<SysconIdentifierMapping> {
+    val referenceEntities = referenceRepository.saveAllAndFlush(references.map { it.toEntity(personEntity) }) // Guarantee ordering
+    personEntity.updatePersonReferences(referenceEntities)
     personRepository.saveAndFlush(personEntity)
-    val identifierMappings = identifiers
-      .zip(identifierEntities)
+    val referenceMappings = references
+      .zip(referenceEntities)
       .map { (identifier, entity) -> SysconIdentifierMapping(identifier.nomisIdentifierId.toId(), entity.updateId.toString()) }
-    return identifierMappings
+    return referenceMappings
   }
 
   private fun validateRequest(prisonNumber: String, prisonAliasesAndIdentifiersRequest: PrisonAliasesAndIdentifiersRequest) {
-    val aliases = prisonAliasesAndIdentifiersRequest.aliases
-    if (aliases.isEmpty()) {
-      throw IllegalArgumentException("At least one alias must be sent for $prisonNumber")
+    val pseudonyms = prisonAliasesAndIdentifiersRequest.aliases
+    if (pseudonyms.isEmpty()) {
+      throw IllegalArgumentException("At least one pseudonym must be sent for $prisonNumber")
     }
-    val currentAliases = aliases.filter { it.isPrimary ?: false }
-    if (currentAliases.size != 1) {
-      throw IllegalArgumentException("There must be exactly one primary alias for $prisonNumber")
+    val primaryPseudonym = pseudonyms.filter { it.isPrimary ?: false }
+    if (primaryPseudonym.size != 1) {
+      throw IllegalArgumentException("There must be exactly one primary pseudonym for $prisonNumber")
     }
-    val aliasDuplicates = aliases.groupingBy { it.nomisOffenderId }.eachCount().filter { it.value > 1 }
-    if (aliasDuplicates.isNotEmpty()) {
-      throw IllegalArgumentException("Duplicate nomis alias ids were detected for $prisonNumber: ${aliasDuplicates.keys.joinToString()}")
+    val pseudonymDuplicates = pseudonyms.groupingBy { it.nomisOffenderId }.eachCount().filter { it.value > 1 }
+    if (pseudonymDuplicates.isNotEmpty()) {
+      throw IllegalArgumentException("Duplicate nomis pseudonym ids were detected for $prisonNumber: ${pseudonymDuplicates.keys.joinToString()}")
     }
-    val identifiers = prisonAliasesAndIdentifiersRequest.identifiers
-    val identifierDuplicates = identifiers.map { it.nomisIdentifierId }.groupingBy { it.nomisOffenderId to it.nomisSequence }.eachCount().filter { it.value > 1 }
-    if (identifierDuplicates.isNotEmpty()) {
+    val references = prisonAliasesAndIdentifiersRequest.identifiers
+    val referenceDuplicates = references.map { it.nomisIdentifierId }.groupingBy { it.nomisOffenderId to it.nomisSequence }.eachCount().filter { it.value > 1 }
+    if (referenceDuplicates.isNotEmpty()) {
       throw IllegalArgumentException(
-        "Duplicate nomis identifier ids were detected for $prisonNumber: ${identifierDuplicates.keys.joinToString { "${it.first}-${it.second}" }}",
+        "Duplicate nomis reference ids were detected for $prisonNumber: ${referenceDuplicates.keys.joinToString { "${it.first}-${it.second}" }}",
       )
     }
   }
