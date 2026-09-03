@@ -74,8 +74,7 @@ class SysconAliasesAndIdentifiersMigrationHandler(
     return referenceMappings
   }
 
-  private fun validateRequest(prisonNumber: String, prisonAliasesAndIdentifiersRequest: PrisonAliasesAndIdentifiersRequest) {
-    val pseudonyms = prisonAliasesAndIdentifiersRequest.aliases
+  private fun validatePseudonyms(prisonNumber: String, pseudonyms: List<PrisonAlias>) {
     if (pseudonyms.isEmpty()) {
       throw IllegalArgumentException("At least one pseudonym must be sent for $prisonNumber")
     }
@@ -83,17 +82,24 @@ class SysconAliasesAndIdentifiersMigrationHandler(
     if (primaryPseudonym.size != 1) {
       throw IllegalArgumentException("There must be exactly one primary pseudonym for $prisonNumber")
     }
-    val pseudonymDuplicates = pseudonyms.groupingBy { it.nomisOffenderId }.eachCount().filter { it.value > 1 }
-    if (pseudonymDuplicates.isNotEmpty()) {
-      throw IllegalArgumentException("Duplicate nomis pseudonym ids were detected for $prisonNumber: ${pseudonymDuplicates.keys.joinToString()}")
+    val pseudonymNomisIdDuplicates = pseudonyms.groupingBy { it.nomisOffenderId }.eachCount().filter { it.value > 1 }
+    if (pseudonymNomisIdDuplicates.isNotEmpty()) {
+      throw IllegalArgumentException("Duplicate nomis pseudonym ids were detected for $prisonNumber: ${pseudonymNomisIdDuplicates.keys.joinToString()}")
     }
-    val references = prisonAliasesAndIdentifiersRequest.identifiers
+  }
+
+  private fun validateReferences(prisonNumber: String, references: List<PrisonIdentifier>) {
     val referenceDuplicates = references.map { it.nomisIdentifierId }.groupingBy { it.nomisOffenderId to it.nomisSequence }.eachCount().filter { it.value > 1 }
     if (referenceDuplicates.isNotEmpty()) {
       throw IllegalArgumentException(
         "Duplicate nomis reference ids were detected for $prisonNumber: ${referenceDuplicates.keys.joinToString { "${it.first}-${it.second}" }}",
       )
     }
+  }
+
+  private fun validateRequest(prisonNumber: String, prisonAliasesAndIdentifiersRequest: PrisonAliasesAndIdentifiersRequest) {
+    validatePseudonyms(prisonNumber, prisonAliasesAndIdentifiersRequest.aliases)
+    validateReferences(prisonNumber, prisonAliasesAndIdentifiersRequest.identifiers)
   }
 
   /**

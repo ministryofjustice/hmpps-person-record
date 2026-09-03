@@ -10,11 +10,14 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 object PseudonymBuilder {
 
   fun buildPseudonyms(person: Person, personEntity: PersonEntity): List<PseudonymEntity> {
+    // We need to allow for sematically identical pseudonyms at present.
+    // Therefore, we need to check that we don't match the same pseudonym multiple times.
+    val alreadyMatchedIds = personEntity.pseudonyms.mapNotNull { it.id }.associateWith { false }.toMutableMap()
     val pseudonyms = (listOf(person.currentAlias()) + person.aliases).mapIndexedNotNull { index, alias ->
       val nameType = if (index == 0) NameType.PRIMARY else NameType.ALIAS
       alias.existsIn(
         childEntities = personEntity.pseudonyms,
-        match = { ref, entity -> entity.matches(ref, nameType) },
+        match = { ref, entity -> entity.matches(ref, nameType, alreadyMatchedIds) },
         yes = { it },
         no = { alias.from(nameType) },
       )
@@ -23,17 +26,35 @@ object PseudonymBuilder {
   }
 }
 
-private fun Alias.from(nameType: NameType): PseudonymEntity = PseudonymEntity(
-  firstName = this.firstName,
-  middleNames = this.middleNames,
-  lastName = this.lastName,
-  nameType = nameType,
-  titleCode = this.titleCode,
-  dateOfBirth = this.dateOfBirth,
-  sexCode = this.sexCode,
-)
+fun Alias.from(nameType: NameType): PseudonymEntity? = when {
+  isAliasPresent(firstName, middleNames, lastName) ->
+    PseudonymEntity(
+      firstName = firstName,
+      middleNames = middleNames,
+      lastName = lastName,
+      dateOfBirth = dateOfBirth,
+      nameType = nameType,
+      titleCode = titleCode,
+      sexCode = sexCode,
+    )
+  else -> null
+}
 
-private fun PseudonymEntity.matches(alias: Alias, nameType: NameType): Boolean = alias == Alias.from(this) && this.nameType == nameType
+private fun PseudonymEntity.matches(
+  alias: Alias,
+  nameType: NameType,
+  alreadyMatchedIds: MutableMap<Long, Boolean>,
+): Boolean {
+  val alreadyMatched = alreadyMatchedIds[this.id] ?: false
+  if (this.id != null && !alreadyMatched && alias == Alias.from(this) && this.nameType == nameType) {
+    alreadyMatchedIds[this.id!!] = true
+    return true
+  }
+  return false
+}
+
+private fun isAliasPresent(firstName: String?, middleNames: String?, surname: String?): Boolean = sequenceOf(firstName, middleNames, surname)
+  .filterNotNull().any { it.isNotBlank() }
 
 private fun Person.currentAlias() = Alias(
   firstName = firstName,
