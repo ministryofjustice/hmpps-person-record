@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAliasesAndIdentifiersRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonIdentifier
@@ -36,7 +37,7 @@ class SysconAliasesAndIdentifiersMigrationHandler(
     prisonAliasesAndIdentifiersRequest: PrisonAliasesAndIdentifiersRequest,
   ): SysconAliasesAndIdentifiersResponseBody {
     validateRequest(prisonNumber, prisonAliasesAndIdentifiersRequest)
-    val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw IllegalArgumentException("Person with $prisonNumber not found")
+    val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
     val referenceMappings = handleReferencesInsert(prisonAliasesAndIdentifiersRequest.identifiers, person)
     val pseudonymMappings = handlePseudonymsInsert(prisonAliasesAndIdentifiersRequest.aliases, person)
 
