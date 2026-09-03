@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.isPseudonymPresent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PseudonymRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReferenceRepository
@@ -87,6 +88,10 @@ class SysconAliasesAndIdentifiersMigrationHandler(
     if (pseudonymNomisIdDuplicates.isNotEmpty()) {
       throw IllegalArgumentException("Duplicate nomis pseudonym ids were detected for $prisonNumber: ${pseudonymNomisIdDuplicates.keys.joinToString()}")
     }
+    val pseudonymsWithoutName = pseudonyms.filter { !it.isPseudonymPresent() }
+    if (pseudonymsWithoutName.isNotEmpty()) {
+      throw IllegalArgumentException("Pseudonyms without a name were detected for $prisonNumber: ${pseudonymsWithoutName.map { it.nomisOffenderId }.joinToString()}")
+    }
   }
 
   private fun validateReferences(prisonNumber: String, references: List<PrisonIdentifier>) {
@@ -95,6 +100,10 @@ class SysconAliasesAndIdentifiersMigrationHandler(
       throw IllegalArgumentException(
         "Duplicate nomis reference ids were detected for $prisonNumber: ${referenceDuplicates.keys.joinToString { "${it.first}-${it.second}" }}",
       )
+    }
+    val referenceWithoutValue = references.filter { it.value.isBlank() }
+    if (referenceWithoutValue.isNotEmpty()) {
+      throw IllegalArgumentException("Reference without a name were detected for $prisonNumber: ${referenceWithoutValue.map { it.nomisIdentifierId }.joinToString { "${it.nomisOffenderId}-${it.nomisSequence}"}}")
     }
   }
 
@@ -134,4 +143,6 @@ class SysconAliasesAndIdentifiersMigrationHandler(
   )
 
   fun RequestNomisIdentifierId.toId(): ResponseNomisIdentifierId = ResponseNomisIdentifierId(nomisOffenderId, nomisSequence)
+
+  fun PrisonAlias.isPseudonymPresent() = !firstName.isNullOrBlank() || !lastName.isNullOrBlank() || !middleNames.isNullOrBlank()
 }

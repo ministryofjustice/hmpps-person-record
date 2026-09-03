@@ -26,8 +26,24 @@ object PseudonymBuilder {
   }
 }
 
+private fun PseudonymEntity.matches(
+  pseudonym: Alias,
+  nameType: NameType,
+  matchedPseudonymIds: MutableSet<Long>,
+): Boolean {
+  if (id == null ||
+    id in matchedPseudonymIds ||
+    this.nameType != nameType ||
+    pseudonym != Alias.from(this)
+  ) {
+    return false
+  }
+  matchedPseudonymIds += id!!
+  return true
+}
+
 private fun Alias.from(nameType: NameType): PseudonymEntity? = when {
-  isAliasPresent(firstName, middleNames, lastName) ->
+  isPseudonymPresent() ->
     PseudonymEntity(
       firstName = firstName,
       middleNames = middleNames,
@@ -40,21 +56,4 @@ private fun Alias.from(nameType: NameType): PseudonymEntity? = when {
   else -> null
 }
 
-private fun PseudonymEntity.matches(
-  alias: Alias,
-  nameType: NameType,
-  matchedPseudonymIds: MutableSet<Long>,
-): Boolean {
-  if (id == null ||
-    id in matchedPseudonymIds ||
-    this.nameType != nameType ||
-    alias != Alias.from(this)
-  ) {
-    return false
-  }
-  matchedPseudonymIds += id!!
-  return true
-}
-
-private fun isAliasPresent(firstName: String?, middleNames: String?, surname: String?): Boolean = sequenceOf(firstName, middleNames, surname)
-  .filterNotNull().any { it.isNotBlank() }
+fun Alias.isPseudonymPresent() = !firstName.isNullOrBlank() || !middleNames.isNullOrBlank() || !lastName.isNullOrBlank()

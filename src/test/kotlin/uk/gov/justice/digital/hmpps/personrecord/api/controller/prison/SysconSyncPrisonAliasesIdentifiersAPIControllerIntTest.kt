@@ -214,6 +214,17 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
     }
 
     @Test
+    fun `should return bad request when there is pseudonyms without a name`() {
+      val multiplePrimaryPseudonymRequestBody =
+        validRequestBody().copy(aliases = listOf(validRequestBody().aliases[0].copy(firstName = null, middleNames = null, lastName = null)))
+      postAndExpect(randomPrisonNumber(), multiplePrimaryPseudonymRequestBody).isBadRequest.expectBody()
+        .jsonPath("userMessage")
+        .value<String> { userMessage ->
+          assertThat(userMessage).contains("Pseudonyms without a name were detected")
+        }
+    }
+
+    @Test
     fun `should return bad request when there are duplicate nomis ids on the reference`() {
       val multiplePrimaryPseudonymRequestBody =
         validRequestBody().copy(
@@ -230,6 +241,17 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
         .jsonPath("userMessage")
         .value<String> { userMessage ->
           assertThat(userMessage).contains("Duplicate nomis reference ids were detected")
+        }
+    }
+
+    @Test
+    fun `should return bad request when there is reference without a value`() {
+      val multiplePrimaryPseudonymRequestBody =
+        validRequestBody().copy(identifiers = listOf(validRequestBody().identifiers[0].copy(value = "")))
+      postAndExpect(randomPrisonNumber(), multiplePrimaryPseudonymRequestBody).isBadRequest.expectBody()
+        .jsonPath("userMessage")
+        .value<String> { userMessage ->
+          assertThat(userMessage).contains("Reference without a name were detected")
         }
     }
   }
