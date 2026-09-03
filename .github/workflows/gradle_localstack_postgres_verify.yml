@@ -128,6 +128,7 @@ jobs:
         with:
           name: ${{ inputs.artifact-name }}
           path: |
+            ${{ inputs.build-dir }}/test-results
             ${{ inputs.build-dir }}/reports/tests
             ${{ inputs.build-dir }}/reports/kover/html
       - name: Upload the build artifacts
