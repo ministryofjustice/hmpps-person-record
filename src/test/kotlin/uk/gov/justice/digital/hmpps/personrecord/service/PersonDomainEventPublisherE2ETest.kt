@@ -1,16 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
-import org.springframework.test.web.reactive.server.WebTestClient
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.QUEUE_ADMIN
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.PERSON
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
@@ -21,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
@@ -42,24 +37,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
-import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
-@AutoConfigureWebTestClient
-class PersonDomainEventPublisherIntTest : MessagingTestBase() {
-
-  @Autowired
-  lateinit var webTestClient: WebTestClient
-
-  @Autowired
-  internal lateinit var jwtAuthorisationHelper: JwtAuthorisationHelper
-
-  fun WebTestClient.RequestHeadersSpec<*>.authorised(roles: List<String> = listOf(QUEUE_ADMIN)): WebTestClient.RequestBodySpec = headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = roles)) as WebTestClient.RequestBodySpec
-
-  @BeforeEach
-  fun setup() {
-    stubPersonMatchUpsert()
-    stubPersonMatchScores()
-  }
+class PersonDomainEventPublisherE2ETest : E2ETestBase() {
 
   @Nested
   inner class PersonCreatedScenarios {
@@ -251,7 +230,6 @@ class PersonDomainEventPublisherIntTest : MessagingTestBase() {
       ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
     )
 
-    stubDeletePersonMatch()
     webTestClient.delete()
       .uri("/person/prison/$prisonNumber")
       .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
@@ -285,7 +263,6 @@ class PersonDomainEventPublisherIntTest : MessagingTestBase() {
       ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
     )
 
-    stubDeletePersonMatch()
     publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, crn)
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
