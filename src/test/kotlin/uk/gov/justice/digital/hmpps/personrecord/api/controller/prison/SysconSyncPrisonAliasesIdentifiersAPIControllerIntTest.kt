@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
@@ -32,31 +33,6 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
   @Autowired
   lateinit var pseudonymRepository: PseudonymRepository
 
-  private fun assertReferenceMatchesRequest(referenceEntity: ReferenceEntity, request: PrisonIdentifier) = with(referenceEntity) {
-    assertThat(identifierType).isEqualTo(request.type)
-    assertThat(identifierValue).isEqualTo(request.value)
-    assertThat(comment).isEqualTo(request.comment)
-  }
-
-  private fun assertPseudonymMatchesRequest(pseudonym: PseudonymEntity, request: PrisonAlias) = with(pseudonym) {
-    assertThat(titleCode).isEqualTo(request.titleCode)
-    assertThat(firstName).isEqualTo(request.firstName)
-    assertThat(middleNames).isEqualTo(request.middleNames)
-    assertThat(lastName).isEqualTo(request.lastName)
-    assertThat(dateOfBirth).isEqualTo(request.dateOfBirth)
-    assertThat(sexCode).isEqualTo(request.sexCode)
-  }
-
-  private fun assertExpectedReferenceMapping(actual: SysconIdentifierMapping, expectedCprReferenceId: String, expectedNomisIdentifierId: RequestNomisIdentifierId) = assertThat(actual).isEqualTo(
-    SysconIdentifierMapping(
-      nomisIdentifierId = ResponseNomisIdentifierId(
-        nomisOffenderId = expectedNomisIdentifierId.nomisOffenderId,
-        nomisSequence = expectedNomisIdentifierId.nomisSequence,
-      ),
-      cprIdentifierId = expectedCprReferenceId,
-    ),
-  )
-
   private fun assertExpectedPseudonymMapping(actual: SysconAliasMapping, expectedCprPseudonymId: String, expectedNomisOffenderId: Long) = assertThat(actual).isEqualTo(
     SysconAliasMapping(
       nomisOffenderId = expectedNomisOffenderId,
@@ -65,13 +41,31 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
   )
 
   @Nested
+  @ActiveProfiles("prod")
+  inner class ProductionProfile {
+
+    @Test
+    fun `should have the correct profile active`() {
+      val prisonNumber = randomPrisonNumber()
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      webTestClient
+        .post()
+        .uri(aliasesIdentifiersUrl(prisonNumber))
+        .bodyValue(validRequestBody())
+        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isEqualTo(HttpStatus.NOT_IMPLEMENTED)
+    }
+  }
+
+  @Nested
   inner class Creation {
 
     @Test
     fun `successful save returns the correct response body`() {
       val prisonNumber = randomPrisonNumber()
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
-
       val requestBody = validRequestBody()
       val response = webTestClient
         .post()
@@ -111,6 +105,29 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       assertExpectedReferenceMapping(response.identifiersMappings[1], references[1].updateId.toString(), requestBody.identifiers[1].nomisIdentifierId)
       assertExpectedPseudonymMapping(response.aliasesMappings[0], pseudonyms[0].updateId.toString(), requestBody.aliases[0].nomisOffenderId)
       assertExpectedPseudonymMapping(response.aliasesMappings[1], pseudonyms[1].updateId.toString(), requestBody.aliases[1].nomisOffenderId)
+    }
+
+    @Test
+    fun `successful save deletes orphaned aliases`() {
+      val prisonNumber = randomPrisonNumber()
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      val pseudonymsToBeDeleted = personRepository.findByPrisonNumber(prisonNumber)!!.pseudonyms
+      assertThat(pseudonymsToBeDeleted).hasSize(2)
+      assertThat(pseudonymsToBeDeleted[0].id).isNotNull()
+      assertThat(pseudonymsToBeDeleted[1].id).isNotNull()
+
+      webTestClient
+        .post()
+        .uri(aliasesIdentifiersUrl(prisonNumber))
+        .bodyValue(validRequestBody())
+        .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+        .exchange()
+        .expectStatus()
+        .isCreated
+
+      // Check that we can no longer find the orphaned pseudonyms in the repository
+      val orphanedPseudonyms = pseudonymsToBeDeleted.map { pseudonymRepository.findById(it.id!!) }
+      assertThat(orphanedPseudonyms).allMatch { it.isEmpty }
     }
   }
 
@@ -206,6 +223,31 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
         issuedDate = LocalDate.of(2021, 2, 2),
         verified = false,
       ),
+    ),
+  )
+
+  private fun assertReferenceMatchesRequest(referenceEntity: ReferenceEntity, request: PrisonIdentifier) = with(referenceEntity) {
+    assertThat(identifierType).isEqualTo(request.type)
+    assertThat(identifierValue).isEqualTo(request.value)
+    assertThat(comment).isEqualTo(request.comment)
+  }
+
+  private fun assertPseudonymMatchesRequest(pseudonym: PseudonymEntity, request: PrisonAlias) = with(pseudonym) {
+    assertThat(titleCode).isEqualTo(request.titleCode)
+    assertThat(firstName).isEqualTo(request.firstName)
+    assertThat(middleNames).isEqualTo(request.middleNames)
+    assertThat(lastName).isEqualTo(request.lastName)
+    assertThat(dateOfBirth).isEqualTo(request.dateOfBirth)
+    assertThat(sexCode).isEqualTo(request.sexCode)
+  }
+
+  private fun assertExpectedReferenceMapping(actual: SysconIdentifierMapping, expectedCprReferenceId: String, expectedNomisIdentifierId: RequestNomisIdentifierId) = assertThat(actual).isEqualTo(
+    SysconIdentifierMapping(
+      nomisIdentifierId = ResponseNomisIdentifierId(
+        nomisOffenderId = expectedNomisIdentifierId.nomisOffenderId,
+        nomisSequence = expectedNomisIdentifierId.nomisSequence,
+      ),
+      cprIdentifierId = expectedCprReferenceId,
     ),
   )
 }
