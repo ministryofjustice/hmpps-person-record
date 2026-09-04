@@ -36,20 +36,28 @@ import java.time.LocalTime
 import java.time.ZonedDateTime
 import java.util.UUID
 
-fun randomLongPnc(): String {
+fun randomLongPnc(lowercaseCheckDigit: Boolean = false): String {
   val year = randomYear().toString()
   val digits = randomDigit(7)
-  val check = VALID_LETTERS[(year.takeLast(2) + digits).toInt().mod(VALID_LETTERS.length)]
+  val check = caseAdjustedCheckDigit(
+    VALID_LETTERS[(year.takeLast(2) + digits).toInt().mod(VALID_LETTERS.length)],
+    lowercaseCheckDigit,
+  )
   return "$year/$digits$check"
 }
 
 // output 79/123456H
-fun randomShortPnc(): String {
+fun randomShortPnc(lowercaseCheckDigit: Boolean = false): String {
   val year = randomYear().toString().takeLast(2)
   val digits = randomDigit(6)
-  val check = VALID_LETTERS[(year + digits.padStart(7, '0')).toInt().mod(VALID_LETTERS.length)]
+  val check = caseAdjustedCheckDigit(
+    VALID_LETTERS[(year + digits.padStart(7, '0')).toInt().mod(VALID_LETTERS.length)],
+    lowercaseCheckDigit,
+  )
   return "$year/$digits$check"
 }
+
+private fun caseAdjustedCheckDigit(checkDigit: Char, lowercaseCheckDigit: Boolean): Char = if (lowercaseCheckDigit) checkDigit.lowercaseChar() else checkDigit
 
 fun randomPhoneNumber(): String = randomDigit(10)
 
