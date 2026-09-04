@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.SentenceInfoEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
@@ -109,7 +108,7 @@ class PersonEntityMappingTest {
       PseudonymEntity(nameType = NameType.PRIMARY, firstName = randomName(), lastName = randomName(), middleNames = randomName(), titleCode = randomTitleCode().value, dateOfBirth = randomDate(), sexCode = SexCode.F),
       PseudonymEntity(nameType = NameType.ALIAS, firstName = randomName(), lastName = randomName(), middleNames = randomName(), titleCode = randomTitleCode().value, dateOfBirth = randomDate(), sexCode = SexCode.M),
     ),
-    addresses = mutableListOf(AddressEntity(buildingNumber = randomBuildingNumber(), postcode = randomPostcode(), recordType = AddressRecordType.PRIMARY)),
+    addresses = mutableListOf(AddressEntity(buildingNumber = randomBuildingNumber(), postcode = randomPostcode())),
     contacts = mutableListOf(ContactEntity(contactType = ContactType.HOME, contactValue = randomName())),
     references = mutableListOf(ReferenceEntity(identifierType = IdentifierType.IMMN, identifierValue = randomName())),
     sentenceInfo = mutableListOf(SentenceInfoEntity(sentenceDate = randomDate())),

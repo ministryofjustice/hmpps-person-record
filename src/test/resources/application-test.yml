@@ -46,7 +46,7 @@ hmpps.sqs:
     testcprdomaineventsqueue:
       queueName: test_only_cpr_domain_events_queue
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "core-person-record.prison.record.created", "core-person-record.probation.record.created", "core-person-record.court.record.created", "core-person-record.probation.address.created", "core-person-record.probation.address.updated", "core-person-record.probation.address.deleted", "core-person-record.prison.religion.created", "core-person-record.prison.religion.updated"] }'
+      subscribeFilter: '{"eventType":[ "core-person-record.prison.record.created", "core-person-record.probation.record.created", "core-person-record.court.record.created", "core-person-record.probation.record.updated", "core-person-record.probation.record.deleted", "core-person-record.probation.address.created", "core-person-record.probation.address.updated", "core-person-record.probation.address.deleted", "core-person-record.prison.religion.created", "core-person-record.prison.religion.updated"] }'
       dlqName: test_only_cpr_domain_events_queue_dlq
       dlqMaxReceiveCount: 2
     cprdeliusoffendereventsqueue:
@@ -78,12 +78,6 @@ hmpps.sqs:
       dlqName: cpr_nomis_events_dlq
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":["prisoner-offender-search.prisoner.created", "prisoner-offender-search.prisoner.updated"] }'
-      dlqMaxReceiveCount: 2
-    cprnomismergeeventsqueue:
-      queueName: cpr_nomis_merge_events_queue
-      dlqName: cpr_nomis_merge_events_queue_dlq
-      subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "prison-offender-events.prisoner.merged"] }'
       dlqMaxReceiveCount: 2
     cprsaseventsqueue:
       queueName: cpr_sas_events_queue

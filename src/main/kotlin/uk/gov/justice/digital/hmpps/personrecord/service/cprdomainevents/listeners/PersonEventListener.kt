@@ -33,7 +33,7 @@ class PersonEventListener(
   @EventListener
   fun onPersonUpdated(personUpdated: PersonUpdated) {
     publisher.publishEvent(RecordPersonTelemetry(TelemetryEventType.CPR_RECORD_UPDATED, personUpdated.personEntity))
-    if (personUpdated.matchingFieldsHaveChanged) {
+    if (personUpdated.matchingFieldsHaveChanged()) {
       publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_UPDATED, personUpdated.personEntity))
     }
   }

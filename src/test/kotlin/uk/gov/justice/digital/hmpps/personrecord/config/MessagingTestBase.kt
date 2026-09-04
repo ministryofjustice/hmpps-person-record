@@ -77,10 +77,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId(Queues.PRISON_EVENT_QUEUE_ID)
   }
 
-  val prisonMergeEventsQueue by lazy {
-    hmppsQueueService.findByQueueId(Queues.PRISON_MERGE_EVENT_QUEUE_ID)
-  }
-
   val sasEventsQueue by lazy {
     hmppsQueueService.findByQueueId(Queues.SAS_EVENT_QUEUE_ID)
   }
@@ -170,7 +166,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     )
     expectNoMessagesOn(probationEventsQueue)
     expectNoMessagesOn(probationMergeEventsQueue)
-    expectNoMessagesOn(prisonMergeEventsQueue)
     expectNoMessagesOn(prisonEventsQueue)
   }
 
@@ -266,7 +261,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     purgeQueueAndDlq(probationMergeEventsQueue)
     purgeQueueAndDlq(probationDeleteEventsQueue)
     purgeQueueAndDlq(prisonEventsQueue)
-    purgeQueueAndDlq(prisonMergeEventsQueue)
     purgeQueueAndDlq(testOnlyCourtEventsQueue)
     purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
     purgeQueueAndDlq(sasEventsQueue)

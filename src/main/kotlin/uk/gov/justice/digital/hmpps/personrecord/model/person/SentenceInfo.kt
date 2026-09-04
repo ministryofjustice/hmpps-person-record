@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.AllConvic
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.SentenceInfoEntity
 import java.time.LocalDate
 
-class SentenceInfo(
+data class SentenceInfo(
   val sentenceDate: LocalDate? = null,
 ) {
   companion object {

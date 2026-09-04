@@ -537,7 +537,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
     }
 
     @Test
-    fun `multiple updates to single probation record are processed successfully`() {
+    fun `multiple updates to single probation record are processed successfully, producing only 1 record and 1 create event`() {
       val crn = randomCrn()
       blitz(30, 15) {
         probationUpdateEventAndResponseSetup(ApiResponseSetup(crn = crn))
@@ -550,10 +550,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       )
       checkTelemetry(
         CPR_RECORD_UPDATED,
-        mapOf(
-          "SOURCE_SYSTEM" to "DELIUS",
-          "CRN" to crn,
-        ),
+        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
         29,
       )
     }

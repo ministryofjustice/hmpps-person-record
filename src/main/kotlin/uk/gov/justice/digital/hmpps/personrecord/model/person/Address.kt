@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.SasAddressData
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
@@ -39,7 +38,6 @@ data class Address(
   val contacts: List<Contact> = emptyList(),
   var statusCode: AddressStatusCode? = null,
   var usages: List<AddressUsage> = emptyList(),
-  var recordType: AddressRecordType? = null,
   var deliusAddressId: Long? = null,
   var isVerified: Boolean? = null,
 ) {
@@ -106,10 +104,6 @@ data class Address(
       noFixedAbode = address.noFixedAbode,
       startDate = address.startDate?.toUkZonedDateTime(),
       endDate = address.endDate?.toUkZonedDateTime(),
-      recordType = when (address.isPrimary) {
-        true -> AddressRecordType.PRIMARY
-        false -> AddressRecordType.PREVIOUS
-      },
       postcode = address.postcode,
       fullAddress = address.fullAddress,
       subBuildingName = address.subBuildingName,
@@ -182,7 +176,6 @@ data class Address(
       countryCode = addressEntity.countryCode,
       uprn = addressEntity.uprn,
       comment = addressEntity.comment,
-      recordType = addressEntity.recordType,
       statusCode = addressEntity.statusCode,
       deliusAddressId = addressEntity.deliusAddressId,
       isVerified = addressEntity.isVerified,

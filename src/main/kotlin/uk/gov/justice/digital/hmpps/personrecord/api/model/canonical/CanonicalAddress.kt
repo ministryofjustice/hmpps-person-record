@@ -84,6 +84,6 @@ data class CanonicalAddress(
       contacts = CanonicalContact.fromContactEntityList(addressEntity.contacts),
     )
 
-    fun fromAddressEntityList(addressEntity: List<AddressEntity>): List<CanonicalAddress> = CanonicalAddressSorter.sort(addressEntity).map { from(it) }
+    fun fromAddressEntityList(addressEntities: List<AddressEntity>): List<CanonicalAddress> = addressEntities.map { from(it) }
   }
 }

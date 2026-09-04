@@ -11,8 +11,9 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISON_PERSON_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISON_PERSON_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISON_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ADDRESS_DELETED
@@ -55,8 +56,9 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATE
   JsonSubTypes.Type(value = SasAddressArrived::class, name = SAS_ADDRESS_ARRIVED),
   JsonSubTypes.Type(value = PrisonPersonCreated::class, name = PRISON_PERSON_CREATED),
   JsonSubTypes.Type(value = PrisonPersonUpdated::class, name = PRISON_PERSON_UPDATED),
-  JsonSubTypes.Type(value = PrisonPersonMerged::class, name = PRISON_PERSON_MERGED),
   JsonSubTypes.Type(value = CprPersonCreated::class, names = [CPR_PRISON_PERSON_CREATED, CPR_PROBATION_PERSON_CREATED, CPR_COURT_PERSON_CREATED]),
+  JsonSubTypes.Type(value = CprPersonUpdated::class, name = CPR_PROBATION_PERSON_UPDATED),
+  JsonSubTypes.Type(value = CprPersonDeleted::class, name = CPR_PROBATION_PERSON_DELETED),
   JsonSubTypes.Type(value = CprAddressCreated::class, name = CPR_PROBATION_ADDRESS_CREATED),
   JsonSubTypes.Type(value = CprAddressUpdated::class, name = CPR_PROBATION_ADDRESS_UPDATED),
   JsonSubTypes.Type(value = CprAddressDeleted::class, name = CPR_PROBATION_ADDRESS_DELETED),

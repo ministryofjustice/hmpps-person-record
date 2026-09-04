@@ -2,10 +2,10 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonProcessingCompleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
@@ -48,15 +48,15 @@ class PersonService(
   }
 
   private fun update(person: Person, personEntity: PersonEntity): PersonEntity {
-    val beforeUpdate = PersonMatchRecord.from(personEntity)
+    val personChangeChecker = PersonChangeChecker(personEntity)
     personEntity.updatePersonEntity(person)
     personRepository.save(personEntity)
-    val matchingFieldsChanged = beforeUpdate.matchingFieldsAreDifferent(personEntity)
-    if (matchingFieldsChanged && !personEntity.isPassive()) {
+
+    if (personChangeChecker.matchingFieldsHaveChanged(personEntity) && !personEntity.isPassive()) {
       personMatchService.saveToPersonMatch(personEntity)
       recluster(person, personEntity)
     }
-    publisher.publishEvent(PersonUpdated(personEntity, matchingFieldsChanged))
+    publisher.publishEvent(PersonUpdated(personEntity, personChangeChecker))
     return personEntity
   }
 

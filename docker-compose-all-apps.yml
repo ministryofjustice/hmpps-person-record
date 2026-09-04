@@ -22,7 +22,7 @@ services:
 
   localstack-hmpps-person-record:
     container_name: localstack-hmpps-person-record
-    image: localstack/localstack:4
+    image: localstack/localstack:community-archive
     networks:
       - hmpps
     ports:
