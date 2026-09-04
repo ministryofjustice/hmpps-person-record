@@ -32,7 +32,6 @@ jobs:
   pact-verify:
     name: Verify provider pacts
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -52,13 +51,13 @@ jobs:
         run: ./gradlew compilePactTestKotlin --console=plain
 
       - name: Verify pacts
-        run: ./gradlew pactTest --tests "uk.gov.justice.digital.hmpps.personrecord.ProbationProviderPactTest" --console=plain
+        run: ./gradlew pactTest --console=plain
         env:
-          PACT_PUBLISH_RESULTS: ${{ github.event.inputs.publishResults || 'true' }}
+          PACT_PUBLISH_RESULTS: ${{ inputs.publishResults || 'true' }}
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
           PACT_BROKER_USERNAME: ${{ secrets.PACT_BROKER_USERNAME }}
           PACT_BROKER_PASSWORD: ${{ secrets.PACT_BROKER_PASSWORD }}
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_BRANCH: ${{ github.ref_name }}
-          PACT_CONSUMER: ${{ github.event.inputs.consumer }}
-          PACT_CONSUMER_BRANCH: ${{ github.event.inputs.consumerBranch }}
+          PACT_CONSUMER: ${{ inputs.consumer }}
+          PACT_CONSUMER_BRANCH: ${{ inputs.consumerBranch }}

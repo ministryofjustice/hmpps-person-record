@@ -29,7 +29,7 @@ import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 @ActiveProfiles("test")
 @Provider("hmpps-person-record")
 @PactFolder("src/pactTest/resources/pacts")
-@PactBroker(url = "\${pactbroker.url}")
+@PactBroker(url = $$"${pactbroker.url}")
 @SpringBootTest(
   classes = [PactTestConfiguration::class],
   webEnvironment = RANDOM_PORT,
