@@ -1,0 +1,64 @@
+name: Pact Provider Verification
+run-name: Pact verify - ${{ github.event.inputs.consumer || github.ref_name || 'manual' }}
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      consumer:
+        required: false
+        description: Consumer pacticipant name from broker webhook payload
+        type: string
+      consumerBranch:
+        required: false
+        description: Consumer branch from broker webhook payload
+        type: string
+      publishResults:
+        required: false
+        description: Publish verification results to broker
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pact-verify:
+    name: Verify provider pacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Java
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Compile provider pact tests
+        run: ./gradlew compilePactTestKotlin --console=plain
+
+      - name: Verify pacts
+        run: ./gradlew pactTest --tests "uk.gov.justice.digital.hmpps.personrecord.ProbationProviderPactTest" --console=plain
+        env:
+          PACT_PUBLISH_RESULTS: ${{ github.event.inputs.publishResults || 'true' }}
+          PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
+          PACT_BROKER_USERNAME: ${{ secrets.PACT_BROKER_USERNAME }}
+          PACT_BROKER_PASSWORD: ${{ secrets.PACT_BROKER_PASSWORD }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_BRANCH: ${{ github.ref_name }}
+          PACT_CONSUMER: ${{ github.event.inputs.consumer }}
+          PACT_CONSUMER_BRANCH: ${{ github.event.inputs.consumerBranch }}
