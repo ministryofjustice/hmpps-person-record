@@ -57,7 +57,7 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
   }
 
   @State("An address exists for CRN and address ID")
-  fun `an address exists for CRN and address ID`() {
+  fun anAddressExistsForCrnAndAddressId() {
     whenever(addressRepository.findByUpdateIdAndPersonCrn(any(), any())).thenAnswer { invocation ->
       buildAddressEntity(
         crn = invocation.arguments[1] as String,
@@ -67,7 +67,7 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
   }
 
   @State("A probation address can be created for CRN")
-  fun `a probation address can be created for CRN`() {
+  fun aProbationAddressCanBeCreatedForCrn() {
     whenever(addressService.processAddress(any(), any(), any(), eq(CPR))).thenReturn(
       AddressEntity(
         updateId = createdAddressId,
@@ -78,7 +78,7 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
   }
 
   @State("A probation person exists for CRN")
-  fun `a probation person exists for CRN`() {
+  fun aProbationPersonExistsForCrn() {
     whenever(personRepository.findByCrn(any())).thenAnswer { invocation ->
       buildPersonEntity(invocation.arguments[0] as String)
     }
@@ -137,5 +137,4 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
     statusCode = M,
     isVerified = true,
   )
-
 }
