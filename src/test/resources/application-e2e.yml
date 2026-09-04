@@ -7,6 +7,10 @@ core-person-record-and-delius:
   client-secret: clientsecret
   client-id: hmpps-person-match
 
+prisoner-search:
+  client-secret: clientsecret
+  client-id: hmpps-person-match
+
 nomis-oauth:
   base-url: http://localhost:9090
 
