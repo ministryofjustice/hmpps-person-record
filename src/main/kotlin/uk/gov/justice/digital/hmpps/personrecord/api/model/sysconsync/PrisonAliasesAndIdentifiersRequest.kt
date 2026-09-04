@@ -7,7 +7,5 @@ data class PrisonAliasesAndIdentifiersRequest(
   @Valid
   @NotEmpty
   val aliases: List<PrisonAlias>,
-  @Valid
-  @NotEmpty
   val identifiers: List<PrisonIdentifier>,
 )
