@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.controller.probation.Probat
 import uk.gov.justice.digital.hmpps.personrecord.config.SecurityConfiguration
 
 @SpringBootConfiguration
-//@EnableWebMvc
 @Import(
   ProbationAPIController::class,
   ProbationAddressCreateAPIController::class,

@@ -98,6 +98,7 @@ tasks {
   test {
     exclude("**/InitialiseDatabase.class")
     exclude("**/**E2ETest.class")
+    exclude("**/pactTest/**")
   }
 
   getByName("check") {
@@ -119,6 +120,8 @@ tasks {
 
 tasks.named<Test>("pactTest") {
   description = "Run and publish Pact provider tests"
+  testClassesDirs = sourceSets["pactTest"].output.classesDirs
+  classpath = sourceSets["pactTest"].runtimeClasspath
   group = "verification"
   // --- Broker connection ---
   // These properties are used when @PactBroker is enabled on the provider test class.
@@ -153,7 +156,7 @@ tasks.named<Test>("pactTest") {
   systemProperty("pact.provider.version", System.getenv("GITHUB_SHA") ?: "local")
   systemProperty("pact.provider.branch", System.getenv("GITHUB_BRANCH") ?: "local")
   systemProperty("pactbroker.providerBranch", System.getenv("GITHUB_BRANCH") ?: "local")
-  systemProperty("pactbroker.enablePending", System.getenv("PACT_ENABLE_PENDING") ?: "true")
+  // systemProperty("pactbroker.enablePending", System.getenv("PACT_ENABLE_PENDING") ?: "true")
   // Only publish results in CI — prevents local runs polluting the broker's can-i-deploy history
   systemProperty("pact.verifier.publishResults", System.getenv("PACT_PUBLISH_RESULTS") ?: "false")
 }
