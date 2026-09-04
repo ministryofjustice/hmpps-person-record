@@ -5,6 +5,10 @@ on:
   pull_request:
     branches:
       - main
+  # Temporary workaround
+  push:
+    branches-ignore:
+      - main
   workflow_dispatch:
     inputs:
       consumer:
