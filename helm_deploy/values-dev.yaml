@@ -40,3 +40,9 @@ cron:
   recordCountReportJob: "0 8-17 * * 1-5"
   deliusReconciliationReportJob: "0 8-17 * * 1-5"
   reclusterNeedsAttentionJob: "0 13 * * 1-5"
+
+batchjobs:
+  - name: split-clusters
+    type: SPLIT_CLUSTERS
+    schedule: "0 0 1 1 *" # 1st day of the year (intended to only run on ad-hoc bases)
+    suspend: true
