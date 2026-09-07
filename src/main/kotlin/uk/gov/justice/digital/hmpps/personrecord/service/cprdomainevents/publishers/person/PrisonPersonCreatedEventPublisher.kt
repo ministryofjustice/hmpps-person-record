@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers
+package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
@@ -10,27 +10,21 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
 import java.time.Instant
 
 @Profile("!preprod & !prod")
 @Component
-class PrisonPersonEventPublisher(
+class PrisonPersonCreatedEventPublisher(
   private val domainEventPublisher: DomainEventPublisher,
   @Value($$"${core-person-record.base-url}") private val baseUrl: String,
-) : PersonEventPublisher {
+) : PersonCreatedEventPublisher {
   override val sourceSystemType = SourceSystemType.NOMIS
 
   override fun onCreate(personCreated: PersonCreated) {
     publishPersonDomainEvent(personCreated.personEntity)
   }
-
-  override fun onUpdate(personUpdated: PersonUpdated) = Unit
-
-  override fun onDelete(personDeleted: PersonDeleted) = Unit
 
   private fun publishPersonDomainEvent(personEntity: PersonEntity) {
     val prisonNumber = personEntity.extractSourceSystemId()!!

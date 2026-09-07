@@ -1,7 +1,6 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers
+package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person
 
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
@@ -10,41 +9,33 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
 import java.time.Instant
 
-@Profile("!preprod & !prod")
 @Component
-class CommonPlatformPersonEventPublisher(
+class ProbationPersonCreatedEventPublisher(
   private val domainEventPublisher: DomainEventPublisher,
   @Value($$"${core-person-record.base-url}") private val baseUrl: String,
-) : PersonEventPublisher {
-  override val sourceSystemType = SourceSystemType.COMMON_PLATFORM
+) : PersonCreatedEventPublisher {
+  override val sourceSystemType = SourceSystemType.DELIUS
 
   override fun onCreate(personCreated: PersonCreated) {
     publishPersonDomainEvent(personCreated.personEntity)
   }
 
-  override fun onUpdate(personUpdated: PersonUpdated) = Unit
-
-  override fun onDelete(personDeleted: PersonDeleted) = Unit
-
   private fun publishPersonDomainEvent(personEntity: PersonEntity) {
-    val defendantId = personEntity.extractSourceSystemId()!!
-    val detailUrl = "$baseUrl/person/commonplatform/$defendantId"
+    val crn = personEntity.extractSourceSystemId()!!
 
     domainEventPublisher.publish(
       CprPersonCreated(
-        eventType = CPR_COURT_PERSON_CREATED,
-        description = "A court person record has been created",
-        detailUrl = detailUrl,
+        eventType = CPR_PROBATION_PERSON_CREATED,
+        description = "A probation person record has been created",
+        detailUrl = "$baseUrl/person/probation/$crn",
         occurredAt = Instant.now().asStringWithUkZone(),
         personReference = PersonReference(
           identifiers = listOf(
-            PersonIdentifier("DEFENDANT_ID", defendantId),
+            PersonIdentifier("CRN", crn),
           ),
         ),
       ),
