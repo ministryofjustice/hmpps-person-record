@@ -31,8 +31,12 @@ class BatchJobManager(
     val job = batchJobs[jobName]
     when (job != null) {
       true -> {
-        job.run()
-        LOG.info("Finished batch job '{}'", jobName)
+        try {
+          job.run()
+          LOG.info("Finished batch job '{}'", jobName)
+        } catch (e: Exception) {
+          LOG.error("Exception happened during batch job '{}'", jobName, e)
+        }
       }
       false -> LOG.error("Job '$jobName' not found")
     }
