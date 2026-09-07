@@ -76,6 +76,7 @@ class PNCIdentifierTest {
       Arguments.of("02/73319Z", "2002/0073319Z"),
       Arguments.of("00/223R", "2000/0000223R"),
       Arguments.of("79/163001B", "1979/0163001B"),
+      Arguments.of("81/34u", "1981/0000034U"),
       Arguments.of("0273319Z", "2002/0073319Z"),
       Arguments.of("79163001B", "1979/0163001B"),
       Arguments.of("033Y", "2003/0000003Y"),
@@ -86,6 +87,7 @@ class PNCIdentifierTest {
     fun longFormPncProvider(): Stream<Arguments> = Stream.of(
       Arguments.of("20020073319Z", "2002/0073319Z"),
       Arguments.of("19790163001B", "1979/0163001B"),
+      Arguments.of("1979/0163001b", "1979/0163001B"),
       Arguments.of("2002/0073319Z", "2002/0073319Z"),
       Arguments.of("1979/0163001B", "1979/0163001B"),
     )
