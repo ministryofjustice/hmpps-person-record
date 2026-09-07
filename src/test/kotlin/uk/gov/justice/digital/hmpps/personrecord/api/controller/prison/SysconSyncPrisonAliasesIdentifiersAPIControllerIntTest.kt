@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
@@ -52,8 +51,7 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
     fun `should have the correct profile active`() {
       val prisonNumber = randomPrisonNumber()
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
-      postAndExpect(prisonNumber, validRequestBody())
-        .isEqualTo(HttpStatus.NOT_IMPLEMENTED)
+      postAndExpect(prisonNumber, validRequestBody()).isNotFound
     }
   }
 
