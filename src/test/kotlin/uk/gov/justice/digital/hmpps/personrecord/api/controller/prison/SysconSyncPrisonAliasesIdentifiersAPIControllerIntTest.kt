@@ -4,8 +4,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAliasesAndIdentifiersRequest
@@ -51,7 +51,14 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
     fun `should have the correct profile active`() {
       val prisonNumber = randomPrisonNumber()
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
-      postAndExpect(prisonNumber, validRequestBody()).isNotFound
+
+      sendPostRequestAsserted<String>(
+        url = aliasesIdentifiersUrl(prisonNumber),
+        body = validRequestBody(),
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.NOT_FOUND,
+        sendAuthorised = true,
+      ).returnResult().responseBody!!
     }
   }
 
@@ -64,11 +71,13 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       createPerson(createRandomPrisonPersonDetails(prisonNumber))
       val requestBody = validRequestBody()
 
-      val response = postAndExpect(prisonNumber, requestBody)
-        .isCreated
-        .expectBody<SysconAliasesAndIdentifiersResponseBody>()
-        .returnResult()
-        .responseBody!!
+      val response = sendPostRequestAsserted<SysconAliasesAndIdentifiersResponseBody>(
+        url = aliasesIdentifiersUrl(prisonNumber),
+        body = requestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+        sendAuthorised = true,
+      ).returnResult().responseBody!!
 
       val person = personRepository.findByPrisonNumber(prisonNumber)!!
       val references = person.references
@@ -125,11 +134,13 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
         ),
       )
 
-      val response = postAndExpect(prisonNumber, requestBody = semanticallyIdenticalPseudonymRequest)
-        .isCreated
-        .expectBody<SysconAliasesAndIdentifiersResponseBody>()
-        .returnResult()
-        .responseBody!!
+      val response = sendPostRequestAsserted<SysconAliasesAndIdentifiersResponseBody>(
+        url = aliasesIdentifiersUrl(prisonNumber),
+        body = semanticallyIdenticalPseudonymRequest,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+        sendAuthorised = true,
+      ).returnResult().responseBody!!
 
       val person = personRepository.findByPrisonNumber(prisonNumber)!!
       val pseudonyms = person.pseudonyms
@@ -161,7 +172,13 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       assertThat(pseudonymsToBeDeleted[0].id).isNotNull()
       assertThat(pseudonymsToBeDeleted[1].id).isNotNull()
 
-      postAndExpect(prisonNumber, validRequestBody()).isCreated
+      sendPostRequestAsserted<SysconAliasesAndIdentifiersResponseBody>(
+        url = aliasesIdentifiersUrl(prisonNumber),
+        body = validRequestBody(),
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+        sendAuthorised = true,
+      )
 
       // Check that we can no longer find the orphaned pseudonyms in the repository
       val orphanedPseudonyms = pseudonymsToBeDeleted.map { pseudonymRepository.findById(it.id!!) }
@@ -175,56 +192,88 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
     @Test
     fun `should respond with bad request when no pseudonyms are posted`() {
       val noPseudonymRequestBody = validRequestBody().copy(aliases = emptyList())
-      postAndExpect(randomPrisonNumber(), noPseudonymRequestBody).isBadRequest
+      sendPostRequestAsserted<Any>(
+        url = aliasesIdentifiersUrl(randomPrisonNumber()),
+        body = noPseudonymRequestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.BAD_REQUEST,
+        sendAuthorised = true,
+      )
     }
 
     @Test
     fun `should return bad request when there is no primary pseudonym`() {
       val noPrimaryPseudonymRequestBody =
         validRequestBody().copy(aliases = validRequestBody().aliases.map { it.copy(isPrimary = false) })
-      postAndExpect(randomPrisonNumber(), noPrimaryPseudonymRequestBody).isBadRequest.expectBody()
-        .jsonPath("userMessage")
-        .value<String> { userMessage ->
-          assertThat(userMessage).contains("There must be exactly one primary pseudonym")
-        }
+
+      assertThat(
+        sendPostRequestAsserted<String>(
+          url = aliasesIdentifiersUrl(randomPrisonNumber()),
+          body = noPrimaryPseudonymRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = HttpStatus.BAD_REQUEST,
+          sendAuthorised = true,
+        ).returnResult().responseBody,
+      ).contains("There must be exactly one primary pseudonym")
     }
 
     @Test
     fun `should return bad request when there is more than one primary pseudonym`() {
       val multiplePrimaryPseudonymRequestBody =
         validRequestBody().copy(aliases = validRequestBody().aliases.map { it.copy(isPrimary = true) })
-      postAndExpect(randomPrisonNumber(), multiplePrimaryPseudonymRequestBody).isBadRequest.expectBody()
-        .jsonPath("userMessage")
-        .value<String> { userMessage ->
-          assertThat(userMessage).contains("There must be exactly one primary pseudonym")
-        }
+      assertThat(
+        sendPostRequestAsserted<String>(
+          url = aliasesIdentifiersUrl(randomPrisonNumber()),
+          body = multiplePrimaryPseudonymRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = HttpStatus.BAD_REQUEST,
+          sendAuthorised = true,
+        ).returnResult().responseBody,
+      ).contains("There must be exactly one primary pseudonym")
     }
 
     @Test
     fun `should return bad request when there are duplicate nomis ids on the pseudonyms`() {
-      val multiplePrimaryPseudonymRequestBody =
+      val duplicateNomisOffenderIdsPseudonymRequestBody =
         validRequestBody().copy(aliases = validRequestBody().aliases.map { it.copy(nomisOffenderId = 10000L) })
-      postAndExpect(randomPrisonNumber(), multiplePrimaryPseudonymRequestBody).isBadRequest.expectBody()
-        .jsonPath("userMessage")
-        .value<String> { userMessage ->
-          assertThat(userMessage).contains("Duplicate nomis pseudonym ids were detected")
-        }
+
+      assertThat(
+        sendPostRequestAsserted<String>(
+          url = aliasesIdentifiersUrl(randomPrisonNumber()),
+          body = duplicateNomisOffenderIdsPseudonymRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = HttpStatus.BAD_REQUEST,
+          sendAuthorised = true,
+        ).returnResult().responseBody,
+      ).contains("Duplicate nomis pseudonym ids were detected")
     }
 
     @Test
     fun `should return bad request when there is pseudonyms without a name`() {
       val multiplePrimaryPseudonymRequestBody =
-        validRequestBody().copy(aliases = listOf(validRequestBody().aliases[0].copy(firstName = null, middleNames = null, lastName = null)))
-      postAndExpect(randomPrisonNumber(), multiplePrimaryPseudonymRequestBody).isBadRequest.expectBody()
-        .jsonPath("userMessage")
-        .value<String> { userMessage ->
-          assertThat(userMessage).contains("Pseudonyms without a name were detected")
-        }
+        validRequestBody().copy(
+          aliases = listOf(
+            validRequestBody().aliases[0].copy(
+              firstName = null,
+              middleNames = null,
+              lastName = null,
+            ),
+          ),
+        )
+      assertThat(
+        sendPostRequestAsserted<String>(
+          url = aliasesIdentifiersUrl(randomPrisonNumber()),
+          body = multiplePrimaryPseudonymRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = HttpStatus.BAD_REQUEST,
+          sendAuthorised = true,
+        ).returnResult().responseBody,
+      ).contains("Pseudonyms without a name were detected")
     }
 
     @Test
     fun `should return bad request when there are duplicate nomis ids on the reference`() {
-      val multiplePrimaryPseudonymRequestBody =
+      val duplicateNomisOffenderIdsReferencesRequestBody =
         validRequestBody().copy(
           identifiers = validRequestBody().identifiers.map {
             it.copy(
@@ -235,22 +284,32 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
             )
           },
         )
-      postAndExpect(randomPrisonNumber(), multiplePrimaryPseudonymRequestBody).isBadRequest.expectBody()
-        .jsonPath("userMessage")
-        .value<String> { userMessage ->
-          assertThat(userMessage).contains("Duplicate nomis reference ids were detected")
-        }
+
+      assertThat(
+        sendPostRequestAsserted<String>(
+          url = aliasesIdentifiersUrl(randomPrisonNumber()),
+          body = duplicateNomisOffenderIdsReferencesRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = HttpStatus.BAD_REQUEST,
+          sendAuthorised = true,
+        ).returnResult().responseBody,
+      ).contains("Duplicate nomis reference ids were detected")
     }
 
     @Test
     fun `should return bad request when there is reference without a value`() {
-      val multiplePrimaryPseudonymRequestBody =
+      val noValueReferenceRequestBody =
         validRequestBody().copy(identifiers = listOf(validRequestBody().identifiers[0].copy(value = "")))
-      postAndExpect(randomPrisonNumber(), multiplePrimaryPseudonymRequestBody).isBadRequest.expectBody()
-        .jsonPath("userMessage")
-        .value<String> { userMessage ->
-          assertThat(userMessage).contains("Reference without a name were detected")
-        }
+
+      assertThat(
+        sendPostRequestAsserted<String>(
+          url = aliasesIdentifiersUrl(randomPrisonNumber()),
+          body = noValueReferenceRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = HttpStatus.BAD_REQUEST,
+          sendAuthorised = true,
+        ).returnResult().responseBody,
+      ).contains("Reference without a value were detected")
     }
   }
 
@@ -259,17 +318,15 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
-      val expectedErrorMessage = "Forbidden: Access Denied"
-      webTestClient.post()
-        .uri(aliasesIdentifiersUrl(randomPrisonNumber()))
-        .bodyValue(validRequestBody())
-        .authorised(listOf("UNSUPPORTED-ROLE"))
-        .exchange()
-        .expectStatus()
-        .isForbidden
-        .expectBody()
-        .jsonPath("userMessage")
-        .isEqualTo(expectedErrorMessage)
+      assertThat(
+        sendPostRequestAsserted<String>(
+          url = aliasesIdentifiersUrl(randomPrisonNumber()),
+          body = validRequestBody(),
+          roles = listOf("UNSUPPORTED-ROLE"),
+          expectedStatus = HttpStatus.FORBIDDEN,
+          sendAuthorised = true,
+        ).returnResult().responseBody,
+      ).contains("Forbidden: Access Denied")
     }
 
     @Test
@@ -363,12 +420,4 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       cprIdentifierId = expectedCprReferenceId,
     ),
   )
-
-  private fun postAndExpect(prisonNumber: String, requestBody: PrisonAliasesAndIdentifiersRequest) = webTestClient
-    .post()
-    .uri(aliasesIdentifiersUrl(prisonNumber))
-    .bodyValue(requestBody)
-    .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
-    .exchange()
-    .expectStatus()
 }

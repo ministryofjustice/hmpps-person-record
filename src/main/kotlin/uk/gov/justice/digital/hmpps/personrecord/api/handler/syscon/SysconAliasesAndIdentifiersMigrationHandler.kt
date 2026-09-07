@@ -100,7 +100,7 @@ class SysconAliasesAndIdentifiersMigrationHandler(
     }
     val referenceWithoutValue = references.filter { it.value.isBlank() }
     if (referenceWithoutValue.isNotEmpty()) {
-      throw IllegalArgumentException("Reference without a name were detected for $prisonNumber: ${referenceWithoutValue.map { it.nomisIdentifierId }.joinToString { "${it.nomisOffenderId}-${it.nomisSequence}"}}")
+      throw IllegalArgumentException("Reference without a value were detected for $prisonNumber: ${referenceWithoutValue.map { it.nomisIdentifierId }.joinToString { "${it.nomisOffenderId}-${it.nomisSequence}"}}")
     }
   }
 
