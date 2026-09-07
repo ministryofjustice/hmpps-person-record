@@ -43,8 +43,7 @@ class SysconAliasesAndIdentifiersMigrationHandler(
     person.ethnicityCode = currentPseudonym.ethnicity
     person.birthCountryCode = currentPseudonym.birthCountry
     person.birthplace = currentPseudonym.birthPlace
-    val updatedPerson = personRepository.saveAndFlush(person)
-    personService.processPerson(Person.from(updatedPerson)) { updatedPerson }
+    personService.processPerson(Person.from(person)) { person }
 
     return SysconAliasesAndIdentifiersResponseBody(
       aliasesMappings = pseudonymMappings,
