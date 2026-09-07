@@ -56,6 +56,7 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
     else -> listOf(API_READ_ONLY)
   }
 
+  // TODO: To be updated with CPR-1328 with actual state values.
   @State("An address exists for CRN and address ID")
   fun anAddressExistsForCrnAndAddressId() {
     whenever(addressRepository.findByUpdateIdAndPersonCrn(any(), any())).thenAnswer { invocation ->
@@ -66,6 +67,7 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
     }
   }
 
+  // TODO: To be updated with CPR-1328 with actual state values.
   @State("A probation address can be created for CRN")
   fun aProbationAddressCanBeCreatedForCrn() {
     whenever(addressService.processAddress(any(), any(), any(), eq(CPR))).thenReturn(
@@ -77,6 +79,7 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
     )
   }
 
+  // TODO: To be updated with CPR-1328 with actual state values.
   @State("A probation person exists for CRN")
   fun aProbationPersonExistsForCrn() {
     whenever(personRepository.findByCrn(any())).thenAnswer { invocation ->
