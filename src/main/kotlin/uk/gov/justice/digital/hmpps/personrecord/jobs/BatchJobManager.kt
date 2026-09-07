@@ -20,26 +20,18 @@ class BatchJobManager(
   registeredBatchJobs: List<BatchJob>,
 ) {
 
-  private val batchJobs = registeredBatchJobs.associateBy { jobName }
+  private val batchJobs = registeredBatchJobs.associateBy { it.jobName }
 
   @EventListener
   fun onApplicationEvent(event: ContextRefreshedEvent) = runJob().also { event.closeApplication() }
 
   fun runJob() = runBlocking {
     LOG.info("Running batch job '{}'", jobName)
-
-    val job = batchJobs[jobName]
-    when (job != null) {
-      true -> {
-        try {
-          job.run()
-          LOG.info("Finished batch job '{}'", jobName)
-        } catch (e: Exception) {
-          LOG.error("Exception happened during batch job '{}'", jobName, e)
-        }
-      }
-      false -> LOG.error("Job '$jobName' not found")
-    }
+    batchJobs[jobName]
+      ?.runCatching { run() }
+      ?.onSuccess { LOG.info("Finished batch job '{}'", jobName) }
+      ?.onFailure { LOG.error("Exception happened during batch job '{}'", jobName, it) }
+      ?: LOG.error("Job '$jobName' not found")
   }
 
   private fun ContextRefreshedEvent.closeApplication() = (this.applicationContext as ConfigurableApplicationContext).close()
