@@ -14,15 +14,20 @@ object PseudonymBuilder {
     // Therefore, we need to check that we don't match the same pseudonym multiple times.
     val alreadyMatchedIds = mutableSetOf<Long>()
     val allPseudonyms = listOf(person.primaryAlias()) + person.aliases
-    val x = allPseudonyms.mapNotNull { pseudonym ->
+    return allPseudonyms.mapIndexedNotNull { index, pseudonym ->
+      val namesType = if (index == 0) NameType.PRIMARY else NameType.ALIAS
       pseudonym.existsIn(
         childEntities = personEntity.pseudonyms,
         match = { ref, entity -> entity.matches(ref, alreadyMatchedIds) },
-        yes = { it },
-        no = { pseudonym.from() },
+        yes = {
+          it.nameType = namesType
+          it
+        },
+        no = {
+          if (namesType == NameType.PRIMARY) pseudonym.primaryNameFrom() else pseudonym.from()
+        },
       )
-    }.onEachIndexed { index, entity -> entity.nameType = if (index == 0) NameType.PRIMARY else NameType.ALIAS }
-    return x
+    }
   }
 }
 
@@ -55,3 +60,13 @@ private fun Alias.from(): PseudonymEntity? = when {
 }
 
 fun Alias.isPseudonymPresent() = !firstName.isNullOrBlank() || !middleNames.isNullOrBlank() || !lastName.isNullOrBlank()
+
+fun Alias.primaryNameFrom(): PseudonymEntity = PseudonymEntity(
+  firstName = firstName,
+  middleNames = middleNames,
+  lastName = lastName,
+  nameType = NameType.PRIMARY,
+  titleCode = titleCode,
+  dateOfBirth = dateOfBirth,
+  sexCode = sexCode,
+)
