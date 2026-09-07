@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.PERSON
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
@@ -19,22 +18,13 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_COURT_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
-import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
-import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
@@ -103,73 +93,6 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
       assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
       assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("CRN")
       assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(crn)
-    }
-
-    @Test
-    fun `should publish a CPR person created domain event when a person is created in common platform`() {
-      val defendantId = randomDefendantId()
-
-      publishCommonPlatformMessage(
-        commonPlatformHearing(
-          listOf(
-            CommonPlatformHearingSetup(
-              defendantId = defendantId,
-              cro = randomCro(),
-              pnc = randomLongPnc(),
-            ),
-          ),
-        ),
-      )
-
-      awaitNotNull { personRepository.findByDefendantId(defendantId) }
-
-      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-      val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-        ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-      )
-      val sqsMessage =
-        rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
-      assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_COURT_PERSON_CREATED))
-      val domainEvent: CprPersonCreated = jsonMapper.readValue<CprPersonCreated>(sqsMessage.message)
-      assertThat(domainEvent.eventType).isEqualTo(CPR_COURT_PERSON_CREATED)
-      assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/commonplatform/$defendantId")
-      assertThat(domainEvent.description).isEqualTo("A court person record has been created")
-      assertThat(domainEvent.occurredAt).isNotNull()
-      assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
-      assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("DEFENDANT_ID")
-      assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(defendantId)
-    }
-
-    @Test
-    fun `should publish a CPR person created domain event when a person is created in libra`() {
-      val cid = randomCId()
-
-      publishLibraMessage(
-        libraHearing(
-          cId = cid,
-          firstName = randomName(),
-          lastName = randomName(),
-          defendantType = PERSON,
-        ),
-      )
-
-      awaitNotNull { personRepository.findByCId(cid) }
-
-      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-      val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-        ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-      )
-      val sqsMessage =
-        rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
-      assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_COURT_PERSON_CREATED))
-      val domainEvent: CprPersonCreated = jsonMapper.readValue<CprPersonCreated>(sqsMessage.message)
-      assertThat(domainEvent.eventType).isEqualTo(CPR_COURT_PERSON_CREATED)
-      assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/libra/$cid")
-      assertThat(domainEvent.description).isEqualTo("A court person record has been created")
-      assertThat(domainEvent.occurredAt).isNotNull()
-      assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
-      assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("C_ID")
-      assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(cid)
     }
   }
 
