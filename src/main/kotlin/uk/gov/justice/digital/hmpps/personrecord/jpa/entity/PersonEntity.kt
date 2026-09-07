@@ -18,6 +18,7 @@ import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.AddressBuilder.buildAddresses
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ContactBuilder.buildContacts
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.PseudonymBuilder.buildPseudonyms
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBuilder.buildReferences
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.SentenceInfoBuilder.buildSentenceInfo
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -217,7 +218,7 @@ class PersonEntity(
     updatePersonReferences(buildReferences(person, this))
     updatePersonSentences(buildSentenceInfo(person, this))
     updateNationalities(person.nationalities.map { NationalityEntity.from(it) })
-    updatePseudonyms(listOf(PseudonymEntity.primaryNameFrom(person)) + person.aliases.mapNotNull { PseudonymEntity.aliasFrom(it) })
+    updatePseudonyms(buildPseudonyms(person, this))
   }
 
   private fun updatePersonSentences(sentences: List<SentenceInfoEntity>) {
