@@ -12,8 +12,7 @@ data class PersonSearchRequest(
   @Schema(required = true)
   val lastName: String,
   val middleName: String? = null,
-  @Schema(required = true)
-  val dateOfBirth: LocalDate,
+  val dateOfBirth: LocalDate? = null,
   val firstNameAliases: List<String>? = null,
   val lastNameAliases: List<String>? = null,
   val dateOfBirthAliases: List<LocalDate>? = null,
