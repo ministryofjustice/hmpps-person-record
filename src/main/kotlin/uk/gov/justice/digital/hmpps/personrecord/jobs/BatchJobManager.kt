@@ -13,30 +13,29 @@ import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
-enum class JobName {
-  SPLIT_CLUSTERS,
-}
-
 @Component
 @ConditionalOnProperty(name = ["batch.enabled"], havingValue = "true")
 class BatchJobManager(
-  @param:Value("\${batch.type}") private val jobName: JobName,
+  @param:Value("\${batch.type}") private val jobName: String,
+  registeredBatchJobs: List<BatchJob>,
 ) {
 
+  private val batchJobs = registeredBatchJobs.associateBy { jobName }
+
   @EventListener
-  fun onApplicationEvent(event: ContextRefreshedEvent) {
-    runJob()
-    event.closeApplication()
-  }
+  fun onApplicationEvent(event: ContextRefreshedEvent) = runJob().also { event.closeApplication() }
 
   fun runJob() = runBlocking {
     LOG.info("Running batch job '{}'", jobName)
 
-    when (jobName) {
-      JobName.SPLIT_CLUSTERS -> { }
+    val job = batchJobs[jobName]
+    when (job != null) {
+      true -> {
+        job.run()
+        LOG.info("Finished batch job '{}'", jobName)
+      }
+      false -> LOG.error("Job '$jobName' not found")
     }
-
-    LOG.info("Finished batch job '{}'", jobName)
   }
 
   private fun ContextRefreshedEvent.closeApplication() = (this.applicationContext as ConfigurableApplicationContext).close()
