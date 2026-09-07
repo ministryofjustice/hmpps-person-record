@@ -2,9 +2,7 @@ name: Pact Provider Verification
 run-name: Pact verify - ${{ github.event.inputs.consumer || github.ref_name || 'manual' }}
 
 on:
-  pull_request:
-    branches:
-      - main
+  # Temporary: keep Pact verification manual-only until the consumer pact is ready.
   workflow_dispatch:
     inputs:
       consumer:
