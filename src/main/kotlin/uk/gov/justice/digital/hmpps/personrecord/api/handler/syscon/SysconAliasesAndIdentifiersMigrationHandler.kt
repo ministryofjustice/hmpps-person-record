@@ -54,9 +54,9 @@ class SysconAliasesAndIdentifiersMigrationHandler(
   }
 
   private fun handlePseudonymsInsert(pseudonyms: List<PrisonAlias>, personEntity: PersonEntity): List<SysconAliasMapping> {
-    val pseudonymEntities = pseudonymRepository.saveAllAndFlush(pseudonyms.map { it.toEntity(personEntity) }) //  Guarantee ordering
+    val pseudonymEntities = pseudonyms.map { it.toEntity(personEntity) } //  Guarantee ordering
     personEntity.updatePseudonyms(pseudonymEntities)
-    personRepository.saveAndFlush(personEntity)
+    pseudonymRepository.saveAllAndFlush(pseudonymEntities)
     val pseudonymMappings = pseudonyms
       .zip(pseudonymEntities)
       .map { (alias, entity) -> SysconAliasMapping(alias.nomisOffenderId, entity.updateId.toString()) }
@@ -64,9 +64,9 @@ class SysconAliasesAndIdentifiersMigrationHandler(
   }
 
   private fun handleReferencesInsert(references: List<PrisonIdentifier>, personEntity: PersonEntity): List<SysconIdentifierMapping> {
-    val referenceEntities = referenceRepository.saveAllAndFlush(references.map { it.toEntity(personEntity) }) // Guarantee ordering
+    val referenceEntities = references.map { it.toEntity(personEntity) }
     personEntity.updatePersonReferences(referenceEntities)
-    personRepository.saveAndFlush(personEntity)
+    referenceRepository.saveAllAndFlush(referenceEntities)
     val referenceMappings = references
       .zip(referenceEntities)
       .map { (identifier, entity) -> SysconIdentifierMapping(identifier.nomisIdentifierId.toId(), entity.updateId.toString()) }
