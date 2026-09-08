@@ -217,7 +217,10 @@ class PersonEntity(
     updatePersonReferences(buildReferences(person, this))
     updatePersonSentences(buildSentenceInfo(person, this))
     updateNationalities(person.nationalities.map { NationalityEntity.from(it) })
-    updatePseudonyms(listOf(PseudonymEntity.primaryNameFrom(person)) + person.aliases.mapNotNull { PseudonymEntity.aliasFrom(it) })
+
+    if (!childrenToIgnore.contains<Any>(PseudonymEntity::class)) {
+      updatePseudonyms(listOf(PseudonymEntity.primaryNameFrom(person)) + person.aliases.mapNotNull { PseudonymEntity.aliasFrom(it) })
+    }
   }
 
   private fun updatePersonSentences(sentences: List<SentenceInfoEntity>) {

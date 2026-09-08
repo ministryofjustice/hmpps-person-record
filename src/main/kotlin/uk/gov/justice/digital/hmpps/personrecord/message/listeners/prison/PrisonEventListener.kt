@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonUpdated
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
@@ -19,7 +20,7 @@ class PrisonEventListener(
 ) {
 
   @SqsListener(Queues.PRISON_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = domainEventProcessor.process<DomainEvent>(rawMessage) { event ->
+  fun onDomainEventDev(rawMessage: String) = domainEventProcessor.process<DomainEvent>(rawMessage) { event ->
     when (event) {
       is PrisonPersonCreated -> processPrisonEvent(event.prisonNumber)
       is PrisonPersonUpdated -> processPrisonEvent(event.prisonNumber)
@@ -29,7 +30,7 @@ class PrisonEventListener(
 
   private fun processPrisonEvent(prisonNumber: String) {
     prisonerSearchClient.getPrisoner(prisonNumber)?.let { person ->
-      prisonEventProcessor.processEvent(person)
+      prisonEventProcessor.processEvent(person, setOf(PseudonymEntity::class))
     }
   }
 

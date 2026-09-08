@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
@@ -267,6 +268,80 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
       expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
+    }
+
+    @Test
+    fun `should not save aliases when saving person level data`() {
+      val prisonNumber = randomPrisonNumber()
+
+      val updatedFirstName = randomName()
+      val ethnicity = randomPrisonEthnicity()
+      val updatedNationality = randomPrisonNationalityCode()
+      val title = randomTitleCode()
+      val updatedSexCode = randomPrisonSexCode()
+
+      val updatedAliasGender = randomPrisonSexCode()
+      val updatedAlias = ApiResponseSetupAlias(title = title.key, firstName = randomName(), lastName = randomName(), gender = updatedAliasGender.key)
+
+      stubNoMatchesPersonMatch()
+      stubPersonMatchScores()
+      prisonUpdateEventAndResponseSetup(ApiResponseSetup(gender = updatedSexCode.key, title = title.key, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity, aliases = listOf(updatedAlias)))
+
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
+      val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+      assertThat(actualPersonEntity.pseudonyms.size).isEqualTo(0)
+    }
+  }
+
+  @Nested
+  @ActiveProfiles("preprod")
+  inner class FeatureFlagPreprod {
+    @Test
+    fun `should continue to save aliases when person level data is created`() {
+      val prisonNumber = randomPrisonNumber()
+
+      val updatedFirstName = randomName()
+      val ethnicity = randomPrisonEthnicity()
+      val updatedNationality = randomPrisonNationalityCode()
+      val title = randomTitleCode()
+      val updatedSexCode = randomPrisonSexCode()
+
+      val updatedAliasGender = randomPrisonSexCode()
+      val updatedAlias = ApiResponseSetupAlias(title = title.key, firstName = randomName(), lastName = randomName(), gender = updatedAliasGender.key)
+
+      stubNoMatchesPersonMatch()
+      stubPersonMatchUpsert()
+      prisonUpdateEventAndResponseSetup(ApiResponseSetup(gender = updatedSexCode.key, title = title.key, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity, aliases = listOf(updatedAlias)))
+
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
+      val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+      assertThat(actualPersonEntity.pseudonyms.size).isEqualTo(2)
+    }
+  }
+
+  @Nested
+  @ActiveProfiles("prod")
+  inner class FeatureFlagProd {
+    @Test
+    fun `should continue to save aliases when person level data is created`() {
+      val prisonNumber = randomPrisonNumber()
+
+      val updatedFirstName = randomName()
+      val ethnicity = randomPrisonEthnicity()
+      val updatedNationality = randomPrisonNationalityCode()
+      val title = randomTitleCode()
+      val updatedSexCode = randomPrisonSexCode()
+
+      val updatedAliasGender = randomPrisonSexCode()
+      val updatedAlias = ApiResponseSetupAlias(title = title.key, firstName = randomName(), lastName = randomName(), gender = updatedAliasGender.key)
+
+      stubNoMatchesPersonMatch()
+      stubPersonMatchUpsert()
+      prisonUpdateEventAndResponseSetup(ApiResponseSetup(gender = updatedSexCode.key, title = title.key, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity, aliases = listOf(updatedAlias)))
+
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
+      val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+      assertThat(actualPersonEntity.pseudonyms.size).isEqualTo(2)
     }
   }
 
