@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.DpsPrisonGetHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.DpsPrisonRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 
 @Tag(name = "Prison")
 @RestController
@@ -46,4 +47,17 @@ class DpsPrisonAPIController(private val dpsPrisonGetHandler: DpsPrisonGetHandle
     ),
   )
   fun getByPrisonNumberDps(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<DpsPrisonRecord> = dpsPrisonGetHandler.get(prisonNumber)
+
+  @Operation(
+    description = "Retrieve prison religion history by Prison Number. Role required is **$API_READ_ONLY**. ",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @GetMapping("/person/prison/dps/{prisonNumber}/religion-history")
+  @ApiResponses(
+    ApiResponse(
+      responseCode = "200",
+      description = "Prisoner religion history returned",
+    ),
+  )
+  fun getReligionHistoryByPrisonNumberDps(@PathVariable(name = "prisonNumber") prisonNumber: String): List<PrisonReligion> = dpsPrisonGetHandler.getReligionHistory(prisonNumber)
 }
