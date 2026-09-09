@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertNull
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
@@ -326,10 +325,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.pncs).isEqualTo(listOf(PNCIdentifier.from(pnc).pncId))
         assertThat(createdLog.cros).isEqualTo(listOf(cro))
 
-        assertNull(createdLog.firstName)
-        assertNull(createdLog.middleNames)
-        assertNull(createdLog.lastName)
-        assertNull(createdLog.dateOfBirth)
+        assertThat(createdLog.firstName).isNull()
+        assertThat(createdLog.middleNames).isNull()
+        assertThat(createdLog.lastName).isNull()
+        assertThat(createdLog.dateOfBirth).isNull()
         assertThat(createdLog.firstNameAliases).isEmpty()
         assertThat(createdLog.lastNameAliases).isEmpty()
         assertThat(createdLog.dateOfBirthAliases).isEmpty()
