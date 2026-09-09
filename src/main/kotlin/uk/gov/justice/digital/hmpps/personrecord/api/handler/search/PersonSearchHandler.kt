@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchS
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import java.util.UUID
 
 @Component
@@ -28,6 +29,7 @@ class PersonSearchHandler(
 
   private fun findStrongestPersonsAcrossUniqueClusters(personMatchScoresSortedDescending: List<PersonMatchScore>) = personMatchScoresSortedDescending
     .map { personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))!! }
+    .filter { it.sourceSystem != SourceSystemType.COMMON_PLATFORM && it.sourceSystem != SourceSystemType.LIBRA }
     .distinctBy { it.personKey!!.id!! }
 
   private fun buildSearchResult(personEntities: List<PersonEntity>): PersonSearchResponse {
@@ -35,6 +37,7 @@ class PersonSearchHandler(
       val rootPersonData = SearchData.from(personEntity)
       val childPersonData = personEntity.personKey!!.personEntities
         .filter { it != personEntity }
+        .filter { it.sourceSystem != SourceSystemType.COMMON_PLATFORM && it.sourceSystem != SourceSystemType.LIBRA }
         .map { SearchData.from(it) }
       rootPersonData.linkedRecords = childPersonData
       rootPersonData

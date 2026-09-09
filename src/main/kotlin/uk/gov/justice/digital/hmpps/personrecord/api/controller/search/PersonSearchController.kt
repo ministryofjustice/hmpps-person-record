@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -19,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.search.PersonSearchRe
 
 @Tag(name = "Search")
 @RestController
-@Profile("!prod")
 class PersonSearchController(
   private val personSearchHandler: PersonSearchHandler,
 ) {
