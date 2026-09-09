@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord
+package uk.gov.justice.digital.hmpps.personrecord.pacttest
 
 import au.com.dius.pact.provider.junit5.HttpTestTarget
 import au.com.dius.pact.provider.junit5.PactVerificationContext
@@ -10,13 +10,9 @@ import org.apache.hc.core5.http.HttpRequest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestTemplate
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
-import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
+import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 
 /**
  * Base class for Pact provider verification tests.
@@ -26,21 +22,13 @@ import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
  * test classes should extend this and only need to provide `@State` methods and, where
  * required, override [rolesFor] to reflect the roles their endpoints expect.
  */
-@ActiveProfiles("test")
 @Provider("hmpps-person-record")
-@PactFolder("src/pactTest/resources/pacts")
-@PactBroker(url = $$"${pactbroker.url}")
-@SpringBootTest(
-  classes = [PactTestConfiguration::class],
-  webEnvironment = RANDOM_PORT,
-)
-abstract class AbstractProviderPactTests {
+@PactFolder("src/test/resources/pacts")
+//@PactBroker(url = $$"${pactbroker.url}")
+abstract class AbstractProviderPactTests: WebTestBase() {
 
   @LocalServerPort
   private var port: Int = 0
-
-  @Autowired
-  lateinit var jwtAuthorisationHelper: JwtAuthorisationHelper
 
   @BeforeEach
   fun setUpPactVerification(context: PactVerificationContext) {

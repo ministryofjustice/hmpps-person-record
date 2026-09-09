@@ -54,22 +54,6 @@ repositories {
 val test = testing.suites.named<JvmTestSuite>(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)
 val sourceSets = the<SourceSetContainer>()
 
-val pactTest = testing.suites.create<JvmTestSuite>("pactTest") {
-  sources {
-    kotlin {
-      srcDirs("src/pactTest/kotlin")
-    }
-    resources {
-      srcDirs("src/test/resources")
-    }
-  }
-  dependencies {
-    implementation(files(sourceSets.named("main").get().output, sourceSets.named("main").get().compileClasspath))
-    implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.0")
-    implementation("au.com.dius.pact.provider:junit5spring:4.7.1")
-    implementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
-  }
-}
 
 tasks.register<Test>("initialiseDatabase") {
   description = "A simple task which starts the Spring ApplicationContext and therefore runs flyway migrations"
@@ -93,11 +77,19 @@ tasks.register<Exec>("setUpS3Bucket") {
   args = listOf("-c", "./src/test/resources/localstack/setup-aws.sh")
 }
 
+tasks.register<Test>("pactTest") {
+  description = "runs pact tests against docker"
+  testClassesDirs = files(test.map { it.sources.output.classesDirs })
+  classpath = files(test.map { it.sources.runtimeClasspath })
+  include("**/pacttest/**")
+  onlyIf { gradle.startParameter.taskNames.contains("pactTest") }
+}
+
 tasks {
   test {
     exclude("**/InitialiseDatabase.class")
     exclude("**/**E2ETest.class")
-    exclude("**/pactTest/**")
+    exclude("**/pacttest/**")
   }
 
   getByName("check") {
@@ -122,8 +114,6 @@ tasks.named<Test>("pactTest") {
   // Keep Pact verification opt-in for now: run only when pactTest is directly requested.
   val pactTestRequested = gradle.startParameter.taskNames.any { it == "pactTest" || it.endsWith(":pactTest") }
   onlyIf { pactTestRequested }
-  testClassesDirs = sourceSets["pactTest"].output.classesDirs
-  classpath = sourceSets["pactTest"].runtimeClasspath
   group = "verification"
   // --- Broker connection ---
   // These properties are used when @PactBroker is enabled on the provider test class.
@@ -134,11 +124,11 @@ tasks.named<Test>("pactTest") {
       ?: System.getenv("PACT_BROKER_URL")
       ?: "https://pact-broker-prod.apps.live-1.cloud-platform.service.justice.gov.uk",
   )
-  systemProperty("pactbroker.host", System.getProperty("pactbroker.host") ?: System.getenv("PACT_BROKER_HOST") ?: "")
-  systemProperty("pactbroker.port", System.getProperty("pactbroker.port") ?: System.getenv("PACT_BROKER_PORT") ?: "")
-  systemProperty("pactbroker.scheme", System.getProperty("pactbroker.scheme") ?: System.getenv("PACT_BROKER_SCHEME") ?: "")
-  systemProperty("pactbroker.auth.username", System.getenv("PACT_BROKER_USERNAME") ?: "")
-  systemProperty("pactbroker.auth.password", System.getenv("PACT_BROKER_PASSWORD") ?: "")
+//  systemProperty("pactbroker.host", System.getProperty("pactbroker.host") ?: System.getenv("PACT_BROKER_HOST") ?: "")
+//  systemProperty("pactbroker.port", System.getProperty("pactbroker.port") ?: System.getenv("PACT_BROKER_PORT") ?: "")
+//  systemProperty("pactbroker.scheme", System.getProperty("pactbroker.scheme") ?: System.getenv("PACT_BROKER_SCHEME") ?: "")
+//  systemProperty("pactbroker.auth.username", System.getenv("PACT_BROKER_USERNAME") ?: "")
+//  systemProperty("pactbroker.auth.password", System.getenv("PACT_BROKER_PASSWORD") ?: "")
 
   // --- Which pacts to fetch for verification ---
   // Webhook-triggered runs set PACT_CONSUMER_BRANCH to verify only that branch's pact;
