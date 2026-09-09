@@ -16,14 +16,15 @@ import org.springframework.stereotype.Component
 @Component
 @ConditionalOnProperty(name = ["batch.enabled"], havingValue = "true")
 class BatchJobManager(
-  @param:Value("\${batch.type}") private val jobName: String,
+  @param:Value($$"${batch.type}") private val jobName: String,
+  @param:Value($$"${batch.exit-on-completion:true}") private val exitOnCompletion: Boolean,
   registeredBatchJobs: List<BatchJob>,
 ) {
 
   private val batchJobs = registeredBatchJobs.associateBy { it.jobName }
 
   @EventListener
-  fun onApplicationEvent(event: ContextRefreshedEvent) = runJob().also { event.closeApplication() }
+  fun onApplicationEvent(event: ContextRefreshedEvent) = runJob().also { if (exitOnCompletion) event.closeApplication() }
 
   fun runJob() = runBlocking {
     LOG.info("Running batch job '{}'", jobName)
