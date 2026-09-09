@@ -127,14 +127,14 @@ tasks.named<Test>("pactTest") {
 //  systemProperty("pactbroker.host", System.getProperty("pactbroker.host") ?: System.getenv("PACT_BROKER_HOST") ?: "")
 //  systemProperty("pactbroker.port", System.getProperty("pactbroker.port") ?: System.getenv("PACT_BROKER_PORT") ?: "")
 //  systemProperty("pactbroker.scheme", System.getProperty("pactbroker.scheme") ?: System.getenv("PACT_BROKER_SCHEME") ?: "")
-//  systemProperty("pactbroker.auth.username", System.getenv("PACT_BROKER_USERNAME") ?: "")
-//  systemProperty("pactbroker.auth.password", System.getenv("PACT_BROKER_PASSWORD") ?: "")
+  systemProperty("pactbroker.auth.username", System.getenv("PACT_BROKER_USERNAME") ?: "")
+  systemProperty("pactbroker.auth.password", System.getenv("PACT_BROKER_PASSWORD") ?: "")
 
   // --- Which pacts to fetch for verification ---
   // Webhook-triggered runs set PACT_CONSUMER_BRANCH to verify only that branch's pact;
   // normal CI runs fall back to the consumer's main branch
   // workflow inputs can arrive as an empty string; treat blank as unset
-  val consumerBranch = System.getenv("PACT_CONSUMER_BRANCH")?.takeIf { it.isNotBlank() }
+  val consumerBranch = "cpr-pact" // System.getenv("PACT_CONSUMER_BRANCH")?.takeIf { it.isNotBlank() }
   val selectors = if (consumerBranch != null) {
     // Webhook-triggered: verify only the consumer's PR branch pact
     """[{"branch":"$consumerBranch"}]"""
