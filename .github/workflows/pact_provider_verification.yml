@@ -52,9 +52,6 @@ jobs:
       - name: Start Containers
         run: make start-containers
 
-      - name: Compile provider pact tests
-        run: ./gradlew compilePactTestKotlin --console=plain
-
       - name: Verify pacts
         run: ./gradlew pactTest --console=plain
         env:
