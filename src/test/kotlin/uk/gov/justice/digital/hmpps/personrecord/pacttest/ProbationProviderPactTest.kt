@@ -30,6 +30,7 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.JdbcTemplate
+import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.*
 
 @Autowired
@@ -44,7 +45,6 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
   // TODO: To be updated with CPR-1328 with actual state values.
   @State("An address exists for CRN and address ID")
   fun anAddressExistsForCrnAndAddressId(): Map<String, String> {
-    deleteAllPersonData()
     val person = createPersonWithNewKey(
       createRandomProbationPersonDetails(),
       configure = addAddressToRecord(
@@ -79,16 +79,40 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
 
   // TODO: To be updated with CPR-1328 with actual state values.
   @State("A probation address can be created for CRN")
-  fun aProbationAddressCanBeCreatedForCrn() {
-//    deleteAllPersonData()
-//    createPersonWithNewKey(buildPactPerson("X12345").copy(addresses = emptyList()))
+  fun aProbationAddressCanBeCreatedForCrn(){
   }
 
   // TODO: To be updated with CPR-1328 with actual state values.
   @State("A probation person exists for CRN")
-  fun aProbationPersonExistsForCrn() {
-//    deleteAllPersonData()
-//    createProbationPersonWithAddress("X12345")
+  fun aProbationPersonExistsForCrn(): Map<String, String> {
+    val person = createPersonWithNewKey(
+      createRandomProbationPersonDetails().copy(titleCode = TitleCode.MR),
+      configure = addAddressToRecord(
+        Address(
+          noFixedAbode = randomBoolean(),
+          startDate = randomZonedDateTime(),
+          endDate = randomZonedDateTime(),
+          postcode = randomPostcode(),
+          buildingName = randomName(),
+          subBuildingName = randomName(),
+          buildingNumber = randomBuildingNumber(),
+          thoroughfareName = randomName(),
+          dependentLocality = randomName(),
+          postTown = randomName(),
+          county = randomName(),
+          countryCode = randomCountryCode(),
+          uprn = randomUprn(),
+          statusCode = randomAddressStatusCode(),
+          comment = randomName(),
+          isVerified = randomBoolean(),
+          usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
+          contacts = listOf(Contact(randomContactType(), randomPhoneNumber(), "+44")),
+        ),
+      ),
+    )
+    return mapOf(
+      "crn" to person.crn!!,
+    )
   }
 }
 
