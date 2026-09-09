@@ -44,10 +44,9 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
   // TODO: To be updated with CPR-1328 with actual state values.
   @State("An address exists for CRN and address ID")
   fun anAddressExistsForCrnAndAddressId(): Map<String, String> {
-    val crn = "X12345"
     deleteAllPersonData()
     val person = createPersonWithNewKey(
-      createRandomProbationPersonDetails(crn),
+      createRandomProbationPersonDetails(),
       configure = addAddressToRecord(
         Address(
           noFixedAbode = randomBoolean(),
@@ -73,7 +72,7 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
     )
 
     return mapOf(
-      "crn" to crn,
+      "crn" to person.crn!!,
       "cprAddressId" to person.addresses.first().updateId.toString(),
     )
   }
