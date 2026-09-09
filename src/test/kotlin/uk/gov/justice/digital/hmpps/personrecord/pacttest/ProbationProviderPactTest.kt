@@ -79,7 +79,16 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
 
   // TODO: To be updated with CPR-1328 with actual state values.
   @State("A probation address can be created for CRN")
-  fun aProbationAddressCanBeCreatedForCrn(){
+  fun aProbationAddressCanBeCreatedForCrn(): Map<String, String> {
+    stubNoMatchesPersonMatch()
+    stubPersonMatchUpsert()
+
+    val person = createPersonWithNewKey(
+      createRandomProbationPersonDetails()
+    )
+    return mapOf(
+      "crn" to person.crn!!,
+    )
   }
 
   // TODO: To be updated with CPR-1328 with actual state values.
