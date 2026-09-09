@@ -14,8 +14,9 @@ data class CROIdentifier(val croId: String) {
 
     private fun invalidCro(): CROIdentifier = CROIdentifier(EMPTY_CRO)
 
-    fun from(inputCroId: String? = EMPTY_CRO): CROIdentifier = when {
-      inputCroId.isNullOrEmpty() -> invalidCro()
+    fun from(inputCroId: String? = EMPTY_CRO): CROIdentifier = normalizeIdentifier(inputCroId)?.let(::fromNormalized) ?: invalidCro()
+
+    private fun fromNormalized(inputCroId: String): CROIdentifier = when {
       isSfFormat(inputCroId) -> canonicalSfFormat(inputCroId)
       isStandardFormat(inputCroId) -> canonicalStandardFormat(inputCroId)
       else -> invalidCro()
@@ -39,13 +40,11 @@ data class CROIdentifier(val croId: String) {
       }
     }
 
-    private fun correctModulus(checkChar: Char, serialNum: String, yearDigits: String): Boolean = checkChar == VALID_LETTERS[(yearDigits + serialNum).toInt().mod(VALID_LETTERS.length)]
+    private fun correctModulus(checkChar: Char, serialNum: String, yearDigits: String): Boolean = IdentifierCheckDigitHandler.isValid(checkChar, yearDigits + serialNum)
 
     private fun formatStandard(checkChar: Char, serialNum: String, yearDigits: String) = "${padSerialNumber(serialNum)}/$yearDigits$checkChar"
 
     private fun formatSF(checkChar: Char, serialNum: String, yearDigits: String) = "SF$yearDigits/$serialNum$checkChar"
-
-    const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
 
     private fun isStandardFormat(inputCroId: String): Boolean = inputCroId.matches(CRO_REGEX)
 
