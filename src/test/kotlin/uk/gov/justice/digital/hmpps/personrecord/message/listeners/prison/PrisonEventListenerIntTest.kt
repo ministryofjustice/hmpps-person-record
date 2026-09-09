@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertNull
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
@@ -114,11 +115,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
         assertThat(personEntity.personKey).isNotNull()
         assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
-        assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(title.value)
-        assertThat(personEntity.getPrimaryName().firstName).isEqualTo(firstName)
-        assertThat(personEntity.getPrimaryName().middleNames).isEqualTo("$middleName $middleName")
-        assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
-        assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
         assertThat(personEntity.religion).isNull()
 
         val populatedReferencesUpdateIdCount = personEntity.references.count { it.updateId != null }
@@ -128,18 +124,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.references.getType(NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(nationalInsuranceNumber)
         assertThat(personEntity.references.getType(DRIVER_LICENSE_NUMBER).first()).isEqualTo(driverLicenseNumber)
 
-        assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(personDateOfBirth)
-
-        assertThat(personEntity.getAliases().size).isEqualTo(1)
-        assertThat(personEntity.getAliases()[0].titleCode).isEqualTo(title.value)
-        assertThat(personEntity.getAliases()[0].firstName).isEqualTo(aliasFirstName)
-        assertThat(personEntity.getAliases()[0].middleNames).isEqualTo(aliasMiddleName)
-        assertThat(personEntity.getAliases()[0].lastName).isEqualTo(aliasLastName)
-        assertThat(personEntity.getAliases()[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
-        assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(aliasGender.value)
-        assertThat(personEntity.pseudonyms.size).isEqualTo(2)
-        val populatedPseudonymsUpdateIdCount = personEntity.pseudonyms.count { it.updateId != null }
-        assertThat(populatedPseudonymsUpdateIdCount).isEqualTo(2)
+        assertThat(personEntity.pseudonyms).isEmpty()
 
         assertThat(personEntity.addresses.size).isEqualTo(1)
         assertThat(personEntity.addresses[0].updateId).isNotNull()
@@ -191,7 +176,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `should receive the message successfully when prisoner updated event published`() {
       val prisonNumber = randomPrisonNumber()
-      val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = randomReligionCode() })
+      val prisonerBeforeUpdate = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = randomReligionCode() })
 
       val updatedFirstName = randomName()
       val ethnicity = randomPrisonEthnicity()
@@ -202,7 +187,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val updatedAliasGender = randomPrisonSexCode()
       val updatedAlias = ApiResponseSetupAlias(title = title.key, firstName = randomName(), lastName = randomName(), gender = updatedAliasGender.key)
 
-      stubNoMatchesPersonMatch(matchId = prisoner.matchId)
+      stubNoMatchesPersonMatch(matchId = prisonerBeforeUpdate.matchId)
       prisonUpdateEventAndResponseSetup(ApiResponseSetup(gender = updatedSexCode.key, title = title.key, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity, aliases = listOf(updatedAlias)))
 
       checkTelemetry(
@@ -213,18 +198,21 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber = prisonNumber)!!
-        assertThat(personEntity.matchId).isEqualTo(prisoner.matchId)
-        assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(title.value)
-        assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
-        assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(updatedSexCode.value)
+        assertThat(personEntity.matchId).isEqualTo(prisonerBeforeUpdate.matchId)
 
-        assertThat(personEntity.getAliases()).hasSize(1)
-        assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(updatedAliasGender.value)
+        val primaryNameBeforeUpdate = prisonerBeforeUpdate.getPrimaryName()
+        assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(primaryNameBeforeUpdate.titleCode)
+        assertThat(personEntity.getPrimaryName().firstName).isEqualTo(primaryNameBeforeUpdate.firstName)
+        assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(primaryNameBeforeUpdate.sexCode)
+        val aliasBeforeUpdate = prisonerBeforeUpdate.getAliases().first()
+        assertThat(personEntity.getAliases().first().titleCode).isEqualTo(aliasBeforeUpdate.titleCode)
+        assertThat(personEntity.getAliases().first().firstName).isEqualTo(aliasBeforeUpdate.firstName)
+        assertThat(personEntity.getAliases().first().sexCode).isEqualTo(aliasBeforeUpdate.sexCode)
 
         assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))
 
         assertThat(personEntity.nationalities.size).isEqualTo(1)
-        assertThat(personEntity.religion).isEqualTo(prisoner.religion)
+        assertThat(personEntity.religion).isEqualTo(prisonerBeforeUpdate.religion)
         assertThat(personEntity.religion).isNotNull()
         assertThat(personEntity.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.name)
         assertThat(personEntity.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.description)
@@ -337,16 +325,18 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         val createdLog = eventLogs.first()
         assertThat(createdLog.pncs).isEqualTo(listOf(PNCIdentifier.from(pnc).pncId))
         assertThat(createdLog.cros).isEqualTo(listOf(cro))
-        assertThat(createdLog.firstName).isEqualTo(firstName)
-        assertThat(createdLog.middleNames).isEqualTo("$middleName $middleName")
-        assertThat(createdLog.lastName).isEqualTo(lastName)
-        assertThat(createdLog.dateOfBirth).isEqualTo(personDateOfBirth)
+
+        assertNull(createdLog.firstName)
+        assertNull(createdLog.middleNames)
+        assertNull(createdLog.lastName)
+        assertNull(createdLog.dateOfBirth)
+        assertThat(createdLog.firstNameAliases).isEmpty()
+        assertThat(createdLog.lastNameAliases).isEmpty()
+        assertThat(createdLog.dateOfBirthAliases).isEmpty()
+
         assertThat(createdLog.sourceSystem).isEqualTo(NOMIS)
         assertThat(createdLog.postcodes).isEqualTo(listOf(postcode))
         assertThat(createdLog.sentenceDates).isEqualTo(listOf(sentenceStartDate))
-        assertThat(createdLog.firstNameAliases).isEqualTo(listOf(aliasFirstName, secondAliasFirstName).sorted())
-        assertThat(createdLog.lastNameAliases).isEqualTo(listOf(aliasLastName, secondAliasLastName).sorted())
-        assertThat(createdLog.dateOfBirthAliases).isEqualTo(listOf(aliasDateOfBirth, secondAliasDateOfBirth).sorted())
         assertThat(createdLog.personUUID).isNotNull()
         assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }
