@@ -7,7 +7,7 @@ import java.time.LocalDate
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PersonMatchSearchRequest(
   val fullName: String,
-  val dateOfBirth: LocalDate? = null,
+  val dateOfBirth: LocalDate,
   val firstNameAliases: List<String> = emptyList(),
   val lastNameAliases: List<String> = emptyList(),
   val dateOfBirthAliases: List<LocalDate> = emptyList(),
