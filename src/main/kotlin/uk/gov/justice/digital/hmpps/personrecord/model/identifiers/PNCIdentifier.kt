@@ -20,6 +20,10 @@ data class PNCIdentifier(val pncId: String) {
 
     fun from(inputPncId: String? = EMPTY_PNC): PNCIdentifier = when {
       inputPncId.isNullOrEmpty() -> PNCIdentifier(EMPTY_PNC)
+      else -> fromNormalized(inputPncId.uppercase())
+    }
+
+    private fun fromNormalized(inputPncId: String): PNCIdentifier = when {
       isExpectedFormat(inputPncId) -> toCanonicalForm(inputPncId)
       else -> PNCIdentifier(EMPTY_PNC)
     }
