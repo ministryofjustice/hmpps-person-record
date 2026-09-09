@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.Generated
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionInsertRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
@@ -83,6 +84,17 @@ class PrisonReligionEntity(
       prisonRecordType = PrisonRecordType.from(prisonReligionHistory.current),
       createDateTime = prisonReligionHistory.createDateTime,
       createUserId = prisonReligionHistory.createUserId,
+    )
+
+    fun from(prisonNumber: String, prisonReligionHistory: PrisonReligionInsertRequest) = PrisonReligionEntity(
+      prisonNumber = prisonNumber,
+      code = prisonReligionHistory.religion,
+      changeReasonKnown = prisonReligionHistory.comment?.isNotBlank() != null,
+      comments = prisonReligionHistory.comment,
+      startDate = LocalDate.now(),
+      prisonRecordType = PrisonRecordType.CURRENT,
+      createDateTime = LocalDateTime.now(),
+      createUserId = prisonReligionHistory.userId,
     )
   }
 }

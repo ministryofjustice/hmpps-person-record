@@ -37,7 +37,7 @@ class ReligionDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
     val prisonNumber = randomPrisonNumber()
     createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
-    val cprReligionId = prisonReligionInsertHandler.handleInsert(prisonNumber, createPrisonReligionHistory()).cprReligionId
+    val cprReligionId = prisonReligionInsertHandler.handleInsertForNomisSynchronisation(prisonNumber, createPrisonReligionHistory()).cprReligionId
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
     val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(

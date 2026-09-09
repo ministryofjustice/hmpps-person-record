@@ -45,7 +45,7 @@ class SysconSyncPrisonReligionAPIController(
     @PathVariable prisonNumber: String,
     @RequestBody prisonReligionHistoryRequest: PrisonReligionHistory,
   ): PrisonReligionSaveResponse {
-    val prisonReligionMapping = prisonReligionInsertHandler.handleInsert(prisonNumber, prisonReligionHistoryRequest)
+    val prisonReligionMapping = prisonReligionInsertHandler.handleInsertForNomisSynchronisation(prisonNumber, prisonReligionHistoryRequest)
     return PrisonReligionSaveResponse(prisonNumber, prisonReligionMapping)
   }
 
