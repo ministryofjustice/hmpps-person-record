@@ -2,10 +2,13 @@ package uk.gov.justice.digital.hmpps.personrecord.jobs
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.test.context.TestPropertySource
+import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
-class RecordCountReportIntTest : WebTestBase() {
+@TestPropertySource(properties = ["batch.enabled=true", "batch.type=RECORD_COUNT_REPORT", "batch.exit-on-completion=false"])
+class RecordCountReportJobIntTest : IntegrationTestBase() {
 
   @BeforeEach
   fun beforeEach() {
@@ -20,12 +23,6 @@ class RecordCountReportIntTest : WebTestBase() {
     createPerson(createRandomPrisonPersonDetails())
     createPerson(createRandomLibraPersonDetails())
     createPerson(createRandomCommonPlatformPersonDetails())
-
-    webTestClient.post()
-      .uri("/jobs/recordcountreport")
-      .exchange()
-      .expectStatus()
-      .isOk
 
     checkTelemetry(
       TelemetryEventType.CPR_RECORD_COUNT_REPORT,
@@ -45,12 +42,6 @@ class RecordCountReportIntTest : WebTestBase() {
     createPerson(createRandomProbationPersonDetails())
     createPerson(createRandomLibraPersonDetails())
     createPerson(createRandomCommonPlatformPersonDetails())
-
-    webTestClient.post()
-      .uri("/jobs/recordcountreport")
-      .exchange()
-      .expectStatus()
-      .isOk
 
     checkTelemetry(
       TelemetryEventType.CPR_RECORD_COUNT_REPORT,
