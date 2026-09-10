@@ -38,6 +38,11 @@ generic-service:
     SPRINGDOC_API_DOCS_ENABLED: false
     SPRINGDOC_SWAGGER_UI_ENABLED: false
 
+  batchjobs:
+    - name: record-count-report
+      type: RECORD_COUNT_REPORT
+      schedule: "0 0-23 * * *"
+
 generic-prometheus-alerts:
   sqsOldestAlertQueueNames:
     - "hmpps-person-record-prod-cpr_court_cases_queue.fifo"
