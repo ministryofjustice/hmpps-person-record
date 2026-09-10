@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 class SysconDisabilityStatusControllerPreProdTest : WebTestBase() {
 
   @Test
-  fun `should update person disability status`() {
+  fun `should overwrite aliases upon an update to person disability status`() {
     val prisonNumber = randomPrisonNumber()
     createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
