@@ -6,7 +6,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.constants
 object Roles {
   const val API_READ_ONLY = "ROLE_CORE_PERSON_RECORD_API__RO"
 
-  const val API_VETTING_SEARCH_ONLY = "ROLE_CORE_PERSON_RECORD_API__VETTING"
+  const val API_VETTING_SEARCH_ONLY = "ROLE_CORE_PERSON_RECORD_API__VETTING_SEARCH"
 
   const val PERSON_RECORD_ADMIN_READ_ONLY = "ROLE_CORE_PERSON_RECORD_API__ADMIN_RO"
 
