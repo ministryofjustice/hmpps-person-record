@@ -752,7 +752,7 @@ class IntegrationTestBase {
       .failOnUnmatchedRequests(true)
       .build()
 
-    internal const val JOIN_THRESHOLD = 24F
-    internal const val FRACTURE_THRESHOLD = 18F
+    internal const val JOIN_THRESHOLD = 20F
+    internal const val FRACTURE_THRESHOLD = 14F
   }
 }
