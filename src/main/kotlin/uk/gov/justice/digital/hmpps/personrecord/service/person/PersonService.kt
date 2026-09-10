@@ -20,23 +20,27 @@ class PersonService(
   private val reclusterService: ReclusterService,
   private val publisher: ApplicationEventPublisher,
 ) {
-
   fun processPerson(
     person: Person,
+    createOnExisting: Boolean = false,
     findPerson: () -> PersonEntity?,
   ): PersonEntity = findPerson().exists(
     no = {
       create(person)
     },
     yes = {
-      update(person, it)
+      if (createOnExisting) {
+        create(person, it)
+      } else {
+        update(person, it)
+      }
     },
   ).also {
     publisher.publishEvent(PersonProcessingCompleted(it))
   }
 
-  private fun create(person: Person): PersonEntity {
-    val personEntity = PersonEntity.new(person.sourceSystem).updatePersonEntity(person)
+  private fun create(person: Person, personEntity: PersonEntity = PersonEntity.new(person.sourceSystem)): PersonEntity {
+    val personEntity = personEntity.updatePersonEntity(person)
     personRepository.save(personEntity)
 
     personMatchService.saveToPersonMatch(personEntity)

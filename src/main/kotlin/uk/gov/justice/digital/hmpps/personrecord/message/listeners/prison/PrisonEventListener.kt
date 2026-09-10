@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonUpdated
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
@@ -16,6 +17,7 @@ class PrisonEventListener(
   private val domainEventProcessor: DomainEventProcessor,
   private val prisonEventProcessor: PrisonEventProcessor,
   private val prisonerSearchClient: PrisonerSearchClient,
+  private val personRepository: PersonRepository,
 ) {
 
   @SqsListener(Queues.PRISON_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
@@ -28,6 +30,9 @@ class PrisonEventListener(
   }
 
   private fun processPrisonEvent(prisonNumber: String) {
+    if (personRepository.findByPrisonNumber(prisonNumber) == null) {
+      throw IllegalStateException("Prisoner with prison number $prisonNumber not yet created")
+    }
     prisonerSearchClient.getPrisoner(prisonNumber)?.let { person ->
       prisonEventProcessor.processEvent(person)
     }
