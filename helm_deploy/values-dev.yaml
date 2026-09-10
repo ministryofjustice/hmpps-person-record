@@ -22,6 +22,12 @@ generic-service:
     startupOverride: '45 6 * * 1-5'
     timeZone: Europe/London
 
+  batchjobs:
+    - name: split-clusters
+      type: SPLIT_CLUSTERS
+      schedule: "0 0 1 1 *" # 1st day of the year (intended to only run on ad-hoc bases)
+      suspend: true
+
 generic-prometheus-alerts:
   businessHoursOnly: true
   sqsNumberAlertQueueNames:
