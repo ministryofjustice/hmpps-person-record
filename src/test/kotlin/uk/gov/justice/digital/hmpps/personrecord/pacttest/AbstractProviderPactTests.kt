@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
  * required, override [rolesFor] to reflect the roles their endpoints expect.
  */
 @Provider("hmpps-person-record")
-//@PactFolder("src/test/resources/pacts")
 @PactBroker(url = $$"${pactbroker.url}")
 abstract class AbstractProviderPactTests: WebTestBase() {
   @LocalServerPort
