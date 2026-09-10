@@ -46,5 +46,5 @@ abstract class AbstractProviderPactTests: WebTestBase() {
    * Determines the roles the JWT auth token should carry for a given interaction request.
    * Override in subclasses whose endpoints require different roles per request.
    */
-  protected open fun rolesFor(request: HttpRequest): List<String> = listOf(API_READ_ONLY)
+  protected fun rolesFor(request: HttpRequest): List<String> = listOf(API_READ_ONLY)
 }
