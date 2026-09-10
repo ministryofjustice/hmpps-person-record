@@ -2,16 +2,19 @@ package uk.gov.justice.digital.hmpps.personrecord.jobs
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.test.context.TestPropertySource
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
-@TestPropertySource(properties = ["batch.enabled=true", "batch.type=RECORD_COUNT_REPORT", "batch.exit-on-completion=false"])
-class RecordCountReportJobIntTest : IntegrationTestBase() {
+class RecordCountReportJobIntTest(@Autowired applicationEventPublisher: ApplicationEventPublisher, @Autowired personRepo: PersonRepository) : IntegrationTestBase() {
+
+  val recordCountReportJob = RecordCountReportJob(personRepo, applicationEventPublisher)
 
   @BeforeEach
   fun beforeEach() {
-    personRepository.deleteAllInBatch()
+    deleteAllPersonData()
     telemetryRepository.deleteAll()
   }
 
@@ -22,7 +25,7 @@ class RecordCountReportJobIntTest : IntegrationTestBase() {
     createPerson(createRandomPrisonPersonDetails())
     createPerson(createRandomLibraPersonDetails())
     createPerson(createRandomCommonPlatformPersonDetails())
-
+    recordCountReportJob.run()
     checkTelemetry(
       TelemetryEventType.CPR_RECORD_COUNT_REPORT,
       mapOf(
@@ -41,7 +44,7 @@ class RecordCountReportJobIntTest : IntegrationTestBase() {
     createPerson(createRandomProbationPersonDetails())
     createPerson(createRandomLibraPersonDetails())
     createPerson(createRandomCommonPlatformPersonDetails())
-
+    recordCountReportJob.run()
     checkTelemetry(
       TelemetryEventType.CPR_RECORD_COUNT_REPORT,
       mapOf(
