@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class RecordCountReportJob(
   private val personRepository: PersonRepository,
   private val applicationEventPublisher: ApplicationEventPublisher,
-): BatchJob {
+) : BatchJob {
   override val jobName = "RECORD_COUNT_REPORT"
 
   override fun run() {

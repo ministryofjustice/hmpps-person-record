@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.TestPropertySource
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @TestPropertySource(properties = ["batch.enabled=true", "batch.type=RECORD_COUNT_REPORT", "batch.exit-on-completion=false"])
