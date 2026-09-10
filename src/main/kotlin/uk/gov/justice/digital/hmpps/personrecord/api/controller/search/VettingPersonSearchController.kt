@@ -11,34 +11,37 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_SEARCH_ONLY
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_VETTING_SEARCH_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.search.PersonSearchHandler
-import uk.gov.justice.digital.hmpps.personrecord.api.model.search.PersonSearchRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.search.PersonSearchResponse
+import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingPersonSearchRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingPersonSearchResponse
 
-@Tag(name = "Search")
+@Tag(name = "Vetting")
 @RestController
-class PersonSearchController(
+class VettingPersonSearchController(
   private val personSearchHandler: PersonSearchHandler,
 ) {
 
   @ApiResponses(
     ApiResponse(
       responseCode = "200",
-      description = "The objects in the top level array will be ordered by the strongest match descending (first record strongest, last record weakest).",
+      description = """
+        This endpoint returns matching person records from Prison and Probation only.
+        The objects in the top level array will be ordered by the strongest match descending (first record strongest, last record weakest).
+      """,
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = PersonSearchResponse::class),
+          schema = Schema(implementation = VettingPersonSearchResponse::class),
         ),
       ],
     ),
   )
-  @PreAuthorize("hasRole('$API_SEARCH_ONLY')")
-  @PostMapping("/person/search")
+  @PreAuthorize("hasRole('$API_VETTING_SEARCH_ONLY')")
+  @PostMapping("/person/vetting")
   fun personSearch(
-    @RequestBody personSearchRequest: PersonSearchRequest,
-  ): ResponseEntity<PersonSearchResponse> {
+    @RequestBody personSearchRequest: VettingPersonSearchRequest,
+  ): ResponseEntity<VettingPersonSearchResponse> {
     val result = personSearchHandler.search(personSearchRequest)
     return ResponseEntity(result, HttpStatus.OK)
   }
