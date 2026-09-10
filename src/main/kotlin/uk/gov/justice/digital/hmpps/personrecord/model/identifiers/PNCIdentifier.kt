@@ -18,15 +18,14 @@ data class PNCIdentifier(val pncId: String) {
     private const val LONG_PNC_ID_LENGTH = 12
     private const val CENTURY = 100
 
-    fun from(inputPncId: String? = EMPTY_PNC): PNCIdentifier = when {
-      inputPncId.isNullOrEmpty() -> PNCIdentifier(EMPTY_PNC)
-      else -> fromNormalized(inputPncId.uppercase())
-    }
+    fun from(inputPncId: String? = EMPTY_PNC): PNCIdentifier = normalizeIdentifier(inputPncId)?.let(::fromNormalized) ?: invalidPnc()
 
     private fun fromNormalized(inputPncId: String): PNCIdentifier = when {
       isExpectedFormat(inputPncId) -> toCanonicalForm(inputPncId)
-      else -> PNCIdentifier(EMPTY_PNC)
+      else -> invalidPnc()
     }
+
+    private fun invalidPnc(): PNCIdentifier = PNCIdentifier(EMPTY_PNC)
 
     private fun isExpectedFormat(pnc: String): Boolean = pnc.matches(PNC_REGEX)
 
@@ -37,8 +36,8 @@ data class PNCIdentifier(val pncId: String) {
         else -> canonicalLongForm(sanitizedPncId)
       }
       return when {
-        (canonicalPnc.valid) -> PNCIdentifier(canonicalPnc.value)
-        else -> PNCIdentifier(EMPTY_PNC)
+        canonicalPnc.valid -> PNCIdentifier(canonicalPnc.value)
+        else -> invalidPnc()
       }
     }
 
@@ -84,14 +83,7 @@ class PNC(private val checkChar: String, serialNum: String, private val yearDigi
   val valid: Boolean
     get() = correctModulus(checkChar.single())
 
-  private fun correctModulus(checkChar: Char): Boolean {
-    val modulus = VALID_LETTERS[(yearDigits.takeLast(2) + paddedSerialNum).toInt().mod(VALID_LETTERS.length)]
-    return modulus == checkChar
-  }
+  private fun correctModulus(checkChar: Char): Boolean = IdentifierCheckDigitHandler.isValid(checkChar, yearDigits.takeLast(2) + paddedSerialNum)
 
   private fun padSerialNumber(serialNumber: String): String = serialNumber.padStart(PNCIdentifier.SERIAL_NUM_LENGTH, '0')
-
-  companion object {
-    private const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
-  }
 }
