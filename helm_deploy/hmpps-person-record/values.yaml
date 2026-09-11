@@ -145,6 +145,5 @@ generic-prometheus-alerts:
   sqsAlertsTotalMessagesThreshold: "0"
 
 cron:
-  deliusReconciliationReportJob: "0 0-23 * * *"
   reclusterNeedsAttentionJob: "0 13 * * *"
   generateDeliusMergeRequestsJob: "0 19 * * 1-5"

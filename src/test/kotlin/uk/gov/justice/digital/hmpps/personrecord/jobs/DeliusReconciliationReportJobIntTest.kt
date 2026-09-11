@@ -2,12 +2,22 @@ package uk.gov.justice.digital.hmpps.personrecord.jobs
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.web.PagedModel.PageMetadata
+import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.ProbationCases
-import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
-class DeliusReconciliationReportIntTest : WebTestBase() {
+class DeliusReconciliationReportJobIntTest(
+  @Autowired corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
+  @Autowired applicationEventPublisher: ApplicationEventPublisher,
+  @Autowired personRepo: PersonRepository,
+) : IntegrationTestBase() {
+
+  val deliusReconciliationReportJob = DeliusReconciliationReportJob(corePersonRecordAndDeliusClient, applicationEventPublisher, personRepo)
 
   @BeforeEach
   fun beforeEach() {
@@ -16,7 +26,7 @@ class DeliusReconciliationReportIntTest : WebTestBase() {
   }
 
   @Test
-  fun `tracks person count between delius and cpr`() {
+  fun `should track person count between delius and cpr`() {
     createPersonWithNewKey(createRandomProbationPersonDetails())
 
     val responseBody = ProbationCases(
@@ -27,11 +37,7 @@ class DeliusReconciliationReportIntTest : WebTestBase() {
       body = jsonMapper.writeValueAsString(responseBody),
     )
 
-    webTestClient.post()
-      .uri("/jobs/deliusreconciliationreport")
-      .exchange()
-      .expectStatus()
-      .isOk
+    deliusReconciliationReportJob.run()
 
     checkTelemetry(
       TelemetryEventType.CPR_RECORD_DELIUS_RECONCILIATION_REPORT,
