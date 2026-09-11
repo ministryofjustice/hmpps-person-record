@@ -133,7 +133,7 @@ tasks.named<Test>("pactTest") {
   // Webhook-triggered runs set PACT_CONSUMER_BRANCH to verify only that branch's pact;
   // normal CI runs fall back to the consumer's main branch
   // workflow inputs can arrive as an empty string; treat blank as unset
-  val consumerBranch = "cpr-pact" // System.getenv("PACT_CONSUMER_BRANCH")?.takeIf { it.isNotBlank() }
+  val consumerBranch = System.getenv("PACT_CONSUMER_BRANCH")?.takeIf { it.isNotBlank() }
   val selectors = if (consumerBranch != null) {
     // Webhook-triggered: verify only the consumer's PR branch pact
     """[{"branch":"$consumerBranch"}]"""
