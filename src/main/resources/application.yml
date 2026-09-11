@@ -62,10 +62,6 @@ spring:
   flyway:
     enabled: true
 
-springdoc:
-  swagger-ui:
-    version: 5.32.11
-
 database:
   schema:
     name: personrecordservice
