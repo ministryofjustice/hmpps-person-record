@@ -4,20 +4,22 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_SEARCH_ONLY
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_VETTING_SEARCH_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.CanonicalSearchIdentifiers
-import uk.gov.justice.digital.hmpps.personrecord.api.model.search.PersonSearchRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.search.PersonSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.SearchStatus
+import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingPersonSearchRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingPersonSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
-class PersonSearchControllerIntTest : WebTestBase() {
+class VettingPersonSearchControllerIntTest : WebTestBase() {
 
   @Nested
   inner class Success {
@@ -56,11 +58,11 @@ class PersonSearchControllerIntTest : WebTestBase() {
       )
 
       val strongestPersonPrimaryPseudonym = strongestMatchPersonEntity.pseudonyms.first { it.nameType == NameType.PRIMARY }
-      val personSearchResponse = sendPostRequestAsserted<PersonSearchResponse>(
-        url = "/person/search",
-        roles = listOf(API_SEARCH_ONLY),
+      val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
+        url = "/person/vetting/search",
+        roles = listOf(API_VETTING_SEARCH_ONLY),
         expectedStatus = HttpStatus.OK,
-        body = PersonSearchRequest(
+        body = VettingPersonSearchRequest(
           firstName = strongestPersonPrimaryPseudonym.firstName!!,
           lastName = strongestPersonPrimaryPseudonym.lastName!!,
           dateOfBirth = strongestPersonPrimaryPseudonym.dateOfBirth!!,
@@ -148,11 +150,11 @@ class PersonSearchControllerIntTest : WebTestBase() {
       )
 
       val search = strongestPersonFromCluster1.pseudonyms.first { it.nameType == NameType.PRIMARY }
-      val personSearchResponse = sendPostRequestAsserted<PersonSearchResponse>(
-        url = "/person/search",
-        roles = listOf(API_SEARCH_ONLY),
+      val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
+        url = "/person/vetting/search",
+        roles = listOf(API_VETTING_SEARCH_ONLY),
         expectedStatus = HttpStatus.OK,
-        body = PersonSearchRequest(
+        body = VettingPersonSearchRequest(
           firstName = search.firstName!!,
           lastName = search.lastName!!,
           dateOfBirth = search.dateOfBirth!!,
@@ -167,6 +169,79 @@ class PersonSearchControllerIntTest : WebTestBase() {
     }
 
     @Test
+    fun `should return correct search result removing any court persons present`() {
+      val prisonNumber1 = randomPrisonNumber()
+      val courtId1 = randomCId()
+      val defendantId2 = randomDefendantId()
+      val prisonNumber4 = randomPrisonNumber()
+      val cluster1 = createPersonKey()
+        .addPerson(createRandomPrisonPersonDetails(prisonNumber1))
+        .addPerson(createRandomLibraPersonDetails(courtId1))
+      val cluster2 = createPersonKey()
+        .addPerson(createRandomCommonPlatformPersonDetails(defendantId2))
+        .addPerson(createRandomPrisonPersonDetails(prisonNumber4))
+      val strongestPersonFromCluster1 = cluster1.personEntities.first { it.prisonNumber == prisonNumber1 }
+      val weakestPersonFromCluster1 = cluster1.personEntities.first { it.cId == courtId1 }
+      val strongestPersonFromCluster2 = cluster2.personEntities.first { it.defendantId == defendantId2 }
+      val weakestPersonFromCluster2 = cluster2.personEntities.first { it.prisonNumber == prisonNumber4 }
+
+      val personMatchScores = listOf(
+        PersonMatchScore(
+          candidateMatchId = strongestPersonFromCluster2.matchId.toString(),
+          candidateMatchProbability = 0.9999F,
+          candidateMatchWeight = 80.0000F,
+          candidateShouldJoin = true,
+          candidateShouldFracture = false,
+        ),
+        PersonMatchScore(
+          candidateMatchId = weakestPersonFromCluster2.matchId.toString(),
+          candidateMatchProbability = 0.9999F,
+          candidateMatchWeight = 60.0000F,
+          candidateShouldJoin = true,
+          candidateShouldFracture = false,
+        ),
+        PersonMatchScore(
+          candidateMatchId = weakestPersonFromCluster1.matchId.toString(),
+          candidateMatchProbability = 0.9999F,
+          candidateMatchWeight = 50.0000F,
+          candidateShouldJoin = true,
+          candidateShouldFracture = false,
+        ),
+        PersonMatchScore(
+          candidateMatchId = strongestPersonFromCluster1.matchId.toString(),
+          candidateMatchProbability = 0.9999F,
+          candidateMatchWeight = 90.0000F,
+          candidateShouldJoin = true,
+          candidateShouldFracture = false,
+        ),
+      )
+
+      authSetup()
+      stubPostRequest(
+        url = "/person/search",
+        responseBody = jsonMapper.writeValueAsString(personMatchScores),
+      )
+
+      val searchNamesUsingCommonPlatformDetails = strongestPersonFromCluster2.getPrimaryName()
+      val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
+        url = "/person/vetting/search",
+        roles = listOf(API_VETTING_SEARCH_ONLY),
+        expectedStatus = HttpStatus.OK,
+        body = VettingPersonSearchRequest(
+          firstName = searchNamesUsingCommonPlatformDetails.firstName!!,
+          lastName = searchNamesUsingCommonPlatformDetails.lastName!!,
+          dateOfBirth = searchNamesUsingCommonPlatformDetails.dateOfBirth!!,
+        ),
+      ).returnResult().responseBody!!
+      assertThat(personSearchResponse.data).hasSize(2)
+      assertThat(personSearchResponse.data.first().name.firstName).isEqualTo(strongestPersonFromCluster1.getPrimaryName().firstName)
+      assertThat(personSearchResponse.data.first().linkedRecords).isEmpty()
+
+      assertThat(personSearchResponse.data.last().name.firstName).isEqualTo(weakestPersonFromCluster2.getPrimaryName().firstName)
+      assertThat(personSearchResponse.data.last().linkedRecords).isEmpty()
+    }
+
+    @Test
     fun `no matches found - should return empty list`() {
       authSetup()
       stubPostRequest(
@@ -174,11 +249,11 @@ class PersonSearchControllerIntTest : WebTestBase() {
         responseBody = jsonMapper.writeValueAsString(emptyList<PersonMatchScore>()),
       )
 
-      val personSearchResponse = sendPostRequestAsserted<PersonSearchResponse>(
-        url = "/person/search",
-        roles = listOf(API_SEARCH_ONLY),
+      val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
+        url = "/person/vetting/search",
+        roles = listOf(API_VETTING_SEARCH_ONLY),
         expectedStatus = HttpStatus.OK,
-        body = PersonSearchRequest(
+        body = VettingPersonSearchRequest(
           firstName = randomLowerCaseString(),
           lastName = randomLowerCaseString(),
           dateOfBirth = randomDate(),
@@ -195,8 +270,8 @@ class PersonSearchControllerIntTest : WebTestBase() {
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       sendPostRequestAsserted<Unit>(
-        url = "/person/search",
-        body = PersonSearchRequest(
+        url = "/person/vetting/search",
+        body = VettingPersonSearchRequest(
           firstName = randomLowerCaseString(),
           lastName = randomLowerCaseString(),
           dateOfBirth = randomDate(),
@@ -210,8 +285,8 @@ class PersonSearchControllerIntTest : WebTestBase() {
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
       sendPostRequestAsserted<Unit>(
-        url = "/person/search",
-        body = PersonSearchRequest(
+        url = "/person/vetting/search",
+        body = VettingPersonSearchRequest(
           firstName = randomLowerCaseString(),
           lastName = randomLowerCaseString(),
           dateOfBirth = randomDate(),
