@@ -3,7 +3,6 @@
 kotlin {
   jvmToolchain(25)
 }
-
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.8"
   kotlin("plugin.spring") version "2.4.10"
@@ -44,6 +43,8 @@ dependencies {
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.1")
   testImplementation("org.springframework.boot:spring-boot-starter-webclient-test")
   testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
+
+  testImplementation("au.com.dius.pact.provider:junit5spring:4.7.1")
 }
 
 repositories {
@@ -74,10 +75,19 @@ tasks.register<Exec>("setUpS3Bucket") {
   args = listOf("-c", "./src/test/resources/localstack/setup-aws.sh")
 }
 
+tasks.register<Test>("pactTest") {
+  description = "runs pact tests against docker"
+  testClassesDirs = files(test.map { it.sources.output.classesDirs })
+  classpath = files(test.map { it.sources.runtimeClasspath })
+  include("**/pacttest/**")
+  onlyIf { gradle.startParameter.taskNames.contains("pactTest") }
+}
+
 tasks {
   test {
     exclude("**/InitialiseDatabase.class")
     exclude("**/**E2ETest.class")
+    exclude("**/pacttest/**")
   }
 
   getByName("check") {
@@ -95,4 +105,49 @@ tasks {
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
   }
+}
+
+tasks.named<Test>("pactTest") {
+  description = "Run and publish Pact provider tests"
+  // Keep Pact verification opt-in for now: run only when pactTest is directly requested.
+  val pactTestRequested = gradle.startParameter.taskNames.any { it.endsWith("pactTest") }
+  onlyIf { pactTestRequested }
+  group = "verification"
+  // --- Broker connection ---
+  // These properties are used when @PactBroker is enabled on the provider test class.
+  // Keep URL fallback so uncommenting @PactBroker works locally without extra setup.
+  systemProperty(
+    "pactbroker.url",
+    System.getProperty("pactbroker.url")
+      ?: System.getenv("PACT_BROKER_URL")
+      ?: "https://pact-broker-prod.apps.live-1.cloud-platform.service.justice.gov.uk",
+  )
+//  systemProperty("pactbroker.host", System.getProperty("pactbroker.host") ?: System.getenv("PACT_BROKER_HOST") ?: "")
+//  systemProperty("pactbroker.port", System.getProperty("pactbroker.port") ?: System.getenv("PACT_BROKER_PORT") ?: "")
+//  systemProperty("pactbroker.scheme", System.getProperty("pactbroker.scheme") ?: System.getenv("PACT_BROKER_SCHEME") ?: "")
+  systemProperty("pactbroker.auth.username", System.getenv("PACT_BROKER_USERNAME") ?: "")
+  systemProperty("pactbroker.auth.password", System.getenv("PACT_BROKER_PASSWORD") ?: "")
+
+  // --- Which pacts to fetch for verification ---
+  // Webhook-triggered runs set PACT_CONSUMER_BRANCH to verify only that branch's pact;
+  // normal CI runs fall back to the consumer's main branch
+  // workflow inputs can arrive as an empty string; treat blank as unset
+  val consumerBranch = System.getenv("PACT_CONSUMER_BRANCH")?.takeIf { it.isNotBlank() }
+  val selectors = if (consumerBranch != null) {
+    // Webhook-triggered: verify only the consumer's PR branch pact
+    """[{"branch":"$consumerBranch"}]"""
+  } else {
+    // Normal provider PR/push: verify consumer's main branch pact and any deployed consumer versions
+    """[{"mainBranch":true},{"deployed":true}]"""
+  }
+
+  systemProperty("pactbroker.consumerversionselectors.rawjson", selectors)
+
+  // --- Publishing verification results back to the broker ---
+  systemProperty("pact.provider.version", System.getenv("GITHUB_SHA") ?: "local")
+  systemProperty("pact.provider.branch", System.getenv("GITHUB_BRANCH") ?: "local")
+  systemProperty("pactbroker.providerBranch", System.getenv("GITHUB_BRANCH") ?: "local")
+  // systemProperty("pactbroker.enablePending", System.getenv("PACT_ENABLE_PENDING") ?: "true")
+  // Only publish results in CI — prevents local runs polluting the broker's can-i-deploy history
+  systemProperty("pact.verifier.publishResults", System.getenv("PACT_PUBLISH_RESULTS") ?: "false")
 }
