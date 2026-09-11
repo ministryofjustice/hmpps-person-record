@@ -9,7 +9,17 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
-import uk.gov.justice.digital.hmpps.personrecord.test.*
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 
 class ProbationProviderPactTest : AbstractProviderPactTests() {
   override fun rolesFor(request: HttpRequest): List<String> = when (request.method.uppercase()) {
