@@ -5,6 +5,7 @@ import au.com.dius.pact.provider.junit5.PactVerificationContext
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider
 import au.com.dius.pact.provider.junitsupport.Provider
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker
+import au.com.dius.pact.provider.junitsupport.loader.PactFolder
 import org.apache.hc.core5.http.HttpRequest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestTemplate
@@ -22,7 +23,8 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
  * required, override [rolesFor] to reflect the roles their endpoints expect.
  */
 @Provider("hmpps-person-record")
-@PactBroker(url = $$"${pactbroker.url}")
+//@PactBroker(url = $$"${pactbroker.url}")
+@PactFolder("src/test/resources/pacts")
 abstract class AbstractProviderPactTests : WebTestBase() {
   @LocalServerPort
   private var port: Int = 0
