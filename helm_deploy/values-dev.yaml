@@ -22,6 +22,15 @@ generic-service:
     startupOverride: '45 6 * * 1-5'
     timeZone: Europe/London
 
+  batchjobs:
+    - name: split-clusters
+      type: SPLIT_CLUSTERS
+      schedule: "0 0 1 1 *" # 1st day of the year (intended to only run on ad-hoc bases)
+      suspend: true
+    - name: record-count-report
+      type: RECORD_COUNT_REPORT
+      schedule: "0 8-17 * * 1-5"
+
 generic-prometheus-alerts:
   businessHoursOnly: true
   sqsNumberAlertQueueNames:
@@ -37,6 +46,5 @@ generic-prometheus-alerts:
     cloud-platform-21758fcf16e3a488: "hmpps-person-record-database"
 
 cron:
-  recordCountReportJob: "0 8-17 * * 1-5"
   deliusReconciliationReportJob: "0 8-17 * * 1-5"
   reclusterNeedsAttentionJob: "0 13 * * 1-5"

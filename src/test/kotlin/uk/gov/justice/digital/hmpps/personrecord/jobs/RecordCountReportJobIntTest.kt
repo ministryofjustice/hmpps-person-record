@@ -2,14 +2,19 @@ package uk.gov.justice.digital.hmpps.personrecord.jobs
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationEventPublisher
+import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
-class RecordCountReportIntTest : WebTestBase() {
+class RecordCountReportJobIntTest(@Autowired applicationEventPublisher: ApplicationEventPublisher, @Autowired personRepo: PersonRepository) : IntegrationTestBase() {
+
+  val recordCountReportJob = RecordCountReportJob(personRepo, applicationEventPublisher)
 
   @BeforeEach
   fun beforeEach() {
-    personRepository.deleteAllInBatch()
+    deleteAllPersonData()
     telemetryRepository.deleteAll()
   }
 
@@ -20,13 +25,7 @@ class RecordCountReportIntTest : WebTestBase() {
     createPerson(createRandomPrisonPersonDetails())
     createPerson(createRandomLibraPersonDetails())
     createPerson(createRandomCommonPlatformPersonDetails())
-
-    webTestClient.post()
-      .uri("/jobs/recordcountreport")
-      .exchange()
-      .expectStatus()
-      .isOk
-
+    recordCountReportJob.run()
     checkTelemetry(
       TelemetryEventType.CPR_RECORD_COUNT_REPORT,
       mapOf(
@@ -45,13 +44,7 @@ class RecordCountReportIntTest : WebTestBase() {
     createPerson(createRandomProbationPersonDetails())
     createPerson(createRandomLibraPersonDetails())
     createPerson(createRandomCommonPlatformPersonDetails())
-
-    webTestClient.post()
-      .uri("/jobs/recordcountreport")
-      .exchange()
-      .expectStatus()
-      .isOk
-
+    recordCountReportJob.run()
     checkTelemetry(
       TelemetryEventType.CPR_RECORD_COUNT_REPORT,
       mapOf(
