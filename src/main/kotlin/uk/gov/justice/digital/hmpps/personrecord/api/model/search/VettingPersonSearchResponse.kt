@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import java.time.LocalDate
 
-data class PersonSearchResponse(val data: List<SearchData>)
+data class VettingPersonSearchResponse(val data: List<SearchData>)
 
 data class SearchData(
   val name: SearchName,
