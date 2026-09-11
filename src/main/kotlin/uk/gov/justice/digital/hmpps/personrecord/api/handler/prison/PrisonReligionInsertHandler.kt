@@ -15,14 +15,14 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.religion.ReligionCreated
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PrisonPersonServiceProxy
 import java.time.LocalDate
 
 @Component
 class PrisonReligionInsertHandler(
   private val prisonReligionRepository: PrisonReligionRepository,
   private val personRepository: PersonRepository,
-  private val personService: PersonService,
+  private val personService: PrisonPersonServiceProxy,
   private val publisher: ApplicationEventPublisher,
 ) {
 
