@@ -23,7 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
  */
 @Provider("hmpps-person-record")
 @PactBroker(url = $$"${pactbroker.url}")
-abstract class AbstractProviderPactTests: WebTestBase() {
+abstract class AbstractProviderPactTests : WebTestBase() {
   @LocalServerPort
   private var port: Int = 0
 

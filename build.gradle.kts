@@ -54,7 +54,6 @@ repositories {
 val test = testing.suites.named<JvmTestSuite>(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)
 val sourceSets = the<SourceSetContainer>()
 
-
 tasks.register<Test>("initialiseDatabase") {
   description = "A simple task which starts the Spring ApplicationContext and therefore runs flyway migrations"
   testClassesDirs = files(test.map { it.sources.output.classesDirs })
