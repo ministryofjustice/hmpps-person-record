@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.P
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconReligionMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconReligionResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
@@ -32,10 +33,10 @@ class SysconReligionControllerIntTest : WebTestBase() {
     fun `when no existing religions exist by prisoner number - should save religions`() {
       val prisonNumber = randomPrisonNumber()
       val religionsInsertRequest = createRandomReligions()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      val originalPersons = createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val actualResponseBody = postReligions(prisonNumber, religionsInsertRequest)
-      assertCorrectValuesSaved(prisonNumber, religionsInsertRequest, actualResponseBody)
+      assertCorrectValuesSaved(prisonNumber, religionsInsertRequest, actualResponseBody, originalPersons)
     }
 
     @Test
@@ -215,6 +216,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     prisonNumber: String,
     requestBody: List<PrisonReligionHistory>,
     actualResponseBody: SysconReligionResponseBody,
+    originalPersons: PersonEntity? = null,
   ) {
     val actualReligionEntities = awaitNotNull { prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber) }
     val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
@@ -222,6 +224,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     val expectedCurrReligion = requestBody.first { it.current }
     assertThat(personEntity.religion).isEqualTo(expectedCurrReligion.religionCode)
     assertThat(actualReligionEntities.size).isEqualTo(requestBody.size)
+    originalPersons?.let { assertThat(personEntity.getPrimaryName().updateId).isEqualTo(originalPersons.getPrimaryName().updateId) }
 
     actualResponseBody.religionMappings.forEach { res ->
       val storedReligion = prisonReligionRepository.findByUpdateId(UUID.fromString(res.cprReligionId))!!
