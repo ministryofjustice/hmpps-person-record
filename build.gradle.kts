@@ -111,7 +111,7 @@ tasks {
 tasks.named<Test>("pactTest") {
   description = "Run and publish Pact provider tests"
   // Keep Pact verification opt-in for now: run only when pactTest is directly requested.
-  val pactTestRequested = gradle.startParameter.taskNames.any { it == "pactTest" || it.endsWith(":pactTest") }
+  val pactTestRequested = gradle.startParameter.taskNames.any { it.endsWith("pactTest") }
   onlyIf { pactTestRequested }
   group = "verification"
   // --- Broker connection ---
