@@ -30,12 +30,12 @@ class DeliusReconciliationReportJob(
       ),
     )?.page?.totalPages!!
 
-    log.info("$JOB_NAME $totalPages pages with page size of $pageSize")
+    log.info("$jobName $totalPages pages with page size of $pageSize")
 
     val totalDeliusPersons = totalPages * pageSize
     val totalCprPersons = personRepository.countBySourceSystemAndMergedToIsNullAndPassiveStateFalse(SourceSystemType.DELIUS)
 
-    log.info("$JOB_NAME $totalDeliusPersons Delius records, $totalCprPersons CPR records")
+    log.info("$jobName $totalDeliusPersons Delius records, $totalCprPersons CPR records")
 
     applicationEventPublisher.publishEvent(
       RecordTelemetry(
@@ -50,6 +50,5 @@ class DeliusReconciliationReportJob(
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
-    private const val JOB_NAME = "JOB: deliusreconciliationreport:"
   }
 }
