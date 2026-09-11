@@ -1,0 +1,1083 @@
+{
+  "consumer": {
+    "name": "probation-address-consumer"
+  },
+  "provider": {
+    "name": "hmpps-person-record"
+  },
+  "interactions": [
+    {
+      "description": "A request to retrieve probation address",
+      "providerStates": [
+        {
+          "name": "An address exists for CRN and address ID"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "generators": {
+          "path": {
+            "type": "ProviderState",
+            "expression": "/person/probation/${crn}/address/${cprAddressId}"
+          }
+        },
+        "matchingRules": {
+          "path": {
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "^/person/probation/[A-Z0-9]+/address/[0-9a-fA-F-]{36}$"
+              }
+            ]
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "cprAddressId": "db1db4e0-6afc-4802-86c7-2578283e33b1",
+          "noFixedAbode": false,
+          "startDate": "2026-05-15",
+          "startDateTime": "2026-05-15T12:08:46.347",
+          "endDate": "2026-07-15",
+          "endDateTime": "2026-07-15T12:08:46.347",
+          "postcode": "SW1H 9AJ",
+          "subBuildingName": "Sub building 2",
+          "buildingName": "Main Building",
+          "buildingNumber": "102",
+          "thoroughfareName": "Test France",
+          "dependentLocality": "Westminster",
+          "postTown": "London",
+          "county": "Greater London",
+          "countryCode": "GBR",
+          "uprn": "100120991537",
+          "status": {
+            "code": "M",
+            "description": "Main"
+          },
+          "comment": "Address created from probation",
+          "typeVerified": false,
+          "usages": [
+            {
+              "code": "A02",
+              "description": "Approved Premises",
+              "isActive": true
+            }
+          ],
+          "contacts": [
+            {
+              "type": {
+                "code": "HOME",
+                "description": "Home"
+              },
+              "value": "+44 20 7946 0000",
+              "extension": "1234"
+            }
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.cprAddressId": {
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^[0-9a-fA-F-]{36}$"
+                }
+              ]
+            },
+            "$.noFixedAbode": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.startDate": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "regex",
+                  "regex": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              ]
+            },
+            "$.startDateTime": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.endDate": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "regex",
+                  "regex": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              ]
+            },
+            "$.endDateTime": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.postcode": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.subBuildingName": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.buildingName": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.buildingNumber": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.thoroughfareName": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.dependentLocality": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.postTown": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.county": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.countryCode": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "regex",
+                  "regex": "^(ABW|AFG|AGO|AIA|AKR|ALA|ALB|AND|ANT|ARE|ARG|ARM|ASM|ATA|ATF|ATG|AUS|AUT|AZE|BDI|BEL|BEN|BES|BFA|BGD|BGR|BHR|BHS|BIH|BLM|BLR|BLZ|BMU|BOL|BRA|BRB|BRN|BTN|BVT|BWA|CAF|CAN|CCK|CHE|CHL|CHN|CI|CIV|CMR|COD|COG|COK|COL|COM|CPV|CRI|CUB|CUW|CXR|CYM|CYP|CZE|DEU|DJI|DKL|DMA|DNK|DOM|DZA|ECU|EGY|ENG|ERI|ESH|ESP|EST|ETH|FIN|FJI|FLK|FRA|FRO|FSM|FXX|GAB|GBR|GEO|GGY|GHA|GIB|GIN|GLP|GMB|GNB|GNQ|GRC|GRD|GRL|GTM|GUF|GUM|GUY|HKG|HMD|HND|HRV|HTI|HUN|IDN|IMN|IND|IOT|IRL|IRN|IRQ|ISL|ISR|ITA|JAM|JEY|JOR|JPN|KAZ|KEN|KGZ|KHM|KIR|KNA|KOR|KOS|KWT|LAO|LBN|LBR|LBY|LCA|LIE|LKA|LSO|LTU|LUX|LVA|MAC|MAF|MAR|MCO|MDA|MDG|MDV|MEX|MHL|MKD|MLI|MLT|MMR|MNE|MNG|MNP|MOZ|MRT|MSR|MTQ|MUS|MWI|MYS|MYT|NAM|NCL|NER|NFK|NGA|NI|NIC|NIU|NLD|NOR|NPL|NRU|NZL|OMN|PAK|PAN|PCN|PER|PHL|PLW|PNG|POL|PRI|PRK|PRT|PRY|PSE|PYF|QAT|REU|ROU|RUS|RWA|SAU|SCG|SCOT|SDN|SEN|SGP|SGS|SHN|SJM|SLB|SLE|SLV|SMR|SOM|SPM|SRB|SSD|STP|SU|SUR|SVK|SVN|SWE|SWZ|SXM|SYC|SYR|TCA|TCD|TGO|THA|TJK|TKL|TKM|TLS|TON|TTO|TUN|TUR|TUV|TWN|TZA|UGA|UKR|UMI|URY|USA|UZB|VAT|VCT|VEN|VGB|VIR|VNM|VUT|WALES|WLF|WSM|XRK|XX|XZ|YEM|YU|ZAF|ZMB|ZWE)$"
+                }
+              ]
+            },
+            "$.uprn": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.status.code": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.status.description": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.comment": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.typeVerified": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.usages": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.usages[*].code": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.usages[*].description": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.usages[*].isActive": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.contacts": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.contacts[*].type.code": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.contacts[*].type.description": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.contacts[*].value": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.contacts[*].extension": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "A request to create probation address",
+      "providerStates": [
+        {
+          "name": "A probation address can be created for CRN"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "generators": {
+          "path": {
+            "type": "ProviderState",
+            "expression": "/person/probation/${crn}/address"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "noFixedAbode": false,
+          "startDate": "2026-05-15T11:08:46.347Z",
+          "endDate": "2026-07-15T11:08:46.347Z",
+          "postcode": "SW1H 9AJ",
+          "uprn": "100120991537",
+          "subBuildingName": "Sub building 2",
+          "buildingName": "Main Building",
+          "buildingNumber": "102",
+          "thoroughfareName": "Petty France",
+          "dependentLocality": "Westminster",
+          "postTown": "London",
+          "county": "Greater London",
+          "comment": "Address created from probation",
+          "statusCode": "M",
+          "typeVerified": true,
+          "usages": [
+            {
+              "usageCode": "A02",
+              "isActive": true
+            }
+          ],
+          "contacts": [
+            {
+              "typeCode": "HOME",
+              "value": "+44 20 7946 0000",
+              "extension": "1234"
+            }
+          ]
+        },
+        "matchingRules": {
+          "path": {
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "^/person/probation/[A-Z0-9]+/address$"
+              }
+            ]
+          },
+          "body": {
+            "$.noFixedAbode": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.startDate": {
+              "matchers": [
+                {
+                  "match": "timestamp",
+                  "format": "yyyy-MM-dd'T'HH:mm:ss.SSSX"
+                }
+              ]
+            },
+            "$.endDate": {
+              "matchers": [
+                {
+                  "match": "timestamp",
+                  "format": "yyyy-MM-dd'T'HH:mm:ss.SSSX"
+                }
+              ]
+            },
+            "$.postcode": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.uprn": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.subBuildingName": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.buildingName": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.buildingNumber": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.thoroughfareName": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.dependentLocality": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.postTown": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.county": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.comment": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.statusCode": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.typeVerified": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.usages": {
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.usages[*].usageCode": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.usages[*].isActive": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.contacts": {
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.contacts[*].typeCode": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.contacts[*].value": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.contacts[*].extension": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "response": {
+        "status": 201,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "crn": "X12345",
+          "cprAddressId": "db1db4e0-6afc-4802-86c7-2578283e33b1"
+        },
+        "matchingRules": {
+          "body": {
+            "$.crn": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.cprAddressId": {
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^[0-9a-fA-F-]{36}$"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "A request to GET a probation person by CRN",
+      "providerStates": [
+        {
+          "name": "A probation person exists for CRN"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "generators": {
+          "path": {
+            "type": "ProviderState",
+            "expression": "/person/probation/${crn}"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "path": {
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "^/person/probation/[A-Z0-9]+$"
+              }
+            ]
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "firstName": "Jane",
+          "middleNames": "Ann",
+          "lastName": "Doe",
+          "dateOfBirth": "1990-08-21",
+          "title": {
+            "code": "MR",
+            "description": "Mr"
+          },
+          "sex": {
+            "code": "F",
+            "description": "Female"
+          },
+          "sexualOrientation": {
+            "code": "HET",
+            "description": "Heterosexual"
+          },
+          "religion": {
+            "code": "AGNO",
+            "description": "Agnostic"
+          },
+          "ethnicity": {
+            "code": "W1",
+            "description": "White : British"
+          },
+          "aliases": [
+            {
+              "firstName": "Jane",
+              "middleNames": "Ann",
+              "lastName": "Doe",
+              "sex": {
+                "code": "F",
+                "description": "Female"
+              }
+            }
+          ],
+          "nationalities": [
+            {
+              "code": "GBR",
+              "description": "United Kingdom of Great Britain and Northern Ireland (the)"
+            }
+          ],
+          "addresses": [
+            {
+              "cprAddressId": "db1db4e0-6afc-4802-86c7-2578283e33b1",
+              "noFixedAbode": false,
+              "startDate": "2026-05-15",
+              "startDateTime": "2026-05-15T12:08:46.347",
+              "endDate": "2026-07-15",
+              "endDateTime": "2026-07-15T12:08:46.347",
+              "postcode": "SW1H 9AJ",
+              "subBuildingName": "Sub building 2",
+              "buildingName": "Main Building",
+              "buildingNumber": "102",
+              "thoroughfareName": "Petty France",
+              "dependentLocality": "Westminster",
+              "postTown": "London",
+              "county": "Greater London",
+              "countryCode": "GBR",
+              "uprn": "100120991537",
+              "status": {
+                "code": "M",
+                "description": "Main"
+              },
+              "comment": "Address created from probation",
+              "typeVerified": true,
+              "usages": [
+                {
+                  "code": "A02",
+                  "description": "Approved Premises",
+                  "isActive": true
+                }
+              ],
+              "contacts": [
+                {
+                  "type": {
+                    "code": "HOME",
+                    "description": "Home"
+                  },
+                  "value": "+44 20 7946 0000",
+                  "extension": "1234"
+                }
+              ]
+            }
+          ],
+          "identifiers": {
+            "crns": ["X12345"],
+            "prisonNumbers": ["A1234BC"],
+            "defendantIds": [],
+            "cids": [],
+            "pncs": ["2000/1234567A"],
+            "cros": ["123456/00A"],
+            "nationalInsuranceNumbers": [],
+            "driverLicenseNumbers": [],
+            "arrestSummonsNumbers": [],
+            "otherIdentifiers": []
+          }
+        },
+        "matchingRules": {
+          "body": {
+            "$.firstName": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.middleNames": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.lastName": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.dateOfBirth": {
+              "matchers": [{ "match": "regex", "regex": "^\\d{4}-\\d{2}-\\d{2}$" }]
+            },
+            "$.title.code": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.title.description": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.sex.code": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.sex.description": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.sexualOrientation.code": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.sexualOrientation.description": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.religion.code": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.religion.description": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.ethnicity.code": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.ethnicity.description": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.aliases": {
+              "matchers": [{ "match": "type", "min": 1 }]
+            },
+            "$.aliases[*].firstName": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.aliases[*].middleNames": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.aliases[*].lastName": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.aliases[*].sex.code": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.aliases[*].sex.description": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.nationalities": {
+              "matchers": [{ "match": "type", "min": 1 }]
+            },
+            "$.nationalities[*].code": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.nationalities[*].description": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.addresses": {
+              "matchers": [{ "match": "type", "min": 1 }]
+            },
+            "$.addresses[*].cprAddressId": {
+              "matchers": [{ "match": "regex", "regex": "^[0-9a-fA-F-]{36}$" }]
+            },
+            "$.addresses[*].noFixedAbode": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.addresses[*].startDate": {
+              "matchers": [{ "match": "regex", "regex": "^\\d{4}-\\d{2}-\\d{2}$" }]
+            },
+            "$.addresses[*].startDateTime": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.addresses[*].endDate": {
+              "matchers": [{ "match": "regex", "regex": "^\\d{4}-\\d{2}-\\d{2}$" }]
+            },
+            "$.addresses[*].endDateTime": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.addresses[*].postcode": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.addresses[*].subBuildingName": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.addresses[*].buildingName": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.addresses[*].buildingNumber": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.addresses[*].thoroughfareName": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.addresses[*].dependentLocality": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.addresses[*].postTown": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.addresses[*].county": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.addresses[*].countryCode": {
+              "combine": "OR",
+              "matchers": [
+                {
+                  "match": "null"
+                },
+                {
+                  "match": "regex",
+                  "regex": "^(ABW|AFG|AGO|AIA|AKR|ALA|ALB|AND|ANT|ARE|ARG|ARM|ASM|ATA|ATF|ATG|AUS|AUT|AZE|BDI|BEL|BEN|BES|BFA|BGD|BGR|BHR|BHS|BIH|BLM|BLR|BLZ|BMU|BOL|BRA|BRB|BRN|BTN|BVT|BWA|CAF|CAN|CCK|CHE|CHL|CHN|CI|CIV|CMR|COD|COG|COK|COL|COM|CPV|CRI|CUB|CUW|CXR|CYM|CYP|CZE|DEU|DJI|DKL|DMA|DNK|DOM|DZA|ECU|EGY|ENG|ERI|ESH|ESP|EST|ETH|FIN|FJI|FLK|FRA|FRO|FSM|FXX|GAB|GBR|GEO|GGY|GHA|GIB|GIN|GLP|GMB|GNB|GNQ|GRC|GRD|GRL|GTM|GUF|GUM|GUY|HKG|HMD|HND|HRV|HTI|HUN|IDN|IMN|IND|IOT|IRL|IRN|IRQ|ISL|ISR|ITA|JAM|JEY|JOR|JPN|KAZ|KEN|KGZ|KHM|KIR|KNA|KOR|KOS|KWT|LAO|LBN|LBR|LBY|LCA|LIE|LKA|LSO|LTU|LUX|LVA|MAC|MAF|MAR|MCO|MDA|MDG|MDV|MEX|MHL|MKD|MLI|MLT|MMR|MNE|MNG|MNP|MOZ|MRT|MSR|MTQ|MUS|MWI|MYS|MYT|NAM|NCL|NER|NFK|NGA|NI|NIC|NIU|NLD|NOR|NPL|NRU|NZL|OMN|PAK|PAN|PCN|PER|PHL|PLW|PNG|POL|PRI|PRK|PRT|PRY|PSE|PYF|QAT|REU|ROU|RUS|RWA|SAU|SCG|SCOT|SDN|SEN|SGP|SGS|SHN|SJM|SLB|SLE|SLV|SMR|SOM|SPM|SRB|SSD|STP|SU|SUR|SVK|SVN|SWE|SWZ|SXM|SYC|SYR|TCA|TCD|TGO|THA|TJK|TKL|TKM|TLS|TON|TTO|TUN|TUR|TUV|TWN|TZA|UGA|UKR|UMI|URY|USA|UZB|VAT|VCT|VEN|VGB|VIR|VNM|VUT|WALES|WLF|WSM|XRK|XX|XZ|YEM|YU|ZAF|ZMB|ZWE)$"
+                }
+              ]
+            },
+            "$.uprn": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.status.code": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.status.description": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.comment": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.typeVerified": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.usages": {
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.usages[*].code": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.usages[*].description": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.usages[*].isActive": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.contacts": {
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.contacts[*].type.code": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.contacts[*].type.description": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.contacts[*].value": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.contacts[*].extension": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.identifiers": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.crns": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.crns[*]": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.prisonNumbers": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.prisonNumbers[*]": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.defendantIds": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.defendantIds[*]": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.cids": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.cids[*]": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.pncs": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.pncs[*]": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.cros": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.cros[*]": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.nationalInsuranceNumbers": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.nationalInsuranceNumbers[*]": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.driverLicenseNumbers": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.driverLicenseNumbers[*]": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.arrestSummonsNumbers": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.arrestSummonsNumbers[*]": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.otherIdentifiers": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.identifiers.otherIdentifiers[*]": {
+              "matchers": [{ "match": "type" }]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "3.0.0"
+    },
+    "pact-jvm": {
+      "version": "4.7.1"
+    }
+  }
+}
+
