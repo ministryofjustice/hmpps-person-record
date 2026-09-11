@@ -28,6 +28,9 @@ generic-service:
     - name: record-count-report
       type: RECORD_COUNT_REPORT
       schedule: "0 8-17 * * 1-5"
+    - name: delius-reconciliation-report
+      type: DELIUS_RECONCILIATION_REPORT
+      schedule: "0 8-17 * * 1-5"
 
 generic-prometheus-alerts:
   businessHoursOnly: true
@@ -53,5 +56,4 @@ generic-prometheus-alerts:
     cloud-platform-288cab966b34da54: "hmpps-person-record-database"
 
 cron:
-  deliusReconciliationReportJob: "0 8-17 * * 1-5"
   reclusterNeedsAttentionJob: "0 13 * * 1-5"
