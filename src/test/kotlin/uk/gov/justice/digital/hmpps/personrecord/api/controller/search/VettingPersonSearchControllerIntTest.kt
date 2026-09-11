@@ -59,7 +59,7 @@ class VettingPersonSearchControllerIntTest : WebTestBase() {
 
       val strongestPersonPrimaryPseudonym = strongestMatchPersonEntity.pseudonyms.first { it.nameType == NameType.PRIMARY }
       val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
-        url = "/person/vetting",
+        url = "/person/vetting/search",
         roles = listOf(API_VETTING_SEARCH_ONLY),
         expectedStatus = HttpStatus.OK,
         body = VettingPersonSearchRequest(
@@ -151,7 +151,7 @@ class VettingPersonSearchControllerIntTest : WebTestBase() {
 
       val search = strongestPersonFromCluster1.pseudonyms.first { it.nameType == NameType.PRIMARY }
       val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
-        url = "/person/vetting",
+        url = "/person/vetting/search",
         roles = listOf(API_VETTING_SEARCH_ONLY),
         expectedStatus = HttpStatus.OK,
         body = VettingPersonSearchRequest(
@@ -224,7 +224,7 @@ class VettingPersonSearchControllerIntTest : WebTestBase() {
 
       val searchNamesUsingCommonPlatformDetails = strongestPersonFromCluster2.getPrimaryName()
       val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
-        url = "/person/vetting",
+        url = "/person/vetting/search",
         roles = listOf(API_VETTING_SEARCH_ONLY),
         expectedStatus = HttpStatus.OK,
         body = VettingPersonSearchRequest(
@@ -250,7 +250,7 @@ class VettingPersonSearchControllerIntTest : WebTestBase() {
       )
 
       val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
-        url = "/person/vetting",
+        url = "/person/vetting/search",
         roles = listOf(API_VETTING_SEARCH_ONLY),
         expectedStatus = HttpStatus.OK,
         body = VettingPersonSearchRequest(
@@ -270,7 +270,7 @@ class VettingPersonSearchControllerIntTest : WebTestBase() {
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       sendPostRequestAsserted<Unit>(
-        url = "/person/vetting",
+        url = "/person/vetting/search",
         body = VettingPersonSearchRequest(
           firstName = randomLowerCaseString(),
           lastName = randomLowerCaseString(),
@@ -285,7 +285,7 @@ class VettingPersonSearchControllerIntTest : WebTestBase() {
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
       sendPostRequestAsserted<Unit>(
-        url = "/person/vetting",
+        url = "/person/vetting/search",
         body = VettingPersonSearchRequest(
           firstName = randomLowerCaseString(),
           lastName = randomLowerCaseString(),

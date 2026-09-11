@@ -38,7 +38,7 @@ class VettingPersonSearchController(
     ),
   )
   @PreAuthorize("hasRole('$API_VETTING_SEARCH_ONLY')")
-  @PostMapping("/person/vetting")
+  @PostMapping("/person/vetting/search")
   fun personSearch(
     @RequestBody personSearchRequest: VettingPersonSearchRequest,
   ): ResponseEntity<VettingPersonSearchResponse> {
