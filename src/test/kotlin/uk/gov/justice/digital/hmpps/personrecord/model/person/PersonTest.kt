@@ -5,6 +5,11 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.PERSON
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.new
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 
@@ -38,5 +43,32 @@ class PersonTest {
   @Test
   fun `isPerson true if dateOfBirth and lastname are present`() {
     assertThat(Person.from(LibraHearingEvent(defendantType = PERSON.value, name = Name(lastName = randomName()), dateOfBirth = randomDate())).isPerson()).isTrue()
+  }
+
+  @Test
+  fun `updateChildEntities should not update pseudonyms or references when specified`() {
+    val personEntity = new(SourceSystemType.NOMIS)
+    personEntity.updateChildEntities(
+      Person(
+        firstName = "firstName",
+        references = listOf(Reference(identifierType = IdentifierType.PNC, identifierValue = "identifierValue")),
+        sourceSystem = SourceSystemType.NOMIS,
+      ),
+      setOf(PseudonymEntity::class, ReferenceEntity::class),
+    )
+
+    assertThat(personEntity.references).hasSize(0)
+    assertThat(personEntity.pseudonyms).hasSize(0)
+
+    personEntity.updateChildEntities(
+      Person(
+        firstName = "firstName",
+        references = listOf(Reference(identifierType = IdentifierType.PNC, identifierValue = "identifierValue")),
+        sourceSystem = SourceSystemType.NOMIS,
+      ),
+    )
+
+    assertThat(personEntity.references).hasSize(1)
+    assertThat(personEntity.pseudonyms).hasSize(1)
   }
 }
