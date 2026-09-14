@@ -45,6 +45,9 @@ generic-service:
     - name: delius-reconciliation-report
       type: DELIUS_RECONCILIATION_REPORT
       schedule: "0 0-23 * * *"
+    - name: recluster-needs-attention
+      type: RECLUSTER_NEEDS_ATTENTION
+      schedule: "0 13 * * *"
 
 generic-prometheus-alerts:
   sqsOldestAlertQueueNames:

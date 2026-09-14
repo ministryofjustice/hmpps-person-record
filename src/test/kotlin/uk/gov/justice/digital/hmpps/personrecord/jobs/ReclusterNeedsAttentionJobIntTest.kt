@@ -3,11 +3,19 @@ package uk.gov.justice.digital.hmpps.personrecord.jobs
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import org.springframework.beans.factory.annotation.Autowired
+import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.TransactionalReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_SELF_HEALED
 
-class ReclusterNeedsAttentionIntTest : WebTestBase() {
+class ReclusterNeedsAttentionJobIntTest(
+  @Autowired transactionalReclusterService: TransactionalReclusterService,
+  @Autowired personKeyRepo: PersonKeyRepository,
+) : IntegrationTestBase() {
+
+  val reclusterNeedsAttentionJob = ReclusterNeedsAttentionJob(personKeyRepo, transactionalReclusterService)
 
   @Nested
   inner class SuccessfulProcessing {
@@ -24,11 +32,7 @@ class ReclusterNeedsAttentionIntTest : WebTestBase() {
 
       stubPersonMatchScores(matchId = needsAttentionPerson.matchId)
 
-      webTestClient.post()
-        .uri("/jobs/recluster-needs-attention")
-        .exchange()
-        .expectStatus()
-        .isOk
+      reclusterNeedsAttentionJob.run()
 
       checkTelemetry(
         CPR_RECLUSTER_SELF_HEALED,
