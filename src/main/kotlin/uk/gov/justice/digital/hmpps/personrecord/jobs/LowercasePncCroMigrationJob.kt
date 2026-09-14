@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jobs.migration.RetryableProbati
 class LowercasePncCroMigrationJob(
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   private val retryableProbationUpdater: RetryableProbationUpdater,
-  @Value($$"${MIGRATION_START_PAGE:0}") private val startPage: Int
+  @Value($$"${MIGRATION_START_PAGE:0}") private val startPage: Int,
 ) : BatchJob {
   override val jobName = "LOWERCASE_PNC_CRO_MIGRATION"
   private val pageSize: Int = 500
