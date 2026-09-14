@@ -42,6 +42,9 @@ generic-service:
     - name: record-count-report
       type: RECORD_COUNT_REPORT
       schedule: "0 0-23 * * *"
+    - name: delius-reconciliation-report
+      type: DELIUS_RECONCILIATION_REPORT
+      schedule: "0 0-23 * * *"
 
 generic-prometheus-alerts:
   sqsOldestAlertQueueNames:
