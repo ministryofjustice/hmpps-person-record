@@ -21,7 +21,6 @@ class SecurityConfiguration {
         "/queue-admin/retry-all-dlqs",
         "/jobs/recluster-needs-attention",
         "/jobs/service-now/generate-delius-merge-requests",
-        "/jobs/deliusreconciliationreport",
         "/admin/recluster",
         "/admin/exclusion/prisoner",
       )
