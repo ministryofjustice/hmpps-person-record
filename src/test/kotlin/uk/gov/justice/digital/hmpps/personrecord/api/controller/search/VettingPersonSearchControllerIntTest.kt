@@ -258,7 +258,7 @@ class VettingPersonSearchControllerIntTest : WebTestBase() {
       val strongestPersonFromCluster2 = cluster2.personEntities.first { it.defendantId == defendantId2 }
       val weakestPersonFromCluster2 = cluster2.personEntities.first { it.prisonNumber == prisonNumber4 }
 
-      // does not return the prison record in cluster 1
+      // does not return the prison record in cluster 1 ("weakestPersonFromCluster1")
       val personMatchScores = listOf(
         PersonMatchScore(
           candidateMatchId = strongestPersonFromCluster2.matchId.toString(),
@@ -286,7 +286,23 @@ class VettingPersonSearchControllerIntTest : WebTestBase() {
       authSetup()
       stubPostRequest(
         url = "/person/search",
+        nextScenarioState = "call to get match score for prison person",
         responseBody = jsonMapper.writeValueAsString(personMatchScores),
+      )
+
+      val prisonPersonMatchScore = listOf(
+        PersonMatchScore(
+          candidateMatchId = weakestPersonFromCluster1.matchId.toString(),
+          candidateMatchProbability = 0.9999F,
+          candidateMatchWeight = 50.0000F,
+          candidateShouldJoin = true,
+          candidateShouldFracture = false,
+        ),
+      )
+      stubPostRequest(
+        url = "/person/search",
+        currentScenarioState = "call to get match score for prison person",
+        responseBody = jsonMapper.writeValueAsString(prisonPersonMatchScore),
       )
 
       val searchNamesUsingCommonPlatformDetails = strongestPersonFromCluster2.getPrimaryName()
@@ -301,10 +317,10 @@ class VettingPersonSearchControllerIntTest : WebTestBase() {
         ),
       ).returnResult().responseBody!!
       assertThat(personSearchResponse.data).hasSize(2)
-      assertThat(personSearchResponse.data.first().name.firstName).isEqualTo(weakestPersonFromCluster1.getPrimaryName().firstName)
+      assertThat(personSearchResponse.data.first().name.firstName).isEqualTo(weakestPersonFromCluster2.getPrimaryName().firstName)
       assertThat(personSearchResponse.data.first().linkedRecords).isEmpty()
 
-      assertThat(personSearchResponse.data.last().name.firstName).isEqualTo(weakestPersonFromCluster2.getPrimaryName().firstName)
+      assertThat(personSearchResponse.data.last().name.firstName).isEqualTo(weakestPersonFromCluster1.getPrimaryName().firstName)
       assertThat(personSearchResponse.data.last().linkedRecords).isEmpty()
     }
 

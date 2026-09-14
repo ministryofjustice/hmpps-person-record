@@ -59,7 +59,8 @@ class PersonSearchHandler(
       )
     }
     return if (request != null) {
-      personMatchClient.search(request).firstOrNull()
+      val personMatchScores = personMatchClient.search(request)
+      personMatchScores.firstOrNull { it.candidateMatchId == personEntity.matchId.toString() }
     } else {
       null
     }
