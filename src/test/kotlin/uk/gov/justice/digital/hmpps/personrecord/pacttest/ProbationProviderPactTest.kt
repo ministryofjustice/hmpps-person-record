@@ -26,7 +26,7 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
     else -> listOf(API_READ_ONLY)
   }
 
-  @State("An address exists for CRN and address ID")
+  @State("An address exists for the requested CRN and address ID")
   fun anAddressExistsForCrnAndAddressId(): Map<String, String> {
     val crn = randomCrn()
     val person = createProbationPersonWithAddress(crn)
@@ -38,7 +38,7 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
     )
   }
 
-  @State("A probation address can be created for CRN")
+  @State("A probation address can be created for the requested CRN")
   fun aProbationAddressCanBeCreatedForCrn(): Map<String, String> {
     stubNoMatchesPersonMatch()
     stubPersonMatchUpsert()
@@ -47,7 +47,7 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
     return mapOf("crn" to person.crn!!)
   }
 
-  @State("A probation person exists for CRN")
+  @State("A probation person exists for the requested CRN")
   fun aProbationPersonExistsForCrn(): Map<String, String> {
     val person = createProbationPersonWithAddress(randomCrn())
     return mapOf("crn" to person.crn!!)
