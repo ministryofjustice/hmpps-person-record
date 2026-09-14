@@ -45,6 +45,10 @@ generic-service:
     - name: delius-reconciliation-report
       type: DELIUS_RECONCILIATION_REPORT
       schedule: "0 0-23 * * *"
+    - name: lowercase-pnc-cro-migration
+      type: LOWERCASE_PNC_CRO_MIGRATION
+      schedule: "0 0 1 1 *"
+      suspend: true
 
 generic-prometheus-alerts:
   sqsOldestAlertQueueNames:
