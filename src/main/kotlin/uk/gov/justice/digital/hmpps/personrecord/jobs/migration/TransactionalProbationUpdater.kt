@@ -31,9 +31,7 @@ class TransactionalProbationUpdater(
         publisher.publishEvent(RecordEventLog(CPR_RECORD_SEEDED, personRepository.findByCrn(person.crn)!!))
       },
       yes = {
-        if (it.isNotMerged()) {
-          personService.processPerson(person) { it }
-        }
+        personService.processPerson(person) { it }
       },
     )
   }

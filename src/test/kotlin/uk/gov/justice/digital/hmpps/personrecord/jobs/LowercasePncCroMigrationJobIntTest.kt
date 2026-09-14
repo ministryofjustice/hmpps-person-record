@@ -66,32 +66,6 @@ class LowercasePncCroMigrationJobIntTest(
   }
 
   @Test
-  fun `should not populate lowercase PNCs and CROs from Delius when record is merged`() {
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails())
-    val mergedPersonDetails = createRandomProbationCase().withIdentifiers(pnc = null, cro = null)
-    val mergedPerson = createPerson(Person.from(mergedPersonDetails)) { mergedTo = person.id }
-    mergedPerson.assertMergedTo(person)
-
-    val mergedPersonCrn = mergedPerson.crn!!
-    val mergedPersonLowercasePnc = randomLowercasePnc()
-
-    val mergedPersonResponse = ApiResponseSetup.from(mergedPersonDetails.withIdentifiers(pnc = mergedPersonLowercasePnc))
-
-    val responseBody = allProbationCasesResponse(listOf(mergedPersonResponse), 1)
-    stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = responseBody)
-    stubGetRequest(url = "/all-probation-cases?page=0&size=500&sort=id,asc", body = responseBody)
-
-    lowercasePncCroMigrationJob.run()
-
-    awaitAssert {
-      checkEventLogExist(mergedPersonCrn, CPRLogEvents.CPR_RECORD_UPDATED, 0)
-
-      val updatedMergedPerson = personRepository.findByCrn(mergedPersonCrn)!!
-      assertThat(updatedMergedPerson.references).isEmpty()
-    }
-  }
-
-  @Test
   fun `should retry if request to probation-client fails`() {
     val personCrn = randomCrn()
     val personDetails = createRandomProbationCase(personCrn).withIdentifiers(pnc = null, cro = null)
