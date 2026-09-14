@@ -8,19 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonMergeEventProcessor
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.CURRENT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType.HISTORIC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.AGNO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.CALV
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import java.time.LocalDate
 
 class PrisonMergeEventProcessorIntTest(
@@ -75,51 +70,6 @@ class PrisonMergeEventProcessorIntTest(
             assertThat(it.prisonRecordType).isEqualTo(HISTORIC)
           },
         )
-    }
-
-    @Test
-    fun `should not update to persons aliases upon a merge`() {
-      val toPrisonerNumber = randomPrisonNumber()
-      val fromPrisonerNumber = randomPrisonNumber()
-      val originalToPerson = createRandomPrisonPersonDetails(prisonNumber = toPrisonerNumber)
-      createPersonKey()
-        .addPerson(originalToPerson)
-        .addPerson(createRandomPrisonPersonDetails(prisonNumber = fromPrisonerNumber))
-      prisonReligionRepository.saveAll(
-        listOf(
-          prisonReligionEntity(
-            prisonNumber = toPrisonerNumber,
-            startDate = LocalDate.of(2021, 1, 1),
-            code = CALV,
-          ),
-          prisonReligionEntity(
-            prisonNumber = fromPrisonerNumber,
-            startDate = LocalDate.of(2021, 1, 25),
-            code = AGNO,
-          ),
-        ),
-      )
-
-      stubPrisonResponse(
-        ApiResponseSetup(
-          prisonNumber = toPrisonerNumber,
-          aliases = listOf(
-            ApiResponseSetupAlias(
-              title = randomTitleCode().toString(),
-              firstName = randomName(),
-              lastName = randomName(),
-              dateOfBirth = randomDate(),
-            ),
-          ),
-        ),
-      )
-
-      // Method under test
-      prisonMergeEventProcessor.processEvent(fromPrisonNumber = fromPrisonerNumber, toPrisonNumber = toPrisonerNumber)
-
-      val actualPersonEntity = personRepository.findByPrisonNumber(toPrisonerNumber)!!
-      val actualToPersonsAliases = actualPersonEntity.getAliases().map { Alias.from(it) }
-      assertThat(actualToPersonsAliases).usingRecursiveComparison().isEqualTo(originalToPerson.aliases)
     }
   }
 }

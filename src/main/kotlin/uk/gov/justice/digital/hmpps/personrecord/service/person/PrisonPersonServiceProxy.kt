@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 
 interface PrisonPersonServiceProxy {
@@ -32,5 +31,5 @@ class PrisonPersonServiceProxyDev(
   override fun processPerson(
     person: Person,
     findPerson: () -> PersonEntity?,
-  ): PersonEntity = personService.processPerson(person, setOf(PseudonymEntity::class)) { findPerson() }
+  ): PersonEntity = personService.processPerson(person) { findPerson() }
 }

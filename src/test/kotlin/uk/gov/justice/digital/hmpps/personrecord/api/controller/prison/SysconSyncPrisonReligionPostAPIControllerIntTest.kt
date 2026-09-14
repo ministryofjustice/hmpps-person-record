@@ -28,7 +28,7 @@ class SysconSyncPrisonReligionPostAPIControllerIntTest : WebTestBase() {
     @Test
     fun `person has no prison religions - saves prison religion - updates current religion`() {
       val prisonNumber = randomPrisonNumber()
-      val originalPerson = createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPerson(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createPrisonReligionHistory()
       sendPostRequestAsserted<PrisonReligionSaveResponse>(
@@ -41,7 +41,6 @@ class SysconSyncPrisonReligionPostAPIControllerIntTest : WebTestBase() {
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
         assertThat(personEntity.religion).isEqualTo(requestBody.religionCode)
-        assertThat(personEntity.getPrimaryName().updateId).isEqualTo(originalPerson.getPrimaryName().updateId)
 
         val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
         assertThat(actualPrisonReligionEntities).hasSize(1)
@@ -67,7 +66,6 @@ class SysconSyncPrisonReligionPostAPIControllerIntTest : WebTestBase() {
 
       val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber) ?: fail("No person found with id $prisonNumber")
       assertThat(actualPersonEntity.religion).isEqualTo(actualPersonEntity.religion)
-      assertThat(actualPersonEntity.getPrimaryName().updateId).isEqualTo(personEntityWithCurrentReligion.getPrimaryName().updateId)
 
       val actualPrisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
       assertThat(actualPrisonReligionEntities).hasSize(2)
