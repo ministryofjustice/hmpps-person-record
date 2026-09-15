@@ -11,7 +11,7 @@ import org.junit.jupiter.api.TestTemplate
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.boot.test.web.server.LocalServerPort
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 
 /**
  * Base class for Pact provider verification tests.
@@ -23,7 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
  */
 @Provider("hmpps-person-record")
 @PactBroker(url = $$"${pactbroker.url}")
-abstract class AbstractProviderPactTests : WebTestBase() {
+abstract class AbstractProviderPactTests : E2ETestBase() {
   @LocalServerPort
   private var port: Int = 0
 

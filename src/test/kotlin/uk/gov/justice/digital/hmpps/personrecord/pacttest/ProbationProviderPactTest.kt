@@ -30,20 +30,18 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
   fun anAddressExistsForCrnAndAddressId(): Map<String, String> {
     val crn = randomCrn()
     val person = createProbationPersonWithAddress(crn)
-    val createdAddress = addressRepository.findById(person.addresses.first().id!!).orElseThrow()
 
     return mapOf(
       "crn" to crn,
-      "cprAddressId" to createdAddress.updateId.toString(),
+      "cprAddressId" to person.addresses.first().updateId!!.toString(),
     )
   }
 
   @State("A probation address can be created for the requested CRN")
   fun aProbationAddressCanBeCreatedForCrn(): Map<String, String> {
-    stubNoMatchesPersonMatch()
-    stubPersonMatchUpsert()
-
-    val person = createProbationPerson(randomCrn())
+    val person = createPersonWithNewKey(
+      createRandomProbationPersonDetails(randomCrn()),
+    )
     return mapOf("crn" to person.crn!!)
   }
 
@@ -52,10 +50,6 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
     val person = createProbationPersonWithAddress(randomCrn())
     return mapOf("crn" to person.crn!!)
   }
-
-  private fun createProbationPerson(crn: String) = createPersonWithNewKey(
-    createRandomProbationPersonDetails(crn).copy(addresses = emptyList()),
-  )
 
   private fun createProbationPersonWithAddress(crn: String) = createPersonWithNewKey(
     createRandomProbationPersonDetails(crn),
