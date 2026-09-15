@@ -34,6 +34,9 @@ generic-service:
     - name: delius-reconciliation-report
       type: DELIUS_RECONCILIATION_REPORT
       schedule: "0 8-17 * * 1-5"
+    - name: recluster-needs-attention
+      type: RECLUSTER_NEEDS_ATTENTION
+      schedule: "0 13 * * 1-5"
     - name: lowercase-pnc-cro-migration
       type: LOWERCASE_PNC_CRO_MIGRATION
       schedule: "0 0 1 1 *"
@@ -52,6 +55,3 @@ generic-prometheus-alerts:
     - "hmpps-person-record-development-cpr_delius_address_events_from_cpr_dlq"
   rdsAlertsDatabases:
     cloud-platform-21758fcf16e3a488: "hmpps-person-record-database"
-
-cron:
-  reclusterNeedsAttentionJob: "0 13 * * 1-5"
