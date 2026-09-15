@@ -6,7 +6,7 @@ import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(name = "PersonSearchRequest")
-data class PersonSearchRequest(
+data class VettingPersonSearchRequest(
   @Schema(required = true)
   val firstName: String,
   @Schema(required = true)
