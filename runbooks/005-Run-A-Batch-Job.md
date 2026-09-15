@@ -20,7 +20,7 @@ kubectl logs job.batch/<batch-job-name>-<unique-name>  -n <namespace> -f
 ```
 
 ## Overriding environment variables
-If you need to override environment variables for the batch job, to change the starting page for example, you first need to create a template from a dryrun:
+If you need to override environment variables, to change the starting page for example, first generate a job template using a dry run:
 ```shell
 kubectl create job -n <namespace> --from=cronjob/<batch-job-name> <batch-job-name>-<unique-name> --dry-run=client -o yaml > job.yaml
 ```
