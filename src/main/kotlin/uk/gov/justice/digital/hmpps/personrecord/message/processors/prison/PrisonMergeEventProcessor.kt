@@ -7,14 +7,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PrisonPersonServiceProxy
 
 @Component
 class PrisonMergeEventProcessor(
   private val personRepository: PersonRepository,
   private val mergeService: MergeService,
   private val prisonerSearchClient: PrisonerSearchClient,
-  private val personService: PersonService,
+  private val personService: PrisonPersonServiceProxy,
   private val prisonReligionMergeHandler: PrisonReligionMergeHandler?,
 ) {
 
