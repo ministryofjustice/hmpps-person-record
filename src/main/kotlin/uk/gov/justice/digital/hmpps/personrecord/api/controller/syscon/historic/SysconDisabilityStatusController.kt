@@ -18,14 +18,14 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.P
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PrisonPersonServiceProxy
 
 @Tag(name = "Syscon Sync")
 @RestController
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 class SysconDisabilityStatusController(
   private val personRepository: PersonRepository,
-  private val personService: PersonService,
+  private val personService: PrisonPersonServiceProxy,
 ) {
 
   @Operation(description = "Update the disability status by prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.")
