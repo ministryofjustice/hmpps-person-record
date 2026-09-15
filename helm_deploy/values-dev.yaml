@@ -15,6 +15,7 @@ generic-service:
     CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: https://core-person-record-and-delius-dev.hmpps.service.justice.gov.uk
     SERVICE_NOW_BASE_URL: https://mojdev.service-now.com
     SAS_BASE_URL: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk
+    MIGRATION_START_PAGE: 0
 
   scheduledDowntime:
     enabled: true
@@ -25,7 +26,7 @@ generic-service:
   batchjobs:
     - name: split-clusters
       type: SPLIT_CLUSTERS
-      schedule: "0 0 1 1 *" # 1st day of the year (intended to only run on ad-hoc bases)
+      schedule: "0 0 1 1 *"
       suspend: true
     - name: record-count-report
       type: RECORD_COUNT_REPORT
@@ -33,6 +34,10 @@ generic-service:
     - name: delius-reconciliation-report
       type: DELIUS_RECONCILIATION_REPORT
       schedule: "0 8-17 * * 1-5"
+    - name: lowercase-pnc-cro-migration
+      type: LOWERCASE_PNC_CRO_MIGRATION
+      schedule: "0 0 1 1 *"
+      suspend: true
 
 generic-prometheus-alerts:
   businessHoursOnly: true

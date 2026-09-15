@@ -52,6 +52,17 @@ class WebClientConfig(
   )
 
   @Bean
+  fun corePersonRecordAndDeliusMigrationClient(
+    authorizedClientManager: OAuth2AuthorizedClientManager,
+    builder: WebClient.Builder,
+  ): WebClient = builder.authorisedWebClient(
+    authorizedClientManager = authorizedClientManager,
+    registrationId = "core-person-record-and-delius-migration",
+    url = corePersonRecordAndDeliusUrl,
+    timeout = Duration.ofMillis(300000),
+  )
+
+  @Bean
   fun sasWebClient(
     authorizedClientManager: OAuth2AuthorizedClientManager,
     builder: WebClient.Builder,
