@@ -15,6 +15,7 @@ generic-service:
     CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: https://core-person-record-and-delius-dev.hmpps.service.justice.gov.uk
     SERVICE_NOW_BASE_URL: https://mojdev.service-now.com
     SAS_BASE_URL: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk
+    MIGRATION_START_PAGE: 0
 
   scheduledDowntime:
     enabled: true

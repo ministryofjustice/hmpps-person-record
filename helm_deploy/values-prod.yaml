@@ -37,6 +37,7 @@ generic-service:
     SAS_BASE_URL: https://single-accommodation-service-api.hmpps.service.justice.gov.uk
     SPRINGDOC_API_DOCS_ENABLED: false
     SPRINGDOC_SWAGGER_UI_ENABLED: false
+    MIGRATION_START_PAGE: 0
 
   batchjobs:
     - name: record-count-report

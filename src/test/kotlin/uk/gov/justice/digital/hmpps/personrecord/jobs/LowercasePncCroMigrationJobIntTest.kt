@@ -22,7 +22,7 @@ class LowercasePncCroMigrationJobIntTest(
   @Autowired private val retryableProbationUpdater: RetryableProbationUpdater,
 ) : IntegrationTestBase() {
 
-  val lowercasePncCroMigrationJob = LowercasePncCroMigrationJob(corePersonRecordAndDeliusClient, retryableProbationUpdater)
+  val lowercasePncCroMigrationJob = LowercasePncCroMigrationJob(corePersonRecordAndDeliusClient, retryableProbationUpdater, 0)
 
   @Test
   fun `should populate lowercase PNCs and CROs from Delius`() {
