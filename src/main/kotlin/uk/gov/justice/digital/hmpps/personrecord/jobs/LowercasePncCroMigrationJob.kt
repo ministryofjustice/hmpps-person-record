@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.jobs
 
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
@@ -12,9 +13,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jobs.migration.RetryableProbati
 class LowercasePncCroMigrationJob(
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   private val retryableProbationUpdater: RetryableProbationUpdater,
+  @Value($$"${MIGRATION_START_PAGE:0}") private val startPage: Int,
 ) : BatchJob {
   override val jobName = "LOWERCASE_PNC_CRO_MIGRATION"
-  private val startPage: Int = 0
   private val pageSize: Int = 500
 
   override fun run() {
