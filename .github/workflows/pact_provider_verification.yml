@@ -2,7 +2,9 @@ name: Pact Provider Verification
 run-name: Pact verify - ${{ github.event.inputs.consumer || github.ref_name || 'manual' }}
 
 on:
-  # Temporary: keep Pact verification manual-only until the consumer pact is ready.
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       consumer:
@@ -51,11 +53,11 @@ jobs:
       - name: Verify pacts
         run: ./gradlew pactTest --console=plain
         env:
-          PACT_PUBLISH_RESULTS: ${{ inputs.publishResults || 'true' }}
+          PACT_PUBLISH_RESULTS: ${{ github.event_name == 'workflow_dispatch' && (inputs.publishResults || 'true') || 'false' }}
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
           PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_BRANCH: ${{ github.ref_name }}
-          PACT_CONSUMER: ${{ inputs.consumer }}
-          PACT_CONSUMER_BRANCH: ${{ inputs.consumerBranch }}
+          PACT_CONSUMER: ${{ github.event_name == 'workflow_dispatch' && inputs.consumer || '' }}
+          PACT_CONSUMER_BRANCH: ${{ github.event_name == 'workflow_dispatch' && inputs.consumerBranch || '' }}
