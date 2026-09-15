@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.client
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.springframework.data.web.PagedModel.PageMetadata
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -12,7 +13,10 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.discardNotFoundException
 
 @Component
-class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebClient: WebClient) {
+class CorePersonRecordAndDeliusClient(
+  private val corePersonRecordAndDeliusWebClient: WebClient,
+  private val corePersonRecordAndDeliusMigrationClient: WebClient,
+) {
 
   @WebRetryable
   fun getProbationCase(crn: String): ProbationCase = fetchProbationCase(crn)
@@ -30,7 +34,7 @@ class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebCl
       .block()!!,
   )
 
-  fun getProbationCases(params: CorePersonRecordAndDeliusClientPageParams): ProbationCases? = corePersonRecordAndDeliusWebClient
+  fun getProbationCases(params: CorePersonRecordAndDeliusClientPageParams): ProbationCases? = corePersonRecordAndDeliusMigrationClient
     .get()
     .uri { uriBuilder ->
       uriBuilder
@@ -58,4 +62,6 @@ class CorePersonRecordAndDeliusClientPageParams(val page: Long, val size: Int) {
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ProbationCases(
   val page: PageMetadata,
+  @JsonProperty("content")
+  val cases: List<ProbationCase>,
 )

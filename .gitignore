@@ -59,3 +59,4 @@ helm_deploy/**/*.tgz
 .vscode
 bin
 .DS_Store
+/.env
