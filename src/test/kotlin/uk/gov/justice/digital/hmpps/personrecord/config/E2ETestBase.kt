@@ -27,7 +27,7 @@ class E2ETestBase : MessagingTestBase() {
   @Autowired
   internal lateinit var jwtAuthorisationHelper: JwtAuthorisationHelper
 
-  internal fun WebTestClient.RequestHeadersSpec<*>.authorised(roles: List<String> = listOf(QUEUE_ADMIN)): WebTestClient.RequestBodySpec = headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = roles)) as WebTestClient.RequestBodySpec
+  fun WebTestClient.RequestHeadersSpec<*>.authorised(roles: List<String> = listOf(QUEUE_ADMIN)): WebTestClient.RequestBodySpec = headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = roles)) as WebTestClient.RequestBodySpec
 
   @Autowired
   private lateinit var personMatchService: PersonMatchService
