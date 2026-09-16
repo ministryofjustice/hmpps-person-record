@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.search
 
+import io.swagger.v3.oas.annotations.Hidden
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -37,6 +38,7 @@ class VettingPersonSearchController(
       ],
     ),
   )
+  @Hidden
   @PreAuthorize("hasRole('$API_VETTING_SEARCH_ONLY')")
   @PostMapping("/person/vetting/search")
   fun personSearch(
