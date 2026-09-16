@@ -30,6 +30,7 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
       awaitAssert {
         val updatedEntity = personRepository.findByPrisonNumber(prisonNumber)!!
         assertThat(updatedEntity.disability).isEqualTo(disabilityStatus.disability)
+        assertThat(updatedEntity.getPrimaryName().updateId).isEqualTo(originalEntity.getPrimaryName().updateId)
         assertThat(updatedEntity.getPrimaryName().dateOfBirth).isEqualTo(originalEntity.getPrimaryName().dateOfBirth)
         assertThat(updatedEntity.getPrimaryName().firstName).isEqualTo(originalEntity.getPrimaryName().firstName)
         assertThat(updatedEntity.getPrimaryName().lastName).isEqualTo(originalEntity.getPrimaryName().lastName)
