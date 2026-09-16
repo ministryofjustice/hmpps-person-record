@@ -106,6 +106,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationGenderIdentity
@@ -125,7 +126,6 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Address as CommonPlatformAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name as LibraName
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -238,15 +238,6 @@ class IntegrationTestBase {
     this.addresses.add(addressEntity)
   }
 
-  internal fun createRandomCommonPlatformAddress(): CommonPlatformAddress = CommonPlatformAddress(
-    address1 = randomName(),
-    address2 = randomName(),
-    address3 = randomName(),
-    address4 = randomName(),
-    address5 = randomName(),
-    postcode = randomPostcode(),
-  )
-
   internal fun createRandomProbationAddress(): ProbationCreateAddress = ProbationCreateAddress(
     noFixedAbode = false,
     startDate = randomZonedDateTime(),
@@ -302,6 +293,7 @@ class IntegrationTestBase {
           primarySentence = true,
         ),
       ),
+      nationality = randomPrisonNationalityCode(),
     ),
   )
 
@@ -739,7 +731,7 @@ class IntegrationTestBase {
     return thisPersonScopes.intersect(evalPersonScopes)
   }
 
-  fun List<Reference>.getType(type: IdentifierType): List<Reference> = this.filter { it.identifierType == type }
+  private fun List<Reference>.getType(type: IdentifierType): List<Reference> = this.filter { it.identifierType == type }
 
   companion object {
 

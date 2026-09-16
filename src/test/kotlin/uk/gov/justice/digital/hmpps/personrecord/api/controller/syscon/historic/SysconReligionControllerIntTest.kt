@@ -32,7 +32,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     fun `when no existing religions exist by prisoner number - should save religions`() {
       val prisonNumber = randomPrisonNumber()
       val religionsInsertRequest = createRandomReligions()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val actualResponseBody = postReligions(prisonNumber, religionsInsertRequest)
       assertCorrectValuesSaved(prisonNumber, religionsInsertRequest, actualResponseBody)
@@ -43,7 +43,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
       val currentReligion = createPrisonReligionHistory(ReligionCode.AGNO, true)
       val anotherReligion = createPrisonReligionHistory(ReligionCode.BAHA, false)
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val actualResponseBody = webTestClient
         .post()
@@ -74,7 +74,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     fun `when existing religions do exist by prisoner number - should replace existing religions`() {
       val prisonNumber = randomPrisonNumber()
       val originalReligionsInsertRequest = createRandomReligions()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val actualResponseBody = postReligions(prisonNumber, originalReligionsInsertRequest)
       assertCorrectValuesSaved(prisonNumber, originalReligionsInsertRequest, actualResponseBody)
@@ -93,7 +93,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
       val currentReligion = createPrisonReligionHistory()
       val anotherReligionWithDuplicateNomisReligionId = currentReligion.copy(comments = randomLowerCaseString())
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       webTestClient
         .post()
@@ -141,7 +141,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     fun `should return a 400 when more than one current religion is sent`() {
       val prisonNumber = randomPrisonNumber()
       val religions = listOf(createPrisonReligionHistory(), createPrisonReligionHistory())
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
       val reqBody = PrisonReligionRequest(religions)
 
       webTestClient.post()
@@ -160,7 +160,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     fun `should return a 400 when no current religion is sent`() {
       val prisonNumber = randomPrisonNumber()
       val religions = listOf(createPrisonReligionHistory(randomReligionCode(), false), createPrisonReligionHistory(randomReligionCode(), false))
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
       val reqBody = PrisonReligionRequest(religions)
 
       webTestClient.post()
