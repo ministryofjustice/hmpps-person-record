@@ -30,6 +30,53 @@ class VettingPersonSearchE2ETest : E2ETestBase() {
   inner class Success {
 
     @Test
+    fun `single cluster with two exactly matching records - should return both`() {
+      val prisonNumber = randomPrisonNumber()
+      val otherPrisonNumber = randomPrisonNumber()
+      val prisonPerson = createRandomPrisonPersonDetails(prisonNumber)
+      val cluster = createPersonKey()
+        .addPerson(prisonPerson)
+        .addPerson(prisonPerson.copy(prisonNumber = otherPrisonNumber))
+      val first = cluster.personEntities.first { it.prisonNumber == prisonNumber }
+      val other = cluster.personEntities.first { it.prisonNumber == otherPrisonNumber }
+
+      val searchName = first.getPrimaryName()
+      val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
+        url = "/person/vetting/search",
+        roles = listOf(API_VETTING_SEARCH_ONLY),
+        expectedStatus = HttpStatus.OK,
+        body = VettingPersonSearchRequest(
+          firstName = searchName.firstName!!,
+          lastName = searchName.lastName!!,
+          dateOfBirth = searchName.dateOfBirth!!,
+        ),
+      ).returnResult().responseBody!!
+      assertThat(personSearchResponse.data).hasSize(1)
+      assertThat(personSearchResponse.data.first().linkedRecords).hasSize(1)
+
+      val strongestPersonFromResponse = personSearchResponse.data.first()
+      assertThat(strongestPersonFromResponse.name.firstName).isEqualTo(searchName.firstName)
+      assertThat(strongestPersonFromResponse.name.middleNames).isEqualTo(searchName.middleNames)
+      assertThat(strongestPersonFromResponse.name.lastName).isEqualTo(searchName.lastName)
+      assertThat(strongestPersonFromResponse.name.dateOfBirth).isEqualTo(searchName.dateOfBirth)
+      assertThat(strongestPersonFromResponse.sourceSystem).isEqualTo(first.sourceSystem)
+      assertThat(strongestPersonFromResponse.status).isEqualTo(SearchStatus.TRUSTED)
+      assertThat(strongestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(CanonicalAlias.from(first))
+      assertThat(strongestPersonFromResponse.addresses).hasSize(first.addresses.size)
+
+      val weakestPersonFromResponse = personSearchResponse.data.first().linkedRecords.first()
+      val weakestPersonPrimaryPseudonym = other.getPrimaryName()
+      assertThat(weakestPersonFromResponse.name.firstName).isEqualTo(weakestPersonPrimaryPseudonym.firstName)
+      assertThat(weakestPersonFromResponse.name.middleNames).isEqualTo(weakestPersonPrimaryPseudonym.middleNames)
+      assertThat(weakestPersonFromResponse.name.lastName).isEqualTo(weakestPersonPrimaryPseudonym.lastName)
+      assertThat(weakestPersonFromResponse.name.dateOfBirth).isEqualTo(weakestPersonPrimaryPseudonym.dateOfBirth)
+      assertThat(weakestPersonFromResponse.sourceSystem).isEqualTo(other.sourceSystem)
+      assertThat(weakestPersonFromResponse.status).isEqualTo(SearchStatus.TRUSTED)
+      assertThat(weakestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(CanonicalAlias.from(other))
+      assertThat(weakestPersonFromResponse.addresses).hasSize(other.addresses.size)
+    }
+
+    @Test
     fun `single cluster - should return correct search result`() {
       val strongMatchPrisonNumber = randomPrisonNumber()
       val weakMatchPrisonNumber = randomPrisonNumber()
