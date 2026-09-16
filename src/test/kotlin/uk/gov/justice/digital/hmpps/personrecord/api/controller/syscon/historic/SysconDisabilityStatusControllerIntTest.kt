@@ -19,7 +19,7 @@ class SysconDisabilityStatusControllerIntTest : WebTestBase() {
     @Test
     fun `should update person disability status`() {
       val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
       assertThat(originalEntity.disability).isNull()

@@ -439,8 +439,8 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
     @Test
     fun `should only return main address in response`() {
       val defendantId = randomDefendantId()
-      val mainAddress = Address.from(createRandomCommonPlatformAddress())!!.copy(statusCode = AddressStatusCode.M)
-      val previousAddress = Address.from(createRandomCommonPlatformAddress())!!.copy(statusCode = AddressStatusCode.P)
+      val mainAddress = Address(statusCode = AddressStatusCode.M)
+      val previousAddress = Address(statusCode = AddressStatusCode.P)
       createPersonWithNewKey(createRandomCommonPlatformPersonDetails(defendantId).copy(addresses = listOf(mainAddress, previousAddress)))
 
       val responseBody = webTestClient.get()

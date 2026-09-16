@@ -17,6 +17,7 @@ generic-service:
     SAS_BASE_URL: https://single-accommodation-service-api-preprod.hmpps.service.justice.gov.uk
     SPRINGDOC_API_DOCS_ENABLED: false
     SPRINGDOC_SWAGGER_UI_ENABLED: false
+    MIGRATION_START_PAGE: 0
 
   scheduledDowntime:
     enabled: true
@@ -31,6 +32,13 @@ generic-service:
     - name: delius-reconciliation-report
       type: DELIUS_RECONCILIATION_REPORT
       schedule: "0 8-17 * * 1-5"
+    - name: recluster-needs-attention
+      type: RECLUSTER_NEEDS_ATTENTION
+      schedule: "0 13 * * 1-5"
+    - name: lowercase-pnc-cro-migration
+      type: LOWERCASE_PNC_CRO_MIGRATION
+      schedule: "0 0 1 1 *"
+      suspend: true
 
 generic-prometheus-alerts:
   businessHoursOnly: true
@@ -54,6 +62,3 @@ generic-prometheus-alerts:
     - "hmpps-person-record-preprod-cpr_delius_address_events_from_cpr_dlq"
   rdsAlertsDatabases:
     cloud-platform-288cab966b34da54: "hmpps-person-record-database"
-
-cron:
-  reclusterNeedsAttentionJob: "0 13 * * 1-5"
