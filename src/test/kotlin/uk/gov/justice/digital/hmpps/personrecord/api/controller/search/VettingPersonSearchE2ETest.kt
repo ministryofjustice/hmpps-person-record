@@ -31,19 +31,18 @@ class VettingPersonSearchE2ETest : E2ETestBase() {
   @Nested
   inner class Success {
 
-    // fails - sort order is incorrect with best match in linkedData
     @Test
     fun `single cluster - should return correct search result`() {
-      val prisonNumber1 = randomPrisonNumber()
-      val prisonNumber2 = randomPrisonNumber()
-      val prisonPerson = createRandomPrisonPersonDetails(prisonNumber1)
+      val strongMatchPrisonNumber = randomPrisonNumber()
+      val weakMatchPrisonNumber = randomPrisonNumber()
+      val prisonPerson = createRandomPrisonPersonDetails(strongMatchPrisonNumber)
       val cluster = createPersonKey()
         .addPerson(prisonPerson)
-        .addPerson(prisonPerson.copy(prisonNumber = prisonNumber2, dateOfBirth = randomDate()))
-      val strongestMatchPersonEntity = cluster.personEntities.first { it.prisonNumber == prisonNumber1 }
-      val weakestMatchPersonEntity = cluster.personEntities.first { it.prisonNumber == prisonNumber2 }
+        .addPerson(prisonPerson.copy(prisonNumber = weakMatchPrisonNumber, lastName = prisonPerson.lastName!!.plus("a")))
+      val strongestMatch = cluster.personEntities.first { it.prisonNumber == strongMatchPrisonNumber }
+      val weakestMatch = cluster.personEntities.first { it.prisonNumber == weakMatchPrisonNumber }
 
-      val strongestPersonPrimaryPseudonym = strongestMatchPersonEntity.getPrimaryName()
+      val strongestPersonPrimaryPseudonym = strongestMatch.getPrimaryName()
       val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
         url = "/person/vetting/search",
         roles = listOf(API_VETTING_SEARCH_ONLY),
@@ -62,23 +61,23 @@ class VettingPersonSearchE2ETest : E2ETestBase() {
       assertThat(strongestPersonFromResponse.name.middleNames).isEqualTo(strongestPersonPrimaryPseudonym.middleNames)
       assertThat(strongestPersonFromResponse.name.lastName).isEqualTo(strongestPersonPrimaryPseudonym.lastName)
       assertThat(strongestPersonFromResponse.name.dateOfBirth).isEqualTo(strongestPersonPrimaryPseudonym.dateOfBirth)
-      assertThat(strongestPersonFromResponse.sourceSystem).isEqualTo(strongestMatchPersonEntity.sourceSystem)
+      assertThat(strongestPersonFromResponse.sourceSystem).isEqualTo(strongestMatch.sourceSystem)
       assertThat(strongestPersonFromResponse.status).isEqualTo(SearchStatus.TRUSTED)
-      assertThat(strongestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(CanonicalAlias.from(strongestMatchPersonEntity))
-      assertThat(strongestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(CanonicalSearchIdentifiers.from(strongestMatchPersonEntity))
-      assertThat(strongestPersonFromResponse.addresses).hasSize(strongestMatchPersonEntity.addresses.size)
+      assertThat(strongestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(CanonicalAlias.from(strongestMatch))
+      assertThat(strongestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(CanonicalSearchIdentifiers.from(strongestMatch))
+      assertThat(strongestPersonFromResponse.addresses).hasSize(strongestMatch.addresses.size)
 
       val weakestPersonFromResponse = personSearchResponse.data.first().linkedRecords.first()
-      val weakestPersonPrimaryPseudonym = weakestMatchPersonEntity.pseudonyms.first { it.nameType == NameType.PRIMARY }
+      val weakestPersonPrimaryPseudonym = weakestMatch.pseudonyms.first { it.nameType == NameType.PRIMARY }
       assertThat(weakestPersonFromResponse.name.firstName).isEqualTo(weakestPersonPrimaryPseudonym.firstName)
       assertThat(weakestPersonFromResponse.name.middleNames).isEqualTo(weakestPersonPrimaryPseudonym.middleNames)
       assertThat(weakestPersonFromResponse.name.lastName).isEqualTo(weakestPersonPrimaryPseudonym.lastName)
       assertThat(weakestPersonFromResponse.name.dateOfBirth).isEqualTo(weakestPersonPrimaryPseudonym.dateOfBirth)
-      assertThat(weakestPersonFromResponse.sourceSystem).isEqualTo(weakestMatchPersonEntity.sourceSystem)
+      assertThat(weakestPersonFromResponse.sourceSystem).isEqualTo(weakestMatch.sourceSystem)
       assertThat(weakestPersonFromResponse.status).isEqualTo(SearchStatus.TRUSTED)
-      assertThat(weakestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(CanonicalAlias.from(weakestMatchPersonEntity))
-      assertThat(weakestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(CanonicalSearchIdentifiers.from(weakestMatchPersonEntity))
-      assertThat(weakestPersonFromResponse.addresses).hasSize(weakestMatchPersonEntity.addresses.size)
+      assertThat(weakestPersonFromResponse.aliases).usingRecursiveComparison().isEqualTo(CanonicalAlias.from(weakestMatch))
+      assertThat(weakestPersonFromResponse.identifiers).usingRecursiveComparison().isEqualTo(CanonicalSearchIdentifiers.from(weakestMatch))
+      assertThat(weakestPersonFromResponse.addresses).hasSize(weakestMatch.addresses.size)
     }
 
     // fails, only one match instead of 2
