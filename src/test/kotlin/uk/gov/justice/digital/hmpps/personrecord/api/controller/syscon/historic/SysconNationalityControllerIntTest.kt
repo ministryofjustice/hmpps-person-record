@@ -21,7 +21,7 @@ class SysconNationalityControllerIntTest : WebTestBase() {
     fun `should save current nationality against a prison number when code is sent`() {
       val prisonNumber = randomPrisonNumber()
       val currentNationality = createRandomPrisonNationality(NationalityCode.entries.random().toString())
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       postNationality(prisonNumber, currentNationality)
       assertCorrectValuesSaved(prisonNumber, currentNationality)
@@ -31,7 +31,7 @@ class SysconNationalityControllerIntTest : WebTestBase() {
     fun `should save current nationality against a prison number when code is sent (null notes)`() {
       val prisonNumber = randomPrisonNumber()
       val currentNationality = createRandomPrisonNationality(NationalityCode.entries.random().toString()).copy(notes = null)
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       postNationality(prisonNumber, currentNationality)
       assertCorrectValuesSaved(prisonNumber, currentNationality)
@@ -41,7 +41,7 @@ class SysconNationalityControllerIntTest : WebTestBase() {
     fun `should delete nationality when a blank nationality code is sent`() {
       val prisonNumber = randomPrisonNumber()
       val currentNationality = createRandomPrisonNationality(" ")
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       postNationality(prisonNumber, currentNationality)
 
@@ -53,7 +53,7 @@ class SysconNationalityControllerIntTest : WebTestBase() {
     fun `should delete nationality when a null nationality code is sent`() {
       val prisonNumber = randomPrisonNumber()
       val currentNationality = createRandomPrisonNationality(null)
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       postNationality(prisonNumber, currentNationality)
 

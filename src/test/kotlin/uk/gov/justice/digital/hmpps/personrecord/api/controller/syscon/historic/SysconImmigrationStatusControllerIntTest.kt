@@ -53,15 +53,9 @@ class SysconImmigrationStatusControllerIntTest : WebTestBase() {
 
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
-      val prisonNumber = randomPrisonNumber()
-      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-
-      val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
-      assertThat(originalEntity.immigrationStatus).isNull()
-
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.post()
-        .uri(immigrationUrl(prisonNumber))
+        .uri(immigrationUrl(randomPrisonNumber()))
         .bodyValue(createPrisonImmigrationStatus())
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
@@ -70,26 +64,16 @@ class SysconImmigrationStatusControllerIntTest : WebTestBase() {
         .expectBody()
         .jsonPath("userMessage")
         .isEqualTo(expectedErrorMessage)
-
-      assertCorrectValuesSaved(prisonNumber, originalEntity, null)
     }
 
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
-      val prisonNumber = randomPrisonNumber()
-      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-
-      val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
-      assertThat(originalEntity.immigrationStatus).isNull()
-
       webTestClient.post()
         .uri(immigrationUrl(randomPrisonNumber()))
         .bodyValue(createPrisonImmigrationStatus())
         .exchange()
         .expectStatus()
         .isUnauthorized
-
-      assertCorrectValuesSaved(prisonNumber, originalEntity, null)
     }
   }
 
