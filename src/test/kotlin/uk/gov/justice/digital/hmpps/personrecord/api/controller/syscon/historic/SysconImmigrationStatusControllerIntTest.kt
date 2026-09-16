@@ -20,7 +20,7 @@ class SysconImmigrationStatusControllerIntTest : WebTestBase() {
     @Test
     fun `should update person immigration status`() {
       val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
       assertThat(originalEntity.immigrationStatus).isNull()
@@ -54,7 +54,7 @@ class SysconImmigrationStatusControllerIntTest : WebTestBase() {
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
       val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
       assertThat(originalEntity.immigrationStatus).isNull()
@@ -77,7 +77,7 @@ class SysconImmigrationStatusControllerIntTest : WebTestBase() {
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
       assertThat(originalEntity.immigrationStatus).isNull()

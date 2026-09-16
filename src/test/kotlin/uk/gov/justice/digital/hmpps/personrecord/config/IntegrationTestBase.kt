@@ -729,7 +729,7 @@ class IntegrationTestBase {
     return thisPersonScopes.intersect(evalPersonScopes)
   }
 
-  fun List<Reference>.getType(type: IdentifierType): List<Reference> = this.filter { it.identifierType == type }
+  private fun List<Reference>.getType(type: IdentifierType): List<Reference> = this.filter { it.identifierType == type }
 
   companion object {
 
