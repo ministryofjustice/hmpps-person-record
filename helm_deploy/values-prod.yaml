@@ -49,6 +49,9 @@ generic-service:
     - name: recluster-needs-attention
       type: RECLUSTER_NEEDS_ATTENTION
       schedule: "0 13 * * *"
+    - name: generate-delius-merge-requests
+      type: GENERATE_DELIUS_MERGE_REQUESTS
+      schedule: "0 19 * * 1-5"
     - name: lowercase-pnc-cro-migration
       type: LOWERCASE_PNC_CRO_MIGRATION
       schedule: "0 0 1 1 *"
