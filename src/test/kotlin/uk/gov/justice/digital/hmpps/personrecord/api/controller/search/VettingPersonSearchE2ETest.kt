@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.search.SearchStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingPersonSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingPersonSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
@@ -23,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
-import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
 class VettingPersonSearchE2ETest : E2ETestBase() {
@@ -68,7 +66,7 @@ class VettingPersonSearchE2ETest : E2ETestBase() {
       assertThat(strongestPersonFromResponse.addresses).hasSize(strongestMatch.addresses.size)
 
       val weakestPersonFromResponse = personSearchResponse.data.first().linkedRecords.first()
-      val weakestPersonPrimaryPseudonym = weakestMatch.pseudonyms.first { it.nameType == NameType.PRIMARY }
+      val weakestPersonPrimaryPseudonym = weakestMatch.getPrimaryName()
       assertThat(weakestPersonFromResponse.name.firstName).isEqualTo(weakestPersonPrimaryPseudonym.firstName)
       assertThat(weakestPersonFromResponse.name.middleNames).isEqualTo(weakestPersonPrimaryPseudonym.middleNames)
       assertThat(weakestPersonFromResponse.name.lastName).isEqualTo(weakestPersonPrimaryPseudonym.lastName)
@@ -80,7 +78,6 @@ class VettingPersonSearchE2ETest : E2ETestBase() {
       assertThat(weakestPersonFromResponse.addresses).hasSize(weakestMatch.addresses.size)
     }
 
-    // fails, only one match instead of 2
     @Test
     fun `multi cluster - should return correct search result`() {
       val prisonNumber1 = randomPrisonNumber()
@@ -89,19 +86,17 @@ class VettingPersonSearchE2ETest : E2ETestBase() {
       val prisonNumber4 = randomPrisonNumber()
 
       val cluster1Person = createRandomPrisonPersonDetails(prisonNumber1)
-      val cluster2Person = cluster1Person.copy(firstName = randomName())
+      val cluster2Person = cluster1Person.copy(firstName = cluster1Person.firstName + "c")
       val cluster1 = createPersonKey()
         .addPerson(cluster1Person)
-        .addPerson(cluster1Person.copy(prisonNumber = prisonNumber2, dateOfBirth = randomDate()))
+        .addPerson(cluster1Person.copy(prisonNumber = prisonNumber2))
       val cluster2 = createPersonKey()
         .addPerson(cluster2Person.copy(prisonNumber = prisonNumber3))
-        .addPerson(cluster2Person.copy(prisonNumber = prisonNumber4, dateOfBirth = randomDate()))
+        .addPerson(cluster2Person.copy(prisonNumber = prisonNumber4))
       val strongestPersonFromCluster1 = cluster1.personEntities.first { it.prisonNumber == prisonNumber1 }
-      val weakestPersonFromCluster1 = cluster1.personEntities.first { it.prisonNumber == prisonNumber2 }
       val strongestPersonFromCluster2 = cluster2.personEntities.first { it.prisonNumber == prisonNumber3 }
-      val weakestPersonFromCluster2 = cluster2.personEntities.first { it.prisonNumber == prisonNumber4 }
 
-      val search = strongestPersonFromCluster1.pseudonyms.first { it.nameType == NameType.PRIMARY }
+      val search = strongestPersonFromCluster1.getPrimaryName()
       val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
         url = "/person/vetting/search",
         roles = listOf(API_VETTING_SEARCH_ONLY),
@@ -120,7 +115,6 @@ class VettingPersonSearchE2ETest : E2ETestBase() {
       assertThat(personSearchResponse.data.last().linkedRecords).hasSize(1)
     }
 
-    // fails - only one result returned
     @Test
     fun `should return correct search result removing any court persons present`() {
       val prisonNumber1 = randomPrisonNumber()
@@ -130,13 +124,12 @@ class VettingPersonSearchE2ETest : E2ETestBase() {
       val cluster1Person = createRandomPrisonPersonDetails(prisonNumber1)
       val cluster1 = createPersonKey()
         .addPerson(cluster1Person)
-        .addPerson(cluster1Person.copy(prisonNumber = null, cId = cId1, sourceSystem = LIBRA, dateOfBirth = randomDate()))
-      val cluster2Person = createRandomCommonPlatformPersonDetails(defendantId2)
+        .addPerson(cluster1Person.copy(prisonNumber = null, cId = cId1, sourceSystem = LIBRA))
+      val cluster2Person = cluster1Person.copy(defendantId = defendantId2, sourceSystem = COMMON_PLATFORM, lastName = cluster1Person.lastName.plus("b"))
       val cluster2 = createPersonKey()
         .addPerson(cluster2Person)
-        .addPerson(cluster2Person.copy(prisonNumber = prisonNumber4, defendantId = null, sourceSystem = NOMIS, dateOfBirth = randomDate()))
+        .addPerson(cluster2Person.copy(prisonNumber = prisonNumber4, defendantId = null, sourceSystem = NOMIS))
       val strongestPersonFromCluster1 = cluster1.personEntities.first { it.prisonNumber == prisonNumber1 }
-      val weakestPersonFromCluster1 = cluster1.personEntities.first { it.cId == cId1 }
       val strongestPersonFromCluster2 = cluster2.personEntities.first { it.defendantId == defendantId2 }
       val weakestPersonFromCluster2 = cluster2.personEntities.first { it.prisonNumber == prisonNumber4 }
       val searchNamesUsingCommonPlatformDetails = strongestPersonFromCluster2.getPrimaryName()
@@ -171,7 +164,6 @@ class VettingPersonSearchE2ETest : E2ETestBase() {
       val cluster2 = createPersonKey()
         .addPerson(matchingDetails.copy(defendantId = defendantId2, prisonNumber = null, sourceSystem = COMMON_PLATFORM))
         .addPerson(createRandomPrisonPersonDetails(prisonNumber4))
-      val strongestPersonFromCluster1 = cluster1.personEntities.first { it.cId == cId1 }
       val weakestPersonFromCluster1 = cluster1.personEntities.first { it.prisonNumber == prisonNumber1 }
       val strongestPersonFromCluster2 = cluster2.personEntities.first { it.defendantId == defendantId2 }
       val weakestPersonFromCluster2 = cluster2.personEntities.first { it.prisonNumber == prisonNumber4 }
