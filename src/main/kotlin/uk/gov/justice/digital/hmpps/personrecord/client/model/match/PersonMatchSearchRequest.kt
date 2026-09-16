@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.match
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import uk.gov.justice.digital.hmpps.personrecord.api.model.search.PersonSearchRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingPersonSearchRequest
 import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -14,7 +14,7 @@ data class PersonMatchSearchRequest(
   val postcodes: List<String> = emptyList(),
 ) {
   companion object {
-    fun from(personSearchRequest: PersonSearchRequest): PersonMatchSearchRequest = PersonMatchSearchRequest(
+    fun from(personSearchRequest: VettingPersonSearchRequest): PersonMatchSearchRequest = PersonMatchSearchRequest(
       fullName = """${personSearchRequest.firstName} ${personSearchRequest.middleName} ${personSearchRequest.lastName}""",
       dateOfBirth = personSearchRequest.dateOfBirth,
       firstNameAliases = personSearchRequest.firstNameAliases ?: emptyList(),
