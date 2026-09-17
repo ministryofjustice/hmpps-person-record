@@ -19,7 +19,6 @@ class SecurityConfiguration {
     unauthorizedRequestPaths {
       addPaths = setOf(
         "/queue-admin/retry-all-dlqs",
-        "/admin/recluster",
         "/admin/exclusion/prisoner",
       )
     }

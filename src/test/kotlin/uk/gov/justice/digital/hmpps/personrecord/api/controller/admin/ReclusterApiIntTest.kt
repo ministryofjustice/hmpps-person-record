@@ -4,8 +4,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType.APPLICATION_JSON
-import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterRecord
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jobs.recluster.ReclusterRecord
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
@@ -22,7 +22,7 @@ class ReclusterApiIntTest : WebTestBase() {
     @Test
     fun `should not do anything when person record not found in list`() {
       val defendantId = randomDefendantId()
-      val request = listOf(AdminReclusterRecord(SourceSystemType.COMMON_PLATFORM, defendantId))
+      val request = listOf(ReclusterRecord(SourceSystemType.COMMON_PLATFORM, defendantId))
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_URL)
@@ -46,7 +46,7 @@ class ReclusterApiIntTest : WebTestBase() {
 
       mergedPerson.assertMergedTo(person)
 
-      val request = listOf(AdminReclusterRecord(DELIUS, mergedPerson.crn!!))
+      val request = listOf(ReclusterRecord(DELIUS, mergedPerson.crn!!))
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_URL)
@@ -71,7 +71,7 @@ class ReclusterApiIntTest : WebTestBase() {
     fun `should retry if request to hmpps-person-match fails`() {
       stubPersonMatchUpsert()
       val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-      val request = listOf(AdminReclusterRecord(DELIUS, person.crn!!))
+      val request = listOf(ReclusterRecord(DELIUS, person.crn!!))
       stub5xxResponse(url = "/person/score/" + person.matchId)
       stubPersonMatchScores(
         matchId = person.matchId,
@@ -102,7 +102,7 @@ class ReclusterApiIntTest : WebTestBase() {
     @Test
     fun `should recluster single person record`() {
       val person = createPersonWithNewKey(createRandomProbationPersonDetails())
-      val request = listOf(AdminReclusterRecord(DELIUS, person.crn!!))
+      val request = listOf(ReclusterRecord(DELIUS, person.crn!!))
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_URL)
@@ -123,7 +123,7 @@ class ReclusterApiIntTest : WebTestBase() {
       val recordsWithCluster = List(5) {
         createPersonWithNewKey(createRandomProbationPersonDetails())
       }
-      val request = recordsWithCluster.map { AdminReclusterRecord(it.sourceSystem, it.crn!!) }
+      val request = recordsWithCluster.map { ReclusterRecord(it.sourceSystem, it.crn!!) }
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_URL)
@@ -144,7 +144,7 @@ class ReclusterApiIntTest : WebTestBase() {
     @Test
     fun `should set needs attention to active when cluster is valid`() {
       val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-      val request = listOf(AdminReclusterRecord(DELIUS, person.crn!!))
+      val request = listOf(ReclusterRecord(DELIUS, person.crn!!))
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_URL)
