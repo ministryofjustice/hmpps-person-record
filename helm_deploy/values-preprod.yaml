@@ -17,7 +17,6 @@ generic-service:
     SAS_BASE_URL: https://single-accommodation-service-api-preprod.hmpps.service.justice.gov.uk
     SPRINGDOC_API_DOCS_ENABLED: false
     SPRINGDOC_SWAGGER_UI_ENABLED: false
-    MIGRATION_START_PAGE: 0
 
   scheduledDowntime:
     enabled: true
@@ -40,10 +39,6 @@ generic-service:
       schedule: "0 19 * * 1-5"
     - name: recluster-records
       type: RECLUSTER_RECORDS
-      schedule: "0 0 1 1 *"
-      suspend: true
-    - name: lowercase-pnc-cro-migration
-      type: LOWERCASE_PNC_CRO_MIGRATION
       schedule: "0 0 1 1 *"
       suspend: true
 
