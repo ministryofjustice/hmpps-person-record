@@ -52,12 +52,14 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
     @Test
     fun `existing main address is set to previous and incoming address is now main`() {
       val crn = randomCrn()
-      createPersonKey().addPerson(
-        createPerson(
-          createRandomProbationPersonDetails(crn = crn),
-        ).apply(
-          addAddressToRecord(Address(postcode = randomPostcode(), statusCode = M, deliusAddressId = randomDeliusAddressId())),
-        ).apply(addAddressToRecord(Address(postcode = randomPostcode(), statusCode = PR, deliusAddressId = randomDeliusAddressId()))),
+      createPersonWithNewKey(
+        createRandomProbationPersonDetails(crn = crn),
+        configure = addAddressesToRecord(
+          listOf(
+            Address(postcode = randomPostcode(), statusCode = M, deliusAddressId = randomDeliusAddressId()),
+            Address(postcode = randomPostcode(), statusCode = PR, deliusAddressId = randomDeliusAddressId()),
+          ),
+        ),
       )
 
       val personEntity = personRepository.findByCrn(crn)!!
