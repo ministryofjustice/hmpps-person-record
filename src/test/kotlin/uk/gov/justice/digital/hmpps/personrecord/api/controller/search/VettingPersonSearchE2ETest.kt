@@ -26,6 +26,52 @@ class VettingPersonSearchE2ETest : E2ETestBase() {
   inner class Success {
 
     @Test
+    fun `two clusters each with three exactly matching records - should return two results with each having two linked records`() {
+      val prisonNumber = randomPrisonNumber()
+      val otherPrisonNumber = randomPrisonNumber()
+      val prisonPerson = createRandomPrisonPersonDetails(prisonNumber)
+      val cluster = createPersonKey()
+        .addPerson(prisonPerson)
+        .addPerson(prisonPerson.copy(prisonNumber = otherPrisonNumber))
+        .addPerson(prisonPerson.copy(prisonNumber = randomPrisonNumber()))
+      val first = cluster.personEntities.first { it.prisonNumber == prisonNumber }
+
+      val searchName = first.getPrimaryName()
+      val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
+        url = "/person/vetting/search",
+        roles = listOf(API_VETTING_SEARCH_ONLY),
+        expectedStatus = HttpStatus.OK,
+        body = VettingPersonSearchRequest(
+          firstName = searchName.firstName!!,
+          lastName = searchName.lastName!!,
+          dateOfBirth = searchName.dateOfBirth!!,
+        ),
+      ).returnResult().responseBody!!
+      assertThat(personSearchResponse.data).hasSize(1)
+      assertThat(personSearchResponse.data.first().linkedRecords).hasSize(2)
+
+      createPersonKey()
+        .addPerson(prisonPerson.copy(prisonNumber = randomPrisonNumber()))
+        .addPerson(prisonPerson.copy(prisonNumber = randomPrisonNumber()))
+        .addPerson(prisonPerson.copy(prisonNumber = randomPrisonNumber()))
+
+      sendPostRequestAsserted<VettingPersonSearchResponse>(
+        url = "/person/vetting/search",
+        roles = listOf(API_VETTING_SEARCH_ONLY),
+        expectedStatus = HttpStatus.OK,
+        body = VettingPersonSearchRequest(
+          firstName = searchName.firstName!!,
+          lastName = searchName.lastName!!,
+          dateOfBirth = searchName.dateOfBirth!!,
+        ),
+      ).returnResult().responseBody!!.let {
+        assertThat(it.data).hasSize(2)
+        assertThat(it.data.first().linkedRecords).hasSize(2)
+        assertThat(it.data.last().linkedRecords).hasSize(2)
+      }
+    }
+
+    @Test
     fun `single cluster with two exactly matching records - should return both`() {
       val prisonNumber = randomPrisonNumber()
       val otherPrisonNumber = randomPrisonNumber()
