@@ -63,7 +63,7 @@ class ReclusterRecordsJobIntTest(
       val defendantId = randomDefendantId()
       val records = listOf(ReclusterRecord(COMMON_PLATFORM, defendantId))
 
-      configureInputAndRun(records)
+      runJobWith(records)
 
       checkTelemetry(
         CPR_ADMIN_RECLUSTER_TRIGGERED,
@@ -81,7 +81,7 @@ class ReclusterRecordsJobIntTest(
 
       val records = listOf(ReclusterRecord(DELIUS, mergedPerson.crn!!))
 
-      configureInputAndRun(records)
+      runJobWith(records)
 
       checkTelemetry(
         CPR_ADMIN_RECLUSTER_TRIGGERED,
@@ -106,7 +106,7 @@ class ReclusterRecordsJobIntTest(
         currentScenarioState = "Next request will succeed",
       )
 
-      configureInputAndRun(records)
+      runJobWith(records)
 
       person.personKey?.assertClusterStatus(ACTIVE)
     }
@@ -126,7 +126,7 @@ class ReclusterRecordsJobIntTest(
       val person = createPersonWithNewKey(createRandomProbationPersonDetails())
       val records = listOf(ReclusterRecord(DELIUS, person.crn!!))
 
-      configureInputAndRun(records)
+      runJobWith(records)
 
       checkTelemetry(
         CPR_ADMIN_RECLUSTER_TRIGGERED,
@@ -141,7 +141,7 @@ class ReclusterRecordsJobIntTest(
       }
       val records = recordsWithCluster.map { ReclusterRecord(it.sourceSystem, it.crn!!) }
 
-      configureInputAndRun(records)
+      runJobWith(records)
 
       recordsWithCluster.forEach {
         checkTelemetry(
@@ -157,7 +157,7 @@ class ReclusterRecordsJobIntTest(
         createPersonWithNewKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
       val records = listOf(ReclusterRecord(DELIUS, person.crn!!))
 
-      configureInputAndRun(records)
+      runJobWith(records)
 
       checkTelemetry(
         CPR_ADMIN_RECLUSTER_TRIGGERED,
@@ -167,7 +167,7 @@ class ReclusterRecordsJobIntTest(
     }
   }
 
-  private fun configureInputAndRun(records: List<ReclusterRecord>) {
+  private fun runJobWith(records: List<ReclusterRecord>) {
     val file = testDir.resolve("recluster.json")
     Files.writeString(file, objectMapper.writeValueAsString(records))
     reclusterRecordsJob.run()
