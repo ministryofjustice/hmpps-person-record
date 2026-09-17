@@ -1,15 +1,13 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin
+package uk.gov.justice.digital.hmpps.personrecord.jobs.recluster
 
-import io.swagger.v3.oas.annotations.Hidden
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterRecord
+import org.springframework.stereotype.Component
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.readValue
+import uk.gov.justice.digital.hmpps.personrecord.jobs.BatchJob
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -17,49 +15,60 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.TransactionalReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import java.nio.file.Path
 
-@RestController
-class ReclusterController(
+@Component
+@ConditionalOnProperty(name = ["batch.enabled"], havingValue = "true")
+class ReclusterRecordsJob(
   private val transactionalReclusterService: TransactionalReclusterService,
   private val personRepository: PersonRepository,
   private val personMatchService: PersonMatchService,
   private val publisher: ApplicationEventPublisher,
-) {
+  private val fileWaiter: FileWaiter,
+  private val objectMapper: ObjectMapper,
+  dataDir: Path = Path.of("/data"),
+) : BatchJob {
+  override val jobName = "RECLUSTER_RECORDS"
+  private val path = dataDir.resolve("recluster.json")
 
-  @Hidden
-  @PostMapping("/admin/recluster")
-  suspend fun postRecluster(
-    @RequestBody adminReclusterRecords: List<AdminReclusterRecord>,
-  ) {
-    CoroutineScope(Dispatchers.Default).launch {
-      log.info("$RECLUSTER_PROCESS_PREFIX Triggered. Number of records: ${adminReclusterRecords.size}.")
-      upsertRecords(adminReclusterRecords)
-      log.info("$RECLUSTER_PROCESS_PREFIX Records Upsert Complete.")
-      triggerRecluster(adminReclusterRecords)
-      log.info("$RECLUSTER_PROCESS_PREFIX Complete.")
+  override fun run() {
+    val file = runBlocking {
+      fileWaiter.waitFor(path)
+    } ?: run {
+      log.warn("File not found after waiting: {}", path)
+      return
     }
+
+    val reclusterRecords: List<ReclusterRecord> = objectMapper.readValue(file.toFile())
+
+    log.info("$jobName Triggered. Number of records: ${reclusterRecords.size}.")
+    upsertRecords(reclusterRecords)
+    log.info("$jobName Records Upsert Complete.")
+    triggerRecluster(reclusterRecords)
+    log.info("$jobName Complete.")
   }
-  private fun upsertRecords(adminReclusterRecords: List<AdminReclusterRecord>) {
-    adminReclusterRecords.forEachPersonAndLog(UPSERT_PROCESS_NAME) { person ->
+
+  private fun upsertRecords(reclusterRecords: List<ReclusterRecord>) {
+    reclusterRecords.forEachPersonAndLog(UPSERT_PROCESS_NAME) { person ->
       personMatchService.saveToPersonMatch(person)
     }
   }
 
-  fun triggerRecluster(adminReclusterRecords: List<AdminReclusterRecord>) {
-    adminReclusterRecords.forEachPersonAndLog(RECLUSTER_PROCESS_NAME) {
+  fun triggerRecluster(reclusterRecords: List<ReclusterRecord>) {
+    reclusterRecords.forEachPersonAndLog(RECLUSTER_PROCESS_NAME) {
       it.personKey?.let { cluster -> publisher.publishEvent(RecordClusterTelemetry(TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED, cluster)) }
       transactionalReclusterService.recluster(it)
     }
   }
 
-  private fun searchForPersonByIdentifier(record: AdminReclusterRecord): PersonEntity? = when (record.sourceSystem) {
+  private fun searchForPersonByIdentifier(record: ReclusterRecord): PersonEntity? = when (record.sourceSystem) {
     SourceSystemType.COMMON_PLATFORM -> personRepository.findByDefendantId(record.sourceSystemId)
     SourceSystemType.LIBRA -> personRepository.findByCId(record.sourceSystemId)
     SourceSystemType.NOMIS -> personRepository.findByPrisonNumber(record.sourceSystemId)
     SourceSystemType.DELIUS -> personRepository.findByCrn(record.sourceSystemId)
   }
 
-  private fun List<AdminReclusterRecord>.forEachPersonAndLog(processName: String, action: (PersonEntity) -> Unit) {
+  private fun List<ReclusterRecord>.forEachPersonAndLog(processName: String, action: (PersonEntity) -> Unit) {
     val total = this.count()
     log.info("Starting $processName, count: $total")
     this.forEachIndexed { idx, record ->
@@ -76,7 +85,6 @@ class ReclusterController(
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
-    private const val RECLUSTER_PROCESS_PREFIX = "ADMIN RECLUSTER: "
     private const val UPSERT_PROCESS_NAME = "Upsert Person Records"
     private const val RECLUSTER_PROCESS_NAME = "Recluster Person Records"
   }

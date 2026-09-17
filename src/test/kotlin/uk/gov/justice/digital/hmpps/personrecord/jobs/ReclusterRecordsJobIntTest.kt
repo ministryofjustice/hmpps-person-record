@@ -1,20 +1,59 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin
+package uk.gov.justice.digital.hmpps.personrecord.jobs
 
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.http.MediaType.APPLICATION_JSON
-import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterRecord
-import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationEventPublisher
+import tools.jackson.databind.ObjectMapper
+import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jobs.recluster.FileWaiter
+import uk.gov.justice.digital.hmpps.personrecord.jobs.recluster.ReclusterRecord
+import uk.gov.justice.digital.hmpps.personrecord.jobs.recluster.ReclusterRecordsJob
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.TransactionalReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
+import java.nio.file.Files
+import java.nio.file.Path
 
-class ReclusterApiIntTest : WebTestBase() {
+class ReclusterRecordsJobIntTest(
+  @Autowired private val transactionalReclusterService: TransactionalReclusterService,
+  @Autowired private val personRepo: PersonRepository,
+  @Autowired private val personMatchService: PersonMatchService,
+  @Autowired private val publisher: ApplicationEventPublisher,
+  @Autowired private val fileWaiter: FileWaiter,
+  @Autowired private val objectMapper: ObjectMapper,
+) : IntegrationTestBase() {
+
+  private lateinit var testDir: Path
+  private lateinit var reclusterRecordsJob: ReclusterRecordsJob
+
+  @BeforeEach
+  fun beforeEach() {
+    testDir = Files.createTempDirectory("recluster-test-")
+    reclusterRecordsJob = ReclusterRecordsJob(
+      transactionalReclusterService,
+      personRepo,
+      personMatchService,
+      publisher,
+      fileWaiter,
+      objectMapper,
+      testDir,
+    )
+  }
+
+  @AfterEach
+  fun tearDown() {
+    testDir.toFile().deleteRecursively()
+  }
 
   @Nested
   inner class MissingRecord {
@@ -22,15 +61,9 @@ class ReclusterApiIntTest : WebTestBase() {
     @Test
     fun `should not do anything when person record not found in list`() {
       val defendantId = randomDefendantId()
-      val request = listOf(AdminReclusterRecord(SourceSystemType.COMMON_PLATFORM, defendantId))
+      val records = listOf(ReclusterRecord(COMMON_PLATFORM, defendantId))
 
-      webTestClient.post()
-        .uri(ADMIN_RECLUSTER_URL)
-        .contentType(APPLICATION_JSON)
-        .bodyValue(request)
-        .exchange()
-        .expectStatus()
-        .isOk
+      runJobWith(records)
 
       checkTelemetry(
         CPR_ADMIN_RECLUSTER_TRIGGERED,
@@ -46,15 +79,9 @@ class ReclusterApiIntTest : WebTestBase() {
 
       mergedPerson.assertMergedTo(person)
 
-      val request = listOf(AdminReclusterRecord(DELIUS, mergedPerson.crn!!))
+      val records = listOf(ReclusterRecord(DELIUS, mergedPerson.crn!!))
 
-      webTestClient.post()
-        .uri(ADMIN_RECLUSTER_URL)
-        .contentType(APPLICATION_JSON)
-        .bodyValue(request)
-        .exchange()
-        .expectStatus()
-        .isOk
+      runJobWith(records)
 
       checkTelemetry(
         CPR_ADMIN_RECLUSTER_TRIGGERED,
@@ -71,7 +98,7 @@ class ReclusterApiIntTest : WebTestBase() {
     fun `should retry if request to hmpps-person-match fails`() {
       stubPersonMatchUpsert()
       val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-      val request = listOf(AdminReclusterRecord(DELIUS, person.crn!!))
+      val records = listOf(ReclusterRecord(DELIUS, person.crn!!))
       stub5xxResponse(url = "/person/score/" + person.matchId)
       stubPersonMatchScores(
         matchId = person.matchId,
@@ -79,13 +106,8 @@ class ReclusterApiIntTest : WebTestBase() {
         currentScenarioState = "Next request will succeed",
       )
 
-      webTestClient.post()
-        .uri(ADMIN_RECLUSTER_URL)
-        .contentType(APPLICATION_JSON)
-        .bodyValue(request)
-        .exchange()
-        .expectStatus()
-        .isOk
+      runJobWith(records)
+
       person.personKey?.assertClusterStatus(ACTIVE)
     }
   }
@@ -102,15 +124,9 @@ class ReclusterApiIntTest : WebTestBase() {
     @Test
     fun `should recluster single person record`() {
       val person = createPersonWithNewKey(createRandomProbationPersonDetails())
-      val request = listOf(AdminReclusterRecord(DELIUS, person.crn!!))
+      val records = listOf(ReclusterRecord(DELIUS, person.crn!!))
 
-      webTestClient.post()
-        .uri(ADMIN_RECLUSTER_URL)
-        .contentType(APPLICATION_JSON)
-        .bodyValue(request)
-        .exchange()
-        .expectStatus()
-        .isOk
+      runJobWith(records)
 
       checkTelemetry(
         CPR_ADMIN_RECLUSTER_TRIGGERED,
@@ -123,15 +139,9 @@ class ReclusterApiIntTest : WebTestBase() {
       val recordsWithCluster = List(5) {
         createPersonWithNewKey(createRandomProbationPersonDetails())
       }
-      val request = recordsWithCluster.map { AdminReclusterRecord(it.sourceSystem, it.crn!!) }
+      val records = recordsWithCluster.map { ReclusterRecord(it.sourceSystem, it.crn!!) }
 
-      webTestClient.post()
-        .uri(ADMIN_RECLUSTER_URL)
-        .contentType(APPLICATION_JSON)
-        .bodyValue(request)
-        .exchange()
-        .expectStatus()
-        .isOk
+      runJobWith(records)
 
       recordsWithCluster.forEach {
         checkTelemetry(
@@ -143,16 +153,11 @@ class ReclusterApiIntTest : WebTestBase() {
 
     @Test
     fun `should set needs attention to active when cluster is valid`() {
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-      val request = listOf(AdminReclusterRecord(DELIUS, person.crn!!))
+      val person =
+        createPersonWithNewKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+      val records = listOf(ReclusterRecord(DELIUS, person.crn!!))
 
-      webTestClient.post()
-        .uri(ADMIN_RECLUSTER_URL)
-        .contentType(APPLICATION_JSON)
-        .bodyValue(request)
-        .exchange()
-        .expectStatus()
-        .isOk
+      runJobWith(records)
 
       checkTelemetry(
         CPR_ADMIN_RECLUSTER_TRIGGERED,
@@ -162,7 +167,9 @@ class ReclusterApiIntTest : WebTestBase() {
     }
   }
 
-  companion object {
-    private const val ADMIN_RECLUSTER_URL = "/admin/recluster"
+  private fun runJobWith(records: List<ReclusterRecord>) {
+    val file = testDir.resolve("recluster.json")
+    Files.writeString(file, objectMapper.writeValueAsString(records))
+    reclusterRecordsJob.run()
   }
 }
