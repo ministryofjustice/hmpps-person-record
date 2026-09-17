@@ -3,11 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.search
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
-import org.springframework.test.web.reactive.server.WebTestClient
-import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_VETTING_SEARCH_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.CanonicalSearchIdentifiers
@@ -282,39 +278,5 @@ class VettingPersonSearchE2ETest : E2ETestBase() {
         expectedStatus = HttpStatus.FORBIDDEN,
       )
     }
-  }
-
-  // TODO find a better way of reusing these
-
-  final inline fun <reified T : Any> sendPostRequestAsserted(
-    url: String,
-    body: Any,
-    roles: List<String>,
-    expectedStatus: HttpStatus,
-    sendAuthorised: Boolean = true,
-  ): WebTestClient.BodySpec<T, *> = sendRequestAsserted(url, body, roles, expectedStatus, sendAuthorised, HttpMethod.POST)
-  final inline fun <reified T : Any> sendRequestAsserted(
-    url: String,
-    body: Any?,
-    roles: List<String>,
-    expectedStatus: HttpStatus,
-    sendAuthorised: Boolean = true,
-    methodType: HttpMethod,
-  ): WebTestClient.BodySpec<T, *> {
-    val requestSpec = webTestClient
-      .method(methodType)
-      .uri(url)
-      .contentType(MediaType.APPLICATION_JSON)
-
-    val requestSpecReady = when (methodType) {
-      HttpMethod.GET, HttpMethod.DELETE -> requestSpec
-      else -> requestSpec.bodyValue(body!!)
-    }
-
-    val responseSpec = when (sendAuthorised) {
-      true -> requestSpecReady.authorised(roles).exchange()
-      false -> requestSpecReady.exchange()
-    }.expectStatus().isEqualTo(expectedStatus.value())
-    return responseSpec.expectBody<T>()
   }
 }
