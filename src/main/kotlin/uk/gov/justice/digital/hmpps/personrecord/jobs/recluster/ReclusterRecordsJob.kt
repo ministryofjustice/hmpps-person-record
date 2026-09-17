@@ -26,13 +26,14 @@ class ReclusterRecordsJob(
   private val publisher: ApplicationEventPublisher,
   private val fileWaiter: FileWaiter,
   private val objectMapper: ObjectMapper,
+  dataDir: Path = Path.of("/data"),
 ) : BatchJob {
   override val jobName = "RECLUSTER_RECORDS"
-  private val path = "/data/recluster.json"
+  private val path = dataDir.resolve("recluster.json")
 
   override fun run() {
     val file = runBlocking {
-      fileWaiter.waitFor(Path.of(path))
+      fileWaiter.waitFor(path)
     } ?: run {
       log.warn("File not found after waiting: {}", path)
       return
