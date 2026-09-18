@@ -52,10 +52,6 @@ generic-service:
           deny all;
           return 401;
         }
-        location /jobs/** {
-          deny all;
-          return 401;
-        }
         location /admin/** {
           deny all;
           return 401;
@@ -143,6 +139,3 @@ generic-prometheus-alerts:
   targetApplication: hmpps-person-record
   alertSeverity: hmpps-person-record-alerts-prod
   sqsAlertsTotalMessagesThreshold: "0"
-
-cron:
-  generateDeliusMergeRequestsJob: "0 19 * * 1-5"

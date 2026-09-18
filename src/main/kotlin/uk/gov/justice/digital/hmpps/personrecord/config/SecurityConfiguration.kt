@@ -19,7 +19,6 @@ class SecurityConfiguration {
     unauthorizedRequestPaths {
       addPaths = setOf(
         "/queue-admin/retry-all-dlqs",
-        "/jobs/service-now/generate-delius-merge-requests",
         "/admin/recluster",
         "/admin/exclusion/prisoner",
       )

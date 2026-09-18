@@ -37,7 +37,6 @@ generic-service:
     SAS_BASE_URL: https://single-accommodation-service-api.hmpps.service.justice.gov.uk
     SPRINGDOC_API_DOCS_ENABLED: false
     SPRINGDOC_SWAGGER_UI_ENABLED: false
-    MIGRATION_START_PAGE: 0
 
   batchjobs:
     - name: record-count-report
@@ -49,10 +48,16 @@ generic-service:
     - name: recluster-needs-attention
       type: RECLUSTER_NEEDS_ATTENTION
       schedule: "0 13 * * *"
-    - name: lowercase-pnc-cro-migration
-      type: LOWERCASE_PNC_CRO_MIGRATION
-      schedule: "0 0 1 1 *"
-      suspend: true
+    - name: generate-delius-merge-requests
+      type: GENERATE_DELIUS_MERGE_REQUESTS
+      schedule: "0 19 * * 1-5"
+      resources:
+        requests:
+          cpu: 2
+          memory: 4Gi
+        limits:
+          cpu: 2
+          memory: 4Gi
 
 generic-prometheus-alerts:
   sqsOldestAlertQueueNames:

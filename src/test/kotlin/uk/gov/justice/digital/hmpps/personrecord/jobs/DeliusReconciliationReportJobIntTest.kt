@@ -31,7 +31,6 @@ class DeliusReconciliationReportJobIntTest(
 
     val responseBody = ProbationCases(
       page = PageMetadata(1, 0, 0, 5),
-      cases = mutableListOf(),
     )
     stubGetRequest(
       url = "/all-probation-cases?page=0&size=1&sort=id,asc",
