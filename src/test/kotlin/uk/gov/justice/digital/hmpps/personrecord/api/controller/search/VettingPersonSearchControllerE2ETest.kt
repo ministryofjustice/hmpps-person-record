@@ -12,8 +12,10 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingPersonS
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingPersonSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
@@ -121,161 +123,60 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
       assertThat(vettingSearchResponse.data).isEmpty()
     }
 
-//    @Test
-//    fun `should return correct search result removing any court persons present`() {
-//      val prisonNumber1 = randomPrisonNumber()
-//      val courtId1 = randomCId()
-//      val defendantId2 = randomDefendantId()
-//      val prisonNumber4 = randomPrisonNumber()
-//      val cluster1 = createPersonKey()
-//        .addPerson(createRandomPrisonPersonDetails(prisonNumber1))
-//        .addPerson(createRandomLibraPersonDetails(courtId1))
-//      val cluster2 = createPersonKey()
-//        .addPerson(createRandomCommonPlatformPersonDetails(defendantId2))
-//        .addPerson(createRandomPrisonPersonDetails(prisonNumber4))
-//      val strongestPersonFromCluster1 = cluster1.personEntities.first { it.prisonNumber == prisonNumber1 }
-//      val weakestPersonFromCluster1 = cluster1.personEntities.first { it.cId == courtId1 }
-//      val strongestPersonFromCluster2 = cluster2.personEntities.first { it.defendantId == defendantId2 }
-//      val weakestPersonFromCluster2 = cluster2.personEntities.first { it.prisonNumber == prisonNumber4 }
-//
-//      val personMatchScores = listOf(
-//        PersonMatchScore(
-//          candidateMatchId = strongestPersonFromCluster2.matchId.toString(),
-//          candidateMatchProbability = 0.9999F,
-//          candidateMatchWeight = 80.0000F,
-//          candidateShouldJoin = true,
-//          candidateShouldFracture = false,
-//        ),
-//        PersonMatchScore(
-//          candidateMatchId = weakestPersonFromCluster2.matchId.toString(),
-//          candidateMatchProbability = 0.9999F,
-//          candidateMatchWeight = 60.0000F,
-//          candidateShouldJoin = true,
-//          candidateShouldFracture = false,
-//        ),
-//        PersonMatchScore(
-//          candidateMatchId = weakestPersonFromCluster1.matchId.toString(),
-//          candidateMatchProbability = 0.9999F,
-//          candidateMatchWeight = 50.0000F,
-//          candidateShouldJoin = true,
-//          candidateShouldFracture = false,
-//        ),
-//        PersonMatchScore(
-//          candidateMatchId = strongestPersonFromCluster1.matchId.toString(),
-//          candidateMatchProbability = 0.9999F,
-//          candidateMatchWeight = 90.0000F,
-//          candidateShouldJoin = true,
-//          candidateShouldFracture = false,
-//        ),
-//      )
-//
-//      authSetup()
-//      stubPostRequest(
-//        url = "/person/search",
-//        responseBody = jsonMapper.writeValueAsString(personMatchScores),
-//      )
-//
-//      val searchNamesUsingCommonPlatformDetails = strongestPersonFromCluster2.getPrimaryName()
-//      val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
-//        url = "/person/vetting/search",
-//        roles = listOf(API_VETTING_SEARCH_ONLY),
-//        expectedStatus = HttpStatus.OK,
-//        body = VettingPersonSearchRequest(
-//          firstName = searchNamesUsingCommonPlatformDetails.firstName!!,
-//          lastName = searchNamesUsingCommonPlatformDetails.lastName!!,
-//          dateOfBirth = searchNamesUsingCommonPlatformDetails.dateOfBirth!!,
-//        ),
-//      ).returnResult().responseBody!!
-//      assertThat(personSearchResponse.data).hasSize(2)
-//      assertThat(personSearchResponse.data.first().name.firstName).isEqualTo(strongestPersonFromCluster1.getPrimaryName().firstName)
-//      assertThat(personSearchResponse.data.first().linkedRecords).isEmpty()
-//
-//      assertThat(personSearchResponse.data.last().name.firstName).isEqualTo(weakestPersonFromCluster2.getPrimaryName().firstName)
-//      assertThat(personSearchResponse.data.last().linkedRecords).isEmpty()
-//    }
-//
-//    @Test
-//    fun `court record matches but prison record in same cluster does not - still returns prison record`() {
-//      val prisonNumber1 = randomPrisonNumber()
-//      val cId1 = randomCId()
-//      val defendantId2 = randomDefendantId()
-//      val prisonNumber4 = randomPrisonNumber()
-//      val cluster1 = createPersonKey()
-//        .addPerson(createRandomPrisonPersonDetails(prisonNumber1))
-//        .addPerson(createRandomLibraPersonDetails(cId1))
-//      val cluster2 = createPersonKey()
-//        .addPerson(createRandomCommonPlatformPersonDetails(defendantId2))
-//        .addPerson(createRandomPrisonPersonDetails(prisonNumber4))
-//      val strongestPersonFromCluster1 = cluster1.personEntities.first { it.cId == cId1 }
-//      val weakestPersonFromCluster1 = cluster1.personEntities.first { it.prisonNumber == prisonNumber1 }
-//      val strongestPersonFromCluster2 = cluster2.personEntities.first { it.defendantId == defendantId2 }
-//      val weakestPersonFromCluster2 = cluster2.personEntities.first { it.prisonNumber == prisonNumber4 }
-//
-//      // does not return the prison record in cluster 1 ("weakestPersonFromCluster1")
-//      val personMatchScores = listOf(
-//        PersonMatchScore(
-//          candidateMatchId = strongestPersonFromCluster2.matchId.toString(),
-//          candidateMatchProbability = 0.9999F,
-//          candidateMatchWeight = 80.0000F,
-//          candidateShouldJoin = true,
-//          candidateShouldFracture = false,
-//        ),
-//        PersonMatchScore(
-//          candidateMatchId = weakestPersonFromCluster2.matchId.toString(),
-//          candidateMatchProbability = 0.9999F,
-//          candidateMatchWeight = 60.0000F,
-//          candidateShouldJoin = true,
-//          candidateShouldFracture = false,
-//        ),
-//        PersonMatchScore(
-//          candidateMatchId = strongestPersonFromCluster1.matchId.toString(),
-//          candidateMatchProbability = 0.9999F,
-//          candidateMatchWeight = 90.0000F,
-//          candidateShouldJoin = true,
-//          candidateShouldFracture = false,
-//        ),
-//      )
-//
-//      authSetup()
-//      stubPostRequest(
-//        url = "/person/search",
-//        nextScenarioState = "call to get match score for prison person",
-//        responseBody = jsonMapper.writeValueAsString(personMatchScores),
-//      )
-//
-//      val prisonPersonMatchScore = listOf(
-//        PersonMatchScore(
-//          candidateMatchId = weakestPersonFromCluster1.matchId.toString(),
-//          candidateMatchProbability = 0.9999F,
-//          candidateMatchWeight = 50.0000F,
-//          candidateShouldJoin = true,
-//          candidateShouldFracture = false,
-//        ),
-//      )
-//      stubPostRequest(
-//        url = "/person/search",
-//        currentScenarioState = "call to get match score for prison person",
-//        responseBody = jsonMapper.writeValueAsString(prisonPersonMatchScore),
-//      )
-//
-//      val searchNamesUsingCommonPlatformDetails = strongestPersonFromCluster2.getPrimaryName()
-//      val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
-//        url = "/person/vetting/search",
-//        roles = listOf(API_VETTING_SEARCH_ONLY),
-//        expectedStatus = HttpStatus.OK,
-//        body = VettingPersonSearchRequest(
-//          firstName = searchNamesUsingCommonPlatformDetails.firstName!!,
-//          lastName = searchNamesUsingCommonPlatformDetails.lastName!!,
-//          dateOfBirth = searchNamesUsingCommonPlatformDetails.dateOfBirth!!,
-//        ),
-//      ).returnResult().responseBody!!
-//      assertThat(personSearchResponse.data).hasSize(2)
-//      assertThat(personSearchResponse.data.first().name.firstName).isEqualTo(weakestPersonFromCluster2.getPrimaryName().firstName)
-//      assertThat(personSearchResponse.data.first().linkedRecords).isEmpty()
-//
-//      assertThat(personSearchResponse.data.last().name.firstName).isEqualTo(weakestPersonFromCluster1.getPrimaryName().firstName)
-//      assertThat(personSearchResponse.data.last().linkedRecords).isEmpty()
-//    }
+    @Test
+    fun `should return correct search result removing any court persons present`() {
+      val prisonNumber1 = randomPrisonNumber()
+      val cid1 = randomCId()
+      val defendantId2 = randomDefendantId()
+      val prisonNumber4 = randomPrisonNumber()
+
+      val basePerson = createRandomPrisonPersonDetails()
+      createPersonKey()
+        .addPerson(basePerson.copy(prisonNumber = prisonNumber1))
+        .addPerson(basePerson.copy(cId = cid1, prisonNumber = null, sourceSystem = SourceSystemType.LIBRA))
+      val cluster2 = createPersonKey()
+        .addPerson(basePerson.copy(prisonNumber = prisonNumber4))
+        .addPerson(basePerson.copy(defendantId = defendantId2, prisonNumber = null, sourceSystem = SourceSystemType.COMMON_PLATFORM))
+      val courtPersonEntity = cluster2.personEntities.first { it.defendantId == defendantId2 }
+
+      val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
+        url = "/person/vetting/search",
+        roles = listOf(API_VETTING_SEARCH_ONLY),
+        expectedStatus = HttpStatus.OK,
+        body = VettingPersonSearchRequest(
+          firstName = courtPersonEntity.getPrimaryName().firstName!!,
+          lastName = courtPersonEntity.getPrimaryName().lastName!!,
+          dateOfBirth = courtPersonEntity.getPrimaryName().dateOfBirth!!,
+        ),
+      ).returnResult().responseBody!!
+      assertThat(personSearchResponse.data).hasSize(2)
+      assertThat(personSearchResponse.data.first().results).hasSize(1)
+      assertThat(personSearchResponse.data.last().results).hasSize(1)
+    }
+
+    @Test
+    fun `court record matches but prison record in same cluster does not - still returns prison record`() {
+      val prisonNumber1 = randomPrisonNumber()
+      val defendantId1 = randomDefendantId()
+      val cluster = createPersonKey()
+        .addPerson(createRandomCommonPlatformPersonDetails(defendantId1))
+        .addPerson(createRandomPrisonPersonDetails(prisonNumber1))
+      val courtPersonEntity = cluster.personEntities.first { it.defendantId == defendantId1 }
+
+      val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
+        url = "/person/vetting/search",
+        roles = listOf(API_VETTING_SEARCH_ONLY),
+        expectedStatus = HttpStatus.OK,
+        body = VettingPersonSearchRequest(
+          firstName = courtPersonEntity.getPrimaryName().firstName!!,
+          lastName = courtPersonEntity.getPrimaryName().lastName!!,
+          dateOfBirth = courtPersonEntity.getPrimaryName().dateOfBirth!!,
+        ),
+      ).returnResult().responseBody!!
+      assertThat(personSearchResponse.data).hasSize(1)
+      assertThat(personSearchResponse.data.first().results).hasSize(1)
+      assertThat(personSearchResponse.data.first().results.first().sourceSystem).isEqualTo(SourceSystemType.NOMIS)
+    }
 
     @Test
     fun `no matches found - should return empty list`() {
