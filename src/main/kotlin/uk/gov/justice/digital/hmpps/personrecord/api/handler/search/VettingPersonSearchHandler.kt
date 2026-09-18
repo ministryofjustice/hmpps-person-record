@@ -8,9 +8,11 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingResult
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchSearchRequest
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import java.util.UUID
 
 @Component
@@ -25,26 +27,20 @@ class VettingPersonSearchHandler(
     return constructResponse(clusters)
   }
 
-  private fun findClusters(personSearchRequest: List<PersonMatchScore>): List<PersonKeyEntity> {
-    val clusters = mutableMapOf<Long, PersonKeyEntity>()
-    personSearchRequest.forEach {
-      val personEntity = personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))!!
-      val clusterId = personEntity.personKey!!.id!!
-      if (!clusters.containsKey(clusterId)) {
-        clusters[clusterId] = personEntity.personKey!!
-      }
-    }
-    return clusters.values.toList()
-  }
+  private fun findClusters(searchResults: List<PersonMatchScore>): List<PersonKeyEntity> = searchResults.map {
+    personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))!!.personKey!!
+  }.distinctBy { it.personUUID }
 
   private fun constructResponse(clusters: List<PersonKeyEntity>): VettingPersonSearchResponse {
     val results = clusters.mapNotNull { cluster ->
       VettingResult(
         cluster.personEntities
-          .filter { it.sourceSystem != SourceSystemType.COMMON_PLATFORM && it.sourceSystem != SourceSystemType.LIBRA }
+          .filterNot { it.isCourtRecord() }
           .map { SearchData.from(it) },
       ).takeIf { it.results.isNotEmpty() }
     }
     return VettingPersonSearchResponse(results)
   }
 }
+
+private fun PersonEntity.isCourtRecord(): Boolean = this.sourceSystem in listOf(COMMON_PLATFORM, LIBRA)
