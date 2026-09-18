@@ -733,6 +733,8 @@ class IntegrationTestBase {
     return thisPersonScopes.intersect(evalPersonScopes)
   }
 
+  fun PersonKeyEntity.findByCrn(crn: String) = this.personEntities.first { it.crn == crn }
+
   private fun List<Reference>.getType(type: IdentifierType): List<Reference> = this.filter { it.identifierType == type }
 
   companion object {
