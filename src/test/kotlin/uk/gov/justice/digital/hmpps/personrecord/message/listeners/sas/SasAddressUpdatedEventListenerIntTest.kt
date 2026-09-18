@@ -21,13 +21,12 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
     @Test
     fun `consumes sas update event - updates address`() {
       val deliusAddressId = randomDeliusAddressId()
-      val existingPersonEntity = createPerson(
+      val existingPersonEntity = createPersonWithNewKey(
         createRandomProbationPersonDetails(),
         configure = addAddressToRecord(Address(postcode = randomPostcode())),
       )
       val crn = existingPersonEntity.crn
       val existingAddressEntity = existingPersonEntity.addresses.first()
-      createPersonKey().addPerson(existingPersonEntity)
 
       assertThat(existingAddressEntity.deliusAddressId).isNull()
 
@@ -53,13 +52,11 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
     @Test
     fun `address not returned from sas - pushes event to dead letter queue`() {
-      val existingPersonEntity = createPerson(
+      val existingPersonEntity = createPersonWithNewKey(
         createRandomProbationPersonDetails(),
         configure = addAddressToRecord(Address(postcode = randomPostcode())),
       )
       val existingAddressEntity = existingPersonEntity.addresses.first()
-      createPersonKey()
-        .addPerson(existingPersonEntity)
 
       stubGetRequestToSas(status = 404)
 
@@ -74,12 +71,10 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
     @Test
     fun `cpr address does not exist - pushed to dead letter queue`() {
-      val existingPersonEntity = createPerson(
+      val existingPersonEntity = createPersonWithNewKey(
         createRandomProbationPersonDetails(),
         configure = addAddressToRecord(Address(postcode = randomPostcode())),
       )
-      createPersonKey()
-        .addPerson(existingPersonEntity)
 
       val sasCallbackResponse = createSasAddressGetResponse(existingPersonEntity.crn, AddressEntity.from(Address(postcode = randomPostcode())))
 
@@ -94,13 +89,11 @@ class SasAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
 
     @Test
     fun `cpr person does not exist - pushes to dead letter queue`() {
-      val existingPersonEntity = createPerson(
+      val existingPersonEntity = createPersonWithNewKey(
         createRandomProbationPersonDetails(),
         configure = addAddressToRecord(Address(postcode = randomPostcode())),
       )
       val existingAddressEntity = existingPersonEntity.addresses.first()
-      createPersonKey()
-        .addPerson(existingPersonEntity)
 
       val nonExistingPersonCrn = randomCrn()
       val sasCallbackResponse = createSasAddressGetResponse(nonExistingPersonCrn, existingAddressEntity)
