@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.handler.search
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.api.model.search.SearchData
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingPersonSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingPersonSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingResult
+import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingSearchData
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchSearchRequest
@@ -36,7 +36,7 @@ class VettingPersonSearchHandler(
       VettingResult(
         cluster.personEntities
           .filterNot { it.isCourtRecord() }
-          .map { SearchData.from(it) },
+          .map { VettingSearchData.from(it) },
       ).takeIf { it.results.isNotEmpty() }
     }
     return VettingPersonSearchResponse(results)

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_VETTING_SEARCH_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.search.CanonicalSearchIdentifiers
+import uk.gov.justice.digital.hmpps.personrecord.api.model.search.SearchIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.SearchStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingPersonSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingPersonSearchResponse
@@ -55,7 +55,7 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
       assertThat(searchResult1.sourceSystem).isEqualTo(prisonPersonEntity.sourceSystem)
       assertThat(searchResult1.status).isEqualTo(SearchStatus.TRUSTED)
       assertThat(searchResult1.aliases).usingRecursiveComparison().isEqualTo(CanonicalAlias.from(prisonPersonEntity))
-      assertThat(searchResult1.identifiers).usingRecursiveComparison().isEqualTo(CanonicalSearchIdentifiers.from(prisonPersonEntity))
+      assertThat(searchResult1.identifiers).usingRecursiveComparison().isEqualTo(SearchIdentifiers.from(prisonPersonEntity))
       assertThat(searchResult1.addresses).hasSize(prisonPersonEntity.addresses.size)
 
       val searchResult2 = vettingSearchResponse.data.first().results.last()
@@ -65,7 +65,7 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
       assertThat(searchResult2.sourceSystem).isEqualTo(probationPersonEntity.sourceSystem)
       assertThat(searchResult2.status).isEqualTo(SearchStatus.TRUSTED)
       assertThat(searchResult2.aliases).usingRecursiveComparison().isEqualTo(CanonicalAlias.from(probationPersonEntity))
-      assertThat(searchResult2.identifiers).usingRecursiveComparison().isEqualTo(CanonicalSearchIdentifiers.from(probationPersonEntity))
+      assertThat(searchResult2.identifiers).usingRecursiveComparison().isEqualTo(SearchIdentifiers.from(probationPersonEntity))
       assertThat(searchResult2.addresses).hasSize(probationPersonEntity.addresses.size)
     }
 

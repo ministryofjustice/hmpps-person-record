@@ -15,21 +15,21 @@ data class VettingPersonSearchResponse(
 )
 
 data class VettingResult(
-  val results: List<SearchData>,
+  val results: List<VettingSearchData>,
 )
 
-data class SearchData(
+data class VettingSearchData(
   val name: SearchName,
   val aliases: List<CanonicalAlias>,
   val addresses: List<CanonicalAddress>,
-  val identifiers: CanonicalSearchIdentifiers,
+  val identifiers: SearchIdentifiers,
   val sourceSystem: SourceSystemType,
   val status: SearchStatus,
 ) {
   companion object {
-    fun from(personEntity: PersonEntity): SearchData {
+    fun from(personEntity: PersonEntity): VettingSearchData {
       val mainPseudonym = personEntity.getPrimaryName()
-      return SearchData(
+      return VettingSearchData(
         name = SearchName(
           firstName = mainPseudonym.firstName,
           middleNames = mainPseudonym.middleNames,
@@ -38,7 +38,7 @@ data class SearchData(
         ),
         aliases = CanonicalAlias.from(personEntity) ?: emptyList(),
         addresses = personEntity.addresses.map { CanonicalAddress.from(it) },
-        identifiers = CanonicalSearchIdentifiers.from(personEntity),
+        identifiers = SearchIdentifiers.from(personEntity),
         sourceSystem = personEntity.sourceSystem,
         status = personEntity.personKey!!.status.toSearchStatus(),
       )
@@ -46,7 +46,7 @@ data class SearchData(
   }
 }
 
-data class CanonicalSearchIdentifiers(
+data class SearchIdentifiers(
   val crn: String? = null,
   val prisonNumber: String? = null,
   val defendantId: String? = null,
@@ -59,13 +59,13 @@ data class CanonicalSearchIdentifiers(
   val otherIdentifiers: List<String> = emptyList(),
 ) {
   companion object {
-    fun from(personEntity: PersonEntity): CanonicalSearchIdentifiers {
+    fun from(personEntity: PersonEntity): SearchIdentifiers {
       val canonicalIdentifiers = CanonicalIdentifiers.from(listOf(personEntity))
-      return CanonicalSearchIdentifiers(
-        crn = canonicalIdentifiers.crns.firstOrNull(),
-        prisonNumber = canonicalIdentifiers.prisonNumbers.firstOrNull(),
-        defendantId = canonicalIdentifiers.defendantIds.firstOrNull(),
-        cid = canonicalIdentifiers.cids.firstOrNull(),
+      return SearchIdentifiers(
+        crn = personEntity.crn,
+        prisonNumber = personEntity.prisonNumber,
+        defendantId = personEntity.defendantId,
+        cid = personEntity.cId,
         pncs = canonicalIdentifiers.pncs,
         cros = canonicalIdentifiers.cros,
         nationalInsuranceNumbers = canonicalIdentifiers.nationalInsuranceNumbers,
