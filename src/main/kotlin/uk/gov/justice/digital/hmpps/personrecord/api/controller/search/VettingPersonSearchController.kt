@@ -27,7 +27,7 @@ class VettingPersonSearchController(
     ApiResponse(
       responseCode = "200",
       description = """
-        This endpoint returns person matches grouped by their associated clusters.
+        This endpoint returns prison and probation records matching the search terms grouped by their associated clusters.
       """,
       content = [
         Content(

@@ -24,7 +24,7 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
     @Test
     fun `should update person sexual orientation`() {
       val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
       assertThat(originalEntity.sexualOrientation).isNull()
@@ -39,7 +39,7 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
     @Test
     fun `should update person sexual orientation to UNKNOWN when code is unknown`() {
       val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
       assertThat(originalEntity.sexualOrientation).isNull()
@@ -61,7 +61,7 @@ class SysconSexualOrientationControllerIntTest : WebTestBase() {
         sexualOrientation = randomPrisonSexualOrientation().value,
         sourceSystem = SourceSystemType.NOMIS,
       )
-      createPerson(person)
+      createPersonWithNewKey(person)
 
       val originalEntity = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
       assertThat(originalEntity.sexualOrientation).isNotNull()
