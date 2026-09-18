@@ -257,28 +257,22 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
 //      assertThat(personSearchResponse.data.last().name.firstName).isEqualTo(weakestPersonFromCluster1.getPrimaryName().firstName)
 //      assertThat(personSearchResponse.data.last().linkedRecords).isEmpty()
 //    }
-//
-//    @Test
-//    fun `no matches found - should return empty list`() {
-//      authSetup()
-//      stubPostRequest(
-//        url = "/person/search",
-//        responseBody = jsonMapper.writeValueAsString(emptyList<PersonMatchScore>()),
-//      )
-//
-//      val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
-//        url = "/person/vetting/search",
-//        roles = listOf(API_VETTING_SEARCH_ONLY),
-//        expectedStatus = HttpStatus.OK,
-//        body = VettingPersonSearchRequest(
-//          firstName = randomLowerCaseString(),
-//          lastName = randomLowerCaseString(),
-//          dateOfBirth = randomDate(),
-//        ),
-//      ).returnResult().responseBody!!
-//
-//      assertThat(personSearchResponse.data).isEmpty()
-//    }
+
+    @Test
+    fun `no matches found - should return empty list`() {
+      val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
+        url = "/person/vetting/search",
+        roles = listOf(API_VETTING_SEARCH_ONLY),
+        expectedStatus = HttpStatus.OK,
+        body = VettingPersonSearchRequest(
+          firstName = randomLowerCaseString(),
+          lastName = randomLowerCaseString(),
+          dateOfBirth = randomDate(),
+        ),
+      ).returnResult().responseBody!!
+
+      assertThat(personSearchResponse.clusters).isEmpty()
+    }
   }
 
   @Nested
