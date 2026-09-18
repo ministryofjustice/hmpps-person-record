@@ -229,33 +229,35 @@ class ServiceNowMergeRequestJobE2ETest(
 
   @Test
   fun `should ignore merged records`() {
-    val person1 = createPerson(createRandomProbationPersonDetails())
-    val person2 = createPerson(createRandomProbationPersonDetails())
-    createPersonKey()
-      .addPerson(person1)
-    createPersonKey()
-      .addPerson(person2)
+    val person1Crn = randomCrn()
+    val person2Crn = randomCrn()
+    val person3Crn = randomCrn()
+    val person4Crn = randomCrn()
 
-    val person3 = createRandomProbationPersonDetails()
-    val person4 = createRandomProbationPersonDetails()
     createPersonKey()
-      .addPerson(person3)
-      .addPerson(person4)
-    probationMergeEventAndResponseSetup(person1.crn!!, person2.crn!!)
+      .addPerson(createRandomProbationPersonDetails(person1Crn))
+    createPersonKey()
+      .addPerson(createRandomProbationPersonDetails(person2Crn))
+
+    createPersonKey()
+      .addPerson(createRandomProbationPersonDetails(person3Crn))
+      .addPerson(createRandomProbationPersonDetails(person4Crn))
+
+    probationMergeEventAndResponseSetup(person1Crn, person2Crn)
 
     checkTelemetry(
       CPR_RECORD_MERGED,
       mapOf(
-        "TO_SOURCE_SYSTEM_ID" to person2.crn,
+        "TO_SOURCE_SYSTEM_ID" to person2Crn,
         "SOURCE_SYSTEM" to "DELIUS",
       ),
     )
     val tenHoursAgo = LocalDateTime.now().minusHours(HOURS_TO_CHOOSE_FROM)
 
-    personRepository.updateLastModifiedDate(person1.crn!!, tenHoursAgo.plusMinutes(1))
-    personRepository.updateLastModifiedDate(person2.crn!!, tenHoursAgo.plusMinutes(2))
-    personRepository.updateLastModifiedDate(person3.crn!!, tenHoursAgo.plusMinutes(2))
-    personRepository.updateLastModifiedDate(person4.crn!!, tenHoursAgo.plusMinutes(2))
+    personRepository.updateLastModifiedDate(person1Crn, tenHoursAgo.plusMinutes(1))
+    personRepository.updateLastModifiedDate(person2Crn, tenHoursAgo.plusMinutes(2))
+    personRepository.updateLastModifiedDate(person3Crn, tenHoursAgo.plusMinutes(2))
+    personRepository.updateLastModifiedDate(person4Crn, tenHoursAgo.plusMinutes(2))
 
     serviceNowMergeRequestJob.run()
 
