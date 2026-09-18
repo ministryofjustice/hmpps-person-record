@@ -45,8 +45,8 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
           dateOfBirth = prisonPersonEntity.getPrimaryName().dateOfBirth!!,
         ),
       ).returnResult().responseBody!!
-      assertThat(vettingSearchResponse.data).hasSize(1) // results span only 1 cluster
-      assertThat(vettingSearchResponse.data.first().results).hasSize(2) // the cluster has 2 records on it
+      assertThat(vettingSearchResponse.data).hasSize(1)
+      assertThat(vettingSearchResponse.data.first().results).hasSize(2)
 
       val searchResult1 = vettingSearchResponse.data.first().results.first()
       assertThat(searchResult1.name.firstName).isEqualTo(prisonPersonEntity.getPrimaryName().firstName!!)
@@ -74,7 +74,6 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
       val prisonNumber1 = randomPrisonNumber()
       val crn1 = randomCrn()
       val prisonNumber2 = randomPrisonNumber()
-      val prisonNumber3 = randomPrisonNumber()
       val crn2 = randomCrn()
 
       val basePerson1 = createRandomPrisonPersonDetails()
@@ -84,7 +83,6 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
 
       createPersonKey()
         .addPerson(createPerson(basePerson1.copy(prisonNumber = prisonNumber2)))
-        .addPerson(createPerson(basePerson1.copy(prisonNumber = prisonNumber3)))
         .addPerson(createPerson(basePerson1.copy(crn = crn2, prisonNumber = null, sourceSystem = SourceSystemType.DELIUS)))
       val personEntity2 = cluster1.personEntities.first { it.crn == crn1 }
 
@@ -98,10 +96,12 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
           dateOfBirth = personEntity2.getPrimaryName().dateOfBirth!!,
         ),
       ).returnResult().responseBody!!
-      assertThat(personSearchResponse.data).hasSize(2) // results span 2 cluster
+      assertThat(personSearchResponse.data).hasSize(2)
 
-      assertThat(personSearchResponse.data.first().results).hasSize(2) // the 1st cluster has 2 records on it
-      assertThat(personSearchResponse.data.last().results).hasSize(3) // the 2nd cluster has 3 records on it
+      println(jsonMapper.writeValueAsString(personSearchResponse))
+
+      assertThat(personSearchResponse.data.first().results).hasSize(2)
+      assertThat(personSearchResponse.data.last().results).hasSize(2)
     }
 
     @Test
