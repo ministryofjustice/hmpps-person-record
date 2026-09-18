@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.search
 
-import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifiers
@@ -11,7 +10,13 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import java.time.LocalDate
 
-data class VettingPersonSearchResponse(val data: List<SearchData>)
+data class VettingPersonSearchResponse(
+  val data: List<VettingResult>,
+)
+
+data class VettingResult(
+  val results: List<SearchData>,
+)
 
 data class SearchData(
   val name: SearchName,
@@ -20,8 +25,6 @@ data class SearchData(
   val identifiers: CanonicalSearchIdentifiers,
   val sourceSystem: SourceSystemType,
   val status: SearchStatus,
-  @field:Schema(example = """[{"name":{"firstName":"","middleNames":"","lastName":"","dateOfBirth":""},"aliases":[],"addresses":[],"identifiers":[],"sourceSystem":"","status":""}]""")
-  var linkedRecords: List<SearchData> = emptyList(),
 ) {
   companion object {
     fun from(personEntity: PersonEntity): SearchData {
