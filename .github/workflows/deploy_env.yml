@@ -36,7 +36,15 @@ jobs:
       environment: ${{ inputs.environment }}
       app_version: ${{ inputs.app_version }}
       slack_notification: ${{ inputs.slack_notification }}
-
+  record_deployment:
+    name: Record deployment
+    needs:
+      - deploy
+    uses: ./.github/workflows/record_deployment.yml
+    secrets: inherit
+    with:
+      environment: ${{ inputs.environment }}
+      app_version: ${{ inputs.app_version }}
   publish_deployment_metrics:
     name: Publish deployment metrics to Plandek
     if: always()

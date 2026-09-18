@@ -143,6 +143,17 @@ jobs:
     with:
       environment: 'dev'
       app_version: '${{ needs.build.outputs.app_version }}'
+  # Record a deployment to the Test environment because this service has no dedicated test environment;
+  # consumers may still need a Test deployment recorded so they have something to test against.
+  record_deployment_test:
+    name: Record deployment
+    needs:
+      - deploy_dev
+    uses: ./.github/workflows/record_deployment.yml
+    secrets: inherit
+    with:
+      environment: 'test'
+      app_version: '${{ needs.build.outputs.app_version }}'
   deploy_preprod:
     name: Deploy to pre-production environment
     needs:
