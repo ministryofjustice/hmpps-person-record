@@ -43,10 +43,10 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
           dateOfBirth = prisonPersonEntity.getPrimaryName().dateOfBirth!!,
         ),
       ).returnResult().responseBody!!
-      assertThat(vettingSearchResponse.clusters).hasSize(1) // results span only 1 cluster
-      assertThat(vettingSearchResponse.clusters.first().results).hasSize(2) // the cluster has 2 records on it
+      assertThat(vettingSearchResponse.data).hasSize(1) // results span only 1 cluster
+      assertThat(vettingSearchResponse.data.first().results).hasSize(2) // the cluster has 2 records on it
 
-      val searchResult1 = vettingSearchResponse.clusters.first().results.first()
+      val searchResult1 = vettingSearchResponse.data.first().results.first()
       assertThat(searchResult1.name.firstName).isEqualTo(prisonPersonEntity.getPrimaryName().firstName!!)
       assertThat(searchResult1.name.lastName).isEqualTo(prisonPersonEntity.getPrimaryName().lastName!!)
       assertThat(searchResult1.name.dateOfBirth).isEqualTo(prisonPersonEntity.getPrimaryName().dateOfBirth!!)
@@ -56,7 +56,7 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
       assertThat(searchResult1.identifiers).usingRecursiveComparison().isEqualTo(CanonicalSearchIdentifiers.from(prisonPersonEntity))
       assertThat(searchResult1.addresses).hasSize(prisonPersonEntity.addresses.size)
 
-      val searchResult2 = vettingSearchResponse.clusters.first().results.last()
+      val searchResult2 = vettingSearchResponse.data.first().results.last()
       assertThat(searchResult2.name.firstName).isEqualTo(probationPersonEntity.getPrimaryName().firstName!!)
       assertThat(searchResult2.name.lastName).isEqualTo(probationPersonEntity.getPrimaryName().lastName!!)
       assertThat(searchResult2.name.dateOfBirth).isEqualTo(probationPersonEntity.getPrimaryName().dateOfBirth!!)
@@ -96,10 +96,29 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
           dateOfBirth = personEntity2.getPrimaryName().dateOfBirth!!,
         ),
       ).returnResult().responseBody!!
-      assertThat(personSearchResponse.clusters).hasSize(2) // results span 2 cluster
+      assertThat(personSearchResponse.data).hasSize(2) // results span 2 cluster
 
-      assertThat(personSearchResponse.clusters.first().results).hasSize(2) // the 1st cluster has 2 records on it
-      assertThat(personSearchResponse.clusters.last().results).hasSize(3) // the 2nd cluster has 3 records on it
+      assertThat(personSearchResponse.data.first().results).hasSize(2) // the 1st cluster has 2 records on it
+      assertThat(personSearchResponse.data.last().results).hasSize(3) // the 2nd cluster has 3 records on it
+    }
+
+    @Test
+    fun `single cluster - court record only - does not return anything`() {
+      val cluster = createPersonKey()
+        .addPerson(createPerson(createRandomCommonPlatformPersonDetails()))
+      val courtPersonEntity = cluster.personEntities.first()
+
+      val vettingSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
+        url = "/person/vetting/search",
+        roles = listOf(API_VETTING_SEARCH_ONLY),
+        expectedStatus = HttpStatus.OK,
+        body = VettingPersonSearchRequest(
+          firstName = courtPersonEntity.getPrimaryName().firstName!!,
+          lastName = courtPersonEntity.getPrimaryName().lastName!!,
+          dateOfBirth = courtPersonEntity.getPrimaryName().dateOfBirth!!,
+        ),
+      ).returnResult().responseBody!!
+      assertThat(vettingSearchResponse.data).isEmpty()
     }
 
 //    @Test
@@ -271,7 +290,7 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
         ),
       ).returnResult().responseBody!!
 
-      assertThat(personSearchResponse.clusters).isEmpty()
+      assertThat(personSearchResponse.data).isEmpty()
     }
   }
 

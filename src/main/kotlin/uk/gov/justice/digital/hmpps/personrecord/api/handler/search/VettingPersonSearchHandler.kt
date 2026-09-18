@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchS
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import java.util.UUID
 
 @Component
@@ -37,8 +38,12 @@ class VettingPersonSearchHandler(
   }
 
   private fun constructResponse(clusters: List<PersonKeyEntity>): VettingPersonSearchResponse {
-    val results = clusters.map { cluster ->
-      VettingResult(cluster.personEntities.map { SearchData.from(it) })
+    val results = clusters.mapNotNull { cluster ->
+      VettingResult(
+        cluster.personEntities
+          .filter { it.sourceSystem != SourceSystemType.COMMON_PLATFORM && it.sourceSystem != SourceSystemType.LIBRA }
+          .map { SearchData.from(it) },
+      ).takeIf { it.results.isNotEmpty() }
     }
     return VettingPersonSearchResponse(results)
   }
