@@ -234,10 +234,8 @@ class ServiceNowMergeRequestJobE2ETest(
     val person3Crn = randomCrn()
     val person4Crn = randomCrn()
 
-    createPersonKey()
-      .addPerson(createRandomProbationPersonDetails(person1Crn))
-    createPersonKey()
-      .addPerson(createRandomProbationPersonDetails(person2Crn))
+    createPersonWithNewKey(createRandomProbationPersonDetails(person1Crn))
+    createPersonWithNewKey(createRandomProbationPersonDetails(person2Crn))
 
     createPersonKey()
       .addPerson(createRandomProbationPersonDetails(person3Crn))
