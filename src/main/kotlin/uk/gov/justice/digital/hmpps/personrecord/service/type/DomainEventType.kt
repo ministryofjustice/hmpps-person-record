@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.type
 
 const val PRISON_PERSON_CREATED = "prisoner-offender-search.prisoner.created"
 const val PRISON_PERSON_UPDATED = "prisoner-offender-search.prisoner.updated"
-const val PRISON_PERSON_MERGED = "prison-offender-events.prisoner.merged"
 
 const val PROBATION_PERSON_CREATED = "probation-case.engagement.created"
 const val PROBATION_PERSON_UPDATED = "probation-case.personal-details.updated"
