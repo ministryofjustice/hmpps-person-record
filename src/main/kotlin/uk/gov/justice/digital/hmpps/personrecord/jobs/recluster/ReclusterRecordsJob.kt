@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.jobs.BatchJob
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -25,7 +25,7 @@ class ReclusterRecordsJob(
   private val personMatchService: PersonMatchService,
   private val publisher: ApplicationEventPublisher,
   private val fileWaiter: FileWaiter,
-  private val objectMapper: ObjectMapper,
+  private val jsonMapper: JsonMapper,
   dataDir: Path = Path.of("/data"),
 ) : BatchJob {
   override val jobName = "RECLUSTER_RECORDS"
@@ -39,7 +39,7 @@ class ReclusterRecordsJob(
       return
     }
 
-    val reclusterRecords: List<ReclusterRecord> = objectMapper.readValue(file.toFile())
+    val reclusterRecords: List<ReclusterRecord> = jsonMapper.readValue(file.toFile())
 
     log.info("$jobName Triggered. Number of records: ${reclusterRecords.size}.")
     upsertRecords(reclusterRecords)

@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
-import tools.jackson.databind.ObjectMapper
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jobs.recluster.FileWaiter
 import uk.gov.justice.digital.hmpps.personrecord.jobs.recluster.ReclusterRecord
@@ -30,7 +29,6 @@ class ReclusterRecordsJobIntTest(
   @Autowired private val personMatchService: PersonMatchService,
   @Autowired private val publisher: ApplicationEventPublisher,
   @Autowired private val fileWaiter: FileWaiter,
-  @Autowired private val objectMapper: ObjectMapper,
 ) : IntegrationTestBase() {
 
   private lateinit var testDir: Path
@@ -45,7 +43,7 @@ class ReclusterRecordsJobIntTest(
       personMatchService,
       publisher,
       fileWaiter,
-      objectMapper,
+      jsonMapper,
       testDir,
     )
   }
@@ -169,7 +167,7 @@ class ReclusterRecordsJobIntTest(
 
   private fun runJobWith(records: List<ReclusterRecord>) {
     val file = testDir.resolve("recluster.json")
-    Files.writeString(file, objectMapper.writeValueAsString(records))
+    Files.writeString(file, jsonMapper.writeValueAsString(records))
     reclusterRecordsJob.run()
   }
 }
