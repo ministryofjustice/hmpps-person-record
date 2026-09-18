@@ -1,6 +1,9 @@
 name: Record Pact Broker deployment
 
 on:
+  push:
+    branches:
+      - "add-pact-record-deployment-step"
   workflow_call:
     inputs: &record_deployment_inputs
       app_version:
