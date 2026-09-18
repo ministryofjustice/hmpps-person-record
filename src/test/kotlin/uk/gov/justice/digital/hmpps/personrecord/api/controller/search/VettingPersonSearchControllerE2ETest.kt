@@ -155,7 +155,7 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `court record matches but prison record in same cluster does not - still returns prison record`() {
+    fun `search result matches court record only and not prison record but they are on the same cluster - still returns prison person with court record removed`() {
       val prisonNumber1 = randomPrisonNumber()
       val defendantId1 = randomDefendantId()
       val cluster = createPersonKey()
