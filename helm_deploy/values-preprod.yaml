@@ -37,6 +37,13 @@ generic-service:
     - name: generate-delius-merge-requests
       type: GENERATE_DELIUS_MERGE_REQUESTS
       schedule: "0 19 * * 1-5"
+      resources:
+        requests:
+          cpu: 2
+          memory: 4Gi
+        limits:
+          cpu: 2
+          memory: 4Gi
 
 generic-prometheus-alerts:
   businessHoursOnly: true
