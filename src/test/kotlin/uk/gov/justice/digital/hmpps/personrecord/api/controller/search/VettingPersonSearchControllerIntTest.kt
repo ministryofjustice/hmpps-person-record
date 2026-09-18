@@ -64,10 +64,10 @@ class VettingPersonSearchControllerIntTest : WebTestBase() {
           dateOfBirth = personEntity1.getPrimaryName().dateOfBirth!!,
         ),
       ).returnResult().responseBody!!
-      assertThat(personSearchResponse.data).hasSize(1) // results span only 1 cluster
-      assertThat(personSearchResponse.data.first().results).hasSize(2) // the cluster has 2 records on it
+      assertThat(personSearchResponse.clusters).hasSize(1) // results span only 1 cluster
+      assertThat(personSearchResponse.clusters.first().results).hasSize(2) // the cluster has 2 records on it
 
-      val searchResult1 = personSearchResponse.data.first().results.first()
+      val searchResult1 = personSearchResponse.clusters.first().results.first()
       assertThat(searchResult1.name.firstName).isEqualTo(personEntity1.getPrimaryName().firstName!!)
       assertThat(searchResult1.name.lastName).isEqualTo(personEntity1.getPrimaryName().lastName!!)
       assertThat(searchResult1.name.dateOfBirth).isEqualTo(personEntity1.getPrimaryName().dateOfBirth!!)
@@ -77,7 +77,7 @@ class VettingPersonSearchControllerIntTest : WebTestBase() {
       assertThat(searchResult1.identifiers).usingRecursiveComparison().isEqualTo(CanonicalSearchIdentifiers.from(personEntity1))
       assertThat(searchResult1.addresses).hasSize(personEntity1.addresses.size)
 
-      val searchResult2 = personSearchResponse.data.first().results.last()
+      val searchResult2 = personSearchResponse.clusters.first().results.last()
       assertThat(searchResult2.name.firstName).isEqualTo(personEntity2.getPrimaryName().firstName!!)
       assertThat(searchResult2.name.lastName).isEqualTo(personEntity2.getPrimaryName().lastName!!)
       assertThat(searchResult2.name.dateOfBirth).isEqualTo(personEntity2.getPrimaryName().dateOfBirth!!)

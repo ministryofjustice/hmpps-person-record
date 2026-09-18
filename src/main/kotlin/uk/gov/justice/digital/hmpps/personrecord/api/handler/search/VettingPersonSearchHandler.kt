@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import java.util.UUID
 
 @Component
-class PersonSearchHandler(
+class VettingPersonSearchHandler(
   private val personRepository: PersonRepository,
   private val personMatchClient: PersonMatchClient,
 ) {

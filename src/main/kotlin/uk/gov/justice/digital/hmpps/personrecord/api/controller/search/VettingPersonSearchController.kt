@@ -13,22 +13,21 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_VETTING_SEARCH_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.search.PersonSearchHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.search.VettingPersonSearchHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingPersonSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingPersonSearchResponse
 
 @Tag(name = "Vetting")
 @RestController
 class VettingPersonSearchController(
-  private val personSearchHandler: PersonSearchHandler,
+  private val vettingPersonSearchHandler: VettingPersonSearchHandler,
 ) {
 
   @ApiResponses(
     ApiResponse(
       responseCode = "200",
       description = """
-        This endpoint returns matching person records from Prison and Probation only.
-        The objects in the top level array will be ordered by the strongest match descending (first record strongest, last record weakest).
+        This endpoint returns person matches grouped by their associated clusters.
       """,
       content = [
         Content(
@@ -41,10 +40,10 @@ class VettingPersonSearchController(
   @Hidden
   @PreAuthorize("hasRole('$API_VETTING_SEARCH_ONLY')")
   @PostMapping("/person/vetting/search")
-  fun personSearch(
+  fun vettingSearch(
     @RequestBody personSearchRequest: VettingPersonSearchRequest,
   ): ResponseEntity<VettingPersonSearchResponse> {
-    val result = personSearchHandler.search(personSearchRequest)
+    val result = vettingPersonSearchHandler.search(personSearchRequest)
     return ResponseEntity(result, HttpStatus.OK)
   }
 }

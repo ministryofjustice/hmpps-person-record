@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTI
 import java.time.LocalDate
 
 data class VettingPersonSearchResponse(
-  val data: List<VettingResult>,
+  val clusters: List<VettingResult>,
 )
 
 data class VettingResult(
