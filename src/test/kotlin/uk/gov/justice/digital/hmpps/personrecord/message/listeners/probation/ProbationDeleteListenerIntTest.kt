@@ -27,9 +27,9 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
     @Test
     fun `deletes person with a GDPR event`() {
       val crn = randomCrn()
-      val person = createPerson(createRandomProbationPersonDetails(crn))
+
       val personKey = createPersonKey()
-        .addPerson(person)
+        .addPerson(createRandomProbationPersonDetails(crn))
         .addPerson(createRandomProbationPersonDetails())
         .also {
           stubPersonMatchScores()
@@ -43,7 +43,7 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
       )
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_DELETED)
 
-      person.assertPersonDeleted()
+      personKey.findByCrn(crn).assertPersonDeleted()
       personKey.assertClusterStatus(UUIDStatusType.ACTIVE)
       personKey.assertClusterIsOfSize(1)
 
@@ -83,9 +83,8 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
     fun `when cluster has more than one person - delete person only`() {
       val crn = randomCrn()
 
-      val person = createPerson(createRandomProbationPersonDetails(crn))
       val personKey = createPersonKey()
-        .addPerson(person)
+        .addPerson(createRandomProbationPersonDetails(crn))
         .addPerson(createRandomProbationPersonDetails())
         .also {
           stubDeletePersonMatch()
@@ -97,7 +96,7 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
       checkTelemetry(CPR_RECORD_DELETED, mapOf("CRN" to crn, "SOURCE_SYSTEM" to "DELIUS"))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_DELETED)
 
-      person.assertPersonDeleted()
+      personKey.findByCrn(crn).assertPersonDeleted()
       personKey.assertClusterStatus(UUIDStatusType.ACTIVE)
       personKey.assertClusterIsOfSize(1)
     }
