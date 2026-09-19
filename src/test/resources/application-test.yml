@@ -99,7 +99,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres?currentSchema=personrecordservice&stringtype=unspecified
     hikari:
-      maximum-pool-size: 10
+      maximum-pool-size: 5
 
 aws:
   endpoint: http://localhost:4566
