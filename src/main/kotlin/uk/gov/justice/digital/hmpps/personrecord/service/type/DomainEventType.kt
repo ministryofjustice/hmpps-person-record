@@ -25,6 +25,7 @@ const val SAS_ADDRESS_ARRIVED = "sas.accommodation.person.arrived"
 const val SAS_ADDRESS_DELETED = "sas.accommodation.deleted"
 
 const val CPR_PRISON_PERSON_CREATED = "core-person-record.prison.record.created"
+const val CPR_PRISON_PERSON_MERGED = "core-person-record.prison.record.merged"
 
 const val CPR_PROBATION_PERSON_CREATED = "core-person-record.probation.record.created"
 const val CPR_PROBATION_PERSON_DELETED = "core-person-record.probation.record.deleted"
