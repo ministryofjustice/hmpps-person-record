@@ -213,6 +213,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       assertThat(personEntity.getAliases()[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
       assertThat(personEntity.getAliases()[0].nameType).isEqualTo(NameType.ALIAS)
       assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(aliasGender.value)
+      assertThat(personEntity.getAliases()[0].ethnicityCode).isNull()
       assertThat(personEntity.pseudonyms.size).isEqualTo(2)
       val populatedPseudonymsUpdateIdCount = personEntity.pseudonyms.count { it.updateId != null }
       assertThat(populatedPseudonymsUpdateIdCount).isEqualTo(2)
@@ -224,6 +225,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
       assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(title.value)
       assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
+      assertThat(personEntity.getPrimaryName().ethnicityCode).isEqualTo(EthnicityCode.fromProbation(ethnicity))
 
       assertThat(personEntity.addresses.size).isEqualTo(0)
 
@@ -333,6 +335,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(changedPersonDetails.identifiers.pnc)
       assertThat(updatedPersonEntity.dateOfDeath).isEqualTo(dateOfDeath)
       assertThat(updatedPersonEntity.getPrimaryName().sexCode).isEqualTo(SexCode.from(changedPersonDetails))
+      assertThat(updatedPersonEntity.getPrimaryName().ethnicityCode).isEqualTo(EthnicityCode.fromProbation(changedPersonDetails.ethnicity?.value))
 
       val updatedLastModified = updatedPersonEntity.lastModified
 
@@ -349,6 +352,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       assertThat(updatedPersonEntity.genderIdentity).isEqualTo(GenderIdentityCode.from(changedPersonDetails))
       assertThat(updatedPersonEntity.selfDescribedGenderIdentity).isEqualTo(changedPersonDetails.selfDescribedGenderIdentity)
       assertThat(updatedPersonEntity.getAliases()[0].sexCode).isEqualTo(SexCode.from(changedPersonDetails.aliases?.first()))
+      assertThat(updatedPersonEntity.getAliases()[0].ethnicityCode).isNull()
     }
 
     @Test
