@@ -39,6 +39,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCr
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Ethnicity
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.LibraHearingEvent
@@ -94,6 +95,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
@@ -106,6 +108,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
@@ -296,6 +299,7 @@ class IntegrationTestBase {
         ),
       ),
       nationality = randomPrisonNationalityCode(),
+      ethnicity = randomPrisonEthnicity(),
     ),
   )
 
@@ -311,6 +315,7 @@ class IntegrationTestBase {
           middleName = randomName(),
           lastName = randomName(),
           dateOfBirth = randomDate(),
+          ethnicity = Ethnicity(selfDefinedEthnicityCode = randomCommonPlatformEthnicity()),
         ),
       ),
       pncId = PNCIdentifier.from(randomLongPnc()),

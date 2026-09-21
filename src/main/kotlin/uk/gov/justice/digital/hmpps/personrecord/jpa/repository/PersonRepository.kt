@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -30,4 +32,6 @@ interface PersonRepository : JpaRepository<PersonEntity, Long> {
   fun findByLastModifiedAfter(
     lastModifiedAfter: LocalDateTime,
   ): MutableList<PersonEntity>
+
+  fun findAllByEthnicityCodeIsNotNull(pageable: Pageable): Page<PersonEntity>
 }
