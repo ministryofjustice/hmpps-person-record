@@ -202,10 +202,41 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
       assertThat(domainEvent.description).isEqualTo("A prison person record has been merged")
       assertThat(domainEvent.occurredAt).isNotNull()
       assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(2)
-      assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("from")
+      assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("fromPrisonNumber")
       assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(fromPrisonNumber)
-      assertThat(domainEvent.personReference.identifiers?.get(1)?.type).isEqualTo("to")
+      assertThat(domainEvent.personReference.identifiers?.get(1)?.type).isEqualTo("toPrisonNumber")
       assertThat(domainEvent.personReference.identifiers?.get(1)?.value).isEqualTo(toPrisonNumber)
+    }
+
+    @Test
+    fun `should not publish a CPR person merged domain event when a nomis person is merged without a from person`() {
+      val toPrisonNumber = randomPrisonNumber()
+      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
+      publishDomainEvent(
+        PrisonPersonCreated(
+          personReference = PersonReference(
+            listOf(
+              PersonIdentifier(
+                "NOMS",
+                toPrisonNumber,
+              ),
+            ),
+          ),
+        ),
+      )
+
+      awaitNotNull { personRepository.findByPrisonNumber(toPrisonNumber) }
+      purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
+
+      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
+      sendPostRequestAsserted<Unit>(
+        url = "/syscon-sync/person/$toPrisonNumber/merge",
+        body = PrisonMerge(randomPrisonNumber()),
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.NO_CONTENT,
+      )
+
+      expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
     }
   }
 

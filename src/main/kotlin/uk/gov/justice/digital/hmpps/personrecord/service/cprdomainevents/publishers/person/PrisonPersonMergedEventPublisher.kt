@@ -20,23 +20,23 @@ class PrisonPersonMergedEventPublisher(
   override val sourceSystemType = SourceSystemType.NOMIS
 
   override fun onMerge(personMerged: PersonMerged) {
-    // TODO: nullable from prison number?!?
-    val fromPrisonNumber = personMerged.from!!.prisonNumber!!
-    val toPrisonNumber = personMerged.to.prisonNumber!!
+    personMerged.from?.prisonNumber?.let { fromPrisonNumber ->
+      val toPrisonNumber = personMerged.to.prisonNumber!!
 
-    domainEventPublisher.publish(
-      CprPersonMerged(
-        eventType = CPR_PRISON_PERSON_MERGED,
-        description = "A prison person record has been merged",
-        detailUrl = "$baseUrl/person/prison/$toPrisonNumber",
-        occurredAt = Instant.now().asStringWithUkZone(),
-        personReference = PersonReference(
-          identifiers = listOf(
-            PersonIdentifier("from", fromPrisonNumber),
-            PersonIdentifier("to", toPrisonNumber),
+      domainEventPublisher.publish(
+        CprPersonMerged(
+          eventType = CPR_PRISON_PERSON_MERGED,
+          description = "A prison person record has been merged",
+          detailUrl = "$baseUrl/person/prison/$toPrisonNumber",
+          occurredAt = Instant.now().asStringWithUkZone(),
+          personReference = PersonReference(
+            identifiers = listOf(
+              PersonIdentifier("fromPrisonNumber", fromPrisonNumber),
+              PersonIdentifier("toPrisonNumber", toPrisonNumber),
+            ),
           ),
         ),
-      ),
-    )
+      )
+    }
   }
 }
