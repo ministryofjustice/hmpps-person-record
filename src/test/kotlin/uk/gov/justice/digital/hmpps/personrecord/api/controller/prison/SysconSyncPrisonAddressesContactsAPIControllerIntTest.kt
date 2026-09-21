@@ -2,15 +2,19 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.http.HttpStatus.NOT_IMPLEMENTED
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
+import java.time.LocalDateTime
 
-class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
+class SysconSyncPrisonAddressesContactsAPIControllerIntTest : WebTestBase() {
 
   @Nested
   inner class Validation {
@@ -19,11 +23,11 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
     fun `should respond with 501 as not currently implemented`() {
       webTestClient.post()
         .uri(addressesUrl(randomPrisonNumber()))
-        .bodyValue(PrisonAddressesRequest(addresses = emptyList()))
+        .bodyValue(PrisonAddressesAndContactsRequest(addresses = emptyList(), contacts = null))
         .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
         .exchange()
         .expectStatus()
-        .isBadRequest
+        .isEqualTo(NOT_IMPLEMENTED)
     }
   }
 
@@ -36,7 +40,7 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
       webTestClient.post()
         .uri(addressesUrl(randomPrisonNumber()))
         .bodyValue(
-          PrisonAddressesRequest(
+          PrisonAddressesAndContactsRequest(
             addresses = listOf(
               PrisonAddress(
                 nomisAddressId = 10000L,
@@ -45,6 +49,17 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
                 postcode = "SW1H 9AJ",
                 countryCode = CountryCode.GBR,
                 isPrimary = true,
+                createDateTime = LocalDateTime.parse("2020-01-01T12:00:00"),
+                createUserId = "billybob",
+              ),
+            ),
+            contacts = listOf(
+              PrisonContact(
+                nomisContactId = 10000L,
+                value = "01234567890",
+                type = HOME,
+                createDateTime = LocalDateTime.parse("2020-01-01T12:00:00"),
+                createUserId = "johnnydoe",
               ),
             ),
           ),
@@ -68,5 +83,5 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
     }
   }
 
-  private fun addressesUrl(prisonNumber: String) = "/syscon-sync/addresses/$prisonNumber"
+  private fun addressesUrl(prisonNumber: String) = "/syscon-sync/addresses-contacts/$prisonNumber"
 }
