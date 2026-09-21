@@ -119,6 +119,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().middleNames).isEqualTo("$middleName $middleName")
         assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
         assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
+        assertThat(personEntity.getPrimaryName().ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))
         assertThat(personEntity.religion).isNull()
 
         val populatedReferencesUpdateIdCount = personEntity.references.count { it.updateId != null }
@@ -137,6 +138,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getAliases()[0].lastName).isEqualTo(aliasLastName)
         assertThat(personEntity.getAliases()[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
         assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(aliasGender.value)
+        assertThat(personEntity.getAliases()[0].ethnicityCode).isNull()
         assertThat(personEntity.pseudonyms.size).isEqualTo(2)
         val populatedPseudonymsUpdateIdCount = personEntity.pseudonyms.count { it.updateId != null }
         assertThat(populatedPseudonymsUpdateIdCount).isEqualTo(2)
@@ -217,9 +219,11 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(title.value)
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
         assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(updatedSexCode.value)
+        assertThat(personEntity.getPrimaryName().ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))
 
         assertThat(personEntity.getAliases()).hasSize(1)
         assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(updatedAliasGender.value)
+        assertThat(personEntity.getAliases()[0].ethnicityCode).isNull()
 
         assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))
 
