@@ -1,33 +1,36 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.search
 
-import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifiers
-import uk.gov.justice.digital.hmpps.personrecord.api.model.search.SearchStatus.Companion.toSearchStatus
+import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingSearchStatus.Companion.toSearchStatus
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import java.time.LocalDate
 
-data class VettingPersonSearchResponse(val data: List<SearchData>)
+data class VettingPersonSearchResponse(
+  val data: List<VettingResult>,
+)
 
-data class SearchData(
-  val name: SearchName,
+data class VettingResult(
+  val results: List<VettingSearchData>,
+)
+
+data class VettingSearchData(
+  val name: VettingSearchName,
   val aliases: List<CanonicalAlias>,
   val addresses: List<CanonicalAddress>,
-  val identifiers: CanonicalSearchIdentifiers,
+  val identifiers: VettingSearchIdentifiers,
   val sourceSystem: SourceSystemType,
-  val status: SearchStatus,
-  @field:Schema(example = """[{"name":{"firstName":"","middleNames":"","lastName":"","dateOfBirth":""},"aliases":[],"addresses":[],"identifiers":[],"sourceSystem":"","status":""}]""")
-  var linkedRecords: List<SearchData> = emptyList(),
+  val status: VettingSearchStatus,
 ) {
   companion object {
-    fun from(personEntity: PersonEntity): SearchData {
+    fun from(personEntity: PersonEntity): VettingSearchData {
       val mainPseudonym = personEntity.getPrimaryName()
-      return SearchData(
-        name = SearchName(
+      return VettingSearchData(
+        name = VettingSearchName(
           firstName = mainPseudonym.firstName,
           middleNames = mainPseudonym.middleNames,
           lastName = mainPseudonym.lastName,
@@ -35,7 +38,7 @@ data class SearchData(
         ),
         aliases = CanonicalAlias.from(personEntity) ?: emptyList(),
         addresses = personEntity.addresses.map { CanonicalAddress.from(it) },
-        identifiers = CanonicalSearchIdentifiers.from(personEntity),
+        identifiers = VettingSearchIdentifiers.from(personEntity),
         sourceSystem = personEntity.sourceSystem,
         status = personEntity.personKey!!.status.toSearchStatus(),
       )
@@ -43,7 +46,7 @@ data class SearchData(
   }
 }
 
-data class CanonicalSearchIdentifiers(
+data class VettingSearchIdentifiers(
   val crn: String? = null,
   val prisonNumber: String? = null,
   val defendantId: String? = null,
@@ -56,13 +59,13 @@ data class CanonicalSearchIdentifiers(
   val otherIdentifiers: List<String> = emptyList(),
 ) {
   companion object {
-    fun from(personEntity: PersonEntity): CanonicalSearchIdentifiers {
+    fun from(personEntity: PersonEntity): VettingSearchIdentifiers {
       val canonicalIdentifiers = CanonicalIdentifiers.from(listOf(personEntity))
-      return CanonicalSearchIdentifiers(
-        crn = canonicalIdentifiers.crns.firstOrNull(),
-        prisonNumber = canonicalIdentifiers.prisonNumbers.firstOrNull(),
-        defendantId = canonicalIdentifiers.defendantIds.firstOrNull(),
-        cid = canonicalIdentifiers.cids.firstOrNull(),
+      return VettingSearchIdentifiers(
+        crn = personEntity.crn,
+        prisonNumber = personEntity.prisonNumber,
+        defendantId = personEntity.defendantId,
+        cid = personEntity.cId,
         pncs = canonicalIdentifiers.pncs,
         cros = canonicalIdentifiers.cros,
         nationalInsuranceNumbers = canonicalIdentifiers.nationalInsuranceNumbers,
@@ -74,20 +77,20 @@ data class CanonicalSearchIdentifiers(
   }
 }
 
-data class SearchName(
+data class VettingSearchName(
   val firstName: String?,
   val middleNames: String?,
   val lastName: String?,
   val dateOfBirth: LocalDate?,
 )
 
-enum class SearchStatus {
+enum class VettingSearchStatus {
   TRUSTED,
   NOT_TRUSTED,
   ;
 
   companion object {
-    fun UUIDStatusType.toSearchStatus(): SearchStatus = when (this) {
+    fun UUIDStatusType.toSearchStatus(): VettingSearchStatus = when (this) {
       ACTIVE -> TRUSTED
       else -> NOT_TRUSTED
     }
