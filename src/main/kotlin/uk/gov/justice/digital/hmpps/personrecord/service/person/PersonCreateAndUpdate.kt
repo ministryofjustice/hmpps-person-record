@@ -6,19 +6,21 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDateTime
+import kotlin.reflect.KClass
 
 fun PersonEntity.updatePersonEntity(
   person: Person,
+  childrenToIgnore: Set<KClass<*>> = emptySet(),
 ): PersonEntity {
   when (this.sourceSystem) {
-    NOMIS -> fieldsToUpdatePrison(person)
+    NOMIS -> fieldsToUpdatePrison(person, childrenToIgnore)
     DELIUS -> fieldsToUpdateProbation(person)
     else -> fieldsToUpdate(person)
   }
   return this
 }
 
-private fun PersonEntity.fieldsToUpdatePrison(person: Person) {
+private fun PersonEntity.fieldsToUpdatePrison(person: Person, childrenToIgnore: Set<KClass<*>>) {
   this.defendantId = person.defendantId
   this.crn = person.crn
   this.prisonNumber = person.prisonNumber
@@ -35,7 +37,7 @@ private fun PersonEntity.fieldsToUpdatePrison(person: Person) {
   this.birthplace = person.birthplace
   this.birthCountryCode = person.birthCountryCode
   this.nationalityNotes = person.nationalityNotes
-  this.updateChildEntities(person)
+  this.updateChildEntities(person, childrenToIgnore)
 }
 
 private fun PersonEntity.fieldsToUpdate(person: Person) {

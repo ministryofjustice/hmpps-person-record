@@ -33,7 +33,7 @@ class PrisonMergeEventProcessorIntTest(
     }
 
     @Test
-    fun `Should merge the religions to the to person`() {
+    fun `should merge the religions to the to person`() {
       val toPrisonerNumber = randomPrisonNumber()
       val fromPrisonerNumber = randomPrisonNumber()
       createPersonKey()
