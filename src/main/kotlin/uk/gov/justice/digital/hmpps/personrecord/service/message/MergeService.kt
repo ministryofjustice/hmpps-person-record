@@ -23,6 +23,16 @@ class MergeService(
 ) {
 
   fun processMerge(fromPersonEntity: PersonEntity, toPersonEntity: PersonEntity, person: Person) {
+    updateToPerson(toPersonEntity, person)
+
+    val fromClusterDetail = EventLogClusterDetail.from(fromPersonEntity.personKey)
+    when {
+      fromClusterHasOneRecord(fromPersonEntity) -> deleteSingleRecordCluster(fromPersonEntity)
+    }
+    merge(fromPersonEntity, toPersonEntity, fromClusterDetail)
+  }
+
+  private fun updateToPerson(toPersonEntity: PersonEntity, person: Person) {
     val personChangeChecker = PersonChangeChecker(toPersonEntity)
     toPersonEntity.updatePersonEntity(person)
     personRepository.save(toPersonEntity)
@@ -30,14 +40,7 @@ class MergeService(
     if (personChangeChecker.matchingFieldsHaveChanged(toPersonEntity) && !toPersonEntity.isPassive()) {
       personMatchService.saveToPersonMatch(toPersonEntity)
     }
-
     publisher.publishEvent(PersonUpdated(toPersonEntity, personChangeChecker))
-
-    val fromClusterDetail = EventLogClusterDetail.from(fromPersonEntity.personKey)
-    when {
-      fromClusterHasOneRecord(fromPersonEntity) -> deleteSingleRecordCluster(fromPersonEntity)
-    }
-    merge(fromPersonEntity, toPersonEntity, fromClusterDetail)
   }
 
   private fun deleteSingleRecordCluster(from: PersonEntity?) {
