@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -21,7 +22,7 @@ class PersonService(
   private val reclusterService: ReclusterService,
   private val publisher: ApplicationEventPublisher,
 ) {
-
+  @Transactional
   fun processPerson(
     person: Person,
     childrenToIgnore: Set<KClass<*>> = emptySet(),
