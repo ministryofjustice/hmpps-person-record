@@ -13,12 +13,12 @@ data class PrisonContact(
   val type: ContactType,
   @Schema(description = "The contact extension", example = "235")
   val extension: String? = null,
-  @Schema(description = "The religion create date and time", example = "2000-01-01 12:00:00", required = true)
+  @Schema(description = "The contact create date and time", example = "2000-01-01 12:00:00", required = true)
   val createDateTime: LocalDateTime,
-  @Schema(description = "The religion create user id", example = "12345", required = true)
+  @Schema(description = "The contact create user id", example = "12345", required = true)
   val createUserId: String,
-  @Schema(description = "The religion modify date and time", example = "2000-01-01 12:00:00", required = false)
+  @Schema(description = "The contact modify date and time", example = "2000-01-01 12:00:00")
   val modifyDateTime: LocalDateTime? = null,
-  @Schema(description = "The religion modify user id", example = "12345", required = false)
+  @Schema(description = "The contact modify user id", example = "12345")
   val modifyUserId: String? = null,
 )

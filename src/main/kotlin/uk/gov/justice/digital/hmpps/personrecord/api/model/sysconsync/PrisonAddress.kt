@@ -44,12 +44,12 @@ data class PrisonAddress(
   val addressUsage: List<PrisonAddressUsage> = emptyList(),
   @Schema(description = "List of address contacts")
   val contacts: List<PrisonContact> = emptyList(),
-  @Schema(description = "The religion create date and time", example = "2000-01-01 12:00:00", required = true)
+  @Schema(description = "The address create date and time", example = "2000-01-01 12:00:00", required = true)
   val createDateTime: LocalDateTime,
-  @Schema(description = "The religion create user id", example = "12345", required = true)
+  @Schema(description = "The address create user id", example = "12345", required = true)
   val createUserId: String,
-  @Schema(description = "The religion modify date and time", example = "2000-01-01 12:00:00", required = false)
+  @Schema(description = "The address modify date and time", example = "2000-01-01 12:00:00")
   val modifyDateTime: LocalDateTime? = null,
-  @Schema(description = "The religion modify user id", example = "12345", required = false)
+  @Schema(description = "The address modify user id", example = "12345")
   val modifyUserId: String? = null,
 )
