@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.jobs
+package uk.gov.justice.digital.hmpps.personrecord.jobs.migration
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.jobs.BatchJob
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import kotlin.time.Duration
@@ -16,7 +17,7 @@ import kotlin.time.measureTime
 @ConditionalOnProperty(name = ["batch.enabled"], havingValue = "true")
 class PseudonymEthnicityMigrationJob(
   private val personRepository: PersonRepository,
-  private val transactionalEthnicityUpdater: TransactionalEthnicityUpdater,
+  private val retryableEthnicityUpdater: RetryableEthnicityUpdater,
   @Value($$"${MIGRATION_START_PAGE:0}") private val startPage: Int,
   @Value($$"${MIGRATION_BATCH_SIZE:500}") private val batchSize: Int,
 ) : BatchJob {
@@ -25,7 +26,7 @@ class PseudonymEthnicityMigrationJob(
   override fun run() {
     val executionResults = forPage { page ->
       page.content.forEach { person ->
-        transactionalEthnicityUpdater.update(person)
+        retryableEthnicityUpdater.update(person)
       }
     }
     log.info(jobName + " total elements: ${executionResults.totalElements}, elapsed time: ${executionResults.elapsedTime}")

@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.system.CapturedOutput
 import org.springframework.boot.test.system.OutputCaptureExtension
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jobs.migration.PseudonymEthnicityMigrationJob
+import uk.gov.justice.digital.hmpps.personrecord.jobs.migration.RetryableEthnicityUpdater
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -19,7 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 @ExtendWith(OutputCaptureExtension::class)
 class PseudonymEthnicityMigrationJobIntTest(
   @Autowired private val personRepo: PersonRepository,
-  @Autowired private val transactionalEthnicityUpdater: TransactionalEthnicityUpdater,
+  @Autowired private val retryableEthnicityUpdater: RetryableEthnicityUpdater,
 ) : IntegrationTestBase() {
 
   @BeforeEach
@@ -29,7 +31,7 @@ class PseudonymEthnicityMigrationJobIntTest(
 
   @Test
   fun `should migrate all non-null ethnicity codes to pseudonym`(output: CapturedOutput) {
-    val pseudonymEthnicityMigrationJob = PseudonymEthnicityMigrationJob(personRepo, transactionalEthnicityUpdater, 0, 1)
+    val pseudonymEthnicityMigrationJob = PseudonymEthnicityMigrationJob(personRepo, retryableEthnicityUpdater, 0, 1)
 
     val personOneEthnicity = EthnicityCode.fromProbation(randomProbationEthnicity())
     val personOne = createPersonWithEthnicity(createRandomProbationPersonDetails(), personOneEthnicity)
@@ -65,7 +67,7 @@ class PseudonymEthnicityMigrationJobIntTest(
 
   @Test
   fun `should restart from defined start page`(output: CapturedOutput) {
-    val pseudonymEthnicityMigrationJob = PseudonymEthnicityMigrationJob(personRepo, transactionalEthnicityUpdater, 2, 1)
+    val pseudonymEthnicityMigrationJob = PseudonymEthnicityMigrationJob(personRepo, retryableEthnicityUpdater, 2, 1)
 
     val personOneEthnicity = EthnicityCode.fromProbation(randomProbationEthnicity())
     val personOne = createPersonWithEthnicity(createRandomProbationPersonDetails(), personOneEthnicity)
