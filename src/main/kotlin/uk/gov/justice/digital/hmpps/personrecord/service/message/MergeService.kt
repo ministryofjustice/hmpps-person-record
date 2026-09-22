@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.PersonMerged
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyDeletionService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.updatePersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
@@ -40,24 +39,21 @@ class MergeService(
     if (personChangeChecker.matchingFieldsHaveChanged(toPersonEntity) && !toPersonEntity.isPassive()) {
       personMatchService.saveToPersonMatch(toPersonEntity)
     }
-    publisher.publishEvent(PersonUpdated(toPersonEntity, personChangeChecker))
   }
 
-  private fun deleteSingleRecordCluster(from: PersonEntity?) {
-    from?.personKey?.let {
+  private fun deleteSingleRecordCluster(from: PersonEntity) {
+    from.personKey?.let {
       from.removePersonKeyLink()
       personKeyDeletionService.deletePersonKey(it, from)
     }
   }
 
-  private fun merge(from: PersonEntity?, to: PersonEntity, fromClusterDetail: EventLogClusterDetail) {
-    from?.let {
-      it.throwIfCircularMerge(to)
-      it.removePersonKeyLink()
-      it.mergeTo(to)
-      personRepository.save(it)
-      personMatchService.deleteFromPersonMatch(it)
-    }
+  private fun merge(from: PersonEntity, to: PersonEntity, fromClusterDetail: EventLogClusterDetail) {
+    from.throwIfCircularMerge(to)
+    from.removePersonKeyLink()
+    from.mergeTo(to)
+    personRepository.save(from)
+    personMatchService.deleteFromPersonMatch(from)
     publisher.publishEvent(PersonMerged(from, fromClusterDetail, to))
   }
 
@@ -67,5 +63,5 @@ class MergeService(
     }
   }
 
-  private fun fromClusterHasOneRecord(from: PersonEntity?): Boolean = from?.personKey?.hasOneRecord() == true
+  private fun fromClusterHasOneRecord(from: PersonEntity): Boolean = from.personKey?.hasOneRecord() == true
 }
