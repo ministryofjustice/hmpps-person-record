@@ -24,8 +24,8 @@ class MergeService(
 
   fun processMerge(fromPersonEntity: PersonEntity, toPersonEntity: PersonEntity, person: Person) {
     val personChangeChecker = PersonChangeChecker(toPersonEntity)
-    personRepository.save(toPersonEntity)
     toPersonEntity.updatePersonEntity(person)
+    personRepository.save(toPersonEntity)
 
     if (personChangeChecker.matchingFieldsHaveChanged(toPersonEntity) && !toPersonEntity.isPassive()) {
       personMatchService.saveToPersonMatch(toPersonEntity)

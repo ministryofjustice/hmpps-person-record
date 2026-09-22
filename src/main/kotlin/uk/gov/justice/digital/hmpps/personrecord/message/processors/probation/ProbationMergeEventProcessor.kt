@@ -8,14 +8,12 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
 class ProbationMergeEventProcessor(
   private val personRepository: PersonRepository,
   private val mergeService: MergeService,
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
-  private val personService: PersonService,
 ) {
 
   @Transactional

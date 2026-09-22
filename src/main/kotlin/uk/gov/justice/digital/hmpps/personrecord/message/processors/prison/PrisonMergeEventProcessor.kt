@@ -1,21 +1,17 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.prison
 
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionMergeHandler
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
-import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
 class PrisonMergeEventProcessor(
   private val personRepository: PersonRepository,
   private val mergeService: MergeService,
   private val prisonerSearchClient: PrisonerSearchClient,
-  private val personMatchService: PersonMatchService,
-  private val publisher: ApplicationEventPublisher,
   private val prisonReligionMergeHandler: PrisonReligionMergeHandler?,
 ) {
 
