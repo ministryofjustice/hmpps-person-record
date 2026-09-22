@@ -40,7 +40,7 @@ jobs:
     name: Record deployment
     needs:
       - deploy
-    uses: ./.github/workflows/record_deployment.yml
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_record_deployment.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: ${{ inputs.environment }}

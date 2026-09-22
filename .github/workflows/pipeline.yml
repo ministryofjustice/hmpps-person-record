@@ -1,9 +1,6 @@
 name: Pipeline [test -> build -> deploy]
 
 on:
-  push:
-    branches:
-      - '**'
   workflow_dispatch:
     inputs:
       additional_docker_tag:
@@ -143,13 +140,13 @@ jobs:
     with:
       environment: 'dev'
       app_version: '${{ needs.build.outputs.app_version }}'
-  # Record a deployment to the Test environment because this service has no dedicated test environment;
+  # Record a deployment to the Test environment because hmpps-person-record service has no dedicated test environment;
   # consumers may still need a Test deployment recorded so they have something to test against.
   record_deployment_test:
     name: Record deployment
     needs:
       - deploy_dev
-    uses: ./.github/workflows/record_deployment.yml
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_record_deployment.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: 'test'
