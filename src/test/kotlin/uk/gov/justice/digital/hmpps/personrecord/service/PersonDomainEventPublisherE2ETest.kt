@@ -233,7 +233,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
         url = "/syscon-sync/person/$toPrisonNumber/merge",
         body = PrisonMerge(randomPrisonNumber()),
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.NO_CONTENT,
+        expectedStatus = HttpStatus.INTERNAL_SERVER_ERROR,
       )
 
       expectNoMessagesOn(testOnlyCPRDomainEventsQueue)

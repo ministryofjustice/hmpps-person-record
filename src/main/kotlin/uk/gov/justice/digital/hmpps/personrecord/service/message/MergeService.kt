@@ -42,10 +42,9 @@ class MergeService(
   }
 
   private fun deleteSingleRecordCluster(from: PersonEntity) {
-    from.personKey?.let {
-      from.removePersonKeyLink()
-      personKeyDeletionService.deletePersonKey(it, from)
-    }
+    val personKeyEntity = from.personKey!!
+    from.removePersonKeyLink()
+    personKeyDeletionService.deletePersonKey(personKeyEntity, from)
   }
 
   private fun merge(from: PersonEntity, to: PersonEntity, fromClusterDetail: EventLogClusterDetail) {
