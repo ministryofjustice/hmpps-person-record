@@ -54,7 +54,7 @@ class PersonService(
 
     if (personChangeChecker.matchingFieldsHaveChanged(personEntity) && !personEntity.isPassive()) {
       personMatchService.saveToPersonMatch(personEntity)
-      reclusterService.recluster(personEntity)
+      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
     }
     publisher.publishEvent(PersonUpdated(personEntity, personChangeChecker))
     return personEntity
