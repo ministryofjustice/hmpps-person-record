@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -10,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.SentenceInfoEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
@@ -37,6 +39,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexualOrientat
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
+import java.time.LocalDateTime
 import java.util.UUID.randomUUID
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubclassOf
@@ -45,6 +48,43 @@ import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.jvmErasure
 
 class PersonEntityMappingTest {
+
+  @Test
+  fun `should preserve address audit fields when mapping between entity and model`() {
+    val createDateTime = LocalDateTime.parse("2024-01-02T03:04")
+    val modifyDateTime = LocalDateTime.parse("2024-05-06T07:08")
+    val address = Address(
+      postcode = randomPostcode(),
+      createDateTime = createDateTime,
+      createUserId = randomName(),
+      modifyDateTime = modifyDateTime,
+      modifyUserId = randomName(),
+      usages = listOf(
+        AddressUsage(
+          addressUsageCode = AddressUsageCode.CARE,
+          isActive = true,
+          createDateTime = createDateTime,
+          createUserId = randomName(),
+          modifyDateTime = modifyDateTime,
+          modifyUserId = randomName(),
+        ),
+      ),
+      contacts = listOf(
+        Contact(
+          contactType = ContactType.HOME,
+          contactValue = randomName(),
+          createDateTime = createDateTime,
+          createUserId = randomName(),
+          modifyDateTime = modifyDateTime,
+          modifyUserId = randomName(),
+        ),
+      ),
+    )
+
+    val mappedAddress = Address.from(AddressEntity.from(address))
+
+    assertThat(mappedAddress).isEqualTo(address)
+  }
 
   @Test
   fun `should map all dto fields from entity`() {

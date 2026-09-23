@@ -207,16 +207,28 @@ class AddressServiceIntTest : IntegrationTestBase() {
     assertThat(actualAddress.countryCode).isEqualTo(expectedAddress.countryCode)
     assertThat(actualAddress.comment).isEqualTo(expectedAddress.comment)
     assertThat(actualAddress.statusCode).isEqualTo(expectedAddress.statusCode)
+    assertThat(actualAddress.createDateTime).isEqualTo(expectedAddress.createDateTime)
+    assertThat(actualAddress.createUserId).isEqualTo(expectedAddress.createUserId)
+    assertThat(actualAddress.modifyDateTime).isEqualTo(expectedAddress.modifyDateTime)
+    assertThat(actualAddress.modifyUserId).isEqualTo(expectedAddress.modifyUserId)
     assertThat(actualAddress.usages.size).isEqualTo(expectedAddress.usages.size)
     expectedAddress.usages.zip(actualAddress.usages).forEach { (expected, actual) ->
       assertThat(actual.usageCode).isEqualTo(expected.addressUsageCode)
       assertThat(actual.active).isEqualTo(expected.isActive)
+      assertThat(actual.createDateTime).isEqualTo(expected.createDateTime)
+      assertThat(actual.createUserId).isEqualTo(expected.createUserId)
+      assertThat(actual.modifyDateTime).isEqualTo(expected.modifyDateTime)
+      assertThat(actual.modifyUserId).isEqualTo(expected.modifyUserId)
     }
     assertThat(actualAddress.contacts.size).isEqualTo(expectedAddress.contacts.size)
     expectedAddress.contacts.zip(actualAddress.contacts).forEach { (expected, actual) ->
       assertThat(actual.contactType).isEqualTo(expected.contactType)
       assertThat(actual.contactValue).isEqualTo(expected.contactValue)
       assertThat(actual.extension).isEqualTo(expected.extension)
+      assertThat(actual.createDateTime).isEqualTo(expected.createDateTime)
+      assertThat(actual.createUserId).isEqualTo(expected.createUserId)
+      assertThat(actual.modifyDateTime).isEqualTo(expected.modifyDateTime)
+      assertThat(actual.modifyUserId).isEqualTo(expected.modifyUserId)
     }
   }
 }
