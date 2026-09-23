@@ -14,20 +14,20 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressesResponseBody
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressesAndContactsResponseBody
 
 @Tag(name = "Syscon Sync")
 @RestController
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
-class SysconSyncPrisonAddressesAPIController {
+class SysconSyncPrisonAddressesContactsAPIController {
 
-  @Operation(description = "Save the prison addresses for the given prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.")
+  @Operation(description = "Save the prison addresses and contacts for the given prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.")
   @ResponseStatus(HttpStatus.CREATED)
-  @PostMapping("/syscon-sync/addresses/{prisonNumber}")
-  fun saveAddresses(
+  @PostMapping("/syscon-sync/addresses-contacts/{prisonNumber}")
+  fun saveAddressesAndContacts(
     @PathVariable prisonNumber: String,
-    @Valid @RequestBody addressesRequest: PrisonAddressesRequest,
-  ): ResponseEntity<SysconAddressesResponseBody> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+    @Valid @RequestBody addressesAndContactsRequest: PrisonAddressesAndContactsRequest,
+  ): ResponseEntity<SysconAddressesAndContactsResponseBody> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
 }
