@@ -57,19 +57,10 @@ class PersonService(
 
     if (personChangeChecker.matchingFieldsHaveChanged(personEntity) && !personEntity.isPassive()) {
       personMatchService.saveToPersonMatch(personEntity)
-      recluster(person, personEntity)
+      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
     }
     publisher.publishEvent(PersonUpdated(personEntity, personChangeChecker))
     return personEntity
-  }
-
-  private fun recluster(
-    person: Person,
-    personEntity: PersonEntity,
-  ) {
-    if (person.behaviour.reclusterOnUpdate) {
-      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
-    }
   }
 
   private fun PersonEntity?.exists(no: () -> PersonEntity, yes: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {

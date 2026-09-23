@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBa
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -18,65 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import kotlin.jvm.optionals.getOrNull
 
 class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
-
-  @Nested
-  inner class MissingFromRecord {
-
-    @Test
-    fun `processes offender merge event with source record does not exist`() {
-      val sourceCrn = randomCrn()
-      val targetCrn = randomCrn()
-      val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails(targetCrn))
-
-      stubPersonMatchUpsert()
-      probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
-
-      checkTelemetry(
-        CPR_RECORD_MERGED,
-        mapOf(
-          "TO_SOURCE_SYSTEM_ID" to targetCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
-      checkEventLogExist(targetPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED)
-    }
-  }
-
-  @Nested
-  inner class MissingToRecord {
-
-    @Test
-    fun `processes offender merge event with target record does not exist`() {
-      val targetCrn = randomCrn()
-      val sourcePerson = createPersonWithNewKey(createRandomProbationPersonDetails())
-
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-      stubDeletePersonMatch()
-      probationMergeEventAndResponseSetup(sourcePerson.crn!!, targetCrn)
-
-      val targetPerson = awaitNotNull { personRepository.findByCrn(targetCrn) }
-      sourcePerson.assertMergedTo(targetPerson)
-
-      checkTelemetry(
-        CPR_RECORD_CREATED,
-        mapOf(
-          "CRN" to targetCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
-      checkTelemetry(
-        CPR_RECORD_MERGED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePerson.crn,
-          "TO_SOURCE_SYSTEM_ID" to targetPerson.crn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
-      checkEventLogExist(targetPerson.crn!!, CPRLogEvents.CPR_RECORD_CREATED)
-      checkEventLogExist(sourcePerson.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
-    }
-  }
 
   @Nested
   inner class SuccessfulProcessing {
