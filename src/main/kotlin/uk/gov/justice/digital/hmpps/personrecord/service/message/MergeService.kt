@@ -5,9 +5,13 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.PersonMerged
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyDeletionService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.updatePersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
@@ -18,12 +22,25 @@ class MergeService(
   private val personKeyDeletionService: PersonKeyDeletionService,
 ) {
 
-  fun processMerge(from: PersonEntity?, to: PersonEntity) {
-    val fromClusterDetail = EventLogClusterDetail.from(from?.personKey)
+  fun processMerge(fromPersonEntity: PersonEntity, toPersonEntity: PersonEntity, person: Person) {
+    updateToPerson(toPersonEntity, person)
+
+    val fromClusterDetail = EventLogClusterDetail.from(fromPersonEntity.personKey)
     when {
-      fromClusterHasOneRecord(from) -> deleteSingleRecordCluster(from)
+      fromClusterHasOneRecord(fromPersonEntity) -> deleteSingleRecordCluster(fromPersonEntity)
     }
-    merge(from, to, fromClusterDetail)
+    merge(fromPersonEntity, toPersonEntity, fromClusterDetail)
+  }
+
+  private fun updateToPerson(toPersonEntity: PersonEntity, person: Person) {
+    val personChangeChecker = PersonChangeChecker(toPersonEntity)
+    toPersonEntity.updatePersonEntity(person)
+    personRepository.save(toPersonEntity)
+
+    if (personChangeChecker.matchingFieldsHaveChanged(toPersonEntity) && !toPersonEntity.isPassive()) {
+      personMatchService.saveToPersonMatch(toPersonEntity)
+    }
+    publisher.publishEvent(PersonUpdated(toPersonEntity, personChangeChecker))
   }
 
   private fun deleteSingleRecordCluster(from: PersonEntity?) {
