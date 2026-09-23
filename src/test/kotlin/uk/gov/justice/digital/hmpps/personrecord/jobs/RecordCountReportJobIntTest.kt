@@ -21,7 +21,7 @@ class RecordCountReportJobIntTest(@Autowired applicationEventPublisher: Applicat
   @Test
   fun `should not include merged record in telemetry`() {
     val active = createPersonWithNewKey(createRandomProbationPersonDetails())
-    createPerson(createRandomProbationPersonDetails()) { mergedTo = active.id }
+    createMergedPerson(createRandomProbationPersonDetails(), active.id)
     createPersonWithNewKey(createRandomPrisonPersonDetails())
     createPersonWithNewKey(createRandomLibraPersonDetails())
     createPersonWithNewKey(createRandomCommonPlatformPersonDetails())
