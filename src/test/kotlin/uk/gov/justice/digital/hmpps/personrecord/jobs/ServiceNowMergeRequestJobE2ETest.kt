@@ -231,10 +231,8 @@ class ServiceNowMergeRequestJobE2ETest(
   fun `should ignore merged records`() {
     val person1 = createRandomProbationPersonDetails()
     val person2 = createRandomProbationPersonDetails()
-    createPersonKey()
-      .addPerson(person1)
-    createPersonKey()
-      .addPerson(person2)
+    createPersonWithNewKey(person1)
+    createPersonWithNewKey(person2)
 
     val person3 = createRandomProbationPersonDetails()
     val person4 = createRandomProbationPersonDetails()
