@@ -151,12 +151,30 @@ jobs:
     with:
       environment: 'test'
       app_version: '${{ needs.build.outputs.app_version }}'
+  record_deployment_dev:
+    name: Record deployment
+    needs:
+      - deploy_dev
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_record_deployment.yml@v2 # WORKFLOW_VERSION
+    secrets: inherit
+    with:
+      environment: 'dev'
+      app_version: '${{ needs.build.outputs.app_version }}'
   deploy_preprod:
     name: Deploy to pre-production environment
     needs:
       - build
       - deploy_dev
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
+    secrets: inherit
+    with:
+      environment: 'preprod'
+      app_version: '${{ needs.build.outputs.app_version }}'
+  record_deployment_preprod:
+    name: Record deployment
+    needs:
+      - deploy_preprod
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_record_deployment.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: 'preprod'
