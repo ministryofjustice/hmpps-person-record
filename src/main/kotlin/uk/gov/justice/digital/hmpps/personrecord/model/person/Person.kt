@@ -252,11 +252,6 @@ data class Person(
     )
   }
 
-  fun doNotReclusterOnUpdate(): Person {
-    this.behaviour.reclusterOnUpdate = false
-    return this
-  }
-
   fun doNotLinkOnCreate(): Person {
     this.behaviour.linkOnCreate = false
     return this
@@ -272,6 +267,5 @@ data class Person(
 }
 
 data class Behaviour(
-  var reclusterOnUpdate: Boolean = true,
   var linkOnCreate: Boolean = true,
 )
