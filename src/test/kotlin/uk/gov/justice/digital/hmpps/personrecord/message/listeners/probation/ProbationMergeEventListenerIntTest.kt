@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import kotlin.jvm.optionals.getOrNull
@@ -42,13 +41,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
 
       checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf(
-          "CRN" to targetCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
-      checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
           "FROM_SOURCE_SYSTEM_ID" to sourceCrn,
@@ -58,7 +50,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
-      checkEventLogExist(targetCrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       sourceCluster.assertClusterStatus(UUIDStatusType.ACTIVE)
@@ -89,7 +80,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
-      checkEventLogExist(targetCrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       sourcePerson.assertMergedTo(targetPerson)
@@ -117,7 +107,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
-      checkEventLogExist(targetPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourcePerson.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
 
       sourcePerson.assertMergedTo(targetPerson)
