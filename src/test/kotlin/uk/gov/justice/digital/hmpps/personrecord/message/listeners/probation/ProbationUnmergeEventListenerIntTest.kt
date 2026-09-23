@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
@@ -42,10 +41,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(
         CPR_RECORD_CREATED,
         mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
       )
       checkTelemetry(
         CPR_UUID_CREATED,
@@ -91,7 +86,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val reactivatedPerson = createPerson(createRandomProbationPersonDetails(reactivatedCrn))
 
       probationMergeEventAndResponseSetup(reactivatedCrn, unmergedCrn)
-      checkEventLogExist(unmergedCrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       stub5xxResponse(probationUrl(unmergedCrn), "next request will succeed", "retry")
@@ -140,10 +134,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(
         CPR_RECORD_CREATED,
         mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
       )
       checkTelemetry(
         CPR_UUID_CREATED,

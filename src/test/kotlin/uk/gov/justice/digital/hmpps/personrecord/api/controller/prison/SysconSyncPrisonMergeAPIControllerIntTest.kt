@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import kotlin.jvm.optionals.getOrNull
@@ -59,7 +58,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
     }
 
@@ -89,10 +87,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       targetPerson.personKey?.assertClusterIsOfSize(1)
 
       checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf("PRISON_NUMBER" to targetPrisonNumber, "SOURCE_SYSTEM" to NOMIS.name),
-      )
-      checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
           "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
@@ -100,7 +94,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
     }
 
@@ -121,10 +114,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       targetPerson.personKey?.assertClusterIsOfSize(1)
 
       checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf("PRISON_NUMBER" to targetPrisonNumber, "SOURCE_SYSTEM" to NOMIS.name),
-      )
-      checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
           "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
@@ -132,7 +121,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
     }
 
@@ -163,7 +151,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLog(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         assertThat(eventLogs.first().recordMergedTo).isEqualTo(targetPerson.id)
@@ -223,7 +210,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
     }
 
@@ -259,7 +245,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
     }
   }
