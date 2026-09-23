@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddr
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressMapping
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressUsageMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressesAndContactsResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -246,12 +247,11 @@ class SysconSyncPrisonAddressesContactsAPIControllerIntTest : WebTestBase() {
       fun `should respond with 501 as not currently implemented`() {
         val prisonNumber = randomPrisonNumber()
         val addressId = UUID.randomUUID().toString()
-        webTestClient.delete()
-          .uri(deletePrisonerAddressUrl(prisonNumber, addressId))
-          .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
-          .exchange()
-          .expectStatus()
-          .isEqualTo(NOT_IMPLEMENTED)
+        sendDeleteRequestAsserted<SysconAddressMapping>(
+          url = deletePrisonerAddressUrl(prisonNumber, addressId),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_IMPLEMENTED,
+        )
       }
     }
 
@@ -260,29 +260,25 @@ class SysconSyncPrisonAddressesContactsAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
-        val expectedErrorMessage = "Forbidden: Access Denied"
         val prisonNumber = randomPrisonNumber()
         val addressId = UUID.randomUUID().toString()
-        webTestClient.delete()
-          .uri(deletePrisonerAddressUrl(prisonNumber, addressId))
-          .authorised(listOf("UNSUPPORTED-ROLE"))
-          .exchange()
-          .expectStatus()
-          .isForbidden
-          .expectBody()
-          .jsonPath("userMessage")
-          .isEqualTo(expectedErrorMessage)
+        sendDeleteRequestAsserted<String>(
+          url = deletePrisonerAddressUrl(prisonNumber, addressId),
+          roles = listOf("UNSUPPORTED-ROLE"),
+          expectedStatus = FORBIDDEN,
+        ).returnResult().responseBody!!
       }
 
       @Test
       fun `should return UNAUTHORIZED 401 when role is not set`() {
         val prisonNumber = randomPrisonNumber()
         val addressId = UUID.randomUUID().toString()
-        webTestClient.delete()
-          .uri(deletePrisonerAddressUrl(prisonNumber, addressId))
-          .exchange()
-          .expectStatus()
-          .isUnauthorized
+        sendDeleteRequestAsserted<SysconAddressMapping>(
+          url = deletePrisonerAddressUrl(prisonNumber, addressId),
+          roles = emptyList(),
+          expectedStatus = UNAUTHORIZED,
+          sendAuthorised = false,
+        )
       }
     }
   }
@@ -486,12 +482,11 @@ class SysconSyncPrisonAddressesContactsAPIControllerIntTest : WebTestBase() {
       fun `should respond with 501 as not currently implemented`() {
         val prisonNumber = randomPrisonNumber()
         val contactId = UUID.randomUUID().toString()
-        webTestClient.delete()
-          .uri(deletePrisonerContactUrl(prisonNumber, contactId))
-          .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
-          .exchange()
-          .expectStatus()
-          .isEqualTo(NOT_IMPLEMENTED)
+        sendDeleteRequestAsserted<SysconContactMapping>(
+          url = deletePrisonerContactUrl(prisonNumber, contactId),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_IMPLEMENTED,
+        )
       }
     }
 
@@ -500,29 +495,25 @@ class SysconSyncPrisonAddressesContactsAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
-        val expectedErrorMessage = "Forbidden: Access Denied"
         val prisonNumber = randomPrisonNumber()
         val contactId = UUID.randomUUID().toString()
-        webTestClient.delete()
-          .uri(deletePrisonerContactUrl(prisonNumber, contactId))
-          .authorised(listOf("UNSUPPORTED-ROLE"))
-          .exchange()
-          .expectStatus()
-          .isForbidden
-          .expectBody()
-          .jsonPath("userMessage")
-          .isEqualTo(expectedErrorMessage)
+        sendDeleteRequestAsserted<String>(
+          url = deletePrisonerContactUrl(prisonNumber, contactId),
+          roles = listOf("UNSUPPORTED-ROLE"),
+          expectedStatus = FORBIDDEN,
+        ).returnResult().responseBody!!
       }
 
       @Test
       fun `should return UNAUTHORIZED 401 when role is not set`() {
         val prisonNumber = randomPrisonNumber()
         val contactId = UUID.randomUUID().toString()
-        webTestClient.delete()
-          .uri(deletePrisonerContactUrl(prisonNumber, contactId))
-          .exchange()
-          .expectStatus()
-          .isUnauthorized
+        sendDeleteRequestAsserted<SysconContactMapping>(
+          url = deletePrisonerContactUrl(prisonNumber, contactId),
+          roles = emptyList(),
+          expectedStatus = UNAUTHORIZED,
+          sendAuthorised = false,
+        )
       }
     }
   }
@@ -535,7 +526,7 @@ class SysconSyncPrisonAddressesContactsAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `should respond with 501 as not currently implemented`() {
-        sendPostRequestAsserted<SysconContactMapping>(
+        sendPostRequestAsserted<SysconAddressUsageMapping>(
           url = createPrisonerAddressUsageUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
           body = PrisonAddressUsage(
             nomisAddressUsageId = 10000L,
@@ -571,7 +562,7 @@ class SysconSyncPrisonAddressesContactsAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `should return UNAUTHORIZED 401 when role is not set`() {
-        sendPostRequestAsserted<SysconContactMapping>(
+        sendPostRequestAsserted<SysconAddressUsageMapping>(
           url = createPrisonerAddressUsageUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
           body = PrisonAddressUsage(
             nomisAddressUsageId = 10000L,
@@ -599,7 +590,7 @@ class SysconSyncPrisonAddressesContactsAPIControllerIntTest : WebTestBase() {
         val prisonNumber = randomPrisonNumber()
         val addressId = UUID.randomUUID().toString()
         val usageId = UUID.randomUUID().toString()
-        sendPutRequestAsserted<SysconContactMapping>(
+        sendPutRequestAsserted<SysconAddressUsageMapping>(
           url = updatePrisonerAddressUsageUrl(prisonNumber, addressId, usageId),
           body = PrisonAddressUsage(
             nomisAddressUsageId = 10000L,
@@ -669,12 +660,11 @@ class SysconSyncPrisonAddressesContactsAPIControllerIntTest : WebTestBase() {
         val prisonNumber = randomPrisonNumber()
         val addressId = UUID.randomUUID().toString()
         val usageId = UUID.randomUUID().toString()
-        webTestClient.delete()
-          .uri(deletePrisonerAddressUsageUrl(prisonNumber, addressId, usageId))
-          .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
-          .exchange()
-          .expectStatus()
-          .isEqualTo(NOT_IMPLEMENTED)
+        sendDeleteRequestAsserted<Unit>(
+          url = deletePrisonerAddressUsageUrl(prisonNumber, addressId, usageId),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_IMPLEMENTED,
+        )
       }
     }
 
@@ -683,19 +673,14 @@ class SysconSyncPrisonAddressesContactsAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
-        val expectedErrorMessage = "Forbidden: Access Denied"
         val prisonNumber = randomPrisonNumber()
         val addressId = UUID.randomUUID().toString()
         val usageId = UUID.randomUUID().toString()
-        webTestClient.delete()
-          .uri(deletePrisonerAddressUsageUrl(prisonNumber, addressId, usageId))
-          .authorised(listOf("UNSUPPORTED-ROLE"))
-          .exchange()
-          .expectStatus()
-          .isForbidden
-          .expectBody()
-          .jsonPath("userMessage")
-          .isEqualTo(expectedErrorMessage)
+        sendDeleteRequestAsserted<String>(
+          url = deletePrisonerAddressUsageUrl(prisonNumber, addressId, usageId),
+          roles = listOf("UNSUPPORTED-ROLE"),
+          expectedStatus = FORBIDDEN,
+        ).returnResult().responseBody!!
       }
 
       @Test
@@ -703,11 +688,12 @@ class SysconSyncPrisonAddressesContactsAPIControllerIntTest : WebTestBase() {
         val prisonNumber = randomPrisonNumber()
         val addressId = UUID.randomUUID().toString()
         val usageId = UUID.randomUUID().toString()
-        webTestClient.delete()
-          .uri(deletePrisonerAddressUsageUrl(prisonNumber, addressId, usageId))
-          .exchange()
-          .expectStatus()
-          .isUnauthorized
+        sendDeleteRequestAsserted<SysconContactMapping>(
+          url = deletePrisonerAddressUsageUrl(prisonNumber, addressId, usageId),
+          roles = emptyList(),
+          expectedStatus = UNAUTHORIZED,
+          sendAuthorised = false,
+        )
       }
     }
   }
