@@ -33,7 +33,7 @@ data class CprPersonDeleted(
 data class CprPersonMerged(
   override val eventType: String,
   val version: Int = 1,
-  val occurredAt: String,
+  val occurredAt: String = Instant.now().asStringWithUkZone(),
   val description: String,
   val detailUrl: String,
   val personReference: PersonReference,
