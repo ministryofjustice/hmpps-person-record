@@ -209,6 +209,29 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
     }
 
     @Test
+    fun `should publish a CPR person updated domain event when a delius person is merged`() {
+      // to be replaced with a check for the cpr probation person merged event once SAS are ready for it
+      val fromCrn = randomCrn()
+      val toCrn = randomCrn()
+
+      probationCreateEventAndResponseSetup(ApiResponseSetup(crn = fromCrn))
+      probationCreateEventAndResponseSetup(ApiResponseSetup(crn = toCrn))
+
+      awaitNotNull { personRepository.findByCrn(fromCrn) }
+      awaitNotNull { personRepository.findByCrn(toCrn) }
+      purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
+
+      probationMergeEventAndResponseSetup(fromCrn, toCrn)
+
+      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+      val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
+      assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_UPDATED))
+      val domainEvent = jsonMapper.readValue<CprPersonUpdated>(sqsMessage.message)
+      assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_UPDATED)
+      assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$toCrn")
+    }
+
+    @Test
     fun `should not publish a CPR person merged domain event when a nomis person is merged without a from person`() {
       val toPrisonNumber = randomPrisonNumber()
       stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
