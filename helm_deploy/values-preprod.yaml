@@ -44,6 +44,10 @@ generic-service:
         limits:
           cpu: 2
           memory: 4Gi
+    - name: pseudonym-ethnicity-migration
+      type: PSEUDONYM_ETHNICITY_MIGRATION
+      schedule: "0 0 1 1 *"
+      suspend: true
 
 generic-prometheus-alerts:
   businessHoursOnly: true
