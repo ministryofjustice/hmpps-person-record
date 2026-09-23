@@ -234,7 +234,7 @@ class PersonEntity(
     this.references.addAll(references)
   }
 
-  private fun updatePersonAddresses(addresses: List<AddressEntity>) {
+  fun updatePersonAddresses(addresses: List<AddressEntity>) {
     this.addresses.clear()
     addresses.forEach { personAddressEntity ->
       personAddressEntity.person = this
@@ -244,7 +244,7 @@ class PersonEntity(
     this.addresses.addAll(addresses)
   }
 
-  private fun updatePersonContacts(contacts: List<ContactEntity>) {
+  fun updatePersonContacts(contacts: List<ContactEntity>) {
     this.contacts.clear()
     contacts.forEach { personContactEntity -> personContactEntity.person = this }
     this.contacts.addAll(contacts)
