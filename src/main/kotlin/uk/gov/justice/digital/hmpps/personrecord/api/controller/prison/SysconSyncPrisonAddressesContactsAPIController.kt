@@ -16,9 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionUpdateRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
@@ -34,8 +32,10 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
 class SysconSyncPrisonAddressesContactsAPIController {
 
-  @Operation(description = "Save the prisoner addresses and contacts for the given prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.",
-             security = [SecurityRequirement(name = "api-role")])
+  @Operation(
+    description = "Save the prisoner addresses and contacts for the given prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.",
+    security = [SecurityRequirement(name = "api-role")],
+  )
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping("/syscon-sync/addresses-contacts/{prisonNumber}")
   fun saveAddressesAndContacts(
@@ -87,7 +87,6 @@ class SysconSyncPrisonAddressesContactsAPIController {
     @PathVariable prisonNumber: String,
     @RequestBody requestBody: PrisonContact,
   ): ResponseEntity<SysconContactMapping> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
-
 
   @Operation(
     description = """Create prisoner address contact record by Prison Number and address uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
