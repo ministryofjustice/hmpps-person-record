@@ -2,7 +2,9 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.http.HttpStatus.*
+import org.springframework.http.HttpStatus.FORBIDDEN
+import org.springframework.http.HttpStatus.NOT_IMPLEMENTED
+import org.springframework.http.HttpStatus.UNAUTHORIZED
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressMapping
@@ -94,10 +96,8 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `should respond with 501 as not currently implemented`() {
-        val prisonNumber = randomPrisonNumber()
-        val addressId = UUID.randomUUID().toString()
-        sendPutRequestAsserted<SysconAddressMapping>(
-          url = updatePrisonerAddressUrl(prisonNumber, addressId),
+        sendPutRequestAsserted<Unit>(
+          url = updatePrisonerAddressUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
           body = PrisonAddress(
             nomisAddressId = 10000L,
             fullAddress = "102 Petty France, London",
@@ -119,10 +119,8 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
-        val prisonNumber = randomPrisonNumber()
-        val addressId = UUID.randomUUID().toString()
-        sendPutRequestAsserted<String>(
-          url = updatePrisonerAddressUrl(prisonNumber, addressId),
+        sendPutRequestAsserted<Unit>(
+          url = updatePrisonerAddressUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
           body = PrisonAddress(
             nomisAddressId = 10000L,
             fullAddress = "102 Petty France, London",
@@ -140,10 +138,8 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `should return UNAUTHORIZED 401 when role is not set`() {
-        val prisonNumber = randomPrisonNumber()
-        val addressId = UUID.randomUUID().toString()
-        sendPutRequestAsserted<SysconAddressMapping>(
-          url = updatePrisonerAddressUrl(prisonNumber, addressId),
+        sendPutRequestAsserted<Unit>(
+          url = updatePrisonerAddressUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
           body = PrisonAddress(
             nomisAddressId = 10000L,
             fullAddress = "102 Petty France, London",
@@ -171,7 +167,7 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
       @Test
       fun `should respond with 501 as not currently implemented`() {
         sendDeleteRequestAsserted<Unit>(
-          url = deletePrisonerAddressUrl(randomPrisonNumber(),  UUID.randomUUID().toString()),
+          url = deletePrisonerAddressUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = NOT_IMPLEMENTED,
         )
