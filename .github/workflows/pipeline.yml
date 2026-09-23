@@ -135,27 +135,7 @@ jobs:
       - helm_lint
       - gradle_verify
       - e2e_test
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
-    secrets: inherit
-    with:
-      environment: 'dev'
-      app_version: '${{ needs.build.outputs.app_version }}'
-  # Record a deployment to the Test environment because hmpps-person-record service has no dedicated test environment;
-  # consumers may still need a Test deployment recorded so they have something to test against.
-  record_deployment_test:
-    name: Record deployment
-    needs:
-      - deploy_dev
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_record_deployment.yml@v2 # WORKFLOW_VERSION
-    secrets: inherit
-    with:
-      environment: 'test'
-      app_version: '${{ needs.build.outputs.app_version }}'
-  record_deployment_dev:
-    name: Record deployment
-    needs:
-      - deploy_dev
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_record_deployment.yml@v2 # WORKFLOW_VERSION
+    uses: ./.github/workflows/deploy_env.yml
     secrets: inherit
     with:
       environment: 'dev'
@@ -165,16 +145,7 @@ jobs:
     needs:
       - build
       - deploy_dev
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
-    secrets: inherit
-    with:
-      environment: 'preprod'
-      app_version: '${{ needs.build.outputs.app_version }}'
-  record_deployment_preprod:
-    name: Record deployment
-    needs:
-      - deploy_preprod
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_record_deployment.yml@v2 # WORKFLOW_VERSION
+    uses: ./.github/workflows/deploy_env.yml
     secrets: inherit
     with:
       environment: 'preprod'
