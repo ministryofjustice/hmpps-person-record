@@ -42,18 +42,13 @@ class SysconContactsAndAddressesMigrationHandler(
     val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
     val addressMappings = handleAddressesInsert(prisonAddressesAndContactsRequest.addresses ?: emptyList(), person)
     val contactMappings = handleContactsInsert(prisonAddressesAndContactsRequest.contacts ?: emptyList(), person)
-    val response = SysconAddressesAndContactsResponseBody(
-      addressesMappings = addressMappings,
-      contactMappings = contactMappings,
-      prisonNumber = prisonNumber,
-    )
 
     personService.processPerson(
       person = Person.from(person),
       childrenToIgnore = setOf(AddressEntity::class, ContactEntity::class),
     ) { person }
 
-    return response
+    return SysconAddressesAndContactsResponseBody(prisonNumber, addressMappings, contactMappings)
   }
 
   private fun handleContactsInsert(contacts: List<PrisonContact>, personEntity: PersonEntity): List<SysconContactMapping> {

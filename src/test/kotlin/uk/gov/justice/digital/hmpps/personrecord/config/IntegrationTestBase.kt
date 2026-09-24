@@ -63,6 +63,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.review.ReviewEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressUsageRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -155,6 +157,12 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var addressRepository: AddressRepository
+
+  @Autowired
+  lateinit var addressUsageRepository: AddressUsageRepository
+
+  @Autowired
+  lateinit var contactRepository: ContactRepository
 
   fun authSetup() {
     wiremock.stubFor(
