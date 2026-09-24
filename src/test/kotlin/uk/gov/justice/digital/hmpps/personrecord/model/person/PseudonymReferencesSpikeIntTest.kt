@@ -49,7 +49,7 @@ class PseudonymReferencesSpikeIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should receive the message successfully when prisoner created event published`() {
+    fun `should create pseudonym reference on create and remove on update`() {
       val prisonNumber = randomPrisonNumber()
       val title = randomTitleCode()
       val pnc = randomShortPnc()
