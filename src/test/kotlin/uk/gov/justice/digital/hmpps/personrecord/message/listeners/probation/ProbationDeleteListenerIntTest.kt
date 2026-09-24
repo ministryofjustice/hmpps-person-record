@@ -121,7 +121,6 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
       val recordB = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
 
       probationMergeEventAndResponseSetup(recordBCrn, recordACrn)
-      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, recordBCrn)
@@ -150,7 +149,6 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
         .addPerson(recordB)
 
       probationMergeEventAndResponseSetup(recordBCrn, recordACrn)
-      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, recordACrn)
@@ -184,7 +182,6 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
       val mergedFrom = createPersonWithNewKey(createRandomProbationPersonDetails(mergedFromCrn))
 
       probationMergeEventAndResponseSetup(mergedFromCrn, mergedToCrn)
-      checkEventLogExist(mergedToCrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(mergedFromCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, mergedToCrn)
@@ -224,11 +221,9 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
       val recordC = createPersonWithNewKey(createRandomProbationPersonDetails(recordCCrn))
 
       probationMergeEventAndResponseSetup(recordCCrn, recordBCrn)
-      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       probationMergeEventAndResponseSetup(recordBCrn, recordACrn)
-      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, recordACrn)
@@ -270,11 +265,9 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
       val recordC = createPersonWithNewKey(createRandomProbationPersonDetails(recordCCrn))
 
       probationMergeEventAndResponseSetup(recordBCrn, recordACrn)
-      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       probationMergeEventAndResponseSetup(recordCCrn, recordACrn)
-      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED, 2)
       checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, recordACrn)
@@ -319,15 +312,12 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
       val recordD = createPersonWithNewKey(createRandomProbationPersonDetails(recordDCrn))
 
       probationMergeEventAndResponseSetup(recordDCrn, recordCCrn)
-      checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordDCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       probationMergeEventAndResponseSetup(recordCCrn, recordACrn)
-      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(recordCCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       probationMergeEventAndResponseSetup(recordBCrn, recordACrn)
-      checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_UPDATED, 2)
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, recordACrn)

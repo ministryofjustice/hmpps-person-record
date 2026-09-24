@@ -22,42 +22,39 @@ class MergeService(
   private val personKeyDeletionService: PersonKeyDeletionService,
 ) {
 
-  fun processMerge(fromPersonEntity: PersonEntity, toPersonEntity: PersonEntity, person: Person) {
-    updateToPerson(toPersonEntity, person)
+  fun processMerge(from: PersonEntity, to: PersonEntity, person: Person) {
+    updateToPerson(to, person)
 
-    val fromClusterDetail = EventLogClusterDetail.from(fromPersonEntity.personKey)
+    val fromClusterDetail = EventLogClusterDetail.from(from.personKey)
     when {
-      fromClusterHasOneRecord(fromPersonEntity) -> deleteSingleRecordCluster(fromPersonEntity)
+      fromClusterHasOneRecord(from) -> deleteSingleRecordCluster(from)
     }
-    merge(fromPersonEntity, toPersonEntity, fromClusterDetail)
+    merge(from, to, fromClusterDetail)
   }
 
-  private fun updateToPerson(toPersonEntity: PersonEntity, person: Person) {
-    val personChangeChecker = PersonChangeChecker(toPersonEntity)
-    toPersonEntity.updatePersonEntity(person)
-    personRepository.save(toPersonEntity)
+  private fun updateToPerson(to: PersonEntity, person: Person) {
+    val personChangeChecker = PersonChangeChecker(to)
+    to.updatePersonEntity(person)
+    personRepository.save(to)
 
-    if (personChangeChecker.matchingFieldsHaveChanged(toPersonEntity) && !toPersonEntity.isPassive()) {
-      personMatchService.saveToPersonMatch(toPersonEntity)
+    if (personChangeChecker.matchingFieldsHaveChanged(to) && !to.isPassive()) {
+      personMatchService.saveToPersonMatch(to)
     }
-    publisher.publishEvent(PersonUpdated(toPersonEntity, personChangeChecker))
+    publisher.publishEvent(PersonUpdated(to, personChangeChecker))
   }
 
-  private fun deleteSingleRecordCluster(from: PersonEntity?) {
-    from?.personKey?.let {
-      from.removePersonKeyLink()
-      personKeyDeletionService.deletePersonKey(it, from)
-    }
+  private fun deleteSingleRecordCluster(from: PersonEntity) {
+    val personKeyEntity = from.personKey!!
+    from.removePersonKeyLink()
+    personKeyDeletionService.deletePersonKey(personKeyEntity, from)
   }
 
-  private fun merge(from: PersonEntity?, to: PersonEntity, fromClusterDetail: EventLogClusterDetail) {
-    from?.let {
-      it.throwIfCircularMerge(to)
-      it.removePersonKeyLink()
-      it.mergeTo(to)
-      personRepository.save(it)
-      personMatchService.deleteFromPersonMatch(it)
-    }
+  private fun merge(from: PersonEntity, to: PersonEntity, fromClusterDetail: EventLogClusterDetail) {
+    from.throwIfCircularMerge(to)
+    from.removePersonKeyLink()
+    from.mergeTo(to)
+    personRepository.save(from)
+    personMatchService.deleteFromPersonMatch(from)
     publisher.publishEvent(PersonMerged(from, fromClusterDetail, to))
   }
 
@@ -67,5 +64,5 @@ class MergeService(
     }
   }
 
-  private fun fromClusterHasOneRecord(from: PersonEntity?): Boolean = from?.personKey?.hasOneRecord() == true
+  private fun fromClusterHasOneRecord(from: PersonEntity): Boolean = from.personKey?.hasOneRecord() == true
 }

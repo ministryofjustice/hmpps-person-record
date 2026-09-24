@@ -42,7 +42,7 @@ class ReclusterApiIntTest : WebTestBase() {
     @Test
     fun `should not recluster records that have been merged`() {
       val person = createPersonWithNewKey(createRandomProbationPersonDetails())
-      val mergedPerson = createPerson(createRandomProbationPersonDetails()) { mergedTo = person.id }
+      val mergedPerson = createMergedPerson(createRandomProbationPersonDetails(), person.id)
 
       mergedPerson.assertMergedTo(person)
 

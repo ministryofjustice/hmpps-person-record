@@ -1,14 +1,9 @@
 name: Pact Provider Verification
-run-name: Pact verify - ${{ github.event.inputs.consumer || github.ref_name || 'manual' }}
+run-name: Pact verify - ${{ github.ref_name || 'manual' }}
 
 on:
-  # Temporary: keep Pact verification manual-only until the consumer pact is ready.
   workflow_dispatch:
     inputs:
-      consumer:
-        required: false
-        description: Consumer pacticipant name from broker webhook payload
-        type: string
       consumerBranch:
         required: false
         description: Consumer branch from broker webhook payload
@@ -57,5 +52,4 @@ jobs:
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_BRANCH: ${{ github.ref_name }}
-          PACT_CONSUMER: ${{ inputs.consumer }}
           PACT_CONSUMER_BRANCH: ${{ inputs.consumerBranch }}

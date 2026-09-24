@@ -416,6 +416,12 @@ class IntegrationTestBase {
     return personRepository.findByMatchId(personEntity.matchId)!!
   }
 
+  internal fun createMergedPerson(person: Person, mergedToId: Long?): PersonEntity = createPerson(
+    person,
+    { mergedTo = mergedToId!! },
+  )
+
+  @Deprecated("use createPersonWithNewKey, createMergedPerson or addPerson instead")
   internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
     person.sourceSystem,
   ).updatePersonEntity(person)
