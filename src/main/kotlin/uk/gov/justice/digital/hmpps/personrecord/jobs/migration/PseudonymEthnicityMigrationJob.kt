@@ -26,7 +26,7 @@ class PseudonymEthnicityMigrationJob(
   override fun run() {
     val executionResults = forPage { page ->
       page.content.forEach { person ->
-        retryableEthnicityUpdater.update(person)
+        retryableEthnicityUpdater.update(person.id!!)
       }
     }
     log.info(jobName + " total elements: ${executionResults.totalElements}, elapsed time: ${executionResults.elapsedTime}")
