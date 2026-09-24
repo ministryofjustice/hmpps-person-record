@@ -1,0 +1,76 @@
+name: Record Pact Broker deployment
+
+# Reusable workflow that records a deployment against a Pact Broker
+# environment, so that provider verification / can-i-deploy checks have an
+# accurate picture of what is currently deployed where.
+#
+# Example usage from a consumer repo:
+#
+# jobs:
+#   record-deployment:
+#     uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_record_deployment.yml@v2
+#     with:
+#       app_version: ${{ needs.build.outputs.app_version }}
+#       environment: production
+#     secrets:
+#       PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
+#       HMPPS_PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
+#       HMPPS_PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
+
+env:
+  PACT_CLI_VERSION: '18.1.1'
+
+on:
+  workflow_call:
+    inputs:
+      app_version:
+        description: Deployment version from the pipeline, used for logging and traceability only
+        required: true
+        type: string
+      environment:
+        description: Pact Broker environment name to record the deployment against
+        required: true
+        type: string
+    secrets:
+      PACT_BROKER_URL:
+        required: true
+      HMPPS_PACT_BROKER_USERNAME:
+        required: true
+      HMPPS_PACT_BROKER_PASSWORD:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  record_deployment:
+    name: Record deployment in Pact Broker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Use Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Record deployment
+        shell: bash
+        env:
+          INPUT_APP_VERSION: ${{ inputs.app_version }}
+          INPUT_ENVIRONMENT: ${{ inputs.environment }}
+          PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_URL }}
+          PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
+          PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          pacticipant="${GITHUB_REPOSITORY#*/}"
+
+          command=(
+            pact-broker
+            record-deployment
+            --environment "$INPUT_ENVIRONMENT"
+            --pacticipant "$pacticipant"
+            --version "$INPUT_APP_VERSION"
+          )
+
+          npx --yes --package "@pact-foundation/pact-cli@${PACT_CLI_VERSION}" "${command[@]}"
