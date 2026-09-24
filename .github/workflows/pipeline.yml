@@ -60,7 +60,7 @@ jobs:
       upload-build-artifacts: ${{ github.ref == 'refs/heads/main' }}
       java-options: "${{ inputs.java_options }}"
       java-version: '25'
-      postgres-tag: '17.9-alpine'
+      postgres-tag: '17.11-alpine'
       localstack-tag: 'community-archive'
       postgres-username: 'root'
       postgres-password: 'dev'
@@ -114,7 +114,7 @@ jobs:
           make e2e-start-containers
           ./gradlew pactTest --console=plain
         env:
-          PACT_PUBLISH_RESULTS: ${{ github.ref == 'refs/heads/main' && 'true' || 'false' }}
+          PACT_PUBLISH_RESULTS: 'true'
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
           PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}

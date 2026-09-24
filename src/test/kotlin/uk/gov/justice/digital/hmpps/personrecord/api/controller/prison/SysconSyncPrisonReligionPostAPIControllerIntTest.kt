@@ -28,7 +28,7 @@ class SysconSyncPrisonReligionPostAPIControllerIntTest : WebTestBase() {
     @Test
     fun `person has no prison religions - saves prison religion - updates current religion`() {
       val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createPrisonReligionHistory()
       sendPostRequestAsserted<PrisonReligionSaveResponse>(
@@ -52,7 +52,7 @@ class SysconSyncPrisonReligionPostAPIControllerIntTest : WebTestBase() {
     fun `person has existing current prison religion - saves new prison religion - updates current religion`() {
       val prisonNumber = randomPrisonNumber()
       val existingReligionEntity = PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory())
-      val personEntityWithCurrentReligion = createPerson(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligionEntity.code })
+      val personEntityWithCurrentReligion = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligionEntity.code })
       prisonReligionRepository.save(existingReligionEntity)
       personRepository.saveAndFlush(personEntityWithCurrentReligion)
 
@@ -83,7 +83,7 @@ class SysconSyncPrisonReligionPostAPIControllerIntTest : WebTestBase() {
     @Test
     fun `saves prison religion - returns correct response body`() {
       val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createPrisonReligionHistory()
       val responseBody = sendPostRequestAsserted<PrisonReligionSaveResponse>(
@@ -107,7 +107,7 @@ class SysconSyncPrisonReligionPostAPIControllerIntTest : WebTestBase() {
     @Test
     fun `person does not exist - returns 404 not found`() {
       val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createPrisonReligionHistory()
       sendPostRequestAsserted<Unit>(

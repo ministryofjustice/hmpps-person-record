@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.type
 
 const val PRISON_PERSON_CREATED = "prisoner-offender-search.prisoner.created"
 const val PRISON_PERSON_UPDATED = "prisoner-offender-search.prisoner.updated"
-const val PRISON_PERSON_MERGED = "prison-offender-events.prisoner.merged"
 
 const val PROBATION_PERSON_CREATED = "probation-case.engagement.created"
 const val PROBATION_PERSON_UPDATED = "probation-case.personal-details.updated"
@@ -26,10 +25,10 @@ const val SAS_ADDRESS_ARRIVED = "sas.accommodation.person.arrived"
 const val SAS_ADDRESS_DELETED = "sas.accommodation.deleted"
 
 const val CPR_PRISON_PERSON_CREATED = "core-person-record.prison.record.created"
+const val CPR_PRISON_PERSON_MERGED = "core-person-record.prison.record.merged"
 
 const val CPR_PROBATION_PERSON_CREATED = "core-person-record.probation.record.created"
 const val CPR_PROBATION_PERSON_DELETED = "core-person-record.probation.record.deleted"
-
 const val CPR_PROBATION_PERSON_UPDATED = "core-person-record.probation.record.updated"
 
 const val CPR_PROBATION_ADDRESS_CREATED = "core-person-record.probation.address.created"

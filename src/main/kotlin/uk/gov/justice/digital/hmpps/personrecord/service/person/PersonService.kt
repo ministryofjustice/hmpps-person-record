@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -11,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
+import kotlin.reflect.KClass
 
 @Component
 class PersonService(
@@ -20,23 +22,24 @@ class PersonService(
   private val reclusterService: ReclusterService,
   private val publisher: ApplicationEventPublisher,
 ) {
-
+  @Transactional
   fun processPerson(
     person: Person,
+    childrenToIgnore: Set<KClass<*>> = emptySet(),
     findPerson: () -> PersonEntity?,
   ): PersonEntity = findPerson().exists(
     no = {
-      create(person)
+      create(person, childrenToIgnore)
     },
     yes = {
-      update(person, it)
+      update(person, it, childrenToIgnore)
     },
   ).also {
     publisher.publishEvent(PersonProcessingCompleted(it))
   }
 
-  private fun create(person: Person): PersonEntity {
-    val personEntity = PersonEntity.new(person.sourceSystem).updatePersonEntity(person)
+  private fun create(person: Person, childrenToIgnore: Set<KClass<*>>): PersonEntity {
+    val personEntity = PersonEntity.new(person.sourceSystem).updatePersonEntity(person, childrenToIgnore)
     personRepository.save(personEntity)
 
     personMatchService.saveToPersonMatch(personEntity)
@@ -47,26 +50,17 @@ class PersonService(
     return personEntity
   }
 
-  private fun update(person: Person, personEntity: PersonEntity): PersonEntity {
+  private fun update(person: Person, personEntity: PersonEntity, childrenToIgnore: Set<KClass<*>>): PersonEntity {
     val personChangeChecker = PersonChangeChecker(personEntity)
-    personEntity.updatePersonEntity(person)
+    personEntity.updatePersonEntity(person, childrenToIgnore)
     personRepository.save(personEntity)
 
     if (personChangeChecker.matchingFieldsHaveChanged(personEntity) && !personEntity.isPassive()) {
       personMatchService.saveToPersonMatch(personEntity)
-      recluster(person, personEntity)
+      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
     }
     publisher.publishEvent(PersonUpdated(personEntity, personChangeChecker))
     return personEntity
-  }
-
-  private fun recluster(
-    person: Person,
-    personEntity: PersonEntity,
-  ) {
-    if (person.behaviour.reclusterOnUpdate) {
-      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
-    }
   }
 
   private fun PersonEntity?.exists(no: () -> PersonEntity, yes: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {

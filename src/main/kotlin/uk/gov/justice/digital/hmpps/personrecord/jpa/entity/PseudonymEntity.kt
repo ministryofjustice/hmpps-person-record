@@ -14,6 +14,7 @@ import jakarta.persistence.Version
 import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
@@ -65,6 +66,10 @@ class PseudonymEntity(
   @Enumerated(STRING)
   var sexCode: SexCode? = null,
 
+  @Column(name = "ethnicity_code")
+  @Enumerated(STRING)
+  var ethnicityCode: EthnicityCode? = null,
+
   @Column(name = "name_type")
   @Enumerated(STRING)
   val nameType: NameType,
@@ -81,6 +86,7 @@ class PseudonymEntity(
       titleCode = person.titleCode,
       dateOfBirth = person.dateOfBirth,
       sexCode = person.sexCode,
+      ethnicityCode = person.ethnicityCode,
     )
 
     fun aliasFrom(alias: Alias): PseudonymEntity? = when {

@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person
 
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.PersonMerged
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
@@ -18,4 +19,9 @@ interface PersonUpdatedEventPublisher {
 interface PersonDeletedEventPublisher {
   val sourceSystemType: SourceSystemType
   fun onDelete(personDeleted: PersonDeleted)
+}
+
+interface PersonMergedEventPublisher {
+  val sourceSystemType: SourceSystemType
+  fun onMerge(personMerged: PersonMerged)
 }
