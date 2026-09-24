@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
-import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
