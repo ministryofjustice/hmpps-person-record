@@ -18,7 +18,7 @@ class ProbationUnmergeEventProcessor(
     val unmergedCrn = domainEvent.additionalInformation.unmergedCrn
     val reactivatedCrn = domainEvent.additionalInformation.reactivatedCrn
     val existingPerson = Person.from(corePersonRecordAndDeliusClient.getProbationCase(unmergedCrn))
-    val reactivatedPerson = Person.from(corePersonRecordAndDeliusClient.getProbationCase(reactivatedCrn)).doNotLinkOnCreate()
+    val reactivatedPerson = Person.from(corePersonRecordAndDeliusClient.getProbationCase(reactivatedCrn))
 
     unmergeService.processUnmerge(reactivatedPerson, existingPerson)
   }

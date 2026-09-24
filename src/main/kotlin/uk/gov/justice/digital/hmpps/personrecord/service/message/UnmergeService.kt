@@ -35,7 +35,7 @@ class UnmergeService(
 
     val reactivatedPersonEntity = personRepository.findByCrn(reactivated.crn!!)
       ?.let { updatePerson(reactivated, it, childrenToIgnore) }
-      ?: createPerson(reactivated, childrenToIgnore)
+      ?: createPerson(reactivated, childrenToIgnore, linkPersonToCluster = false)
 
     unmerge(reactivatedPersonEntity, existingPersonEntity)
     when {
@@ -43,12 +43,12 @@ class UnmergeService(
     }
   }
 
-  private fun createPerson(person: Person, childrenToIgnore: Set<KClass<*>>): PersonEntity {
+  private fun createPerson(person: Person, childrenToIgnore: Set<KClass<*>>, linkPersonToCluster: Boolean = true): PersonEntity {
     val personEntity = PersonEntity.new(person.sourceSystem).updatePersonEntity(person, childrenToIgnore)
     personRepository.save(personEntity)
 
     personMatchService.saveToPersonMatch(personEntity)
-    if (person.behaviour.linkOnCreate) {
+    if (linkPersonToCluster) {
       personKeyService.linkRecordToPersonKey(personEntity)
     }
     publisher.publishEvent(PersonCreated(personEntity))

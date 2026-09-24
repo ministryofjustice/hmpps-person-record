@@ -41,11 +41,8 @@ class PersonService(
   private fun create(person: Person, childrenToIgnore: Set<KClass<*>>): PersonEntity {
     val personEntity = PersonEntity.new(person.sourceSystem).updatePersonEntity(person, childrenToIgnore)
     personRepository.save(personEntity)
-
     personMatchService.saveToPersonMatch(personEntity)
-    if (person.behaviour.linkOnCreate) {
-      personKeyService.linkRecordToPersonKey(personEntity)
-    }
+    personKeyService.linkRecordToPersonKey(personEntity)
     publisher.publishEvent(PersonCreated(personEntity))
     return personEntity
   }
