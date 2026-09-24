@@ -123,46 +123,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should create record when unmerged record not found`() {
-      val reactivatedCrn = randomCrn()
-      val unmergedCrn = randomCrn()
-
-      val reactivatedPerson = createPersonWithNewKey(createRandomProbationPersonDetails(reactivatedCrn))
-
-      probationUnmergeEventAndResponseSetup(reactivatedCrn, unmergedCrn)
-
-      checkTelemetry(
-        CPR_RECORD_CREATED,
-        mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
-        CPR_UUID_CREATED,
-        mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
-        CPR_RECORD_UNMERGED,
-        mapOf(
-          "TO_SOURCE_SYSTEM_ID" to reactivatedCrn,
-          "FROM_SOURCE_SYSTEM_ID" to unmergedCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
-      val unmergedPerson = awaitNotNull { personRepository.findByCrn(unmergedCrn) }
-      unmergedPerson.assertHasLinkToCluster()
-      unmergedPerson.assertExcluded(reactivatedPerson)
-      unmergedPerson.assertNotLinkedToCluster(reactivatedPerson.personKey!!)
-
-      reactivatedPerson.assertHasLinkToCluster()
-      reactivatedPerson.assertNotLinkedToCluster(unmergedPerson.personKey!!)
-      reactivatedPerson.assertExcluded(unmergedPerson)
-
-      unmergedPerson.assertHasOverrideMarker()
-      reactivatedPerson.assertHasOverrideMarker()
-      unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
-      unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
-    }
-
-    @Test
     fun `should unmerge 2 records that exist on same cluster but no merge link`() {
       val unmergedRecord = createPerson(createRandomProbationPersonDetails())
       val cluster = createPersonKey().addPerson(unmergedRecord)

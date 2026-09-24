@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.updatePersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
-import kotlin.reflect.KClass
 
 @Component
 class UnmergeService(
@@ -28,14 +27,13 @@ class UnmergeService(
   private val overrideService: OverrideService,
 ) {
 
-  fun processUnmerge(reactivated: Person, existing: Person, childrenToIgnore: Set<KClass<*>> = emptySet()) {
-    val existingPersonEntity = personRepository.findByCrn(existing.crn!!)
-      ?.let { updatePerson(existing, it, childrenToIgnore) }
-      ?: createPerson(existing, childrenToIgnore)
+  fun processUnmerge(reactivated: Person, existing: Person) {
+    val existingPersonEntity = personRepository.findByCrn(existing.crn!!)!!
+      .also { updatePerson(existing, it) }
 
     val reactivatedPersonEntity = personRepository.findByCrn(reactivated.crn!!)
-      ?.let { updatePerson(reactivated, it, childrenToIgnore) }
-      ?: createPerson(reactivated, childrenToIgnore, linkPersonToCluster = false)
+      ?.let { updatePerson(reactivated, it) }
+      ?: createPerson(reactivated, linkPersonToCluster = false)
 
     unmerge(reactivatedPersonEntity, existingPersonEntity)
     when {
@@ -43,8 +41,8 @@ class UnmergeService(
     }
   }
 
-  private fun createPerson(person: Person, childrenToIgnore: Set<KClass<*>>, linkPersonToCluster: Boolean = true): PersonEntity {
-    val personEntity = PersonEntity.new(person.sourceSystem).updatePersonEntity(person, childrenToIgnore)
+  private fun createPerson(person: Person, linkPersonToCluster: Boolean = true): PersonEntity {
+    val personEntity = PersonEntity.new(person.sourceSystem).updatePersonEntity(person)
     personRepository.save(personEntity)
 
     personMatchService.saveToPersonMatch(personEntity)
@@ -55,9 +53,9 @@ class UnmergeService(
     return personEntity
   }
 
-  private fun updatePerson(person: Person, personEntity: PersonEntity, childrenToIgnore: Set<KClass<*>>): PersonEntity {
+  private fun updatePerson(person: Person, personEntity: PersonEntity): PersonEntity {
     val personChangeChecker = PersonChangeChecker(personEntity)
-    personEntity.updatePersonEntity(person, childrenToIgnore)
+    personEntity.updatePersonEntity(person)
     personRepository.save(personEntity)
 
     if (personChangeChecker.matchingFieldsHaveChanged(personEntity) && !personEntity.isPassive()) {
