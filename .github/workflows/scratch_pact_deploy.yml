@@ -27,22 +27,21 @@ permissions:
   contents: read
 
 jobs:
-  pact_deploy_flow:
-    name: Pact deployment flow
+  can_i_deploy:
+    name: Check Pact can-i-deploy
+    if: ${{ inputs.pact_consumer_deployment }}
+    uses: ./.github/workflows/pact_can_i_deploy.yml
+    secrets: inherit
+    with:
+      to_environment: ${{ inputs.environment }}
+      app_version: ${{ inputs.app_version }}
+
+  simulate_deployment:
+    name: Simulate deployment
+    needs: can_i_deploy
+    if: ${{ !inputs.pact_consumer_deployment || needs.can_i_deploy.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        with:
-          persist-credentials: false
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Check Pact can-i-deploy
-        if: ${{ inputs.pact_consumer_deployment }}
-        uses: ./.github/workflows/pact_can_i_deploy.yml
-        with:
-          environment: ${{ inputs.environment }}
-          app_version: ${{ inputs.app_version }}
-
       - name: Simulate deployment
         shell: bash
         run: |
@@ -50,8 +49,11 @@ jobs:
           echo "Deployment would run here"
           echo "environment=${{ inputs.environment }}"
 
-      - name: Record successful deployment in Pact Broker
-        uses: ./.github/workflows/pact_record_deployment.yml
-        with:
-          environment: ${{ inputs.environment }}
-          app_version: ${{ inputs.app_version }}
+  record_deployment:
+    name: Record successful deployment in Pact Broker
+    needs: simulate_deployment
+    uses: ./.github/workflows/pact_record_deployment.yml
+    secrets: inherit
+    with:
+      environment: ${{ inputs.environment }}
+      app_version: ${{ inputs.app_version }}
