@@ -1,5 +1,5 @@
 name: Pact Provider Verification
-run-name: Pact verify - ${{ github.event.inputs.consumer || github.ref_name || 'manual' }}
+run-name: Pact verify - ${{ github.ref_name || 'manual' }}
 
 on:
   workflow_dispatch:
@@ -52,5 +52,4 @@ jobs:
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_BRANCH: ${{ github.ref_name }}
-          PACT_CONSUMER: ${{ inputs.consumer }}
           PACT_CONSUMER_BRANCH: ${{ inputs.consumerBranch }}
