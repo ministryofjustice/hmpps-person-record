@@ -55,7 +55,7 @@ class PersonService(
     personEntity.updatePersonEntity(person, childrenToIgnore)
     personRepository.save(personEntity)
 
-    if (personChangeChecker.matchingFieldsHaveChanged(personEntity) && !personEntity.isPassive()) {
+    if (personChangeChecker.shouldSaveToPersonMatch(personEntity)) {
       personMatchService.saveToPersonMatch(personEntity)
       personEntity.personKey?.let { reclusterService.recluster(personEntity) }
     }
