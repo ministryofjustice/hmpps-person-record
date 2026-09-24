@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -21,9 +22,12 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 @RestController
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
-class SysconSyncPrisonAddressesContactsAPIController {
+class SysconSyncPrisonAddressesContactsMigrationAPIController {
 
-  @Operation(description = "Save the prison addresses and contacts for the given prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.")
+  @Operation(
+    description = "Save the prisoner addresses and contacts for the given prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.",
+    security = [SecurityRequirement(name = "api-role")],
+  )
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping("/syscon-sync/addresses-contacts/{prisonNumber}")
   fun saveAddressesAndContacts(
