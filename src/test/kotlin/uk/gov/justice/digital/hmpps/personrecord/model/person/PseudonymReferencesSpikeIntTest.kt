@@ -140,6 +140,8 @@ class PseudonymReferencesSpikeIntTest : MessagingMultiNodeTestBase() {
 
       val updatePersonEntity = personRepository.findByPrisonNumber(prisonNumber)!!
 
+      val updatedReferencesUpdateIdCount = updatePersonEntity.references.count { it.updateId != null }
+      assertThat(updatedReferencesUpdateIdCount).isEqualTo(4)
       assertThat(updatePersonEntity.pseudonyms.size).isEqualTo(2)
       assertThat(updatePersonEntity.getAliases().size).isEqualTo(1)
       assertThat(updatePersonEntity.getAliases()[0].references).isEmpty()
