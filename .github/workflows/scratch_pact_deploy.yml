@@ -2,6 +2,9 @@ name: Scratch Pact deploy flow
 run-name: Scratch Pact deploy flow - env=${{ inputs.environment }} consumer=${{ inputs.pact_consumer_deployment }} provider=${{ inputs.pact_provider_deployment }}
 
 on:
+  push:
+    branches:
+      - "add-pact-record-deployment-step"
   workflow_dispatch:
     inputs:
       environment:
