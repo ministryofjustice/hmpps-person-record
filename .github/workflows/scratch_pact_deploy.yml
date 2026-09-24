@@ -12,6 +12,11 @@ on:
         required: true
         default: dev
         type: string
+      app_version:
+        description: The version of the application to deploy
+        required: true
+        default: 1.0.0
+        type: string
       pact_consumer_deployment:
         description: Run Pact can-i-deploy before deployment and record the successful deployment
         required: false
