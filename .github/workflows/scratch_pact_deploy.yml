@@ -30,7 +30,6 @@ jobs:
   pact_deploy_flow:
     name: Pact deployment flow
     runs-on: ubuntu-latest
-    secrets: inherit
     steps:
       - name: Check Pact can-i-deploy
         if: ${{ inputs.pact_consumer_deployment }}
