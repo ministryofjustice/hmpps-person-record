@@ -55,7 +55,7 @@ class UnmergeService(
     personEntity.updatePersonEntity(person)
     personRepository.save(personEntity)
 
-    if (personChangeChecker.matchingFieldsHaveChanged(personEntity) && !personEntity.isPassive()) {
+    if (personChangeChecker.matchingFieldsHaveChanged(personEntity)) {
       personMatchService.saveToPersonMatch(personEntity)
       personEntity.personKey?.let { reclusterService.recluster(personEntity) }
     }
