@@ -55,7 +55,8 @@ jobs:
     needs:
       - show_inputs
       - pact_can_i_deploy
-    if: ${{ !inputs.pact_consumer_deployment || needs.pact_can_i_deploy.result == 'success' }}
+    # GitHub Actions skips jobs whose dependencies are skipped unless the condition uses always().
+    if: ${{ always() && (!inputs.pact_consumer_deployment || needs.pact_can_i_deploy.result == 'success') }}
     steps:
       - name: Simulate deployment
         run: |
@@ -67,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - deploy_env
-    if: ${{ inputs.pact_provider_deployment && needs.deploy_env.result == 'success' }}
+    if: ${{ always() && (inputs.pact_consumer_deployment || inputs.pact_provider_deployment) && needs.deploy_env.result == 'success' }}
     steps:
       - name: Simulate Pact deployment recording
         run: |
