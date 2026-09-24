@@ -33,7 +33,7 @@ class UnmergeService(
 
     val reactivatedPersonEntity = personRepository.findByCrn(reactivated.crn!!)
       ?.let { updatePerson(reactivated, it) }
-      ?: createPerson(reactivated, linkPersonToCluster = false)
+      ?: createPerson(reactivated)
 
     unmerge(reactivatedPersonEntity, existingPersonEntity)
     when {
@@ -41,14 +41,11 @@ class UnmergeService(
     }
   }
 
-  private fun createPerson(person: Person, linkPersonToCluster: Boolean = true): PersonEntity {
+  private fun createPerson(person: Person): PersonEntity {
     val personEntity = PersonEntity.new(person.sourceSystem).updatePersonEntity(person)
     personRepository.save(personEntity)
 
     personMatchService.saveToPersonMatch(personEntity)
-    if (linkPersonToCluster) {
-      personKeyService.linkRecordToPersonKey(personEntity)
-    }
     publisher.publishEvent(PersonCreated(personEntity))
     return personEntity
   }
