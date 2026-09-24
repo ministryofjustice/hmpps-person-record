@@ -20,7 +20,7 @@ on:
       pact_provider_deployment:
         description: Record the successful deployment in Pact Broker
         required: false
-        default: false
+        default: true
         type: boolean
 
 permissions:
