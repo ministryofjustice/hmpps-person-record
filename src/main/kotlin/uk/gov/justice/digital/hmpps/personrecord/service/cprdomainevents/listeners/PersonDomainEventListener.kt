@@ -2,11 +2,13 @@ package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listen
 
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.PersonMerged
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person.PersonCreatedEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person.PersonDeletedEventPublisher
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person.PersonMergedEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person.PersonUpdatedEventPublisher
 
 @Component
@@ -14,11 +16,13 @@ class PersonDomainEventListener(
   personCreatedEventPublishers: List<PersonCreatedEventPublisher>,
   personUpdatedEventPublishers: List<PersonUpdatedEventPublisher>,
   personDeletedEventPublishers: List<PersonDeletedEventPublisher>,
+  personMergedEventPublishers: List<PersonMergedEventPublisher>,
 ) {
 
   private val createPublishersBySourceSystem = personCreatedEventPublishers.associateBy { it.sourceSystemType }
   private val updatePublishersBySourceSystem = personUpdatedEventPublishers.associateBy { it.sourceSystemType }
   private val deletePublishersBySourceSystem = personDeletedEventPublishers.associateBy { it.sourceSystemType }
+  private val mergedPublishersBySourceSystem = personMergedEventPublishers.associateBy { it.sourceSystemType }
 
   @TransactionalEventListener
   fun onPersonCreated(personCreated: PersonCreated) {
@@ -38,5 +42,11 @@ class PersonDomainEventListener(
   fun onPersonDeleted(personDeleted: PersonDeleted) {
     val sourceSystem = personDeleted.personEntity.sourceSystem
     deletePublishersBySourceSystem[sourceSystem]?.onDelete(personDeleted)
+  }
+
+  @TransactionalEventListener
+  fun onPersonMerged(personMerged: PersonMerged) {
+    val sourceSystem = personMerged.to.sourceSystem
+    mergedPublishersBySourceSystem[sourceSystem]?.onMerge(personMerged)
   }
 }

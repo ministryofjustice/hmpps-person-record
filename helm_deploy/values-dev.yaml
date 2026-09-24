@@ -15,7 +15,6 @@ generic-service:
     CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: https://core-person-record-and-delius-dev.hmpps.service.justice.gov.uk
     SERVICE_NOW_BASE_URL: https://mojdev.service-now.com
     SAS_BASE_URL: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk
-    MIGRATION_START_PAGE: 0
 
   scheduledDowntime:
     enabled: true
@@ -37,8 +36,11 @@ generic-service:
     - name: recluster-needs-attention
       type: RECLUSTER_NEEDS_ATTENTION
       schedule: "0 13 * * 1-5"
-    - name: lowercase-pnc-cro-migration
-      type: LOWERCASE_PNC_CRO_MIGRATION
+    - name: generate-delius-merge-requests
+      type: GENERATE_DELIUS_MERGE_REQUESTS
+      schedule: "0 19 * * 1-5"
+    - name: pseudonym-ethnicity-migration
+      type: PSEUDONYM_ETHNICITY_MIGRATION
       schedule: "0 0 1 1 *"
       suspend: true
 

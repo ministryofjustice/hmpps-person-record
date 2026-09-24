@@ -101,6 +101,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
       assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
       assertThat(updatedPersonEntity.getPrimaryName().sexCode).isEqualTo(changedSexCode.value)
+      assertThat(updatedPersonEntity.getPrimaryName().ethnicityCode).isNull()
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
       assertThat(updatedPersonEntity.masterDefendantId).isEqualTo(masterDefendantId)
@@ -161,6 +162,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     awaitAssert {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
       assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
+      assertThat(updatedPersonEntity.getPrimaryName().ethnicityCode).isEqualTo(EthnicityCode.fromCommonPlatform(ethnicity))
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
       assertThat(updatedPersonEntity.ethnicityCode).isEqualTo(EthnicityCode.fromCommonPlatform(ethnicity))
@@ -251,6 +253,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getPrimaryName().middleNames).isEqualTo("mName1 mName2")
     assertThat(firstPerson.getPrimaryName().lastName).isEqualTo(lastName)
     assertThat(firstPerson.getPrimaryName().sexCode).isEqualTo(firstSexCode.value)
+    assertThat(firstPerson.getPrimaryName().ethnicityCode).isEqualTo(EthnicityCode.fromCommonPlatform(ethnicity))
     assertThat(firstPerson.contacts).isEmpty()
     checkNationalities(firstPerson, firstAdditionalNationality, firstNationality)
 
@@ -258,9 +261,11 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getAliases()[0].titleCode).isNull()
     assertThat(firstPerson.getAliases()[0].firstName).isEqualTo("aliasFirstName1")
     assertThat(firstPerson.getAliases()[0].lastName).isEqualTo("aliasLastName1")
+    assertThat(firstPerson.getAliases()[0].ethnicityCode).isNull()
     assertThat(firstPerson.getAliases()[1].titleCode).isNull()
     assertThat(firstPerson.getAliases()[1].firstName).isEqualTo("aliasFirstName2")
     assertThat(firstPerson.getAliases()[1].lastName).isEqualTo("aliasLastName2")
+    assertThat(firstPerson.getAliases()[1].ethnicityCode).isNull()
 
     assertThat(firstPerson.ethnicityCode).isEqualTo(EthnicityCode.fromCommonPlatform(ethnicity))
 

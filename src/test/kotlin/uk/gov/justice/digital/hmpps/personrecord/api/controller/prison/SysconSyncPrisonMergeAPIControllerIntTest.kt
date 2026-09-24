@@ -16,79 +16,12 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import kotlin.jvm.optionals.getOrNull
 
 class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
-
-  @Nested
-  inner class MissingFromRecord {
-
-    @Test
-    fun `processes prisoner merge event when source record does not exist`() {
-      val targetPrisonNumber = randomPrisonNumber()
-      val sourcePrisonNumber = randomPrisonNumber()
-
-      createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
-
-      stubPersonMatchUpsert()
-      prisonMergeEventAndResponseSetup(sourcePrisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
-
-      checkTelemetry(CPR_RECORD_UPDATED, mapOf("PRISON_NUMBER" to targetPrisonNumber))
-      checkTelemetry(
-        CPR_RECORD_MERGED,
-        mapOf(
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
-      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
-    }
-  }
-
-  @Nested
-  inner class MissingToRecord {
-
-    @Test
-    fun `processes prisoner merge event when target record does not exist`() {
-      val targetPrisonNumber = randomPrisonNumber()
-      val sourcePrisonNumber = randomPrisonNumber()
-      val sourcePerson = createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
-
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-      stubDeletePersonMatch()
-
-      prisonMergeEventAndResponseSetup(sourcePrisonNumber, targetPrisonNumber)
-
-      val targetPerson = awaitNotNull { personRepository.findByPrisonNumber(targetPrisonNumber) }
-
-      sourcePerson.assertMergedTo(targetPerson)
-      sourcePerson.assertNotLinkedToCluster()
-
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      targetPerson.personKey?.assertClusterIsOfSize(1)
-
-      checkTelemetry(
-        CPR_RECORD_CREATED,
-        mapOf("PRISON_NUMBER" to targetPrisonNumber, "SOURCE_SYSTEM" to NOMIS.name),
-      )
-      checkTelemetry(
-        CPR_RECORD_MERGED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
-      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
-      checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
-    }
-  }
 
   @Nested
   inner class SuccessfulProcessing {
@@ -125,7 +58,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
     }
 
@@ -155,10 +87,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       targetPerson.personKey?.assertClusterIsOfSize(1)
 
       checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf("PRISON_NUMBER" to targetPrisonNumber, "SOURCE_SYSTEM" to NOMIS.name),
-      )
-      checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
           "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
@@ -166,7 +94,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
     }
 
@@ -187,10 +114,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       targetPerson.personKey?.assertClusterIsOfSize(1)
 
       checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf("PRISON_NUMBER" to targetPrisonNumber, "SOURCE_SYSTEM" to NOMIS.name),
-      )
-      checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
           "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
@@ -198,7 +121,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
     }
 
@@ -229,7 +151,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLog(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         assertThat(eventLogs.first().recordMergedTo).isEqualTo(targetPerson.id)
@@ -289,7 +210,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
     }
 
@@ -325,7 +245,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
     }
   }

@@ -12,7 +12,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
+import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestJob
 import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestRepository
+import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestService
 import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestService.Companion.HOURS_TO_CHOOSE_FROM
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
@@ -23,8 +25,11 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
-private const val GENERATE_MERGE_REQUESTS = "/jobs/service-now/generate-delius-merge-requests"
-class ServiceNowMergeRequestE2ETest : E2ETestBase() {
+class ServiceNowMergeRequestJobE2ETest(
+  @Autowired serviceNowMergeRequestService: ServiceNowMergeRequestService,
+) : E2ETestBase() {
+
+  val serviceNowMergeRequestJob = ServiceNowMergeRequestJob(serviceNowMergeRequestService)
 
   @Value($$"${service-now.sysparm-id}")
   lateinit var sysParmId: String
@@ -156,11 +161,8 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
       .addPerson(person21)
       .addPerson(person22)
 
-    webTestClient.post()
-      .uri(GENERATE_MERGE_REQUESTS)
-      .exchange()
-      .expectStatus()
-      .isOk
+    serviceNowMergeRequestJob.run()
+
     awaitAssert { assertThat(serviceNowMergeRequestRepository.findAll().size).isEqualTo(10) }
     wiremock.verify(10, RequestPatternBuilder.like(serviceNowStub?.request))
   }
@@ -180,18 +182,11 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
     personRepository.updateLastModifiedDate(crn1, tenHoursAgo.plusMinutes(1))
     personRepository.updateLastModifiedDate(crn2, tenHoursAgo.plusMinutes(2))
 
-    webTestClient.post()
-      .uri(GENERATE_MERGE_REQUESTS)
-      .exchange()
-      .expectStatus()
-      .isOk
+    serviceNowMergeRequestJob.run()
+
     awaitAssert { assertThat(serviceNowMergeRequestRepository.existsByPersonUUID(cluster.personUUID!!)).isTrue() }
 
-    webTestClient.post()
-      .uri(GENERATE_MERGE_REQUESTS)
-      .exchange()
-      .expectStatus()
-      .isOk
+    serviceNowMergeRequestJob.run()
 
     val sortedCrns = listOf(person1, person2).sortedBy { it.crn }
     val body = """{
@@ -227,23 +222,17 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
     personRepository.updatePrisonerLastModifiedDate(prisonNumber1, tenHoursAgo.plusMinutes(1))
     personRepository.updatePrisonerLastModifiedDate(prisonNumber2, tenHoursAgo.plusMinutes(2))
 
-    webTestClient.post()
-      .uri(GENERATE_MERGE_REQUESTS)
-      .exchange()
-      .expectStatus()
-      .isOk
+    serviceNowMergeRequestJob.run()
 
     wiremock.verify(0, RequestPatternBuilder.like(serviceNowStub?.request))
   }
 
   @Test
   fun `should ignore merged records`() {
-    val person1 = createPerson(createRandomProbationPersonDetails())
-    val person2 = createPerson(createRandomProbationPersonDetails())
-    createPersonKey()
-      .addPerson(person1)
-    createPersonKey()
-      .addPerson(person2)
+    val person1 = createRandomProbationPersonDetails()
+    val person2 = createRandomProbationPersonDetails()
+    createPersonWithNewKey(person1)
+    createPersonWithNewKey(person2)
 
     val person3 = createRandomProbationPersonDetails()
     val person4 = createRandomProbationPersonDetails()
@@ -261,16 +250,12 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
     )
     val tenHoursAgo = LocalDateTime.now().minusHours(HOURS_TO_CHOOSE_FROM)
 
-    personRepository.updateLastModifiedDate(person1.crn!!, tenHoursAgo.plusMinutes(1))
-    personRepository.updateLastModifiedDate(person2.crn!!, tenHoursAgo.plusMinutes(2))
+    personRepository.updateLastModifiedDate(person1.crn, tenHoursAgo.plusMinutes(1))
+    personRepository.updateLastModifiedDate(person2.crn, tenHoursAgo.plusMinutes(2))
     personRepository.updateLastModifiedDate(person3.crn!!, tenHoursAgo.plusMinutes(2))
     personRepository.updateLastModifiedDate(person4.crn!!, tenHoursAgo.plusMinutes(2))
 
-    webTestClient.post()
-      .uri(GENERATE_MERGE_REQUESTS)
-      .exchange()
-      .expectStatus()
-      .isOk
+    serviceNowMergeRequestJob.run()
 
     awaitAssert { wiremock.verify(1, RequestPatternBuilder.like(serviceNowStub?.request)) }
   }
@@ -296,11 +281,7 @@ class ServiceNowMergeRequestE2ETest : E2ETestBase() {
     personRepository.updateLastModifiedDate(person3.crn!!, tenHoursAgo.plusMinutes(2))
     personRepository.updateLastModifiedDate(person4.crn!!, tenHoursAgo.plusMinutes(2))
 
-    webTestClient.post()
-      .uri(GENERATE_MERGE_REQUESTS)
-      .exchange()
-      .expectStatus()
-      .isOk
+    serviceNowMergeRequestJob.run()
 
     awaitAssert { wiremock.verify(1, RequestPatternBuilder.like(serviceNowStub?.request)) }
   }
