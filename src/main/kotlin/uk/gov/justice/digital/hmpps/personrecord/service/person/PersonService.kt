@@ -32,7 +32,9 @@ class PersonService(
       create(person, childrenToIgnore)
     },
     yes = {
-      update(person, it, childrenToIgnore)
+      val (personEntity, checker) = update(person, it, childrenToIgnore)
+      publisher.publishEvent(PersonUpdated(personEntity, checker))
+      personEntity
     },
   ).also {
     publisher.publishEvent(PersonProcessingCompleted(it))
@@ -47,7 +49,7 @@ class PersonService(
     return personEntity
   }
 
-  private fun update(person: Person, personEntity: PersonEntity, childrenToIgnore: Set<KClass<*>>): PersonEntity {
+  fun update(person: Person, personEntity: PersonEntity, childrenToIgnore: Set<KClass<*>> = emptySet()): Pair<PersonEntity, PersonChangeChecker> {
     val personChangeChecker = PersonChangeChecker(personEntity)
     personEntity.updatePersonEntity(person, childrenToIgnore)
     personRepository.save(personEntity)
@@ -56,8 +58,7 @@ class PersonService(
       personMatchService.saveToPersonMatch(personEntity)
       personEntity.personKey?.let { reclusterService.recluster(personEntity) }
     }
-    publisher.publishEvent(PersonUpdated(personEntity, personChangeChecker))
-    return personEntity
+    return personEntity to personChangeChecker
   }
 
   private fun PersonEntity?.exists(no: () -> PersonEntity, yes: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {

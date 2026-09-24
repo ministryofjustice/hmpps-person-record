@@ -39,6 +39,7 @@ class MergeService(
 
     if (personChangeChecker.matchingFieldsHaveChanged(to) && !to.isPassive()) {
       personMatchService.saveToPersonMatch(to)
+      // TODO: Should we be calling recluster here!?! If so, do it
     }
     publisher.publishEvent(PersonUpdated(to, personChangeChecker))
   }
