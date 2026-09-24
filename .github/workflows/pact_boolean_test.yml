@@ -47,7 +47,6 @@ jobs:
         if: ${{ inputs.pact_consumer_deployment }}
         shell: bash
         run: |
-          set -euo pipefail
           echo "Simulating pact can-i-deploy for ${{ github.event.repository.name }}"
           echo "version=${{ github.sha }}"
           echo "to_environment=${{ inputs.environment }}"
@@ -55,7 +54,6 @@ jobs:
       - name: Simulate deployment
         shell: bash
         run: |
-          set -euo pipefail
           echo "Deployment would run here"
           echo "environment=${{ inputs.environment }}"
 
@@ -63,7 +61,6 @@ jobs:
         if: ${{ inputs.pact_consumer_deployment || inputs.pact_provider_deployment }}
         shell: bash
         run: |
-          set -euo pipefail
           echo "Simulating pact deployment record for ${{ github.event.repository.name }}"
           echo "version=${{ github.sha }}"
           echo "environment=${{ inputs.environment }}"
