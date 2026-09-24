@@ -64,7 +64,7 @@ jobs:
         run: |
           npx --yes --package "@pact-foundation/pact-cli@${PACT_CLI_VERSION}" pact-broker can-i-deploy \
             --pacticipant "${{ github.repository }}" \
-            --app-version "${{ inputs.app_version }}" \
+            --version "${{ inputs.app_version }}" \
             --to-environment "${{ inputs.to_environment }}"
         env:
           PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_URL }}
