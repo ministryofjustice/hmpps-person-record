@@ -19,17 +19,21 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.BUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-class SysconSyncPrisonAddressesContactsAPIControllerIntTest : WebTestBase() {
+class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBase() {
 
   @Nested
   @ActiveProfiles("prod")
@@ -37,13 +41,9 @@ class SysconSyncPrisonAddressesContactsAPIControllerIntTest : WebTestBase() {
 
     @Test
     fun `should have the correct profile active`() {
-      val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
-      val requestBody = validRequestBody()
-
       sendPostRequestAsserted<String>(
-        url = addressesUrl(prisonNumber),
-        body = requestBody,
+        url = addressesUrl(randomPrisonNumber()),
+        body = validRequestBody(),
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.NOT_FOUND,
         sendAuthorised = true,
@@ -57,13 +57,9 @@ class SysconSyncPrisonAddressesContactsAPIControllerIntTest : WebTestBase() {
 
     @Test
     fun `should have the correct profile active`() {
-      val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
-      val requestBody = validRequestBody()
-
       sendPostRequestAsserted<String>(
-        url = addressesUrl(prisonNumber),
-        body = requestBody,
+        url = addressesUrl(randomPrisonNumber()),
+        body = validRequestBody(),
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.NOT_FOUND,
         sendAuthorised = true,
@@ -105,7 +101,7 @@ class SysconSyncPrisonAddressesContactsAPIControllerIntTest : WebTestBase() {
     @Test
     fun `successful save returns the correct response body`() {
       val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
       val requestBody = validRequestBody()
 
       val response = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
@@ -152,6 +148,45 @@ class SysconSyncPrisonAddressesContactsAPIControllerIntTest : WebTestBase() {
         val contactMapping = response.contactMappings.single { contactMatcher(contactRequest, it) }
         assertThat(contactMapping.cprContactId).isEqualTo(matchingContactEntity.updateId.toString())
       }
+    }
+
+    @Test
+    fun `successful save deletes orphaned addresses and its children`() {
+      val prisonNumber = randomPrisonNumber()
+      createPersonWithNewKey(
+        createRandomPrisonPersonDetails(prisonNumber).copy(
+          addresses = listOf(
+            Address(
+              fullAddress = randomFullAddress(),
+              usages = listOf(AddressUsage(addressUsageCode = AddressUsageCode.A01, isActive = true)),
+              contacts = listOf(
+                Contact(contactType = HOME),
+              ),
+            ),
+          ),
+        ),
+      )
+      val person = personRepository.findByPrisonNumber(prisonNumber)!!
+      val addressToBeDeleted = person.addresses[0]
+      val addressUsageToBeDeleted = person.addresses[0].usages[0]
+      val addressContactToBeDeleted = person.addresses[0].contacts[0]
+
+      assertThat(addressToBeDeleted.id).isNotNull()
+      assertThat(addressUsageToBeDeleted.id).isNotNull()
+      assertThat(addressContactToBeDeleted.id).isNotNull()
+
+      sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+        url = addressesUrl(prisonNumber),
+        body = validRequestBody(),
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+        sendAuthorised = true,
+      ).returnResult().responseBody!!
+
+      // Check that we can no longer find the orphaned addresses and its children in the repository
+      assertThat(addressRepository.findById(addressToBeDeleted.id!!)).isEmpty
+      assertThat(contactRepository.findById(addressContactToBeDeleted.id!!)).isEmpty
+      assertThat(addressUsageRepository.findById(addressUsageToBeDeleted.id!!)).isEmpty
     }
   }
 
