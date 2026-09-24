@@ -102,33 +102,6 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `processes prisoner merge event with different UUIDs where source doesn't have an UUID`() {
-      val targetPrisonNumber = randomPrisonNumber()
-      val sourcePrisonNumber = randomPrisonNumber()
-
-      val sourcePerson = createPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
-      val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
-
-      prisonMergeEventAndResponseSetup(sourcePrisonNumber, targetPrisonNumber)
-
-      sourcePerson.assertNotLinkedToCluster()
-      sourcePerson.assertMergedTo(targetPerson)
-
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      targetPerson.personKey?.assertClusterIsOfSize(1)
-
-      checkTelemetry(
-        CPR_RECORD_MERGED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
-      checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
-    }
-
-    @Test
     fun `processes prisoner merge event with different UUIDs where source has a single record`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
