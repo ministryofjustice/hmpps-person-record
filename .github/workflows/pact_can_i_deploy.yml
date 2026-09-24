@@ -62,8 +62,10 @@ jobs:
       - name: Can I deploy?
         shell: bash
         run: |
+          pacticipant="${GITHUB_REPOSITORY#*/}"
+
           npx --yes --package "@pact-foundation/pact-cli@${PACT_CLI_VERSION}" pact-broker can-i-deploy \
-            --pacticipant "${{ github.repository }}" \
+            --pacticipant "$pacticipant" \
             --version "${{ inputs.app_version }}" \
             --to-environment "${{ inputs.to_environment }}"
         env:
