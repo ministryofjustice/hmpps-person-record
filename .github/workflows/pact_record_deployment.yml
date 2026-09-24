@@ -17,9 +17,6 @@ name: Record Pact Broker deployment
 #       HMPPS_PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
 #       HMPPS_PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
 
-env:
-  PACT_CLI_VERSION: '18.1.1'
-
 on:
   workflow_call:
     inputs:
@@ -46,14 +43,11 @@ jobs:
   record_deployment:
     name: Record deployment in Pact Broker
     runs-on: ubuntu-latest
+    container:
+      image: pactfoundation/pact-cli:1.5.0.5
     steps:
-      - name: Use Node.js 24
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 24
-
       - name: Record deployment
-        shell: bash
+        shell: sh
         env:
           INPUT_APP_VERSION: ${{ inputs.app_version }}
           INPUT_ENVIRONMENT: ${{ inputs.environment }}
@@ -61,16 +55,11 @@ jobs:
           PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
         run: |
-          set -euo pipefail
+          set -eu
 
           pacticipant="${GITHUB_REPOSITORY#*/}"
 
-          command=(
-            pact-broker
-            record-deployment
-            --environment "$INPUT_ENVIRONMENT"
-            --pacticipant "$pacticipant"
+          pact-broker record-deployment \
+            --environment "$INPUT_ENVIRONMENT" \
+            --pacticipant "$pacticipant" \
             --version "$INPUT_APP_VERSION"
-          )
-
-          npx --yes --package "@pact-foundation/pact-cli@${PACT_CLI_VERSION}" "${command[@]}"
