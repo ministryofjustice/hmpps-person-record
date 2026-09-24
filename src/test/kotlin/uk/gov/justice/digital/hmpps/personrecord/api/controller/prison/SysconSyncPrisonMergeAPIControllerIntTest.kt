@@ -37,18 +37,20 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
 
-      val sourcePerson = createPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
-      val targetPerson = createPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
       createPersonKey()
-        .addPerson(sourcePerson)
-        .addPerson(targetPerson)
+        .addPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
+        .addPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
       prisonMergeEventAndResponseSetup(sourcePrisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
 
-      sourcePerson.assertNotLinkedToCluster()
-      sourcePerson.assertMergedTo(targetPerson)
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      targetPerson.personKey?.assertClusterIsOfSize(1)
+      awaitAssert {
+        val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)!!
+        val targetPerson = personRepository.findByPrisonNumber(targetPrisonNumber)!!
+        sourcePerson.assertNotLinkedToCluster()
+        sourcePerson.assertMergedTo(targetPerson)
+        targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+        targetPerson.personKey?.assertClusterIsOfSize(1)
+      }
 
       checkTelemetry(
         CPR_RECORD_MERGED,
@@ -66,25 +68,27 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
 
-      val sourcePerson = createPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
       val sourceCluster = createPersonKey()
         .addPerson(Person(prisonNumber = randomPrisonNumber(), sourceSystem = NOMIS))
-        .addPerson(sourcePerson)
+        .addPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
+
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
       prisonMergeEventAndResponseSetup(sourcePrisonNumber, targetPrisonNumber)
+      awaitAssert {
+        val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)!!
+        sourcePerson.assertNotLinkedToCluster()
+        sourcePerson.assertMergedTo(targetPerson)
 
-      sourcePerson.assertNotLinkedToCluster()
-      sourcePerson.assertMergedTo(targetPerson)
+        targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+        targetPerson.personKey?.assertClusterIsOfSize(1)
 
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      targetPerson.personKey?.assertClusterIsOfSize(1)
+        sourceCluster.assertClusterIsOfSize(1)
+        sourceCluster.assertClusterStatus(UUIDStatusType.ACTIVE)
 
-      sourceCluster.assertClusterIsOfSize(1)
-      sourceCluster.assertClusterStatus(UUIDStatusType.ACTIVE)
-
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      targetPerson.personKey?.assertClusterIsOfSize(1)
+        targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+        targetPerson.personKey?.assertClusterIsOfSize(1)
+      }
 
       checkTelemetry(
         CPR_RECORD_MERGED,
