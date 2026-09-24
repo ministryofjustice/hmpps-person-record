@@ -142,7 +142,8 @@ private fun alias(alias: ApiResponseSetupAlias) =
             "lastName": "${alias.lastName ?: ""}",
             "dateOfBirth": "${alias.dateOfBirth ?: ""}",
             "gender": "${alias.gender}",
-            "ethnicity": "White : Irish"
+            "ethnicity": "White : Irish",
+            "identifiers": [${alias.identifiers.joinToString { identifier(it) }}]
           }
   """.trimIndent()
 

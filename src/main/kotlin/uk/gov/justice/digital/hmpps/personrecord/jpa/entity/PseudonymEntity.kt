@@ -83,6 +83,19 @@ class PseudonymEntity(
   @Version
   var version: Int = 0,
 ) {
+
+  fun update(alias: Alias) {
+    updateReferences(alias.references.map { ReferenceEntity.from(it) }.toMutableList())
+  }
+
+  fun updateReferences(references: MutableList<ReferenceEntity>) {
+    this.references.clear()
+    references.forEach { reference ->
+      reference.pseudonym = this
+    }
+    this.references.addAll(references)
+  }
+
   companion object {
     fun primaryNameFrom(person: Person): PseudonymEntity = PseudonymEntity(
       firstName = person.firstName,
@@ -105,7 +118,8 @@ class PseudonymEntity(
           nameType = NameType.ALIAS,
           titleCode = alias.titleCode,
           sexCode = alias.sexCode,
-        )
+          references = alias.references.map { ReferenceEntity.from(it) }.toMutableList(),
+        ).also { it.update(alias) }
       else -> null
     }
 
