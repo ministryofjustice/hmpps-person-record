@@ -83,7 +83,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val unmergedCrn = randomCrn()
 
       val unmergedPerson = createPersonWithNewKey(createRandomProbationPersonDetails(unmergedCrn))
-      val reactivatedPerson = createPerson(createRandomProbationPersonDetails(reactivatedCrn))
+      val reactivatedPerson = createMergedPerson(createRandomProbationPersonDetails(reactivatedCrn), unmergedPerson.id)
 
       probationMergeEventAndResponseSetup(reactivatedCrn, unmergedCrn)
       checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_RECORD_MERGED)
