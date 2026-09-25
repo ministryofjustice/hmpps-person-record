@@ -93,12 +93,12 @@ jobs:
           name: e2e-test-results
           path: |
             build/reports/tests
-  pact_test:
-    name: Run pact Tests
-    uses: ./.github/workflows/pact_provider_verification.yml
-    secrets: inherit
-    with:
-      publishResults: true
+  # pact_test:
+  #   name: Run pact Tests
+  #   uses: ./.github/workflows/pact_provider_verification.yml
+  #   secrets: inherit
+  #   with:
+  #     publishResults: true
   build:
     name: Build docker image from hmpps-github-actions
     if: github.ref == 'refs/heads/main'
@@ -144,8 +144,10 @@ jobs:
       - helm_lint
       - gradle_verify
       - e2e_test
-      - pact_test
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@170627bc8c907cd068085c053acca71c74ce808e
+      # - pact_test
+    # Pact deployment workflow retained here for when Pact is ready:
+    # uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@170627bc8c907cd068085c053acca71c74ce808e
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: 'dev'
@@ -155,7 +157,9 @@ jobs:
     needs:
       - build
       - deploy_dev
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@170627bc8c907cd068085c053acca71c74ce808e
+    # Pact deployment workflow retained here for when Pact is ready:
+    # uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@170627bc8c907cd068085c053acca71c74ce808e
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: 'preprod'
@@ -165,7 +169,9 @@ jobs:
     needs:
       - build
       - deploy_preprod
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@170627bc8c907cd068085c053acca71c74ce808e
+    # Pact deployment workflow retained here for when Pact is ready:
+    # uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@170627bc8c907cd068085c053acca71c74ce808e
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: 'prod'
