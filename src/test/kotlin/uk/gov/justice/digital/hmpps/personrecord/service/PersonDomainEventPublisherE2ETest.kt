@@ -282,8 +282,12 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
       purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
 
       probationUnmergeEventAndResponseSetup(reactivatedCrn = fromCrn, unmergedCrn = toCrn)
+      expectMessagesOn(testOnlyCPRDomainEventsQueue, 3)
 
-      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+      // TODO: remove these once sas don't listen to update events for an unmerge anymore
+      assertThat(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue).messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_UPDATED))
+      assertThat(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue).messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_UPDATED))
+
       val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
       assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_UNMERGED))
       val domainEvent = jsonMapper.readValue<CprPersonUnmerged>(sqsMessage.message)
