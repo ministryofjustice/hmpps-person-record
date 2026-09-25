@@ -31,12 +31,12 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
 
-      val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
       val sourceCluster = createPersonKey()
         .addPerson(createRandomProbationPersonDetails())
-        .addPerson(sourcePerson)
+        .addPerson(createRandomProbationPersonDetails(sourceCrn))
 
       val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails(targetCrn))
+      val sourcePerson = personRepository.findByCrn(sourceCrn)!!
 
       probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
 
