@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepositor
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
@@ -38,10 +39,14 @@ class SysconContactsAndAddressesMigrationHandler(
     prisonNumber: String,
     prisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest,
   ): SysconAddressesAndContactsResponseBody {
-    validateRequest(prisonAddressesAndContactsRequest)
     val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
-    val addressMappings = handleAddressesInsert(prisonAddressesAndContactsRequest.addresses ?: emptyList(), person)
-    val contactMappings = handleContactsInsert(prisonAddressesAndContactsRequest.contacts ?: emptyList(), person)
+    val addressesRequest = prisonAddressesAndContactsRequest.addresses ?: emptyList()
+    val contactsRequest = prisonAddressesAndContactsRequest.contacts ?: emptyList()
+
+    validateRequest(prisonNumber, addressesRequest, contactsRequest)
+
+    val addressMappings = handleAddressesInsert(addressesRequest, person)
+    val contactMappings = handleContactsInsert(contactsRequest, person)
 
     personService.processPerson(
       person = Person.from(person),
@@ -49,6 +54,53 @@ class SysconContactsAndAddressesMigrationHandler(
     ) { person }
 
     return SysconAddressesAndContactsResponseBody(prisonNumber, addressMappings, contactMappings)
+  }
+
+  private fun validateRequest(prisonNumber: String, addressesRequest: List<PrisonAddress>, contactsRequest: List<PrisonContact>) {
+    validateAddresses(prisonNumber, addressesRequest)
+    validateContacts(prisonNumber, personContacts = contactsRequest, addressContacts = addressesRequest.flatMap { it.contacts })
+  }
+
+  private fun validateAddresses(prisonNumber: String, addresses: List<PrisonAddress>) {
+    val addressNomisDuplicateIds = addresses.groupingBy { it.nomisAddressId }.eachCount().filter { it.value > 1 }
+    if (addressNomisDuplicateIds.isNotEmpty()) {
+      throw IllegalArgumentException("Duplicate nomis address ids were detected for $prisonNumber: ${addressNomisDuplicateIds.keys.joinToString()}")
+    }
+    val primaryAddressIds = addresses.filter { it.isPrimary }.map { it.nomisAddressId }
+    if (primaryAddressIds.size != 1) {
+      throw IllegalArgumentException("There must be exactly one primary address for $prisonNumber: ${primaryAddressIds.joinToString()}")
+    }
+    val mailAddressIds = addresses.filter { it.isMail ?: false }.map { it.nomisAddressId }
+    if (mailAddressIds.size != 1) {
+      throw IllegalArgumentException("There must be exactly one mail address for $prisonNumber: ${mailAddressIds.joinToString()}")
+    }
+    addresses.forEach { address ->
+      val addressUsageWithIncorrectIds =
+        address.addressUsage.filter { it.nomisAddressUsageId != address.nomisAddressId }.map { it.nomisAddressUsageId }
+      if (addressUsageWithIncorrectIds.isNotEmpty()) {
+        throw IllegalArgumentException("Incorrect nomis address usage ids were detected for $prisonNumber, ${address.nomisAddressId}: ${addressUsageWithIncorrectIds.joinToString()}")
+      }
+      val addressUsageDuplicateCodes = address.addressUsage.groupingBy { it.addressUsageCode }.eachCount().filter { it.value > 1 }
+      if (addressUsageDuplicateCodes.isNotEmpty()) {
+        throw IllegalArgumentException("Duplicate nomis address usage codes were detected for $prisonNumber, ${address.nomisAddressId}: ${addressUsageDuplicateCodes.keys.joinToString()}")
+      }
+    }
+  }
+
+  private fun validateContacts(prisonNumber: String, personContacts: List<PrisonContact>, addressContacts: List<PrisonContact>) {
+    val emailAddressContactIds = addressContacts.filter { it.type == ContactType.EMAIL }
+    if (emailAddressContactIds.isNotEmpty()) {
+      throw IllegalArgumentException("Email address contacts detected for: $prisonNumber, ${emailAddressContactIds.map { it.nomisContactId }.joinToString()}")
+    }
+    val (emailContactIds, phoneContacts) = (personContacts + addressContacts).partition { it.type == ContactType.EMAIL }
+    val emailContactNomisDuplicateIds = emailContactIds.groupingBy { it.nomisContactId }.eachCount().filter { it.value > 1 }
+    if (emailContactNomisDuplicateIds.isNotEmpty()) {
+      throw IllegalArgumentException("Duplicate nomis email contact ids were detected for $prisonNumber: ${emailContactNomisDuplicateIds.keys.joinToString()}")
+    }
+    val phoneContactNomisDuplicateIds = phoneContacts.groupingBy { it.nomisContactId }.eachCount().filter { it.value > 1 }
+    if (phoneContactNomisDuplicateIds.isNotEmpty()) {
+      throw IllegalArgumentException("Duplicate nomis phone contact ids were detected for $prisonNumber: ${phoneContactNomisDuplicateIds.keys.joinToString()}")
+    }
   }
 
   private fun handleContactsInsert(contacts: List<PrisonContact>, personEntity: PersonEntity): List<SysconContactMapping> {
@@ -78,19 +130,6 @@ class SysconContactsAndAddressesMigrationHandler(
       )
     }
     return mappings
-  }
-
-  private fun validateAddresses(addresses: List<PrisonAddress>?) {
-    // TODO
-  }
-
-  private fun validateContacts(contacts: List<PrisonContact>?) {
-    // TODO
-  }
-
-  private fun validateRequest(prisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest) {
-    validateAddresses(prisonAddressesAndContactsRequest.addresses)
-    validateContacts(prisonAddressesAndContactsRequest.contacts)
   }
 
   private fun PrisonContact.toEntity(addressEntity: AddressEntity) = ContactEntity(
