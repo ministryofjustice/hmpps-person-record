@@ -116,17 +116,21 @@ val pactProbationTest = registerPactVerificationTask(
   description = "Run Pact provider verification for probation contracts",
   testClass = "uk.gov.justice.digital.hmpps.personrecord.pacttest.ProbationProviderPactTest",
   consumer = "probation-test-consumer",
-)
+).apply {
+  configure { enabled = true }
+}
 
 val pactCourtDataIngestionTest = registerPactVerificationTask(
   name = "pactCourtDataIngestionTest",
   description = "Run Pact provider verification for court data ingestion contracts",
   testClass = "uk.gov.justice.digital.hmpps.personrecord.pacttest.CourtDataIngestionProviderPactTest",
   consumer = "hmpps-court-data-ingestion-api",
-)
+).apply {
+  configure { enabled = true }
+}
 
 tasks.register("pactTest") {
-  enabled = false
+  enabled = true
   description = "Run and publish all Pact provider tests"
   group = "verification"
   dependsOn(pactProbationTest, pactCourtDataIngestionTest)
