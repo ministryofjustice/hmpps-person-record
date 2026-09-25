@@ -119,15 +119,15 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
       val sourcePerson = createRandomProbationPersonDetails(sourceCrn)
-      val sourcePersonEntity = createPerson(sourcePerson)
-      val targetPersonDetails = createRandomProbationCase(targetCrn)
-      val targetPersonEntity = createPerson(
-        Person.from(targetPersonDetails),
-      )
-      createPersonKey()
-        .addPerson(sourcePersonEntity)
-        .addPerson(targetPersonEntity)
 
+      val targetPersonDetails = createRandomProbationCase(targetCrn)
+
+      createPersonKey()
+        .addPerson(sourcePerson)
+        .addPerson(Person.from(targetPersonDetails))
+
+      val sourcePersonEntity = personRepository.findByCrn(sourceCrn)!!
+      val targetPersonEntity = personRepository.findByCrn(targetCrn)!!
       // stubs for failed delete
       val response = ApiResponseSetup.from(targetPersonDetails)
       stubSingleProbationResponse(response)
@@ -144,12 +144,12 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `should not throw error if person match returns a 404 on delete`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
-      val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
-      val targetPerson = createPerson(createRandomProbationPersonDetails(targetCrn))
       createPersonKey()
-        .addPerson(sourcePerson)
-        .addPerson(targetPerson)
+        .addPerson(createRandomProbationPersonDetails(sourceCrn))
+        .addPerson(createRandomProbationPersonDetails(targetCrn))
 
+      val sourcePerson = personRepository.findByCrn(sourceCrn)!!
+      val targetPerson = personRepository.findByCrn(targetCrn)!!
       stubDeletePersonMatch(status = 404)
       stubPersonMatchUpsert()
       probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
