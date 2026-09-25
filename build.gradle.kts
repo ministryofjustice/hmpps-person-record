@@ -1,5 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
+import org.gradle.api.GradleException
+
 kotlin {
   jvmToolchain(25)
 }
@@ -98,6 +100,7 @@ fun registerPactVerificationTask(
   systemProperty("pactbroker.auth.password", System.getenv("PACT_BROKER_PASSWORD") ?: "")
 
   val consumerBranch = System.getenv("PACT_CONSUMER_BRANCH")?.takeIf { it.isNotBlank() }
+  val requestedConsumerName = System.getenv("PACT_CONSUMER_NAME")?.takeIf { it.isNotBlank() }
   val selectors = if (consumerBranch != null) {
     """[{"consumer":"$consumer","branch":"$consumerBranch"}]"""
   } else {
@@ -109,6 +112,12 @@ fun registerPactVerificationTask(
   systemProperty("pact.provider.branch", System.getenv("GITHUB_BRANCH") ?: "local")
   systemProperty("pactbroker.providerBranch", System.getenv("GITHUB_BRANCH") ?: "local")
   systemProperty("pact.verifier.publishResults", System.getenv("PACT_PUBLISH_RESULTS") ?: "false")
+
+  doFirst {
+    if (consumerBranch != null && requestedConsumerName == null) {
+      throw GradleException("PACT_CONSUMER_NAME must be set when PACT_CONSUMER_BRANCH is provided so only the matching Pact consumer verification runs.")
+    }
+  }
 }
 
 val pactProbationTest = registerPactVerificationTask(
@@ -129,11 +138,31 @@ val pactCourtDataIngestionTest = registerPactVerificationTask(
   configure { enabled = true }
 }
 
+val pactVerificationTasksByConsumer = mapOf(
+  "probation-test-consumer" to pactProbationTest,
+  "hmpps-court-data-ingestion-api" to pactCourtDataIngestionTest,
+)
+
 tasks.register("pactTest") {
   enabled = true
   description = "Run and publish all Pact provider tests"
   group = "verification"
-  dependsOn(pactProbationTest, pactCourtDataIngestionTest)
+
+  val requestedConsumerName = System.getenv("PACT_CONSUMER_NAME")?.takeIf { it.isNotBlank() }
+  val selectedPactTasks = when {
+    requestedConsumerName == null -> pactVerificationTasksByConsumer.values
+    requestedConsumerName in pactVerificationTasksByConsumer -> listOf(pactVerificationTasksByConsumer.getValue(requestedConsumerName))
+    else -> emptyList()
+  }
+  dependsOn(selectedPactTasks)
+
+  doFirst {
+    if (requestedConsumerName != null && requestedConsumerName !in pactVerificationTasksByConsumer) {
+      throw GradleException(
+        "Unknown PACT_CONSUMER_NAME '$requestedConsumerName'. Expected one of: ${pactVerificationTasksByConsumer.keys.sorted().joinToString(", ")}",
+      )
+    }
+  }
 }
 
 tasks {

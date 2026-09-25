@@ -4,6 +4,10 @@ run-name: Pact verify - ${{ github.ref_name || 'manual' }}
 on:
   workflow_dispatch:
     inputs:
+      consumerName:
+        required: false
+        description: Consumer name from broker webhook payload
+        type: string
       consumerBranch:
         required: false
         description: Consumer branch from broker webhook payload
@@ -19,6 +23,10 @@ on:
         type: string
   workflow_call:
     inputs:
+      consumerName:
+        required: false
+        description: Consumer name from broker webhook payload
+        type: string
       consumerBranch:
         required: false
         description: Consumer branch from broker webhook payload
@@ -71,6 +79,7 @@ jobs:
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
           PACT_PROVIDER_VERSION: ${{ inputs.providerVersion || github.sha }}
           GITHUB_BRANCH: ${{ github.ref_name }}
+          PACT_CONSUMER_NAME: ${{ inputs.consumerName }}
           PACT_CONSUMER_BRANCH: ${{ inputs.consumerBranch }}
 
       - name: Upload the test artifacts
