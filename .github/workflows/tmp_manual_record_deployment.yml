@@ -1,0 +1,17 @@
+name: TEMP - Manual record deployment
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        required: true
+        type: string
+      app_version:
+        required: true
+        type: string
+jobs:
+  record_deployment:
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_record_deployment.yml@v2
+    secrets: inherit
+    with:
+      environment: ${{ inputs.environment }}
+      app_version: ${{ inputs.app_version }}
