@@ -13,13 +13,32 @@ on:
         description: Publish verification results to broker
         type: boolean
         default: true
+      providerVersion:
+        required: false
+        description: Override the pacticipant version to publish/verify against (defaults to the git commit SHA)
+        type: string
+  workflow_call:
+    inputs:
+      consumerBranch:
+        required: false
+        description: Consumer branch from broker webhook payload
+        type: string
+      publishResults:
+        required: false
+        description: Publish verification results to broker
+        type: boolean
+        default: true
+      providerVersion:
+        required: false
+        description: Override the pacticipant version to publish/verify against (defaults to the git commit SHA)
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: pact-provider-verification-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   pact-verify:
@@ -50,6 +69,14 @@ jobs:
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
           PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
-          GITHUB_SHA: ${{ github.sha }}
+          PACT_PROVIDER_VERSION: ${{ inputs.providerVersion || github.sha }}
           GITHUB_BRANCH: ${{ github.ref_name }}
           PACT_CONSUMER_BRANCH: ${{ inputs.consumerBranch }}
+
+      - name: Upload the test artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: pact-test-results
+          path: |
+            build/reports/tests
