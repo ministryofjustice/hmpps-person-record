@@ -76,5 +76,4 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
     usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
     contacts = listOf(Contact(randomContactType(), randomPhoneNumber(), "+44")),
   )
-
 }

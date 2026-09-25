@@ -1,29 +1,27 @@
 package uk.gov.justice.digital.hmpps.personrecord.pacttest
 
 import au.com.dius.pact.provider.junitsupport.State
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
 class CourtDataIngestionProviderPactTest : AbstractProviderPactTests() {
   @State("A person exists for the requested common platform Id")
-  fun aPersonExistsForTheRequestedCommonPlatformId(): Map<String, String> {
-    createCourtDataIngestionPerson()
-    return mapOf("defendantId" to COMMON_PLATFORM_ID)
-  }
+  fun aPersonExistsForTheRequestedCommonPlatformId(): Map<String, String> = createCourtDataIngestionPerson()
 
   @State("A person exists for the requested prisoner number")
-  fun aPersonExistsForTheRequestedPrisonerNumber(): Map<String, String> {
-    createCourtDataIngestionPerson()
-    return mapOf("prisonerNumber" to PRISON_NUMBER)
-  }
+  fun aPersonExistsForTheRequestedPrisonerNumber(): Map<String, String> = createCourtDataIngestionPerson()
 
-  private fun createCourtDataIngestionPerson() {
-    deleteAllPersonData()
+  private fun createCourtDataIngestionPerson(): Map<String, String> {
+    val defendantId = randomDefendantId()
+    val prisonerNumber = randomPrisonNumber()
+
     createPersonKey()
-      .addPerson(createRandomCommonPlatformPersonDetails(COMMON_PLATFORM_ID))
-      .addPerson(createRandomPrisonPersonDetails(PRISON_NUMBER))
-  }
+      .addPerson(createRandomCommonPlatformPersonDetails(defendantId))
+      .addPerson(createRandomPrisonPersonDetails(prisonerNumber))
 
-  private companion object {
-    const val COMMON_PLATFORM_ID = "08d5d16c-de97-49f1-a10b-fdf6d1986843"
-    const val PRISON_NUMBER = "OFF900"
+    return mapOf(
+      "defendantId" to defendantId,
+      "prisonerNumber" to prisonerNumber,
+    )
   }
 }
