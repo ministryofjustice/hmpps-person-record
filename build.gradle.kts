@@ -4,7 +4,7 @@ kotlin {
   jvmToolchain(25)
 }
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.9"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.10"
   kotlin("plugin.spring") version "2.4.10"
   kotlin("jvm") version "2.4.10"
   kotlin("plugin.jpa") version "2.4.10"
@@ -122,9 +122,6 @@ tasks.named<Test>("pactTest") {
       ?: System.getenv("PACT_BROKER_URL")
       ?: "https://pact-broker-prod.apps.live-1.cloud-platform.service.justice.gov.uk",
   )
-//  systemProperty("pactbroker.host", System.getProperty("pactbroker.host") ?: System.getenv("PACT_BROKER_HOST") ?: "")
-//  systemProperty("pactbroker.port", System.getProperty("pactbroker.port") ?: System.getenv("PACT_BROKER_PORT") ?: "")
-//  systemProperty("pactbroker.scheme", System.getProperty("pactbroker.scheme") ?: System.getenv("PACT_BROKER_SCHEME") ?: "")
   systemProperty("pactbroker.auth.username", System.getenv("PACT_BROKER_USERNAME") ?: "")
   systemProperty("pactbroker.auth.password", System.getenv("PACT_BROKER_PASSWORD") ?: "")
 

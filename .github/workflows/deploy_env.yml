@@ -16,13 +16,6 @@ on:
         default: "false"
         required: false
         type: string
-    secrets:
-      PLANDEK_CLIENT_KEY:
-        required: true
-      PLANDEK_TOKEN:
-        required: true
-      PLANDEK_DEPLOYMENT_URL:
-        required: true
 
 permissions:
   contents: read
@@ -30,33 +23,18 @@ permissions:
 jobs:
   deploy:
     name: Deploy to ${{ inputs.environment }}
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@c2ac370de9ff892e0a7fdd27e9fb075258ab18f2 # v2.22.0
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@7fb82c71087c04bf9416cf8e91902bde045c878c # v2.22.2
     secrets: inherit
     with:
       environment: ${{ inputs.environment }}
       app_version: ${{ inputs.app_version }}
       slack_notification: ${{ inputs.slack_notification }}
-
-  publish_deployment_metrics:
-    name: Publish deployment metrics to Plandek
-    if: always()
-    runs-on: ubuntu-latest
+  record_deployment:
+    name: Record deployment
     needs:
       - deploy
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Publish deployment metrics
-        uses: ./.github/actions/plandek_deployment
-        with:
-          plandek_client_key: ${{ secrets.PLANDEK_CLIENT_KEY }}
-          plandek_token: ${{ secrets.PLANDEK_TOKEN }}
-          plandek_deployment_url: ${{ secrets.PLANDEK_DEPLOYMENT_URL }}
-          app_version: ${{ inputs.app_version }}
-          repository_name: ${{ github.repository }}
-          deployment_status: ${{ needs.deploy.result }}
-          commit_sha: ${{ github.sha }}
-          build_number: ${{ inputs.app_version }}
-          environment_name: ${{ inputs.environment }}
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_record_deployment.yml@v2 # WORKFLOW_VERSION
+    secrets: inherit
+    with:
+      environment: ${{ inputs.environment }}
+      app_version: ${{ inputs.app_version }}
