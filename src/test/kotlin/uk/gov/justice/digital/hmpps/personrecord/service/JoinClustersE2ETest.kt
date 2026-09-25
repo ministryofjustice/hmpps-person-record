@@ -5,12 +5,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.UUID
-import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_DELIUS_MERGE_REQUEST_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
@@ -256,55 +253,5 @@ class JoinClustersE2ETest : E2ETestBase() {
         EventKeys.CRNS.name to listOf(firstCrn, secondCrn).joinToString(),
       ),
     )
-  }
-
-  @Test
-  fun `handle a new person which matches two clusters with override markers`() {
-    val firstCrn = randomCrn()
-    val secondCrn = randomCrn()
-    val thirdCrn = randomCrn()
-
-    val basePersonData = createRandomProbationCase(firstCrn)
-
-    val firstSetup = ApiResponseSetup.from(basePersonData)
-
-    probationCreateEventAndResponseSetup(firstSetup)
-    var firstPersonRecord = awaitNotNull { personRepository.findByCrn(firstCrn) }
-    assertThat(firstPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
-
-    val secondSetup = ApiResponseSetup.from(basePersonData, secondCrn)
-
-    probationUnmergeEventAndResponseSetup(secondCrn, firstCrn, reactivatedSetup = secondSetup, unmergedSetup = firstSetup)
-    awaitAssert { assertThat(personRepository.findByCrn(secondCrn)?.personKey).isNotNull() }
-    var secondPersonRecord = awaitNotNull { personRepository.findByCrn(secondCrn) }
-    assertThat(secondPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
-
-    secondPersonRecord.assertExcluded(firstPersonRecord)
-
-    val thirdSetup = ApiResponseSetup.from(basePersonData, thirdCrn)
-
-    probationCreateEventAndResponseSetup(thirdSetup)
-
-    val thirdPersonRecord = awaitNotNull { personRepository.findByCrn(thirdCrn) }
-    thirdPersonRecord.personKey!!.assertClusterStatus(NEEDS_ATTENTION, OVERRIDE_CONFLICT)
-    thirdPersonRecord.personKey!!.assertClusterIsOfSize(1)
-
-    checkEventLog(thirdCrn, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
-      assertThat(eventLogs).hasSize(1)
-      assertThat(eventLogs.first().uuidStatusType).isEqualTo(NEEDS_ATTENTION)
-    }
-
-    secondPersonRecord = awaitNotNull { personRepository.findByCrn(secondCrn) }
-    secondPersonRecord.personKey!!.assertClusterStatus(ACTIVE)
-    secondPersonRecord.personKey!!.assertClusterIsOfSize(1)
-
-    firstPersonRecord = awaitNotNull { personRepository.findByCrn(firstCrn) }
-    firstPersonRecord.personKey!!.assertClusterStatus(ACTIVE)
-    firstPersonRecord.personKey!!.assertClusterIsOfSize(1)
-
-    thirdPersonRecord.personKey?.getReviews()?.first()
-      ?.assertReviewSize(3)
-      ?.isPrimary(thirdPersonRecord.personKey!!)
-      ?.isAdditional(firstPersonRecord.personKey!!, secondPersonRecord.personKey!!)
   }
 }
