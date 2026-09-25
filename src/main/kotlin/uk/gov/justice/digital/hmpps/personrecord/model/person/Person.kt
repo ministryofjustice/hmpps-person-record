@@ -62,7 +62,6 @@ data class Person(
   val immigrationStatus: Boolean? = null,
   val birthplace: String? = null,
   val birthCountryCode: CountryCode? = null,
-  val behaviour: Behaviour = Behaviour(),
 ) {
 
   companion object {
@@ -252,11 +251,6 @@ data class Person(
     )
   }
 
-  fun doNotLinkOnCreate(): Person {
-    this.behaviour.linkOnCreate = false
-    return this
-  }
-
   fun isPerson(): Boolean = minimumDataIsPresent()
 
   private fun minimumDataIsPresent(): Boolean = lastNameIsPresent() && anyOtherPersonalDataIsPresent()
@@ -265,7 +259,3 @@ data class Person(
 
   private fun lastNameIsPresent() = lastName?.isNotEmpty() == true
 }
-
-data class Behaviour(
-  var linkOnCreate: Boolean = true,
-)
