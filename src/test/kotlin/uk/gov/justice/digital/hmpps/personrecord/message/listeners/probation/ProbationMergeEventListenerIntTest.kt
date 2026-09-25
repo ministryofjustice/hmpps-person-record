@@ -128,15 +128,16 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stub5xxResponse(probationUrl(targetCrn), "next request will succeed", "retry")
       stubPersonMatchUpsert()
       stubDeletePersonMatch()
-      val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
-      val targetPerson = createPerson(createRandomProbationPersonDetails(targetCrn))
+
       createPersonKey()
-        .addPerson(sourcePerson)
-        .addPerson(targetPerson)
+        .addPerson(createRandomProbationPersonDetails(sourceCrn))
+        .addPerson(createRandomProbationPersonDetails(targetCrn))
 
       probationMergeEventAndResponseSetup(sourceCrn, targetCrn, scenario = "retry", currentScenarioState = "next request will succeed")
 
       expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
+      val sourcePerson = personRepository.findByCrn(sourceCrn)!!
+      val targetPerson = personRepository.findByCrn(targetCrn)!!
       sourcePerson.assertMergedTo(targetPerson)
     }
 
