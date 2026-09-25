@@ -67,12 +67,12 @@ class SysconContactsAndAddressesMigrationHandler(
       throw IllegalArgumentException("Duplicate nomis address ids were detected for $prisonNumber: ${addressNomisDuplicateIds.keys.joinToString()}")
     }
     val primaryAddressIds = addresses.filter { it.isPrimary }.map { it.nomisAddressId }
-    if (primaryAddressIds.size != 1) {
-      throw IllegalArgumentException("There must be exactly one primary address for $prisonNumber: ${primaryAddressIds.joinToString()}")
+    if (primaryAddressIds.size > 1) {
+      throw IllegalArgumentException("There cannot be more than one primary address for $prisonNumber: ${primaryAddressIds.joinToString()}")
     }
     val mailAddressIds = addresses.filter { it.isMail ?: false }.map { it.nomisAddressId }
-    if (mailAddressIds.size != 1) {
-      throw IllegalArgumentException("There must be exactly one mail address for $prisonNumber: ${mailAddressIds.joinToString()}")
+    if (mailAddressIds.size > 1) {
+      throw IllegalArgumentException("There cannot be more than one mail address for $prisonNumber: ${mailAddressIds.joinToString()}")
     }
     addresses.forEach { address ->
       val addressUsageWithIncorrectIds =
