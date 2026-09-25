@@ -351,6 +351,36 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       assertThat(contactRepository.findById(addressContactToBeDeleted.id!!)).isEmpty
       assertThat(addressUsageRepository.findById(addressUsageToBeDeleted.id!!)).isEmpty
     }
+
+    @Test
+    fun `successful save deletes orphaned contacts`() {
+      val prisonNumber = randomPrisonNumber()
+      createPersonWithNewKey(
+        createRandomPrisonPersonDetails(prisonNumber).copy(
+          contacts = listOf(
+            Contact(
+              contactType = HOME,
+              contactValue = "01234567890",
+            ),
+          ),
+        ),
+      )
+      val person = personRepository.findByPrisonNumber(prisonNumber)!!
+      val contactToBeDeleted = person.contacts[0]
+
+      assertThat(contactToBeDeleted.id).isNotNull()
+
+      sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+        url = addressesUrl(prisonNumber),
+        body = validRequestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+        sendAuthorised = true,
+      ).returnResult().responseBody!!
+
+      // Check that we can no longer find the orphaned contact in the repository
+      assertThat(contactRepository.findById(contactToBeDeleted.id!!)).isEmpty
+    }
   }
 
   private fun addressesUrl(prisonNumber: String) = "/syscon-sync/addresses-contacts/$prisonNumber"
