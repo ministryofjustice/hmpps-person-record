@@ -120,11 +120,11 @@ fun registerPactVerificationTask(
   }
 }
 
-val pactProbationTest = registerPactVerificationTask(
-  name = "pactProbationTest",
-  description = "Run Pact provider verification for probation contracts",
+val pactSingleAccommodationServiceTest = registerPactVerificationTask(
+  name = "pactSingleAccommodationServiceTest",
+  description = "Run Pact provider verification for single accommodation service contracts",
   testClass = "uk.gov.justice.digital.hmpps.personrecord.pacttest.ProbationProviderPactTest",
-  consumer = "probation-test-consumer",
+  consumer = "hmpps-single-accommodation-service-api",
 ).apply {
   configure { enabled = true }
 }
@@ -139,7 +139,7 @@ val pactCourtDataIngestionTest = registerPactVerificationTask(
 }
 
 val pactVerificationTasksByConsumer = mapOf(
-  "probation-test-consumer" to pactProbationTest,
+  "hmpps-single-accommodation-service-api" to pactSingleAccommodationServiceTest,
   "hmpps-court-data-ingestion-api" to pactCourtDataIngestionTest,
 )
 
