@@ -32,8 +32,8 @@ class PersonService(
       create(person, childrenToIgnore)
     },
     yes = {
-      val (personEntity, checker) = update(person, it, childrenToIgnore)
-      publisher.publishEvent(PersonUpdated(personEntity, checker))
+      val (personEntity, personChangeChecker) = update(person, it, childrenToIgnore)
+      publisher.publishEvent(PersonUpdated(personEntity, personChangeChecker))
       personEntity
     },
   ).also {
@@ -54,7 +54,7 @@ class PersonService(
     personEntity.updatePersonEntity(person, childrenToIgnore)
     personRepository.save(personEntity)
 
-    if (personChangeChecker.matchingFieldsHaveChanged(personEntity) && !personEntity.isPassive()) {
+    if (personChangeChecker.shouldSaveToPersonMatch(personEntity)) {
       personMatchService.saveToPersonMatch(personEntity)
       personEntity.personKey?.let { reclusterService.recluster(personEntity) }
     }

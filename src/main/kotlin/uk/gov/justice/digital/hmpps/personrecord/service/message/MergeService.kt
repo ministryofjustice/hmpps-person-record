@@ -37,7 +37,7 @@ class MergeService(
     to.updatePersonEntity(person)
     personRepository.save(to)
 
-    if (personChangeChecker.matchingFieldsHaveChanged(to) && !to.isPassive()) {
+    if (personChangeChecker.shouldSaveToPersonMatch(to)) {
       personMatchService.saveToPersonMatch(to)
       // TODO: Should we be calling recluster here!?! If so, do it
     }
