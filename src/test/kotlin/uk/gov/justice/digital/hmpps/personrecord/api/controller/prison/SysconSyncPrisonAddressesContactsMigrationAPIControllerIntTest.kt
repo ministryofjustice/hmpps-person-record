@@ -43,7 +43,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
     fun `should have the correct profile active`() {
       sendPostRequestAsserted<String>(
         url = addressesUrl(randomPrisonNumber()),
-        body = validRequestBody(),
+        body = validRequestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.NOT_FOUND,
         sendAuthorised = true,
@@ -59,7 +59,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
     fun `should have the correct profile active`() {
       sendPostRequestAsserted<String>(
         url = addressesUrl(randomPrisonNumber()),
-        body = validRequestBody(),
+        body = validRequestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.NOT_FOUND,
         sendAuthorised = true,
@@ -69,7 +69,171 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
 
   @Nested
   inner class Validation {
-    // TODO
+
+    private fun badRequest(badRequest: PrisonAddressesAndContactsRequest): String {
+      val prisonNumber = randomPrisonNumber()
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+      return sendPostRequestAsserted<String>(
+        url = addressesUrl(prisonNumber),
+        body = badRequest,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.BAD_REQUEST,
+        sendAuthorised = true,
+      ).returnResult().responseBody!!
+    }
+
+    @Test
+    fun `should return bad request when there are duplicate nomis ids on the addresses`() {
+      val duplicateAddressIdsOnRequestBody = validRequestBody.copy(addresses = validRequestBody.addresses!!.map { it.copy(nomisAddressId = 10000L) })
+      assertThat(badRequest(duplicateAddressIdsOnRequestBody)).contains("Duplicate nomis address ids were detected")
+    }
+
+    @Test
+    fun `should return bad request when there are multiple primary addresses`() {
+      val multiplePrimaryAddressesRequestBody = validRequestBody.copy(addresses = validRequestBody.addresses!!.map { it.copy(isPrimary = true) })
+      assertThat(badRequest(multiplePrimaryAddressesRequestBody)).contains("There cannot be more than one primary address for")
+    }
+
+    @Test
+    fun `should return bad request when there are multiple mail addresses`() {
+      val multipleMailAddressesRequestBody = validRequestBody.copy(addresses = validRequestBody.addresses!!.map { it.copy(isMail = true) })
+      assertThat(badRequest(multipleMailAddressesRequestBody)).contains("There cannot be more than one mail address for")
+    }
+
+    @Test
+    fun `should return bad request when the is an address usage which does not match its parent address id`() {
+      val nomisAddressId = 20000L
+      val addressUsageDoesNotMatchAddressRequestBody = validRequestBody.copy(
+        addresses = listOf(
+          PrisonAddress(
+            nomisAddressId = nomisAddressId,
+            createUserId = "createUserId",
+            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+            isPrimary = true,
+            addressUsage = listOf(
+              PrisonAddressUsage(
+                nomisAddressUsageId = nomisAddressId + 1, // Does not match
+                addressUsageCode = AddressUsageCode.A01,
+                isActive = false,
+                createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+                createUserId = "createUserId",
+              ),
+            ),
+          ),
+        ),
+      )
+      assertThat(badRequest(addressUsageDoesNotMatchAddressRequestBody)).contains("Incorrect nomis address usage ids were detected for")
+    }
+
+    @Test
+    fun `should return bad request when the is are address usage duplicate codes`() {
+      val multipleDuplicateAddressUsageCodesRequestBody =
+        validRequestBody.copy(
+          addresses = listOf(
+            PrisonAddress(
+              nomisAddressId = 20000L,
+              createUserId = "createUserId",
+              createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+              isPrimary = true,
+              addressUsage = listOf(
+                PrisonAddressUsage(
+                  nomisAddressUsageId = 20000L,
+                  addressUsageCode = AddressUsageCode.A01,
+                  isActive = false,
+                  createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+                  createUserId = "createUserId",
+                ),
+                PrisonAddressUsage(
+                  nomisAddressUsageId = 20000L,
+                  addressUsageCode = AddressUsageCode.A01,
+                  isActive = false,
+                  createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+                  createUserId = "createUserId",
+                ),
+
+              ),
+            ),
+          ),
+        )
+      assertThat(badRequest(multipleDuplicateAddressUsageCodesRequestBody)).contains("Duplicate nomis address usage codes were detected for")
+    }
+
+    @Test
+    fun `should return bad request when there is an email contact on an address`() {
+      val emailContactOnAddressRequestBody = validRequestBody.copy(
+        addresses = listOf(
+          PrisonAddress(
+            nomisAddressId = 20000L,
+            createUserId = "createUserId",
+            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+            isPrimary = true,
+            contacts = listOf(
+              PrisonContact(
+                nomisContactId = 30000L,
+                type = ContactType.EMAIL,
+                createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+                createUserId = "createUserId",
+              ),
+            ),
+          ),
+        ),
+      )
+      assertThat(badRequest(emailContactOnAddressRequestBody)).contains("Email address contacts detected for")
+    }
+
+    @Test
+    fun `should return bad request when there are email contacts with the same nomis id`() {
+      val duplicateEmailContactId = 20000L
+      val duplicateEmailContactIdsRequestBody = validRequestBody.copy(
+        contacts = listOf(
+          PrisonContact(
+            nomisContactId = duplicateEmailContactId,
+            type = ContactType.EMAIL,
+            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+            createUserId = "createUserId",
+          ),
+          PrisonContact(
+            nomisContactId = duplicateEmailContactId,
+            type = ContactType.EMAIL,
+            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+            createUserId = "createUserId",
+          ),
+        ),
+      )
+      assertThat(badRequest(duplicateEmailContactIdsRequestBody)).contains("Duplicate nomis email contact ids were detected for")
+    }
+
+    @Test
+    fun `should return bad request when there are phone contacts with the same nomis id`() {
+      val duplicatePhoneContactId = 20000L
+      val duplicatePhoneContactIdsRequestBody = validRequestBody.copy(
+        addresses = listOf(
+          PrisonAddress(
+            nomisAddressId = 10000L,
+            isPrimary = true,
+            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+            createUserId = "createUserId",
+            contacts = listOf(
+              PrisonContact(
+                nomisContactId = duplicatePhoneContactId,
+                type = BUS,
+                createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+                createUserId = "createUserId",
+              ),
+            ),
+          ),
+        ),
+        contacts = listOf(
+          PrisonContact(
+            nomisContactId = duplicatePhoneContactId,
+            type = HOME,
+            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+            createUserId = "createUserId",
+          ),
+        ),
+      )
+      assertThat(badRequest(duplicatePhoneContactIdsRequestBody)).contains("Duplicate nomis phone contact ids were detected for")
+    }
   }
 
   @Nested
@@ -79,7 +243,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
     fun `should return Access Denied 403 when role is wrong`() {
       sendPostRequestAsserted<String>(
         url = addressesUrl(randomPrisonNumber()),
-        body = validRequestBody(),
+        body = validRequestBody,
         roles = listOf("UNSUPPORTED-ROLE"),
         expectedStatus = HttpStatus.FORBIDDEN,
       ).returnResult().responseBody!!
@@ -102,11 +266,10 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
     fun `successful save returns the correct response body`() {
       val prisonNumber = randomPrisonNumber()
       createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-      val requestBody = validRequestBody()
 
       val response = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
         url = addressesUrl(prisonNumber),
-        body = requestBody,
+        body = validRequestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.CREATED,
         sendAuthorised = true,
@@ -115,7 +278,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
 
       // Addresses
-      for (addressRequest in requestBody.addresses!!) {
+      for (addressRequest in validRequestBody.addresses!!) {
         // Because ordering is not guaranteed, we need to find the matching address entity for each request
         val matchingAddressEntity = personEntity.addresses.single { addressMatcher(addressRequest, it) }
         assertAddressMatches(addressRequest, matchingAddressEntity)
@@ -141,7 +304,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       }
 
       // Contacts
-      for (contactRequest in requestBody.contacts!!) {
+      for (contactRequest in validRequestBody.contacts!!) {
         // Because ordering is not guaranteed, we need to find the matching contact entity for each request
         val matchingContactEntity = personEntity.contacts.single { contactMatcher(contactRequest, it) }
         assertContactMatches(contactRequest, matchingContactEntity)
@@ -177,7 +340,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
 
       sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
         url = addressesUrl(prisonNumber),
-        body = validRequestBody(),
+        body = validRequestBody,
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.CREATED,
         sendAuthorised = true,
@@ -233,7 +396,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
     assertThat(extension).isEqualTo(request.extension)
   }
 
-  private fun validRequestBody() = PrisonAddressesAndContactsRequest(
+  private val validRequestBody = PrisonAddressesAndContactsRequest(
     addresses = listOf(
       PrisonAddress(
         nomisAddressId = 10000L,
