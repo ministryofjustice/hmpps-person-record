@@ -13,6 +13,10 @@ on:
         description: Publish verification results to broker
         type: boolean
         default: true
+      providerVersion:
+        required: false
+        description: Override the pacticipant version to publish/verify against (defaults to the git commit SHA)
+        type: string
   workflow_call:
     inputs:
       consumerBranch:
@@ -24,6 +28,10 @@ on:
         description: Publish verification results to broker
         type: boolean
         default: true
+      providerVersion:
+        required: false
+        description: Override the pacticipant version to publish/verify against (defaults to the git commit SHA)
+        type: string
 
 permissions:
   contents: read
@@ -61,7 +69,7 @@ jobs:
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
           PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
-          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_SHA: ${{ inputs.providerVersion || github.sha }}
           GITHUB_BRANCH: ${{ github.ref_name }}
           PACT_CONSUMER_BRANCH: ${{ inputs.consumerBranch }}
 
