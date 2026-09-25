@@ -413,17 +413,29 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
     assertThat(countryCode).isEqualTo(request.countryCode)
     assertThat(comment).isEqualTo(request.comment)
     assertThat(statusCode).isEqualTo(AddressStatusCode.fromPrison(request.isPrimary, request.isMail ?: false))
+    assertThat(modifyUserId).isEqualTo(request.modifyUserId)
+    assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
+    assertThat(createUserId).isEqualTo(request.createUserId)
+    assertThat(createDateTime).isEqualTo(request.createDateTime)
   }
 
   private fun assertAddressUsageMatches(request: PrisonAddressUsage, entity: AddressUsageEntity) = with(entity) {
     assertThat(usageCode).isEqualTo(request.addressUsageCode)
     assertThat(active).isEqualTo(request.isActive)
+    assertThat(modifyUserId).isEqualTo(request.modifyUserId)
+    assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
+    assertThat(createUserId).isEqualTo(request.createUserId)
+    assertThat(createDateTime).isEqualTo(request.createDateTime)
   }
 
   private fun assertContactMatches(request: PrisonContact, entity: ContactEntity) = with(entity) {
     assertThat(contactType).isEqualTo(request.type)
     assertThat(contactValue).isEqualTo(request.value)
     assertThat(extension).isEqualTo(request.extension)
+    assertThat(modifyUserId).isEqualTo(request.modifyUserId)
+    assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
+    assertThat(createUserId).isEqualTo(request.createUserId)
+    assertThat(createDateTime).isEqualTo(request.createDateTime)
   }
 
   private val validRequestBody = PrisonAddressesAndContactsRequest(

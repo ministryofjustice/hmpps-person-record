@@ -132,45 +132,6 @@ class SysconContactsAndAddressesMigrationHandler(
     return mappings
   }
 
-  private fun PrisonContact.toEntity(addressEntity: AddressEntity) = ContactEntity(
-    contactType = type,
-    contactValue = value,
-    extension = extension,
-    address = addressEntity,
-  )
-
-  private fun PrisonContact.toEntity(personEntity: PersonEntity) = ContactEntity(
-    contactType = type,
-    contactValue = value,
-    extension = extension,
-    person = personEntity,
-  )
-
-  private fun PrisonAddressUsage.toEntity(addressEntity: AddressEntity) = AddressUsageEntity(
-    usageCode = addressUsageCode,
-    active = isActive,
-    address = addressEntity,
-  )
-
-  private fun PrisonAddress.toEntity(personEntity: PersonEntity) = AddressEntity(
-    startDate = startDate?.toUkZonedDateTime(),
-    endDate = endDate?.toUkZonedDateTime(),
-    noFixedAbode = noFixedAbode,
-    fullAddress = fullAddress,
-    postcode = postcode,
-    subBuildingName = subBuildingName,
-    buildingName = buildingName,
-    buildingNumber = buildingNumber,
-    thoroughfareName = thoroughfareName,
-    dependentLocality = dependentLocality,
-    postTown = postTown,
-    county = county,
-    countryCode = countryCode,
-    comment = comment,
-    statusCode = AddressStatusCode.fromPrison(isPrimary, isMail ?: false),
-    person = personEntity,
-  )
-
   private fun Pair<PrisonContact, ContactEntity>.toMapping() = SysconContactMapping(
     nomisContactId = first.nomisContactId,
     nomisContactType = first.type,
@@ -182,4 +143,62 @@ class SysconContactsAndAddressesMigrationHandler(
     nomisAddressUsageCode = first.addressUsageCode,
     cprAddressUsageId = second.updateId.toString(),
   )
+
+  companion object {
+
+    fun PrisonContact.toEntity(addressEntity: AddressEntity) = ContactEntity(
+      contactType = type,
+      contactValue = value,
+      extension = extension,
+      address = addressEntity,
+      modifyDateTime = modifyDateTime,
+      modifyUserId = modifyUserId,
+      createDateTime = createDateTime,
+      createUserId = createUserId,
+    )
+
+    fun PrisonContact.toEntity(personEntity: PersonEntity) = ContactEntity(
+      contactType = type,
+      contactValue = value,
+      extension = extension,
+      person = personEntity,
+      modifyDateTime = modifyDateTime,
+      modifyUserId = modifyUserId,
+      createDateTime = createDateTime,
+      createUserId = createUserId,
+    )
+
+    fun PrisonAddressUsage.toEntity(addressEntity: AddressEntity) = AddressUsageEntity(
+      usageCode = addressUsageCode,
+      active = isActive,
+      address = addressEntity,
+      modifyDateTime = modifyDateTime,
+      modifyUserId = modifyUserId,
+      createDateTime = createDateTime,
+      createUserId = createUserId,
+    )
+
+    fun PrisonAddress.toEntity(personEntity: PersonEntity) = AddressEntity(
+      startDate = startDate?.toUkZonedDateTime(),
+      endDate = endDate?.toUkZonedDateTime(),
+      noFixedAbode = noFixedAbode,
+      fullAddress = fullAddress,
+      postcode = postcode,
+      subBuildingName = subBuildingName,
+      buildingName = buildingName,
+      buildingNumber = buildingNumber,
+      thoroughfareName = thoroughfareName,
+      dependentLocality = dependentLocality,
+      postTown = postTown,
+      county = county,
+      countryCode = countryCode,
+      comment = comment,
+      statusCode = AddressStatusCode.fromPrison(isPrimary, isMail ?: false),
+      person = personEntity,
+      modifyDateTime = modifyDateTime,
+      modifyUserId = modifyUserId,
+      createDateTime = createDateTime,
+      createUserId = createUserId,
+    )
+  }
 }
