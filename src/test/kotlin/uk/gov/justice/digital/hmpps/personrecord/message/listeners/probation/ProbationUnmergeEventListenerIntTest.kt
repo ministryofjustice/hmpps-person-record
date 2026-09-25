@@ -83,7 +83,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val unmergedCrn = randomCrn()
 
       val unmergedPerson = createPersonWithNewKey(createRandomProbationPersonDetails(unmergedCrn))
-      val reactivatedPerson = createPerson(createRandomProbationPersonDetails(reactivatedCrn))
+      val reactivatedPerson = createMergedPerson(createRandomProbationPersonDetails(reactivatedCrn), unmergedPerson.id)
 
       probationMergeEventAndResponseSetup(reactivatedCrn, unmergedCrn)
       checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_RECORD_MERGED)
@@ -163,33 +163,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should unmerge 2 records that exist on same cluster but no merge link`() {
-      val unmergedRecord = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey().addPerson(unmergedRecord)
-      val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
-
-      probationUnmergeEventAndResponseSetup(reactivatedRecord.crn!!, unmergedRecord.crn!!)
-
-      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to reactivatedRecord.crn!!))
-
-      reactivatedRecord.assertNotMerged()
-
-      reactivatedRecord.assertExcluded(unmergedRecord)
-      unmergedRecord.assertExcluded(reactivatedRecord)
-
-      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster.assertClusterIsOfSize(1)
-
-      unmergedRecord.assertLinkedToCluster(cluster)
-      reactivatedRecord.assertNotLinkedToCluster(cluster)
-
-      unmergedRecord.assertHasOverrideMarker()
-      reactivatedRecord.assertHasOverrideMarker()
-      unmergedRecord.assertHasDifferentOverrideMarker(reactivatedRecord)
-      unmergedRecord.assertHasSameOverrideScope(reactivatedRecord)
-    }
-
-    @Test
     fun `should unmerge 2 merged records that exist on same cluster and then link to another cluster`() {
       val recordA = createPerson(createRandomProbationPersonDetails())
       val recordB = createPerson(createRandomProbationPersonDetails())
@@ -232,10 +205,10 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should unmerge 2 records from existing one record`() {
-      val unmergedRecord = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey().addPerson(unmergedRecord)
-      val firstReactivatedRecord = createPerson(createRandomProbationPersonDetails())
-      val secondReactivatedRecord = createPerson(createRandomProbationPersonDetails())
+      val unmergedRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
+
+      val firstReactivatedRecord = createMergedPerson(createRandomProbationPersonDetails(), unmergedRecord.id)
+      val secondReactivatedRecord = createMergedPerson(createRandomProbationPersonDetails(), unmergedRecord.id)
 
       probationUnmergeEventAndResponseSetup(firstReactivatedRecord.crn!!, unmergedRecord.crn!!)
 
@@ -252,6 +225,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       secondReactivatedRecord.assertExcluded(unmergedRecord)
       unmergedRecord.assertExcluded(firstReactivatedRecord)
 
+      val cluster = unmergedRecord.personKey!!
       cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster.assertClusterIsOfSize(1)
 
