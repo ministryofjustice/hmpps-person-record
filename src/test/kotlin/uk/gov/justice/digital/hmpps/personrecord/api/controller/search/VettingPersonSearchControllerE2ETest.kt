@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingSearchI
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingSearchStatus
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -30,8 +31,8 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
       val crn = randomCrn()
       val basePerson = createRandomPrisonPersonDetails()
       val cluster = createPersonKey()
-        .addPerson(createPerson(basePerson.copy(prisonNumber = prisonNumber)))
-        .addPerson(createPerson(basePerson.copy(crn = crn, sourceSystem = SourceSystemType.DELIUS)))
+        .addPerson(basePerson.copy(prisonNumber = prisonNumber))
+        .addPerson(basePerson.copy(crn = crn, sourceSystem = DELIUS))
       val prisonPersonEntity = cluster.personEntities.first { it.prisonNumber == prisonNumber }
       val probationPersonEntity = cluster.personEntities.first { it.crn == crn }
 
@@ -78,12 +79,12 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
 
       val basePerson1 = createRandomPrisonPersonDetails()
       val cluster1 = createPersonKey()
-        .addPerson(createPerson(basePerson1.copy(prisonNumber = prisonNumber1)))
-        .addPerson(createPerson(basePerson1.copy(crn = crn1, prisonNumber = null, sourceSystem = SourceSystemType.DELIUS)))
+        .addPerson(basePerson1.copy(prisonNumber = prisonNumber1))
+        .addPerson(basePerson1.copy(crn = crn1, prisonNumber = null, sourceSystem = DELIUS))
 
       createPersonKey()
-        .addPerson(createPerson(basePerson1.copy(prisonNumber = prisonNumber2)))
-        .addPerson(createPerson(basePerson1.copy(crn = crn2, prisonNumber = null, sourceSystem = SourceSystemType.DELIUS)))
+        .addPerson(basePerson1.copy(prisonNumber = prisonNumber2))
+        .addPerson(basePerson1.copy(crn = crn2, prisonNumber = null, sourceSystem = DELIUS))
       val personEntity2 = cluster1.personEntities.first { it.crn == crn1 }
 
       val personSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
@@ -107,7 +108,7 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
     @Test
     fun `single cluster - court record only - does not return anything`() {
       val cluster = createPersonKey()
-        .addPerson(createPerson(createRandomCommonPlatformPersonDetails()))
+        .addPerson(createRandomCommonPlatformPersonDetails())
       val courtPersonEntity = cluster.personEntities.first()
 
       val vettingSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
