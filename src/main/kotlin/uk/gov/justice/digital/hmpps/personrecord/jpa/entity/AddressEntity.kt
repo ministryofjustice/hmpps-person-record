@@ -154,11 +154,11 @@ class AddressEntity(
   }
 
   private fun updateChildEntities(address: Address) {
-    updateUsages(address.usages.map { AddressUsageEntity.from(it) }.toMutableList())
-    updateContacts(address.contacts.map { ContactEntity.from(it) }.toMutableList())
+    updateUsages(address.usages.map { AddressUsageEntity.from(it) })
+    updateContacts(address.contacts.map { ContactEntity.from(it) })
   }
 
-  fun updateContacts(contacts: MutableList<ContactEntity>) {
+  fun updateContacts(contacts: List<ContactEntity>) {
     this.contacts.clear()
     contacts.forEach { contact ->
       contact.address = this
@@ -166,7 +166,7 @@ class AddressEntity(
     this.contacts.addAll(contacts)
   }
 
-  fun updateUsages(usages: MutableList<AddressUsageEntity>) {
+  fun updateUsages(usages: List<AddressUsageEntity>) {
     this.usages.clear()
     usages.forEach { usage ->
       usage.address = this
