@@ -164,8 +164,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should unmerge 2 records that exist on same cluster but no merge link`() {
-      val unmergedRecord = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey().addPerson(unmergedRecord)
+      val unmergedRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
       val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
 
       probationUnmergeEventAndResponseSetup(reactivatedRecord.crn!!, unmergedRecord.crn!!)
@@ -176,7 +175,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       reactivatedRecord.assertExcluded(unmergedRecord)
       unmergedRecord.assertExcluded(reactivatedRecord)
-
+      val cluster = unmergedRecord.personKey!!
       cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster.assertClusterIsOfSize(1)
 
@@ -232,10 +231,10 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should unmerge 2 records from existing one record`() {
-      val unmergedRecord = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey().addPerson(unmergedRecord)
-      val firstReactivatedRecord = createPerson(createRandomProbationPersonDetails())
-      val secondReactivatedRecord = createPerson(createRandomProbationPersonDetails())
+      val unmergedRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
+
+      val firstReactivatedRecord = createMergedPerson(createRandomProbationPersonDetails(), unmergedRecord.id)
+      val secondReactivatedRecord = createMergedPerson(createRandomProbationPersonDetails(), unmergedRecord.id)
 
       probationUnmergeEventAndResponseSetup(firstReactivatedRecord.crn!!, unmergedRecord.crn!!)
 
@@ -252,6 +251,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       secondReactivatedRecord.assertExcluded(unmergedRecord)
       unmergedRecord.assertExcluded(firstReactivatedRecord)
 
+      val cluster = unmergedRecord.personKey!!
       cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster.assertClusterIsOfSize(1)
 
