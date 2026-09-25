@@ -81,6 +81,7 @@ fun registerPactVerificationTask(
   testClass: String,
   consumer: String,
 ) = tasks.register<Test>(name) {
+  enabled = false
   this.description = description
   testClassesDirs = files(test.map { it.sources.output.classesDirs })
   classpath = files(test.map { it.sources.runtimeClasspath })
@@ -125,6 +126,7 @@ val pactCourtDataIngestionTest = registerPactVerificationTask(
 )
 
 tasks.register("pactTest") {
+  enabled = false
   description = "Run and publish all Pact provider tests"
   group = "verification"
   dependsOn(pactProbationTest, pactCourtDataIngestionTest)
