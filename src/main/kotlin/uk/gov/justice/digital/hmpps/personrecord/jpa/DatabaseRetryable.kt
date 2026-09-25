@@ -4,6 +4,7 @@ import jakarta.persistence.OptimisticLockException
 import org.springframework.core.annotation.AliasFor
 import org.springframework.dao.CannotAcquireLockException
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Retryable
 import kotlin.reflect.KClass
@@ -19,6 +20,7 @@ annotation class DatabaseRetryable(
 
   @get:AliasFor(annotation = Retryable::class, attribute = "retryFor")
   val retryFor: Array<KClass<out Throwable>> = [
+    ObjectOptimisticLockingFailureException::class,
     OptimisticLockException::class,
     DataIntegrityViolationException::class,
     CannotAcquireLockException::class,
