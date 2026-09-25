@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import kotlin.Boolean
 import kotlin.collections.mapNotNull
@@ -40,6 +41,10 @@ data class Address(
   var usages: List<AddressUsage> = emptyList(),
   var deliusAddressId: Long? = null,
   var isVerified: Boolean? = null,
+  val createDateTime: LocalDateTime? = null,
+  val createUserId: String? = null,
+  val modifyDateTime: LocalDateTime? = null,
+  val modifyUserId: String? = null,
 ) {
   fun allPropertiesOrNull(): Address? = this.takeIf { it.hasAnyMeaningfulProperty() }
 
@@ -115,6 +120,10 @@ data class Address(
       county = address.county,
       countryCode = address.countryCode,
       comment = address.comment,
+      createDateTime = address.createDateTime,
+      createUserId = address.createUserId,
+      modifyDateTime = address.modifyDateTime,
+      modifyUserId = address.modifyUserId,
       statusCode = AddressStatusCode.fromPrison(address.isPrimary, address.isMail ?: false),
       usages = address.addressUsage.map { AddressUsage.from(it) },
       contacts = address.contacts.mapNotNull { Contact.from(it) },
@@ -179,6 +188,10 @@ data class Address(
       statusCode = addressEntity.statusCode,
       deliusAddressId = addressEntity.deliusAddressId,
       isVerified = addressEntity.isVerified,
+      createDateTime = addressEntity.createDateTime,
+      createUserId = addressEntity.createUserId,
+      modifyDateTime = addressEntity.modifyDateTime,
+      modifyUserId = addressEntity.modifyUserId,
       usages = addressEntity.usages.map { AddressUsage.from(it) },
       contacts = addressEntity.contacts.map { Contact.from(it) },
     )
