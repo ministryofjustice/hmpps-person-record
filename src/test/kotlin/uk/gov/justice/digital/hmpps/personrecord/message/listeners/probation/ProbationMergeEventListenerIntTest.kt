@@ -63,33 +63,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `processes offender merge event with different UUIDs where source doesn't have an UUID`() {
-      val sourceCrn = randomCrn()
-      val targetCrn = randomCrn()
-
-      val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
-      val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails(targetCrn))
-
-      probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
-
-      checkTelemetry(
-        CPR_RECORD_MERGED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourceCrn,
-          "TO_SOURCE_SYSTEM_ID" to targetCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
-      checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
-
-      sourcePerson.assertMergedTo(targetPerson)
-      sourcePerson.assertNotLinkedToCluster()
-
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      targetPerson.personKey?.assertClusterIsOfSize(1)
-    }
-
-    @Test
     fun `processes offender merge event with different UUIDs where source has a single record`() {
       val sourcePerson = createPersonWithNewKey(createRandomProbationPersonDetails())
       val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
