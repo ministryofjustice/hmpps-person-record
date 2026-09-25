@@ -69,7 +69,7 @@ jobs:
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
           PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
-          GITHUB_SHA: ${{ inputs.providerVersion || github.sha }}
+          PACT_PROVIDER_VERSION: ${{ inputs.providerVersion || github.sha }}
           GITHUB_BRANCH: ${{ github.ref_name }}
           PACT_CONSUMER_BRANCH: ${{ inputs.consumerBranch }}
 

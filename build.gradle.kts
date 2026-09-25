@@ -141,7 +141,7 @@ tasks.named<Test>("pactTest") {
   systemProperty("pactbroker.consumerversionselectors.rawjson", selectors)
 
   // --- Publishing verification results back to the broker ---
-  systemProperty("pact.provider.version", System.getenv("GITHUB_SHA") ?: "local")
+  systemProperty("pact.provider.version", System.getenv("PACT_PROVIDER_VERSION") ?: "local")
   systemProperty("pact.provider.branch", System.getenv("GITHUB_BRANCH") ?: "local")
   systemProperty("pactbroker.providerBranch", System.getenv("GITHUB_BRANCH") ?: "local")
   // systemProperty("pactbroker.enablePending", System.getenv("PACT_ENABLE_PENDING") ?: "true")
