@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED
@@ -211,7 +212,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should publish a CPR person updated domain event when a delius person is merged`() {
+    fun `should publish a CPR person merged & update domain event when a delius person is merged`() {
       // to be replaced with a check for the cpr probation person merged event once SAS are ready for it
       val fromCrn = randomCrn()
       val toCrn = randomCrn()
@@ -225,12 +226,18 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
 
       probationMergeEventAndResponseSetup(fromCrn, toCrn)
 
-      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-      val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
-      assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_UPDATED))
-      val domainEvent = jsonMapper.readValue<CprPersonUpdated>(sqsMessage.message)
-      assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_UPDATED)
-      assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$toCrn")
+      expectMessageOn(testOnlyCPRDomainEventsQueue, size = 2)
+      val sqsMessageForUpdate = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
+      assertThat(sqsMessageForUpdate.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_UPDATED))
+      val domainEventForUpdate = jsonMapper.readValue<CprPersonUpdated>(sqsMessageForUpdate.message)
+      assertThat(domainEventForUpdate.eventType).isEqualTo(CPR_PROBATION_PERSON_UPDATED)
+      assertThat(domainEventForUpdate.detailUrl).isEqualTo("http://localhost:8080/person/probation/$toCrn")
+
+      val sqsMessageForMerge = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
+      assertThat(sqsMessageForMerge.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_MERGED))
+      val domainEventForMerge = jsonMapper.readValue<CprPersonMerged>(sqsMessageForMerge.message)
+      assertThat(domainEventForMerge.eventType).isEqualTo(CPR_PROBATION_PERSON_MERGED)
+      assertThat(domainEventForMerge.detailUrl).isEqualTo("http://localhost:8080/person/probation/$toCrn")
     }
 
     @Test
