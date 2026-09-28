@@ -43,16 +43,13 @@ class PersonService(
   private fun create(person: Person, childrenToIgnore: Set<KClass<*>>): PersonEntity {
     val personEntity = PersonEntity.new(person.sourceSystem).updatePersonEntity(person, childrenToIgnore)
     personRepository.save(personEntity)
-
     personMatchService.saveToPersonMatch(personEntity)
-    if (person.behaviour.linkOnCreate) {
-      personKeyService.linkRecordToPersonKey(personEntity)
-    }
+    personKeyService.linkRecordToPersonKey(personEntity)
     publisher.publishEvent(PersonCreated(personEntity))
     return personEntity
   }
 
-  private fun update(person: Person, personEntity: PersonEntity, childrenToIgnore: Set<KClass<*>>): Pair<PersonEntity, PersonChangeChecker> {
+  fun update(person: Person, personEntity: PersonEntity, childrenToIgnore: Set<KClass<*>> = emptySet()): Pair<PersonEntity, PersonChangeChecker> {
     val personChangeChecker = PersonChangeChecker(personEntity)
     personEntity.updatePersonEntity(person, childrenToIgnore)
     personRepository.save(personEntity)
