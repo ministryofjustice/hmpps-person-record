@@ -275,14 +275,17 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
       probationCreateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(fromCrn)))
       probationCreateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(toCrn)))
 
+      awaitNotNull { personRepository.findByCrn(fromCrn) }
+      awaitNotNull { personRepository.findByCrn(toCrn) }
+
       probationMergeEventAndResponseSetup(sourceCrn = fromCrn, targetCrn = toCrn)
 
-      awaitNotNull { personRepository.findByCrn(toCrn) }
       awaitAssert { assertThat(personRepository.findByCrn(fromCrn)?.mergedTo).isNotNull }
       purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
 
       probationUnmergeEventAndResponseSetup(reactivatedCrn = fromCrn, unmergedCrn = toCrn)
 
+      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
       val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
       assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_UNMERGED))
       val domainEvent = jsonMapper.readValue<CprPersonUnmerged>(sqsMessage.message)
