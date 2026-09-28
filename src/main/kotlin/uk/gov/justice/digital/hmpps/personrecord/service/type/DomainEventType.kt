@@ -30,6 +30,7 @@ const val CPR_PRISON_PERSON_MERGED = "core-person-record.prison.record.merged"
 const val CPR_PROBATION_PERSON_CREATED = "core-person-record.probation.record.created"
 const val CPR_PROBATION_PERSON_DELETED = "core-person-record.probation.record.deleted"
 const val CPR_PROBATION_PERSON_UPDATED = "core-person-record.probation.record.updated"
+const val CPR_PROBATION_PERSON_UNMERGED = "core-person-record.probation.record.unmerged"
 
 const val CPR_PROBATION_ADDRESS_CREATED = "core-person-record.probation.address.created"
 const val CPR_PROBATION_ADDRESS_UPDATED = "core-person-record.probation.address.updated"
