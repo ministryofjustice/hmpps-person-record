@@ -144,8 +144,7 @@ jobs:
       - helm_lint
       - gradle_verify
       - e2e_test
-      # - pact_test
-    # Pact deployment workflow retained here for when Pact is ready:
+      - pact_test
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@170627bc8c907cd068085c053acca71c74ce808e
     secrets: inherit
     with:
@@ -156,7 +155,6 @@ jobs:
     needs:
       - build
       - deploy_dev
-    # Pact deployment workflow retained here for when Pact is ready:
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@170627bc8c907cd068085c053acca71c74ce808e
     secrets: inherit
     with:
@@ -167,7 +165,6 @@ jobs:
     needs:
       - build
       - deploy_preprod
-    # Pact deployment workflow retained here for when Pact is ready:
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@170627bc8c907cd068085c053acca71c74ce808e
     secrets: inherit
     with:
