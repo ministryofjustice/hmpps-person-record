@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.OverrideConflict
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.unmerge.PersonUnmerged
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyService
@@ -24,18 +23,10 @@ class UnmergeService(
 
   fun processUnmerge(reactivated: Person, existing: Person) {
     val existingPersonEntity = personRepository.findByCrn(existing.crn!!)!!
-      .also {
-        val (personEntity, personChangeChecker) = personService.update(existing, it)
-        // TODO: remove once sas don't listen to update events for an unmerge anymore
-        publisher.publishEvent(PersonUpdated(personEntity, personChangeChecker))
-      }
+      .also { personService.update(existing, it) }
 
     val reactivatedPersonEntity = personRepository.findByCrn(reactivated.crn!!)!!
-      .also {
-        val (personEntity, personChangeChecker) = personService.update(reactivated, it)
-        // TODO: remove once sas don't listen to update events for an unmerge anymore
-        publisher.publishEvent(PersonUpdated(personEntity, personChangeChecker))
-      }
+      .also { personService.update(reactivated, it) }
 
     unmerge(reactivatedPersonEntity, existingPersonEntity)
     when {
