@@ -77,17 +77,11 @@ tasks.register<Exec>("setUpS3Bucket") {
   args = listOf("-c", "./src/test/resources/localstack/setup-aws.sh")
 }
 
-fun registerPactVerificationTask(
-  name: String,
-  description: String,
-  testClass: String,
-  consumer: String,
-) = tasks.register<Test>(name) {
-  enabled = false
-  this.description = description
+tasks.register<Test>("pactTest") {
+  description = "Run and publish Pact provider tests"
   testClassesDirs = files(test.map { it.sources.output.classesDirs })
   classpath = files(test.map { it.sources.runtimeClasspath })
-  filter.includeTestsMatching(testClass)
+  filter.includeTestsMatching("uk.gov.justice.digital.hmpps.personrecord.pacttest.ProviderPactTest")
   group = "verification"
 
   systemProperty(
@@ -101,10 +95,13 @@ fun registerPactVerificationTask(
 
   val consumerBranch = System.getenv("PACT_CONSUMER_BRANCH")?.takeIf { it.isNotBlank() }
   val requestedConsumerName = System.getenv("PACT_CONSUMER_NAME")?.takeIf { it.isNotBlank() }
-  val selectors = if (consumerBranch != null) {
-    """[{"consumer":"$consumer","branch":"$consumerBranch"}]"""
-  } else {
-    """[{"consumer":"$consumer","mainBranch":true},{"consumer":"$consumer","deployed":true}]"""
+  val selectors = when {
+    consumerBranch != null && requestedConsumerName != null ->
+      """[{"consumer":"$requestedConsumerName","branch":"$consumerBranch"}]"""
+    requestedConsumerName != null ->
+      """[{"consumer":"$requestedConsumerName","mainBranch":true},{"consumer":"$requestedConsumerName","deployed":true}]"""
+    else ->
+      """[{"mainBranch":true},{"deployed":true}]"""
   }
   systemProperty("pactbroker.consumerversionselectors.rawjson", selectors)
 
@@ -116,51 +113,6 @@ fun registerPactVerificationTask(
   doFirst {
     if (consumerBranch != null && requestedConsumerName == null) {
       throw GradleException("PACT_CONSUMER_NAME must be set when PACT_CONSUMER_BRANCH is provided so only the matching Pact consumer verification runs.")
-    }
-  }
-}
-
-val pactSingleAccommodationServiceTest = registerPactVerificationTask(
-  name = "pactSingleAccommodationServiceTest",
-  description = "Run Pact provider verification for single accommodation service contracts",
-  testClass = "uk.gov.justice.digital.hmpps.personrecord.pacttest.ProbationProviderPactTest",
-  consumer = "hmpps-single-accommodation-service-api",
-).apply {
-  configure { enabled = true }
-}
-
-val pactCourtDataIngestionTest = registerPactVerificationTask(
-  name = "pactCourtDataIngestionTest",
-  description = "Run Pact provider verification for court data ingestion contracts",
-  testClass = "uk.gov.justice.digital.hmpps.personrecord.pacttest.CourtDataIngestionProviderPactTest",
-  consumer = "hmpps-court-data-ingestion-api",
-).apply {
-  configure { enabled = true }
-}
-
-val pactVerificationTasksByConsumer = mapOf(
-  "hmpps-single-accommodation-service-api" to pactSingleAccommodationServiceTest,
-  "hmpps-court-data-ingestion-api" to pactCourtDataIngestionTest,
-)
-
-tasks.register("pactTest") {
-  enabled = true
-  description = "Run and publish all Pact provider tests"
-  group = "verification"
-
-  val requestedConsumerName = System.getenv("PACT_CONSUMER_NAME")?.takeIf { it.isNotBlank() }
-  val selectedPactTasks = when {
-    requestedConsumerName == null -> pactVerificationTasksByConsumer.values
-    requestedConsumerName in pactVerificationTasksByConsumer -> listOf(pactVerificationTasksByConsumer.getValue(requestedConsumerName))
-    else -> emptyList()
-  }
-  dependsOn(selectedPactTasks)
-
-  doFirst {
-    if (requestedConsumerName != null && requestedConsumerName !in pactVerificationTasksByConsumer) {
-      throw GradleException(
-        "Unknown PACT_CONSUMER_NAME '$requestedConsumerName'. Expected one of: ${pactVerificationTasksByConsumer.keys.sorted().joinToString(", ")}",
-      )
     }
   }
 }
