@@ -18,6 +18,7 @@ import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -110,6 +111,18 @@ class AddressEntity(
   @Column(name = "is_verified")
   var isVerified: Boolean? = null,
 
+  @Column(name = "create_date_time")
+  var createDateTime: LocalDateTime? = null,
+
+  @Column(name = "create_user_id")
+  var createUserId: String? = null,
+
+  @Column(name = "modify_date_time")
+  var modifyDateTime: LocalDateTime? = null,
+
+  @Column(name = "modify_user_id")
+  var modifyUserId: String? = null,
+
   @Version
   var version: Int = 0,
 ) {
@@ -133,6 +146,10 @@ class AddressEntity(
     this.statusCode = address.statusCode
     this.deliusAddressId = this.deliusAddressId ?: address.deliusAddressId
     this.isVerified = address.isVerified
+    this.createDateTime = address.createDateTime
+    this.createUserId = address.createUserId
+    this.modifyDateTime = address.modifyDateTime
+    this.modifyUserId = address.modifyUserId
     updateChildEntities(address)
   }
 

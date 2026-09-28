@@ -47,7 +47,7 @@ generic-service:
       schedule: "0 0-23 * * *"
     - name: recluster-needs-attention
       type: RECLUSTER_NEEDS_ATTENTION
-      schedule: "0 13 * * *"
+      schedule: "30 13 * * *"
     - name: generate-delius-merge-requests
       type: GENERATE_DELIUS_MERGE_REQUESTS
       schedule: "0 19 * * 1-5"
@@ -58,10 +58,6 @@ generic-service:
         limits:
           cpu: 2
           memory: 4Gi
-    - name: pseudonym-ethnicity-migration
-      type: PSEUDONYM_ETHNICITY_MIGRATION
-      schedule: "0 0 1 1 *"
-      suspend: true
 
 generic-prometheus-alerts:
   sqsOldestAlertQueueNames:

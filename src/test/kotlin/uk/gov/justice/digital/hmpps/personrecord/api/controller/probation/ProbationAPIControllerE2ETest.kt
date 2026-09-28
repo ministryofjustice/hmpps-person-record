@@ -384,19 +384,20 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
       @Test
       fun `should redirect to merged to record when requesting merged from record`() {
         val targetCrn = randomCrn()
-        val sourcePerson = createPerson(createRandomProbationPersonDetails())
+        val sourceCrn = randomCrn()
         val targetPersonDetails = createRandomProbationCase(targetCrn)
-        val targetPerson = createPerson(Person.from(targetPersonDetails))
-        val sourceCrn = sourcePerson.crn!!
+
         createPersonKey()
-          .addPerson(sourcePerson)
-          .addPerson(targetPerson)
+          .addPerson(createRandomProbationPersonDetails(sourceCrn))
+          .addPerson(Person.from(targetPersonDetails))
 
         probationMergeEventAndResponseSetup(
           sourceCrn = sourceCrn,
           targetCrn = targetCrn,
           apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
         )
+        val sourcePerson = personRepository.findByCrn(sourceCrn)!!
+        val targetPerson = personRepository.findByCrn(targetCrn)!!
         sourcePerson.assertMergedTo(targetPerson)
 
         webTestClient

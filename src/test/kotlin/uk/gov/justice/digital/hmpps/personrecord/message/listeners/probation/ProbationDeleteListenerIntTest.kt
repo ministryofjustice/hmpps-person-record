@@ -27,14 +27,13 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
     @Test
     fun `deletes person with a GDPR event`() {
       val crn = randomCrn()
-      val person = createPerson(createRandomProbationPersonDetails(crn))
       val personKey = createPersonKey()
-        .addPerson(person)
+        .addPerson(createRandomProbationPersonDetails(crn))
         .addPerson(createRandomProbationPersonDetails())
         .also {
           stubPersonMatchScores()
         }
-
+      val person = personRepository.findByCrn(crn)!!
       publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED_GDPR, crn)
 
       checkTelemetry(
@@ -83,15 +82,15 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
     fun `when cluster has more than one person - delete person only`() {
       val crn = randomCrn()
 
-      val person = createPerson(createRandomProbationPersonDetails(crn))
       val personKey = createPersonKey()
-        .addPerson(person)
+        .addPerson(createRandomProbationPersonDetails(crn))
         .addPerson(createRandomProbationPersonDetails())
         .also {
           stubDeletePersonMatch()
           stubPersonMatchScores()
         }
 
+      val person = personRepository.findByCrn(crn)!!
       publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, crn)
 
       checkTelemetry(CPR_RECORD_DELETED, mapOf("CRN" to crn, "SOURCE_SYSTEM" to "DELIUS"))
@@ -142,15 +141,15 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
       val recordBCrn = randomCrn()
 
       // Record Cluster (1 Record - B merged to A)
-      val recordA = createPerson(createRandomProbationPersonDetails(recordACrn))
-      val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
+
       val cluster = createPersonKey()
-        .addPerson(recordA)
-        .addPerson(recordB)
+        .addPerson(createRandomProbationPersonDetails(recordACrn))
+        .addPerson(createRandomProbationPersonDetails(recordBCrn))
 
       probationMergeEventAndResponseSetup(recordBCrn, recordACrn)
       checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
-
+      val recordA = personRepository.findByCrn(recordACrn)!!
+      val recordB = personRepository.findByCrn(recordBCrn)!!
       publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, recordACrn)
 
       checkTelemetry(

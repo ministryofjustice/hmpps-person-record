@@ -184,14 +184,14 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     val sourcePersonDetails = createRandomProbationPersonDetails()
     val targetPersonDetails = createRandomProbationPersonDetails()
 
-    val sourcePerson = createPerson(sourcePersonDetails)
-    val targetPerson = createPerson(targetPersonDetails)
-    val sourceCrn = sourcePerson.crn!!
-    val targetCrn = targetPerson.crn!!
-    val cluster = createPersonKey()
-      .addPerson(sourcePerson)
-      .addPerson(targetPerson)
+    val sourceCrn = sourcePersonDetails.crn!!
+    val targetCrn = targetPersonDetails.crn!!
 
+    val cluster = createPersonKey()
+      .addPerson(sourcePersonDetails)
+      .addPerson(targetPersonDetails)
+    val sourcePerson = personRepository.findByCrn(sourceCrn)!!
+    val targetPerson = personRepository.findByCrn(targetCrn)!!
     probationMergeEventAndResponseSetup(
       sourceCrn = sourceCrn,
       targetCrn = targetCrn,
@@ -227,20 +227,20 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     val sourcePersonDetails = createRandomProbationPersonDetails()
     val targetPersonDetails = createRandomProbationPersonDetails()
 
-    val sourcePerson = createPerson(sourcePersonDetails)
-    val targetPerson = createPerson(targetPersonDetails)
-    val sourceCrn = sourcePerson.crn!!
-    val targetCrn = targetPerson.crn!!
+    val sourceCrn = sourcePersonDetails.crn!!
+    val targetCrn = targetPersonDetails.crn!!
     val sourceCluster = createPersonKey()
-      .addPerson(sourcePerson)
+      .addPerson(sourcePersonDetails)
     val targetCluster = createPersonKey()
-      .addPerson(targetPerson)
+      .addPerson(targetPersonDetails)
 
     probationMergeEventAndResponseSetup(
       sourceCrn = sourceCrn,
       targetCrn = targetCrn,
     )
 
+    val sourcePerson = personRepository.findByCrn(sourceCrn)!!
+    val targetPerson = personRepository.findByCrn(targetCrn)!!
     sourcePerson.assertMergedTo(targetPerson)
     sourcePerson.assertNotLinkedToCluster()
 

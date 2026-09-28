@@ -454,9 +454,10 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
         addresses = listOf(Address(postcode = postcode)),
         sourceSystem = NOMIS,
       )
-      val existingPerson = createPerson(existingPrisoner)
-      val personKeyEntity = createPersonKey().addPerson(existingPerson)
 
+      val personKeyEntity = createPersonKey().addPerson(existingPrisoner)
+
+      val existingPerson = personRepository.findByPrisonNumber(existingPrisoner.prisonNumber!!)!!
       stubOnePersonMatchAboveJoinThreshold(matchedRecord = existingPerson.matchId)
 
       val apiResponse = ApiResponseSetup(
