@@ -65,7 +65,7 @@ jobs:
       - name: Verify pacts
         run: ./gradlew pactTest --console=plain
         env:
-          PACT_PUBLISH_RESULTS: ${{ inputs.publishResults || 'true' }}
+          PACT_PUBLISH_RESULTS: ${{ inputs.publishResults }}
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
           PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
