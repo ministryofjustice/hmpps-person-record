@@ -84,12 +84,7 @@ tasks.register<Test>("pactTest") {
   filter.includeTestsMatching("uk.gov.justice.digital.hmpps.personrecord.pacttest.ProviderPactTest")
   group = "verification"
 
-  systemProperty(
-    "pactbroker.url",
-    System.getProperty("pactbroker.url")
-      ?: System.getenv("PACT_BROKER_URL")
-      ?: "https://pact-broker-prod.apps.live-1.cloud-platform.service.justice.gov.uk",
-  )
+  systemProperty("pactbroker.url", System.getenv("PACT_BROKER_URL"))
   systemProperty("pactbroker.auth.username", System.getenv("PACT_BROKER_USERNAME") ?: "")
   systemProperty("pactbroker.auth.password", System.getenv("PACT_BROKER_PASSWORD") ?: "")
 
