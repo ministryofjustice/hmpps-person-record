@@ -40,8 +40,8 @@ class SysconContactsAndAddressesMigrationHandler(
     prisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest,
   ): SysconAddressesAndContactsResponseBody {
     val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
-    val addressesRequest = prisonAddressesAndContactsRequest.addresses ?: emptyList()
-    val contactsRequest = prisonAddressesAndContactsRequest.contacts ?: emptyList()
+    val addressesRequest = prisonAddressesAndContactsRequest.addresses
+    val contactsRequest = prisonAddressesAndContactsRequest.contacts
 
     validateRequest(prisonNumber, addressesRequest, contactsRequest)
 

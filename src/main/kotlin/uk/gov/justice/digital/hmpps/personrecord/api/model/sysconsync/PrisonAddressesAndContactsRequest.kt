@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 
 data class PrisonAddressesAndContactsRequest(
   @Schema(description = "List of addresses")
-  val addresses: List<PrisonAddress>?,
+  val addresses: List<PrisonAddress>,
 
   @Schema(description = "List of address contacts")
-  val contacts: List<PrisonContact>?,
+  val contacts: List<PrisonContact>,
 )
