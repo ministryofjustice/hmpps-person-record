@@ -35,7 +35,7 @@ generic-service:
       schedule: "0 8-17 * * 1-5"
     - name: recluster-needs-attention
       type: RECLUSTER_NEEDS_ATTENTION
-      schedule: "0 13 * * 1-5"
+      schedule: "30 13 * * 1-5"
     - name: generate-delius-merge-requests
       type: GENERATE_DELIUS_MERGE_REQUESTS
       schedule: "0 19 * * 1-5"

@@ -3,26 +3,33 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.http.HttpStatus
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PRISON_PERSON_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PRISON_PERSON_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_UNMERGED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonMerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonUnmerged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonUpdated
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -139,6 +146,168 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
 
       probationUpdateEventAndResponseSetup(ApiResponseSetup.from(personDetails))
       expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
+    }
+  }
+
+  @Nested
+  inner class PersonMerged {
+    @Test
+    fun `should publish a CPR person merged domain event when a nomis person is merged`() {
+      val fromPrisonNumber = randomPrisonNumber()
+      val toPrisonNumber = randomPrisonNumber()
+
+      stubPrisonResponse(ApiResponseSetup(prisonNumber = fromPrisonNumber))
+      publishDomainEvent(
+        PrisonPersonCreated(
+          personReference = PersonReference(
+            listOf(
+              PersonIdentifier(
+                "NOMS",
+                fromPrisonNumber,
+              ),
+            ),
+          ),
+        ),
+      )
+
+      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
+      publishDomainEvent(
+        PrisonPersonCreated(
+          personReference = PersonReference(
+            listOf(
+              PersonIdentifier(
+                "NOMS",
+                toPrisonNumber,
+              ),
+            ),
+          ),
+        ),
+      )
+
+      awaitNotNull { personRepository.findByPrisonNumber(fromPrisonNumber) }
+      awaitNotNull { personRepository.findByPrisonNumber(toPrisonNumber) }
+      purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
+
+      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
+      sendPostRequestAsserted<Unit>(
+        url = "/syscon-sync/person/$toPrisonNumber/merge",
+        body = PrisonMerge(fromPrisonNumber),
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.NO_CONTENT,
+      )
+
+      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+      val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
+      assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_PERSON_MERGED))
+      val domainEvent = jsonMapper.readValue<CprPersonMerged>(sqsMessage.message)
+      assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_PERSON_MERGED)
+      assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/prison/$toPrisonNumber")
+      assertThat(domainEvent.description).isEqualTo("A prison person record has been merged")
+      assertThat(domainEvent.occurredAt).isNotNull()
+      assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(2)
+      assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("fromPrisonNumber")
+      assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(fromPrisonNumber)
+      assertThat(domainEvent.personReference.identifiers?.get(1)?.type).isEqualTo("toPrisonNumber")
+      assertThat(domainEvent.personReference.identifiers?.get(1)?.value).isEqualTo(toPrisonNumber)
+    }
+
+    @Test
+    fun `should publish a CPR person merged & update domain event when a delius person is merged`() {
+      // to be replaced with a check for the cpr probation person merged event once SAS are ready for it
+      val fromCrn = randomCrn()
+      val toCrn = randomCrn()
+
+      probationCreateEventAndResponseSetup(ApiResponseSetup(crn = fromCrn))
+      probationCreateEventAndResponseSetup(ApiResponseSetup(crn = toCrn))
+
+      awaitNotNull { personRepository.findByCrn(fromCrn) }
+      awaitNotNull { personRepository.findByCrn(toCrn) }
+      purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
+
+      probationMergeEventAndResponseSetup(fromCrn, toCrn)
+
+      expectMessageOn(testOnlyCPRDomainEventsQueue, size = 2)
+      val sqsMessageForUpdate = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
+      assertThat(sqsMessageForUpdate.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_UPDATED))
+      val domainEventForUpdate = jsonMapper.readValue<CprPersonUpdated>(sqsMessageForUpdate.message)
+      assertThat(domainEventForUpdate.eventType).isEqualTo(CPR_PROBATION_PERSON_UPDATED)
+      assertThat(domainEventForUpdate.detailUrl).isEqualTo("http://localhost:8080/person/probation/$toCrn")
+
+      val sqsMessageForMerge = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
+      assertThat(sqsMessageForMerge.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_MERGED))
+      val domainEventForMerge = jsonMapper.readValue<CprPersonMerged>(sqsMessageForMerge.message)
+      assertThat(domainEventForMerge.eventType).isEqualTo(CPR_PROBATION_PERSON_MERGED)
+      assertThat(domainEventForMerge.detailUrl).isEqualTo("http://localhost:8080/person/probation/$toCrn")
+      assertThat(domainEventForMerge.description).isEqualTo("A probation person record has been merged")
+      assertThat(domainEventForMerge.personReference.identifiers!!.first()).isEqualTo(PersonIdentifier("fromCRN", fromCrn))
+      assertThat(domainEventForMerge.personReference.identifiers!!.last()).isEqualTo(PersonIdentifier("toCRN", toCrn))
+    }
+
+    @Test
+    fun `should not publish a CPR person merged domain event when a nomis person is merged without a from person`() {
+      val toPrisonNumber = randomPrisonNumber()
+      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
+      publishDomainEvent(
+        PrisonPersonCreated(
+          personReference = PersonReference(
+            listOf(
+              PersonIdentifier(
+                "NOMS",
+                toPrisonNumber,
+              ),
+            ),
+          ),
+        ),
+      )
+
+      awaitNotNull { personRepository.findByPrisonNumber(toPrisonNumber) }
+      purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
+
+      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
+      sendPostRequestAsserted<Unit>(
+        url = "/syscon-sync/person/$toPrisonNumber/merge",
+        body = PrisonMerge(randomPrisonNumber()),
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.INTERNAL_SERVER_ERROR,
+      )
+
+      expectNoMessagesOn(testOnlyCPRDomainEventsQueue)
+    }
+  }
+
+  @Nested
+  inner class PersonUnmerged {
+    @Test
+    fun `should publish a CPR person unmerged domain event when a delius person is unmerged`() {
+      val fromCrn = randomCrn()
+      val toCrn = randomCrn()
+
+      probationCreateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(fromCrn)))
+      probationCreateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(toCrn)))
+
+      awaitNotNull { personRepository.findByCrn(fromCrn) }
+      awaitNotNull { personRepository.findByCrn(toCrn) }
+
+      probationMergeEventAndResponseSetup(sourceCrn = fromCrn, targetCrn = toCrn)
+
+      awaitAssert { assertThat(personRepository.findByCrn(fromCrn)?.mergedTo).isNotNull }
+      purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
+
+      probationUnmergeEventAndResponseSetup(reactivatedCrn = fromCrn, unmergedCrn = toCrn)
+
+      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+      val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
+      assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_UNMERGED))
+      val domainEvent = jsonMapper.readValue<CprPersonUnmerged>(sqsMessage.message)
+      assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_UNMERGED)
+      assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$fromCrn")
+      assertThat(domainEvent.description).isEqualTo("A probation person record has been unmerged")
+      assertThat(domainEvent.occurredAt).isNotNull()
+      assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(2)
+      assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("reactivatedCRN")
+      assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(fromCrn)
+      assertThat(domainEvent.personReference.identifiers?.get(1)?.type).isEqualTo("unmergedCRN")
+      assertThat(domainEvent.personReference.identifiers?.get(1)?.value).isEqualTo(toCrn)
     }
   }
 

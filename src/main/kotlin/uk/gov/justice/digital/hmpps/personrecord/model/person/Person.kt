@@ -62,7 +62,6 @@ data class Person(
   val immigrationStatus: Boolean? = null,
   val birthplace: String? = null,
   val birthCountryCode: CountryCode? = null,
-  val behaviour: Behaviour = Behaviour(),
 ) {
 
   companion object {
@@ -252,16 +251,6 @@ data class Person(
     )
   }
 
-  fun doNotReclusterOnUpdate(): Person {
-    this.behaviour.reclusterOnUpdate = false
-    return this
-  }
-
-  fun doNotLinkOnCreate(): Person {
-    this.behaviour.linkOnCreate = false
-    return this
-  }
-
   fun isPerson(): Boolean = minimumDataIsPresent()
 
   private fun minimumDataIsPresent(): Boolean = lastNameIsPresent() && anyOtherPersonalDataIsPresent()
@@ -270,8 +259,3 @@ data class Person(
 
   private fun lastNameIsPresent() = lastName?.isNotEmpty() == true
 }
-
-data class Behaviour(
-  var reclusterOnUpdate: Boolean = true,
-  var linkOnCreate: Boolean = true,
-)

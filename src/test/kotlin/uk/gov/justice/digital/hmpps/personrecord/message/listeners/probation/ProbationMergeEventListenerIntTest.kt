@@ -6,77 +6,16 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonMerged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonMergedInfo
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import kotlin.jvm.optionals.getOrNull
 
-class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
-
-  @Nested
-  inner class MissingFromRecord {
-
-    @Test
-    fun `processes offender merge event with source record does not exist`() {
-      val sourceCrn = randomCrn()
-      val targetCrn = randomCrn()
-      val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails(targetCrn))
-
-      stubPersonMatchUpsert()
-      probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
-
-      checkTelemetry(
-        CPR_RECORD_MERGED,
-        mapOf(
-          "TO_SOURCE_SYSTEM_ID" to targetCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
-      checkEventLogExist(targetPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED)
-    }
-  }
-
-  @Nested
-  inner class MissingToRecord {
-
-    @Test
-    fun `processes offender merge event with target record does not exist`() {
-      val targetCrn = randomCrn()
-      val sourcePerson = createPersonWithNewKey(createRandomProbationPersonDetails())
-
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-      stubDeletePersonMatch()
-      probationMergeEventAndResponseSetup(sourcePerson.crn!!, targetCrn)
-
-      val targetPerson = awaitNotNull { personRepository.findByCrn(targetCrn) }
-      sourcePerson.assertMergedTo(targetPerson)
-
-      checkTelemetry(
-        CPR_RECORD_CREATED,
-        mapOf(
-          "CRN" to targetCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
-      checkTelemetry(
-        CPR_RECORD_MERGED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePerson.crn,
-          "TO_SOURCE_SYSTEM_ID" to targetPerson.crn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
-      checkEventLogExist(targetPerson.crn!!, CPRLogEvents.CPR_RECORD_CREATED)
-      checkEventLogExist(sourcePerson.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
-    }
-  }
+class ProbationMergeEventListenerIntTest : MessagingTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
@@ -92,22 +31,15 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
 
-      val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
       val sourceCluster = createPersonKey()
         .addPerson(createRandomProbationPersonDetails())
-        .addPerson(sourcePerson)
+        .addPerson(createRandomProbationPersonDetails(sourceCrn))
 
       val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails(targetCrn))
+      val sourcePerson = personRepository.findByCrn(sourceCrn)!!
 
       probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
 
-      checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf(
-          "CRN" to targetCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
@@ -118,39 +50,10 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
-      checkEventLogExist(targetCrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       sourceCluster.assertClusterStatus(UUIDStatusType.ACTIVE)
       sourceCluster.assertClusterIsOfSize(1)
-
-      sourcePerson.assertMergedTo(targetPerson)
-      sourcePerson.assertNotLinkedToCluster()
-
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      targetPerson.personKey?.assertClusterIsOfSize(1)
-    }
-
-    @Test
-    fun `processes offender merge event with different UUIDs where source doesn't have an UUID`() {
-      val sourceCrn = randomCrn()
-      val targetCrn = randomCrn()
-
-      val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
-      val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails(targetCrn))
-
-      probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
-
-      checkTelemetry(
-        CPR_RECORD_MERGED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourceCrn,
-          "TO_SOURCE_SYSTEM_ID" to targetCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
-      checkEventLogExist(targetCrn, CPRLogEvents.CPR_RECORD_UPDATED)
-      checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       sourcePerson.assertMergedTo(targetPerson)
       sourcePerson.assertNotLinkedToCluster()
@@ -177,7 +80,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
-      checkEventLogExist(targetPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourcePerson.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
 
       sourcePerson.assertMergedTo(targetPerson)
@@ -199,15 +101,16 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stub5xxResponse(probationUrl(targetCrn), "next request will succeed", "retry")
       stubPersonMatchUpsert()
       stubDeletePersonMatch()
-      val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
-      val targetPerson = createPerson(createRandomProbationPersonDetails(targetCrn))
+
       createPersonKey()
-        .addPerson(sourcePerson)
-        .addPerson(targetPerson)
+        .addPerson(createRandomProbationPersonDetails(sourceCrn))
+        .addPerson(createRandomProbationPersonDetails(targetCrn))
 
       probationMergeEventAndResponseSetup(sourceCrn, targetCrn, scenario = "retry", currentScenarioState = "next request will succeed")
 
       expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
+      val sourcePerson = personRepository.findByCrn(sourceCrn)!!
+      val targetPerson = personRepository.findByCrn(targetCrn)!!
       sourcePerson.assertMergedTo(targetPerson)
     }
 
@@ -216,15 +119,15 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
       val sourcePerson = createRandomProbationPersonDetails(sourceCrn)
-      val sourcePersonEntity = createPerson(sourcePerson)
-      val targetPersonDetails = createRandomProbationCase(targetCrn)
-      val targetPersonEntity = createPerson(
-        Person.from(targetPersonDetails),
-      )
-      createPersonKey()
-        .addPerson(sourcePersonEntity)
-        .addPerson(targetPersonEntity)
 
+      val targetPersonDetails = createRandomProbationCase(targetCrn)
+
+      createPersonKey()
+        .addPerson(sourcePerson)
+        .addPerson(Person.from(targetPersonDetails))
+
+      val sourcePersonEntity = personRepository.findByCrn(sourceCrn)!!
+      val targetPersonEntity = personRepository.findByCrn(targetCrn)!!
       // stubs for failed delete
       val response = ApiResponseSetup.from(targetPersonDetails)
       stubSingleProbationResponse(response)
@@ -241,12 +144,12 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `should not throw error if person match returns a 404 on delete`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
-      val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
-      val targetPerson = createPerson(createRandomProbationPersonDetails(targetCrn))
       createPersonKey()
-        .addPerson(sourcePerson)
-        .addPerson(targetPerson)
+        .addPerson(createRandomProbationPersonDetails(sourceCrn))
+        .addPerson(createRandomProbationPersonDetails(targetCrn))
 
+      val sourcePerson = personRepository.findByCrn(sourceCrn)!!
+      val targetPerson = personRepository.findByCrn(targetCrn)!!
       stubDeletePersonMatch(status = 404)
       stubPersonMatchUpsert()
       probationMergeEventAndResponseSetup(sourceCrn, targetCrn)

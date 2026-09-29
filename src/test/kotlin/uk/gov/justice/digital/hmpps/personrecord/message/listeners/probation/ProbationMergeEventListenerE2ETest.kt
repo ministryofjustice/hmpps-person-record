@@ -2,11 +2,11 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
@@ -184,14 +184,14 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     val sourcePersonDetails = createRandomProbationPersonDetails()
     val targetPersonDetails = createRandomProbationPersonDetails()
 
-    val sourcePerson = createPerson(sourcePersonDetails)
-    val targetPerson = createPerson(targetPersonDetails)
-    val sourceCrn = sourcePerson.crn!!
-    val targetCrn = targetPerson.crn!!
-    val cluster = createPersonKey()
-      .addPerson(sourcePerson)
-      .addPerson(targetPerson)
+    val sourceCrn = sourcePersonDetails.crn!!
+    val targetCrn = targetPersonDetails.crn!!
 
+    val cluster = createPersonKey()
+      .addPerson(sourcePersonDetails)
+      .addPerson(targetPersonDetails)
+    val sourcePerson = personRepository.findByCrn(sourceCrn)!!
+    val targetPerson = personRepository.findByCrn(targetCrn)!!
     probationMergeEventAndResponseSetup(
       sourceCrn = sourceCrn,
       targetCrn = targetCrn,
@@ -227,20 +227,20 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     val sourcePersonDetails = createRandomProbationPersonDetails()
     val targetPersonDetails = createRandomProbationPersonDetails()
 
-    val sourcePerson = createPerson(sourcePersonDetails)
-    val targetPerson = createPerson(targetPersonDetails)
-    val sourceCrn = sourcePerson.crn!!
-    val targetCrn = targetPerson.crn!!
+    val sourceCrn = sourcePersonDetails.crn!!
+    val targetCrn = targetPersonDetails.crn!!
     val sourceCluster = createPersonKey()
-      .addPerson(sourcePerson)
+      .addPerson(sourcePersonDetails)
     val targetCluster = createPersonKey()
-      .addPerson(targetPerson)
+      .addPerson(targetPersonDetails)
 
     probationMergeEventAndResponseSetup(
       sourceCrn = sourceCrn,
       targetCrn = targetCrn,
     )
 
+    val sourcePerson = personRepository.findByCrn(sourceCrn)!!
+    val targetPerson = personRepository.findByCrn(targetCrn)!!
     sourcePerson.assertMergedTo(targetPerson)
     sourcePerson.assertNotLinkedToCluster()
 

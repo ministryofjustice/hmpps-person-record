@@ -20,11 +20,11 @@ class RecordCountReportJobIntTest(@Autowired applicationEventPublisher: Applicat
 
   @Test
   fun `should not include merged record in telemetry`() {
-    val active = createPerson(createRandomProbationPersonDetails())
-    createPerson(createRandomProbationPersonDetails()) { mergedTo = active.id }
-    createPerson(createRandomPrisonPersonDetails())
-    createPerson(createRandomLibraPersonDetails())
-    createPerson(createRandomCommonPlatformPersonDetails())
+    val active = createPersonWithNewKey(createRandomProbationPersonDetails())
+    createMergedPerson(createRandomProbationPersonDetails(), active.id)
+    createPersonWithNewKey(createRandomPrisonPersonDetails())
+    createPersonWithNewKey(createRandomLibraPersonDetails())
+    createPersonWithNewKey(createRandomCommonPlatformPersonDetails())
     recordCountReportJob.run()
     checkTelemetry(
       TelemetryEventType.CPR_RECORD_COUNT_REPORT,
@@ -39,11 +39,11 @@ class RecordCountReportJobIntTest(@Autowired applicationEventPublisher: Applicat
 
   @Test
   fun `should not include passive state records in telemetry`() {
-    createPerson(createRandomPrisonPersonDetails()) { markAsPassive() }
-    createPerson(createRandomPrisonPersonDetails())
-    createPerson(createRandomProbationPersonDetails())
-    createPerson(createRandomLibraPersonDetails())
-    createPerson(createRandomCommonPlatformPersonDetails())
+    createPersonWithNewKey(createRandomPrisonPersonDetails()) { markAsPassive() }
+    createPersonWithNewKey(createRandomPrisonPersonDetails())
+    createPersonWithNewKey(createRandomProbationPersonDetails())
+    createPersonWithNewKey(createRandomLibraPersonDetails())
+    createPersonWithNewKey(createRandomCommonPlatformPersonDetails())
     recordCountReportJob.run()
     checkTelemetry(
       TelemetryEventType.CPR_RECORD_COUNT_REPORT,

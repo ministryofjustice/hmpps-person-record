@@ -233,9 +233,11 @@ class IntegrationTestBase {
     dateOfBirth = randomDate(),
   )
 
-  internal fun addAddressToRecord(address: Address): PersonEntity.() -> Unit = {
-    val addressEntity = AddressEntity.from(address).also { addressEntity -> addressEntity.person = this }
-    this.addresses.add(addressEntity)
+  internal fun addAddressToRecord(address: Address): PersonEntity.() -> Unit = addAddressesToRecord(listOf(address))
+
+  internal fun addAddressesToRecord(addresses: List<Address>): PersonEntity.() -> Unit = {
+    val addressEntities = addresses.map { AddressEntity.from(it).also { addressEntity -> addressEntity.person = this } }.toMutableList()
+    this.addresses.addAll(addressEntities)
   }
 
   internal fun createRandomProbationAddress(): ProbationCreateAddress = ProbationCreateAddress(
@@ -414,6 +416,12 @@ class IntegrationTestBase {
     return personRepository.findByMatchId(personEntity.matchId)!!
   }
 
+  internal fun createMergedPerson(person: Person, mergedToId: Long?): PersonEntity = createPerson(
+    person,
+    { mergedTo = mergedToId!! },
+  )
+
+  @Deprecated("use createPersonWithNewKey, createMergedPerson or addPerson instead")
   internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
     person.sourceSystem,
   ).updatePersonEntity(person)

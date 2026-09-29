@@ -9,6 +9,13 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_ALIAS_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_ALIAS_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_ALIAS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_PERSON_RECOVERED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_REFERENCE_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_REFERENCE_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_REFERENCE_RECOVERED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonUpdated
@@ -40,13 +47,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ALIAS_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ALIAS_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ALIAS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_RECOVERED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_REFERENCE_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_REFERENCE_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_REFERENCE_RECOVERED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -213,6 +213,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       assertThat(personEntity.getAliases()[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
       assertThat(personEntity.getAliases()[0].nameType).isEqualTo(NameType.ALIAS)
       assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(aliasGender.value)
+      assertThat(personEntity.getAliases()[0].ethnicityCode).isNull()
       assertThat(personEntity.pseudonyms.size).isEqualTo(2)
       val populatedPseudonymsUpdateIdCount = personEntity.pseudonyms.count { it.updateId != null }
       assertThat(populatedPseudonymsUpdateIdCount).isEqualTo(2)
@@ -224,6 +225,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
       assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(title.value)
       assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
+      assertThat(personEntity.getPrimaryName().ethnicityCode).isEqualTo(EthnicityCode.fromProbation(ethnicity))
 
       assertThat(personEntity.addresses.size).isEqualTo(0)
 
@@ -333,6 +335,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(changedPersonDetails.identifiers.pnc)
       assertThat(updatedPersonEntity.dateOfDeath).isEqualTo(dateOfDeath)
       assertThat(updatedPersonEntity.getPrimaryName().sexCode).isEqualTo(SexCode.from(changedPersonDetails))
+      assertThat(updatedPersonEntity.getPrimaryName().ethnicityCode).isEqualTo(EthnicityCode.fromProbation(changedPersonDetails.ethnicity?.value))
 
       val updatedLastModified = updatedPersonEntity.lastModified
 
@@ -349,6 +352,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       assertThat(updatedPersonEntity.genderIdentity).isEqualTo(GenderIdentityCode.from(changedPersonDetails))
       assertThat(updatedPersonEntity.selfDescribedGenderIdentity).isEqualTo(changedPersonDetails.selfDescribedGenderIdentity)
       assertThat(updatedPersonEntity.getAliases()[0].sexCode).isEqualTo(SexCode.from(changedPersonDetails.aliases?.first()))
+      assertThat(updatedPersonEntity.getAliases()[0].ethnicityCode).isNull()
     }
 
     @Test
@@ -450,9 +454,10 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
         addresses = listOf(Address(postcode = postcode)),
         sourceSystem = NOMIS,
       )
-      val existingPerson = createPerson(existingPrisoner)
-      val personKeyEntity = createPersonKey().addPerson(existingPerson)
 
+      val personKeyEntity = createPersonKey().addPerson(existingPrisoner)
+
+      val existingPerson = personRepository.findByPrisonNumber(existingPrisoner.prisonNumber!!)!!
       stubOnePersonMatchAboveJoinThreshold(matchedRecord = existingPerson.matchId)
 
       val apiResponse = ApiResponseSetup(

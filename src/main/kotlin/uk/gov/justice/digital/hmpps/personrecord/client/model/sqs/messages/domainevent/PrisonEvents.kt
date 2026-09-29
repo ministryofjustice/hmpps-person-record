@@ -1,9 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISON_PERSON_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISON_PERSON_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISON_PERSON_UPDATED
+const val PRISON_PERSON_CREATED = "prisoner-offender-search.prisoner.created"
+const val PRISON_PERSON_UPDATED = "prisoner-offender-search.prisoner.updated"
 
 data class PrisonPersonCreated(
   override val eventType: String = PRISON_PERSON_CREATED,
@@ -18,18 +16,5 @@ data class PrisonPersonUpdated(
 ) : DomainEvent {
   val prisonNumber: String get() = personReference.getPrisonNumber()
 }
-
-data class PrisonPersonMerged(
-  override val eventType: String = PRISON_PERSON_MERGED,
-  val personReference: PersonReference,
-  val additionalInformation: PrisonPersonMergedInfo,
-) : DomainEvent {
-  val prisonNumber: String get() = personReference.getPrisonNumber()
-}
-
-data class PrisonPersonMergedInfo(
-  @JsonProperty("removedNomsNumber")
-  val sourcePrisonNumber: String,
-)
 
 private fun PersonReference.getPrisonNumber() = this.identifiers?.first { it.type == "NOMS" }?.value!!

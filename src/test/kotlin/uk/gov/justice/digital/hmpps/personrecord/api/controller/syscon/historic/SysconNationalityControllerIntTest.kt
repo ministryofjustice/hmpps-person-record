@@ -70,7 +70,7 @@ class SysconNationalityControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
       val currentCode = NationalityCode.entries.random().toString()
       val currentNationality = createRandomPrisonNationality(currentCode)
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       postNationality(prisonNumber, currentNationality)
       assertCorrectValuesSaved(prisonNumber, currentNationality)
@@ -88,7 +88,7 @@ class SysconNationalityControllerIntTest : WebTestBase() {
 
       val currentCode = NationalityCode.entries.random().toString()
       val currentNationality = createRandomPrisonNationality(currentCode)
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       postNationality(prisonNumber, currentNationality)
       assertCorrectValuesSaved(prisonNumber, currentNationality)
