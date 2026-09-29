@@ -3,39 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.doma
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_PERSON_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_RELIGION_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_RELIGION_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_ADDRESS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_UNMERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PROBATION_PERSON_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISON_PERSON_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISON_PERSON_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ADDRESS_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ADDRESS_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ADDRESS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ALIAS_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ALIAS_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_ALIAS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED_GDPR
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_RECOVERED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_UNMERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_REFERENCE_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_REFERENCE_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_REFERENCE_RECOVERED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_ARRIVED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
 
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
