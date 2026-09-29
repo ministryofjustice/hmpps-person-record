@@ -3,8 +3,12 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.verify
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
@@ -28,12 +32,16 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.BUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBase() {
+
+  @MockitoSpyBean
+  lateinit var personService: PersonService
 
   @Nested
   @ActiveProfiles("prod")
@@ -84,19 +92,19 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
 
     @Test
     fun `should return bad request when there are duplicate nomis ids on the addresses`() {
-      val duplicateAddressIdsOnRequestBody = validRequestBody.copy(addresses = validRequestBody.addresses!!.map { it.copy(nomisAddressId = 10000L) })
+      val duplicateAddressIdsOnRequestBody = validRequestBody.copy(addresses = validRequestBody.addresses.map { it.copy(nomisAddressId = 10000L) })
       assertThat(badRequest(duplicateAddressIdsOnRequestBody)).contains("Duplicate nomis address ids were detected")
     }
 
     @Test
     fun `should return bad request when there are multiple primary addresses`() {
-      val multiplePrimaryAddressesRequestBody = validRequestBody.copy(addresses = validRequestBody.addresses!!.map { it.copy(isPrimary = true) })
+      val multiplePrimaryAddressesRequestBody = validRequestBody.copy(addresses = validRequestBody.addresses.map { it.copy(isPrimary = true) })
       assertThat(badRequest(multiplePrimaryAddressesRequestBody)).contains("There cannot be more than one primary address for")
     }
 
     @Test
     fun `should return bad request when there are multiple mail addresses`() {
-      val multipleMailAddressesRequestBody = validRequestBody.copy(addresses = validRequestBody.addresses!!.map { it.copy(isMail = true) })
+      val multipleMailAddressesRequestBody = validRequestBody.copy(addresses = validRequestBody.addresses.map { it.copy(isMail = true) })
       assertThat(badRequest(multipleMailAddressesRequestBody)).contains("There cannot be more than one mail address for")
     }
 
@@ -278,7 +286,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
 
       // Addresses
-      for (addressRequest in validRequestBody.addresses!!) {
+      for (addressRequest in validRequestBody.addresses) {
         // Because ordering is not guaranteed, we need to find the matching address entity for each request
         val matchingAddressEntity = personEntity.addresses.single { addressMatcher(addressRequest, it) }
         assertAddressMatches(addressRequest, matchingAddressEntity)
@@ -304,13 +312,47 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       }
 
       // Contacts
-      for (contactRequest in validRequestBody.contacts!!) {
+      for (contactRequest in validRequestBody.contacts) {
         // Because ordering is not guaranteed, we need to find the matching contact entity for each request
         val matchingContactEntity = personEntity.contacts.single { contactMatcher(contactRequest, it) }
         assertContactMatches(contactRequest, matchingContactEntity)
         val contactMapping = response.contactMappings.single { contactMatcher(contactRequest, it) }
         assertThat(contactMapping.cprContactId).isEqualTo(matchingContactEntity.updateId.toString())
       }
+    }
+
+    @Test
+    fun `successful save calls process person with addresses and contacts filled in`() {
+      val prisonNumber = randomPrisonNumber()
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+
+      sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+        url = addressesUrl(prisonNumber),
+        body = validRequestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+        sendAuthorised = true,
+      ).returnResult().responseBody!!
+      verify(personService).processPerson(
+        any(),
+        any(),
+        argThat { findPersonEntity ->
+          val personEntity = findPersonEntity()!!
+          for (addressRequest in validRequestBody.addresses) {
+            val matchingAddressDto = personEntity.addresses.single { addressMatcher(addressRequest, it) }
+            for (contactRequest in addressRequest.contacts) {
+              matchingAddressDto.contacts.single { contactMatcher(contactRequest, it) }
+            }
+            for (addressUsageRequest in addressRequest.addressUsage) {
+              matchingAddressDto.usages.single { addressUsageMatcher(addressUsageRequest, it) }
+            }
+          }
+          for (contactRequest in validRequestBody.contacts) {
+            personEntity.contacts.single { contactMatcher(contactRequest, it) }
+          }
+          true
+        },
+      )
     }
 
     @Test

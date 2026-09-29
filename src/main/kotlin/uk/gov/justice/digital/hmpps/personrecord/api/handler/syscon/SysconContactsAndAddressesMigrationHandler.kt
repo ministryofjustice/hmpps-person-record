@@ -105,14 +105,13 @@ class SysconContactsAndAddressesMigrationHandler(
 
   private fun handleContactsInsert(contacts: List<PrisonContact>, personEntity: PersonEntity): List<SysconContactMapping> {
     personEntity.contacts.clear()
-    personRepository.save(personEntity)
     val contactEntities = contactRepository.saveAllAndFlush(contacts.map { it.toEntity(personEntity) })
+    personEntity.contacts.addAll(contactEntities)
     return contacts.zip(contactEntities).map { it.toMapping() }
   }
 
   private fun handleAddressesInsert(addresses: List<PrisonAddress>, personEntity: PersonEntity): List<SysconAddressMapping> {
     personEntity.addresses.clear()
-    personRepository.save(personEntity)
     val mappings = addresses.map { address ->
       val addressEntity = addressRepository.saveAndFlush(address.toEntity(personEntity))
 
@@ -121,6 +120,9 @@ class SysconContactsAndAddressesMigrationHandler(
 
       val addressUsageEntities = addressUsageRepository.saveAllAndFlush(address.addressUsage.map { it.toEntity(addressEntity) })
       val addressUsageMappings = address.addressUsage.zip(addressUsageEntities).map { it.toMapping() }
+      addressEntity.usages.addAll(addressUsageEntities)
+      addressEntity.contacts.addAll(contactEntities)
+      personEntity.addresses.add(addressEntity)
 
       SysconAddressMapping(
         nomisAddressId = address.nomisAddressId,
