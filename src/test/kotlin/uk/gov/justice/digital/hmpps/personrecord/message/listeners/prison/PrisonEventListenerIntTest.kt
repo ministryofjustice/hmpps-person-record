@@ -10,9 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.getEmail
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
-import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
@@ -27,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
@@ -70,6 +69,75 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
     publishPrisonPersonCreatedEvent(prisonNumber)
     waitForMessageToBeProcessedAndDiscarded()
     expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
+  }
+
+  @Nested
+  inner class AddressesAndContacts {
+
+    // TODO delete this test when we switch PrisonPersonServiceProxy to ignore addresses and contacts in dev
+    @Test
+    fun `should save address and contact when saving person level data`() {
+      val prisonNumber = randomPrisonNumber()
+
+      val addressResponse = ApiResponseSetupAddress(
+        noFixedAbode = randomBoolean(),
+        postcode = randomPostcode(),
+        fullAddress = randomFullAddress(),
+        startDate = randomDate(),
+      )
+      val contactResponse = ApiResponseSetupContact(
+        value = randomPhoneNumber(),
+        type = ContactType.HOME,
+      )
+
+      stubNoMatchesPersonMatch()
+      stubPersonMatchUpsert()
+      prisonUpdateEventAndResponseSetup(
+        ApiResponseSetup(
+          prisonNumber = prisonNumber,
+          firstName = randomName(),
+          addresses = listOf(addressResponse),
+          contacts = listOf(contactResponse),
+        ),
+      )
+
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
+      val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+      assertThat(actualPersonEntity.addresses).isNotEmpty()
+      assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
+      assertThat(actualPersonEntity.addresses[0].updateId).isNotNull()
+      assertThat(actualPersonEntity.addresses[0].postcode).isEqualTo(addressResponse.postcode)
+      assertThat(actualPersonEntity.addresses[0].fullAddress).isEqualTo(addressResponse.fullAddress)
+      assertThat(actualPersonEntity.addresses[0].startDate).isEqualTo(addressResponse.startDate!!.toUkZonedDateTime())
+      assertThat(actualPersonEntity.addresses[0].noFixedAbode).isEqualTo(addressResponse.noFixedAbode)
+      assertThat(actualPersonEntity.contacts).isNotEmpty()
+      assertThat(actualPersonEntity.contacts.getHome()?.contactValue).isEqualTo(contactResponse.value)
+    }
+
+    @Disabled("This test is disabled until we switch PrisonPersonServiceProxy to ignore addresses and contacts in dev")
+    @Test
+    fun `should not save address and contact when saving person level data`() {
+      val prisonNumber = randomPrisonNumber()
+
+      val addressResponse = ApiResponseSetupAddress(postcode = randomPostcode())
+      val contactResponse = ApiResponseSetupContact(value = randomPhoneNumber(), type = ContactType.HOME)
+
+      stubNoMatchesPersonMatch()
+      stubPersonMatchUpsert()
+      prisonUpdateEventAndResponseSetup(
+        ApiResponseSetup(
+          prisonNumber = prisonNumber,
+          firstName = randomName(),
+          addresses = listOf(addressResponse),
+          contacts = listOf(contactResponse),
+        ),
+      )
+
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
+      val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+      assertThat(actualPersonEntity.addresses).isEmpty()
+      assertThat(actualPersonEntity.contacts).isEmpty()
+    }
   }
 
   @Nested
@@ -169,20 +237,6 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
         val populatedPseudonymsUpdateIdCount = personEntity.pseudonyms.count { it.updateId != null }
         assertThat(populatedPseudonymsUpdateIdCount).isEqualTo(2)
 
-        assertThat(personEntity.addresses.size).isEqualTo(1)
-        assertThat(personEntity.addresses[0].updateId).isNotNull()
-        assertThat(personEntity.addresses[0].postcode).isEqualTo(postcode)
-        assertThat(personEntity.addresses[0].fullAddress).isEqualTo(fullAddress)
-        assertThat(personEntity.addresses[0].startDate).isEqualTo(LocalDate.of(1970, 1, 1).toUkZonedDateTime())
-        assertThat(personEntity.addresses[0].noFixedAbode).isEqualTo(true)
-
-        assertThat(personEntity.contacts.size).isEqualTo(3)
-        val populatedContactUpdateIdCount = personEntity.contacts.count { it.updateId != null }
-        assertThat(populatedContactUpdateIdCount).isEqualTo(3)
-        assertThat(personEntity.contacts.getEmail()?.contactValue).isEqualTo(email)
-        assertThat(personEntity.contacts.getHome()?.contactValue).isEqualTo("01141234568")
-        assertThat(personEntity.contacts.getMobile()?.contactValue).isEqualTo("01141234567")
-
         assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceStartDate)
         assertThat(personEntity.nationalities.size).isEqualTo(1)
         assertThat(personEntity.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromPrisonMapping(nationality)?.name)
@@ -193,34 +247,6 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
 
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
-    }
-
-    @Disabled("This test is disabled until we switch PrisonPersonServiceProxy to ignore addresses and contacts in dev")
-    @Test
-    fun `should not save address and contact when saving person level data`() {
-      val prisonNumber = randomPrisonNumber()
-
-      val updatedAddressResponse = ApiResponseSetupAddress(postcode = randomPostcode())
-      val updatedContactResponse = ApiResponseSetupContact(
-        value = randomPhoneNumber(),
-        type = ContactType.HOME,
-      )
-
-      stubNoMatchesPersonMatch()
-      stubPersonMatchUpsert()
-      prisonUpdateEventAndResponseSetup(
-        ApiResponseSetup(
-          prisonNumber = prisonNumber,
-          firstName = randomName(),
-          addresses = listOf(updatedAddressResponse),
-          contacts = listOf(updatedContactResponse),
-        ),
-      )
-
-      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
-      val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber)!!
-      assertThat(actualPersonEntity.addresses).isEmpty()
-      assertThat(actualPersonEntity.contacts).isEmpty()
     }
 
     @Test

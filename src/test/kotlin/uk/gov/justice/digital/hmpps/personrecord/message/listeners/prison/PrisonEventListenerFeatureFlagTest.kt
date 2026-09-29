@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class PrisonEventListenerFeatureFlagTest : MessagingTestBase() {
 
+  // TODO delete this test when we switch PrisonPersonServiceProxy to ignore addresses and contacts in prod
   @ActiveProfiles("prod")
   @Nested
   inner class Prod {
@@ -61,6 +62,7 @@ class PrisonEventListenerFeatureFlagTest : MessagingTestBase() {
     }
   }
 
+  // TODO delete this test when we switch PrisonPersonServiceProxy to ignore addresses and contacts in preprod
   @ActiveProfiles("preprod")
   @Nested
   inner class PreProd {
