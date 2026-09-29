@@ -93,12 +93,14 @@ tasks.register<Test>("pactTest") {
   systemProperty("pactbroker.auth.username", System.getenv("PACT_BROKER_USERNAME") ?: "")
   systemProperty("pactbroker.auth.password", System.getenv("PACT_BROKER_PASSWORD") ?: "")
 
-  val consumerBranch = System.getenv("PACT_CONSUMER_BRANCH")?.takeIf { it.isNotBlank() }
-  val requestedConsumerName = System.getenv("PACT_CONSUMER_NAME")?.takeIf { it.isNotBlank() }
+  val consumerBranch = System.getenv("PACT_CONSUMER_BRANCH") ?: ""
+  val requestedConsumerName = System.getenv("PACT_CONSUMER_NAME") ?: ""
   val selectors = when {
-    consumerBranch != null && requestedConsumerName != null ->
+    consumerBranch.isNotEmpty() && requestedConsumerName.isEmpty() ->
+      throw GradleException("PACT_CONSUMER_NAME must be set when PACT_CONSUMER_BRANCH is provided so only the matching Pact consumer verification runs.")
+    consumerBranch.isNotEmpty() && requestedConsumerName.isNotEmpty() ->
       """[{"consumer":"$requestedConsumerName","branch":"$consumerBranch"}]"""
-    requestedConsumerName != null ->
+    requestedConsumerName.isNotEmpty() ->
       """[{"consumer":"$requestedConsumerName","mainBranch":true},{"consumer":"$requestedConsumerName","deployed":true}]"""
     else ->
       """[{"mainBranch":true},{"deployed":true}]"""
@@ -110,11 +112,6 @@ tasks.register<Test>("pactTest") {
   systemProperty("pactbroker.providerBranch", System.getenv("GITHUB_BRANCH") ?: "local")
   systemProperty("pact.verifier.publishResults", System.getenv("PACT_PUBLISH_RESULTS") ?: "false")
 
-  doFirst {
-    if (consumerBranch != null && requestedConsumerName == null) {
-      throw GradleException("PACT_CONSUMER_NAME must be set when PACT_CONSUMER_BRANCH is provided so only the matching Pact consumer verification runs.")
-    }
-  }
 }
 
 kover {
