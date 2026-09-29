@@ -17,7 +17,7 @@ on:
         description: Publish verification results to broker
         type: boolean
         default: true
-      provider_app_version:
+      providerAppVersion:
         required: false
         description: Application version
         type: string
@@ -37,7 +37,7 @@ on:
         description: Publish verification results to broker
         type: boolean
         default: true
-      provider_app_version:
+      providerAppVersion:
         required: true
         description: Application version
         type: string
@@ -81,7 +81,7 @@ jobs:
           GITHUB_BRANCH: ${{ github.ref_name }}
           PACT_CONSUMER_NAME: ${{ inputs.consumerName }}
           PACT_CONSUMER_BRANCH: ${{ inputs.consumerBranch }}
-          PACT_PROVIDER_APP_VERSION: ${{ inputs.provider_app_version }}
+          PACT_PROVIDER_APP_VERSION: ${{ inputs.providerAppVersion }}
 
       - name: Upload the test artifacts
         if: always()

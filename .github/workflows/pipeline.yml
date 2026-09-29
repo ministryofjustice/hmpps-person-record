@@ -99,7 +99,7 @@ jobs:
     secrets: inherit
     with:
      publishResults: true
-     app_version: '${{ needs.app_version.outputs.version }}'
+     providerAppVersion: '${{ needs.app_version.outputs.version }}'
   build:
     name: Build docker image from hmpps-github-actions
     if: github.ref == 'refs/heads/main'
