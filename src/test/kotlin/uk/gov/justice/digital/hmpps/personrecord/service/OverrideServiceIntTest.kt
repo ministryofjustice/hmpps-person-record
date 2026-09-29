@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
 class OverrideServiceIntTest : IntegrationTestBase() {
 
@@ -13,17 +14,18 @@ class OverrideServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should not overwrite include marker when excluding a record`() {
-    val personA = createPerson(createRandomProbationPersonDetails())
-    val personB = createPerson(createRandomProbationPersonDetails())
-    val personC = createPerson(createRandomProbationPersonDetails())
+    val personACrn = randomCrn()
+    val personBCrn = randomCrn()
+    val personCCrn = randomCrn()
     createPersonKey()
-      .addPerson(personA)
-      .addPerson(personB)
-      .addPerson(personC)
+      .addPerson(createRandomProbationPersonDetails(personACrn))
+      .addPerson(createRandomProbationPersonDetails(personBCrn))
+      .addPerson(createRandomProbationPersonDetails(personCCrn))
 
-    val personD = createPerson(createRandomProbationPersonDetails())
-    createPersonKey()
-      .addPerson(personD)
+    val personA = personRepository.findByCrn(personACrn)!!
+    val personB = personRepository.findByCrn(personBCrn)!!
+    val personC = personRepository.findByCrn(personCCrn)!!
+    val personD = createPersonWithNewKey(createRandomProbationPersonDetails())
 
     includeRecords(personA, personB, personC)
 

@@ -10,14 +10,14 @@ import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligi
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionUpdateRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PRISON_RELIGION_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PRISON_RELIGION_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprReligionCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprReligionUpdated
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.NOMIS
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_RELIGION_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.CPR_PRISON_RELIGION_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDateTime
 
@@ -35,7 +35,7 @@ class ReligionDomainEventPublisherIntTest : MessagingTestBase() {
   @Test
   fun `should publish a CPR religion created domain event when a religion is created in nomis`() {
     val prisonNumber = randomPrisonNumber()
-    createPerson(createRandomPrisonPersonDetails(prisonNumber))
+    createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
     val cprReligionId = prisonReligionInsertHandler.handleInsert(prisonNumber, createPrisonReligionHistory()).cprReligionId
 

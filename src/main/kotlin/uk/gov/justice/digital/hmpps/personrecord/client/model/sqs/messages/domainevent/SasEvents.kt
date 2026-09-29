@@ -1,9 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_ARRIVED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.SAS_ADDRESS_UPDATED
+
+const val SAS_ADDRESS_UPDATED = "sas.accommodation.updated"
+const val SAS_ADDRESS_ARRIVED = "sas.accommodation.person.arrived"
+const val SAS_ADDRESS_DELETED = "sas.accommodation.deleted"
 
 data class SasAddressUpdated(
   override val eventType: String = SAS_ADDRESS_UPDATED,
