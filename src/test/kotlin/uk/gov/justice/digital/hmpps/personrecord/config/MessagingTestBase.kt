@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonCreated
@@ -27,7 +28,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService

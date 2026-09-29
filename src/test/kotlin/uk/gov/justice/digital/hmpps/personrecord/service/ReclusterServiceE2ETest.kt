@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -14,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_SELF_HEALED
