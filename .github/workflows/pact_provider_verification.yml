@@ -72,7 +72,7 @@ jobs:
         run: make e2e-start-containers
 
       - name: Verify pacts
-        run: ./gradlew pactTest --console=plain
+        run: ./gradlew pactTest
         env:
           PACT_PUBLISH_RESULTS: ${{ inputs.publishResults }}
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
