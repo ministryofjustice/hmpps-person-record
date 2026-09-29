@@ -111,7 +111,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should find one high confidence match for record not assigned to cluster`() {
-      val searchingRecord = createPerson(createExamplePerson())
+      val searchingRecord = createPersonWithNewKey(createExamplePerson())
       val foundRecord = createPersonWithNewKey(createExamplePerson())
 
       stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
