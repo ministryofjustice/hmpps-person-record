@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
@@ -15,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
@@ -32,6 +34,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNationalityCode
@@ -43,6 +46,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupContact
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupIdentifier
 import java.lang.Thread.sleep
 import java.time.LocalDate
@@ -104,7 +108,29 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
       val gender = randomPrisonSexCode()
 
       stubNoMatchesPersonMatch()
-      prisonCreateEventAndResponseSetup(ApiResponseSetup(title = title.key, gender = gender.key, aliases = listOf(ApiResponseSetupAlias(title.key, aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth, aliasGender.key)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion.name, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
+      prisonCreateEventAndResponseSetup(
+        ApiResponseSetup(
+          title = title.key,
+          gender = gender.key,
+          aliases = listOf(ApiResponseSetupAlias(title.key, aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth, aliasGender.key)),
+          firstName = firstName,
+          middleName = middleName,
+          lastName = lastName,
+          prisonNumber = prisonNumber,
+          pnc = pnc,
+          email = email,
+          sentenceStartDate = sentenceStartDate,
+          primarySentence = primarySentence,
+          cro = cro,
+          addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)),
+          dateOfBirth = personDateOfBirth,
+          nationality = nationality,
+          ethnicity = ethnicity,
+          religion = religion.name,
+          contacts = listOf(ApiResponseSetupContact(type = ContactType.MOBILE, value = "01141234567"), ApiResponseSetupContact(type = ContactType.HOME, value = "01141234568")),
+          identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber)),
+        ),
+      )
 
       checkTelemetry(
         CPR_RECORD_CREATED,
@@ -154,7 +180,7 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
         val populatedContactUpdateIdCount = personEntity.contacts.count { it.updateId != null }
         assertThat(populatedContactUpdateIdCount).isEqualTo(3)
         assertThat(personEntity.contacts.getEmail()?.contactValue).isEqualTo(email)
-        assertThat(personEntity.contacts.getHome()?.contactValue).isEqualTo("01141234567")
+        assertThat(personEntity.contacts.getHome()?.contactValue).isEqualTo("01141234568")
         assertThat(personEntity.contacts.getMobile()?.contactValue).isEqualTo("01141234567")
 
         assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceStartDate)
@@ -167,6 +193,34 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
 
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
+    }
+
+    @Disabled("This test is disabled until we switch PrisonPersonServiceProxy to ignore addresses and contacts in dev")
+    @Test
+    fun `should not save address and contact when saving person level data`() {
+      val prisonNumber = randomPrisonNumber()
+
+      val updatedAddressResponse = ApiResponseSetupAddress(postcode = randomPostcode())
+      val updatedContactResponse = ApiResponseSetupContact(
+        value = randomPhoneNumber(),
+        type = ContactType.HOME,
+      )
+
+      stubNoMatchesPersonMatch()
+      stubPersonMatchUpsert()
+      prisonUpdateEventAndResponseSetup(
+        ApiResponseSetup(
+          prisonNumber = prisonNumber,
+          firstName = randomName(),
+          addresses = listOf(updatedAddressResponse),
+          contacts = listOf(updatedContactResponse),
+        ),
+      )
+
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
+      val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+      assertThat(actualPersonEntity.addresses).isEmpty()
+      assertThat(actualPersonEntity.contacts).isEmpty()
     }
 
     @Test
@@ -324,7 +378,8 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
         assertThat(createdLog.lastName).isEqualTo(lastName)
         assertThat(createdLog.dateOfBirth).isEqualTo(personDateOfBirth)
         assertThat(createdLog.sourceSystem).isEqualTo(NOMIS)
-        assertThat(createdLog.postcodes).isEqualTo(listOf(postcode))
+        // TODO remove the address section when we turn change PrisonPersonServiceProxy to ignore addresses
+        // assertThat(createdLog.postcodes).isEqualTo(listOf(postcode))
         assertThat(createdLog.sentenceDates).isEqualTo(listOf(sentenceStartDate))
         assertThat(createdLog.firstNameAliases).isEqualTo(listOf(aliasFirstName, secondAliasFirstName).sorted())
         assertThat(createdLog.lastNameAliases).isEqualTo(listOf(aliasLastName, secondAliasLastName).sorted())
