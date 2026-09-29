@@ -23,10 +23,9 @@ class PersonDeletionServiceIntTest : WebTestBase() {
   inner class SinglePersonCluster {
     @Test
     fun `deletes person and cluster - correct events occurred`() {
-      val personToBeDeleted = createPerson(createRandomPrisonPersonDetails())
-      val cluster = createPersonKey()
-        .addPerson(personToBeDeleted)
-        .also { stubDeletePersonMatch() }
+      val personToBeDeleted = createPersonWithNewKey(createRandomPrisonPersonDetails())
+      val cluster = personToBeDeleted.personKey!!
+      stubDeletePersonMatch()
 
       triggerPersonDeletion(personToBeDeleted.prisonNumber)
 
@@ -89,7 +88,7 @@ class PersonDeletionServiceIntTest : WebTestBase() {
     @Test
     fun `deletes a merged from person - correct events occurred`() {
       val toPerson = createPersonWithNewKey(createRandomPrisonPersonDetails())
-      val fromPerson = createPerson(createRandomPrisonPersonDetails()) { mergedTo = toPerson.id }
+      val fromPerson = createMergedPerson(createRandomPrisonPersonDetails(), toPerson.id)
       stubDeletePersonMatch()
 
       triggerPersonDeletion(fromPerson.prisonNumber)
@@ -109,9 +108,9 @@ class PersonDeletionServiceIntTest : WebTestBase() {
     @Test
     fun `deletes a non merged person - correct events occurred`() {
       val toPerson = createPersonWithNewKey(createRandomPrisonPersonDetails())
-      val fromPersonC = createPerson(createRandomPrisonPersonDetails()) { mergedTo = toPerson.id }
-      val fromPersonB = createPerson(createRandomPrisonPersonDetails()) { mergedTo = toPerson.id }
-      val fromPersonA = createPerson(createRandomPrisonPersonDetails()) { mergedTo = fromPersonB.id }
+      val fromPersonC = createMergedPerson(createRandomPrisonPersonDetails(), toPerson.id)
+      val fromPersonB = createMergedPerson(createRandomPrisonPersonDetails(), toPerson.id)
+      val fromPersonA = createMergedPerson(createRandomPrisonPersonDetails(), fromPersonB.id)
       stubDeletePersonMatch()
 
       triggerPersonDeletion(toPerson.prisonNumber)
