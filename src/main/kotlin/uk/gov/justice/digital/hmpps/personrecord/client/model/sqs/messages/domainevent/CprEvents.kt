@@ -4,6 +4,21 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
 import java.time.Instant
 import java.util.UUID
 
+const val CPR_PRISON_PERSON_CREATED = "core-person-record.prison.record.created"
+const val CPR_PRISON_PERSON_MERGED = "core-person-record.prison.record.merged"
+const val CPR_PRISON_RELIGION_CREATED = "core-person-record.prison.religion.created"
+const val CPR_PRISON_RELIGION_UPDATED = "core-person-record.prison.religion.updated"
+
+const val CPR_PROBATION_PERSON_CREATED = "core-person-record.probation.record.created"
+const val CPR_PROBATION_PERSON_DELETED = "core-person-record.probation.record.deleted"
+const val CPR_PROBATION_PERSON_UPDATED = "core-person-record.probation.record.updated"
+const val CPR_PROBATION_PERSON_MERGED = "core-person-record.probation.record.merged"
+const val CPR_PROBATION_PERSON_UNMERGED = "core-person-record.probation.record.unmerged"
+
+const val CPR_PROBATION_ADDRESS_CREATED = "core-person-record.probation.address.created"
+const val CPR_PROBATION_ADDRESS_UPDATED = "core-person-record.probation.address.updated"
+const val CPR_PROBATION_ADDRESS_DELETED = "core-person-record.probation.address.deleted"
+
 data class CprPersonCreated(
   override val eventType: String,
   val version: Int = 1,
