@@ -55,7 +55,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     @Test
     fun `should not set contacts when specified in update`() {
       val personWithNoContact = createRandomPrisonPersonDetails(randomPrisonNumber())
-      val created = createPerson(personWithNoContact)
+      val created = createPersonWithNewKey(personWithNoContact)
       assertThat(created.contacts).isEmpty()
       val personWithContact = personWithNoContact.copy(contacts = listOf(Contact(MOBILE, randomPhoneNumber(), "+44")))
       val updated = personService.processPerson(personWithContact, setOf(ContactEntity::class)) { created }
@@ -75,7 +75,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     @Test
     fun `should not set addresses when specified in update`() {
       val personNoAddress = createRandomPrisonPersonDetails(randomPrisonNumber()).copy(addresses = emptyList())
-      val created = createPerson(personNoAddress)
+      val created = createPersonWithNewKey(personNoAddress)
       assertThat(created.addresses).isEmpty()
       val personWithAddress = personNoAddress.copy(
         addresses = listOf(
