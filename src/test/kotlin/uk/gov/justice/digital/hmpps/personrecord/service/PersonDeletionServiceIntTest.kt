@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import java.util.UUID.randomUUID
 
 class PersonDeletionServiceIntTest : WebTestBase() {
 
@@ -23,10 +24,9 @@ class PersonDeletionServiceIntTest : WebTestBase() {
   inner class SinglePersonCluster {
     @Test
     fun `deletes person and cluster - correct events occurred`() {
-      val personToBeDeleted = createPerson(createRandomPrisonPersonDetails())
-      val cluster = createPersonKey()
-        .addPerson(personToBeDeleted)
-        .also { stubDeletePersonMatch() }
+      val personToBeDeleted = createPersonWithNewKey(createRandomPrisonPersonDetails())
+      val cluster = personToBeDeleted.personKey!!
+      stubDeletePersonMatch()
 
       triggerPersonDeletion(personToBeDeleted.prisonNumber)
 
@@ -89,7 +89,7 @@ class PersonDeletionServiceIntTest : WebTestBase() {
     @Test
     fun `deletes a merged from person - correct events occurred`() {
       val toPerson = createPersonWithNewKey(createRandomPrisonPersonDetails())
-      val fromPerson = createPerson(createRandomPrisonPersonDetails()) { mergedTo = toPerson.id }
+      val fromPerson = createMergedPerson(createRandomPrisonPersonDetails(), toPerson.id)
       stubDeletePersonMatch()
 
       triggerPersonDeletion(fromPerson.prisonNumber)
@@ -109,9 +109,9 @@ class PersonDeletionServiceIntTest : WebTestBase() {
     @Test
     fun `deletes a non merged person - correct events occurred`() {
       val toPerson = createPersonWithNewKey(createRandomPrisonPersonDetails())
-      val fromPersonC = createPerson(createRandomPrisonPersonDetails()) { mergedTo = toPerson.id }
-      val fromPersonB = createPerson(createRandomPrisonPersonDetails()) { mergedTo = toPerson.id }
-      val fromPersonA = createPerson(createRandomPrisonPersonDetails()) { mergedTo = fromPersonB.id }
+      val fromPersonC = createMergedPerson(createRandomPrisonPersonDetails(), toPerson.id)
+      val fromPersonB = createMergedPerson(createRandomPrisonPersonDetails(), toPerson.id)
+      val fromPersonA = createMergedPerson(createRandomPrisonPersonDetails(), fromPersonB.id)
       stubDeletePersonMatch()
 
       triggerPersonDeletion(toPerson.prisonNumber)
@@ -142,32 +142,8 @@ class PersonDeletionServiceIntTest : WebTestBase() {
   @Nested
   inner class OverrideMarkerScenarios {
     @Test
-    fun `deletes person with override marker equal to null - send events with false`() {
-      val personToBeDeleted = createPerson(createRandomPrisonPersonDetails()) { overrideMarker = null }
-      val cluster = createPersonKey()
-        .addPerson(personToBeDeleted)
-        .also { stubDeletePersonMatch() }
-
-      triggerPersonDeletion(personToBeDeleted.prisonNumber)
-
-      checkTelemetry(
-        CPR_RECORD_DELETED,
-        mapOf(
-          "UUID" to cluster.personUUID.toString(),
-          "IS_OVERRIDE_MARKER_DELETE" to "false",
-        ),
-      )
-    }
-
-    @Test
-    fun `deletes person with override marker present - sends event with true`() {
-      val otherCluster = createPersonKey()
-        .addPerson(createPerson(createRandomPrisonPersonDetails()) { overrideMarker = null })
-
-      val personToBeDeleted = createPerson(createRandomPrisonPersonDetails()) { overrideMarker = otherCluster.personUUID }
-      val clusterWithPersonWithOverrideMarker = createPersonKey()
-        .addPerson(personToBeDeleted)
-
+    fun `deletes person with no override marker - override marker is not recorded in telemetry`() {
+      val personToBeDeleted = createPersonWithNewKey(createRandomPrisonPersonDetails())
       stubDeletePersonMatch()
 
       triggerPersonDeletion(personToBeDeleted.prisonNumber)
@@ -175,7 +151,25 @@ class PersonDeletionServiceIntTest : WebTestBase() {
       checkTelemetry(
         CPR_RECORD_DELETED,
         mapOf(
-          "UUID" to clusterWithPersonWithOverrideMarker.personUUID.toString(),
+          "UUID" to personToBeDeleted.personKey!!.personUUID.toString(),
+          "IS_OVERRIDE_MARKER_DELETE" to "false",
+        ),
+      )
+    }
+
+    @Test
+    fun `deletes person with override marker present - sends event with true`() {
+      val personToBeDeleted = createPersonWithNewKey(createRandomPrisonPersonDetails(), configure = { overrideMarker = randomUUID() })
+
+      val clusterWithPersonWithOverrideMarker = personToBeDeleted.personKey!!.personUUID
+      stubDeletePersonMatch()
+
+      triggerPersonDeletion(personToBeDeleted.prisonNumber)
+
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf(
+          "UUID" to clusterWithPersonWithOverrideMarker.toString(),
           "IS_OVERRIDE_MARKER_DELETE" to "true",
         ),
       )
