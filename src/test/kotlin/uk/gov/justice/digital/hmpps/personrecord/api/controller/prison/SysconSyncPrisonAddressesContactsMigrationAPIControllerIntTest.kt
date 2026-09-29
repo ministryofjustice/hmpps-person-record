@@ -3,12 +3,8 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.argThat
-import org.mockito.kotlin.verify
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
@@ -32,16 +28,12 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.BUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBase() {
-
-  @MockitoSpyBean
-  lateinit var personService: PersonService
 
   @Nested
   @ActiveProfiles("prod")
@@ -272,6 +264,8 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
 
     @Test
     fun `successful save returns the correct response body`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
       val prisonNumber = randomPrisonNumber()
       createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
@@ -322,41 +316,9 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
     }
 
     @Test
-    fun `successful save calls process person with addresses and contacts filled in`() {
-      val prisonNumber = randomPrisonNumber()
-      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-
-      sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
-        url = addressesUrl(prisonNumber),
-        body = validRequestBody,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.CREATED,
-        sendAuthorised = true,
-      ).returnResult().responseBody!!
-      verify(personService).processPerson(
-        any(),
-        any(),
-        argThat { findPersonEntity ->
-          val personEntity = findPersonEntity()!!
-          for (addressRequest in validRequestBody.addresses) {
-            val matchingAddressDto = personEntity.addresses.single { addressMatcher(addressRequest, it) }
-            for (contactRequest in addressRequest.contacts) {
-              matchingAddressDto.contacts.single { contactMatcher(contactRequest, it) }
-            }
-            for (addressUsageRequest in addressRequest.addressUsage) {
-              matchingAddressDto.usages.single { addressUsageMatcher(addressUsageRequest, it) }
-            }
-          }
-          for (contactRequest in validRequestBody.contacts) {
-            personEntity.contacts.single { contactMatcher(contactRequest, it) }
-          }
-          true
-        },
-      )
-    }
-
-    @Test
     fun `successful save deletes orphaned addresses and its children`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
       val prisonNumber = randomPrisonNumber()
       createPersonWithNewKey(
         createRandomPrisonPersonDetails(prisonNumber).copy(
@@ -396,6 +358,8 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
 
     @Test
     fun `successful save deletes orphaned contacts`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
       val prisonNumber = randomPrisonNumber()
       createPersonWithNewKey(
         createRandomPrisonPersonDetails(prisonNumber).copy(

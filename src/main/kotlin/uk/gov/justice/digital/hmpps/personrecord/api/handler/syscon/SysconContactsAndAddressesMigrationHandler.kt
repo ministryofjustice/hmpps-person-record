@@ -20,15 +20,16 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepositor
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressUsageRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
+import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 
 @Component
 class SysconContactsAndAddressesMigrationHandler(
   private val personRepository: PersonRepository,
-  private val personService: PersonService,
+  private val addressService: AddressService,
   private val contactRepository: ContactRepository,
   private val addressUsageRepository: AddressUsageRepository,
   private val addressRepository: AddressRepository,
@@ -40,6 +41,7 @@ class SysconContactsAndAddressesMigrationHandler(
     prisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest,
   ): SysconAddressesAndContactsResponseBody {
     val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
+
     val addressesRequest = prisonAddressesAndContactsRequest.addresses
     val contactsRequest = prisonAddressesAndContactsRequest.contacts
 
@@ -47,11 +49,6 @@ class SysconContactsAndAddressesMigrationHandler(
 
     val addressMappings = handleAddressesInsert(addressesRequest, person)
     val contactMappings = handleContactsInsert(contactsRequest, person)
-
-    personService.processPerson(
-      person = Person.from(person),
-      childrenToIgnore = setOf(AddressEntity::class, ContactEntity::class),
-    ) { person }
 
     return SysconAddressesAndContactsResponseBody(prisonNumber, addressMappings, contactMappings)
   }
@@ -112,20 +109,25 @@ class SysconContactsAndAddressesMigrationHandler(
 
   private fun handleAddressesInsert(addresses: List<PrisonAddress>, personEntity: PersonEntity): List<SysconAddressMapping> {
     personEntity.addresses.clear()
-    val mappings = addresses.map { address ->
-      val addressEntity = addressRepository.saveAndFlush(address.toEntity(personEntity))
+    val mappings = addresses.map { prisonAddress ->
+      val addressEntity = addressService.processAddress(
+        address = prisonAddress.toAddress(),
+        findPerson = { personEntity },
+        findAddress = { null },
+        eventSource = DomainEventSource.NOMIS,
+      )
 
-      val contactEntities = contactRepository.saveAllAndFlush(address.contacts.map { it.toEntity(addressEntity) })
-      val contactMappings = address.contacts.zip(contactEntities).map { it.toMapping() }
+      val contactEntities = contactRepository.saveAllAndFlush(prisonAddress.contacts.map { it.toEntity(addressEntity) })
+      val contactMappings = prisonAddress.contacts.zip(contactEntities).map { it.toMapping() }
 
-      val addressUsageEntities = addressUsageRepository.saveAllAndFlush(address.addressUsage.map { it.toEntity(addressEntity) })
-      val addressUsageMappings = address.addressUsage.zip(addressUsageEntities).map { it.toMapping() }
+      val addressUsageEntities = addressUsageRepository.saveAllAndFlush(prisonAddress.addressUsage.map { it.toEntity(addressEntity) })
+      val addressUsageMappings = prisonAddress.addressUsage.zip(addressUsageEntities).map { it.toMapping() }
       addressEntity.usages.addAll(addressUsageEntities)
       addressEntity.contacts.addAll(contactEntities)
       personEntity.addresses.add(addressEntity)
 
       SysconAddressMapping(
-        nomisAddressId = address.nomisAddressId,
+        nomisAddressId = prisonAddress.nomisAddressId,
         cprAddressId = addressEntity.updateId.toString(),
         addressUsageMappings = addressUsageMappings,
         contactMappings = contactMappings,
@@ -180,7 +182,7 @@ class SysconContactsAndAddressesMigrationHandler(
       createUserId = createUserId,
     )
 
-    fun PrisonAddress.toEntity(personEntity: PersonEntity) = AddressEntity(
+    fun PrisonAddress.toAddress() = Address(
       startDate = startDate?.toUkZonedDateTime(),
       endDate = endDate?.toUkZonedDateTime(),
       noFixedAbode = noFixedAbode,
@@ -196,7 +198,6 @@ class SysconContactsAndAddressesMigrationHandler(
       countryCode = countryCode,
       comment = comment,
       statusCode = AddressStatusCode.fromPrison(isPrimary, isMail ?: false),
-      person = personEntity,
       modifyDateTime = modifyDateTime,
       modifyUserId = modifyUserId,
       createDateTime = createDateTime,
