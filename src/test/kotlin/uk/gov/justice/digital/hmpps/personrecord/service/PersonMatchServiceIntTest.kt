@@ -167,13 +167,9 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should not return high confidence match to a passive state record`() {
-      val searchingRecord = createPerson(createExamplePerson())
-      createPersonKey()
-        .addPerson(searchingRecord)
+      val searchingRecord = createPersonWithNewKey(createExamplePerson())
 
-      val passiveRecord = createPerson(createExamplePerson()) { markAsPassive() }
-      createPersonKey()
-        .addPerson(passiveRecord)
+      val passiveRecord = createPersonWithNewKey(createExamplePerson()) { markAsPassive() }
 
       stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = passiveRecord.matchId)
 
