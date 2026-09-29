@@ -141,18 +141,16 @@ class PersonDeletionServiceIntTest : WebTestBase() {
   @Nested
   inner class OverrideMarkerScenarios {
     @Test
-    fun `deletes person with override marker equal to null - send events with false`() {
-      val personToBeDeleted = createPerson(createRandomPrisonPersonDetails()) { overrideMarker = null }
-      val cluster = createPersonKey()
-        .addPerson(personToBeDeleted)
-        .also { stubDeletePersonMatch() }
+    fun `deletes person with no override marker - override marker is not recorded in telemetry`() {
+      val personToBeDeleted = createPersonWithNewKey(createRandomPrisonPersonDetails())
+      stubDeletePersonMatch()
 
       triggerPersonDeletion(personToBeDeleted.prisonNumber)
 
       checkTelemetry(
         CPR_RECORD_DELETED,
         mapOf(
-          "UUID" to cluster.personUUID.toString(),
+          "UUID" to personToBeDeleted.personKey!!.personUUID.toString(),
           "IS_OVERRIDE_MARKER_DELETE" to "false",
         ),
       )
