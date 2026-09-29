@@ -103,7 +103,7 @@ tasks.register<Test>("pactTest") {
     requestedConsumerName.isNotEmpty() ->
       """[{"consumer":"$requestedConsumerName","mainBranch":true},{"consumer":"$requestedConsumerName","deployed":true}]"""
     else ->
-      """[{"mainBranch":true},{"deployed":true}]"""
+      """[{"deployed":true}]"""
   }
   systemProperty("pactbroker.consumerversionselectors.rawjson", selectors)
 
