@@ -61,7 +61,6 @@ class PrisonEventListenerFeatureFlagTest : MessagingTestBase() {
     }
   }
 
-  // TODO delete this test when we switching PrisonPersonServiceProxy to ignore addresses and contacts in prod
   @ActiveProfiles("preprod")
   @Nested
   inner class PreProd {
