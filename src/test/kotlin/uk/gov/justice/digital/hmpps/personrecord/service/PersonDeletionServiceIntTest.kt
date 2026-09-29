@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import java.util.UUID.randomUUID
 
 class PersonDeletionServiceIntTest : WebTestBase() {
 
@@ -158,13 +159,9 @@ class PersonDeletionServiceIntTest : WebTestBase() {
 
     @Test
     fun `deletes person with override marker present - sends event with true`() {
-      val otherCluster = createPersonKey()
-        .addPerson(createPerson(createRandomPrisonPersonDetails()) { overrideMarker = null })
+      val personToBeDeleted = createPersonWithNewKey(createRandomPrisonPersonDetails(), configure = { overrideMarker = randomUUID() })
 
-      val personToBeDeleted = createPerson(createRandomPrisonPersonDetails()) { overrideMarker = otherCluster.personUUID }
-      val clusterWithPersonWithOverrideMarker = createPersonKey()
-        .addPerson(personToBeDeleted)
-
+      val clusterWithPersonWithOverrideMarker = personToBeDeleted.personKey!!.personUUID
       stubDeletePersonMatch()
 
       triggerPersonDeletion(personToBeDeleted.prisonNumber)
@@ -172,7 +169,7 @@ class PersonDeletionServiceIntTest : WebTestBase() {
       checkTelemetry(
         CPR_RECORD_DELETED,
         mapOf(
-          "UUID" to clusterWithPersonWithOverrideMarker.personUUID.toString(),
+          "UUID" to clusterWithPersonWithOverrideMarker.toString(),
           "IS_OVERRIDE_MARKER_DELETE" to "true",
         ),
       )
