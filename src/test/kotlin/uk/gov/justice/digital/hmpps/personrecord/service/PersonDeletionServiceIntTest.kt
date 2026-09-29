@@ -48,12 +48,11 @@ class PersonDeletionServiceIntTest : WebTestBase() {
   inner class MultiplePersonCluster {
     @Test
     fun `deletes persons but not cluster - correct events occurred`() {
-      val personToBeDeleted = createPerson(createRandomPrisonPersonDetails())
+      val personToBeDeleted = createPersonWithNewKey(createRandomPrisonPersonDetails())
       val personToRemain = createPerson(createRandomPrisonPersonDetails())
       val person = createPerson(Person.from(personToRemain).copy(prisonNumber = randomPrisonNumber()))
 
-      val clusterToBeAddedTo = createPersonKey()
-        .addPerson(personToBeDeleted)
+      val clusterToBeAddedTo = personToBeDeleted.personKey!!
         .addPerson(personToRemain)
         .also {
           stubDeletePersonMatch()
