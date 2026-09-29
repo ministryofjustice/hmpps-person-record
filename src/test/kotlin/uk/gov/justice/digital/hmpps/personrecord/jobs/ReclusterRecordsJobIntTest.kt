@@ -1,10 +1,14 @@
 package uk.gov.justice.digital.hmpps.personrecord.jobs
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.system.CapturedOutput
+import org.springframework.boot.test.system.OutputCaptureExtension
 import org.springframework.context.ApplicationEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jobs.recluster.FileWaiter
@@ -23,6 +27,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import java.nio.file.Files
 import java.nio.file.Path
 
+@ExtendWith(OutputCaptureExtension::class)
 class ReclusterRecordsJobIntTest(
   @Autowired private val transactionalReclusterService: TransactionalReclusterService,
   @Autowired private val personRepo: PersonRepository,
@@ -36,6 +41,8 @@ class ReclusterRecordsJobIntTest(
 
   @BeforeEach
   fun beforeEach() {
+    deleteAllPersonData()
+    telemetryRepository.deleteAll()
     testDir = Files.createTempDirectory("recluster-test-")
     reclusterRecordsJob = ReclusterRecordsJob(
       transactionalReclusterService,
@@ -162,6 +169,32 @@ class ReclusterRecordsJobIntTest(
         mapOf("UUID" to person.personKey?.personUUID.toString()),
       )
       person.personKey?.assertClusterStatus(ACTIVE)
+    }
+  }
+
+  @Nested
+  inner class MissingFile {
+
+    @Test
+    fun `should log warning and not process anything when recluster file is not found within timeout`(output: CapturedOutput) {
+      val job = ReclusterRecordsJob(
+        transactionalReclusterService,
+        personRepo,
+        personMatchService,
+        publisher,
+        fileWaiter,
+        jsonMapper,
+        testDir,
+      )
+
+      job.run()
+
+      assertThat(output.out).contains("File not found after waiting")
+      checkTelemetry(
+        CPR_ADMIN_RECLUSTER_TRIGGERED,
+        emptyMap(),
+        times = 0,
+      )
     }
   }
 

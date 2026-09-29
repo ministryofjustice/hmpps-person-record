@@ -1,28 +1,34 @@
 package uk.gov.justice.digital.hmpps.personrecord.jobs.recluster
 
 import kotlinx.coroutines.delay
+import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Component
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
+import java.time.Duration
+import kotlin.time.toKotlinDuration
 
 @Component
-class FileWaiter {
+class FileWaiter(
+  private val properties: FileWaiterProperties,
+) {
 
   suspend fun waitFor(
     path: Path,
-    timeout: Duration = 60.seconds,
-    pollInterval: Duration = 250.milliseconds,
   ): Path? {
-    val deadline = System.nanoTime() + timeout.inWholeNanoseconds
+    val deadline = System.nanoTime() + properties.timeout.toNanos()
 
     while (System.nanoTime() < deadline) {
       if (Files.exists(path)) return path
-      delay(pollInterval)
+      delay(properties.pollInterval.toKotlinDuration())
     }
 
     return null
   }
 }
+
+@ConfigurationProperties("file-waiter")
+data class FileWaiterProperties(
+  val timeout: Duration = Duration.ofSeconds(120),
+  val pollInterval: Duration = Duration.ofMillis(250),
+)
