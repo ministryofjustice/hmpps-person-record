@@ -14,13 +14,15 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 
-class ProbationProviderPactTest : AbstractProviderPactTests() {
+class ProviderPactTest : AbstractProviderPactTests() {
   override fun rolesFor(request: HttpRequest): List<String> = when (request.method.uppercase()) {
     "POST" -> listOf(PROBATION_API_READ_WRITE)
     else -> listOf(API_READ_ONLY)
@@ -51,10 +53,30 @@ class ProbationProviderPactTest : AbstractProviderPactTests() {
     return mapOf("crn" to person.crn!!)
   }
 
+  @State("A person exists for the requested common platform Id")
+  fun aPersonExistsForTheRequestedCommonPlatformId(): Map<String, String> = createCourtDataIngestionPerson()
+
+  @State("A person exists for the requested prisoner number")
+  fun aPersonExistsForTheRequestedPrisonerNumber(): Map<String, String> = createCourtDataIngestionPerson()
+
   private fun createProbationPersonWithAddress(crn: String) = createPersonWithNewKey(
     createRandomProbationPersonDetails(crn),
     configure = addAddressToRecord(buildPactAddress()),
   )
+
+  private fun createCourtDataIngestionPerson(): Map<String, String> {
+    val defendantId = randomDefendantId()
+    val prisonerNumber = randomPrisonNumber()
+
+    createPersonKey()
+      .addPerson(createRandomCommonPlatformPersonDetails(defendantId))
+      .addPerson(createRandomPrisonPersonDetails(prisonerNumber))
+
+    return mapOf(
+      "defendantId" to defendantId,
+      "prisonerNumber" to prisonerNumber,
+    )
+  }
 
   private fun buildPactAddress(): Address = Address(
     noFixedAbode = randomBoolean(),
