@@ -35,7 +35,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressDeletedInfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.SasAddressUpdated
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
@@ -64,7 +64,7 @@ import java.time.LocalDate
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sas.Address as SasAddress
 
-class ProbationEventListenerTestBase : MessagingMultiNodeTestBase() {
+class ProbationEventListenerTestBase : MessagingTestBase() {
 
   fun randomProbationAddress(deliusAddressId: Long? = null): ProbationAddress {
     val startDateTime = randomZonedDateTime()

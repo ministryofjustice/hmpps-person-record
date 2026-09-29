@@ -14,14 +14,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PRISON_RELIGION_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprReligionCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprReligionUpdated
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDateTime
 
-class ReligionDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
+class ReligionDomainEventPublisherIntTest : MessagingTestBase() {
 
   @Autowired
   private lateinit var prisonReligionRepository: PrisonReligionRepository
