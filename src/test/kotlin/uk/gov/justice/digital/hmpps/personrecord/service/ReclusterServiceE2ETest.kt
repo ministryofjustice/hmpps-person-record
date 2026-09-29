@@ -851,15 +851,14 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val basePersonData = createRandomProbationCase()
 
       val personAData = Person.from(basePersonData)
-      val personA = createPerson(personAData)
       val personB = createMatchingRecord(basePersonData)
       val doesNotMatch = createProbationPerson()
       val cluster = createPersonKey()
-        .addPerson(personA)
+        .addPerson(personAData)
         .addPerson(personB)
         .addPerson(doesNotMatch)
 
-      recluster(personA)
+      recluster(personRepository.findByCrn(personAData.crn!!)!!)
 
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 

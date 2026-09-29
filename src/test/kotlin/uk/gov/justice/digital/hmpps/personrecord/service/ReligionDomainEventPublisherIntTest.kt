@@ -35,7 +35,7 @@ class ReligionDomainEventPublisherIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should publish a CPR religion created domain event when a religion is created in nomis`() {
     val prisonNumber = randomPrisonNumber()
-    createPerson(createRandomPrisonPersonDetails(prisonNumber))
+    createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
     val cprReligionId = prisonReligionInsertHandler.handleInsert(prisonNumber, createPrisonReligionHistory()).cprReligionId
 
