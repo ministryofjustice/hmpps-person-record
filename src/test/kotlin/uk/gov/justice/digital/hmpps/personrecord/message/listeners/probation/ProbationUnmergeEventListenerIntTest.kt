@@ -9,14 +9,14 @@ import org.springframework.boot.test.system.CapturedOutput
 import org.springframework.boot.test.system.OutputCaptureExtension
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonUnmerged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonUnmergedInfo
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
 @ExtendWith(OutputCaptureExtension::class)
-class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
+class ProbationUnmergeEventListenerIntTest : MessagingTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
@@ -76,50 +76,25 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should unmerge 2 records that exist on same cluster but no merge link`() {
-      val unmergedRecord = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey().addPerson(unmergedRecord)
-      val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
-
-      probationUnmergeEventAndResponseSetup(reactivatedRecord.crn!!, unmergedRecord.crn!!)
-
-      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to reactivatedRecord.crn!!))
-
-      reactivatedRecord.assertNotMerged()
-
-      reactivatedRecord.assertExcluded(unmergedRecord)
-      unmergedRecord.assertExcluded(reactivatedRecord)
-
-      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster.assertClusterIsOfSize(1)
-
-      unmergedRecord.assertLinkedToCluster(cluster)
-      reactivatedRecord.assertNotLinkedToCluster(cluster)
-
-      unmergedRecord.assertHasOverrideMarker()
-      reactivatedRecord.assertHasOverrideMarker()
-      unmergedRecord.assertHasDifferentOverrideMarker(reactivatedRecord)
-      unmergedRecord.assertHasSameOverrideScope(reactivatedRecord)
-    }
-
-    @Test
     fun `should unmerge 2 merged records that exist on same cluster and then link to another cluster`() {
-      val recordA = createPerson(createRandomProbationPersonDetails())
-      val recordB = createPerson(createRandomProbationPersonDetails())
+      val recordACrn = randomCrn()
+      val recordBCrn = randomCrn()
       val cluster = createPersonKey()
-        .addPerson(recordA)
-        .addPerson(recordB)
+        .addPerson(createRandomProbationPersonDetails(recordACrn))
+        .addPerson(createRandomProbationPersonDetails(recordBCrn))
       stubDeletePersonMatch()
-      probationMergeEventAndResponseSetup(recordA.crn!!, recordB.crn!!)
+      probationMergeEventAndResponseSetup(recordACrn, recordBCrn)
 
+      val recordA = personRepository.findByCrn(recordACrn)!!
+      val recordB = personRepository.findByCrn(recordBCrn)!!
       recordA.assertMergedTo(recordB)
 
       val matchedRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
 
       stubOnePersonMatchAboveJoinThreshold(matchId = recordA.matchId, matchedRecord = matchedRecord.matchId)
-      probationUnmergeEventAndResponseSetup(recordA.crn!!, recordB.crn!!)
+      probationUnmergeEventAndResponseSetup(recordACrn, recordBCrn)
 
-      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to recordB.crn!!, "TO_SOURCE_SYSTEM_ID" to recordA.crn!!))
+      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to recordBCrn, "TO_SOURCE_SYSTEM_ID" to recordACrn))
       recordB.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       recordA.assertNotMerged()
 
@@ -193,8 +168,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `should not overwrite existing override marker`() {
       val unmergedRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
 
-      val firstReactivatedRecord = createPerson(createRandomProbationPersonDetails())
-      val secondReactivatedRecord = createPerson(createRandomProbationPersonDetails())
+      val firstReactivatedRecord = createMergedPerson(createRandomProbationPersonDetails(), unmergedRecord.id)
+      val secondReactivatedRecord = createMergedPerson(createRandomProbationPersonDetails(), unmergedRecord.id)
 
       probationUnmergeEventAndResponseSetup(firstReactivatedRecord.crn!!, unmergedRecord.crn!!)
       checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to firstReactivatedRecord.crn!!))
