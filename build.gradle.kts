@@ -117,6 +117,14 @@ tasks.register<Test>("pactTest") {
   }
 }
 
+kover {
+  currentProject {
+    instrumentation {
+      disabledForTestTasks.add("pactTest")
+    }
+  }
+}
+
 tasks {
   test {
     exclude("**/InitialiseDatabase.class")
