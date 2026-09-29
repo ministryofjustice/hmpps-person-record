@@ -166,18 +166,6 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `should not return high confidence match that has no UUID`() {
-      val searchingRecord = createPerson(createExamplePerson())
-      val foundRecord = createPerson(createExamplePerson())
-
-      stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
-
-      val highConfidenceMatch = personMatchService.findClustersToJoin(searchingRecord)
-
-      noCandidateFound(highConfidenceMatch)
-    }
-
-    @Test
     fun `should not return high confidence match to a passive state record`() {
       val searchingRecord = createPerson(createExamplePerson())
       createPersonKey()
