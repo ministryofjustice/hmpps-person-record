@@ -96,6 +96,8 @@ jobs:
   pact_test:
     name: Run pact Tests
     uses: ./.github/workflows/pact_provider_verification.yml
+    needs:
+      - app_version
     secrets: inherit
     with:
      publishResults: true
