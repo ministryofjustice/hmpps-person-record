@@ -17,6 +17,11 @@ on:
         description: Publish verification results to broker
         type: boolean
         default: true
+      provider_app_version:
+        required: false
+        description: Application version
+        type: string
+        default: ''
   workflow_call:
     inputs:
       consumerName:
@@ -32,6 +37,10 @@ on:
         description: Publish verification results to broker
         type: boolean
         default: true
+      provider_app_version:
+        required: true
+        description: Application version
+        type: string
 
 permissions:
   contents: read
@@ -69,10 +78,10 @@ jobs:
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
           PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
-          GITHUB_SHA: ${{ github.sha }}
           GITHUB_BRANCH: ${{ github.ref_name }}
           PACT_CONSUMER_NAME: ${{ inputs.consumerName }}
           PACT_CONSUMER_BRANCH: ${{ inputs.consumerBranch }}
+          PACT_PROVIDER_APP_VERSION: ${{ inputs.provider_app_version }}
 
       - name: Upload the test artifacts
         if: always()
