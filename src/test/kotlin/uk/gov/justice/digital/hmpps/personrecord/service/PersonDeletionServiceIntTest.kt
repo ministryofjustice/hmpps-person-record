@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
@@ -49,19 +48,16 @@ class PersonDeletionServiceIntTest : WebTestBase() {
     @Test
     fun `deletes persons but not cluster - correct events occurred`() {
       val personToBeDeleted = createPersonWithNewKey(createRandomPrisonPersonDetails())
-      val personToRemain = createPerson(createRandomPrisonPersonDetails())
-      val person = createPerson(Person.from(personToRemain).copy(prisonNumber = randomPrisonNumber()))
-
+      val personToRemainDetails = createRandomPrisonPersonDetails()
+      val person = createPersonWithNewKey(personToRemainDetails.copy(prisonNumber = randomPrisonNumber()))
+      val clusterWithMatchingRecord = person.personKey!!
       val clusterToBeAddedTo = personToBeDeleted.personKey!!
-        .addPerson(personToRemain)
-        .also {
-          stubDeletePersonMatch()
-          stubOnePersonMatchAboveJoinThreshold(personToRemain.matchId, person.matchId)
-          stubClusterIsValid()
-        }
+        .addPerson(personToRemainDetails)
 
-      val clusterWithMatchingRecord = createPersonKey()
-        .addPerson(person)
+      val personToRemain = personRepository.findByPrisonNumber(personToRemainDetails.prisonNumber!!)!!
+      stubDeletePersonMatch()
+      stubOnePersonMatchAboveJoinThreshold(personToRemain.matchId, person.matchId)
+      stubClusterIsValid()
 
       triggerPersonDeletion(personToBeDeleted.prisonNumber)
 
