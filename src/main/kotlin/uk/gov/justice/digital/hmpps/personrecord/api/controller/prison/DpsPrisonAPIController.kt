@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.DpsPrisonGetHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionInsertHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.DpsPrisonRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionInsertRequest
@@ -29,7 +30,10 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
 @RequestMapping("/person/prison/dps")
-class DpsPrisonAPIController(private val dpsPrisonGetHandler: DpsPrisonGetHandler) {
+class DpsPrisonAPIController(
+  private val dpsPrisonGetHandler: DpsPrisonGetHandler,
+  private val prisonReligionInsertHandler: PrisonReligionInsertHandler,
+) {
 
   @Operation(
     description = "**NOTE: Use this only if you want to retrieve Prison Religion history & Alias References.**\n\n" +
@@ -87,7 +91,6 @@ class DpsPrisonAPIController(private val dpsPrisonGetHandler: DpsPrisonGetHandle
     @PathVariable(name = "prisonNumber") @Parameter(description = "The prisoner number") prisonNumber: String,
     @RequestBody insertRequest: PrisonReligionInsertRequest,
   ) {
-    // TODO: Write an implementation
-    // dpsPrisonGetHandler.updateReligionHistory(prisonNumber, insertRequest)
+    prisonReligionInsertHandler.handleCprInsert(prisonNumber, insertRequest)
   }
 }

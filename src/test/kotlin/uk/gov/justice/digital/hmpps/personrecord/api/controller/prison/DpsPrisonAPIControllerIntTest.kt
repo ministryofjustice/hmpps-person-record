@@ -625,18 +625,73 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
     @Nested
     inner class SuccessfulProcessing {
       @Test
-      fun `should accept a religion update with the prison read write role`() {
+      fun `should insert the new religion and update the person's current religion`() {
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        val request = PrisonReligionInsertRequest(religionCode = BAHA, comment = "Requested update", userId = "TEST")
+
         sendPutRequestAsserted<Unit>(
-          url = religionApiUrl(randomPrisonNumber()),
-          body = PrisonReligionInsertRequest(religionCode = BAHA, comment = "Requested update", userId = "TEST"),
+          url = religionApiUrl(prisonNumber),
+          body = request,
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = NO_CONTENT,
         )
+
+        val actualReligion = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber).single()
+        assertThat(actualReligion.code).isEqualTo(request.religionCode)
+        assertThat(actualReligion.comments).isEqualTo(request.comment)
+        assertThat(actualReligion.changeReasonKnown).isTrue()
+        assertThat(actualReligion.prisonRecordType.value).isTrue()
+        assertThat(actualReligion.createUserId).isEqualTo(request.userId)
+        assertThat(personRepository.findByPrisonNumber(prisonNumber)?.religion).isEqualTo(request.religionCode)
+      }
+
+      @Test
+      fun `should make the existing current religion historic when inserting a new religion`() {
+        val prisonNumber = randomPrisonNumber()
+        val existingReligion = PrisonReligionEntity.from(
+          prisonNumber,
+          createPrisonReligionHistory(code = HUM).copy(endDate = null),
+        )
+        val person = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligion.code })
+        prisonReligionRepository.save(existingReligion)
+        personRepository.saveAndFlush(person)
+        val request = PrisonReligionInsertRequest(religionCode = BAHA, comment = "Requested update", userId = "TEST")
+
+        sendPutRequestAsserted<Unit>(
+          url = religionApiUrl(prisonNumber),
+          body = request,
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = NO_CONTENT,
+        )
+
+        val actualReligions = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
+        assertThat(actualReligions).hasSize(2)
+        val actualExistingReligion = actualReligions.single { it.code == HUM }
+        assertThat(actualExistingReligion.prisonRecordType.value).isFalse()
+        assertThat(actualExistingReligion.endDate).isEqualTo(LocalDate.now())
+        assertThat(actualExistingReligion.modifyUserId).isEqualTo(request.userId)
+        assertThat(actualExistingReligion.modifyDateTime).isNotNull()
+
+        val actualNewReligion = actualReligions.single { it.code == BAHA }
+        assertThat(actualNewReligion.prisonRecordType.value).isTrue()
+        assertThat(actualNewReligion.endDate).isNull()
+        assertThat(personRepository.findByPrisonNumber(prisonNumber)?.religion).isEqualTo(request.religionCode)
       }
     }
 
     @Nested
     inner class ErrorScenarios {
+      @Test
+      fun `should return not found when the prison number does not exist`() {
+        sendPutRequestAsserted<Unit>(
+          url = religionApiUrl(randomPrisonNumber()),
+          body = PrisonReligionInsertRequest(religionCode = BAHA, userId = "TEST"),
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = HttpStatus.NOT_FOUND,
+        )
+      }
+
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         sendPutRequestAsserted<Unit>(
