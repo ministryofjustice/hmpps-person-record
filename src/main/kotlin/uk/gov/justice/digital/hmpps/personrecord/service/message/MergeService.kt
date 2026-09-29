@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.PersonMerged
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyDeletionService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.updatePersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
@@ -41,7 +40,6 @@ class MergeService(
       personMatchService.saveToPersonMatch(to)
       // TODO: Should we be calling recluster here!?! If so, do it
     }
-    publisher.publishEvent(PersonUpdated(to, personChangeChecker))
   }
 
   private fun deleteSingleRecordCluster(from: PersonEntity) {
