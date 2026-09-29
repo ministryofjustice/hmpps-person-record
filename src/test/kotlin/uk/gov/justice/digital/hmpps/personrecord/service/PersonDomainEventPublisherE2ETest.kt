@@ -213,7 +213,6 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
 
     @Test
     fun `should publish a CPR person merged domain event when a delius person is merged`() {
-      // to be replaced with a check for the cpr probation person merged event once SAS are ready for it
       val fromCrn = randomCrn()
       val toCrn = randomCrn()
 

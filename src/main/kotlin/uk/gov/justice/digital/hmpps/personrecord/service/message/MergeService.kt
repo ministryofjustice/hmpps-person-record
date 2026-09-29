@@ -6,40 +6,29 @@ import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.Circu
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.PersonMerged
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyDeletionService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.updatePersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
 class MergeService(
   private val personRepository: PersonRepository,
+  private val personService: PersonService,
   private val personMatchService: PersonMatchService,
   private val publisher: ApplicationEventPublisher,
   private val personKeyDeletionService: PersonKeyDeletionService,
 ) {
 
   fun processMerge(from: PersonEntity, to: PersonEntity, person: Person) {
-    updateToPerson(to, person)
+    personService.update(person, to)
 
     val fromClusterDetail = EventLogClusterDetail.from(from.personKey)
     when {
       fromClusterHasOneRecord(from) -> deleteSingleRecordCluster(from)
     }
     merge(from, to, fromClusterDetail)
-  }
-
-  private fun updateToPerson(to: PersonEntity, person: Person) {
-    val personChangeChecker = PersonChangeChecker(to)
-    to.updatePersonEntity(person)
-    personRepository.save(to)
-
-    if (personChangeChecker.shouldSaveToPersonMatch(to)) {
-      personMatchService.saveToPersonMatch(to)
-      // TODO: Should we be calling recluster here!?! If so, do it
-    }
   }
 
   private fun deleteSingleRecordCluster(from: PersonEntity) {
