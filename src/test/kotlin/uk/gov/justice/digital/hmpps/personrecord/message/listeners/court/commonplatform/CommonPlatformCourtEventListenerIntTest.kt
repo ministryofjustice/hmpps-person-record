@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.LargeMessageBo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getMobile
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
@@ -63,7 +63,7 @@ import java.nio.charset.Charset
 import java.time.LocalDateTime.now
 import java.util.UUID
 
-class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
+class CommonPlatformCourtEventListenerIntTest : MessagingTestBase() {
 
   @Autowired
   lateinit var s3AsyncClient: S3AsyncClient
