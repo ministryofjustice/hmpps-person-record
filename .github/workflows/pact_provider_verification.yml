@@ -59,6 +59,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Install Pact CLI
+        run: npm install -g @pact-foundation/pact-cli
+
       - name: Check if pact is pre-verified
         id: can-i-deploy
         if: inputs.consumerName && inputs.consumerBranch
