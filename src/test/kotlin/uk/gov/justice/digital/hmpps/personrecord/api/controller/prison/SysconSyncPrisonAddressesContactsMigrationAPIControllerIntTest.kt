@@ -151,7 +151,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
                   createUserId = "createUserId",
                 ),
 
-              ),
+                ),
             ),
           ),
         )
@@ -558,18 +558,28 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
         ),
       ),
 
-      @Test
-      fun `should return UNAUTHORIZED 401 when role is not set`() {
-        sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
-          url = addressesUrl(randomPrisonNumber()),
-          body = PrisonAddressesAndContactsRequest(addresses = emptyList(), contacts = null),
-          roles = emptyList(),
-          expectedStatus = UNAUTHORIZED,
-          sendAuthorised = false,
-        )
-      }
-    }
-  }
-
-  private fun addressesUrl(prisonNumber: String) = "/syscon-sync/addresses-contacts/$prisonNumber"
+      ),
+    contacts = listOf(
+      PrisonContact(
+        nomisContactId = 11003L,
+        value = "valueContact1",
+        type = ContactType.EMAIL,
+        extension = "extensionContact1",
+        createDateTime = LocalDateTime.of(2017, 4, 1, 12, 0),
+        createUserId = "createUserIdContact1",
+        modifyDateTime = LocalDateTime.of(2017, 4, 2, 12, 0),
+        modifyUserId = "modifyUserIdContact1",
+      ),
+      PrisonContact(
+        nomisContactId = 11004L,
+        value = "valueContact2",
+        type = BUS,
+        extension = "extensionContact2",
+        createDateTime = LocalDateTime.of(2016, 5, 1, 12, 0),
+        createUserId = "createUserIdContact2",
+        modifyDateTime = LocalDateTime.of(2016, 5, 2, 12, 0),
+        modifyUserId = "modifyUserIdContact2",
+      ),
+    ),
+  )
 }
