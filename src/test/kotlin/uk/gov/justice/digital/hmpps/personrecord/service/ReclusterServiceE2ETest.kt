@@ -282,9 +282,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val personB = createPersonWithNewKey(createMatchingRecord(basePersonData))
       val cluster2 = personB.personKey!!
 
-      val personC = createMatchingRecord(basePersonData)
-      val cluster3 = createPersonKey()
-        .addPerson(personC)
+      val cluster3 = createPersonWithNewKey(createMatchingRecord(basePersonData)).personKey!!
 
       val personD = createPersonWithNewKey(createMatchingRecord(basePersonData))
       val cluster4 = personD.personKey!!
