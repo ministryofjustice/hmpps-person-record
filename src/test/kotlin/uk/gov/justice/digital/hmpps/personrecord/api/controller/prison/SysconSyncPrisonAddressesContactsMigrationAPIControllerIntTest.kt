@@ -151,7 +151,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
                   createUserId = "createUserId",
                 ),
 
-                ),
+              ),
             ),
           ),
         )
@@ -558,7 +558,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
         ),
       ),
 
-      ),
+    ),
     contacts = listOf(
       PrisonContact(
         nomisContactId = 11003L,
