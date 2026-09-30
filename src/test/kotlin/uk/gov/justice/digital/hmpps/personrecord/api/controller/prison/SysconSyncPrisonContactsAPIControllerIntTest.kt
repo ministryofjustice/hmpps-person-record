@@ -6,16 +6,16 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.FORBIDDEN
 import org.springframework.http.HttpStatus.NOT_FOUND
-import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.http.HttpStatus.NO_CONTENT
+import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDateTime
 import java.util.UUID
@@ -70,7 +70,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
       }
     }
 
-
     @Nested
     inner class Validation {
 
@@ -114,7 +113,7 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
     inner class Creation {
 
       @Test
-      fun `successful save returns the correct response body`(){
+      fun `successful save returns the correct response body`() {
         val prisonNumber = randomPrisonNumber()
         createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
         val response = sendPostRequestAsserted<SysconContactMapping>(
@@ -126,7 +125,7 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
         ).returnResult().responseBody!!
 
         val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
-        val contactEntity = personEntity.contacts.single { response.cprContactId == it.updateId.toString()}
+        val contactEntity = personEntity.contacts.single { response.cprContactId == it.updateId.toString() }
         assertContactMatches(validRequestBody, contactEntity)
       }
     }
@@ -233,7 +232,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
       }
     }
 
-
     @Nested
     inner class Updating {
 
@@ -250,18 +248,14 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
         )
 
         val updatedPersonEntity = personRepository.findByPrisonNumber(prisonNumber)!!
-        val updatedContactEntity = updatedPersonEntity.contacts.single { contactEntity.updateId == it.updateId}
+        val updatedContactEntity = updatedPersonEntity.contacts.single { contactEntity.updateId == it.updateId }
         assertContactMatches(validRequestBody, updatedContactEntity)
       }
     }
-
-
-
   }
 
   @Nested
   inner class DeletePrisonerContact {
-
 
     @Nested
     @ActiveProfiles("prod")
@@ -296,7 +290,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
         )
       }
     }
-
 
     @Nested
     inner class Validation {
@@ -334,7 +327,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
       }
     }
 
-
     @Nested
     inner class Deleting {
 
@@ -362,7 +354,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
     assertThat(createUserId).isEqualTo(request.createUserId)
     assertThat(createDateTime).isEqualTo(request.createDateTime)
   }
-
 
   private fun createPrisonerContactUrl(prisonNumber: String) = "/syscon-sync/person/$prisonNumber/contact"
   private fun updatePrisonerContactUrl(prisonNumber: String, contactId: String) = "/syscon-sync/person/$prisonNumber/contact/$contactId"

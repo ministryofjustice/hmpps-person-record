@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
 
 @Profile("!prod && !preprod")
 @Tag(name = "Syscon Sync")
@@ -27,7 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
 class SysconSyncPrisonContactsAPIController(
-  private val sysconSyncContactsHandler: SysconSyncContactsHandler
+  private val sysconSyncContactsHandler: SysconSyncContactsHandler,
 ) {
   @Operation(
     description = """Create prisoner contact record by Prison Number. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
@@ -39,7 +37,6 @@ class SysconSyncPrisonContactsAPIController(
     @PathVariable prisonNumber: String,
     @RequestBody requestBody: PrisonContact,
   ) = sysconSyncContactsHandler.handleInsert(prisonNumber, requestBody)
-
 
   @Operation(
     description = """Update prisoner contact record by Prison Number and contact uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",

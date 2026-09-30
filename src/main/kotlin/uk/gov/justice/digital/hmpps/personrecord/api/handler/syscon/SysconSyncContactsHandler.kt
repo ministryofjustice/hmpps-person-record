@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 @Component
 class SysconSyncContactsHandler(
   private val personRepository: PersonRepository,
-  private val contactRepository: ContactRepository
+  private val contactRepository: ContactRepository,
 ) {
 
   @Transactional
@@ -49,7 +49,7 @@ class SysconSyncContactsHandler(
       cprContactId = second.updateId.toString(),
     )
 
-    fun ContactEntity.updateFrom(prisonContact: PrisonContact){
+    fun ContactEntity.updateFrom(prisonContact: PrisonContact) {
       contactType = prisonContact.type
       contactValue = prisonContact.value
       extension = prisonContact.extension
@@ -71,5 +71,3 @@ class SysconSyncContactsHandler(
     )
   }
 }
-
-
