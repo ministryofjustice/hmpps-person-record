@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -9,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import kotlin.jvm.optionals.getOrNull
 
@@ -263,6 +265,56 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
       assertThat(eventLogs).hasSize(1)
       assertThat(eventLogs.first().recordMergedTo).isEqualTo(targetPerson.id)
       assertThat(eventLogs.first().personUUID).isEqualTo(sourceCluster.personUUID)
+    }
+  }
+
+  @Test
+  fun `processes offender merge event with matching records on different clusters should join`() {
+    val basePerson = createRandomProbationCase()
+    val sourceCrnC1 = randomCrn()
+    val targetCrnC1 = randomCrn()
+    val sourcePersonDetailsC1 = Person.from(basePerson).copy(crn = sourceCrnC1)
+    val targetPersonDetailsC1 = Person.from(basePerson).copy(crn = targetCrnC1)
+
+    val cluster1 = createPersonKey()
+      .addPerson(sourcePersonDetailsC1)
+      .addPerson(targetPersonDetailsC1)
+
+    cluster1.assertClusterIsOfSize(2)
+
+    val targetPersonDetailsC2 = Person.from(basePerson).copy(crn = randomCrn())
+    val cluster2 = createPersonKey()
+      .addPerson(targetPersonDetailsC2)
+
+    cluster2.assertClusterIsOfSize(1)
+
+    probationMergeEventAndResponseSetup(
+      sourceCrn = sourceCrnC1,
+      targetCrn = targetCrnC1,
+      apiResponseSetup = ApiResponseSetup.from(crn = targetCrnC1, probationCase = basePerson.copy(sentences = basePerson.sentences?.plus(Sentences(randomDate())))),
+    )
+
+    val sourcePerson = personRepository.findByCrn(sourceCrnC1)!!
+    val targetPerson = personRepository.findByCrn(targetCrnC1)!!
+    sourcePerson.assertMergedTo(targetPerson)
+    sourcePerson.assertNotLinkedToCluster()
+
+    cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
+    cluster1.assertClusterIsOfSize(2)
+    cluster2.assertPersonKeyDeleted()
+
+    checkTelemetry(
+      CPR_RECORD_MERGED,
+      mapOf(
+        "FROM_SOURCE_SYSTEM_ID" to sourceCrnC1,
+        "TO_SOURCE_SYSTEM_ID" to targetCrnC1,
+        "SOURCE_SYSTEM" to "DELIUS",
+      ),
+    )
+    checkEventLog(sourceCrnC1, CPRLogEvents.CPR_RECORD_MERGED) { eventLogs ->
+      assertThat(eventLogs).hasSize(1)
+      assertThat(eventLogs.first().recordMergedTo).isEqualTo(targetPerson.id)
+      assertThat(eventLogs.first().personUUID).isEqualTo(cluster1.personUUID)
     }
   }
 }

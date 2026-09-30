@@ -22,13 +22,12 @@ class MergeService(
 ) {
 
   fun processMerge(from: PersonEntity, to: PersonEntity, person: Person) {
-    personService.update(person, to)
-
     val fromClusterDetail = EventLogClusterDetail.from(from.personKey)
     when {
       fromClusterHasOneRecord(from) -> deleteSingleRecordCluster(from)
     }
     merge(from, to, fromClusterDetail)
+    personService.update(person, to)
   }
 
   private fun deleteSingleRecordCluster(from: PersonEntity) {
