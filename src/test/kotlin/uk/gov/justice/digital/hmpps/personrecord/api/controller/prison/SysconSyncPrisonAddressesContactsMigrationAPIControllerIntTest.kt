@@ -4,6 +4,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatus.FORBIDDEN
+import org.springframework.http.HttpStatus.NOT_IMPLEMENTED
+import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
@@ -32,6 +35,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBase() {
 
@@ -389,7 +393,137 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
     }
   }
 
+  @Nested
+  inner class CreatePrisonerAddressContact {
+
+    @Nested
+    inner class Validation {
+
+      @Test
+      fun `should respond with 501 as not currently implemented`() {
+        sendPostRequestAsserted<SysconContactMapping>(
+          url = createPrisonerAddressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          body = prisonContact(),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_IMPLEMENTED,
+        )
+      }
+    }
+
+    @Nested
+    inner class Auth {
+
+      @Test
+      fun `should return Access Denied 403 when role is wrong`() {
+        sendPostRequestAsserted<String>(
+          url = createPrisonerAddressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          body = prisonContact(),
+          roles = listOf("UNSUPPORTED-ROLE"),
+          expectedStatus = FORBIDDEN,
+        ).returnResult().responseBody!!
+      }
+
+      @Test
+      fun `should return UNAUTHORIZED 401 when role is not set`() {
+        sendPostRequestAsserted<SysconContactMapping>(
+          url = createPrisonerAddressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          body = prisonContact(),
+          roles = emptyList(),
+          expectedStatus = UNAUTHORIZED,
+          sendAuthorised = false,
+        )
+      }
+    }
+  }
+
+  @Nested
+  inner class UpdatePrisonerAddressContact {
+
+    @Nested
+    inner class Validation {
+
+      @Test
+      fun `should respond with 501 as not currently implemented`() {
+        sendPutRequestAsserted<Unit>(
+          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
+          body = prisonContact(),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_IMPLEMENTED,
+        )
+      }
+    }
+
+    @Nested
+    inner class Auth {
+
+      @Test
+      fun `should return Access Denied 403 when role is wrong`() {
+        sendPutRequestAsserted<String>(
+          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
+          body = prisonContact(),
+          roles = listOf("UNSUPPORTED-ROLE"),
+          expectedStatus = FORBIDDEN,
+        ).returnResult().responseBody!!
+      }
+
+      @Test
+      fun `should return UNAUTHORIZED 401 when role is not set`() {
+        sendPutRequestAsserted<Unit>(
+          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
+          body = prisonContact(),
+          roles = emptyList(),
+          expectedStatus = UNAUTHORIZED,
+          sendAuthorised = false,
+        )
+      }
+    }
+  }
+
+  @Nested
+  inner class DeletePrisonerAddressContact {
+
+    @Nested
+    inner class Validation {
+
+      @Test
+      fun `should respond with 501 as not currently implemented`() {
+        sendDeleteRequestAsserted<Unit>(
+          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_IMPLEMENTED,
+        )
+      }
+    }
+
+    @Nested
+    inner class Auth {
+
+      @Test
+      fun `should return Access Denied 403 when role is wrong`() {
+        sendDeleteRequestAsserted<String>(
+          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
+          roles = listOf("UNSUPPORTED-ROLE"),
+          expectedStatus = FORBIDDEN,
+        ).returnResult().responseBody!!
+      }
+
+      @Test
+      fun `should return UNAUTHORIZED 401 when role is not set`() {
+        sendDeleteRequestAsserted<Unit>(
+          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
+          roles = emptyList(),
+          expectedStatus = UNAUTHORIZED,
+          sendAuthorised = false,
+        )
+      }
+    }
+  }
+
   private fun addressesUrl(prisonNumber: String) = "/syscon-sync/addresses-contacts/$prisonNumber"
+
+  private fun createPrisonerAddressContactUrl(prisonNumber: String, addressId: String) = "/syscon-sync/person/$prisonNumber/address/$addressId/contact"
+
+  private fun addressContactUrl(prisonNumber: String, addressId: String, contactId: String) = "${createPrisonerAddressContactUrl(prisonNumber, addressId)}/$contactId"
 
   private fun addressUsageMatcher(request: PrisonAddressUsage, entity: AddressUsageEntity) = entity.usageCode == request.addressUsageCode
 
@@ -443,6 +577,14 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
     assertThat(createUserId).isEqualTo(request.createUserId)
     assertThat(createDateTime).isEqualTo(request.createDateTime)
   }
+
+  private fun prisonContact() = PrisonContact(
+    nomisContactId = 10000L,
+    value = "01234567890",
+    type = HOME,
+    createDateTime = LocalDateTime.parse("2020-01-01T12:00:00"),
+    createUserId = "johnnydoe",
+  )
 
   private val validRequestBody = PrisonAddressesAndContactsRequest(
     addresses = listOf(
