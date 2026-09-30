@@ -37,18 +37,6 @@ class SysconSyncPrisonContactsAPIController {
   ): ResponseEntity<SysconContactMapping> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
 
   @Operation(
-    description = """Create prisoner address contact record by Prison Number and address uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
-    security = [SecurityRequirement(name = "api-role")],
-  )
-  @PostMapping("/syscon-sync/person/{prisonNumber}/address/{cprAddressId}/contact")
-  @ResponseStatus(HttpStatus.CREATED)
-  fun createPrisonerAddressContact(
-    @PathVariable prisonNumber: String,
-    @PathVariable cprAddressId: String,
-    @RequestBody requestBody: PrisonContact,
-  ): ResponseEntity<SysconContactMapping> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
-
-  @Operation(
     description = """Update prisoner contact record by Prison Number and contact uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
     security = [SecurityRequirement(name = "api-role")],
   )
