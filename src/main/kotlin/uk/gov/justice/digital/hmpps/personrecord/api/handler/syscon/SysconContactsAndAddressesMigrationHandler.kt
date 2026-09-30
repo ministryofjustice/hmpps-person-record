@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressUsageMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressesAndContactsResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
@@ -22,10 +23,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 
 @Component
-class SysconAliasesAndIdentifiersMigrationHandler(
+class SysconContactsAndAddressesMigrationHandler(
   private val personRepository: PersonRepository,
   private val personService: PersonService,
   private val contactRepository: ContactRepository,
@@ -42,49 +42,46 @@ class SysconAliasesAndIdentifiersMigrationHandler(
     val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
     val addressMappings = handleAddressesInsert(prisonAddressesAndContactsRequest.addresses ?: emptyList(), person)
     val contactMappings = handleContactsInsert(prisonAddressesAndContactsRequest.contacts ?: emptyList(), person)
-
-    personService.processPerson(
-      person = Person.from(person),
-      childrenToIgnore = setOf(AddressEntity::class, ContactEntity::class)
-    ) { person }
-
-    return SysconAddressesAndContactsResponseBody(
+    val response = SysconAddressesAndContactsResponseBody(
       addressesMappings = addressMappings,
       contactMappings = contactMappings,
       prisonNumber = prisonNumber,
     )
+
+    personService.processPerson(
+      person = Person.from(person),
+      childrenToIgnore = setOf(AddressEntity::class, ContactEntity::class),
+    ) { person }
+
+    return response
   }
 
   private fun handleContactsInsert(contacts: List<PrisonContact>, personEntity: PersonEntity): List<SysconContactMapping> {
-    val contactEntities = contacts.map { it.toEntity() }
-    contactRepository.saveAllAndFlush(contactEntities)
-    personEntity.updatePersonContacts(contactEntities)
+    personEntity.contacts.clear()
+    personRepository.save(personEntity)
+    val contactEntities = contactRepository.saveAllAndFlush(contacts.map { it.toEntity(personEntity) })
     return contacts.zip(contactEntities).map { it.toMapping() }
   }
 
   private fun handleAddressesInsert(addresses: List<PrisonAddress>, personEntity: PersonEntity): List<SysconAddressMapping> {
-    val (addresses, mappings) = addresses.map { address ->
-      val contactsEntities = address.contacts.map { it.toEntity() }
-      contactRepository.saveAllAndFlush(contactsEntities) // Preserve order for mappings
-      val contactMappings = address.contacts.zip(contactsEntities).map { it.toMapping() }
+    personEntity.addresses.clear()
+    personRepository.save(personEntity)
+    val mappings = addresses.map { address ->
+      val addressEntity = addressRepository.saveAndFlush(address.toEntity(personEntity))
 
-      val addressUsageEntities = address.addressUsage.map { it.toEntity() }
-      addressUsageRepository.saveAllAndFlush(addressUsageEntities) // Preserve order for mappings
-      val addressUsageMappings = address.addressUsage.zip(addressUsageEntities).map {it.toMapping()}
+      val contactEntities = contactRepository.saveAllAndFlush(address.contacts.map { it.toEntity(addressEntity) })
+      val contactMappings = address.contacts.zip(contactEntities).map { it.toMapping() }
 
-      val addressEntity = address.toEntity()
-      addressEntity.updateContacts(contactsEntities)
-      addressEntity.updateUsages(addressUsageEntities)
-      addressRepository.saveAndFlush(addressEntity)
+      val addressUsageEntities = addressUsageRepository.saveAllAndFlush(address.addressUsage.map { it.toEntity(addressEntity) })
+      val addressUsageMappings = address.addressUsage.zip(addressUsageEntities).map { it.toMapping() }
 
-      addressEntity to SysconAddressMapping(
+      SysconAddressMapping(
         nomisAddressId = address.nomisAddressId,
         cprAddressId = addressEntity.updateId.toString(),
         addressUsageMappings = addressUsageMappings,
-        contactMappings = contactMappings
+        contactMappings = contactMappings,
       )
-    }.unzip()
-    personEntity.updatePersonAddresses(addresses)
+    }
     return mappings
   }
 
@@ -101,47 +98,54 @@ class SysconAliasesAndIdentifiersMigrationHandler(
     validateContacts(prisonAddressesAndContactsRequest.contacts)
   }
 
-  private fun PrisonContact.toEntity() =
-    ContactEntity(
-      contactType = type,
-      contactValue = value,
-      extension = extension
-    )
+  private fun PrisonContact.toEntity(addressEntity: AddressEntity) = ContactEntity(
+    contactType = type,
+    contactValue = value,
+    extension = extension,
+    address = addressEntity,
+  )
 
-  private fun PrisonAddressUsage.toEntity() =
-    AddressUsageEntity(
-      usageCode = addressUsageCode,
-      active = isActive,
-    )
+  private fun PrisonContact.toEntity(personEntity: PersonEntity) = ContactEntity(
+    contactType = type,
+    contactValue = value,
+    extension = extension,
+    person = personEntity,
+  )
 
-  private fun PrisonAddress.toEntity() =
-    AddressEntity(
-      startDate = startDate?.toUkZonedDateTime(),
-      endDate = endDate?.toUkZonedDateTime(),
-      noFixedAbode = noFixedAbode,
-      fullAddress = fullAddress,
-      postcode = postcode,
-      subBuildingName = subBuildingName,
-      buildingName = buildingName,
-      buildingNumber = buildingNumber,
-      thoroughfareName = thoroughfareName,
-      dependentLocality = dependentLocality,
-      postTown = postTown,
-      county = county,
-      countryCode = countryCode,
-      comment = comment,
-      statusCode = AddressStatusCode.fromPrison(isPrimary, isMail ?: false),
-    )
+  private fun PrisonAddressUsage.toEntity(addressEntity: AddressEntity) = AddressUsageEntity(
+    usageCode = addressUsageCode,
+    active = isActive,
+    address = addressEntity,
+  )
+
+  private fun PrisonAddress.toEntity(personEntity: PersonEntity) = AddressEntity(
+    startDate = startDate?.toUkZonedDateTime(),
+    endDate = endDate?.toUkZonedDateTime(),
+    noFixedAbode = noFixedAbode,
+    fullAddress = fullAddress,
+    postcode = postcode,
+    subBuildingName = subBuildingName,
+    buildingName = buildingName,
+    buildingNumber = buildingNumber,
+    thoroughfareName = thoroughfareName,
+    dependentLocality = dependentLocality,
+    postTown = postTown,
+    county = county,
+    countryCode = countryCode,
+    comment = comment,
+    statusCode = AddressStatusCode.fromPrison(isPrimary, isMail ?: false),
+    person = personEntity,
+  )
 
   private fun Pair<PrisonContact, ContactEntity>.toMapping() = SysconContactMapping(
     nomisContactId = first.nomisContactId,
     nomisContactType = first.type,
-    cprContactId = second.updateId.toString()
+    cprContactId = second.updateId.toString(),
   )
 
   private fun Pair<PrisonAddressUsage, AddressUsageEntity>.toMapping() = SysconAddressUsageMapping(
     nomisAddressUsageId = first.nomisAddressUsageId,
     nomisAddressUsageCode = first.addressUsageCode,
-    cprAddressUsageId = second.updateId.toString()
+    cprAddressUsageId = second.updateId.toString(),
   )
 }
