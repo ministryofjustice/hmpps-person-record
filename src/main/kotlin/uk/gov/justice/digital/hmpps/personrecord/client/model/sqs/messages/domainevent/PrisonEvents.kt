@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent
 
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISON_PERSON_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISON_PERSON_UPDATED
+const val PRISON_PERSON_CREATED = "prisoner-offender-search.prisoner.created"
+const val PRISON_PERSON_UPDATED = "prisoner-offender-search.prisoner.updated"
 
 data class PrisonPersonCreated(
   override val eventType: String = PRISON_PERSON_CREATED,

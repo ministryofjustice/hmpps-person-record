@@ -5,7 +5,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonMergeEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -21,7 +21,7 @@ import java.time.LocalDate
 class PrisonMergeEventProcessorIntTest(
   @Autowired private val prisonMergeEventProcessor: PrisonMergeEventProcessor,
   @Autowired private val prisonReligionRepository: PrisonReligionRepository,
-) : MessagingMultiNodeTestBase() {
+) : MessagingTestBase() {
 
   @Nested
   inner class MergingReligion {

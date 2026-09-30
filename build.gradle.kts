@@ -1,5 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
+import org.gradle.api.GradleException
+
 kotlin {
   jvmToolchain(25)
 }
@@ -17,7 +19,7 @@ configurations {
 }
 
 dependencies {
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.0.2")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.0.3")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.4.1")
   implementation("org.springframework.boot:spring-boot-starter-webclient")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -40,7 +42,7 @@ dependencies {
 
   testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
   testImplementation("org.jmock:jmock:2.13.1")
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.2")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.3")
   testImplementation("org.springframework.boot:spring-boot-starter-webclient-test")
   testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
 
@@ -75,61 +77,42 @@ tasks.register<Exec>("setUpS3Bucket") {
   args = listOf("-c", "./src/test/resources/localstack/setup-aws.sh")
 }
 
-fun registerPactVerificationTask(
-  name: String,
-  description: String,
-  testClass: String,
-  consumer: String,
-) = tasks.register<Test>(name) {
-  enabled = false
-  this.description = description
+tasks.register<Test>("pactTest") {
+  description = "Run and publish Pact provider tests"
   testClassesDirs = files(test.map { it.sources.output.classesDirs })
   classpath = files(test.map { it.sources.runtimeClasspath })
-  filter.includeTestsMatching(testClass)
+  filter.includeTestsMatching("uk.gov.justice.digital.hmpps.personrecord.pacttest.ProviderPactTest")
   group = "verification"
 
-  systemProperty(
-    "pactbroker.url",
-    System.getProperty("pactbroker.url")
-      ?: System.getenv("PACT_BROKER_URL")
-      ?: "https://pact-broker-prod.apps.live-1.cloud-platform.service.justice.gov.uk",
-  )
+  systemProperty("pactbroker.url", System.getenv("PACT_BROKER_URL"))
   systemProperty("pactbroker.auth.username", System.getenv("PACT_BROKER_USERNAME") ?: "")
   systemProperty("pactbroker.auth.password", System.getenv("PACT_BROKER_PASSWORD") ?: "")
 
-  val consumerBranch = System.getenv("PACT_CONSUMER_BRANCH")?.takeIf { it.isNotBlank() }
-  val selectors = if (consumerBranch != null) {
-    """[{"consumer":"$consumer","branch":"$consumerBranch"}]"""
-  } else {
-    """[{"consumer":"$consumer","mainBranch":true},{"consumer":"$consumer","deployed":true}]"""
+  val consumerBranch = System.getenv("PACT_CONSUMER_BRANCH") ?: ""
+  val requestedConsumerName = System.getenv("PACT_CONSUMER_NAME") ?: ""
+  val selectors = when {
+    consumerBranch.isNotEmpty() && requestedConsumerName.isEmpty() ->
+      throw GradleException("PACT_CONSUMER_NAME must be set when PACT_CONSUMER_BRANCH is provided so only the matching Pact consumer verification runs.")
+    consumerBranch.isNotEmpty() && requestedConsumerName.isNotEmpty() ->
+      """[{"consumer":"$requestedConsumerName","branch":"$consumerBranch"}]"""
+    requestedConsumerName.isNotEmpty() ->
+      """[{"consumer":"$requestedConsumerName","mainBranch":true},{"consumer":"$requestedConsumerName","deployed":true}]"""
+    else ->
+      """[{"deployed":true}]"""
   }
   systemProperty("pactbroker.consumerversionselectors.rawjson", selectors)
-
-  systemProperty("pact.provider.version", System.getenv("PACT_PROVIDER_VERSION") ?: "local")
-  systemProperty("pact.provider.branch", System.getenv("GITHUB_BRANCH") ?: "local")
   systemProperty("pactbroker.providerBranch", System.getenv("GITHUB_BRANCH") ?: "local")
   systemProperty("pact.verifier.publishResults", System.getenv("PACT_PUBLISH_RESULTS") ?: "false")
+  systemProperty("pact.provider.version", System.getenv("PACT_PROVIDER_APP_VERSION") ?: "local")
+  systemProperty("pact.provider.branch", System.getenv("GITHUB_BRANCH") ?: "local")
 }
 
-val pactProbationTest = registerPactVerificationTask(
-  name = "pactProbationTest",
-  description = "Run Pact provider verification for probation contracts",
-  testClass = "uk.gov.justice.digital.hmpps.personrecord.pacttest.ProbationProviderPactTest",
-  consumer = "probation-test-consumer",
-)
-
-val pactCourtDataIngestionTest = registerPactVerificationTask(
-  name = "pactCourtDataIngestionTest",
-  description = "Run Pact provider verification for court data ingestion contracts",
-  testClass = "uk.gov.justice.digital.hmpps.personrecord.pacttest.CourtDataIngestionProviderPactTest",
-  consumer = "hmpps-court-data-ingestion-api",
-)
-
-tasks.register("pactTest") {
-  enabled = false
-  description = "Run and publish all Pact provider tests"
-  group = "verification"
-  dependsOn(pactProbationTest, pactCourtDataIngestionTest)
+kover {
+  currentProject {
+    instrumentation {
+      disabledForTestTasks.add("pactTest")
+    }
+  }
 }
 
 tasks {
