@@ -70,24 +70,20 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should handle out of sync isClusterMergeValid response`() {
-      val personA = createPerson(createExamplePerson())
-      val personB = createPerson(createExamplePerson())
       val cluster1 = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
+        .addPerson(createExamplePerson())
+        .addPerson(createExamplePerson())
 
-      val personC = createPerson(createExamplePerson())
-      val personD = createPerson(createExamplePerson())
       val cluster2 = createPersonKey()
-        .addPerson(personC)
-        .addPerson(personD)
+        .addPerson(createExamplePerson())
+        .addPerson(createExamplePerson())
 
       stubPostRequest(
         url = "/is-cluster-valid",
         status = 404,
         responseBody = """
           {
-            "unknownIds": ["${personC.matchId}"]
+            "unknownIds": ["${cluster2.personEntities.first().matchId}"]
           }
         """.trimIndent(),
         nextScenarioState = "FOUND ALL RECORDS",
