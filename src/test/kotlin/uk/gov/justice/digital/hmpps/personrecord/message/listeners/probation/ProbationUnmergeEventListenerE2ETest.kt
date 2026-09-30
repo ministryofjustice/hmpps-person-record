@@ -129,11 +129,10 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
 
       val unmergedSetup = ApiResponseSetup.from(unmergedPersonDetails)
       val reactivatedPerson = createPersonWithNewKey(Person.from(reactivatedPersonDetails))
-      val unmergedPerson = createProbationPerson(unmergedPersonDetails)
+      val unmergedPerson = createPersonWithNewKey(Person.from(unmergedPersonDetails))
 
-      val cluster = createPersonKey()
-        .addPerson(unmergedPerson)
-        .addPerson(createMatchingRecord(unmergedPersonDetails))
+      val cluster = unmergedPerson.personKey!!
+      cluster.addPerson(createMatchingRecord(unmergedPersonDetails))
 
       probationMergeEventAndResponseSetup(reactivatedCrn, unmergedCrn, apiResponseSetup = unmergedSetup)
 
