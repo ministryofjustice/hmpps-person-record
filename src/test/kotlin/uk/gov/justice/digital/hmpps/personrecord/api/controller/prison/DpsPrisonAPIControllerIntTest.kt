@@ -27,6 +27,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionInsertRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.ReferenceDataResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
@@ -40,6 +41,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.AGNO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.BAHA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.HUM
@@ -715,6 +717,72 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
     }
 
     private fun religionApiUrl(prisonNumber: String) = "/person/prison/dps/$prisonNumber/religion"
+  }
+
+  @Nested
+  @DisplayName("GET /person/prison/dps/religion-codes")
+  inner class GetReligionCodes {
+    @Nested
+    inner class SuccessfulProcessing {
+      @Test
+      fun `should return only active prison religion codes by default`() {
+        val responseBody = webTestClient.get()
+          .uri(religionCodesApiUrl())
+          .authorised(listOf(API_READ_ONLY))
+          .exchange()
+          .expectStatus()
+          .isOk
+          .expectBody<List<ReferenceDataResponse>>()
+          .returnResult()
+          .responseBody!!
+
+        val expectedReligionCodes = ReligionCode.entries
+          .filter { it.current }
+          .map { ReferenceDataResponse(it.name, it.description, it.current) }
+        assertThat(responseBody).isEqualTo(expectedReligionCodes)
+      }
+
+      @Test
+      fun `should return all religion codes when active is false`() {
+        val responseBody = webTestClient.get()
+          .uri("${religionCodesApiUrl()}?active=false")
+          .authorised(listOf(API_READ_ONLY))
+          .exchange()
+          .expectStatus()
+          .isOk
+          .expectBody<List<ReferenceDataResponse>>()
+          .returnResult()
+          .responseBody!!
+
+        val expectedReligionCodes = ReligionCode.entries
+          .map { ReferenceDataResponse(it.name, it.description, it.current) }
+        assertThat(responseBody).isEqualTo(expectedReligionCodes)
+      }
+    }
+
+    @Nested
+    inner class ErrorScenarios {
+      @Test
+      fun `should return Access Denied 403 when role is wrong`() {
+        webTestClient.get()
+          .uri(religionCodesApiUrl())
+          .authorised(listOf("UNSUPPORTED-ROLE"))
+          .exchange()
+          .expectStatus()
+          .isForbidden
+      }
+
+      @Test
+      fun `should return UNAUTHORIZED 401 when role is not set`() {
+        webTestClient.get()
+          .uri(religionCodesApiUrl())
+          .exchange()
+          .expectStatus()
+          .isUnauthorized
+      }
+    }
+
+    private fun religionCodesApiUrl() = "/person/prison/dps/religion-codes"
   }
 }
 
