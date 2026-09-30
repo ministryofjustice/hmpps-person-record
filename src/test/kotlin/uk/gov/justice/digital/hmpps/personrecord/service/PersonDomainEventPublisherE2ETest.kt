@@ -212,8 +212,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should publish a CPR person merged & update domain event when a delius person is merged`() {
-      // to be replaced with a check for the cpr probation person merged event once SAS are ready for it
+    fun `should publish a CPR person merged domain event when a delius person is merged`() {
       val fromCrn = randomCrn()
       val toCrn = randomCrn()
 
@@ -226,13 +225,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
 
       probationMergeEventAndResponseSetup(fromCrn, toCrn)
 
-      expectMessageOn(testOnlyCPRDomainEventsQueue, size = 2)
-      val sqsMessageForUpdate = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
-      assertThat(sqsMessageForUpdate.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_UPDATED))
-      val domainEventForUpdate = jsonMapper.readValue<CprPersonUpdated>(sqsMessageForUpdate.message)
-      assertThat(domainEventForUpdate.eventType).isEqualTo(CPR_PROBATION_PERSON_UPDATED)
-      assertThat(domainEventForUpdate.detailUrl).isEqualTo("http://localhost:8080/person/probation/$toCrn")
-
+      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
       val sqsMessageForMerge = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
       assertThat(sqsMessageForMerge.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_MERGED))
       val domainEventForMerge = jsonMapper.readValue<CprPersonMerged>(sqsMessageForMerge.message)
