@@ -59,6 +59,23 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Check if pact is pre-verified
+        id: can-i-deploy
+        if: inputs.consumerName && inputs.consumerBranch
+        run: |
+          if pact-broker can-i-deploy \
+            --consumer-name="${{ inputs.consumerName }}" \
+            --consumer-version="${{ inputs.consumerBranch }}" \
+            --broker-base-url="${{ secrets.PACT_BROKER_URL }}" \
+            --broker-username="${{ secrets.HMPPS_PACT_BROKER_USERNAME }}" \
+            --broker-password="${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}"; then
+            echo "pre_verified=0" >> "$GITHUB_OUTPUT"
+            echo "status=Pact already verified for ${{ inputs.consumerName }}@${{ inputs.consumerBranch }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "pre_verified=1" >> "$GITHUB_OUTPUT"
+            echo "status=Pact needs verification for ${{ inputs.consumerName }}@${{ inputs.consumerBranch }}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Java
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
@@ -69,10 +86,12 @@ jobs:
         uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
 
       - name: Start Containers
+        if: "!inputs.consumerName || !inputs.consumerBranch || steps.can-i-deploy.outputs.pre_verified != '0'"
         run: make e2e-start-containers
 
       - name: Verify pacts
-        run: ./gradlew pactTest
+        if: "!inputs.consumerName || !inputs.consumerBranch || steps.can-i-deploy.outputs.pre_verified != '0'"
+        run: ./gradlew pactTest --console=plain
         env:
           PACT_PUBLISH_RESULTS: ${{ inputs.publishResults }}
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
