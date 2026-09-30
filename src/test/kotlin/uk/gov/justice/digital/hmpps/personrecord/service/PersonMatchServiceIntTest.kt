@@ -25,11 +25,9 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should process isClusterValid response`() {
-      val personA = createPerson(createExamplePerson())
-      val personB = createPerson(createExamplePerson())
       val cluster = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
+        .addPerson(createExamplePerson())
+        .addPerson(createExamplePerson())
 
       stubPostRequest(
         url = "/is-cluster-valid",
@@ -37,7 +35,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         responseBody = """
           {
             "isClusterValid": true,
-            "clusters": [["${personA.matchId}", "${personB.matchId}"]]
+            "clusters": [["${cluster.personEntities.first().matchId}", "${cluster.personEntities.last().matchId}"]]
           }
         """.trimIndent(),
       )
