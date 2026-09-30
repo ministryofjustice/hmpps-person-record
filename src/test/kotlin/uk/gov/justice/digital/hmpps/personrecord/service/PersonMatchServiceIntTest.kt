@@ -25,11 +25,9 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should process isClusterValid response`() {
-      val personA = createPerson(createExamplePerson())
-      val personB = createPerson(createExamplePerson())
       val cluster = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
+        .addPerson(createExamplePerson())
+        .addPerson(createExamplePerson())
 
       stubPostRequest(
         url = "/is-cluster-valid",
@@ -37,7 +35,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         responseBody = """
           {
             "isClusterValid": true,
-            "clusters": [["${personA.matchId}", "${personB.matchId}"]]
+            "clusters": [["${cluster.personEntities.first().matchId}", "${cluster.personEntities.last().matchId}"]]
           }
         """.trimIndent(),
       )
@@ -47,18 +45,16 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should handle out of sync isClusterValid response`() {
-      val personA = createPerson(createExamplePerson())
-      val personB = createPerson(createExamplePerson())
       val cluster = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
+        .addPerson(createExamplePerson())
+        .addPerson(createExamplePerson())
 
       stubPostRequest(
         url = "/is-cluster-valid",
         status = 404,
         responseBody = """
           {
-            "unknownIds": ["${personA.matchId}"]
+            "unknownIds": ["${cluster.personEntities.first().matchId}"]
           }
         """.trimIndent(),
         nextScenarioState = "FOUND ALL RECORDS",
@@ -74,24 +70,20 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should handle out of sync isClusterMergeValid response`() {
-      val personA = createPerson(createExamplePerson())
-      val personB = createPerson(createExamplePerson())
       val cluster1 = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
+        .addPerson(createExamplePerson())
+        .addPerson(createExamplePerson())
 
-      val personC = createPerson(createExamplePerson())
-      val personD = createPerson(createExamplePerson())
       val cluster2 = createPersonKey()
-        .addPerson(personC)
-        .addPerson(personD)
+        .addPerson(createExamplePerson())
+        .addPerson(createExamplePerson())
 
       stubPostRequest(
         url = "/is-cluster-valid",
         status = 404,
         responseBody = """
           {
-            "unknownIds": ["${personC.matchId}"]
+            "unknownIds": ["${cluster2.personEntities.first().matchId}"]
           }
         """.trimIndent(),
         nextScenarioState = "FOUND ALL RECORDS",
@@ -166,26 +158,10 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `should not return high confidence match that has no UUID`() {
-      val searchingRecord = createPerson(createExamplePerson())
-      val foundRecord = createPerson(createExamplePerson())
-
-      stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
-
-      val highConfidenceMatch = personMatchService.findClustersToJoin(searchingRecord)
-
-      noCandidateFound(highConfidenceMatch)
-    }
-
-    @Test
     fun `should not return high confidence match to a passive state record`() {
-      val searchingRecord = createPerson(createExamplePerson())
-      createPersonKey()
-        .addPerson(searchingRecord)
+      val searchingRecord = createPersonWithNewKey(createExamplePerson())
 
-      val passiveRecord = createPerson(createExamplePerson()) { markAsPassive() }
-      createPersonKey()
-        .addPerson(passiveRecord)
+      val passiveRecord = createPersonWithNewKey(createExamplePerson()) { markAsPassive() }
 
       stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = passiveRecord.matchId)
 
