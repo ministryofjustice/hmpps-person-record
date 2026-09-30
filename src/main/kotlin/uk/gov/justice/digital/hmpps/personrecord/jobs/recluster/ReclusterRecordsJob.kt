@@ -26,7 +26,7 @@ class ReclusterRecordsJob(
   private val publisher: ApplicationEventPublisher,
   private val fileWaiter: FileWaiter,
   private val jsonMapper: JsonMapper,
-  dataDir: Path = Path.of("/data"),
+  dataDir: Path = Path.of("/tmp"),
 ) : BatchJob {
   override val jobName = "RECLUSTER_RECORDS"
   private val path = dataDir.resolve("recluster.json")
