@@ -488,7 +488,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       @Test
       fun `should respond with 501 as not currently implemented`() {
         sendDeleteRequestAsserted<Unit>(
-          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
+          url = addressNoIdContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = NOT_IMPLEMENTED,
         )
@@ -501,7 +501,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         sendDeleteRequestAsserted<String>(
-          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
+          url = addressNoIdContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
           roles = listOf("UNSUPPORTED-ROLE"),
           expectedStatus = FORBIDDEN,
         ).returnResult().responseBody!!
@@ -510,7 +510,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       @Test
       fun `should return UNAUTHORIZED 401 when role is not set`() {
         sendDeleteRequestAsserted<Unit>(
-          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
+          url = addressNoIdContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
           roles = emptyList(),
           expectedStatus = UNAUTHORIZED,
           sendAuthorised = false,
@@ -524,6 +524,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
   private fun createPrisonerAddressContactUrl(prisonNumber: String, addressId: String) = "/syscon-sync/person/$prisonNumber/address/$addressId/contact"
 
   private fun addressContactUrl(prisonNumber: String, addressId: String, contactId: String) = "${createPrisonerAddressContactUrl(prisonNumber, addressId)}/$contactId"
+  private fun addressNoIdContactUrl(prisonNumber: String, contactId: String) = "/syscon-sync/person/$prisonNumber/address/contact/$contactId"
 
   private fun addressUsageMatcher(request: PrisonAddressUsage, entity: AddressUsageEntity) = entity.usageCode == request.addressUsageCode
 

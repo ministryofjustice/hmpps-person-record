@@ -68,14 +68,13 @@ class SysconSyncPrisonAddressesContactsMigrationAPIController(
   ): ResponseEntity<Unit> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
 
   @Operation(
-    description = """Delete prisoner address contact record by Prison Number, address uuid and contact uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
+    description = """Delete prisoner address contact record by Prison Number and contact uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
     security = [SecurityRequirement(name = "api-role")],
   )
-  @DeleteMapping("/syscon-sync/person/{prisonNumber}/address/{cprAddressId}/contact/{cprContactId}")
+  @DeleteMapping("/syscon-sync/person/{prisonNumber}/address/contact/{cprContactId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun deletePrisonerAddressContact(
     @PathVariable prisonNumber: String,
-    @PathVariable cprAddressId: String,
     @PathVariable cprContactId: String,
   ): ResponseEntity<Unit> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
 }
