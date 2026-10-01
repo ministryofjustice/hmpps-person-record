@@ -10,12 +10,12 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligio
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PrisonPersonServiceProxy
 
 @Component
 class SysconReligionInsertHandler(
   private val prisonReligionRepository: PrisonReligionRepository,
-  private val personService: PersonService,
+  private val personService: PrisonPersonServiceProxy,
   private val personRepository: PersonRepository,
 ) {
 
