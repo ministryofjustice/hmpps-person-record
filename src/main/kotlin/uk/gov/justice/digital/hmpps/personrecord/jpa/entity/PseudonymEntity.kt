@@ -1,14 +1,17 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
+import jakarta.persistence.CascadeType.ALL
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType.STRING
 import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType.EAGER
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import org.hibernate.annotations.Generated
@@ -46,6 +49,9 @@ class PseudonymEntity(
   )
   var person: PersonEntity? = null,
 
+  @OneToMany(mappedBy = "pseudonym", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
+  var references: MutableList<ReferenceEntity> = mutableListOf(),
+
   @Column(name = "title_code")
   @Enumerated(STRING)
   var titleCode: TitleCode? = null,
@@ -77,6 +83,19 @@ class PseudonymEntity(
   @Version
   var version: Int = 0,
 ) {
+
+  fun update(alias: Alias) {
+    updateReferences(alias.references.map { ReferenceEntity.from(it) }.toMutableList())
+  }
+
+  fun updateReferences(references: MutableList<ReferenceEntity>) {
+    this.references.clear()
+    references.forEach { reference ->
+      reference.pseudonym = this
+    }
+    this.references.addAll(references)
+  }
+
   companion object {
     fun primaryNameFrom(person: Person): PseudonymEntity = PseudonymEntity(
       firstName = person.firstName,
@@ -99,7 +118,8 @@ class PseudonymEntity(
           nameType = NameType.ALIAS,
           titleCode = alias.titleCode,
           sexCode = alias.sexCode,
-        )
+          references = alias.references.map { ReferenceEntity.from(it) }.toMutableList(),
+        ).also { it.update(alias) }
       else -> null
     }
 

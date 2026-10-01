@@ -41,6 +41,14 @@ class ReferenceEntity(
   )
   var person: PersonEntity? = null,
 
+  @ManyToOne(optional = true)
+  @JoinColumn(
+    name = "fk_pseudonym_id",
+    referencedColumnName = "id",
+    nullable = true,
+  )
+  var pseudonym: PseudonymEntity? = null,
+
   @Column(name = "identifier_type")
   @Enumerated(STRING)
   val identifierType: IdentifierType,
