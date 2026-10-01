@@ -4,13 +4,13 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_PERSON_DELETED_GDPR
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OverrideScopeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED_GDPR
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
@@ -28,11 +28,10 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       val remainingCrn = randomCrn()
       val deletedCrn = randomCrn()
 
-      val deleted = createPerson(createRandomProbationPersonDetails(deletedCrn))
-      createPersonKey().addPerson(deleted)
+      val deleted = createPersonWithNewKey(createRandomProbationPersonDetails(deletedCrn))
       val remainingPersonData = createRandomProbationCase(remainingCrn)
       val remainingPerson = Person.from(remainingPersonData)
-      val remaining = createPerson(remainingPerson)
+      val remaining = createPersonWithNewKey(remainingPerson)
 
       probationMergeEventAndResponseSetup(remainingCrn, deletedCrn)
 
@@ -66,11 +65,10 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       val reactivatedCrn = randomCrn()
       val unmergedCrn = randomCrn()
 
-      val unmergedPerson = createPerson(createRandomProbationPersonDetails(unmergedCrn))
-      val cluster = createPersonKey().addPerson(unmergedPerson)
+      val unmergedPerson = createPersonWithNewKey(createRandomProbationPersonDetails(unmergedCrn))
+      val cluster = unmergedPerson.personKey!!
       val reactivatedPersonData = createRandomProbationCase(reactivatedCrn)
-      val reactivatedPerson = Person.from(reactivatedPersonData)
-      val reactivatedPersonEntity = createPerson(reactivatedPerson)
+      val reactivatedPersonEntity = createPersonWithNewKey(Person.from(reactivatedPersonData))
 
       probationMergeEventAndResponseSetup(reactivatedCrn, unmergedCrn)
 
@@ -102,19 +100,19 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       unmergedPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       unmergedPerson.personKey?.assertClusterIsOfSize(1)
       unmergedPerson.assertExcluded(reactivatedPersonEntity)
-
-      reactivatedPersonEntity.assertHasLinkToCluster()
-      reactivatedPersonEntity.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      reactivatedPersonEntity.personKey?.assertClusterIsOfSize(1)
-      reactivatedPersonEntity.assertNotLinkedToCluster(unmergedPerson.personKey!!)
-      reactivatedPersonEntity.assertExcluded(unmergedPerson)
-      reactivatedPersonEntity.assertNotMerged()
+      val reactivatedPerson = personRepository.findByCrn(reactivatedCrn)!!
+      reactivatedPerson.assertHasLinkToCluster()
+      reactivatedPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      reactivatedPerson.personKey?.assertClusterIsOfSize(1)
+      reactivatedPerson.assertNotLinkedToCluster(unmergedPerson.personKey!!)
+      reactivatedPerson.assertExcluded(unmergedPerson)
+      reactivatedPerson.assertNotMerged()
       unmergedPerson.assertHasOverrideMarker()
-      reactivatedPersonEntity.assertHasOverrideMarker()
+      reactivatedPerson.assertHasOverrideMarker()
       unmergedPerson.assertOverrideScopeSize(1)
-      reactivatedPersonEntity.assertOverrideScopeSize(1)
-      unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPersonEntity)
-      unmergedPerson.assertHasSameOverrideScope(reactivatedPersonEntity)
+      reactivatedPerson.assertOverrideScopeSize(1)
+      unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
+      unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
     }
   }
 
@@ -130,14 +128,11 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       val reactivatedPersonDetails = createRandomProbationCase(reactivatedCrn)
 
       val unmergedSetup = ApiResponseSetup.from(unmergedPersonDetails)
-      val reactivatedKey = createPersonKey()
-      val reactivatedPerson = createProbationPerson(reactivatedPersonDetails)
-      reactivatedKey.addPerson(reactivatedPerson)
-      val unmergedPerson = createProbationPerson(unmergedPersonDetails)
-
+      val reactivatedPerson = createPersonWithNewKey(Person.from(reactivatedPersonDetails))
       val cluster = createPersonKey()
-        .addPerson(unmergedPerson)
+        .addPerson(Person.from(unmergedPersonDetails))
         .addPerson(createMatchingRecord(unmergedPersonDetails))
+      val unmergedPerson = cluster.personEntities.first()
 
       probationMergeEventAndResponseSetup(reactivatedCrn, unmergedCrn, apiResponseSetup = unmergedSetup)
 

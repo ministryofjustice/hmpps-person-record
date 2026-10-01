@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -14,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_SELF_HEALED
@@ -118,8 +118,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       val doesNotMatch = createProbationPerson()
 
-      val recordToJoinCluster = createMatchingRecord(basePersonData)
-      createPersonKey().addPerson(recordToJoinCluster)
+      val recordToJoinCluster = createPersonWithNewKey(createMatchingRecord(basePersonData))
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(matchesA)
@@ -252,20 +251,16 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val basePersonData = createRandomProbationCase()
 
       val personA = createProbationPerson(basePersonData)
-      val personB = createMatchingRecord(basePersonData)
-      val personC = createMatchingRecord(basePersonData)
       val cluster1 = createPersonKey()
         .addPerson(personA)
-        .addPerson(personB)
-        .addPerson(personC)
+        .addPerson(createMatchingRecord(basePersonData))
+        .addPerson(createMatchingRecord(basePersonData))
 
-      val personD = createMatchingRecord(basePersonData)
-      val personE = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
-        .addPerson(personD)
-        .addPerson(personE)
-
-      excludeRecord(personB, personD)
+        .addPerson(createMatchingRecord(basePersonData))
+        .addPerson(createMatchingRecord(basePersonData))
+      val personD = cluster2.personEntities.first()
+      excludeRecord(personA, personD)
 
       recluster(personA)
 
@@ -284,17 +279,13 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val cluster1 = createPersonKey()
         .addPerson(personA)
 
-      val personB = createMatchingRecord(basePersonData)
-      val cluster2 = createPersonKey()
-        .addPerson(personB)
+      val personB = createPersonWithNewKey(createMatchingRecord(basePersonData))
+      val cluster2 = personB.personKey!!
 
-      val personC = createMatchingRecord(basePersonData)
-      val cluster3 = createPersonKey()
-        .addPerson(personC)
+      val cluster3 = createPersonWithNewKey(createMatchingRecord(basePersonData)).personKey!!
 
-      val personD = createMatchingRecord(basePersonData)
-      val cluster4 = createPersonKey()
-        .addPerson(personD)
+      val personD = createPersonWithNewKey(createMatchingRecord(basePersonData))
+      val cluster4 = personD.personKey!!
 
       excludeRecord(personB, personD)
 
@@ -319,17 +310,14 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val cluster1 = createPersonKey()
         .addPerson(personA)
 
-      val personB = createMatchingRecord(basePersonData)
-      val cluster2 = createPersonKey()
-        .addPerson(personB)
+      val personB = createPersonWithNewKey(createMatchingRecord(basePersonData))
+      val cluster2 = personB.personKey!!
 
-      val personC = createMatchingRecord(basePersonData)
-      val cluster3 = createPersonKey()
-        .addPerson(personC)
+      val personC = createPersonWithNewKey(createMatchingRecord(basePersonData))
+      val cluster3 = personC.personKey!!
 
-      val personD = createMatchingRecord(basePersonData)
-      val cluster4 = createPersonKey()
-        .addPerson(personD)
+      val personD = createPersonWithNewKey(createMatchingRecord(basePersonData))
+      val cluster4 = personD.personKey!!
 
       excludeRecord(personB, personC)
       excludeRecord(personC, personD)
@@ -356,18 +344,21 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val basePersonData = createRandomProbationCase()
 
       val personA = createProbationPerson(basePersonData)
-      val personB = createMatchingRecord(basePersonData)
-      val personC = createMatchingRecord(basePersonData)
+      val personBData = createMatchingRecord(basePersonData)
+      val personCData = createMatchingRecord(basePersonData)
+
       val cluster = createPersonKey()
         .addPerson(personA)
-        .addPerson(personB)
-        .addPerson(personC)
+        .addPerson(personBData)
+        .addPerson(personCData)
 
-      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(crn = personB.crn!!)))
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(crn = personBData.crn!!)))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
+      val personB = personRepository.findByCrn(personBData.crn)!!
+      val personC = personRepository.findByCrn(personCData.crn!!)!!
       includeRecords(personA, personB, personC)
 
       probationUpdateEventAndResponseSetup(ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), crn = personA.crn!!))
@@ -424,9 +415,8 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personA)
         .addPerson(personB)
 
-      val personC = createMatchingRecord(basePersonData)
-      val cluster2 = createPersonKey()
-        .addPerson(personC)
+      val personC = createPersonWithNewKey(createMatchingRecord(basePersonData))
+      val cluster2 = personC.personKey!!
 
       excludeRecord(personA, personC)
 
@@ -444,11 +434,11 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val cluster1 = createPersonKey()
         .addPerson(personA)
 
-      val personB = createMatchingRecord(basePersonData)
-      val personC = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
-        .addPerson(personB)
-        .addPerson(personC)
+        .addPerson(createMatchingRecord(basePersonData))
+        .addPerson(createMatchingRecord(basePersonData))
+      val personB = cluster2.personEntities.first()
+      val personC = cluster2.personEntities.last()
 
       excludeRecord(personA, personB)
       excludeRecord(personA, personC)
@@ -571,9 +561,9 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val cluster1 = createPersonKey()
         .addPerson(personA)
 
-      val personB = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey()
-        .addPerson(personB)
+        .addPerson(createMatchingRecord(basePersonData))
+      val personB = cluster2.personEntities.first()
 
       val personC = createMatchingRecord(basePersonData)
       val cluster3 = createPersonKey()
@@ -851,15 +841,14 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val basePersonData = createRandomProbationCase()
 
       val personAData = Person.from(basePersonData)
-      val personA = createPerson(personAData)
       val personB = createMatchingRecord(basePersonData)
       val doesNotMatch = createProbationPerson()
       val cluster = createPersonKey()
-        .addPerson(personA)
+        .addPerson(personAData)
         .addPerson(personB)
         .addPerson(doesNotMatch)
 
-      recluster(personA)
+      recluster(personRepository.findByCrn(personAData.crn!!)!!)
 
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
@@ -881,13 +870,11 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val cluster1 = createPersonKey()
         .addPerson(personA)
 
-      val personB = createMatchingRecord(basePersonData)
-      val cluster2 = createPersonKey()
-        .addPerson(personB)
+      val personB = createPersonWithNewKey(createMatchingRecord(basePersonData))
+      val cluster2 = personB.personKey!!
 
-      val personC = createMatchingRecord(basePersonData)
-      val cluster3 = createPersonKey()
-        .addPerson(personC)
+      val personC = createPersonWithNewKey(createMatchingRecord(basePersonData))
+      val cluster3 = personC.personKey!!
 
       excludeRecord(personB, personC)
 

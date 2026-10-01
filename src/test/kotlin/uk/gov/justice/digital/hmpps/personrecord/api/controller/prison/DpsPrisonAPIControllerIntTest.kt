@@ -5,11 +5,14 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.CREATED
+import org.springframework.http.HttpStatus.NO_CONTENT
 import org.springframework.http.HttpStatus.OK
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
@@ -23,6 +26,8 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionInsertRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.ReferenceDataResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
@@ -36,6 +41,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.AGNO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.BAHA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.HUM
@@ -456,7 +462,8 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
           )
         createPersonKey().addPerson(prisonPerson)
         val prisonNumber = prisonPerson.prisonNumber!!
-        val existingPrisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory()))
+        val existingPrisonReligionEntity =
+          prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory()))
 
         val responseBody = webTestClient.get()
           .uri(prisonApiUrl(prisonNumber))
@@ -494,7 +501,8 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
 
         sendPostRequestAsserted<Unit>(
           url = "/syscon-sync/person/$prisonNumber/religion",
-          body = createPrisonReligionHistory().copy( // <- first in history to be written
+          body = createPrisonReligionHistory().copy(
+            // <- first in history to be written
             religionCode = BAHA,
             startDate = now.minusDays(1),
             endDate = now.minusDays(1),
@@ -508,7 +516,8 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
 
         sendPostRequestAsserted<Unit>(
           url = "/syscon-sync/person/$prisonNumber/religion",
-          body = createPrisonReligionHistory().copy( // <- second in history to be written
+          body = createPrisonReligionHistory().copy(
+            // <- second in history to be written
             religionCode = HUM,
             startDate = now.minusDays(1),
             endDate = now,
@@ -522,7 +531,8 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
 
         sendPostRequestAsserted<Unit>(
           url = "/syscon-sync/person/$prisonNumber/religion",
-          body = createPrisonReligionHistory().copy( // <- most recent in history to be written
+          body = createPrisonReligionHistory().copy(
+            // <- most recent in history to be written
             religionCode = AGNO,
             startDate = now,
             endDate = null,
@@ -554,61 +564,229 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         assertThat(responseBody[1].current).isEqualTo(false)
         assertThat(responseBody[1].religionCode).isEqualTo(HUM)
         assertThat(responseBody[1].startDate).isEqualTo(now.minusDays(1))
-        assertThat(responseBody[1].createDateTime.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(nowTime.minusDays(1).minusHours(1).truncatedTo(ChronoUnit.SECONDS))
+        assertThat(responseBody[1].createDateTime.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(
+          nowTime.minusDays(1).minusHours(1).truncatedTo(ChronoUnit.SECONDS),
+        )
         assertThat(responseBody[2].current).isEqualTo(false)
         assertThat(responseBody[2].religionCode).isEqualTo(BAHA)
         assertThat(responseBody[2].startDate).isEqualTo(now.minusDays(1))
-        assertThat(responseBody[2].createDateTime.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(nowTime.minusDays(1).minusHours(2).truncatedTo(ChronoUnit.SECONDS))
+        assertThat(responseBody[2].createDateTime.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(
+          nowTime.minusDays(1).minusHours(2).truncatedTo(ChronoUnit.SECONDS),
+        )
+      }
+    }
+
+    @Nested
+    inner class ErrorScenarios {
+
+      @Test
+      fun `should return not found 404 with userMessage to show that the prisonNumber is not found`() {
+        val prisonNumber = randomPrisonNumber()
+        val expectedErrorMessage = "Not found: $prisonNumber"
+        webTestClient.get()
+          .uri(prisonApiUrl(prisonNumber))
+          .authorised(listOf(API_READ_ONLY))
+          .exchange()
+          .expectStatus()
+          .isNotFound
+          .expectBody()
+          .jsonPath("userMessage")
+          .isEqualTo(expectedErrorMessage)
       }
 
-      @Nested
-      inner class ErrorScenarios {
+      @Test
+      fun `should return Access Denied 403 when role is wrong`() {
+        val expectedErrorMessage = "Forbidden: Access Denied"
+        webTestClient.get()
+          .uri(prisonApiUrl("accessdenied"))
+          .authorised(listOf("UNSUPPORTED-ROLE"))
+          .exchange()
+          .expectStatus()
+          .isForbidden
+          .expectBody()
+          .jsonPath("userMessage")
+          .isEqualTo(expectedErrorMessage)
+      }
 
-        @Test
-        fun `should return not found 404 with userMessage to show that the prisonNumber is not found`() {
-          val prisonNumber = randomPrisonNumber()
-          val expectedErrorMessage = "Not found: $prisonNumber"
-          webTestClient.get()
-            .uri(prisonApiUrl(prisonNumber))
-            .authorised(listOf(API_READ_ONLY))
-            .exchange()
-            .expectStatus()
-            .isNotFound
-            .expectBody()
-            .jsonPath("userMessage")
-            .isEqualTo(expectedErrorMessage)
-        }
-
-        @Test
-        fun `should return Access Denied 403 when role is wrong`() {
-          val expectedErrorMessage = "Forbidden: Access Denied"
-          webTestClient.get()
-            .uri(prisonApiUrl("accessdenied"))
-            .authorised(listOf("UNSUPPORTED-ROLE"))
-            .exchange()
-            .expectStatus()
-            .isForbidden
-            .expectBody()
-            .jsonPath("userMessage")
-            .isEqualTo(expectedErrorMessage)
-        }
-
-        @Test
-        fun `should return UNAUTHORIZED 401 when role is not set`() {
-          webTestClient.get()
-            .uri(prisonApiUrl("unauthorised"))
-            .exchange()
-            .expectStatus()
-            .isUnauthorized
-        }
+      @Test
+      fun `should return UNAUTHORIZED 401 when role is not set`() {
+        webTestClient.get()
+          .uri(prisonApiUrl("unauthorised"))
+          .exchange()
+          .expectStatus()
+          .isUnauthorized
       }
     }
 
     private fun prisonApiUrl(prisonNumber: String?) = "/person/prison/dps/$prisonNumber/religion-history"
   }
+
+  @Nested
+  @DisplayName("PUT /person/prison/dps/{prisonNumber}/religion")
+  inner class UpdateReligionByPrisonNumber {
+    @Nested
+    inner class SuccessfulProcessing {
+      @Test
+      fun `should insert the new religion and update the person's current religion`() {
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        val request = PrisonReligionInsertRequest(religionCode = BAHA, comment = "Requested update", userId = "TEST")
+
+        sendPutRequestAsserted<Unit>(
+          url = religionApiUrl(prisonNumber),
+          body = request,
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = NO_CONTENT,
+        )
+
+        val actualReligion = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber).single()
+        assertThat(actualReligion.code).isEqualTo(request.religionCode)
+        assertThat(actualReligion.comments).isEqualTo(request.comment)
+        assertThat(actualReligion.changeReasonKnown).isTrue()
+        assertThat(actualReligion.prisonRecordType.value).isTrue()
+        assertThat(actualReligion.createUserId).isEqualTo(request.userId)
+        assertThat(personRepository.findByPrisonNumber(prisonNumber)?.religion).isEqualTo(request.religionCode)
+      }
+
+      @Test
+      fun `should make the existing current religion historic when inserting a new religion`() {
+        val prisonNumber = randomPrisonNumber()
+        val existingReligion = PrisonReligionEntity.from(
+          prisonNumber,
+          createPrisonReligionHistory(code = HUM).copy(endDate = null),
+        )
+        val person = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligion.code })
+        prisonReligionRepository.save(existingReligion)
+        personRepository.saveAndFlush(person)
+        val request = PrisonReligionInsertRequest(religionCode = BAHA, comment = "Requested update", userId = "TEST")
+
+        sendPutRequestAsserted<Unit>(
+          url = religionApiUrl(prisonNumber),
+          body = request,
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = NO_CONTENT,
+        )
+
+        val actualReligions = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
+        assertThat(actualReligions).hasSize(2)
+        val actualExistingReligion = actualReligions.single { it.code == HUM }
+        assertThat(actualExistingReligion.prisonRecordType.value).isFalse()
+        assertThat(actualExistingReligion.endDate).isEqualTo(LocalDate.now())
+        assertThat(actualExistingReligion.modifyUserId).isEqualTo(request.userId)
+        assertThat(actualExistingReligion.modifyDateTime).isNotNull()
+
+        val actualNewReligion = actualReligions.single { it.code == BAHA }
+        assertThat(actualNewReligion.prisonRecordType.value).isTrue()
+        assertThat(actualNewReligion.endDate).isNull()
+        assertThat(personRepository.findByPrisonNumber(prisonNumber)?.religion).isEqualTo(request.religionCode)
+      }
+    }
+
+    @Nested
+    inner class ErrorScenarios {
+      @Test
+      fun `should return not found when the prison number does not exist`() {
+        sendPutRequestAsserted<Unit>(
+          url = religionApiUrl(randomPrisonNumber()),
+          body = PrisonReligionInsertRequest(religionCode = BAHA, userId = "TEST"),
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = HttpStatus.NOT_FOUND,
+        )
+      }
+
+      @Test
+      fun `should return Access Denied 403 when role is wrong`() {
+        sendPutRequestAsserted<Unit>(
+          url = religionApiUrl(randomPrisonNumber()),
+          body = PrisonReligionInsertRequest(religionCode = BAHA, userId = "TEST"),
+          roles = listOf(API_READ_ONLY),
+          expectedStatus = HttpStatus.FORBIDDEN,
+        )
+      }
+
+      @Test
+      fun `should return UNAUTHORIZED 401 when role is not set`() {
+        sendPutRequestAsserted<Unit>(
+          url = religionApiUrl(randomPrisonNumber()),
+          body = PrisonReligionInsertRequest(religionCode = BAHA, userId = "TEST"),
+          roles = emptyList(),
+          expectedStatus = HttpStatus.UNAUTHORIZED,
+          sendAuthorised = false,
+        )
+      }
+    }
+
+    private fun religionApiUrl(prisonNumber: String) = "/person/prison/dps/$prisonNumber/religion"
+  }
+
+  @Nested
+  @DisplayName("GET /person/prison/dps/religion-codes")
+  inner class GetReligionCodes {
+    @Nested
+    inner class SuccessfulProcessing {
+      @Test
+      fun `should return only active prison religion codes by default`() {
+        val responseBody = webTestClient.get()
+          .uri(religionCodesApiUrl())
+          .authorised(listOf(API_READ_ONLY))
+          .exchange()
+          .expectStatus()
+          .isOk
+          .expectBody<List<ReferenceDataResponse>>()
+          .returnResult()
+          .responseBody!!
+
+        val expectedReligionCodes = ReligionCode.entries
+          .filter { it.current }
+          .map { ReferenceDataResponse(it.name, it.description, it.current) }
+        assertThat(responseBody).isEqualTo(expectedReligionCodes)
+      }
+
+      @Test
+      fun `should return all religion codes when active is false`() {
+        val responseBody = webTestClient.get()
+          .uri("${religionCodesApiUrl()}?active=false")
+          .authorised(listOf(API_READ_ONLY))
+          .exchange()
+          .expectStatus()
+          .isOk
+          .expectBody<List<ReferenceDataResponse>>()
+          .returnResult()
+          .responseBody!!
+
+        val expectedReligionCodes = ReligionCode.entries
+          .map { ReferenceDataResponse(it.name, it.description, it.current) }
+        assertThat(responseBody).isEqualTo(expectedReligionCodes)
+      }
+    }
+
+    @Nested
+    inner class ErrorScenarios {
+      @Test
+      fun `should return Access Denied 403 when role is wrong`() {
+        webTestClient.get()
+          .uri(religionCodesApiUrl())
+          .authorised(listOf("UNSUPPORTED-ROLE"))
+          .exchange()
+          .expectStatus()
+          .isForbidden
+      }
+
+      @Test
+      fun `should return UNAUTHORIZED 401 when role is not set`() {
+        webTestClient.get()
+          .uri(religionCodesApiUrl())
+          .exchange()
+          .expectStatus()
+          .isUnauthorized
+      }
+    }
+
+    private fun religionCodesApiUrl() = "/person/prison/dps/religion-codes"
+  }
 }
 
-// JsonUnwrapped annotation on DpsPrisonRecord produces this structure so we cannot use DpsPrisonRecord directly to mimic return value
+// JsonUnwrapped annotation on DpsPrisonRecord produces this structure, so we cannot use DpsPrisonRecord directly to mimic return value
 // this is a copy/paste of CanonicalRecord with the additional properties of DpsPrisonRecord
 data class DpsPrisonRecordTest(
   val cprUUID: String? = null,

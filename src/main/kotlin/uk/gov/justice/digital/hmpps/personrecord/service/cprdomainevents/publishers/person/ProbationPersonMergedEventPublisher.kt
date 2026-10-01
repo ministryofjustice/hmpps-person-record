@@ -2,35 +2,34 @@ package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publis
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonDeleted
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonMerged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.PersonMerged
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
-import java.time.Instant
 
 @Component
-class ProbationPersonDeletedEventPublisher(
+class ProbationPersonMergedEventPublisher(
   private val domainEventPublisher: DomainEventPublisher,
   @Value($$"${core-person-record.base-url}") private val baseUrl: String,
-) : PersonDeletedEventPublisher {
+) : PersonMergedEventPublisher {
   override val sourceSystemType = SourceSystemType.DELIUS
 
-  override fun onDelete(personDeleted: PersonDeleted) {
-    val personEntity = personDeleted.personEntity
-    val crn = personEntity.extractSourceSystemId()!!
+  override fun onMerge(personMerged: PersonMerged) {
+    val fromCrn = personMerged.from!!.crn!!
+    val toCrn = personMerged.to.crn!!
 
     domainEventPublisher.publish(
-      domainEvent = CprPersonDeleted(
-        eventType = CPR_PROBATION_PERSON_DELETED,
-        occurredAt = Instant.now().asStringWithUkZone(),
-        description = "A probation person record has been deleted",
+      CprPersonMerged(
+        eventType = CPR_PROBATION_PERSON_MERGED,
+        description = "A probation person record has been merged",
+        detailUrl = "$baseUrl/person/probation/$toCrn",
         personReference = PersonReference(
           identifiers = listOf(
-            PersonIdentifier("CRN", crn),
+            PersonIdentifier("fromCRN", fromCrn),
+            PersonIdentifier("toCRN", toCrn),
           ),
         ),
       ),
