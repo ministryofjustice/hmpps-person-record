@@ -117,6 +117,7 @@ kover {
 
 tasks {
   test {
+    systemProperty("spring.test.context.cache.maxSize", "8")
     exclude("**/InitialiseDatabase.class")
     exclude("**/**E2ETest.class")
     exclude("**/pacttest/**")

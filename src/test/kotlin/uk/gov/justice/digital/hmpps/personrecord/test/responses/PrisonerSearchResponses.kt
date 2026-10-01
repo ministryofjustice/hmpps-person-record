@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup.Companion.phoneNumbers
+
 fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
   {
     "prisonerNumber": "${responseSetup.prisonNumber}",
@@ -113,10 +115,12 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
         ${responseSetup.email?.let { """ {"email": "${responseSetup.email}" }""".trimIndent() } ?: "" }
     ],
     "phoneNumbers": [
-      {
-        "type": "HOME, MOB",
-        "number": "01141234567"
-      }
+      ${responseSetup.phoneNumbers().joinToString {
+  """{
+          "type": "${it.type}",
+          "number": "${it.value}"
+        }"""
+}}
     ],
     "identifiers": [${responseSetup.identifiers.joinToString { identifier(it) }}],
     "allConvictedOffences": [

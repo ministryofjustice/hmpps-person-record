@@ -113,7 +113,10 @@ jobs:
       push: ${{ inputs.push || true }}
       docker_multiplatform: false
       download_build_artifacts: true
-    needs: gradle_verify
+      image_version: '${{ needs.app_version.outputs.version }}'
+    needs:
+      - gradle_verify
+      - app_version
   database_report:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
