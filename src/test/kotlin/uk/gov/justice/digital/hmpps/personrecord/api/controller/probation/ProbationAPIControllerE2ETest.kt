@@ -11,6 +11,8 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAd
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContactType
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
@@ -31,8 +33,10 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDateTime
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
@@ -158,6 +162,10 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
               Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
               Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
             ),
+            contacts = listOf(
+              Contact(contactType = ContactType.EMAIL, contactValue = "example@example.com"),
+              Contact(contactType = ContactType.HOME, contactValue = "1234 567890"),
+            ),
           ),
           configure = addAddressToRecord(
             Address(
@@ -228,6 +236,7 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
           comment = comment,
           usages = listOf(CanonicalAddressUsage(CanonicalAddressUsageCode.from(addressUsageCode), isActive)),
         )
+        val canonicalContacts = person.contacts.map { CanonicalContact(type = CanonicalContactType.from(it.contactType), value = it.contactValue, extension = it.extension) }
         val canonicalReligion = CanonicalReligion(code = religion.name, description = religion.description)
         val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromProbation(ethnicity))
         assertThat(responseBody.cprUUID).isNull()
@@ -262,6 +271,7 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
         assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
         assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
         assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
+        assertThat(responseBody.contacts).containsExactlyInAnyOrderElementsOf(canonicalContacts)
 
         assertThat(responseBody.addresses)
           .usingRecursiveComparison()

@@ -7,6 +7,8 @@ import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContactType
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
@@ -19,9 +21,11 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
@@ -136,6 +140,10 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
             Reference(identifierType = PNC, identifierValue = pnc),
             Reference(identifierType = CRO, identifierValue = cro),
           ),
+          contacts = listOf(
+            Contact(contactType = ContactType.EMAIL, contactValue = "example@example.com"),
+            Contact(contactType = ContactType.HOME, contactValue = "1234 567890"),
+          ),
         ),
       )
 
@@ -160,6 +168,7 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.addresses.size).isEqualTo(1)
       val mainAddressEntity = person.addresses.first { it.statusCode == AddressStatusCode.M }
       val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromCommonPlatform(ethnicity))
+      val canonicalContacts = person.contacts.map { CanonicalContact(type = CanonicalContactType.from(it.contactType), value = it.contactValue, extension = it.extension) }
 
       assertThat(responseBody.cprUUID).isNull()
       assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
@@ -186,6 +195,7 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
       assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
       assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
+      assertThat(responseBody.contacts).containsExactlyInAnyOrderElementsOf(canonicalContacts)
       assertCanonicalAddresses(listOf(mainAddressEntity), responseBody.addresses)
     }
 

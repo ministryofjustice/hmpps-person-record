@@ -9,6 +9,8 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAd
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContactType
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
@@ -23,8 +25,10 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDateTime
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
@@ -42,11 +46,13 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -127,6 +133,10 @@ class CanonicalAPIIntTest : WebTestBase() {
           Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
           Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
         ),
+        contacts = listOf(
+          Contact(contactType = ContactType.EMAIL, contactValue = randomEmail()),
+          Contact(contactType = ContactType.HOME, contactValue = randomPhoneNumber()),
+        ),
       ),
     )
 
@@ -149,6 +159,8 @@ class CanonicalAPIIntTest : WebTestBase() {
       uprn = uprn, status = CanonicalAddressStatus.from(addressStatusCode), comment = comment,
       usages = listOf(CanonicalAddressUsage(usageCode = CanonicalAddressUsageCode.from(addressUsageCode), isActive = isActive)),
     )
+    val canonicalContacts = person.contacts.map { CanonicalContact(type = CanonicalContactType.from(it.contactType), value = it.contactValue, extension = it.extension) }
+
     val canonicalReligion = CanonicalReligion(code = religion.name, description = religion.description)
 
     val canonicalEthnicity = CanonicalEthnicity.from(EthnicityCode.fromPrison(ethnicity))
@@ -183,6 +195,7 @@ class CanonicalAPIIntTest : WebTestBase() {
     assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
     assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
     assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
+    assertThat(responseBody.contacts).containsExactlyInAnyOrderElementsOf(canonicalContacts)
     assertThat(responseBody.addresses)
       .usingRecursiveComparison()
       .isEqualTo(listOf(canonicalAddress))

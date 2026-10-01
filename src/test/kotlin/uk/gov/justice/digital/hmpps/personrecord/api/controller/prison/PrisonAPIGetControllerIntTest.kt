@@ -11,6 +11,8 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAd
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContactType
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
@@ -21,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDateTime
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
@@ -46,7 +49,10 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
       val prisonPerson = createRandomPrisonPersonDetails(prisonNumber)
         .copy(
-          contacts = listOf(Contact(MOBILE, randomPhoneNumber(), "+44")),
+          contacts = listOf(
+            Contact(MOBILE, randomPhoneNumber(), "+44"),
+            Contact(EMAIL, "example@example.com"),
+          ),
           nationalities = listOf(randomNationalityCode()),
         )
       val cluster = createPersonKey()
@@ -112,6 +118,7 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
         comment = address2.comment,
         usages = address2.usages.map { CanonicalAddressUsage(CanonicalAddressUsageCode.from(it.usageCode), it.active) },
       )
+      val canonicalContacts = person.contacts.map { CanonicalContact(type = CanonicalContactType.from(it.contactType), value = it.contactValue, extension = it.extension) }
 
       val canonicalReligion = CanonicalReligion(code = prisonPerson.religion?.name, description = prisonPerson.religion?.description)
       val canonicalEthnicity = CanonicalEthnicity.from(prisonPerson.ethnicityCode)
@@ -143,6 +150,7 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.cros).isEqualTo(listOf(prisonPerson.getCro()))
       assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(prisonPerson.getPnc()))
       assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
+      assertThat(responseBody.contacts).containsExactlyInAnyOrderElementsOf(canonicalContacts)
 
       assertThat(responseBody.addresses.sortedBy { it.cprAddressId })
         .usingRecursiveComparison()
