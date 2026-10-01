@@ -41,10 +41,12 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
@@ -135,8 +137,8 @@ class LibraAPIControllerIntTest : WebTestBase() {
             ),
           ),
           contacts = listOf(
-            Contact(contactType = ContactType.EMAIL, contactValue = "example@example.com"),
-            Contact(contactType = ContactType.HOME, contactValue = "1234 567890"),
+            Contact(contactType = ContactType.EMAIL, contactValue = randomEmail()),
+            Contact(contactType = ContactType.HOME, contactValue = randomPhoneNumber()),
           ),
         ),
       )

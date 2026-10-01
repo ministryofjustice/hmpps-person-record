@@ -163,8 +163,8 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
               Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
             ),
             contacts = listOf(
-              Contact(contactType = ContactType.EMAIL, contactValue = "example@example.com"),
-              Contact(contactType = ContactType.HOME, contactValue = "1234 567890"),
+              Contact(contactType = ContactType.EMAIL, contactValue = randomEmail()),
+              Contact(contactType = ContactType.HOME, contactValue = randomPhoneNumber()),
             ),
           ),
           configure = addAddressToRecord(

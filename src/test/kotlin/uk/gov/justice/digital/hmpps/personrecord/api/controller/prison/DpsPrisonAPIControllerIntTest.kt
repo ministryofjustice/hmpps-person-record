@@ -56,6 +56,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
@@ -83,8 +84,8 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         val prisonPerson = createRandomPrisonPersonDetails(prisonNumber)
           .copy(
             contacts = listOf(
-              Contact(MOBILE, randomPhoneNumber(), "+44"),
-              Contact(EMAIL, "example@example.com"),
+              Contact(MOBILE, randomPhoneNumber()),
+              Contact(EMAIL, randomEmail()),
             ),
             nationalities = listOf(randomNationalityCode()),
           )
