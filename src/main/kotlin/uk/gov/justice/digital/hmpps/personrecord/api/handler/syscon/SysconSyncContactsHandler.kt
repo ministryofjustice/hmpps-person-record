@@ -3,49 +3,73 @@ package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
-class SysconReligionInsertHandler(
-  private val prisonReligionRepository: PrisonReligionRepository,
-  private val personService: PersonService,
+class SysconSyncContactsHandler(
   private val personRepository: PersonRepository,
+  private val contactRepository: ContactRepository
 ) {
 
   @Transactional
-  fun handleInsert(prisonNumber: String, prisonReligionRequest: PrisonReligionRequest): Map<String, String> {
-    val (personEntity, currentPrisonReligion) = validateRequest(prisonNumber, prisonReligionRequest)
-    prisonReligionRepository.deleteAllByPrisonNumber(prisonNumber).also { prisonReligionRepository.flush() }
-    val cprReligionIdByNomisId = saveReligionsMapped(prisonNumber, prisonReligionRequest).also {
-      personEntity.religion = currentPrisonReligion.religionCode
-      personService.processPerson(Person.from(personEntity)) { personEntity }
-    }
-    return cprReligionIdByNomisId
+  fun handleInsert(prisonNumber: String, prisonContact: PrisonContact): SysconContactMapping {
+    val personEntity = personRepository.findByPrisonNumber(prisonNumber)
+      ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
+    val contactEntities = contactRepository.saveAndFlush(prisonContact.toEntity(personEntity))
+    personEntity.contacts.add(contactEntities)
+    return (prisonContact to contactEntities).toMapping()
   }
 
-  private fun validateRequest(prisonNumber: String, prisonReligionRequest: PrisonReligionRequest): Pair<PersonEntity, PrisonReligionHistory> {
-    val currentPrisonReligion = prisonReligionRequest.getCurrentReligion() ?: throw IllegalArgumentException("Exactly one current prison religion must be sent for $prisonNumber")
-    val nomisIdSet = hashSetOf<String>()
-    prisonReligionRequest.religions.forEach {
-      when (nomisIdSet.contains(it.nomisReligionId)) {
-        true -> throw IllegalArgumentException("Duplicate nomis religion id '${it.nomisReligionId}' were detected for $prisonNumber")
-        false -> nomisIdSet.add(it.nomisReligionId)
-      }
-    }
-
-    val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException(prisonNumber)
-    return personEntity to currentPrisonReligion
+  @Transactional
+  fun handleUpdate(prisonNumber: String, cprContactId: String, prisonContact: PrisonContact) {
+    val personEntity = personRepository.findByPrisonNumber(prisonNumber)
+      ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
+    val contactEntity = personEntity.contacts.find { it.updateId.toString() == cprContactId }
+      ?: throw ResourceNotFoundException("Contact with $cprContactId not found for person with $prisonNumber")
+    contactEntity.updateFrom(prisonContact)
   }
 
-  private fun saveReligionsMapped(prisonNumber: String, prisonReligionRequest: PrisonReligionRequest) = prisonReligionRequest.religions.associate { prisonReligion ->
-    val prisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, prisonReligion))
-    prisonReligion.nomisReligionId to prisonReligionEntity.updateId.toString()
+  @Transactional
+  fun handleDelete(prisonNumber: String, cprContactId: String) {
+    val personEntity = personRepository.findByPrisonNumber(prisonNumber)
+      ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
+    personEntity.contacts.removeIf { it.updateId.toString() == cprContactId }
+  }
+
+  companion object {
+
+    private fun Pair<PrisonContact, ContactEntity>.toMapping() = SysconContactMapping(
+      nomisContactId = first.nomisContactId,
+      nomisContactType = first.type,
+      cprContactId = second.updateId.toString(),
+    )
+
+    fun ContactEntity.updateFrom(prisonContact: PrisonContact){
+      contactType = prisonContact.type
+      contactValue = prisonContact.value
+      extension = prisonContact.extension
+      modifyDateTime = prisonContact.modifyDateTime
+      modifyUserId = prisonContact.modifyUserId
+      createDateTime = prisonContact.createDateTime
+      createUserId = prisonContact.createUserId
+    }
+
+    fun PrisonContact.toEntity(personEntity: PersonEntity) = ContactEntity(
+      contactType = type,
+      contactValue = value,
+      extension = extension,
+      person = personEntity,
+      modifyDateTime = modifyDateTime,
+      modifyUserId = modifyUserId,
+      createDateTime = createDateTime,
+      createUserId = createUserId,
+    )
   }
 }
+
+

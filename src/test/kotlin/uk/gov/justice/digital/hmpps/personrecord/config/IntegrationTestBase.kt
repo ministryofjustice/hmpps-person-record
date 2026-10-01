@@ -63,7 +63,10 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.review.ReviewEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
+<<<<<<< HEAD
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressUsageRepository
+=======
+>>>>>>> 9061193f (SDIT-4238 sync contacts on person)
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -157,12 +160,6 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var addressRepository: AddressRepository
-
-  @Autowired
-  lateinit var addressUsageRepository: AddressUsageRepository
-
-  @Autowired
-  lateinit var contactRepository: ContactRepository
 
   fun authSetup() {
     wiremock.stubFor(
