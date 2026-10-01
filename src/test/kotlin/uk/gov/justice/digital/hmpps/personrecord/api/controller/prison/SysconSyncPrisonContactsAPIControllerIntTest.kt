@@ -186,18 +186,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
     inner class Validation {
 
       @Test
-      fun `person does not exist - returns 404 not found`() {
-        val prisonNumber = randomPrisonNumber()
-        val response = sendPutRequestAsserted<String>(
-          url = updatePrisonerContactUrl(prisonNumber, UUID.randomUUID().toString()),
-          body = validRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("Not found: Person with $prisonNumber not found")
-      }
-
-      @Test
       fun `contact does not exist - returns 404 not found`() {
         val prisonNumber = randomPrisonNumber()
         val contactId = UUID.randomUUID().toString()

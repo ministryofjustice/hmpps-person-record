@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import java.util.UUID
 
 @Component
 class SysconSyncContactsHandler(
@@ -27,9 +28,7 @@ class SysconSyncContactsHandler(
 
   @Transactional
   fun handleUpdate(prisonNumber: String, cprContactId: String, prisonContact: PrisonContact) {
-    val personEntity = personRepository.findByPrisonNumber(prisonNumber)
-      ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
-    val contactEntity = personEntity.contacts.find { it.updateId.toString() == cprContactId }
+    val contactEntity = contactRepository.findByUpdateId(UUID.fromString(cprContactId))
       ?: throw ResourceNotFoundException("Contact with $cprContactId not found for person with $prisonNumber")
     contactEntity.updateFrom(prisonContact)
   }
