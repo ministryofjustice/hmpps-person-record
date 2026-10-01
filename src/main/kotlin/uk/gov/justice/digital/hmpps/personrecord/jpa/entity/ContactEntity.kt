@@ -52,13 +52,13 @@ class ContactEntity(
 
   @Column(name = "contact_type")
   @Enumerated(EnumType.STRING)
-  val contactType: ContactType,
+  var contactType: ContactType,
 
   @Column(name = "contact_value")
-  val contactValue: String? = null,
+  var contactValue: String? = null,
 
   @Column(name = "extension")
-  val extension: String? = null,
+  var extension: String? = null,
 
   @Column(name = "create_date_time")
   var createDateTime: LocalDateTime? = null,

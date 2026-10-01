@@ -50,7 +50,7 @@ jobs:
     steps:
       - id: app_version
         name: Application version creators
-        uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/build-test-and-deploy/create_app_version@90bdfa991e9944e4997eba4c1f2709d21ec807ea # v1.1.5
+        uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/build-test-and-deploy/create_app_version@cd6fbead3223fc36e047987f45af2ffacfd41c70 # v1.1.6
   gradle_verify:
     name: Validate the kotlin
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2
@@ -81,7 +81,7 @@ jobs:
           distribution: 'temurin'
           java-version: '25'
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
       - name: Run e2e tests
         shell: bash
         run: |
@@ -132,7 +132,7 @@ jobs:
           distribution: 'temurin'
           java-version: '25'
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
       - name: Start Required Services
         run: make start-containers
       - name: Initialise DB
@@ -140,7 +140,7 @@ jobs:
         run: |
           export JAVA_OPTS="${{ inputs.java_options }}"
           ./gradlew initialiseDatabase
-      - uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/database_schema_report@90bdfa991e9944e4997eba4c1f2709d21ec807ea # v1.1.5
+      - uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/database_schema_report@cd6fbead3223fc36e047987f45af2ffacfd41c70 # v1.1.6
         with:
           schema: personrecordservice
   deploy_dev:
