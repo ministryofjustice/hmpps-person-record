@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.FORBIDDEN
 import org.springframework.http.HttpStatus.NOT_FOUND
@@ -14,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonCont
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -21,6 +23,9 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
+
+  @Autowired
+  lateinit var contactRepository: ContactRepository
 
   @Nested
   inner class CreatePrisonerContact {
@@ -42,14 +47,13 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `should have the correct profile active`() {
-        val prisonNumber = randomPrisonNumber()
-        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-        sendPostRequestAsserted<String>(
-          url = createPrisonerContactUrl(prisonNumber),
+        val response = sendPostRequestAsserted<String>(
+          url = createPrisonerContactUrl(randomPrisonNumber()),
           body = validRequestBody,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = NOT_FOUND,
-        )
+        ).returnResult().responseBody!!
+        assertThat(response).contains("\"error\":\"Not Found\"")
       }
     }
 
@@ -59,14 +63,13 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `should have the correct profile active`() {
-        val prisonNumber = randomPrisonNumber()
-        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-        sendPostRequestAsserted<String>(
-          url = createPrisonerContactUrl(prisonNumber),
+        val response = sendPostRequestAsserted<String>(
+          url = createPrisonerContactUrl(randomPrisonNumber()),
           body = validRequestBody,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = NOT_FOUND,
-        )
+        ).returnResult().responseBody!!
+        assertThat(response).contains("\"error\":\"Not Found\"")
       }
     }
 
@@ -75,12 +78,14 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `person does not exist - returns 404 not found`() {
-        sendPostRequestAsserted<String>(
-          url = createPrisonerContactUrl(randomPrisonNumber()),
+        val prisonNumber = randomPrisonNumber()
+        val response = sendPostRequestAsserted<String>(
+          url = createPrisonerContactUrl(prisonNumber),
           body = validRequestBody,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = NOT_FOUND,
-        )
+        ).returnResult().responseBody!!
+        assertThat(response).contains("Not found: Person with $prisonNumber not found")
       }
     }
 
@@ -151,15 +156,13 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `should have the correct profile active`() {
-        val prisonNumber = randomPrisonNumber()
-        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-        val contactEntity = contactRepository.saveAndFlush(ContactEntity(person = personEntity, contactType = MOBILE))
-        sendPutRequestAsserted<Unit>(
-          url = updatePrisonerContactUrl(randomPrisonNumber(), contactEntity.updateId.toString()),
+        val response = sendPutRequestAsserted<String>(
+          url = updatePrisonerContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
           body = validRequestBody,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = NOT_FOUND,
-        )
+        ).returnResult().responseBody!!
+        assertThat(response).contains("\"error\":\"Not Found\"")
       }
     }
 
@@ -169,15 +172,13 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `should have the correct profile active`() {
-        val prisonNumber = randomPrisonNumber()
-        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-        val contactEntity = contactRepository.saveAndFlush(ContactEntity(person = personEntity, contactType = MOBILE))
-        sendPutRequestAsserted<Unit>(
-          url = updatePrisonerContactUrl(randomPrisonNumber(), contactEntity.updateId.toString()),
+        val response = sendPutRequestAsserted<String>(
+          url = updatePrisonerContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
           body = validRequestBody,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = NOT_FOUND,
-        )
+        ).returnResult().responseBody!!
+        assertThat(response).contains("\"error\":\"Not Found\"")
       }
     }
 
@@ -186,24 +187,28 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `person does not exist - returns 404 not found`() {
-        sendPutRequestAsserted<Unit>(
-          url = updatePrisonerContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+        val prisonNumber = randomPrisonNumber()
+        val response = sendPutRequestAsserted<String>(
+          url = updatePrisonerContactUrl(prisonNumber, UUID.randomUUID().toString()),
           body = validRequestBody,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = NOT_FOUND,
-        )
+        ).returnResult().responseBody!!
+        assertThat(response).contains("Not found: Person with $prisonNumber not found")
       }
 
       @Test
       fun `contact does not exist - returns 404 not found`() {
         val prisonNumber = randomPrisonNumber()
+        val contactId = UUID.randomUUID().toString()
         createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-        sendPutRequestAsserted<Unit>(
-          url = updatePrisonerContactUrl(prisonNumber, UUID.randomUUID().toString()),
+        val response = sendPutRequestAsserted<String>(
+          url = updatePrisonerContactUrl(prisonNumber, contactId),
           body = validRequestBody,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = NOT_FOUND,
-        )
+        ).returnResult().responseBody!!
+        assertThat(response).contains("Contact with $contactId not found")
       }
     }
 
@@ -263,14 +268,12 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `should have the correct profile active`() {
-        val prisonNumber = randomPrisonNumber()
-        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-        val contactEntity = contactRepository.saveAndFlush(ContactEntity(person = personEntity, contactType = MOBILE))
-        sendDeleteRequestAsserted<Unit>(
-          url = deletePrisonerContactUrl(randomPrisonNumber(), contactEntity.updateId.toString()),
+        val response = sendDeleteRequestAsserted<String>(
+          url = deletePrisonerContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = NOT_FOUND,
-        )
+        ).returnResult().responseBody!!
+        assertThat(response).contains("\"error\":\"Not Found\"")
       }
     }
 
@@ -280,14 +283,12 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `should have the correct profile active`() {
-        val prisonNumber = randomPrisonNumber()
-        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-        val contactEntity = contactRepository.saveAndFlush(ContactEntity(person = personEntity, contactType = MOBILE))
-        sendDeleteRequestAsserted<Unit>(
-          url = deletePrisonerContactUrl(randomPrisonNumber(), contactEntity.updateId.toString()),
+        val response = sendDeleteRequestAsserted<String>(
+          url = deletePrisonerContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = NOT_FOUND,
-        )
+        ).returnResult().responseBody!!
+        assertThat(response).contains("\"error\":\"Not Found\"")
       }
     }
 
@@ -296,11 +297,13 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
 
       @Test
       fun `person does not exist - returns 404 not found`() {
-        sendDeleteRequestAsserted<Unit>(
-          url = deletePrisonerContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+        val prisonNumber = randomPrisonNumber()
+        val response = sendDeleteRequestAsserted<String>(
+          url = deletePrisonerContactUrl(prisonNumber, UUID.randomUUID().toString()),
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = NOT_FOUND,
-        )
+        ).returnResult().responseBody!!
+        assertThat(response).contains("Not found: Person with $prisonNumber not found")
       }
     }
 

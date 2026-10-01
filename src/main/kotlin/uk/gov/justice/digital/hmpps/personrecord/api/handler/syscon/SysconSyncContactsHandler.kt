@@ -20,9 +20,9 @@ class SysconSyncContactsHandler(
   fun handleInsert(prisonNumber: String, prisonContact: PrisonContact): SysconContactMapping {
     val personEntity = personRepository.findByPrisonNumber(prisonNumber)
       ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
-    val contactEntities = contactRepository.saveAndFlush(prisonContact.toEntity(personEntity))
-    personEntity.contacts.add(contactEntities)
-    return (prisonContact to contactEntities).toMapping()
+    val contactEntity = contactRepository.saveAndFlush(prisonContact.toEntity(personEntity))
+    personEntity.contacts.add(contactEntity)
+    return (prisonContact to contactEntity).toMapping()
   }
 
   @Transactional
