@@ -5,32 +5,38 @@ import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatus.CREATED
 import tools.jackson.databind.node.ObjectNode
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.M
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.PR
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
-class ProbationAddressPostAPIControllerTest : WebTestBase() {
+class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
     @Test
-    fun `should create a new address and recluster`() {
+    fun `should create a new proposed address and recluster`() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
       val crn = randomCrn()
-      val newAddress = createRandomProbationAddress()
+      val newAddress = createRandomProbationAddress().copy(statusCode = PR)
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
       val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
         url = probationAddressApiUrl(crn),
         body = newAddress,
         roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.CREATED,
+        expectedStatus = CREATED,
       ).returnResult().responseBody!!
 
       awaitAssert {
@@ -46,6 +52,98 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
     }
 
     @Test
+    fun `should create a new proposed address when there is an existing main address`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val crn = randomCrn()
+      val newAddress = createRandomProbationAddress().copy(statusCode = PR)
+      val mainAddress = createRandomProbationAddress().copy(statusCode = M)
+      createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(Address.from(mainAddress)))
+
+      val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
+        url = probationAddressApiUrl(crn),
+        body = newAddress,
+        roles = listOf(PROBATION_API_READ_WRITE),
+        expectedStatus = CREATED,
+      ).returnResult().responseBody!!
+
+      awaitAssert {
+        val personEntity = personRepository.findByCrn(crn)!!
+        assertThat(personEntity.addresses.size).isEqualTo(2)
+
+        assertAddressValues(mainAddress, personEntity.getMainAddress())
+
+        val proposedAddress = personEntity.addresses.first { it.statusCode == PR }
+        assertAddressValues(newAddress, proposedAddress)
+
+        assertThat(responseBody.crn).isEqualTo(crn)
+        assertThat(responseBody.cprAddressId).isEqualTo(proposedAddress.updateId.toString())
+      }
+      // TODO check that the domain event for address update is emitted before the domain event for address create
+    }
+
+    @Test
+    fun `should create a new main address`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val crn = randomCrn()
+      val newAddress = createRandomProbationAddress().copy(statusCode = M)
+      createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
+
+      val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
+        url = probationAddressApiUrl(crn),
+        body = newAddress,
+        roles = listOf(PROBATION_API_READ_WRITE),
+        expectedStatus = CREATED,
+      ).returnResult().responseBody!!
+
+      awaitAssert {
+        val personEntity = personRepository.findByCrn(crn)!!
+        assertThat(personEntity.addresses.size).isEqualTo(1)
+
+        val actualAddress = personEntity.addresses.first()
+        assertAddressValues(newAddress, actualAddress)
+
+        assertThat(responseBody.crn).isEqualTo(crn)
+        assertThat(responseBody.cprAddressId).isEqualTo(actualAddress.updateId.toString())
+      }
+    }
+
+    @Test
+    fun `should create a new main address when there is already a main address`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val crn = randomCrn()
+      val newAddress = createRandomProbationAddress().copy(statusCode = M)
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(Address.from(createRandomProbationAddress().copy(statusCode = M))))
+
+      val existingAddressId = person.addresses.first().updateId!!
+
+      val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
+        url = probationAddressApiUrl(crn),
+        body = newAddress,
+        roles = listOf(PROBATION_API_READ_WRITE),
+        expectedStatus = CREATED,
+      ).returnResult().responseBody!!
+
+      awaitAssert {
+        val personEntity = personRepository.findByCrn(crn)!!
+        assertThat(personEntity.addresses.size).isEqualTo(2)
+
+        val mainAddress = personEntity.getMainAddress()
+        assertAddressValues(newAddress, mainAddress)
+        val previousAddress = addressRepository.findByUpdateId(existingAddressId)!!
+        assertThat(previousAddress.statusCode).isEqualTo(AddressStatusCode.P)
+        assertThat(previousAddress.endDate).isEqualTo(newAddress.startDate)
+        assertThat(responseBody.crn).isEqualTo(crn)
+        assertThat(responseBody.cprAddressId).isEqualTo(mainAddress.updateId.toString())
+      }
+    }
+
+    @Test
     fun `should create new address and not recluster passive record`() {
       val crn = randomCrn()
       val newAddress = createRandomProbationAddress()
@@ -55,7 +153,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
         url = probationAddressApiUrl(crn),
         body = newAddress,
         roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.CREATED,
+        expectedStatus = CREATED,
       ).returnResult().responseBody!!
 
       awaitAssert {
@@ -87,7 +185,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
         url = probationAddressApiUrl(crn),
         body = json,
         roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.CREATED,
+        expectedStatus = CREATED,
       ).returnResult().responseBody!!
 
       awaitAssert {
@@ -115,7 +213,7 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
         url = probationAddressApiUrl(crn),
         body = jsonMapper.writeValueAsString(newAddress).replace("\"typeVerified\"", "\"countryCode\": \"INVALID\", \"typeVerified\""),
         roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.CREATED,
+        expectedStatus = CREATED,
       ).returnResult().responseBody!!
 
       awaitAssert {
@@ -196,3 +294,5 @@ class ProbationAddressPostAPIControllerTest : WebTestBase() {
     }
   }
 }
+
+private fun PersonEntity.getMainAddress(): AddressEntity = this.addresses.first { it.statusCode == AddressStatusCode.M }
