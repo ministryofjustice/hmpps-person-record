@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressUsageMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressesAndContactsResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
@@ -20,19 +21,19 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepositor
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressUsageRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
-import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
 class SysconContactsAndAddressesMigrationHandler(
   private val personRepository: PersonRepository,
-  private val addressService: AddressService,
+  private val addressRepository: AddressRepository,
   private val contactRepository: ContactRepository,
   private val addressUsageRepository: AddressUsageRepository,
-  private val addressRepository: AddressRepository,
+  private val personMatchService: PersonMatchService,
+  private val reclusterService: ReclusterService,
 ) {
 
   @Transactional
@@ -40,15 +41,19 @@ class SysconContactsAndAddressesMigrationHandler(
     prisonNumber: String,
     prisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest,
   ): SysconAddressesAndContactsResponseBody {
-    val person = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
+    val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
+    val matchingFieldsBeforeUpdate = PersonMatchRecord.from(personEntity)
 
     val addressesRequest = prisonAddressesAndContactsRequest.addresses
     val contactsRequest = prisonAddressesAndContactsRequest.contacts
 
     validateRequest(prisonNumber, addressesRequest, contactsRequest)
 
-    val addressMappings = handleAddressesInsert(addressesRequest, person)
-    val contactMappings = handleContactsInsert(contactsRequest, person)
+    val addressMappings = handleAddressesInsert(addressesRequest, personEntity)
+    val contactMappings = handleContactsInsert(contactsRequest, personEntity)
+
+    val matchingFieldsChanged = matchingFieldsBeforeUpdate.matchingFieldsAreDifferent(personEntity)
+    tryRecluster(personEntity, matchingFieldsChanged)
 
     return SysconAddressesAndContactsResponseBody(prisonNumber, addressMappings, contactMappings)
   }
@@ -110,21 +115,16 @@ class SysconContactsAndAddressesMigrationHandler(
   private fun handleAddressesInsert(addresses: List<PrisonAddress>, personEntity: PersonEntity): List<SysconAddressMapping> {
     personEntity.addresses.clear()
     val mappings = addresses.map { prisonAddress ->
-      val addressEntity = addressService.processAddress(
-        address = prisonAddress.toAddress(),
-        findPerson = { personEntity },
-        findAddress = { null },
-        eventSource = DomainEventSource.NOMIS,
-      )
+      val addressEntity = addressRepository.save(prisonAddress.toAddress(personEntity))
+      personEntity.addresses.add(addressEntity)
 
       val contactEntities = contactRepository.saveAllAndFlush(prisonAddress.contacts.map { it.toEntity(addressEntity) })
       val contactMappings = prisonAddress.contacts.zip(contactEntities).map { it.toMapping() }
+      addressEntity.contacts.addAll(contactEntities)
 
       val addressUsageEntities = addressUsageRepository.saveAllAndFlush(prisonAddress.addressUsage.map { it.toEntity(addressEntity) })
       val addressUsageMappings = prisonAddress.addressUsage.zip(addressUsageEntities).map { it.toMapping() }
       addressEntity.usages.addAll(addressUsageEntities)
-      addressEntity.contacts.addAll(contactEntities)
-      personEntity.addresses.add(addressEntity)
 
       SysconAddressMapping(
         nomisAddressId = prisonAddress.nomisAddressId,
@@ -147,6 +147,16 @@ class SysconContactsAndAddressesMigrationHandler(
     nomisAddressUsageCode = first.addressUsageCode,
     cprAddressUsageId = second.updateId.toString(),
   )
+
+  private fun tryRecluster(
+    personEntity: PersonEntity,
+    matchingFieldsChanged: Boolean,
+  ) {
+    if (matchingFieldsChanged && personEntity.isNotPassive()) {
+      personMatchService.saveToPersonMatch(personEntity)
+      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
+    }
+  }
 
   companion object {
 
@@ -182,7 +192,7 @@ class SysconContactsAndAddressesMigrationHandler(
       createUserId = createUserId,
     )
 
-    fun PrisonAddress.toAddress() = Address(
+    fun PrisonAddress.toAddress(personEntity: PersonEntity) = AddressEntity(
       startDate = startDate?.toUkZonedDateTime(),
       endDate = endDate?.toUkZonedDateTime(),
       noFixedAbode = noFixedAbode,
@@ -202,6 +212,7 @@ class SysconContactsAndAddressesMigrationHandler(
       modifyUserId = modifyUserId,
       createDateTime = createDateTime,
       createUserId = createUserId,
+      person = personEntity,
     )
   }
 }

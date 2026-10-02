@@ -275,6 +275,49 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
   @Nested
   inner class Creation {
 
+    fun postCodesAreSame(addressEntities: List<AddressEntity>, addressRequest: List<PrisonAddress>) = addressEntities.map { it.postcode }.toSet() == addressRequest.map { it.postcode }.toSet()
+
+    @Test
+    fun `successful save returns the correct response body and does not call the matching service when postcodes are the same`() {
+      // No stubbing of the matcher - test will fail if we call it.
+      val prisonNumber = randomPrisonNumber()
+      // We have no guarentee of order so check when the orders differ
+      val addressesMatchingRequestPostcodesDifferentOrder = validRequestBody.addresses.map { Address(postcode = it.postcode) }
+      val person = createRandomPrisonPersonDetails(prisonNumber).copy(addresses = addressesMatchingRequestPostcodesDifferentOrder)
+      val personEntity = createPersonWithNewKey(person)
+
+      // Assert that the postcodes are going to be the same
+      assertThat(postCodesAreSame(personEntity.addresses, validRequestBody.addresses)).isTrue()
+
+      sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+        url = addressesUrl(prisonNumber),
+        body = validRequestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+        sendAuthorised = true,
+      ).returnResult().responseBody!!
+    }
+
+    @Test
+    fun `successful save returns the correct response body and calls the matching service when postcodes differ`() {
+      // Stub the matcher - test will fail if we do not call it
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val prisonNumber = randomPrisonNumber()
+      val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+      // Assert that the postcodes are not going to be the same
+      assertThat(postCodesAreSame(personEntity.addresses, validRequestBody.addresses)).isFalse()
+
+      sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+        url = addressesUrl(prisonNumber),
+        body = validRequestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+        sendAuthorised = true,
+      ).returnResult().responseBody!!
+    }
+
     @Test
     fun `successful save returns the correct response body`() {
       stubPersonMatchUpsert()
@@ -533,6 +576,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
   private fun createPrisonerAddressContactUrl(prisonNumber: String, addressId: String) = "/syscon-sync/person/$prisonNumber/address/$addressId/contact"
 
   private fun addressContactUrl(prisonNumber: String, addressId: String, contactId: String) = "${createPrisonerAddressContactUrl(prisonNumber, addressId)}/$contactId"
+
   private fun addressNoIdContactUrl(prisonNumber: String, contactId: String) = "/syscon-sync/person/$prisonNumber/address/contact/$contactId"
 
   private fun addressUsageMatcher(request: PrisonAddressUsage, entity: AddressUsageEntity) = entity.usageCode == request.addressUsageCode
@@ -669,7 +713,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
         noFixedAbode = false,
         startDate = LocalDate.of(2010, 1, 1),
         endDate = LocalDate.of(2025, 1, 1),
-        postcode = "S10 3HR",
+        postcode = "NW11 7AA",
         subBuildingName = "subBuildingName2",
         buildingName = "buildingName2",
         buildingNumber = "buildingNumber2",
