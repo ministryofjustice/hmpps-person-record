@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas.SasAddressArrivedHandler
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 
@@ -62,7 +63,9 @@ class ProbationAddressCreateAPIController(
       CPR,
     )
     // TODO this is the wrong order - update should come first
-    sasAddressArrivedHandler.setMainAddressToPrevious(createdAddress.updateId!!, createdAddress.startDate!!)
+    if (probationCreateAddress.statusCode == AddressStatusCode.M) {
+      sasAddressArrivedHandler.setMainAddressToPrevious(createdAddress.updateId!!, createdAddress.startDate!!)
+    }
     val responseBody = ProbationCreateAddressResponse(crn, createdAddress.updateId!!.toString())
     return ResponseEntity.status(HttpStatus.CREATED).body(responseBody)
   }

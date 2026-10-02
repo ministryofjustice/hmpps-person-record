@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatus.CREATED
 import tools.jackson.databind.node.ObjectNode
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddress
@@ -35,7 +36,7 @@ class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
         url = probationAddressApiUrl(crn),
         body = newAddress,
         roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.CREATED,
+        expectedStatus = CREATED,
       ).returnResult().responseBody!!
 
       awaitAssert {
@@ -47,6 +48,37 @@ class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
 
         assertThat(responseBody.crn).isEqualTo(crn)
         assertThat(responseBody.cprAddressId).isEqualTo(actualAddress.updateId.toString())
+      }
+    }
+
+    @Test
+    fun `should create a new proposed address when there is an existing main address`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val crn = randomCrn()
+      val newAddress = createRandomProbationAddress().copy(statusCode = PR)
+      val mainAddress = createRandomProbationAddress().copy(statusCode = M)
+      createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(Address.from(mainAddress)))
+
+      val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
+        url = probationAddressApiUrl(crn),
+        body = newAddress,
+        roles = listOf(PROBATION_API_READ_WRITE),
+        expectedStatus = CREATED,
+      ).returnResult().responseBody!!
+
+      awaitAssert {
+        val personEntity = personRepository.findByCrn(crn)!!
+        assertThat(personEntity.addresses.size).isEqualTo(2)
+
+        assertAddressValues(mainAddress, personEntity.getMainAddress())
+
+        val proposedAddress = personEntity.addresses.first { it.statusCode == PR }
+        assertAddressValues(newAddress, proposedAddress)
+
+        assertThat(responseBody.crn).isEqualTo(crn)
+        assertThat(responseBody.cprAddressId).isEqualTo(proposedAddress.updateId.toString())
       }
     }
 
@@ -63,7 +95,7 @@ class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
         url = probationAddressApiUrl(crn),
         body = newAddress,
         roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.CREATED,
+        expectedStatus = CREATED,
       ).returnResult().responseBody!!
 
       awaitAssert {
@@ -93,7 +125,7 @@ class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
         url = probationAddressApiUrl(crn),
         body = newAddress,
         roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.CREATED,
+        expectedStatus = CREATED,
       ).returnResult().responseBody!!
 
       awaitAssert {
@@ -120,7 +152,7 @@ class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
         url = probationAddressApiUrl(crn),
         body = newAddress,
         roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.CREATED,
+        expectedStatus = CREATED,
       ).returnResult().responseBody!!
 
       awaitAssert {
@@ -152,7 +184,7 @@ class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
         url = probationAddressApiUrl(crn),
         body = json,
         roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.CREATED,
+        expectedStatus = CREATED,
       ).returnResult().responseBody!!
 
       awaitAssert {
@@ -180,7 +212,7 @@ class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
         url = probationAddressApiUrl(crn),
         body = jsonMapper.writeValueAsString(newAddress).replace("\"typeVerified\"", "\"countryCode\": \"INVALID\", \"typeVerified\""),
         roles = listOf(PROBATION_API_READ_WRITE),
-        expectedStatus = HttpStatus.CREATED,
+        expectedStatus = CREATED,
       ).returnResult().responseBody!!
 
       awaitAssert {
