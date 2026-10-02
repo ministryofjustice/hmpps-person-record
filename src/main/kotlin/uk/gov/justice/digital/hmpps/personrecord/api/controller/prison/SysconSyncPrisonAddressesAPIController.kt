@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -19,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECO
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressesHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 
+@Profile("!prod && !preprod")
 @Tag(name = "Syscon Sync")
 @RestController
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
@@ -57,5 +59,5 @@ class SysconSyncPrisonAddressesAPIController(private val sysconSyncAddressesHand
   fun deletePrisonerAddress(
     @PathVariable prisonNumber: String,
     @PathVariable cprAddressId: String,
-  ): ResponseEntity<Unit> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+  ) = sysconSyncAddressesHandler.handleDelete(cprAddressId)
 }
