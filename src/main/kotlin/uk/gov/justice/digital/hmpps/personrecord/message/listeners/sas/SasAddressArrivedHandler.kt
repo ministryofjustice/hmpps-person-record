@@ -40,7 +40,7 @@ class SasAddressArrivedHandler(
 
   private fun PersonEntity.setMainAddressToPrevious(cprAddressId: UUID, startDate: ZonedDateTime) {
     this.addresses
-      .filter { it.updateId != cprAddressId }
+      .filter { it.updateId != cprAddressId } // TODO can we do this somewhere else?
       .firstOrNull { it.statusCode == M }
       ?.let { oldMainAddress ->
         oldMainAddress.statusCode = P

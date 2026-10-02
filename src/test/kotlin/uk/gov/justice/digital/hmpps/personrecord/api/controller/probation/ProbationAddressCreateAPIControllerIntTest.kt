@@ -80,6 +80,7 @@ class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
         assertThat(responseBody.crn).isEqualTo(crn)
         assertThat(responseBody.cprAddressId).isEqualTo(proposedAddress.updateId.toString())
       }
+      // TODO check that the domain event for address update is emitted before the domain event for address create
     }
 
     @Test
