@@ -36,7 +36,7 @@ class SysconSyncAddressesHandler(
   }
 
   @Transactional
-  fun handleDelete(prisonNumber: String, cprAddressId: String) {
+  fun handleDelete(cprAddressId: String) {
     val addressEntity = addressRepository.findByUpdateId(UUID.fromString(cprAddressId))
     addressService.deleteAddress(
       findAddress = { addressEntity },
