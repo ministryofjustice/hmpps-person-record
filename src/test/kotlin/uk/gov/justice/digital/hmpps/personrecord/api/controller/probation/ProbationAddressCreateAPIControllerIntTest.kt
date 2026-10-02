@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
-class ProbationAddressPostAPIControllerTest : WebTestBase() {
+class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
