@@ -11,6 +11,10 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCr
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.M
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.PR
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
 class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
@@ -18,12 +22,12 @@ class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
   @Nested
   inner class SuccessfulProcessing {
     @Test
-    fun `should create a new address and recluster`() {
+    fun `should create a new proposed address and recluster`() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
       val crn = randomCrn()
-      val newAddress = createRandomProbationAddress()
+      val newAddress = createRandomProbationAddress().copy(statusCode = PR)
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
       val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
@@ -40,6 +44,66 @@ class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
         val actualAddress = personEntity.addresses.first()
         assertAddressValues(newAddress, actualAddress)
 
+        assertThat(responseBody.crn).isEqualTo(crn)
+        assertThat(responseBody.cprAddressId).isEqualTo(actualAddress.updateId.toString())
+      }
+    }
+
+    @Test
+    fun `should create a new main addressed`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val crn = randomCrn()
+      val newAddress = createRandomProbationAddress().copy(statusCode = M)
+      createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
+
+      val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
+        url = probationAddressApiUrl(crn),
+        body = newAddress,
+        roles = listOf(PROBATION_API_READ_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+      ).returnResult().responseBody!!
+
+      awaitAssert {
+        val personEntity = personRepository.findByCrn(crn) ?: fail("No person found with id $crn")
+        assertThat(personEntity.addresses.size).isEqualTo(1)
+
+        val actualAddress = personEntity.addresses.first()
+        assertAddressValues(newAddress, actualAddress)
+
+        assertThat(responseBody.crn).isEqualTo(crn)
+        assertThat(responseBody.cprAddressId).isEqualTo(actualAddress.updateId.toString())
+      }
+    }
+
+    @Test
+    fun `should create a new main addressed when there is already a main address`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val crn = randomCrn()
+      val newAddress = createRandomProbationAddress().copy(statusCode = M)
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(Address.from(createRandomProbationAddress().copy(statusCode = M))))
+
+      val existingAddressId = person.addresses.first()
+
+      val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
+        url = probationAddressApiUrl(crn),
+        body = newAddress,
+        roles = listOf(PROBATION_API_READ_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+      ).returnResult().responseBody!!
+
+      awaitAssert {
+        val personEntity = personRepository.findByCrn(crn) ?: fail("No person found with id $crn")
+        assertThat(personEntity.addresses.size).isEqualTo(2)
+
+        val actualAddress = personEntity.addresses.first()
+        assertAddressValues(newAddress, actualAddress)
+
+        assertThat(existingAddressId.statusCode).isEqualTo(AddressStatusCode.P)
+        assertThat(existingAddressId.endDate).isEqualTo(newAddress.startDate)
         assertThat(responseBody.crn).isEqualTo(crn)
         assertThat(responseBody.cprAddressId).isEqualTo(actualAddress.updateId.toString())
       }
