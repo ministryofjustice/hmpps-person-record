@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCr
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.M
@@ -50,7 +51,7 @@ class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should create a new main addressed`() {
+    fun `should create a new main address`() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
@@ -66,7 +67,7 @@ class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
       ).returnResult().responseBody!!
 
       awaitAssert {
-        val personEntity = personRepository.findByCrn(crn) ?: fail("No person found with id $crn")
+        val personEntity = personRepository.findByCrn(crn)!!
         assertThat(personEntity.addresses.size).isEqualTo(1)
 
         val actualAddress = personEntity.addresses.first()
@@ -78,7 +79,7 @@ class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should create a new main addressed when there is already a main address`() {
+    fun `should create a new main address when there is already a main address`() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
@@ -86,7 +87,7 @@ class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
       val newAddress = createRandomProbationAddress().copy(statusCode = M)
       val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(Address.from(createRandomProbationAddress().copy(statusCode = M))))
 
-      val existingAddressId = person.addresses.first()
+      val existingAddressId = person.addresses.first().updateId!!
 
       val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
         url = probationAddressApiUrl(crn),
@@ -96,16 +97,16 @@ class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
       ).returnResult().responseBody!!
 
       awaitAssert {
-        val personEntity = personRepository.findByCrn(crn) ?: fail("No person found with id $crn")
+        val personEntity = personRepository.findByCrn(crn)!!
         assertThat(personEntity.addresses.size).isEqualTo(2)
 
-        val actualAddress = personEntity.addresses.first()
-        assertAddressValues(newAddress, actualAddress)
-
-        assertThat(existingAddressId.statusCode).isEqualTo(AddressStatusCode.P)
-        assertThat(existingAddressId.endDate).isEqualTo(newAddress.startDate)
+        val mainAddress = personEntity.getMainAddress()
+        assertAddressValues(newAddress, mainAddress)
+        val previousAddress = addressRepository.findByUpdateId(existingAddressId)!!
+        assertThat(previousAddress.statusCode).isEqualTo(AddressStatusCode.P)
+        assertThat(previousAddress.endDate).isEqualTo(newAddress.startDate)
         assertThat(responseBody.crn).isEqualTo(crn)
-        assertThat(responseBody.cprAddressId).isEqualTo(actualAddress.updateId.toString())
+        assertThat(responseBody.cprAddressId).isEqualTo(mainAddress.updateId.toString())
       }
     }
 
@@ -260,3 +261,5 @@ class ProbationAddressCreateAPIControllerIntTest : WebTestBase() {
     }
   }
 }
+
+private fun PersonEntity.getMainAddress(): AddressEntity = this.addresses.first { it.statusCode == AddressStatusCode.M }

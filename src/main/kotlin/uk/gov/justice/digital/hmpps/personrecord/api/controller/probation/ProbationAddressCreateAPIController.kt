@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCr
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas.SasAddressArrivedHandler
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
@@ -28,6 +29,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 class ProbationAddressCreateAPIController(
   private val addressService: AddressService,
   private val personRepository: PersonRepository,
+  private val sasAddressArrivedHandler: SasAddressArrivedHandler,
 ) {
   @Operation(
     description = """Create an address for the given CRN person record. Role required is **$PROBATION_API_READ_WRITE**.""",
@@ -59,7 +61,8 @@ class ProbationAddressCreateAPIController(
       findAddress = { null },
       CPR,
     )
-
+    // TODO this is the wrong order - update should come first
+    sasAddressArrivedHandler.setMainAddressToPrevious(createdAddress.updateId!!, createdAddress.startDate!!)
     val responseBody = ProbationCreateAddressResponse(crn, createdAddress.updateId!!.toString())
     return ResponseEntity.status(HttpStatus.CREATED).body(responseBody)
   }

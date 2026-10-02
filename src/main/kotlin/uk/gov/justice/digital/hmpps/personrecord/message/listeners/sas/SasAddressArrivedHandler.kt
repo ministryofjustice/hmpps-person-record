@@ -38,7 +38,7 @@ class SasAddressArrivedHandler(
     personEntity.setMainAddressToPrevious(cprAddressId, startDate)
   }
 
-  fun PersonEntity.setMainAddressToPrevious(cprAddressId: UUID, startDate: ZonedDateTime) {
+  private fun PersonEntity.setMainAddressToPrevious(cprAddressId: UUID, startDate: ZonedDateTime) {
     this.addresses
       .filter { it.updateId != cprAddressId }
       .firstOrNull { it.statusCode == M }
