@@ -81,7 +81,7 @@ tasks.register<Test>("pactTest") {
   description = "Run and publish Pact provider tests"
   testClassesDirs = files(test.map { it.sources.output.classesDirs })
   classpath = files(test.map { it.sources.runtimeClasspath })
-  filter.includeTestsMatching("uk.gov.justice.digital.hmpps.personrecord.pacttest.ProviderPactTest")
+  filter.includeTestsMatching("uk.gov.justice.digital.hmpps.personrecord.pacttest.*PactTest*")
   group = "verification"
 
   systemProperty("pactbroker.url", System.getenv("PACT_BROKER_URL"))

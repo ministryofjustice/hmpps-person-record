@@ -22,7 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 
-class ProviderPactTest : AbstractProviderPactTests() {
+class ApiProviderPactTest : AbstractApiProviderPactTests() {
   override fun rolesFor(request: HttpRequest): List<String> = when (request.method.uppercase()) {
     "POST" -> listOf(PROBATION_API_READ_WRITE)
     else -> listOf(API_READ_ONLY)

@@ -23,7 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
  */
 @Provider("hmpps-person-record")
 @PactBroker(url = $$"${pactbroker.url}")
-abstract class AbstractProviderPactTests : E2ETestBase() {
+abstract class AbstractApiProviderPactTests : E2ETestBase() {
   @LocalServerPort
   private var port: Int = 0
 
