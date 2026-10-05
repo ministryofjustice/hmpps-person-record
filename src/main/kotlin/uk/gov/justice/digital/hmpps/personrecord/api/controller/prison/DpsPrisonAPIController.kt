@@ -8,11 +8,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -24,6 +26,10 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.DpsPrisonGetHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionInsertHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.DpsPrisonRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonEmailAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonEmailAddressRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonPhoneNumber
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonPhoneNumberRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionInsertRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.ReferenceDataResponse
@@ -91,4 +97,70 @@ class DpsPrisonAPIController(
   )
   @GetMapping("/religion-codes")
   fun getReligionCodes(@RequestParam(name = "active", required = false) active: Boolean = true): List<ReferenceDataResponse> = ReligionCode.entries.filter { !active || it.current }.map { ReferenceDataResponse(it.name, it.description, it.current) }
+
+  @Operation(
+    description = "Retrieve the prisoner's email addresses by Prison Number. Role required is **$API_READ_ONLY**. ",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @GetMapping("/{prisonNumber}/email-addresses")
+  fun getEmailAddressesByPrisonNumberDps(
+    @PathVariable(name = "prisonNumber") @Parameter(description = "The prisoner number") prisonNumber: String,
+  ): ResponseEntity<List<PrisonEmailAddress>> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+
+  @Operation(
+    description = "Add an email address for the prisoner by Prison Number. Role required is **$PRISON_API_READ_WRITE**. ",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @PreAuthorize("hasRole('$PRISON_API_READ_WRITE')")
+  @PostMapping("/{prisonNumber}/email-addresses")
+  @ResponseStatus(HttpStatus.CREATED)
+  fun createEmailAddressByPrisonNumberDps(
+    @PathVariable(name = "prisonNumber") @Parameter(description = "The prisoner number") prisonNumber: String,
+    @Valid @RequestBody request: PrisonEmailAddressRequest,
+  ): ResponseEntity<PrisonEmailAddress> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+
+  @Operation(
+    description = "Update an email address for the prisoner by Prison Number and email address id. Role required is **$PRISON_API_READ_WRITE**. ",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @PreAuthorize("hasRole('$PRISON_API_READ_WRITE')")
+  @PutMapping("/{prisonNumber}/email-addresses/{contactId}")
+  fun updateEmailAddressByPrisonNumberDps(
+    @PathVariable(name = "prisonNumber") @Parameter(description = "The prisoner number") prisonNumber: String,
+    @PathVariable(name = "contactId") @Parameter(description = "The contact id") contactId: String,
+    @Valid @RequestBody request: PrisonEmailAddressRequest,
+  ): ResponseEntity<PrisonEmailAddress> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+
+  @Operation(
+    description = "Retrieve the prisoner's phone numbers by Prison Number. Role required is **$API_READ_ONLY**. ",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @GetMapping("/{prisonNumber}/phone-numbers")
+  fun getPhoneNumbersByPrisonNumberDps(
+    @PathVariable(name = "prisonNumber") @Parameter(description = "The prisoner number") prisonNumber: String,
+  ): ResponseEntity<List<PrisonPhoneNumber>> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+
+  @Operation(
+    description = "Add a phone number for the prisoner by Prison Number. Role required is **$PRISON_API_READ_WRITE**. ",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @PreAuthorize("hasRole('$PRISON_API_READ_WRITE')")
+  @PostMapping("/{prisonNumber}/phone-numbers")
+  @ResponseStatus(HttpStatus.CREATED)
+  fun createPhoneNumberByPrisonNumberDps(
+    @PathVariable(name = "prisonNumber") @Parameter(description = "The prisoner number") prisonNumber: String,
+    @Valid @RequestBody request: PrisonPhoneNumberRequest,
+  ): ResponseEntity<PrisonPhoneNumber> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+
+  @Operation(
+    description = "Update a phone number for the prisoner by Prison Number and phone number id. Role required is **$PRISON_API_READ_WRITE**. ",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @PreAuthorize("hasRole('$PRISON_API_READ_WRITE')")
+  @PutMapping("/{prisonNumber}/phone-numbers/{contactId}")
+  fun updatePhoneNumberByPrisonNumberDps(
+    @PathVariable(name = "prisonNumber") @Parameter(description = "The prisoner number") prisonNumber: String,
+    @PathVariable(name = "contactId") @Parameter(description = "The contact id") contactId: String,
+    @Valid @RequestBody request: PrisonPhoneNumberRequest,
+  ): ResponseEntity<PrisonPhoneNumber> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
 }
