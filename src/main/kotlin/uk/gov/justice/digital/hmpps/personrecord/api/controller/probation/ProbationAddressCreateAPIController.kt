@@ -55,17 +55,17 @@ class ProbationAddressCreateAPIController(
     @RequestBody probationCreateAddress: ProbationCreateAddress,
   ): ResponseEntity<ProbationCreateAddressResponse> {
     val address = Address.from(probationCreateAddress)
+    val person = personRepository.findByCrn(crn)!!
 
+    if (probationCreateAddress.statusCode == AddressStatusCode.M) {
+      sasAddressArrivedHandler.setMainAddressToPrevious(person, address.startDate!!)
+    }
     val createdAddress: AddressEntity = addressService.processAddress(
       address,
-      findPerson = { personRepository.findByCrn(crn) },
+      findPerson = { person },
       findAddress = { null },
       CPR,
     )
-    // TODO this is the wrong order - update should come first
-    if (probationCreateAddress.statusCode == AddressStatusCode.M) {
-      sasAddressArrivedHandler.setMainAddressToPrevious(createdAddress.updateId!!, createdAddress.startDate!!)
-    }
     val responseBody = ProbationCreateAddressResponse(crn, createdAddress.updateId!!.toString())
     return ResponseEntity.status(HttpStatus.CREATED).body(responseBody)
   }

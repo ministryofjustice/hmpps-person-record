@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.P
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import java.time.ZonedDateTime
-import java.util.UUID
 
 @Component
 class SasAddressArrivedHandler(
@@ -32,25 +31,18 @@ class SasAddressArrivedHandler(
   }
 
   @Transactional
-  fun setMainAddressToPrevious(cprAddressId: UUID, startDate: ZonedDateTime) {
-    val addressEntity = addressRepository.findByUpdateId(cprAddressId)!!
-    val personEntity = addressEntity.person!!
-    personEntity.setMainAddressToPrevious(cprAddressId, startDate)
+  fun setMainAddressToPrevious(personEntity: PersonEntity, startDate: ZonedDateTime) {
+    personEntity.currentMainAddress()?.let { oldMainAddress ->
+      oldMainAddress.statusCode = P
+      oldMainAddress.endDate = startDate
+      addressService.processAddress(
+        address = Address.from(oldMainAddress),
+        findPerson = { personEntity },
+        findAddress = { oldMainAddress },
+        eventSource = CPR,
+      )
+    }
   }
 
-  private fun PersonEntity.setMainAddressToPrevious(cprAddressId: UUID, startDate: ZonedDateTime) {
-    this.addresses
-      .filter { it.updateId != cprAddressId } // TODO can we do this somewhere else?
-      .firstOrNull { it.statusCode == M }
-      ?.let { oldMainAddress ->
-        oldMainAddress.statusCode = P
-        oldMainAddress.endDate = startDate
-        addressService.processAddress(
-          address = Address.from(oldMainAddress),
-          findPerson = { this },
-          findAddress = { oldMainAddress },
-          eventSource = CPR,
-        )
-      }
-  }
+  private fun PersonEntity.currentMainAddress() = addresses.firstOrNull { it.statusCode == M }
 }
