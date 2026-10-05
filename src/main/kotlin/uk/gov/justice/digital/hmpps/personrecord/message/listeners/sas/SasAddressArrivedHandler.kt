@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.P
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import java.time.ZonedDateTime
+import java.util.UUID
 
 @Component
 class SasAddressArrivedHandler(
@@ -31,8 +32,8 @@ class SasAddressArrivedHandler(
   }
 
   @Transactional
-  fun setMainAddressToPrevious(personEntity: PersonEntity, startDate: ZonedDateTime) {
-    personEntity.currentMainAddress()?.let { oldMainAddress ->
+  fun setMainAddressToPrevious(personEntity: PersonEntity, startDate: ZonedDateTime, incomingAddressId: UUID? = null) {
+    personEntity.currentMainAddress(incomingAddressId)?.let { oldMainAddress ->
       oldMainAddress.statusCode = P
       oldMainAddress.endDate = startDate
       addressService.processAddress(
@@ -44,5 +45,7 @@ class SasAddressArrivedHandler(
     }
   }
 
-  private fun PersonEntity.currentMainAddress() = addresses.firstOrNull { it.statusCode == M }
+  private fun PersonEntity.currentMainAddress(incomingAddressId: UUID?) = addresses.firstOrNull {
+    it.statusCode == M && it.updateId != incomingAddressId
+  }
 }

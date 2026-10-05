@@ -56,7 +56,7 @@ class SasEventListener(
   private fun processSasAddressArrived(event: SasAddressArrived) {
     val newMainAddress = sasClient.getAddress(event.detailUrl)
     val person = personRepository.findByCrn(newMainAddress.crn)!!
-    sasAddressArrivedHandler.setMainAddressToPrevious(person, newMainAddress.address.startDate!!)
+    sasAddressArrivedHandler.setMainAddressToPrevious(person, newMainAddress.address.startDate!!, newMainAddress.cprAddressId)
     sasAddressArrivedHandler.setProposedAddressToMain(newMainAddress)
   }
 
