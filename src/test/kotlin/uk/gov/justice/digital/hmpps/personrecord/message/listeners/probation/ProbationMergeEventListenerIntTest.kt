@@ -6,16 +6,17 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonMerged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonMergedInfo
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import kotlin.jvm.optionals.getOrNull
 
-class ProbationMergeEventListenerIntTest : MessagingTestBase() {
+class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
@@ -88,6 +89,80 @@ class ProbationMergeEventListenerIntTest : MessagingTestBase() {
 
       targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       targetPerson.personKey?.assertClusterIsOfSize(1)
+    }
+
+    @Test
+    fun `when addresses are not carried over from the source person - merge results in target person address not to be overridden`() {
+      val sourceCrn = randomCrn()
+      val targetCrn = randomCrn()
+
+      createPersonKey()
+        .addPerson(createRandomProbationPersonDetails(sourceCrn))
+        .addPerson(createRandomProbationPersonDetails(targetCrn))
+      val sourcePerson = personRepository.findByCrn(sourceCrn)!!
+      val targetPerson = personRepository.findByCrn(targetCrn)!!
+
+      addressRepository.save(
+        AddressEntity(
+          person = sourcePerson,
+          postcode = randomPostcode(),
+        ),
+      )
+
+      addressRepository.save(
+        AddressEntity(
+          person = targetPerson,
+          postcode = randomPostcode(),
+        ),
+      )
+
+      probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
+      checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
+
+      val sourcePersonAfterMerge = personRepository.findByCrn(sourceCrn)!!
+      val targetPersonAfterMerge = personRepository.findByCrn(targetCrn)!!
+      sourcePersonAfterMerge.assertMergedTo(targetPersonAfterMerge)
+      sourcePersonAfterMerge.assertNotLinkedToCluster()
+
+      assertThat(sourcePersonAfterMerge.addresses.size).isEqualTo(0)
+      assertThat(targetPersonAfterMerge.addresses.size).isEqualTo(2)
+    }
+
+    @Test
+    fun `when addresses are carried over from the source person - merge results in target person addresses being overridden with source addresses`() {
+      val sourceCrn = randomCrn()
+      val targetCrn = randomCrn()
+
+      createPersonKey()
+        .addPerson(createRandomProbationPersonDetails(sourceCrn))
+        .addPerson(createRandomProbationPersonDetails(targetCrn))
+      val sourcePerson = personRepository.findByCrn(sourceCrn)!!
+      val targetPerson = personRepository.findByCrn(targetCrn)!!
+
+      addressRepository.save(
+        AddressEntity(
+          person = sourcePerson,
+          postcode = randomPostcode(),
+        ),
+      )
+
+      addressRepository.save(
+        AddressEntity(
+          person = targetPerson,
+          postcode = randomPostcode(),
+        ),
+      )
+
+      probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
+      checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
+
+      val sourcePersonAfterMerge = personRepository.findByCrn(sourceCrn)!!
+      val targetPersonAfterMerge = personRepository.findByCrn(targetCrn)!!
+      sourcePersonAfterMerge.assertMergedTo(targetPersonAfterMerge)
+      sourcePersonAfterMerge.assertNotLinkedToCluster()
+
+      assertThat(sourcePersonAfterMerge.addresses.size).isEqualTo(2)
+      assertThat(targetPersonAfterMerge.addresses.size).isEqualTo(0)
     }
   }
 
