@@ -27,6 +27,8 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonEmailAddressRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonPhoneNumberRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionInsertRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.ReferenceDataResponse
@@ -67,6 +69,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 class DpsPrisonAPIControllerIntTest : WebTestBase() {
 
@@ -789,6 +792,292 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
 
     private fun religionCodesApiUrl() = "/person/prison/dps/religion-codes"
   }
+
+  @Nested
+  @DisplayName("GET /person/prison/dps/{prisonNumber}/email-addresses")
+  inner class GetEmailAddressesByPrisonNumber {
+    @Nested
+    inner class SuccessfulProcessing {
+      @Test
+      fun `should respond with 501 as not currently implemented`() {
+        sendGetRequestAsserted<Unit>(
+          url = emailAddressesApiUrl(randomPrisonNumber()),
+          roles = listOf(API_READ_ONLY),
+          expectedStatus = HttpStatus.NOT_IMPLEMENTED,
+        )
+      }
+    }
+
+    @Nested
+    inner class ErrorScenarios {
+      @Test
+      fun `should return Access Denied 403 when role is wrong`() {
+        sendGetRequestAsserted<String>(
+          url = emailAddressesApiUrl(randomPrisonNumber()),
+          roles = listOf("UNSUPPORTED-ROLE"),
+          expectedStatus = HttpStatus.FORBIDDEN,
+        )
+      }
+
+      @Test
+      fun `should return UNAUTHORIZED 401 when role is not set`() {
+        sendGetRequestAsserted<Unit>(
+          url = emailAddressesApiUrl(randomPrisonNumber()),
+          roles = emptyList(),
+          expectedStatus = HttpStatus.UNAUTHORIZED,
+          sendAuthorised = false,
+        )
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("POST /person/prison/dps/{prisonNumber}/email-addresses")
+  inner class CreateEmailAddressByPrisonNumber {
+    @Nested
+    inner class SuccessfulProcessing {
+      @Test
+      fun `should respond with 501 as not currently implemented`() {
+        sendPostRequestAsserted<Unit>(
+          url = emailAddressesApiUrl(randomPrisonNumber()),
+          body = PrisonEmailAddressRequest(emailAddress = "foo@bar.example", userId = "TEST"),
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = HttpStatus.NOT_IMPLEMENTED,
+        )
+      }
+    }
+
+    @Nested
+    inner class ErrorScenarios {
+      @Test
+      fun `should return bad request when email address is blank`() {
+        sendPostRequestAsserted<String>(
+          url = emailAddressesApiUrl(randomPrisonNumber()),
+          body = PrisonEmailAddressRequest(emailAddress = "", userId = "TEST"),
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = HttpStatus.BAD_REQUEST,
+        )
+      }
+
+      @Test
+      fun `should return Access Denied 403 when role is wrong`() {
+        sendPostRequestAsserted<String>(
+          url = emailAddressesApiUrl(randomPrisonNumber()),
+          body = PrisonEmailAddressRequest(emailAddress = "foo@bar.example", userId = "TEST"),
+          roles = listOf(API_READ_ONLY),
+          expectedStatus = HttpStatus.FORBIDDEN,
+        )
+      }
+
+      @Test
+      fun `should return UNAUTHORIZED 401 when role is not set`() {
+        sendPostRequestAsserted<Unit>(
+          url = emailAddressesApiUrl(randomPrisonNumber()),
+          body = PrisonEmailAddressRequest(emailAddress = "foo@bar.example", userId = "TEST"),
+          roles = emptyList(),
+          expectedStatus = HttpStatus.UNAUTHORIZED,
+          sendAuthorised = false,
+        )
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("PUT /person/prison/dps/{prisonNumber}/email-addresses/{emailAddressId}")
+  inner class UpdateEmailAddressByPrisonNumber {
+    @Nested
+    inner class SuccessfulProcessing {
+      @Test
+      fun `should respond with 501 as not currently implemented`() {
+        sendPutRequestAsserted<Unit>(
+          url = emailAddressApiUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          body = PrisonEmailAddressRequest(emailAddress = "foo@bar.example", userId = "TEST"),
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = HttpStatus.NOT_IMPLEMENTED,
+        )
+      }
+    }
+
+    @Nested
+    inner class ErrorScenarios {
+      @Test
+      fun `should return bad request when email address is blank`() {
+        sendPutRequestAsserted<String>(
+          url = emailAddressApiUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          body = PrisonEmailAddressRequest(emailAddress = "", userId = "TEST"),
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = HttpStatus.BAD_REQUEST,
+        )
+      }
+
+      @Test
+      fun `should return Access Denied 403 when role is wrong`() {
+        sendPutRequestAsserted<String>(
+          url = emailAddressApiUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          body = PrisonEmailAddressRequest(emailAddress = "foo@bar.example", userId = "TEST"),
+          roles = listOf(API_READ_ONLY),
+          expectedStatus = HttpStatus.FORBIDDEN,
+        )
+      }
+
+      @Test
+      fun `should return UNAUTHORIZED 401 when role is not set`() {
+        sendPutRequestAsserted<Unit>(
+          url = emailAddressApiUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          body = PrisonEmailAddressRequest(emailAddress = "foo@bar.example", userId = "TEST"),
+          roles = emptyList(),
+          expectedStatus = HttpStatus.UNAUTHORIZED,
+          sendAuthorised = false,
+        )
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /person/prison/dps/{prisonNumber}/phone-numbers")
+  inner class GetPhoneNumbersByPrisonNumber {
+    @Nested
+    inner class SuccessfulProcessing {
+      @Test
+      fun `should respond with 501 as not currently implemented`() {
+        sendGetRequestAsserted<Unit>(
+          url = phoneNumbersApiUrl(randomPrisonNumber()),
+          roles = listOf(API_READ_ONLY),
+          expectedStatus = HttpStatus.NOT_IMPLEMENTED,
+        )
+      }
+    }
+
+    @Nested
+    inner class ErrorScenarios {
+      @Test
+      fun `should return Access Denied 403 when role is wrong`() {
+        sendGetRequestAsserted<String>(
+          url = phoneNumbersApiUrl(randomPrisonNumber()),
+          roles = listOf("UNSUPPORTED-ROLE"),
+          expectedStatus = HttpStatus.FORBIDDEN,
+        )
+      }
+
+      @Test
+      fun `should return UNAUTHORIZED 401 when role is not set`() {
+        sendGetRequestAsserted<Unit>(
+          url = phoneNumbersApiUrl(randomPrisonNumber()),
+          roles = emptyList(),
+          expectedStatus = HttpStatus.UNAUTHORIZED,
+          sendAuthorised = false,
+        )
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("POST /person/prison/dps/{prisonNumber}/phone-numbers")
+  inner class CreatePhoneNumberByPrisonNumber {
+    @Nested
+    inner class SuccessfulProcessing {
+      @Test
+      fun `should respond with 501 as not currently implemented`() {
+        sendPostRequestAsserted<Unit>(
+          url = phoneNumbersApiUrl(randomPrisonNumber()),
+          body = validPhoneNumberRequest(),
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = HttpStatus.NOT_IMPLEMENTED,
+        )
+      }
+    }
+
+    @Nested
+    inner class ErrorScenarios {
+      @Test
+      fun `should return bad request when phone number is blank`() {
+        sendPostRequestAsserted<String>(
+          url = phoneNumbersApiUrl(randomPrisonNumber()),
+          body = validPhoneNumberRequest().copy(phoneNumber = ""),
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = HttpStatus.BAD_REQUEST,
+        )
+      }
+
+      @Test
+      fun `should return Access Denied 403 when role is wrong`() {
+        sendPostRequestAsserted<String>(
+          url = phoneNumbersApiUrl(randomPrisonNumber()),
+          body = validPhoneNumberRequest(),
+          roles = listOf(API_READ_ONLY),
+          expectedStatus = HttpStatus.FORBIDDEN,
+        )
+      }
+
+      @Test
+      fun `should return UNAUTHORIZED 401 when role is not set`() {
+        sendPostRequestAsserted<Unit>(
+          url = phoneNumbersApiUrl(randomPrisonNumber()),
+          body = validPhoneNumberRequest(),
+          roles = emptyList(),
+          expectedStatus = HttpStatus.UNAUTHORIZED,
+          sendAuthorised = false,
+        )
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("PUT /person/prison/dps/{prisonNumber}/phone-numbers/{phoneNumberId}")
+  inner class UpdatePhoneNumberByPrisonNumber {
+    @Nested
+    inner class SuccessfulProcessing {
+      @Test
+      fun `should respond with 501 as not currently implemented`() {
+        sendPutRequestAsserted<Unit>(
+          url = phoneNumberApiUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          body = validPhoneNumberRequest(),
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = HttpStatus.NOT_IMPLEMENTED,
+        )
+      }
+    }
+
+    @Nested
+    inner class ErrorScenarios {
+      @Test
+      fun `should return bad request when phone number type is blank`() {
+        sendPutRequestAsserted<String>(
+          url = phoneNumberApiUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          body = validPhoneNumberRequest().copy(phoneNumberType = ""),
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = HttpStatus.BAD_REQUEST,
+        )
+      }
+
+      @Test
+      fun `should return Access Denied 403 when role is wrong`() {
+        sendPutRequestAsserted<String>(
+          url = phoneNumberApiUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          body = validPhoneNumberRequest(),
+          roles = listOf(API_READ_ONLY),
+          expectedStatus = HttpStatus.FORBIDDEN,
+        )
+      }
+
+      @Test
+      fun `should return UNAUTHORIZED 401 when role is not set`() {
+        sendPutRequestAsserted<Unit>(
+          url = phoneNumberApiUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          body = validPhoneNumberRequest(),
+          roles = emptyList(),
+          expectedStatus = HttpStatus.UNAUTHORIZED,
+          sendAuthorised = false,
+        )
+      }
+    }
+  }
+
+  private fun emailAddressesApiUrl(prisonNumber: String) = "/person/prison/dps/$prisonNumber/email-addresses"
+  private fun emailAddressApiUrl(prisonNumber: String, emailAddressId: String) = "/person/prison/dps/$prisonNumber/email-addresses/$emailAddressId"
+  private fun phoneNumbersApiUrl(prisonNumber: String) = "/person/prison/dps/$prisonNumber/phone-numbers"
+  private fun phoneNumberApiUrl(prisonNumber: String, phoneNumberId: String) = "/person/prison/dps/$prisonNumber/phone-numbers/$phoneNumberId"
+  private fun validPhoneNumberRequest() = PrisonPhoneNumberRequest(phoneNumberType = "BUS", phoneNumber = "01234 567 890", extension = "123", userId = "TEST")
 }
 
 // JsonUnwrapped annotation on DpsPrisonRecord produces this structure, so we cannot use DpsPrisonRecord directly to mimic return value
