@@ -35,6 +35,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
   JsonSubTypes.Type(value = CprAddressDeleted::class, name = CPR_PROBATION_ADDRESS_DELETED),
   JsonSubTypes.Type(value = CprReligionCreated::class, name = CPR_PRISON_RELIGION_CREATED),
   JsonSubTypes.Type(value = CprReligionUpdated::class, name = CPR_PRISON_RELIGION_UPDATED),
+  JsonSubTypes.Type(value = CprContactCreated::class, name = CPR_PRISON_CONTACT_CREATED),
+  JsonSubTypes.Type(value = CprContactUpdated::class, name = CPR_PRISON_CONTACT_UPDATED),
 )
 @JsonIgnoreProperties(ignoreUnknown = true)
 sealed interface DomainEvent {
