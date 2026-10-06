@@ -170,6 +170,8 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
 
     @Test
     fun `should create new address and not recluster passive record`() {
+      stubPersonMatchUpsert()
+
       val crn = randomCrn()
       val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList())) { this.passiveState = true }
