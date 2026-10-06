@@ -23,6 +23,6 @@ data class PrisonContact(
   val modifyUserId: String? = null,
   @Schema(description = "The CPR address id of the address owning this contact. Will be null is not owned by an address", example = "12345")
   val cprAddressId: String? = null,
-  @Schema(description = "The prison number of person owning this contact. Will be null if not owned by a person", example = "12345")
+  @Schema(description = "The prison number of person owning this contact. Will be null if not owned by a person but owned by an address instead", example = "12345")
   val prisonNumber: String? = null,
 )
