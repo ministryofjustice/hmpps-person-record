@@ -29,14 +29,14 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddr
 class SysconSyncPrisonAddressesAPIController(private val sysconSyncAddressesHandler: SysconSyncAddressesHandler) {
 
   @Operation(
-    description = """Get a prisoner address record by Prison Number. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
+    description = """Get a prisoner address record by Prison Number and address uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
     security = [SecurityRequirement(name = "api-role")],
   )
   @GetMapping("/syscon-sync/person/{prisonNumber}/address/{cprAddressId}")
   fun getPrisonerAddress(
     @PathVariable prisonNumber: String,
-    @RequestBody requestBody: PrisonAddress,
-  ) = sysconSyncAddressesHandler.handleGet(prisonNumber, requestBody)
+    @PathVariable cprAddressId: String,
+  ): PrisonAddress = sysconSyncAddressesHandler.handleGet(prisonNumber, cprAddressId)
 
   @Operation(
     description = """Create prisoner address record by Prison Number. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",

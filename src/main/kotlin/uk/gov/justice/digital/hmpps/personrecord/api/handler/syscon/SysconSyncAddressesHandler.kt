@@ -49,9 +49,10 @@ class SysconSyncAddressesHandler(
     )
   }
 
-  fun handleGet(prisonNumber: String, requestBody: PrisonAddress): PrisonAddress {
-    val addressEntity = addressRepository.findByUpdateId(UUID.fromString(prisonNumber))
-      ?: throw ResourceNotFoundException("Address with $prisonNumber not found")
+  @Transactional
+  fun handleGet(prisonNumber: String, cprAddressId: String): PrisonAddress {
+    val addressEntity = addressRepository.findByUpdateId(UUID.fromString(cprAddressId))
+      ?: throw ResourceNotFoundException("Address with $cprAddressId not found for person with $prisonNumber")
     return addressEntity.toPrisonAddress()
   }
 

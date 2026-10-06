@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus.FORBIDDEN
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.NOT_IMPLEMENTED
 import org.springframework.http.HttpStatus.NO_CONTENT
+import org.springframework.http.HttpStatus.OK
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
@@ -15,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddr
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressMapping
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
@@ -26,6 +28,169 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
+
+  @Nested
+  inner class GetPrisonerAddress {
+
+    @Nested
+    @ActiveProfiles("prod")
+    inner class ProductionProfile {
+
+      @Test
+      fun `should have the correct profile active`() {
+        val response = sendGetRequestAsserted<String>(
+          url = getPrisonerAddressUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_FOUND,
+        ).returnResult().responseBody!!
+        assertThat(response).contains("\"error\":\"Not Found\"")
+      }
+    }
+
+    @Nested
+    @ActiveProfiles("preprod")
+    inner class PreProductionProfile {
+
+      @Test
+      fun `should have the correct profile active`() {
+        val response = sendGetRequestAsserted<String>(
+          url = getPrisonerAddressUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_FOUND,
+        ).returnResult().responseBody!!
+        assertThat(response).contains("\"error\":\"Not Found\"")
+      }
+    }
+
+    @Nested
+    inner class Validation {
+
+      @Test
+      fun `address does not exist - returns 404 not found`() {
+        val prisonNumber = randomPrisonNumber()
+        val addressId = UUID.randomUUID().toString()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        val response = sendGetRequestAsserted<String>(
+          url = getPrisonerAddressUrl(prisonNumber, addressId),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_FOUND,
+        ).returnResult().responseBody!!
+        assertThat(response).contains("Address with $addressId not found")
+      }
+    }
+
+    @Nested
+    inner class Auth {
+
+      @Test
+      fun `should return Access Denied 403 when role is wrong`() {
+        sendGetRequestAsserted<String>(
+          url = getPrisonerAddressUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          roles = listOf("UNSUPPORTED-ROLE"),
+          expectedStatus = FORBIDDEN,
+        ).returnResult().responseBody!!
+      }
+
+      @Test
+      fun `should return UNAUTHORIZED 401 when role is not set`() {
+        sendGetRequestAsserted<PrisonAddress>(
+          url = getPrisonerAddressUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          roles = emptyList(),
+          expectedStatus = UNAUTHORIZED,
+          sendAuthorised = false,
+        )
+      }
+    }
+
+    @Nested
+    inner class Retrieval {
+
+      @Test
+      fun `successful get returns the correct response body`() {
+        val prisonNumber = randomPrisonNumber()
+        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        val addressEntity = addressRepository.saveAndFlush(
+          AddressEntity(
+            fullAddress = "fullAddress",
+            noFixedAbode = false,
+            startDate = LocalDate.of(2020, 1, 1).toUkZonedDateTime(),
+            endDate = LocalDate.of(2023, 7, 15).toUkZonedDateTime(),
+            postcode = "SW1H 9AJ",
+            subBuildingName = "subBuildingName",
+            buildingName = "buildingName",
+            buildingNumber = "102",
+            thoroughfareName = "thoroughfareName",
+            dependentLocality = "dependentLocality",
+            postTown = "postTown",
+            county = "county",
+            countryCode = CountryCode.GBR,
+            comment = "comment",
+            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+            createUserId = "createUserId",
+            modifyDateTime = LocalDateTime.of(2020, 1, 2, 12, 0),
+            modifyUserId = "modifyUserId",
+            statusCode = AddressStatusCode.PM,
+            person = personEntity,
+          ),
+        )
+
+        val response = sendGetRequestAsserted<PrisonAddress>(
+          url = getPrisonerAddressUrl(prisonNumber, addressEntity.updateId.toString()),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = OK,
+        ).returnResult().responseBody!!
+
+        assertAddressMatches(response, addressEntity)
+      }
+
+      @Test
+      fun `successful get of a mail only address returns the correct primary and mail flags`() {
+        val prisonNumber = randomPrisonNumber()
+        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        fun addressEntity(addressStatusCode: AddressStatusCode?) = AddressEntity(
+          statusCode = addressStatusCode,
+          person = personEntity,
+          createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+          createUserId = "createUserId",
+        )
+        val addressEntityPrimaryMail = addressRepository.saveAndFlush(addressEntity(AddressStatusCode.PM))
+        val responsePrimaryMail = sendGetRequestAsserted<PrisonAddress>(
+          url = getPrisonerAddressUrl(prisonNumber, addressEntityPrimaryMail.updateId.toString()),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = OK,
+        ).returnResult().responseBody!!
+        assertThat(responsePrimaryMail.isPrimary).isTrue()
+        assertThat(responsePrimaryMail.isMail).isTrue()
+
+        val addressEntityPrimaryNotMail = addressRepository.saveAndFlush(addressEntity(AddressStatusCode.M))
+        val responsePrimaryNotMail = sendGetRequestAsserted<PrisonAddress>(
+          url = getPrisonerAddressUrl(prisonNumber, addressEntityPrimaryNotMail.updateId.toString()),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = OK,
+        ).returnResult().responseBody!!
+        assertThat(responsePrimaryNotMail.isPrimary).isTrue()
+        assertThat(responsePrimaryNotMail.isMail).isFalse()
+
+        val addressEntityNotPrimaryMail = addressRepository.saveAndFlush(addressEntity(AddressStatusCode.MA))
+        val responseNotPrimaryMail = sendGetRequestAsserted<PrisonAddress>(
+          url = getPrisonerAddressUrl(prisonNumber, addressEntityNotPrimaryMail.updateId.toString()),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = OK,
+        ).returnResult().responseBody!!
+        assertThat(responseNotPrimaryMail.isPrimary).isFalse()
+        assertThat(responseNotPrimaryMail.isMail).isTrue()
+
+        val addressEntityNotPrimaryNotMail = addressRepository.saveAndFlush(addressEntity(AddressStatusCode.P))
+        val responseNotPrimaryNotMail = sendGetRequestAsserted<PrisonAddress>(
+          url = getPrisonerAddressUrl(prisonNumber, addressEntityNotPrimaryNotMail.updateId.toString()),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = OK,
+        ).returnResult().responseBody!!
+        assertThat(responseNotPrimaryNotMail.isPrimary).isFalse()
+        assertThat(responseNotPrimaryNotMail.isMail).isFalse()
+      }
+    }
+  }
 
   @Nested
   inner class CreatePrisonerAddress {
@@ -294,6 +459,7 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
     }
   }
 
+  private fun getPrisonerAddressUrl(prisonNumber: String, addressId: String) = "/syscon-sync/person/$prisonNumber/address/$addressId"
   private fun createPrisonerAddressUrl(prisonNumber: String) = "/syscon-sync/person/$prisonNumber/address"
   private fun updatePrisonerAddressUrl(prisonNumber: String, addressId: String) = "/syscon-sync/person/$prisonNumber/address/$addressId"
   private fun deletePrisonerAddressUrl(prisonNumber: String, addressId: String) = "/syscon-sync/person/$prisonNumber/address/$addressId"
