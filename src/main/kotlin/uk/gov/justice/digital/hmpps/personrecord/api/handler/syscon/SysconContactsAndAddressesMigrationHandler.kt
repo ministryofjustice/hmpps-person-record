@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
@@ -16,7 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressUsageRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -32,7 +32,6 @@ class SysconContactsAndAddressesMigrationHandler(
   private val addressService: AddressService,
   private val contactRepository: ContactRepository,
   private val addressUsageRepository: AddressUsageRepository,
-  private val addressRepository: AddressRepository,
 ) {
 
   @Transactional
@@ -135,12 +134,6 @@ class SysconContactsAndAddressesMigrationHandler(
     }
     return mappings
   }
-
-  private fun Pair<PrisonContact, ContactEntity>.toMapping() = SysconContactMapping(
-    nomisContactId = first.nomisContactId!!,
-    nomisContactType = first.type,
-    cprContactId = second.updateId.toString(),
-  )
 
   private fun Pair<PrisonAddressUsage, AddressUsageEntity>.toMapping() = SysconAddressUsageMapping(
     nomisAddressUsageId = first.nomisAddressUsageId,

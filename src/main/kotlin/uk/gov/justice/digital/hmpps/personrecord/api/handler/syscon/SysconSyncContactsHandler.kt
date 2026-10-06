@@ -49,7 +49,7 @@ class SysconSyncContactsHandler(
 
   companion object {
 
-    private fun Pair<PrisonContact, ContactEntity>.toMapping() = SysconContactMapping(
+    fun Pair<PrisonContact, ContactEntity>.toMapping() = SysconContactMapping(
       nomisContactId = first.nomisContactId!!,
       nomisContactType = first.type,
       cprContactId = second.updateId.toString(),
