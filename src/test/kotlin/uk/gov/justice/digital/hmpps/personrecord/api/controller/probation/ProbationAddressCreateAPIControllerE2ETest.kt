@@ -34,9 +34,6 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
   inner class SuccessfulProcessing {
     @Test
     fun `should create a new proposed address and recluster`() {
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-
       val crn = randomCrn()
       val newAddress = createRandomProbationAddress().copy(statusCode = PR)
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
@@ -62,9 +59,6 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
 
     @Test
     fun `should create a new proposed address when there is an existing main address`() {
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-
       val crn = randomCrn()
       val newAddress = createRandomProbationAddress().copy(statusCode = PR)
       val mainAddress = createRandomProbationAddress().copy(statusCode = M)
@@ -93,9 +87,6 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
 
     @Test
     fun `should create a new main address`() {
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-
       val crn = randomCrn()
       val newAddress = createRandomProbationAddress().copy(statusCode = M)
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
@@ -121,9 +112,6 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
 
     @Test
     fun `should create a new main address when there is already a main address`() {
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-
       val crn = randomCrn()
       val newAddress = createRandomProbationAddress().copy(statusCode = M)
       val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(Address.from(createRandomProbationAddress().copy(statusCode = M))))
@@ -170,8 +158,6 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
 
     @Test
     fun `should create new address and not recluster passive record`() {
-      stubPersonMatchUpsert()
-
       val crn = randomCrn()
       val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList())) { this.passiveState = true }
@@ -197,9 +183,6 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
 
     @Test
     fun `should create a new address with typeVerified as true when typeVerified is not supplied`() {
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-
       val crn = randomCrn()
       val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
@@ -229,9 +212,6 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
 
     @Test
     fun `should create a new address and recluster - with invalid country code`() {
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-
       val crn = randomCrn()
       val newAddress = createRandomProbationAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
