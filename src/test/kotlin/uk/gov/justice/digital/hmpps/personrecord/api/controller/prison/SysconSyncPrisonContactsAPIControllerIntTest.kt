@@ -28,6 +28,141 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
   lateinit var contactRepository: ContactRepository
 
   @Nested
+  inner class GetPrisonerContact {
+
+    @Nested
+    @ActiveProfiles("prod")
+    inner class ProductionProfile {
+
+      @Test
+      fun `should have the correct profile active`() {
+        val response = sendGetRequestAsserted<String>(
+          url = getPrisonerContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_FOUND,
+        ).returnResult().responseBody!!
+        assertThat(response).contains("\"error\":\"Not Found\"")
+      }
+    }
+
+    @Nested
+    @ActiveProfiles("preprod")
+    inner class PreProductionProfile {
+
+      @Test
+      fun `should have the correct profile active`() {
+        val response = sendGetRequestAsserted<String>(
+          url = getPrisonerContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_FOUND,
+        ).returnResult().responseBody!!
+        assertThat(response).contains("\"error\":\"Not Found\"")
+      }
+    }
+
+    @Nested
+    inner class Validation {
+
+      @Test
+      fun `contact does not exist - returns 404 not found`() {
+        val prisonNumber = randomPrisonNumber()
+        val contactId = UUID.randomUUID().toString()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        val response = sendGetRequestAsserted<String>(
+          url = getPrisonerContactUrl(prisonNumber, contactId),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_FOUND,
+        ).returnResult().responseBody!!
+        assertThat(response).contains("Contact with $contactId not found for person with $prisonNumber")
+      }
+    }
+
+    @Nested
+    inner class Auth {
+
+      @Test
+      fun `should return Access Denied 403 when role is wrong`() {
+        sendGetRequestAsserted<String>(
+          url = getPrisonerContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          roles = listOf("UNSUPPORTED-ROLE"),
+          expectedStatus = FORBIDDEN,
+        ).returnResult().responseBody!!
+      }
+
+      @Test
+      fun `should return UNAUTHORIZED 401 when role is not set`() {
+        sendGetRequestAsserted<PrisonContact>(
+          url = getPrisonerContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          roles = emptyList(),
+          expectedStatus = UNAUTHORIZED,
+          sendAuthorised = false,
+        )
+      }
+    }
+
+    @Nested
+    inner class Retrieval {
+
+      @Test
+      fun `successful get of a person contact returns the correct response body`() {
+        val prisonNumber = randomPrisonNumber()
+        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        val contactEntity = contactRepository.saveAndFlush(
+          ContactEntity(
+            person = personEntity,
+            contactType = HOME,
+            contactValue = "value",
+            extension = "extension",
+            createDateTime = LocalDateTime.of(2017, 3, 1, 12, 0),
+            createUserId = "createUserId",
+            modifyDateTime = LocalDateTime.of(2017, 3, 2, 12, 0),
+            modifyUserId = "modifyUserId",
+          ),
+        )
+
+        val response = sendGetRequestAsserted<PrisonContact>(
+          url = getPrisonerContactUrl(prisonNumber, contactEntity.updateId.toString()),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = HttpStatus.OK,
+        ).returnResult().responseBody!!
+
+        assertContactMatches(response, contactEntity)
+        assertThat(response.prisonNumber).isEqualTo(prisonNumber)
+        assertThat(response.cprAddressId).isNull()
+      }
+
+      @Test
+      fun `successful get of an address contact returns the correct response body`() {
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        val addressEntity = personRepository.findByPrisonNumber(prisonNumber)!!.addresses.first()
+        val contactEntity = contactRepository.saveAndFlush(
+          ContactEntity(
+            address = addressEntity,
+            contactType = HOME,
+            contactValue = "value",
+            extension = "extension",
+            createDateTime = LocalDateTime.of(2017, 3, 1, 12, 0),
+            createUserId = "createUserId",
+            modifyDateTime = LocalDateTime.of(2017, 3, 2, 12, 0),
+            modifyUserId = "modifyUserId",
+          ),
+        )
+
+        val response = sendGetRequestAsserted<PrisonContact>(
+          url = getPrisonerContactUrl(prisonNumber, contactEntity.updateId.toString()),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = HttpStatus.OK,
+        ).returnResult().responseBody!!
+
+        assertContactMatches(response, contactEntity)
+        assertThat(response.cprAddressId).isEqualTo(addressEntity.updateId.toString())
+        assertThat(response.prisonNumber).isNull()
+      }
+    }
+  }
+
+  @Nested
   inner class CreatePrisonerContact {
 
     private val validRequestBody = PrisonContact(
