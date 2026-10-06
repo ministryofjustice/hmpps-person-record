@@ -346,6 +346,7 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
     assertThat(createDateTime).isEqualTo(request.createDateTime)
   }
 
+  private fun getPrisonerContactUrl(prisonNumber: String, contactId: String) = "/syscon-sync/person/$prisonNumber/contact/$contactId"
   private fun createPrisonerContactUrl(prisonNumber: String) = "/syscon-sync/person/$prisonNumber/contact"
   private fun updatePrisonerContactUrl(prisonNumber: String, contactId: String) = "/syscon-sync/person/$prisonNumber/contact/$contactId"
   private fun deletePrisonerContactUrl(prisonNumber: String, contactId: String) = "/syscon-sync/person/$prisonNumber/contact/$contactId"

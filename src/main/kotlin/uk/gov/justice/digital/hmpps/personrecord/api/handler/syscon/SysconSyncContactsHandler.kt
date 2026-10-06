@@ -40,10 +40,17 @@ class SysconSyncContactsHandler(
     personEntity.contacts.removeIf { it.updateId.toString() == cprContactId }
   }
 
+  @Transactional
+  fun handleGet(prisonNumber: String, cprContactId: String): PrisonContact {
+    val contactEntity = contactRepository.findByUpdateId(UUID.fromString(cprContactId))
+      ?: throw ResourceNotFoundException("Contact with $cprContactId not found for person with $prisonNumber")
+    return contactEntity.toDto()
+  }
+
   companion object {
 
     private fun Pair<PrisonContact, ContactEntity>.toMapping() = SysconContactMapping(
-      nomisContactId = first.nomisContactId,
+      nomisContactId = first.nomisContactId!!,
       nomisContactType = first.type,
       cprContactId = second.updateId.toString(),
     )
@@ -57,6 +64,18 @@ class SysconSyncContactsHandler(
       createDateTime = prisonContact.createDateTime
       createUserId = prisonContact.createUserId
     }
+
+    fun ContactEntity.toDto() = PrisonContact(
+      type = contactType,
+      value = contactValue,
+      extension = extension,
+      prisonNumber = person?.prisonNumber,
+      cprAddressId = address?.updateId?.toString(),
+      modifyDateTime = modifyDateTime,
+      modifyUserId = modifyUserId,
+      createDateTime = createDateTime!!,
+      createUserId = createUserId!!,
+    )
 
     fun PrisonContact.toEntity(personEntity: PersonEntity) = ContactEntity(
       contactType = type,

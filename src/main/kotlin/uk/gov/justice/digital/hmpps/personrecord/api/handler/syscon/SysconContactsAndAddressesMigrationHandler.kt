@@ -137,7 +137,7 @@ class SysconContactsAndAddressesMigrationHandler(
   }
 
   private fun Pair<PrisonContact, ContactEntity>.toMapping() = SysconContactMapping(
-    nomisContactId = first.nomisContactId,
+    nomisContactId = first.nomisContactId!!,
     nomisContactType = first.type,
     cprContactId = second.updateId.toString(),
   )
