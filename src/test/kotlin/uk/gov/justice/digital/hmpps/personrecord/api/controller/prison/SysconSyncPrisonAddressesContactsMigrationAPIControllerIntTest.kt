@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus.NOT_IMPLEMENTED
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesAPIControllerIntTest.Companion.assertAddressMatches
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
@@ -19,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressesAndContactsResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
@@ -28,7 +28,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepositor
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.BUS
@@ -275,6 +274,49 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
   @Nested
   inner class Creation {
 
+    fun postCodesAreSame(addressEntities: List<AddressEntity>, addressRequest: List<PrisonAddress>) = addressEntities.map { it.postcode }.toSet() == addressRequest.map { it.postcode }.toSet()
+
+    @Test
+    fun `successful save returns the correct response body and does not call the matching service when postcodes are the same`() {
+      // No stubbing of the matcher - test will fail if we call it.
+      val prisonNumber = randomPrisonNumber()
+      // We have no guarentee of order so check when the orders differ
+      val addressesMatchingRequestPostcodesDifferentOrder = validRequestBody.addresses.map { Address(postcode = it.postcode) }
+      val person = createRandomPrisonPersonDetails(prisonNumber).copy(addresses = addressesMatchingRequestPostcodesDifferentOrder)
+      val personEntity = createPersonWithNewKey(person)
+
+      // Assert that the postcodes are going to be the same
+      assertThat(postCodesAreSame(personEntity.addresses, validRequestBody.addresses)).isTrue()
+
+      sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+        url = addressesUrl(prisonNumber),
+        body = validRequestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+        sendAuthorised = true,
+      ).returnResult().responseBody!!
+    }
+
+    @Test
+    fun `successful save returns the correct response body and calls the matching service when postcodes differ`() {
+      // Stub the matcher - test will fail if we do not call it
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val prisonNumber = randomPrisonNumber()
+      val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+      // Assert that the postcodes are not going to be the same
+      assertThat(postCodesAreSame(personEntity.addresses, validRequestBody.addresses)).isFalse()
+
+      sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+        url = addressesUrl(prisonNumber),
+        body = validRequestBody,
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+        sendAuthorised = true,
+      ).returnResult().responseBody!!
+    }
+
     @Test
     fun `successful save returns the correct response body`() {
       stubPersonMatchUpsert()
@@ -293,6 +335,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
 
       // Addresses
+      assertThat(validRequestBody.addresses.size).isEqualTo(2)
       for (addressRequest in validRequestBody.addresses) {
         // Because ordering is not guaranteed, we need to find the matching address entity for each request
         val matchingAddressEntity = personEntity.addresses.single { addressMatcher(addressRequest, it) }
@@ -533,6 +576,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
   private fun createPrisonerAddressContactUrl(prisonNumber: String, addressId: String) = "/syscon-sync/person/$prisonNumber/address/$addressId/contact"
 
   private fun addressContactUrl(prisonNumber: String, addressId: String, contactId: String) = "${createPrisonerAddressContactUrl(prisonNumber, addressId)}/$contactId"
+
   private fun addressNoIdContactUrl(prisonNumber: String, contactId: String) = "/syscon-sync/person/$prisonNumber/address/contact/$contactId"
 
   private fun addressUsageMatcher(request: PrisonAddressUsage, entity: AddressUsageEntity) = entity.usageCode == request.addressUsageCode
@@ -546,28 +590,6 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
   private fun addressMatcher(request: PrisonAddress, entity: AddressEntity) = entity.fullAddress == request.fullAddress
 
   private fun addressMatcher(request: PrisonAddress, mapping: SysconAddressMapping) = mapping.nomisAddressId == request.nomisAddressId
-
-  private fun assertAddressMatches(request: PrisonAddress, address: AddressEntity) = with(address) {
-    assertThat(fullAddress).isEqualTo(request.fullAddress)
-    assertThat(noFixedAbode).isEqualTo(request.noFixedAbode)
-    assertThat(startDate).isEqualTo(request.startDate?.toUkZonedDateTime())
-    assertThat(endDate).isEqualTo(request.endDate?.toUkZonedDateTime())
-    assertThat(postcode).isEqualTo(request.postcode)
-    assertThat(subBuildingName).isEqualTo(request.subBuildingName)
-    assertThat(buildingName).isEqualTo(request.buildingName)
-    assertThat(buildingNumber).isEqualTo(request.buildingNumber)
-    assertThat(thoroughfareName).isEqualTo(request.thoroughfareName)
-    assertThat(dependentLocality).isEqualTo(request.dependentLocality)
-    assertThat(postTown).isEqualTo(request.postTown)
-    assertThat(county).isEqualTo(request.county)
-    assertThat(countryCode).isEqualTo(request.countryCode)
-    assertThat(comment).isEqualTo(request.comment)
-    assertThat(statusCode).isEqualTo(AddressStatusCode.fromPrison(request.isPrimary, request.isMail ?: false))
-    assertThat(modifyUserId).isEqualTo(request.modifyUserId)
-    assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
-    assertThat(createUserId).isEqualTo(request.createUserId)
-    assertThat(createDateTime).isEqualTo(request.createDateTime)
-  }
 
   private fun assertAddressUsageMatches(request: PrisonAddressUsage, entity: AddressUsageEntity) = with(entity) {
     assertThat(usageCode).isEqualTo(request.addressUsageCode)
@@ -669,7 +691,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
         noFixedAbode = false,
         startDate = LocalDate.of(2010, 1, 1),
         endDate = LocalDate.of(2025, 1, 1),
-        postcode = "S10 3HR",
+        postcode = "NW11 7AA",
         subBuildingName = "subBuildingName2",
         buildingName = "buildingName2",
         buildingNumber = "buildingNumber2",

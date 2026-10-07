@@ -9,6 +9,8 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAd
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContactType
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
@@ -23,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDateTime
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
@@ -36,10 +39,12 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonsNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
@@ -127,6 +132,17 @@ class CanonicalAPIIntTest : WebTestBase() {
           Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
           Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
         ),
+        contacts = listOf(
+          Contact(
+            contactType = randomContactType(),
+            contactValue = randomLowerCaseString(),
+            extension = randomLowerCaseString(),
+            createDateTime = randomDateTime(),
+            createUserId = randomLowerCaseString(),
+            modifyDateTime = randomDateTime(),
+            modifyUserId = randomLowerCaseString(),
+          ),
+        ),
       ),
     )
 
@@ -186,6 +202,16 @@ class CanonicalAPIIntTest : WebTestBase() {
     assertThat(responseBody.addresses)
       .usingRecursiveComparison()
       .isEqualTo(listOf(canonicalAddress))
+
+    val expectedCanonicalContact = CanonicalContact(
+      type = CanonicalContactType.from(person.contacts.first().contactType),
+      value = person.contacts.first().contactValue,
+      extension = person.contacts.first().extension,
+    )
+    assertThat(responseBody.contacts.size).isEqualTo(1)
+    assertThat(responseBody.contacts.first())
+      .usingRecursiveComparison()
+      .isEqualTo(expectedCanonicalContact)
   }
 
   @Test
