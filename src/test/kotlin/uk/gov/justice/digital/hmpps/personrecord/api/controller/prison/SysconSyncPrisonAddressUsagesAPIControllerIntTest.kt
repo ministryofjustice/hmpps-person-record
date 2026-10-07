@@ -287,7 +287,7 @@ class SysconSyncPrisonAddressUsagesAPIControllerIntTest : WebTestBase() {
 
     @Nested
     inner class Validation {
-      
+
       @Test
       fun `address does not exist - returns 404 not found`() {
         val prisonNumber = randomPrisonNumber()

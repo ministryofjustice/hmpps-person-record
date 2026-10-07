@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus.NOT_IMPLEMENTED
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressUsagesAPIControllerIntTest.Companion.assertAddressUsageMatches
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
@@ -611,7 +612,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
     assertThat(createUserId).isEqualTo(request.createUserId)
     assertThat(createDateTime).isEqualTo(request.createDateTime)
   }
-
+  
   private fun assertAddressUsageMatches(request: PrisonAddressUsage, entity: AddressUsageEntity) = with(entity) {
     assertThat(usageCode).isEqualTo(request.addressUsageCode)
     assertThat(active).isEqualTo(request.isActive)

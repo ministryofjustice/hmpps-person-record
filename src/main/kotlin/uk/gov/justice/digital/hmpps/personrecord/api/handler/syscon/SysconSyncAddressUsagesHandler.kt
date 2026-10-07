@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressUsageRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import java.util.UUID
 
 @Component
