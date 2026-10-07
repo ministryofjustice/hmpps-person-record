@@ -10,11 +10,9 @@ import au.com.dius.pact.provider.junitsupport.loader.PactBroker
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestTemplate
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.ArgumentCaptor
 import org.mockito.kotlin.any
-import org.mockito.kotlin.capture
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_ADDRESS_CREATED
@@ -71,12 +69,12 @@ class ProbationEventProviderPactTest : E2ETestBase() {
   private lateinit var spyDomainEventPublisher: DomainEventPublisher
 
   private val pactProviderScanPackages = listOf("uk.gov.justice.digital.hmpps.personrecord.pacttest")
-  private var capturedEventCount = 0
+  private var capturedDomainEvent: DomainEvent? = null
 
   @BeforeEach
   fun setUpPactVerification(context: PactVerificationContext) {
     context.target = MessageTestTarget(pactProviderScanPackages, javaClass.classLoader)
-    capturedEventCount = 0
+    capturedDomainEvent = null
   }
 
   @TestTemplate
@@ -106,7 +104,8 @@ class ProbationEventProviderPactTest : E2ETestBase() {
   }
 
   @PactVerifyProvider(CPR_PROBATION_ADDRESS_CREATED)
-  fun verifyProbationAddressCreatedEvent(): DomainEvent {
+  fun verifyProbationAddressCreatedEvent(): String {
+    capturePublishedEvent()
     val crn = randomCrn()
     val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
     val address = createRandomProbationAddress()
@@ -120,7 +119,8 @@ class ProbationEventProviderPactTest : E2ETestBase() {
   }
 
   @PactVerifyProvider(CPR_PROBATION_ADDRESS_UPDATED)
-  fun verifyProbationAddressUpdatedEvent(): DomainEvent {
+  fun verifyProbationAddressUpdatedEvent(): String {
+    capturePublishedEvent()
     val crn = randomCrn()
     val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
     val address = createRandomProbationAddress()
@@ -134,7 +134,8 @@ class ProbationEventProviderPactTest : E2ETestBase() {
   }
 
   @PactVerifyProvider(CPR_PROBATION_ADDRESS_DELETED)
-  fun verifyProbationAddressDeletedEvent(): DomainEvent {
+  fun verifyProbationAddressDeletedEvent(): String {
+    capturePublishedEvent()
     val crn = randomCrn()
     val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
     val address = createRandomProbationAddress()
@@ -148,7 +149,8 @@ class ProbationEventProviderPactTest : E2ETestBase() {
   }
 
   @PactVerifyProvider(CPR_PROBATION_PERSON_UPDATED)
-  fun verifyProbationPersonUpdatedEvent(): DomainEvent {
+  fun verifyProbationPersonUpdatedEvent(): String {
+    capturePublishedEvent()
     val crn = randomCrn()
     val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
 
@@ -162,7 +164,8 @@ class ProbationEventProviderPactTest : E2ETestBase() {
   }
 
   @PactVerifyProvider(CPR_PROBATION_PERSON_MERGED)
-  fun verifyProbationPersonMergedEvent(): DomainEvent {
+  fun verifyProbationPersonMergedEvent(): String {
+    capturePublishedEvent()
     val fromCrn = randomCrn()
     val toCrn = randomCrn()
     val fromPerson = createPersonWithNewKey(createRandomProbationPersonDetails(fromCrn))
@@ -179,9 +182,16 @@ class ProbationEventProviderPactTest : E2ETestBase() {
     return captureLastPublishedEvent()
   }
 
-  private fun captureLastPublishedEvent(): DomainEvent {
-    val captor = ArgumentCaptor.forClass(DomainEvent::class.java)
-    verify(spyDomainEventPublisher, times(++capturedEventCount)).publish(capture(captor), any())
-    return captor.value
+  private fun capturePublishedEvent() {
+    capturedDomainEvent = null
+    doAnswer { invocation ->
+      capturedDomainEvent = invocation.getArgument(0)
+      null
+    }.whenever(spyDomainEventPublisher).publish(any(), any())
+  }
+
+  private fun captureLastPublishedEvent(): String {
+    val domainEvent = requireNotNull(capturedDomainEvent) { "Expected a domain event to be published" }
+    return jsonMapper.writeValueAsString(domainEvent)
   }
 }
