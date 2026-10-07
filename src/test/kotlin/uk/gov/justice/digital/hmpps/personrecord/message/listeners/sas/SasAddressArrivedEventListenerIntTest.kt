@@ -103,6 +103,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       publishSasAddressArrivedEvent(originalMainAddress.updateId!!)
 
+      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
       awaitAssert {
         val actualAddress = addressRepository.findByUpdateId(originalMainAddress.updateId!!)!!
         assertThat(actualAddress.isVerified).isEqualTo(true)
