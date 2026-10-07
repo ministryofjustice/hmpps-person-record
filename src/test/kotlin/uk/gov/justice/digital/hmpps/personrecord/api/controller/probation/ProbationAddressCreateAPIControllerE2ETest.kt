@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.M
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.PR
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 
 class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
@@ -114,7 +115,14 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
     fun `should create a new main address when there is already a main address`() {
       val crn = randomCrn()
       val newAddress = createRandomProbationAddress().copy(statusCode = M)
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(Address.from(createRandomProbationAddress().copy(statusCode = M))))
+      val person = createPersonWithNewKey(
+        createRandomProbationPersonDetails(crn),
+        configure = addAddressToRecord(
+          Address.from(
+            createRandomProbationAddress().copy(statusCode = M, endDate = randomZonedDateTime()),
+          ),
+        ),
+      )
 
       val existingAddressId = person.addresses.first().updateId!!
 
