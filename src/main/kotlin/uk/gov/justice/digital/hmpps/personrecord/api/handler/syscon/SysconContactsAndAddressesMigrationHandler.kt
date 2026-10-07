@@ -150,7 +150,7 @@ class SysconContactsAndAddressesMigrationHandler(
   ) {
     if (matchingFieldsChanged && personEntity.isNotPassive()) {
       personMatchService.saveToPersonMatch(personEntity)
-      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
+      reclusterService.recluster(personEntity)
     }
   }
 
