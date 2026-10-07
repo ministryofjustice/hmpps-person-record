@@ -32,25 +32,20 @@ class SasAddressArrivedHandler(
   }
 
   @Transactional
-  fun setMainAddressToPrevious(cprAddressId: UUID, startDate: ZonedDateTime) {
-    val addressEntity = addressRepository.findByUpdateId(cprAddressId)!!
-    val personEntity = addressEntity.person!!
-    personEntity.setMainAddressToPrevious(cprAddressId, startDate)
+  fun setMainAddressToPrevious(personEntity: PersonEntity, startDate: ZonedDateTime, incomingAddressId: UUID? = null) {
+    personEntity.currentMainAddress(incomingAddressId)?.let { oldMainAddress ->
+      oldMainAddress.statusCode = P
+      oldMainAddress.endDate = startDate
+      addressService.processAddress(
+        address = Address.from(oldMainAddress),
+        findPerson = { personEntity },
+        findAddress = { oldMainAddress },
+        eventSource = CPR,
+      )
+    }
   }
 
-  fun PersonEntity.setMainAddressToPrevious(cprAddressId: UUID, startDate: ZonedDateTime) {
-    this.addresses
-      .filter { it.updateId != cprAddressId }
-      .firstOrNull { it.statusCode == M }
-      ?.let { oldMainAddress ->
-        oldMainAddress.statusCode = P
-        oldMainAddress.endDate = startDate
-        addressService.processAddress(
-          address = Address.from(oldMainAddress),
-          findPerson = { this },
-          findAddress = { oldMainAddress },
-          eventSource = CPR,
-        )
-      }
+  private fun PersonEntity.currentMainAddress(incomingAddressId: UUID?) = addresses.firstOrNull {
+    it.statusCode == M && it.updateId != incomingAddressId
   }
 }
