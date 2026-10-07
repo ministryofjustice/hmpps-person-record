@@ -42,7 +42,7 @@ class E2ETestBase : MessagingTestBase() {
     return personEntity
   }
 
-  internal fun createProbationPerson(probationCase: ProbationCase = createRandomProbationCase()): PersonEntity = createPerson(Person.from(probationCase))
+  internal fun createProbationPerson(probationCase: ProbationCase = createRandomProbationCase()): Person = Person.from(probationCase)
   internal fun createMatchingRecord(probationCase: ProbationCase): Person = Person.from(probationCase).copy(crn = randomCrn())
 
   /*
