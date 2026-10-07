@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 data class PrisonContact(
   @Schema(description = "The nomis contact id", example = "1234")
-  val nomisContactId: Long,
+  val nomisContactId: Long? = null,
   @Schema(description = "The contact value", example = "01234567890")
   val value: String? = null,
   @Schema(description = "The contact type", example = "HOME")
@@ -21,4 +21,8 @@ data class PrisonContact(
   val modifyDateTime: LocalDateTime? = null,
   @Schema(description = "The contact modify user id", example = "12345")
   val modifyUserId: String? = null,
+  @Schema(description = "The CPR address id of the address owning this contact. Will be null is not owned by an address", example = "12345")
+  val cprAddressId: String? = null,
+  @Schema(description = "The prison number of person owning this contact. Will be null if not owned by a person but owned by an address instead", example = "12345")
+  val prisonNumber: String? = null,
 )
