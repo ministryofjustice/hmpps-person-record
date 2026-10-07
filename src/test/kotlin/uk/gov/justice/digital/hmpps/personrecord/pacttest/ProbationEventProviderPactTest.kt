@@ -10,9 +10,8 @@ import au.com.dius.pact.provider.junitsupport.loader.PactBroker
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestTemplate
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.Mockito.doAnswer
 import org.mockito.kotlin.any
-import org.mockito.kotlin.doAnswer
-import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_ADDRESS_CREATED
@@ -187,7 +186,7 @@ class ProbationEventProviderPactTest : E2ETestBase() {
     doAnswer { invocation ->
       capturedDomainEvent = invocation.getArgument(0)
       null
-    }.whenever(spyDomainEventPublisher).publish(any(), any())
+    }.`when`(spyDomainEventPublisher).publish(any(), any())
   }
 
   private fun captureLastPublishedEvent(): String {
