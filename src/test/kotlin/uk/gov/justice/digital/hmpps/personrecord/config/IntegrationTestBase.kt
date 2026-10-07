@@ -409,16 +409,11 @@ class IntegrationTestBase {
 
   internal fun PersonKeyEntity.addPerson(person: Person): PersonKeyEntity = createPerson(person, this).personKey!!
 
-  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null, configure: PersonEntity.() -> Unit = {}): PersonEntity {
-    val personEntity = createPerson(person, configure)
-    createPersonKey(status, reason).addPerson(personEntity)
-    return personRepository.findByMatchId(personEntity.matchId)!!
-  }
+  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null, configure: PersonEntity.() -> Unit = {}): PersonEntity = createPerson(person, createPersonKey(status, reason), configure)
 
   internal fun createMergedPerson(person: Person, mergedToId: Long?): PersonEntity = createPerson(
     person,
-    { mergedTo = mergedToId!! },
-  )
+  ) { mergedTo = mergedToId!! }
 
   @Deprecated("use createPersonWithNewKey, createMergedPerson or addPerson instead")
   internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
@@ -431,11 +426,13 @@ class IntegrationTestBase {
     person.sourceSystem,
   ).updatePersonEntity(person)
     .apply(configure)
-    .apply { personKey = personKeyEntity }
-    .let(personRepository::save)
-    .also {
-      personKeyEntity.personEntities.add(personRepository.findByMatchId(it.matchId)!!)
+    .let {
+      it.personKey = personKeyEntity
+      personRepository.save(it)
+      val personEntity = personRepository.findByMatchId(it.matchId)!!
+      personKeyEntity.personEntities.add(personEntity)
       personKeyRepository.save(personKeyEntity)
+      personEntity
     }
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
