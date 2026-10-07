@@ -433,6 +433,10 @@ class IntegrationTestBase {
     .apply(configure)
     .apply { personKey = personKeyEntity }
     .let(personRepository::save)
+    .also {
+      personKeyEntity.personEntities.add(personRepository.findByMatchId(it.matchId)!!)
+      personKeyRepository.save(personKeyEntity)
+    }
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
     val source = personRepository.findByMatchId(sourceRecord.matchId)
