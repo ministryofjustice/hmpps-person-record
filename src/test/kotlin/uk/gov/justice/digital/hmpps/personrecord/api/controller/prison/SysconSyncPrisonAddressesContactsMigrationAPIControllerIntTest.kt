@@ -336,6 +336,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
 
       // Addresses
+      assertThat(validRequestBody.addresses.size).isEqualTo(2)
       for (addressRequest in validRequestBody.addresses) {
         // Because ordering is not guaranteed, we need to find the matching address entity for each request
         val matchingAddressEntity = personEntity.addresses.single { addressMatcher(addressRequest, it) }
