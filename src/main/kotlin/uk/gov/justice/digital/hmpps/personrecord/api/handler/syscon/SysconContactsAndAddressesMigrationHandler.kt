@@ -167,6 +167,17 @@ class SysconContactsAndAddressesMigrationHandler(
       createUserId = createUserId,
     )
 
+    fun PrisonContact.toEntity(personEntity: PersonEntity) = ContactEntity(
+      contactType = type,
+      contactValue = value,
+      extension = extension,
+      person = personEntity,
+      modifyDateTime = modifyDateTime,
+      modifyUserId = modifyUserId,
+      createDateTime = createDateTime,
+      createUserId = createUserId,
+    )
+
     fun PrisonAddressUsage.toEntity(addressEntity: AddressEntity) = AddressUsageEntity(
       usageCode = addressUsageCode,
       active = isActive,
@@ -197,7 +208,6 @@ class SysconContactsAndAddressesMigrationHandler(
       modifyUserId = modifyUserId,
       createDateTime = createDateTime,
       createUserId = createUserId,
-      person = personEntity,
     )
   }
 }
