@@ -42,15 +42,17 @@ class SysconSyncAddressesHandler(
 
   @Transactional
   fun handleDelete(cprAddressId: String) {
-    val addressEntity = addressRepository.findByUpdateId(UUID.fromString(cprAddressId))
     addressService.deleteAddress(
-      findAddress = { addressEntity },
+      findAddress = { addressRepository.findByUpdateId(UUID.fromString(cprAddressId)) },
       eventSource = DomainEventSource.NOMIS,
     )
   }
 
-  fun handleGet(prisonNumber: String, cprAddressId: String): PrisonAddress = addressRepository.findByUpdateId(UUID.fromString(cprAddressId))?.toPrisonAddress()
-    ?: throw ResourceNotFoundException("Address with $cprAddressId not found for person with $prisonNumber")
+  fun handleGet(prisonNumber: String, cprAddressId: String): PrisonAddress {
+    val addressEntity = addressRepository.findByUpdateId(UUID.fromString(cprAddressId))
+      ?: throw ResourceNotFoundException("Address with $cprAddressId not found for person with $prisonNumber")
+    return addressEntity.toPrisonAddress()
+  }
 
   companion object {
 
