@@ -407,7 +407,7 @@ class IntegrationTestBase {
     return personKeyRepository.save(this)
   }
 
-  internal fun PersonKeyEntity.addPerson(person: Person): PersonKeyEntity = this.addPerson(createPerson(person))
+  internal fun PersonKeyEntity.addPerson(person: Person): PersonKeyEntity = createPerson(person, this).personKey!!
 
   internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null, configure: PersonEntity.() -> Unit = {}): PersonEntity {
     val personEntity = createPerson(person, configure)
@@ -426,6 +426,13 @@ class IntegrationTestBase {
   ).updatePersonEntity(person)
     .apply(configure)
     .let(personRepository::saveAndFlush)
+
+  internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
+    person.sourceSystem,
+  ).updatePersonEntity(person)
+    .apply(configure)
+    .apply { personKey = personKeyEntity }
+    .let(personRepository::save)
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
     val source = personRepository.findByMatchId(sourceRecord.matchId)
