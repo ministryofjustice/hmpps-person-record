@@ -19,18 +19,18 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCr
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas.SasAddressArrivedHandler
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas.SasAddressHandler
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 
-@Tag(name = "Probation")
+@Tag(name = "Sas")
 @RestController
-class ProbationAddressCreateAPIController(
+class SasAddressCreateAPIController(
   private val addressService: AddressService,
   private val personRepository: PersonRepository,
-  private val sasAddressArrivedHandler: SasAddressArrivedHandler,
+  private val sasAddressHandler: SasAddressHandler,
 ) {
   @Operation(
     description = """Create an address for the given CRN person record. Role required is **$PROBATION_API_READ_WRITE**.""",
@@ -58,7 +58,7 @@ class ProbationAddressCreateAPIController(
     val person = personRepository.findByCrn(crn)!!
 
     if (probationCreateAddress.statusCode == AddressStatusCode.M) {
-      sasAddressArrivedHandler.setMainAddressToPrevious(person, address.startDate!!)
+      sasAddressHandler.setMainAddressToPrevious(person, address.startDate!!)
     }
     val createdAddress: AddressEntity = addressService.processAddress(
       address,

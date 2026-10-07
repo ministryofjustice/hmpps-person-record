@@ -28,7 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.P
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 
-class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
+class SasAddressCreateAPIControllerE2ETest : E2ETestBase() {
 
   @Nested
   inner class SuccessfulProcessing {

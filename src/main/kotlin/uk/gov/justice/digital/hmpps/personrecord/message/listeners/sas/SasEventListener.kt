@@ -23,7 +23,7 @@ class SasEventListener(
   private val personRepository: PersonRepository,
   private val addressRepository: AddressRepository,
   private val addressService: AddressService,
-  private val sasAddressArrivedHandler: SasAddressArrivedHandler,
+  private val sasAddressHandler: SasAddressHandler,
 ) {
 
   @SqsListener(SAS_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
@@ -56,8 +56,8 @@ class SasEventListener(
   private fun processSasAddressArrived(event: SasAddressArrived) {
     val newMainAddress = sasClient.getAddress(event.detailUrl)
     val person = personRepository.findByCrn(newMainAddress.crn)!!
-    sasAddressArrivedHandler.setMainAddressToPrevious(person, newMainAddress.address.startDate!!, newMainAddress.cprAddressId)
-    sasAddressArrivedHandler.setProposedAddressToMain(newMainAddress)
+    sasAddressHandler.setMainAddressToPrevious(person, newMainAddress.address.startDate!!, newMainAddress.cprAddressId)
+    sasAddressHandler.setProposedAddressToMain(newMainAddress)
   }
 
   companion object {

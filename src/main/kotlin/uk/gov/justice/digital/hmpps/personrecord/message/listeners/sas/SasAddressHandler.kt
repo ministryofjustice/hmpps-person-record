@@ -14,7 +14,7 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 @Component
-class SasAddressArrivedHandler(
+class SasAddressHandler(
   private val addressRepository: AddressRepository,
   private val addressService: AddressService,
 ) {
