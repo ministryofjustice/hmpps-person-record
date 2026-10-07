@@ -9,6 +9,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -26,6 +27,16 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddr
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
 class SysconSyncPrisonAddressesAPIController(private val sysconSyncAddressesHandler: SysconSyncAddressesHandler) {
+
+  @Operation(
+    description = """Get a prisoner address record by Prison Number. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @GetMapping("/syscon-sync/person/{prisonNumber}/address/{cprAddressId}")
+  fun getPrisonerAddress(
+    @PathVariable prisonNumber: String,
+    @RequestBody requestBody: PrisonAddress,
+  ) = sysconSyncAddressesHandler.handleGet(prisonNumber, requestBody)
 
   @Operation(
     description = """Create prisoner address record by Prison Number. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",

@@ -5,11 +5,16 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressMapping
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.M
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.MA
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.PM
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import java.util.UUID
@@ -30,7 +35,7 @@ class SysconSyncAddressesHandler(
       eventSource = DomainEventSource.NOMIS,
     )
     return SysconAddressMapping(
-      nomisAddressId = prisonAddress.nomisAddressId,
+      nomisAddressId = prisonAddress.nomisAddressId!!,
       cprAddressId = addressEntity.updateId.toString(),
     )
   }
@@ -44,7 +49,47 @@ class SysconSyncAddressesHandler(
     )
   }
 
+  fun handleGet(prisonNumber: String, requestBody: PrisonAddress): PrisonAddress {
+    val addressEntity = addressRepository.findByUpdateId(UUID.fromString(prisonNumber))
+      ?: throw ResourceNotFoundException("Address with $prisonNumber not found")
+    return addressEntity.toPrisonAddress()
+  }
+
   companion object {
+
+    fun isPrimary(addressStatusCode: AddressStatusCode?): Boolean = when (addressStatusCode) {
+      M, PM -> true
+      else -> false
+    }
+
+    fun isMail(addressStatusCode: AddressStatusCode?): Boolean = when (addressStatusCode) {
+      PM, MA -> true
+      else -> false
+    }
+
+    fun AddressEntity.toPrisonAddress() = PrisonAddress(
+      startDate = startDate?.toUkLocalDate(),
+      endDate = endDate?.toUkLocalDate(),
+      noFixedAbode = noFixedAbode,
+      fullAddress = fullAddress,
+      postcode = postcode,
+      subBuildingName = subBuildingName,
+      buildingName = buildingName,
+      buildingNumber = buildingNumber,
+      thoroughfareName = thoroughfareName,
+      dependentLocality = dependentLocality,
+      postTown = postTown,
+      county = county,
+      countryCode = countryCode,
+      comment = comment,
+      isPrimary = isPrimary(statusCode),
+      isMail = isMail(statusCode),
+      modifyDateTime = modifyDateTime,
+      modifyUserId = modifyUserId,
+      createDateTime = createDateTime!!,
+      createUserId = createUserId!!,
+    )
+
     fun PrisonAddress.toAddress() = Address(
       startDate = startDate?.toUkZonedDateTime(),
       endDate = endDate?.toUkZonedDateTime(),

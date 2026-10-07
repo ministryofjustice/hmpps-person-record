@@ -129,7 +129,7 @@ class SysconContactsAndAddressesMigrationHandler(
       addressEntity.usages.addAll(addressUsageEntities)
 
       SysconAddressMapping(
-        nomisAddressId = prisonAddress.nomisAddressId,
+        nomisAddressId = prisonAddress.nomisAddressId!!,
         cprAddressId = addressEntity.updateId.toString(),
         addressUsageMappings = addressUsageMappings,
         contactMappings = contactMappings,
