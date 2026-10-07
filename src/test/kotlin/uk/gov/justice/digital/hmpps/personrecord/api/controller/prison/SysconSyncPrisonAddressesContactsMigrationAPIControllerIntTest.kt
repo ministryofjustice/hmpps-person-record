@@ -612,7 +612,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
     assertThat(createUserId).isEqualTo(request.createUserId)
     assertThat(createDateTime).isEqualTo(request.createDateTime)
   }
-  
+
   private fun assertAddressUsageMatches(request: PrisonAddressUsage, entity: AddressUsageEntity) = with(entity) {
     assertThat(usageCode).isEqualTo(request.addressUsageCode)
     assertThat(active).isEqualTo(request.isActive)
