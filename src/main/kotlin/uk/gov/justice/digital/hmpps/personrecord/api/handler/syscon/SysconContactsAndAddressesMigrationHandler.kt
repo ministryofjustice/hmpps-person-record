@@ -3,10 +3,9 @@ package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toEntity
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressUsagesHandler.Companion.toEntity
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toEntity
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
@@ -119,7 +118,7 @@ class SysconContactsAndAddressesMigrationHandler(
   private fun handleAddressesInsert(addresses: List<PrisonAddress>, personEntity: PersonEntity): List<SysconAddressMapping> {
     personEntity.addresses.clear()
     val mappings = addresses.map { prisonAddress ->
-      val addressEntity = addressRepository.save(prisonAddress.toAddress(personEntity))
+      val addressEntity = addressRepository.save(prisonAddress.toEntity(personEntity))
       personEntity.addresses.add(addressEntity)
 
       val contactEntities = contactRepository.saveAllAndFlush(prisonAddress.contacts.map { it.toEntity(addressEntity) })
@@ -168,29 +167,8 @@ class SysconContactsAndAddressesMigrationHandler(
       createDateTime = createDateTime,
       createUserId = createUserId,
     )
-    
-    fun PrisonContact.toEntity(personEntity: PersonEntity) = ContactEntity(
-      contactType = type,
-      contactValue = value,
-      extension = extension,
-      person = personEntity,
-      modifyDateTime = modifyDateTime,
-      modifyUserId = modifyUserId,
-      createDateTime = createDateTime,
-      createUserId = createUserId,
-    )
 
-    fun PrisonAddressUsage.toEntity(addressEntity: AddressEntity) = AddressUsageEntity(
-      usageCode = addressUsageCode,
-      active = isActive,
-      address = addressEntity,
-      modifyDateTime = modifyDateTime,
-      modifyUserId = modifyUserId,
-      createDateTime = createDateTime,
-      createUserId = createUserId,
-    )
-
-    fun PrisonAddress.toAddress(personEntity: PersonEntity) = AddressEntity(
+    fun PrisonAddress.toEntity(personEntity: PersonEntity) = AddressEntity(
       startDate = startDate?.toUkZonedDateTime(),
       endDate = endDate?.toUkZonedDateTime(),
       noFixedAbode = noFixedAbode,
@@ -210,6 +188,7 @@ class SysconContactsAndAddressesMigrationHandler(
       modifyUserId = modifyUserId,
       createDateTime = createDateTime,
       createUserId = createUserId,
+      person = personEntity,
     )
   }
 }
