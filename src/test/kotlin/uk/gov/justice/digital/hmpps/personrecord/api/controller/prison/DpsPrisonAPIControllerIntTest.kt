@@ -210,9 +210,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       @Test
       fun `should sort religions by start date and created date newest first`() {
         val prisonNumber = randomPrisonNumber()
-        val person = createRandomPrisonPersonDetails(prisonNumber = prisonNumber)
-        createPersonKey()
-          .addPerson(person)
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber = prisonNumber))
         val now = LocalDate.now()
         val nowTime = LocalDateTime.now()
 
@@ -468,7 +466,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
             contacts = listOf(Contact(MOBILE, randomPhoneNumber(), "+44")),
             nationalities = listOf(randomNationalityCode()),
           )
-        createPersonKey().addPerson(prisonPerson)
+        createPersonWithNewKey(prisonPerson)
         val prisonNumber = prisonPerson.prisonNumber!!
         val existingPrisonReligionEntity =
           prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory()))
@@ -502,8 +500,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       fun `should sort religions by start date and created date newest first`() {
         val prisonNumber = randomPrisonNumber()
         val person = createRandomPrisonPersonDetails(prisonNumber = prisonNumber)
-        createPersonKey()
-          .addPerson(person)
+        createPersonWithNewKey(person)
         val now = LocalDate.now()
         val nowTime = LocalDateTime.now()
 
