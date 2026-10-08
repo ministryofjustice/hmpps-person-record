@@ -423,11 +423,8 @@ class IntegrationTestBase {
     .apply(configure)
     .let {
       it.personKey = personKeyEntity
+      personKeyEntity.personEntities.add(it)
       personRepository.save(it)
-      val personEntity = personRepository.findByMatchId(it.matchId)!!
-      personKeyEntity.personEntities.add(personEntity)
-      personKeyRepository.save(personKeyEntity)
-      personEntity
     }
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {

@@ -137,10 +137,9 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     fun `should not set a cluster to active if it is set to needs attention and a new record joins the cluster`() {
       val basePersonData = createRandomProbationCase()
 
-      val personA = createPersonWithNewKey(createProbationPerson(basePersonData))
       val doesNotMatch = createProbationPerson()
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-        .addPerson(personA)
+        .addPerson(createProbationPerson(basePersonData))
         .addPerson(doesNotMatch)
 
       val personCCrn = randomCrn()
@@ -252,7 +251,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       val personA = createPersonWithNewKey(createProbationPerson(basePersonData))
       val cluster1 = personA.personKey!!
-        .addPerson(personA)
         .addPerson(createMatchingRecord(basePersonData))
         .addPerson(createMatchingRecord(basePersonData))
 
@@ -731,8 +729,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       val personA = createPersonWithNewKey(createProbationPerson(basePersonData))
       val personB = createMatchingRecord(basePersonData)
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
+      val cluster1 = personA.personKey!!
         .addPerson(personB)
 
       val personC = createMatchingRecord(basePersonData)
@@ -790,8 +787,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     @Test
     fun `should log back to active when cluster moves from needs attention to active`() {
       val basePersonData = createRandomProbationCase()
-
-      val personA = createPersonWithNewKey(createProbationPerson(basePersonData))
+      val personA = createProbationPerson(basePersonData)
       val personB = createMatchingRecord(basePersonData)
       val personC = createMatchingRecord(basePersonData)
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
@@ -810,7 +806,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         mapOf("UUID" to cluster.personUUID.toString()),
       )
 
-      checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
+      checkEventLog(personA.crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
         assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
