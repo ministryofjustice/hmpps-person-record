@@ -577,8 +577,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val basePersonData = createRandomProbationCase()
 
       val personA = createPersonWithNewKey(createProbationPerson(basePersonData))
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
+      val cluster1 = personA.personKey!!
 
       val personB = createMatchingRecord(basePersonData)
       val cluster2 = createPersonKey(NEEDS_ATTENTION)
@@ -605,8 +604,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val personA = createPersonWithNewKey(createProbationPerson(basePersonData))
       val personB = createMatchingRecord(basePersonData.aboveFracture())
       val personC = createMatchingRecord(basePersonData.aboveFracture())
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
+      val cluster1 = personA.personKey!!
         .addPerson(personB)
         .addPerson(personC)
 
@@ -629,8 +627,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val personA = createPersonWithNewKey(createProbationPerson(basePersonData))
       val personB = createMatchingRecord(basePersonData)
       val personC = createMatchingRecord(basePersonData.aboveFracture())
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
+      val cluster1 = personA.personKey!!
         .addPerson(personB)
         .addPerson(personC)
 
@@ -667,8 +664,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val personA = createPersonWithNewKey(createProbationPerson(basePersonData))
       val personB = createMatchingRecord(basePersonData)
       val doesNotMatch = createProbationPerson()
-      val cluster = createPersonKey()
-        .addPerson(personA)
+      val cluster = personA.personKey!!
         .addPerson(personB)
         .addPerson(doesNotMatch)
 
@@ -684,8 +680,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val personA = createPersonWithNewKey(createProbationPerson(basePersonData))
       val personBDoesNotMatch = createProbationPerson()
       val personCDoesNotMatch = createProbationPerson()
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
+      val cluster1 = personA.personKey!!
         .addPerson(personBDoesNotMatch)
         .addPerson(personCDoesNotMatch)
 
@@ -708,8 +703,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         basePersonData.aboveFracture(),
       )
       val personC = createProbationPerson()
-      val cluster = createPersonKey()
-        .addPerson(personA)
+      val cluster = personA.personKey!!
         .addPerson(personB)
         .addPerson(personC)
 
@@ -850,8 +844,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val basePersonData = createRandomProbationCase()
 
       val personA = createPersonWithNewKey(createProbationPerson(basePersonData))
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
+      val cluster1 = personA.personKey!!
 
       val personB = createPersonWithNewKey(createMatchingRecord(basePersonData))
       val cluster2 = personB.personKey!!
