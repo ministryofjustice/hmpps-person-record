@@ -43,6 +43,29 @@ private fun AddressEntity.toCanonicalAddress(): CanonicalAddress = CanonicalAddr
   status = CanonicalAddressStatus.from(statusCode),
   comment = comment,
   typeVerified = isVerified,
-  usages = usages.map { CanonicalAddressUsage(CanonicalAddressUsageCode.from(it.usageCode), it.active) },
-  contacts = contacts.map { CanonicalContact(CanonicalContactType.from(it.contactType), it.contactValue, it.extension) },
+  usages = usages.map {
+    CanonicalAddressUsage(
+      usageCode = CanonicalAddressUsageCode.from(it.usageCode),
+      isActive = it.active,
+      createDateTime = it.createDateTime,
+      createUserId = it.createUserId,
+      modifyDateTime = it.modifyDateTime,
+      modifyUserId = it.modifyUserId,
+    )
+  },
+  contacts = contacts.map {
+    CanonicalContact(
+      type = CanonicalContactType.from(it.contactType),
+      value = it.contactValue,
+      extension = it.extension,
+      createDateTime = it.createDateTime,
+      createUserId = it.createUserId,
+      modifyDateTime = it.modifyDateTime,
+      modifyUserId = it.modifyUserId,
+    )
+  },
+  createDateTime = createDateTime,
+  createUserId = createUserId,
+  modifyDateTime = modifyDateTime,
+  modifyUserId = modifyUserId,
 )
