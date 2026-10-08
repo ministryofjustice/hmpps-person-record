@@ -56,8 +56,8 @@ class ProbationEventListener(
     val probationAddress = corePersonRecordAndDeliusClient.getAddress(deliusAddressId)!!
     addressService.processAddress(
       address = probationAddress,
-      findAddress = { addressRepository.findByDeliusAddressId(deliusAddressId) },
       findPerson = { personRepository.findByCrn(crn)!! },
+      findAddress = { addressRepository.findByDeliusAddressId(deliusAddressId) },
       eventSource = DELIUS,
     )
   }
