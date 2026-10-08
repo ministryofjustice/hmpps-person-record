@@ -75,7 +75,7 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
         val personEntity = personRepository.findByCrn(crn)!!
         assertThat(personEntity.addresses.size).isEqualTo(2)
 
-        assertAddressValues(mainAddress, personEntity.getMainAddress())
+        assertAddressValues(mainAddress, getMainAddress(personEntity))
 
         val proposedAddress = personEntity.addresses.first { it.statusCode == PR }
         assertAddressValues(newAddress, proposedAddress)
@@ -129,7 +129,7 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
         val personEntity = personRepository.findByCrn(crn)!!
         assertThat(personEntity.addresses.size).isEqualTo(2)
 
-        val mainAddress = personEntity.getMainAddress()
+        val mainAddress = getMainAddress(personEntity)
         assertAddressValues(newAddress, mainAddress)
         val previousAddress = addressRepository.findByUpdateId(existingAddressId)!!
         assertThat(previousAddress.statusCode).isEqualTo(AddressStatusCode.P)
@@ -289,11 +289,8 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
     assertThat(actualAddress.comment).isEqualTo(expectedProbationCreateAddress.comment)
     assertThat(actualAddress.statusCode).isEqualTo(expectedProbationCreateAddress.statusCode)
     assertThat(actualAddress.isVerified).isEqualTo(expectedProbationCreateAddress.typeVerified)
-    assertThat(actualAddress.usages.size).isEqualTo(expectedProbationCreateAddress.usages.size)
-    expectedProbationCreateAddress.usages.zip(actualAddress.usages).forEach { (expected, actual) ->
-      assertThat(actual.usageCode).isEqualTo(expected.usageCode)
-      assertThat(actual.active).isEqualTo(expected.isActive)
-    }
+    assertThat(actualAddress.usages.first().usageCode).isEqualTo(expectedProbationCreateAddress.usage?.usageCode)
+    assertThat(actualAddress.usages.first().active).isEqualTo(expectedProbationCreateAddress.usage?.isActive)
     expectedProbationCreateAddress.contacts.zip(actualAddress.contacts).forEach { (expected, actual) ->
       assertThat(actual.contactType).isEqualTo(expected.typeCode)
       assertThat(actual.contactValue).isEqualTo(expected.value)
@@ -302,4 +299,4 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
   }
 }
 
-private fun PersonEntity.getMainAddress(): AddressEntity = this.addresses.first { it.statusCode == AddressStatusCode.M }
+private fun getMainAddress(personEntity: PersonEntity): AddressEntity = personEntity.addresses.first { it.statusCode == AddressStatusCode.M }

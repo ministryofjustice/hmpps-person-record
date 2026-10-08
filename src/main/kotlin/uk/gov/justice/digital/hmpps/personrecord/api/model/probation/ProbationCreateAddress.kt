@@ -38,8 +38,8 @@ data class ProbationCreateAddress(
   val statusCode: AddressStatusCode,
   @Schema(description = "Is the address type verified", examples = ["false", "true"], required = true)
   val typeVerified: Boolean = true,
-  @Schema(description = "List of address usages", required = true)
-  val usages: List<ProbationCreateAddressUsage> = emptyList(),
+  @Schema(description = "The address usage")
+  val usage: ProbationCreateAddressUsage? = null,
   @Schema(description = "List of address contacts")
   val contacts: List<ProbationCreateAddressContact> = emptyList(),
 )
