@@ -74,7 +74,8 @@ class SysconSyncPrisonAddressesContactsMigrationAPIController(
   @DeleteMapping("/syscon-sync/person/{prisonNumber}/address/contact/{cprContactId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun deletePrisonerAddressContact(
+    // prisonNumber is unused, but having it here will enable us to find all changes to a prisoner in Log Analytics
     @PathVariable prisonNumber: String,
     @PathVariable cprContactId: String,
-  ) = sysconSyncContactsHandler.handleDelete(prisonNumber, cprContactId)
+  ) = sysconSyncContactsHandler.handleDelete(cprContactId)
 }
