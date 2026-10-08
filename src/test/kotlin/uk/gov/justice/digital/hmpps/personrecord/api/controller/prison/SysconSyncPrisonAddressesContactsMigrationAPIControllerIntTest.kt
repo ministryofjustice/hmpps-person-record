@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus.NOT_IMPLEMENTED
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressUsagesAPIControllerIntTest.Companion.assertAddressUsageMatches
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesAPIControllerIntTest.Companion.assertAddressMatches
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
@@ -591,15 +592,6 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
 
   private fun addressMatcher(request: PrisonAddress, mapping: SysconAddressMapping) = mapping.nomisAddressId == request.nomisAddressId
 
-  private fun assertAddressUsageMatches(request: PrisonAddressUsage, entity: AddressUsageEntity) = with(entity) {
-    assertThat(usageCode).isEqualTo(request.addressUsageCode)
-    assertThat(active).isEqualTo(request.isActive)
-    assertThat(modifyUserId).isEqualTo(request.modifyUserId)
-    assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
-    assertThat(createUserId).isEqualTo(request.createUserId)
-    assertThat(createDateTime).isEqualTo(request.createDateTime)
-  }
-
   private fun assertContactMatches(request: PrisonContact, entity: ContactEntity) = with(entity) {
     assertThat(contactType).isEqualTo(request.type)
     assertThat(contactValue).isEqualTo(request.value)
@@ -691,7 +683,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
         noFixedAbode = false,
         startDate = LocalDate.of(2010, 1, 1),
         endDate = LocalDate.of(2025, 1, 1),
-        postcode = "NW11 7AA",
+        postcode = "S10 3HR",
         subBuildingName = "subBuildingName2",
         buildingName = "buildingName2",
         buildingNumber = "buildingNumber2",
