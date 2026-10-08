@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionInsertRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.ReferenceDataResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
@@ -89,10 +90,8 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
             ),
             nationalities = listOf(randomNationalityCode()),
           )
-        val cluster = createPersonKey()
-          .addPerson(prisonPerson)
+        val person = createPersonWithNewKey(prisonPerson)
 
-        val person = cluster.personEntities.first()
         val existingPrisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory()))
 
         val responseBody = sendGetRequestAsserted<DpsPrisonRecordTest>(
@@ -115,9 +114,9 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         val canonicalAddress = CanonicalAddress(
           cprAddressId = address.updateId!!.toString(),
           noFixedAbode = address.noFixedAbode,
-          startDate = address.startDate?.toLocalDate()?.toString(),
+          startDate = address.startDate?.toUkLocalDate()?.toString(),
           startDateTime = address.startDate?.toUkLocalDateTime(),
-          endDate = address.endDate?.toLocalDate()?.toString(),
+          endDate = address.endDate?.toUkLocalDate()?.toString(),
           endDateTime = address.endDate?.toUkLocalDateTime(),
           postcode = address.postcode,
           buildingName = address.buildingName,
@@ -137,9 +136,9 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         val canonicalAddress2 = CanonicalAddress(
           cprAddressId = address2.updateId!!.toString(),
           noFixedAbode = address2.noFixedAbode,
-          startDate = address2.startDate?.toLocalDate()?.toString(),
+          startDate = address2.startDate?.toUkLocalDate()?.toString(),
           startDateTime = address2.startDate?.toUkLocalDateTime(),
-          endDate = address2.endDate?.toLocalDate()?.toString(),
+          endDate = address2.endDate?.toUkLocalDate()?.toString(),
           endDateTime = address2.endDate?.toUkLocalDateTime(),
           postcode = address2.postcode,
           buildingName = address2.buildingName,
