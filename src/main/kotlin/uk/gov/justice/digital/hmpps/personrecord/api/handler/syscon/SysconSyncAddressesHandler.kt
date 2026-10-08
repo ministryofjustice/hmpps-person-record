@@ -28,10 +28,9 @@ class SysconSyncAddressesHandler(
   @Transactional
   fun handleInsert(prisonNumber: String, prisonAddress: PrisonAddress): SysconAddressMapping {
     val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
-    val addressEntity = addressService.processAddress(
+    val addressEntity = addressService.create(
       address = prisonAddress.toAddress(),
       findPerson = { personEntity },
-      findAddress = { null },
       eventSource = DomainEventSource.NOMIS,
     )
     return SysconAddressMapping(

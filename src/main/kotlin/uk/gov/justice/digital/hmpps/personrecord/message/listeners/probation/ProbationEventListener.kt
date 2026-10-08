@@ -35,8 +35,8 @@ class ProbationEventListener(
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
   fun onDomainEvent(rawMessage: String) = domainEventProcessor.process<DomainEvent>(rawMessage) { event ->
     when (event) {
-      is ProbationAddressCreated -> upsertAddress(event.crn, event.additionalInformation.deliusAddressId)
-      is ProbationAddressUpdated -> upsertAddress(event.crn, event.additionalInformation.deliusAddressId)
+      is ProbationAddressCreated -> insertAddress(event.crn, event.additionalInformation.deliusAddressId)
+      is ProbationAddressUpdated -> updateAddress(event.additionalInformation.deliusAddressId)
       is ProbationAddressDeleted -> deleteAddress(event.additionalInformation.deliusAddressId)
       is ProbationPersonCreated -> updateWholePerson(event.crn)
       is ProbationPersonUpdated -> updateWholePerson(event.crn)
@@ -52,12 +52,20 @@ class ProbationEventListener(
     )
   }
 
-  private fun upsertAddress(crn: String, deliusAddressId: Long) {
+  private fun insertAddress(crn: String, deliusAddressId: Long) {
     val probationAddress = corePersonRecordAndDeliusClient.getAddress(deliusAddressId)!!
-    addressService.processAddress(
+    addressService.create(
       address = probationAddress,
       findPerson = { personRepository.findByCrn(crn)!! },
-      findAddress = { addressRepository.findByDeliusAddressId(deliusAddressId) },
+      eventSource = DELIUS,
+    )
+  }
+
+  private fun updateAddress(deliusAddressId: Long) {
+    val probationAddress = corePersonRecordAndDeliusClient.getAddress(deliusAddressId)!!
+    addressService.update(
+      address = probationAddress,
+      findAddress = { addressRepository.findByDeliusAddressId(deliusAddressId)!! },
       eventSource = DELIUS,
     )
   }
