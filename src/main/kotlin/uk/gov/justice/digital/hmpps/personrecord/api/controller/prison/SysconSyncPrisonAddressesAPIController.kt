@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -59,7 +58,7 @@ class SysconSyncPrisonAddressesAPIController(private val sysconSyncAddressesHand
     @PathVariable prisonNumber: String,
     @PathVariable cprAddressId: String,
     @RequestBody requestBody: PrisonAddress,
-  ): ResponseEntity<Unit> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+  ) = sysconSyncAddressesHandler.handleUpdate(prisonNumber, cprAddressId, requestBody)
 
   @Operation(
     description = """Delete prisoner address record by Prison Number and address uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",

@@ -15,6 +15,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
+import kotlin.collections.emptySet
+import kotlin.reflect.KClass
 
 @Service
 class AddressService(
@@ -31,12 +33,13 @@ class AddressService(
     findPerson: (() -> PersonEntity?)? = null,
     findAddress: () -> AddressEntity?,
     eventSource: DomainEventSource,
+    childrenToIgnore: Set<KClass<*>> = emptySet(),
   ): AddressEntity = findAddress().exists(
     no = {
       create(address, findPerson?.invoke()!!, eventSource)
     },
     yes = {
-      update(address, it, eventSource)
+      update(address, it, eventSource, childrenToIgnore)
     },
   )
 
@@ -56,9 +59,9 @@ class AddressService(
     return addressEntity
   }
 
-  private fun update(address: Address, addressEntity: AddressEntity, eventSource: DomainEventSource): AddressEntity {
+  private fun update(address: Address, addressEntity: AddressEntity, eventSource: DomainEventSource, childrenToIgnore: Set<KClass<*>>): AddressEntity {
     val matchingFieldsBeforeUpdate = PersonMatchRecord.from(addressEntity.person!!)
-    addressEntity.update(address)
+    addressEntity.update(address, childrenToIgnore)
     addressRepository.save(addressEntity)
 
     val matchingFieldsChanged = matchingFieldsBeforeUpdate.matchingFieldsAreDifferent(addressEntity.person!!)

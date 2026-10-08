@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
+import kotlin.reflect.KClass
 
 @Entity
 @Table(name = "address")
@@ -127,7 +128,7 @@ class AddressEntity(
   var version: Int = 0,
 ) {
 
-  fun update(address: Address) {
+  fun update(address: Address, childrenToIgnore: Set<KClass<*>> = emptySet()) {
     this.noFixedAbode = address.noFixedAbode
     this.startDate = address.startDate
     this.endDate = address.endDate
@@ -150,12 +151,16 @@ class AddressEntity(
     this.createUserId = address.createUserId
     this.modifyDateTime = address.modifyDateTime
     this.modifyUserId = address.modifyUserId
-    updateChildEntities(address)
+    updateChildEntities(address, childrenToIgnore)
   }
 
-  private fun updateChildEntities(address: Address) {
-    updateUsages(address.usages.map { AddressUsageEntity.from(it) })
-    updateContacts(address.contacts.map { ContactEntity.from(it) })
+  private fun updateChildEntities(address: Address, childrenToIgnore: Set<KClass<*>>) {
+    if (AddressUsageEntity::class !in childrenToIgnore) {
+      updateUsages(address.usages.map { AddressUsageEntity.from(it) })
+    }
+    if (ContactEntity::class !in childrenToIgnore) {
+      updateContacts(address.contacts.map { ContactEntity.from(it) })
+    }
   }
 
   fun updateContacts(contacts: List<ContactEntity>) {

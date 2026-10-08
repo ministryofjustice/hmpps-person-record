@@ -8,6 +8,9 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -27,16 +30,26 @@ class SysconSyncAddressesHandler(
 ) {
   @Transactional
   fun handleInsert(prisonNumber: String, prisonAddress: PrisonAddress): SysconAddressMapping {
-    val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
     val addressEntity = addressService.processAddress(
       address = prisonAddress.toAddress(),
-      findPerson = { personEntity },
+      findPerson = findOrThrowPerson(prisonNumber),
       findAddress = { null },
       eventSource = DomainEventSource.NOMIS,
     )
     return SysconAddressMapping(
       nomisAddressId = prisonAddress.nomisAddressId!!,
       cprAddressId = addressEntity.updateId.toString(),
+    )
+  }
+
+  @Transactional
+  fun handleUpdate(prisonNumber: String, cprAddressId: String, prisonAddress: PrisonAddress) {
+    addressService.processAddress(
+      address = prisonAddress.toAddress(),
+      findPerson = findOrThrowPerson(prisonNumber),
+      findAddress = findOrThrowAddress(cprAddressId),
+      eventSource = DomainEventSource.NOMIS,
+      childrenToIgnore = setOf(ContactEntity::class, AddressUsageEntity::class),
     )
   }
 
@@ -52,6 +65,14 @@ class SysconSyncAddressesHandler(
     val addressEntity = addressRepository.findByUpdateId(UUID.fromString(cprAddressId))
       ?: throw ResourceNotFoundException("Address with $cprAddressId not found for person with $prisonNumber")
     return addressEntity.toPrisonAddress()
+  }
+
+  private fun findOrThrowPerson(prisonNumber: String): () -> PersonEntity = {
+    personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
+  }
+
+  private fun findOrThrowAddress(cprAddressId: String): () -> AddressEntity = {
+    addressRepository.findByUpdateId(UUID.fromString(cprAddressId)) ?: throw ResourceNotFoundException("Address with $cprAddressId not found")
   }
 
   companion object {
