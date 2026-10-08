@@ -72,6 +72,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
@@ -89,7 +90,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.updatePersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
@@ -243,7 +243,6 @@ class IntegrationTestBase {
   internal fun createRandomProbationAddress(): ProbationCreateAddress = ProbationCreateAddress(
     noFixedAbode = false,
     startDate = randomZonedDateTime(),
-    endDate = randomZonedDateTime(),
     postcode = randomPostcode(),
     uprn = randomUprn(),
     subBuildingName = randomName(),
@@ -254,7 +253,7 @@ class IntegrationTestBase {
     postTown = randomName(),
     county = randomName(),
     comment = randomName(),
-    statusCode = randomAddressStatusCode(),
+    statusCode = listOf(AddressStatusCode.M, AddressStatusCode.PR).random(),
     typeVerified = true,
     usages = listOf(ProbationCreateAddressUsage(randomAddressUsageCode(), randomBoolean())),
     contacts = listOf(ProbationCreateAddressContact(randomContactType(), randomPhoneNumber(), "44")),

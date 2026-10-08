@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
 
 @Profile("!prod && !preprod")
 @Tag(name = "Syscon Sync")
@@ -28,6 +30,16 @@ class SysconSyncPrisonContactsAPIController(
   private val sysconSyncContactsHandler: SysconSyncContactsHandler,
 ) {
   @Operation(
+    description = """Get a prisoner contact record by Prison Number and contact uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @GetMapping("/syscon-sync/person/{prisonNumber}/contact/{cprContactId}")
+  fun getPrisonerContact(
+    @PathVariable prisonNumber: String,
+    @PathVariable cprContactId: String,
+  ): PrisonContact = sysconSyncContactsHandler.handleGet(prisonNumber, cprContactId)
+
+  @Operation(
     description = """Create prisoner contact record by Prison Number. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
     security = [SecurityRequirement(name = "api-role")],
   )
@@ -36,7 +48,7 @@ class SysconSyncPrisonContactsAPIController(
   fun createPrisonerContact(
     @PathVariable prisonNumber: String,
     @RequestBody requestBody: PrisonContact,
-  ) = sysconSyncContactsHandler.handleInsert(prisonNumber, requestBody)
+  ): SysconContactMapping = sysconSyncContactsHandler.handleInsert(prisonNumber, requestBody)
 
   @Operation(
     description = """Update prisoner contact record by Prison Number and contact uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
