@@ -411,15 +411,10 @@ class IntegrationTestBase {
 
   internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null, configure: PersonEntity.() -> Unit = {}): PersonEntity = createPerson(person, createPersonKey(status, reason), configure)
 
-  internal fun createMergedPerson(person: Person, mergedToId: Long?): PersonEntity = createPerson(
-    person,
-  ) { mergedTo = mergedToId!! }
-
-  @Deprecated("use createPersonWithNewKey, createMergedPerson or addPerson instead")
-  internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
+  internal fun createMergedPerson(person: Person, mergedToId: Long?): PersonEntity = PersonEntity.new(
     person.sourceSystem,
   ).updatePersonEntity(person)
-    .apply(configure)
+    .apply { mergedTo = mergedToId!! }
     .let(personRepository::saveAndFlush)
 
   internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
