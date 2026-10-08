@@ -108,7 +108,6 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
     @BeforeEach
     fun beforeEach() {
       stubPersonMatchUpsert()
-      stubPersonMatchScores()
     }
 
     @Test

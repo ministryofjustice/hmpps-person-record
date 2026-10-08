@@ -29,7 +29,6 @@ class PrisonMergeEventProcessorIntTest(
     @BeforeEach
     fun beforeEach() {
       stubPersonMatchUpsert()
-      stubPersonMatchScores()
       stubDeletePersonMatch()
     }
 

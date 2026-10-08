@@ -23,7 +23,6 @@ class ProbationMergeEventListenerIntTest : MessagingTestBase() {
     @BeforeEach
     fun beforeEach() {
       stubPersonMatchUpsert()
-      stubPersonMatchScores()
       stubDeletePersonMatch()
     }
 
@@ -101,7 +100,6 @@ class ProbationMergeEventListenerIntTest : MessagingTestBase() {
       val targetCrn = randomCrn()
       stub5xxResponse(probationUrl(targetCrn), "next request will succeed", "retry")
       stubPersonMatchUpsert()
-      stubPersonMatchScores()
       stubDeletePersonMatch()
 
       createPersonKey()
@@ -137,7 +135,6 @@ class ProbationMergeEventListenerIntTest : MessagingTestBase() {
 
       // stubs for successful delete
       stubDeletePersonMatch(currentScenarioState = "deleteWillWork")
-      stubPersonMatchScores()
       probationMergeEventAndResponseSetup(sourceCrn, targetCrn, currentScenarioState = "deleteWillWork", nextScenarioState = "deleteWillWork", apiResponseSetup = response)
 
       sourcePersonEntity.assertMergedTo(targetPersonEntity)
@@ -155,7 +152,6 @@ class ProbationMergeEventListenerIntTest : MessagingTestBase() {
       val targetPerson = personRepository.findByCrn(targetCrn)!!
       stubDeletePersonMatch(status = 404)
       stubPersonMatchUpsert()
-      stubPersonMatchScores()
       probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
       sourcePerson.assertMergedTo(targetPerson)
     }
@@ -204,7 +200,6 @@ class ProbationMergeEventListenerIntTest : MessagingTestBase() {
 
       stubDeletePersonMatch()
       stubPersonMatchUpsert()
-      stubPersonMatchScores()
       probationMergeEventAndResponseSetup(recordACrn, recordBCrn)
 
       checkTelemetry(
