@@ -56,8 +56,8 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
         createRandomProbationPersonDetails(crn = crn),
         configure = addAddressesToRecord(
           listOf(
-            Address(postcode = randomPostcode(), statusCode = M, deliusAddressId = randomDeliusAddressId()),
-            Address(postcode = randomPostcode(), statusCode = PR, deliusAddressId = randomDeliusAddressId()),
+            Address(postcode = randomPostcode(), statusCode = M, deliusAddressId = randomDeliusAddressId(), endDate = null),
+            Address(postcode = randomPostcode(), statusCode = PR, deliusAddressId = randomDeliusAddressId(), endDate = null),
           ),
         ),
       )

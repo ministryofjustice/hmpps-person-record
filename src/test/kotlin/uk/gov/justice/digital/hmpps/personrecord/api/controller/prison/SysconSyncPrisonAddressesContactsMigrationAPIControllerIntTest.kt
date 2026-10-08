@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus.NOT_IMPLEMENTED
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesAPIControllerIntTest.Companion.assertAddressMatches
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
@@ -19,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressesAndContactsResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
@@ -28,7 +28,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepositor
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.BUS
@@ -591,28 +590,6 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
   private fun addressMatcher(request: PrisonAddress, entity: AddressEntity) = entity.fullAddress == request.fullAddress
 
   private fun addressMatcher(request: PrisonAddress, mapping: SysconAddressMapping) = mapping.nomisAddressId == request.nomisAddressId
-
-  private fun assertAddressMatches(request: PrisonAddress, address: AddressEntity) = with(address) {
-    assertThat(fullAddress).isEqualTo(request.fullAddress)
-    assertThat(noFixedAbode).isEqualTo(request.noFixedAbode)
-    assertThat(startDate).isEqualTo(request.startDate?.toUkZonedDateTime())
-    assertThat(endDate).isEqualTo(request.endDate?.toUkZonedDateTime())
-    assertThat(postcode).isEqualTo(request.postcode)
-    assertThat(subBuildingName).isEqualTo(request.subBuildingName)
-    assertThat(buildingName).isEqualTo(request.buildingName)
-    assertThat(buildingNumber).isEqualTo(request.buildingNumber)
-    assertThat(thoroughfareName).isEqualTo(request.thoroughfareName)
-    assertThat(dependentLocality).isEqualTo(request.dependentLocality)
-    assertThat(postTown).isEqualTo(request.postTown)
-    assertThat(county).isEqualTo(request.county)
-    assertThat(countryCode).isEqualTo(request.countryCode)
-    assertThat(comment).isEqualTo(request.comment)
-    assertThat(statusCode).isEqualTo(AddressStatusCode.fromPrison(request.isPrimary, request.isMail ?: false))
-    assertThat(modifyUserId).isEqualTo(request.modifyUserId)
-    assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
-    assertThat(createUserId).isEqualTo(request.createUserId)
-    assertThat(createDateTime).isEqualTo(request.createDateTime)
-  }
 
   private fun assertAddressUsageMatches(request: PrisonAddressUsage, entity: AddressUsageEntity) = with(entity) {
     assertThat(usageCode).isEqualTo(request.addressUsageCode)
