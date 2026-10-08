@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonAddressRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAddress
@@ -147,6 +148,24 @@ data class Address(
       isVerified = address.typeVerified,
       usages = address.usages.map { AddressUsage.from(it) },
       contacts = address.contacts.mapNotNull { Contact.from(it) },
+    )
+
+    fun from(address: PrisonAddressRequest): Address = Address(
+      noFixedAbode = address.noFixedAbode,
+      startDate = address.startDate.toUkZonedDateTime(),
+      endDate = address.endDate?.toUkZonedDateTime(),
+      postcode = address.postcode,
+      subBuildingName = address.subBuildingName,
+      buildingNumber = address.buildingNumber,
+      thoroughfareName = address.thoroughfareName,
+      dependentLocality = address.dependentLocality,
+      postTown = address.postTown,
+      county = address.county,
+      countryCode = address.countryCode,
+      statusCode = address.statusCode,
+      usages = address.usages.map { AddressUsage(it, true, createDateTime = LocalDateTime.now(), createUserId = address.userId) },
+      createDateTime = LocalDateTime.now(),
+      createUserId = address.userId,
     )
 
     fun from(address: SasAddressData): Address = Address(

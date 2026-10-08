@@ -47,7 +47,7 @@ class PrisonAPIAddressesController(
   fun createAddressByPrisonNumberDps(
     @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
     @Valid @RequestBody request: PrisonAddressRequest,
-  ): ResponseEntity<CanonicalAddress> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+  ): CanonicalAddress = prisonAddressesHandler.create(prisonNumber, request)
 
   @Operation(
     description = "Add phone numbers for a prisoner's address by Prison Number and address id. Role required is **$PRISON_API_READ_WRITE**. ",

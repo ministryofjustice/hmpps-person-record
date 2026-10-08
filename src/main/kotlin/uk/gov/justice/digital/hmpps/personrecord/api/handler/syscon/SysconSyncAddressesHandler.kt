@@ -12,9 +12,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepositor
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.M
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.MA
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.PM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.Companion.MAIL_TYPES
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.Companion.PRIMARY_TYPES
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import java.util.UUID
@@ -54,17 +53,6 @@ class SysconSyncAddressesHandler(
   }
 
   companion object {
-
-    fun isPrimary(addressStatusCode: AddressStatusCode?): Boolean = when (addressStatusCode) {
-      M, PM -> true
-      else -> false
-    }
-
-    fun isMail(addressStatusCode: AddressStatusCode?): Boolean = when (addressStatusCode) {
-      PM, MA -> true
-      else -> false
-    }
-
     fun AddressEntity.toPrisonAddress() = PrisonAddress(
       startDate = startDate?.toUkLocalDate(),
       endDate = endDate?.toUkLocalDate(),
@@ -80,8 +68,8 @@ class SysconSyncAddressesHandler(
       county = county,
       countryCode = countryCode,
       comment = comment,
-      isPrimary = isPrimary(statusCode),
-      isMail = isMail(statusCode),
+      isPrimary = PRIMARY_TYPES.contains(statusCode),
+      isMail = MAIL_TYPES.contains(statusCode),
       modifyDateTime = modifyDateTime,
       modifyUserId = modifyUserId,
       createDateTime = createDateTime!!,

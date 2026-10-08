@@ -39,7 +39,7 @@ data class PrisonAddressRequest(
   @Schema(description = "The address postcode. Previously `postalCode` in Prison API", example = "LI1 5TH")
   val postcode: String? = null,
 
-  @Schema(description = "The address status code. `primary in Prison API is M, `mail` in Prison API is MA and both selected is PM.", example = "M", required = true)
+  @Schema(description = "The address status code. `primary` in Prison API is M, `mail` in Prison API is MA and both selected is PM.", example = "M", required = true)
   val statusCode: AddressStatusCode,
 
   @Schema(description = "Is the person without a permanent residence. Previously `noFixedAddress` in Prison API", example = "false")
