@@ -32,7 +32,7 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
 
-  runtimeOnly("org.postgresql:postgresql:42.7.13")
+  runtimeOnly("org.postgresql:postgresql:42.7.14")
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
