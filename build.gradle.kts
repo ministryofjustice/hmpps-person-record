@@ -46,7 +46,7 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-webclient-test")
   testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
 
-  testImplementation("au.com.dius.pact.provider:junit5spring:4.7.5")
+  testImplementation("au.com.dius.pact.provider:junit5spring:4.6.5")
 }
 
 repositories {
