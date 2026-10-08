@@ -96,8 +96,9 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
 
     publishProbationAddressUpdatedEvent(personEntity.crn, probationAddress.deliusAddressId)
 
-    val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
-    assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
+    awaitAssert {
+      assertThat(personRepository.findByCrn(personEntity.crn!!)!!.addresses.size).isEqualTo(1)
+    }
 
     val actualAddress = assertAddress(personEntity.crn!!, probationAddress)
     assertCprAddressCreatedEventPublished(personEntity.crn!!, actualAddress.updateId!!)
