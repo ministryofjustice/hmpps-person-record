@@ -15,8 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -39,22 +37,10 @@ class E2ETestBase : MessagingTestBase() {
   @Autowired
   private lateinit var personMatchService: PersonMatchService
 
-  override fun createPerson(person: Person, configure: PersonEntity.() -> Unit): PersonEntity {
-    val personEntity = super.createPerson(person, configure)
+  override fun createPerson(person: Person, personKeyEntity: PersonKeyEntity, configure: PersonEntity.() -> Unit): PersonEntity {
+    val personEntity = super.createPerson(person, personKeyEntity, configure)
     personMatchService.saveToPersonMatch(personEntity)
     return personEntity
-  }
-
-  override fun createPersonWithNewKey(person: Person, status: UUIDStatusType, reason: UUIDStatusReasonType?, configure: PersonEntity.() -> Unit): PersonEntity {
-    val personEntity = super.createPersonWithNewKey(person, status, reason, configure)
-    personMatchService.saveToPersonMatch(personEntity)
-    return personEntity
-  }
-
-  override fun PersonKeyEntity.addPerson(person: Person): PersonKeyEntity {
-    val personEntity = createPerson(person, this)
-    personMatchService.saveToPersonMatch(personEntity)
-    return this
   }
 
   internal fun createProbationPerson(probationCase: ProbationCase = createRandomProbationCase()): Person = Person.from(probationCase)
