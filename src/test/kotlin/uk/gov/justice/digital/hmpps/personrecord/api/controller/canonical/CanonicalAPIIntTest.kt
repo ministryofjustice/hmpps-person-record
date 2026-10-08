@@ -207,6 +207,10 @@ class CanonicalAPIIntTest : WebTestBase() {
       type = CanonicalContactType.from(person.contacts.first().contactType),
       value = person.contacts.first().contactValue,
       extension = person.contacts.first().extension,
+      createDateTime = person.contacts.first().createDateTime,
+      createUserId = person.contacts.first().createUserId,
+      modifyDateTime = person.contacts.first().modifyDateTime,
+      modifyUserId = person.contacts.first().modifyUserId,
     )
     assertThat(responseBody.contacts.size).isEqualTo(1)
     assertThat(responseBody.contacts.first())
