@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDateTime
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
@@ -49,10 +50,7 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
           contacts = listOf(Contact(MOBILE, randomPhoneNumber(), "+44")),
           nationalities = listOf(randomNationalityCode()),
         )
-      val cluster = createPersonKey()
-        .addPerson(prisonPerson)
-
-      val person = cluster.personEntities.first()
+      val person = createPersonWithNewKey(prisonPerson)
       val responseBody = sendGetRequestAsserted<CanonicalRecord>(
         url = prisonApiUrl(prisonNumber),
         roles = listOf(API_READ_ONLY),
@@ -72,9 +70,9 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
       val canonicalAddress = CanonicalAddress(
         cprAddressId = address.updateId!!.toString(),
         noFixedAbode = address.noFixedAbode,
-        startDate = address.startDate?.toLocalDate()?.toString(),
+        startDate = address.startDate?.toUkLocalDate()?.toString(),
         startDateTime = address.startDate?.toUkLocalDateTime(),
-        endDate = address.endDate?.toLocalDate()?.toString(),
+        endDate = address.endDate?.toUkLocalDate()?.toString(),
         endDateTime = address.endDate?.toUkLocalDateTime(),
         postcode = address.postcode,
         buildingName = address.buildingName,
@@ -94,9 +92,9 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
       val canonicalAddress2 = CanonicalAddress(
         cprAddressId = address2.updateId!!.toString(),
         noFixedAbode = address2.noFixedAbode,
-        startDate = address2.startDate?.toLocalDate()?.toString(),
+        startDate = address2.startDate?.toUkLocalDate()?.toString(),
         startDateTime = address2.startDate?.toUkLocalDateTime(),
-        endDate = address2.endDate?.toLocalDate()?.toString(),
+        endDate = address2.endDate?.toUkLocalDate()?.toString(),
         endDateTime = address2.endDate?.toUkLocalDateTime(),
         postcode = address2.postcode,
         buildingName = address2.buildingName,
