@@ -3,12 +3,12 @@ package uk.gov.justice.digital.hmpps.personrecord.service.address
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressDeleted
@@ -41,30 +41,29 @@ class AddressService(
   )
 
   private fun create(address: Address, personEntity: PersonEntity, eventSource: DomainEventSource): AddressEntity {
-    val matchingFieldsBeforeUpdate = PersonMatchRecord.from(personEntity)
+    val personChangeChecker = PersonChangeChecker(personEntity)
     val addressToSave = AddressEntity.from(address)
     addressToSave.person = personEntity
     personEntity.addresses.add(addressToSave)
 
     val addressEntity = addressRepository.save(addressToSave)
 
-    val matchingFieldsChanged = matchingFieldsBeforeUpdate.matchingFieldsAreDifferent(personEntity)
-    tryRecluster(personEntity, matchingFieldsChanged)
+    tryRecluster(personEntity, personChangeChecker)
 
-    publisher.publishEvent(AddressCreated(addressEntity, matchingFieldsChanged, eventSource))
+    publisher.publishEvent(AddressCreated(addressEntity, personChangeChecker.matchingFieldsHaveChanged(personEntity), eventSource))
 
     return addressEntity
   }
 
   private fun update(address: Address, addressEntity: AddressEntity, eventSource: DomainEventSource): AddressEntity {
-    val matchingFieldsBeforeUpdate = PersonMatchRecord.from(addressEntity.person!!)
+    val personEntity = addressEntity.person!!
+    val personChangeChecker = PersonChangeChecker(personEntity)
     addressEntity.update(address)
     addressRepository.save(addressEntity)
 
-    val matchingFieldsChanged = matchingFieldsBeforeUpdate.matchingFieldsAreDifferent(addressEntity.person!!)
-    tryRecluster(addressEntity.person!!, matchingFieldsChanged)
+    tryRecluster(personEntity, personChangeChecker)
 
-    publisher.publishEvent(AddressUpdated(addressEntity, matchingFieldsChanged, eventSource))
+    publisher.publishEvent(AddressUpdated(addressEntity, personChangeChecker.matchingFieldsHaveChanged(personEntity), eventSource))
 
     return addressEntity
   }
@@ -73,20 +72,21 @@ class AddressService(
   fun deleteAddress(findAddress: () -> AddressEntity?, eventSource: DomainEventSource) {
     findAddress()?.let { addressEntity ->
       val personEntity = addressEntity.person!!
+      val personChangeChecker = PersonChangeChecker(personEntity)
       personEntity.addresses.remove(addressEntity)
       addressEntity.person = null
       personRepository.save(personEntity)
 
-      tryRecluster(personEntity, true)
+      tryRecluster(personEntity, personChangeChecker)
       publisher.publishEvent(AddressDeleted(addressEntity, personEntity, eventSource))
     }
   }
 
   private fun tryRecluster(
     personEntity: PersonEntity,
-    matchingFieldsChanged: Boolean,
+    personChangeChecker: PersonChangeChecker,
   ) {
-    if (matchingFieldsChanged && personEntity.isNotPassive()) {
+    if (personChangeChecker.shouldSaveToPersonMatch(personEntity)) {
       personMatchService.saveToPersonMatch(personEntity)
       personEntity.personKey?.let { reclusterService.recluster(personEntity) }
     }
