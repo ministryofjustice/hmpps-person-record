@@ -15,6 +15,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -39,6 +41,12 @@ class E2ETestBase : MessagingTestBase() {
 
   override fun createPerson(person: Person, configure: PersonEntity.() -> Unit): PersonEntity {
     val personEntity = super.createPerson(person, configure)
+    personMatchService.saveToPersonMatch(personEntity)
+    return personEntity
+  }
+
+  override fun createPersonWithNewKey(person: Person, status: UUIDStatusType, reason: UUIDStatusReasonType?, configure: PersonEntity.() -> Unit): PersonEntity {
+    val personEntity = super.createPersonWithNewKey(person, status, reason, configure)
     personMatchService.saveToPersonMatch(personEntity)
     return personEntity
   }
