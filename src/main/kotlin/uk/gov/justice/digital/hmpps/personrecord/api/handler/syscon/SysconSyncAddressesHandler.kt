@@ -45,7 +45,7 @@ class SysconSyncAddressesHandler(
   fun handleUpdate(cprAddressId: String, prisonAddress: PrisonAddress) {
     addressService.update(
       address = prisonAddress.toAddress(),
-      findAddress = { addressRepository.findByUpdateId(UUID.fromString(cprAddressId))!! },
+      findAddress = { addressRepository.findByUpdateId(UUID.fromString(cprAddressId)) },
       eventSource = DomainEventSource.NOMIS,
       childrenToIgnore = setOf(ContactEntity::class, AddressUsageEntity::class),
     )

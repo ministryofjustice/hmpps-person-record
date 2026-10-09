@@ -400,7 +400,7 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = NOT_FOUND,
         ).returnResult().responseBody!!
-        assertThat(response).contains("Not found: Address with $addressId not found")
+        assertThat(response).contains("Address not found")
       }
     }
 

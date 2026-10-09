@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.address
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -70,9 +71,9 @@ class AddressService(
     address: Address,
     eventSource: DomainEventSource,
     childrenToIgnore: Set<KClass<*>> = emptySet(),
-    findAddress: () -> AddressEntity,
+    findAddress: () -> AddressEntity?,
   ): AddressEntity {
-    val addressEntity = findAddress()
+    val addressEntity = findAddress() ?: throw ResourceNotFoundException("Address not found")
     val matchingFieldsBeforeUpdate = PersonMatchRecord.from(addressEntity.person!!)
     addressEntity.update(address, childrenToIgnore)
     addressRepository.save(addressEntity)
