@@ -62,14 +62,14 @@ class DpsPrisonAPIController(
       ],
     ),
   )
-  fun getByPrisonNumberDps(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<DpsPrisonRecord> = dpsPrisonGetHandler.get(prisonNumber)
+  fun getByPrisonNumberDps(@PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String): ResponseEntity<DpsPrisonRecord> = dpsPrisonGetHandler.get(prisonNumber)
 
   @Operation(
     description = "Retrieve prison religion history by Prison Number. Role required is **$API_READ_ONLY**. ",
     security = [SecurityRequirement(name = "api-role")],
   )
   @GetMapping("/{prisonNumber}/religion-history")
-  fun getReligionHistoryByPrisonNumberDps(@PathVariable(name = "prisonNumber") prisonNumber: String): List<PrisonReligion> = dpsPrisonGetHandler.getReligionHistory(prisonNumber)
+  fun getReligionHistoryByPrisonNumberDps(@PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String): List<PrisonReligion> = dpsPrisonGetHandler.getReligionHistory(prisonNumber)
 
   @Operation(
     description = "Update the prisoner's religion by Prison Number. Role required is **$PRISON_API_READ_WRITE**. ",
@@ -79,7 +79,7 @@ class DpsPrisonAPIController(
   @PutMapping("/{prisonNumber}/religion")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun updateReligionHistoryByPrisonNumberDps(
-    @PathVariable(name = "prisonNumber") @Parameter(description = "The prisoner number") prisonNumber: String,
+    @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
     @RequestBody insertRequest: PrisonReligionInsertRequest,
   ) {
     prisonReligionInsertHandler.handleCprInsert(prisonNumber, insertRequest)
