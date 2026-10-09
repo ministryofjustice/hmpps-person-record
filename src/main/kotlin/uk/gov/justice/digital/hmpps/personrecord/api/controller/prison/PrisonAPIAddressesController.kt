@@ -18,15 +18,19 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonAddressesHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonContactsHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonAddressRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactResponse
+
 @Tag(name = "Prison")
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
 @RequestMapping("/person/prison")
 class PrisonAPIAddressesController(
   private val prisonAddressesHandler: PrisonAddressesHandler,
+  private val prisonContactsHandler: PrisonContactsHandler,
 ) {
   @Operation(
     description = "Retrieve the prisoner's addresses by Prison Number, most recent first. Role required is **$API_READ_ONLY**. ",
@@ -60,5 +64,5 @@ class PrisonAPIAddressesController(
     @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
     @PathVariable(name = "addressId") @Parameter(description = "The address id") addressId: String,
     @Valid @RequestBody request: List<@Valid PrisonContactRequest>,
-  ): ResponseEntity<CanonicalAddress> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+  ): List<PrisonContactResponse> = prisonContactsHandler.createPhoneNumbers(addressId, request)
 }

@@ -18,8 +18,10 @@ import org.springframework.http.HttpStatus.UNAUTHORIZED
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContactType
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonAddressRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
@@ -29,6 +31,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.P
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.PM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.BUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.Duration
@@ -360,33 +364,69 @@ class PrisonAPIAddressesControllerIntTest : WebTestBase() {
     @Nested
     inner class HappyPath {
       @Test
-      fun `should respond with 501 as not currently implemented`() {
-        sendPostRequestAsserted<Unit>(
-          url = addressPhoneNumbersUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = listOf(validPhoneNumberRequest()),
-          roles = listOf(PRISON_API_READ_WRITE),
-          expectedStatus = NOT_IMPLEMENTED,
+      fun `should add the phone numbers to the address and return them`() {
+        val prisonNumber = randomPrisonNumber()
+        val addressId = createPersonWithAddress(prisonNumber)
+        val requests = listOf(
+          phoneNumberRequest().copy(type = HOME, value = "01234 111111", extension = null),
+          phoneNumberRequest().copy(type = MOBILE, value = "07777 222222", extension = "12"),
         )
+
+        val response = sendPostRequestAsserted<List<PrisonContactResponse>>(
+          url = addressPhoneNumbersUrl(prisonNumber, addressId),
+          body = requests,
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = CREATED,
+        ).returnResult().responseBody!!
+
+        assertThat(response.map { it.type }).containsExactly(CanonicalContactType.from(HOME), CanonicalContactType.from(MOBILE))
+        assertThat(response.map { it.value }).containsExactly("01234 111111", "07777 222222")
+        assertThat(response.map { it.extension }).containsExactly(null, "12")
+        assertThat(response).allSatisfy {
+          assertThat(it.contactId).isNotBlank()
+          assertThat(it.createUserId).isEqualTo("TEST")
+          assertThat(it.createDateTime).isNotNull()
+        }
+
+        val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+        assertThat(personEntity.contacts).isEmpty()
+        val addressContacts = personEntity.addresses.single().contacts
+        assertThat(addressContacts.map { it.updateId.toString() }).containsExactlyInAnyOrderElementsOf(response.map { it.contactId })
+        assertThat(addressContacts).allSatisfy { assertThat(it.person).isNull() }
       }
     }
 
     @Nested
     inner class Validation {
       @Test
-      fun `should return bad request when value is missing`() {
+      fun `should return bad request when contact type is invalid`() {
         sendPostRequestAsserted<String>(
           url = addressPhoneNumbersUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = listOf(mapOf("type" to BUS.name, "userId" to "TEST")),
+          body = listOf(mapOf("type" to "NOT_A_TYPE", "value" to "01234 567 890", "userId" to "TEST")),
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = BAD_REQUEST,
         )
       }
 
       @Test
-      fun `should return bad request when contact type is invalid`() {
+      fun `should return not found when the address does not exist for the person`() {
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithAddress(prisonNumber)
+        val addressId = UUID.randomUUID().toString()
+        val response = sendPostRequestAsserted<String>(
+          url = addressPhoneNumbersUrl(prisonNumber, addressId),
+          body = listOf(phoneNumberRequest()),
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = NOT_FOUND,
+        ).returnResult().responseBody!!
+        assertThat(response).contains("Address with $addressId not found")
+      }
+
+      @Test
+      fun `should return bad request when value is missing`() {
         sendPostRequestAsserted<String>(
           url = addressPhoneNumbersUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = listOf(mapOf("type" to "NOT_A_TYPE", "value" to "01234 567 890", "userId" to "TEST")),
+          body = listOf(mapOf("type" to BUS.name, "userId" to "TEST")),
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = BAD_REQUEST,
         )
@@ -399,7 +439,7 @@ class PrisonAPIAddressesControllerIntTest : WebTestBase() {
       fun `should return Access Denied 403 when role is wrong`() {
         sendPostRequestAsserted<String>(
           url = addressPhoneNumbersUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = listOf(validPhoneNumberRequest()),
+          body = listOf(phoneNumberRequest()),
           roles = listOf(API_READ_ONLY),
           expectedStatus = FORBIDDEN,
         )
@@ -409,7 +449,7 @@ class PrisonAPIAddressesControllerIntTest : WebTestBase() {
       fun `should return UNAUTHORIZED 401 when role is not set`() {
         sendPostRequestAsserted<Unit>(
           url = addressPhoneNumbersUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = listOf(validPhoneNumberRequest()),
+          body = listOf(phoneNumberRequest()),
           roles = emptyList(),
           expectedStatus = UNAUTHORIZED,
           sendAuthorised = false,
@@ -417,7 +457,12 @@ class PrisonAPIAddressesControllerIntTest : WebTestBase() {
       }
     }
 
-    private fun validPhoneNumberRequest() = PrisonContactRequest(
+    private fun createPersonWithAddress(prisonNumber: String): String {
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber).copy(addresses = listOf(Address(postcode = "AB1 1AA")), contacts = emptyList()))
+      return personRepository.findByPrisonNumber(prisonNumber)!!.addresses.single().updateId.toString()
+    }
+
+    private fun phoneNumberRequest() = PrisonContactRequest(
       type = BUS,
       value = "01234 567 890",
       extension = "123",
