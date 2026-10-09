@@ -36,7 +36,7 @@ class AddressService(
       create(address, eventSource, findPerson)
     },
     yes = {
-      update(address, eventSource) { findAddress()!! }
+      update(address, eventSource) { it }
     },
   )
 
