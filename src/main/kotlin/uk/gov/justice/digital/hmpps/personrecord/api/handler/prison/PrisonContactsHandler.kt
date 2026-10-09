@@ -58,9 +58,8 @@ class PrisonContactsHandler(
     contactEntity.extension = request.extension
     contactEntity.modifyDateTime = LocalDateTime.now()
     contactEntity.modifyUserId = request.userId
-    val savedContactEntity = contactRepository.saveAndFlush(contactEntity)
-    publisher.publishEvent(ContactUpdated(DomainEventSource.CPR, prisonNumber, savedContactEntity, SourceSystemType.NOMIS))
-    return savedContactEntity.toPrisonContactResponse()
+    publisher.publishEvent(ContactUpdated(DomainEventSource.CPR, prisonNumber, contactEntity, SourceSystemType.NOMIS))
+    return contactEntity.toPrisonContactResponse()
   }
 
   private fun findPerson(prisonNumber: String): PersonEntity = personRepository.findByPrisonNumber(prisonNumber)

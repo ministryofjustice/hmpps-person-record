@@ -37,7 +37,7 @@ class PrisonAPIContactsController(
   )
   @GetMapping("/{prisonNumber}/contacts")
   fun getContactsByPrisonNumber(
-    @PathVariable(name = "prisonNumber") @Parameter(description = "The prisoner number") prisonNumber: String,
+    @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
     @RequestParam(name = "includeTypes", required = false)
     @Parameter(description = "Only return contacts of these types", example = "HOME,MOBILE")
     includeTypes: List<ContactType>? = null,
@@ -54,7 +54,7 @@ class PrisonAPIContactsController(
   @PostMapping("/{prisonNumber}/contacts")
   @ResponseStatus(HttpStatus.CREATED)
   fun createContactByPrisonNumber(
-    @PathVariable(name = "prisonNumber") @Parameter(description = "The prisoner number") prisonNumber: String,
+    @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
     @Valid @RequestBody request: PrisonContactRequest,
   ): PrisonContactResponse = prisonContactsHandler.create(prisonNumber, request)
 
@@ -65,7 +65,7 @@ class PrisonAPIContactsController(
   @PreAuthorize("hasRole('$PRISON_API_READ_WRITE')")
   @PutMapping("/{prisonNumber}/contacts/{contactId}")
   fun updateContactByPrisonNumber(
-    @PathVariable(name = "prisonNumber") @Parameter(description = "The prisoner number") prisonNumber: String,
+    @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
     @PathVariable(name = "contactId") @Parameter(description = "The contact id") contactId: String,
     @Valid @RequestBody request: PrisonContactRequest,
   ): PrisonContactResponse = prisonContactsHandler.update(prisonNumber, contactId, request)
