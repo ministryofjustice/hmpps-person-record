@@ -155,10 +155,10 @@ class AddressEntity(
   }
 
   private fun updateChildEntities(address: Address, childrenToIgnore: Set<KClass<*>>) {
-    if (AddressUsageEntity::class !in childrenToIgnore) {
+    if (!childrenToIgnore.contains<Any>(AddressUsageEntity::class)) {
       updateUsages(address.usages.map { AddressUsageEntity.from(it) })
     }
-    if (ContactEntity::class !in childrenToIgnore) {
+    if (!childrenToIgnore.contains<Any>(ContactEntity::class)) {
       updateContacts(address.contacts.map { ContactEntity.from(it) })
     }
   }
