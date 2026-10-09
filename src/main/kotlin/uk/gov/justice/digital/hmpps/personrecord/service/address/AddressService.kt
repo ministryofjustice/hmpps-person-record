@@ -28,19 +28,25 @@ class AddressService(
   @Transactional
   fun processAddress(
     address: Address,
-    findPerson: (() -> PersonEntity?)? = null,
+    findPerson: () -> PersonEntity,
     findAddress: () -> AddressEntity?,
     eventSource: DomainEventSource,
   ): AddressEntity = findAddress().exists(
     no = {
-      create(address, findPerson?.invoke()!!, eventSource)
+      create(address, eventSource, findPerson)
     },
     yes = {
-      update(address, it, eventSource)
+      update(address, eventSource) { it }
     },
   )
 
-  private fun create(address: Address, personEntity: PersonEntity, eventSource: DomainEventSource): AddressEntity {
+  @Transactional
+  fun create(
+    address: Address,
+    eventSource: DomainEventSource,
+    findPerson: () -> PersonEntity,
+  ): AddressEntity {
+    val personEntity = findPerson()
     val personChangeChecker = PersonChangeChecker(personEntity)
     val addressToSave = AddressEntity.from(address)
     addressToSave.person = personEntity
@@ -55,7 +61,13 @@ class AddressService(
     return addressEntity
   }
 
-  private fun update(address: Address, addressEntity: AddressEntity, eventSource: DomainEventSource): AddressEntity {
+  @Transactional
+  fun update(
+    address: Address,
+    eventSource: DomainEventSource,
+    findAddress: () -> AddressEntity,
+  ): AddressEntity {
+    val addressEntity = findAddress()
     val personEntity = addressEntity.person!!
     val personChangeChecker = PersonChangeChecker(personEntity)
     addressEntity.update(address)

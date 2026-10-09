@@ -23,7 +23,7 @@ class SysconSyncContactsHandler(
   @Transactional
   fun handleInsert(prisonNumber: String, prisonContact: PrisonContact): SysconContactMapping {
     val personEntity = personRepository.findByPrisonNumber(prisonNumber)
-      ?: throw ResourceNotFoundException("Person with $prisonNumber not found for person with $prisonNumber")
+      ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
     val contactEntity = contactRepository.saveAndFlush(prisonContact.toEntity(personEntity))
     personEntity.contacts.add(contactEntity)
     return (prisonContact to contactEntity).toMapping()
@@ -46,7 +46,7 @@ class SysconSyncContactsHandler(
   }
 
   @Transactional
-  fun handleDelete(prisonNumber: String, cprContactId: String) {
+  fun handleDelete(cprContactId: String) {
     val contactEntity = contactRepository.findByUpdateId(UUID.fromString(cprContactId))
     contactEntity?.let {
       it.person?.contacts?.remove(it)
