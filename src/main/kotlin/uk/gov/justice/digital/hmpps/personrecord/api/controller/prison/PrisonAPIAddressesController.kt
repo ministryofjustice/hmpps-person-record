@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -20,9 +19,9 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonAddressesHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonContactsHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonAddressRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactResponse
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCreateAddressRequest
 
 @Tag(name = "Prison")
 @RestController
@@ -50,8 +49,8 @@ class PrisonAPIAddressesController(
   @ResponseStatus(HttpStatus.CREATED)
   fun createAddressByPrisonNumberDps(
     @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
-    @Valid @RequestBody request: PrisonAddressRequest,
-  ): ResponseEntity<CanonicalAddress> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+    @Valid @RequestBody request: PrisonCreateAddressRequest,
+  ): CanonicalAddress = prisonAddressesHandler.create(prisonNumber, request)
 
   @Operation(
     description = "Add phone numbers for a prisoner's address by Prison Number and address id. Role required is **$PRISON_API_READ_WRITE**. ",
