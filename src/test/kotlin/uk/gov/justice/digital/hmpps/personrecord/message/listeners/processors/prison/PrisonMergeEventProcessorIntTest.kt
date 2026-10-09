@@ -35,32 +35,32 @@ class PrisonMergeEventProcessorIntTest(
 
     @Test
     fun `Should merge the religions to the to person`() {
-      val toPrisonerNumber = randomPrisonNumber()
-      val fromPrisonerNumber = randomPrisonNumber()
+      val toPrisonNumber = randomPrisonNumber()
+      val fromPrisonNumber = randomPrisonNumber()
       createPersonKey()
-        .addPerson(Person(prisonNumber = toPrisonerNumber, sourceSystem = NOMIS))
-        .addPerson(Person(prisonNumber = fromPrisonerNumber, sourceSystem = NOMIS))
+        .addPerson(Person(prisonNumber = toPrisonNumber, sourceSystem = NOMIS))
+        .addPerson(Person(prisonNumber = fromPrisonNumber, sourceSystem = NOMIS))
       prisonReligionRepository.saveAll(
         listOf(
           prisonReligionEntity(
-            prisonNumber = toPrisonerNumber,
+            prisonNumber = toPrisonNumber,
             startDate = LocalDate.of(2021, 1, 1),
             code = CALV,
           ),
           prisonReligionEntity(
-            prisonNumber = fromPrisonerNumber,
+            prisonNumber = fromPrisonNumber,
             startDate = LocalDate.of(2021, 1, 25),
             code = AGNO,
           ),
         ),
       )
-      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonerNumber))
+      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
 
       // Method under test
-      prisonMergeEventProcessor.processEvent(fromPrisonNumber = fromPrisonerNumber, toPrisonNumber = toPrisonerNumber)
+      prisonMergeEventProcessor.processEvent(fromPrisonNumber = fromPrisonNumber, toPrisonNumber = toPrisonNumber)
 
-      assertThat(personRepository.findByPrisonNumber(toPrisonerNumber)?.religion).isEqualTo(AGNO)
-      assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonerNumber))
+      assertThat(personRepository.findByPrisonNumber(toPrisonNumber)?.religion).isEqualTo(AGNO)
+      assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonNumber))
         .satisfiesExactly(
           {
             assertThat(it.code).isEqualTo(AGNO)
