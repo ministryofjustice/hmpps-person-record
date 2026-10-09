@@ -34,7 +34,7 @@ class PrisonAPIAddressesController(
   )
   @GetMapping("/{prisonNumber}/addresses")
   fun getAddressesByPrisonNumberDps(
-    @PathVariable(name = "prisonNumber") @Parameter(description = "The prisoner number") prisonNumber: String,
+    @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
   ): List<CanonicalAddress> = prisonAddressesHandler.get(prisonNumber)
 
   @Operation(
@@ -45,7 +45,7 @@ class PrisonAPIAddressesController(
   @PostMapping("/{prisonNumber}/addresses")
   @ResponseStatus(HttpStatus.CREATED)
   fun createAddressByPrisonNumberDps(
-    @PathVariable(name = "prisonNumber") @Parameter(description = "The prisoner number") prisonNumber: String,
+    @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
     @Valid @RequestBody request: PrisonAddressRequest,
   ): ResponseEntity<CanonicalAddress> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
 
@@ -57,7 +57,7 @@ class PrisonAPIAddressesController(
   @PostMapping("/{prisonNumber}/addresses/{addressId}/phone-numbers")
   @ResponseStatus(HttpStatus.CREATED)
   fun createAddressPhoneNumbersByPrisonNumberDps(
-    @PathVariable(name = "prisonNumber") @Parameter(description = "The prisoner number") prisonNumber: String,
+    @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
     @PathVariable(name = "addressId") @Parameter(description = "The address id") addressId: String,
     @Valid @RequestBody request: List<@Valid PrisonContactRequest>,
   ): ResponseEntity<CanonicalAddress> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
