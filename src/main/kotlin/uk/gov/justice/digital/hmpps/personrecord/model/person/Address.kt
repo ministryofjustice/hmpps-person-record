@@ -145,7 +145,7 @@ data class Address(
       comment = address.comment,
       statusCode = address.statusCode,
       isVerified = address.typeVerified,
-      usages = address.usages.map { AddressUsage.from(it) },
+      usages = address.usage?.let { listOf(AddressUsage.from(it)) } ?: emptyList(),
       contacts = address.contacts.mapNotNull { Contact.from(it) },
     )
 
