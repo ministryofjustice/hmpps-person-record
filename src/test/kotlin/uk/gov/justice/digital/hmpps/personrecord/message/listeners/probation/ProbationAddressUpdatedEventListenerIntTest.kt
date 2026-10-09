@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIU
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import java.time.chrono.ChronoZonedDateTime
 
 @ExtendWith(OutputCaptureExtension::class)
 class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
@@ -88,8 +89,14 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
 
     val actualPersonEntity = personRepository.findByCrn(personEntity.crn!!)
     val cprAddressAfterUpdate = actualPersonEntity?.addresses?.first()
-    assertThat(Address.from(cprAddressAfterUpdate!!)).usingRecursiveComparison().isEqualTo(Address.from(cprAddressBeforeUpdate))
-    assertThat(Address.from(cprAddressAfterUpdate)).usingRecursiveComparison().isEqualTo(addressOld)
+    assertThat(Address.from(cprAddressAfterUpdate!!)).usingRecursiveComparison().withComparatorForType(
+      ChronoZonedDateTime.timeLineOrder(),
+      ZonedDateTime::class.java,
+    ).isEqualTo(Address.from(cprAddressBeforeUpdate))
+    assertThat(Address.from(cprAddressAfterUpdate)).usingRecursiveComparison().withComparatorForType(
+      ChronoZonedDateTime.timeLineOrder(),
+      ZonedDateTime::class.java,
+    ).isEqualTo(addressOld)
   }
 
   @Test
