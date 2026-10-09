@@ -5,11 +5,14 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.HttpStatus.FORBIDDEN
-import org.springframework.http.HttpStatus.NOT_IMPLEMENTED
+import org.springframework.http.HttpStatus.NOT_FOUND
+import org.springframework.http.HttpStatus.NO_CONTENT
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesAPIControllerIntTest.Companion.assertAddressMatches
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
@@ -19,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressesAndContactsResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
@@ -28,7 +30,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepositor
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.BUS
@@ -49,373 +50,473 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
   lateinit var addressUsageRepository: AddressUsageRepository
 
   @Nested
-  @ActiveProfiles("prod")
-  inner class ProductionProfile {
+  inner class Migration {
 
-    @Test
-    fun `should have the correct profile active`() {
-      sendPostRequestAsserted<String>(
-        url = addressesUrl(randomPrisonNumber()),
-        body = validRequestBody,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.NOT_FOUND,
-        sendAuthorised = true,
-      ).returnResult().responseBody!!
-    }
-  }
+    @Nested
+    @ActiveProfiles("prod")
+    inner class ProductionProfile {
 
-  @Nested
-  @ActiveProfiles("preprod")
-  inner class PreProductionProfile {
-
-    @Test
-    fun `should have the correct profile active`() {
-      sendPostRequestAsserted<String>(
-        url = addressesUrl(randomPrisonNumber()),
-        body = validRequestBody,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.NOT_FOUND,
-        sendAuthorised = true,
-      ).returnResult().responseBody!!
-    }
-  }
-
-  @Nested
-  inner class Validation {
-
-    private fun badRequest(badRequest: PrisonAddressesAndContactsRequest): String {
-      val prisonNumber = randomPrisonNumber()
-      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-      return sendPostRequestAsserted<String>(
-        url = addressesUrl(prisonNumber),
-        body = badRequest,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.BAD_REQUEST,
-        sendAuthorised = true,
-      ).returnResult().responseBody!!
+      @Test
+      fun `should have the correct profile active`() {
+        sendPostRequestAsserted<String>(
+          url = migrationUrl(randomPrisonNumber()),
+          body = validRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_FOUND,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+      }
     }
 
-    @Test
-    fun `should return bad request when there are duplicate nomis ids on the addresses`() {
-      val duplicateAddressIdsOnRequestBody = validRequestBody.copy(addresses = validRequestBody.addresses.map { it.copy(nomisAddressId = 10000L) })
-      assertThat(badRequest(duplicateAddressIdsOnRequestBody)).contains("Duplicate nomis address ids were detected")
+    @Nested
+    @ActiveProfiles("preprod")
+    inner class PreProductionProfile {
+
+      @Test
+      fun `should have the correct profile active`() {
+        sendPostRequestAsserted<String>(
+          url = migrationUrl(randomPrisonNumber()),
+          body = validRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_FOUND,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+      }
     }
 
-    @Test
-    fun `should return bad request when there are multiple primary addresses`() {
-      val multiplePrimaryAddressesRequestBody = validRequestBody.copy(addresses = validRequestBody.addresses.map { it.copy(isPrimary = true) })
-      assertThat(badRequest(multiplePrimaryAddressesRequestBody)).contains("There cannot be more than one primary address for")
-    }
+    @Nested
+    inner class Validation {
 
-    @Test
-    fun `should return bad request when there are multiple mail addresses`() {
-      val multipleMailAddressesRequestBody = validRequestBody.copy(addresses = validRequestBody.addresses.map { it.copy(isMail = true) })
-      assertThat(badRequest(multipleMailAddressesRequestBody)).contains("There cannot be more than one mail address for")
-    }
+      private fun badRequest(badRequest: PrisonAddressesAndContactsRequest): String {
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        return sendPostRequestAsserted<String>(
+          url = migrationUrl(prisonNumber),
+          body = badRequest,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = HttpStatus.BAD_REQUEST,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+      }
 
-    @Test
-    fun `should return bad request when the is an address usage which does not match its parent address id`() {
-      val nomisAddressId = 20000L
-      val addressUsageDoesNotMatchAddressRequestBody = validRequestBody.copy(
-        addresses = listOf(
-          PrisonAddress(
-            nomisAddressId = nomisAddressId,
-            createUserId = "createUserId",
-            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-            isPrimary = true,
-            addressUsage = listOf(
-              PrisonAddressUsage(
-                nomisAddressUsageId = nomisAddressId + 1, // Does not match
-                addressUsageCode = AddressUsageCode.A01,
-                isActive = false,
-                createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-                createUserId = "createUserId",
+      @Test
+      fun `should return bad request when there are duplicate nomis ids on the addresses`() {
+        val duplicateAddressIdsOnRequestBody =
+          validRequestBody.copy(addresses = validRequestBody.addresses.map { it.copy(nomisAddressId = 10000L) })
+        assertThat(badRequest(duplicateAddressIdsOnRequestBody)).contains("Duplicate nomis address ids were detected")
+      }
+
+      @Test
+      fun `should return bad request when there are multiple primary addresses`() {
+        val multiplePrimaryAddressesRequestBody =
+          validRequestBody.copy(addresses = validRequestBody.addresses.map { it.copy(isPrimary = true) })
+        assertThat(badRequest(multiplePrimaryAddressesRequestBody)).contains("There cannot be more than one primary address for")
+      }
+
+      @Test
+      fun `should return bad request when there are multiple mail addresses`() {
+        val multipleMailAddressesRequestBody =
+          validRequestBody.copy(addresses = validRequestBody.addresses.map { it.copy(isMail = true) })
+        assertThat(badRequest(multipleMailAddressesRequestBody)).contains("There cannot be more than one mail address for")
+      }
+
+      @Test
+      fun `should return bad request when the is an address usage which does not match its parent address id`() {
+        val nomisAddressId = 20000L
+        val addressUsageDoesNotMatchAddressRequestBody = validRequestBody.copy(
+          addresses = listOf(
+            PrisonAddress(
+              nomisAddressId = nomisAddressId,
+              createUserId = "createUserId",
+              createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+              isPrimary = true,
+              addressUsage = listOf(
+                PrisonAddressUsage(
+                  nomisAddressUsageId = nomisAddressId + 1, // Does not match
+                  addressUsageCode = AddressUsageCode.A01,
+                  isActive = false,
+                  createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+                  createUserId = "createUserId",
+                ),
               ),
             ),
           ),
-        ),
-      )
-      assertThat(badRequest(addressUsageDoesNotMatchAddressRequestBody)).contains("Incorrect nomis address usage ids were detected for")
-    }
+        )
+        assertThat(badRequest(addressUsageDoesNotMatchAddressRequestBody)).contains("Incorrect nomis address usage ids were detected for")
+      }
 
-    @Test
-    fun `should return bad request when the is are address usage duplicate codes`() {
-      val multipleDuplicateAddressUsageCodesRequestBody =
-        validRequestBody.copy(
+      @Test
+      fun `should return bad request when the is are address usage duplicate codes`() {
+        val multipleDuplicateAddressUsageCodesRequestBody =
+          validRequestBody.copy(
+            addresses = listOf(
+              PrisonAddress(
+                nomisAddressId = 20000L,
+                createUserId = "createUserId",
+                createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+                isPrimary = true,
+                addressUsage = listOf(
+                  PrisonAddressUsage(
+                    nomisAddressUsageId = 20000L,
+                    addressUsageCode = AddressUsageCode.A01,
+                    isActive = false,
+                    createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+                    createUserId = "createUserId",
+                  ),
+                  PrisonAddressUsage(
+                    nomisAddressUsageId = 20000L,
+                    addressUsageCode = AddressUsageCode.A01,
+                    isActive = false,
+                    createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+                    createUserId = "createUserId",
+                  ),
+
+                ),
+              ),
+            ),
+          )
+        assertThat(badRequest(multipleDuplicateAddressUsageCodesRequestBody)).contains("Duplicate nomis address usage codes were detected for")
+      }
+
+      @Test
+      fun `should return bad request when there is an email contact on an address`() {
+        val emailContactOnAddressRequestBody = validRequestBody.copy(
           addresses = listOf(
             PrisonAddress(
               nomisAddressId = 20000L,
               createUserId = "createUserId",
               createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
               isPrimary = true,
-              addressUsage = listOf(
-                PrisonAddressUsage(
-                  nomisAddressUsageId = 20000L,
-                  addressUsageCode = AddressUsageCode.A01,
-                  isActive = false,
+              contacts = listOf(
+                PrisonContact(
+                  nomisContactId = 30000L,
+                  type = ContactType.EMAIL,
                   createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
                   createUserId = "createUserId",
                 ),
-                PrisonAddressUsage(
-                  nomisAddressUsageId = 20000L,
-                  addressUsageCode = AddressUsageCode.A01,
-                  isActive = false,
-                  createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-                  createUserId = "createUserId",
-                ),
-
               ),
             ),
           ),
         )
-      assertThat(badRequest(multipleDuplicateAddressUsageCodesRequestBody)).contains("Duplicate nomis address usage codes were detected for")
-    }
+        assertThat(badRequest(emailContactOnAddressRequestBody)).contains("Email address contacts detected for")
+      }
 
-    @Test
-    fun `should return bad request when there is an email contact on an address`() {
-      val emailContactOnAddressRequestBody = validRequestBody.copy(
-        addresses = listOf(
-          PrisonAddress(
-            nomisAddressId = 20000L,
-            createUserId = "createUserId",
-            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-            isPrimary = true,
-            contacts = listOf(
-              PrisonContact(
-                nomisContactId = 30000L,
-                type = ContactType.EMAIL,
-                createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-                createUserId = "createUserId",
+      @Test
+      fun `should return bad request when there are email contacts with the same nomis id`() {
+        val duplicateEmailContactId = 20000L
+        val duplicateEmailContactIdsRequestBody = validRequestBody.copy(
+          contacts = listOf(
+            PrisonContact(
+              nomisContactId = duplicateEmailContactId,
+              type = ContactType.EMAIL,
+              createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+              createUserId = "createUserId",
+            ),
+            PrisonContact(
+              nomisContactId = duplicateEmailContactId,
+              type = ContactType.EMAIL,
+              createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+              createUserId = "createUserId",
+            ),
+          ),
+        )
+        assertThat(badRequest(duplicateEmailContactIdsRequestBody)).contains("Duplicate nomis email contact ids were detected for")
+      }
+
+      @Test
+      fun `should return bad request when there are phone contacts with the same nomis id`() {
+        val duplicatePhoneContactId = 20000L
+        val duplicatePhoneContactIdsRequestBody = validRequestBody.copy(
+          addresses = listOf(
+            PrisonAddress(
+              nomisAddressId = 10000L,
+              isPrimary = true,
+              createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+              createUserId = "createUserId",
+              contacts = listOf(
+                PrisonContact(
+                  nomisContactId = duplicatePhoneContactId,
+                  type = BUS,
+                  createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+                  createUserId = "createUserId",
+                ),
               ),
             ),
           ),
-        ),
-      )
-      assertThat(badRequest(emailContactOnAddressRequestBody)).contains("Email address contacts detected for")
-    }
-
-    @Test
-    fun `should return bad request when there are email contacts with the same nomis id`() {
-      val duplicateEmailContactId = 20000L
-      val duplicateEmailContactIdsRequestBody = validRequestBody.copy(
-        contacts = listOf(
-          PrisonContact(
-            nomisContactId = duplicateEmailContactId,
-            type = ContactType.EMAIL,
-            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-            createUserId = "createUserId",
-          ),
-          PrisonContact(
-            nomisContactId = duplicateEmailContactId,
-            type = ContactType.EMAIL,
-            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-            createUserId = "createUserId",
-          ),
-        ),
-      )
-      assertThat(badRequest(duplicateEmailContactIdsRequestBody)).contains("Duplicate nomis email contact ids were detected for")
-    }
-
-    @Test
-    fun `should return bad request when there are phone contacts with the same nomis id`() {
-      val duplicatePhoneContactId = 20000L
-      val duplicatePhoneContactIdsRequestBody = validRequestBody.copy(
-        addresses = listOf(
-          PrisonAddress(
-            nomisAddressId = 10000L,
-            isPrimary = true,
-            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-            createUserId = "createUserId",
-            contacts = listOf(
-              PrisonContact(
-                nomisContactId = duplicatePhoneContactId,
-                type = BUS,
-                createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-                createUserId = "createUserId",
-              ),
+          contacts = listOf(
+            PrisonContact(
+              nomisContactId = duplicatePhoneContactId,
+              type = HOME,
+              createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+              createUserId = "createUserId",
             ),
           ),
-        ),
-        contacts = listOf(
-          PrisonContact(
-            nomisContactId = duplicatePhoneContactId,
-            type = HOME,
-            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-            createUserId = "createUserId",
-          ),
-        ),
-      )
-      assertThat(badRequest(duplicatePhoneContactIdsRequestBody)).contains("Duplicate nomis phone contact ids were detected for")
-    }
-  }
-
-  @Nested
-  inner class Auth {
-
-    @Test
-    fun `should return Access Denied 403 when role is wrong`() {
-      sendPostRequestAsserted<String>(
-        url = addressesUrl(randomPrisonNumber()),
-        body = validRequestBody,
-        roles = listOf("UNSUPPORTED-ROLE"),
-        expectedStatus = HttpStatus.FORBIDDEN,
-      ).returnResult().responseBody!!
+        )
+        assertThat(badRequest(duplicatePhoneContactIdsRequestBody)).contains("Duplicate nomis phone contact ids were detected for")
+      }
     }
 
-    @Test
-    fun `should return UNAUTHORIZED 401 when role is not set`() {
-      webTestClient.post()
-        .uri(addressesUrl(randomPrisonNumber()))
-        .exchange()
-        .expectStatus()
-        .isUnauthorized
+    @Nested
+    inner class Auth {
+
+      @Test
+      fun `should return Access Denied 403 when role is wrong`() {
+        sendPostRequestAsserted<String>(
+          url = migrationUrl(randomPrisonNumber()),
+          body = validRequestBody,
+          roles = listOf("UNSUPPORTED-ROLE"),
+          expectedStatus = FORBIDDEN,
+        ).returnResult().responseBody!!
+      }
+
+      @Test
+      fun `should return UNAUTHORIZED 401 when role is not set`() {
+        webTestClient.post()
+          .uri(migrationUrl(randomPrisonNumber()))
+          .exchange()
+          .expectStatus()
+          .isUnauthorized
+      }
     }
-  }
 
-  @Nested
-  inner class Creation {
+    @Nested
+    inner class Creation {
 
-    @Test
-    fun `successful save returns the correct response body`() {
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-      val prisonNumber = randomPrisonNumber()
-      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+      fun postCodesAreSame(addressEntities: List<AddressEntity>, addressRequest: List<PrisonAddress>) = addressEntities.map { it.postcode }.toSet() == addressRequest.map { it.postcode }.toSet()
 
-      val response = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
-        url = addressesUrl(prisonNumber),
-        body = validRequestBody,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.CREATED,
-        sendAuthorised = true,
-      ).returnResult().responseBody!!
+      @Test
+      fun `successful save returns the correct response body and does not call the matching service when postcodes are the same`() {
+        // No stubbing of the matcher - test will fail if we call it.
+        val prisonNumber = randomPrisonNumber()
+        // We have no guarentee of order so check when the orders differ
+        val addressesMatchingRequestPostcodesDifferentOrder = validRequestBody.addresses.map { Address(postcode = it.postcode) }
+        val person = createRandomPrisonPersonDetails(prisonNumber).copy(addresses = addressesMatchingRequestPostcodesDifferentOrder)
+        val personEntity = createPersonWithNewKey(person)
 
-      val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+        // Assert that the postcodes are going to be the same
+        assertThat(postCodesAreSame(personEntity.addresses, validRequestBody.addresses)).isTrue()
 
-      // Addresses
-      for (addressRequest in validRequestBody.addresses) {
-        // Because ordering is not guaranteed, we need to find the matching address entity for each request
-        val matchingAddressEntity = personEntity.addresses.single { addressMatcher(addressRequest, it) }
-        assertAddressMatches(addressRequest, matchingAddressEntity)
+        sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+      }
 
-        val addressMapping = response.addressesMappings.single { addressMatcher(addressRequest, it) }
-        assertThat(addressMapping.cprAddressId).isEqualTo(matchingAddressEntity.updateId.toString())
+      @Test
+      fun `successful save returns the correct response body and calls the matching service when postcodes differ`() {
+        // Stub the matcher - test will fail if we do not call it
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
 
-        for (contactRequest in addressRequest.contacts) {
+        val prisonNumber = randomPrisonNumber()
+        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        // Assert that the postcodes are not going to be the same
+        assertThat(postCodesAreSame(personEntity.addresses, validRequestBody.addresses)).isFalse()
+
+        sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+      }
+
+      @Test
+      fun `successful save returns the correct response body`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+
+        val response = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+
+        // Addresses
+        assertThat(validRequestBody.addresses.size).isEqualTo(2)
+        for (addressRequest in validRequestBody.addresses) {
+          // Because ordering is not guaranteed, we need to find the matching address entity for each request
+          val matchingAddressEntity = personEntity.addresses.single { addressMatcher(addressRequest, it) }
+          assertAddressMatches(addressRequest, matchingAddressEntity)
+
+          val addressMapping = response.addressesMappings.single { addressMatcher(addressRequest, it) }
+          assertThat(addressMapping.cprAddressId).isEqualTo(matchingAddressEntity.updateId.toString())
+
+          for (contactRequest in addressRequest.contacts) {
+            // Because ordering is not guaranteed, we need to find the matching contact entity for each request
+            val matchingContactEntity = matchingAddressEntity.contacts.single { contactMatcher(contactRequest, it) }
+            assertContactMatches(contactRequest, matchingContactEntity)
+            val contactMapping = addressMapping.contactMappings.single { contactMatcher(contactRequest, it) }
+            assertThat(contactMapping.cprContactId).isEqualTo(matchingContactEntity.updateId.toString())
+          }
+
+          for (addressUsageRequest in addressRequest.addressUsage) {
+            // Because ordering is not guaranteed, we need to find the matching address usage entity for each request
+            val matchingAddressUsageEntity =
+              matchingAddressEntity.usages.single { addressUsageMatcher(addressUsageRequest, it) }
+            assertAddressUsageMatches(addressUsageRequest, matchingAddressUsageEntity)
+            val addressUsageMapping =
+              addressMapping.addressUsageMappings.single { addressUsageMatcher(addressUsageRequest, it) }
+            assertThat(addressUsageMapping.cprAddressUsageId).isEqualTo(matchingAddressUsageEntity.updateId.toString())
+          }
+        }
+
+        // Contacts
+        for (contactRequest in validRequestBody.contacts) {
           // Because ordering is not guaranteed, we need to find the matching contact entity for each request
-          val matchingContactEntity = matchingAddressEntity.contacts.single { contactMatcher(contactRequest, it) }
+          val matchingContactEntity = personEntity.contacts.single { contactMatcher(contactRequest, it) }
           assertContactMatches(contactRequest, matchingContactEntity)
-          val contactMapping = addressMapping.contactMappings.single { contactMatcher(contactRequest, it) }
+          val contactMapping = response.contactMappings.single { contactMatcher(contactRequest, it) }
           assertThat(contactMapping.cprContactId).isEqualTo(matchingContactEntity.updateId.toString())
         }
-
-        for (addressUsageRequest in addressRequest.addressUsage) {
-          // Because ordering is not guaranteed, we need to find the matching address usage entity for each request
-          val matchingAddressUsageEntity = matchingAddressEntity.usages.single { addressUsageMatcher(addressUsageRequest, it) }
-          assertAddressUsageMatches(addressUsageRequest, matchingAddressUsageEntity)
-          val addressUsageMapping = addressMapping.addressUsageMappings.single { addressUsageMatcher(addressUsageRequest, it) }
-          assertThat(addressUsageMapping.cprAddressUsageId).isEqualTo(matchingAddressUsageEntity.updateId.toString())
-        }
       }
 
-      // Contacts
-      for (contactRequest in validRequestBody.contacts) {
-        // Because ordering is not guaranteed, we need to find the matching contact entity for each request
-        val matchingContactEntity = personEntity.contacts.single { contactMatcher(contactRequest, it) }
-        assertContactMatches(contactRequest, matchingContactEntity)
-        val contactMapping = response.contactMappings.single { contactMatcher(contactRequest, it) }
-        assertThat(contactMapping.cprContactId).isEqualTo(matchingContactEntity.updateId.toString())
-      }
-    }
-
-    @Test
-    fun `successful save deletes orphaned addresses and its children`() {
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-      val prisonNumber = randomPrisonNumber()
-      createPersonWithNewKey(
-        createRandomPrisonPersonDetails(prisonNumber).copy(
-          addresses = listOf(
-            Address(
-              fullAddress = randomFullAddress(),
-              usages = listOf(AddressUsage(addressUsageCode = AddressUsageCode.A01, isActive = true)),
-              contacts = listOf(
-                Contact(contactType = HOME),
+      @Test
+      fun `successful save deletes orphaned addresses and its children`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(
+          createRandomPrisonPersonDetails(prisonNumber).copy(
+            addresses = listOf(
+              Address(
+                fullAddress = randomFullAddress(),
+                usages = listOf(AddressUsage(addressUsageCode = AddressUsageCode.A01, isActive = true)),
+                contacts = listOf(
+                  Contact(contactType = HOME),
+                ),
               ),
             ),
           ),
-        ),
-      )
-      val person = personRepository.findByPrisonNumber(prisonNumber)!!
-      val addressToBeDeleted = person.addresses[0]
-      val addressUsageToBeDeleted = person.addresses[0].usages[0]
-      val addressContactToBeDeleted = person.addresses[0].contacts[0]
+        )
+        val person = personRepository.findByPrisonNumber(prisonNumber)!!
+        val addressToBeDeleted = person.addresses[0]
+        val addressUsageToBeDeleted = person.addresses[0].usages[0]
+        val addressContactToBeDeleted = person.addresses[0].contacts[0]
 
-      assertThat(addressToBeDeleted.id).isNotNull()
-      assertThat(addressUsageToBeDeleted.id).isNotNull()
-      assertThat(addressContactToBeDeleted.id).isNotNull()
+        assertThat(addressToBeDeleted.id).isNotNull()
+        assertThat(addressUsageToBeDeleted.id).isNotNull()
+        assertThat(addressContactToBeDeleted.id).isNotNull()
 
-      sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
-        url = addressesUrl(prisonNumber),
-        body = validRequestBody,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.CREATED,
-        sendAuthorised = true,
-      ).returnResult().responseBody!!
+        sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
 
-      // Check that we can no longer find the orphaned addresses and its children in the repository
-      assertThat(addressRepository.findById(addressToBeDeleted.id!!)).isEmpty
-      assertThat(contactRepository.findById(addressContactToBeDeleted.id!!)).isEmpty
-      assertThat(addressUsageRepository.findById(addressUsageToBeDeleted.id!!)).isEmpty
-    }
+        // Check that we can no longer find the orphaned addresses and its children in the repository
+        assertThat(addressRepository.findById(addressToBeDeleted.id!!)).isEmpty
+        assertThat(contactRepository.findById(addressContactToBeDeleted.id!!)).isEmpty
+        assertThat(addressUsageRepository.findById(addressUsageToBeDeleted.id!!)).isEmpty
+      }
 
-    @Test
-    fun `successful save deletes orphaned contacts`() {
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-      val prisonNumber = randomPrisonNumber()
-      createPersonWithNewKey(
-        createRandomPrisonPersonDetails(prisonNumber).copy(
-          contacts = listOf(
-            Contact(
-              contactType = HOME,
-              contactValue = "01234567890",
+      @Test
+      fun `successful save deletes orphaned contacts`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(
+          createRandomPrisonPersonDetails(prisonNumber).copy(
+            contacts = listOf(
+              Contact(
+                contactType = HOME,
+                contactValue = "01234567890",
+              ),
             ),
           ),
-        ),
-      )
-      val person = personRepository.findByPrisonNumber(prisonNumber)!!
-      val contactToBeDeleted = person.contacts[0]
+        )
+        val person = personRepository.findByPrisonNumber(prisonNumber)!!
+        val contactToBeDeleted = person.contacts[0]
 
-      assertThat(contactToBeDeleted.id).isNotNull()
+        assertThat(contactToBeDeleted.id).isNotNull()
 
-      sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
-        url = addressesUrl(prisonNumber),
-        body = validRequestBody,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.CREATED,
-        sendAuthorised = true,
-      ).returnResult().responseBody!!
+        sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
 
-      // Check that we can no longer find the orphaned contact in the repository
-      assertThat(contactRepository.findById(contactToBeDeleted.id!!)).isEmpty
+        // Check that we can no longer find the orphaned contact in the repository
+        assertThat(contactRepository.findById(contactToBeDeleted.id!!)).isEmpty
+      }
     }
   }
 
   @Nested
   inner class CreatePrisonerAddressContact {
 
+    private val addressContactRequestBody = PrisonContact(
+      nomisContactId = 11000L,
+      value = "01234567890",
+      type = HOME,
+      extension = "extension",
+      createDateTime = LocalDateTime.of(2017, 3, 1, 12, 0),
+      createUserId = "createUserId",
+      modifyDateTime = LocalDateTime.of(2017, 3, 2, 12, 0),
+      modifyUserId = "modifyUserId",
+    )
+
+    @Nested
+    @ActiveProfiles("prod")
+    inner class ProductionProfile {
+
+      @Test
+      fun `should have the correct profile active`() {
+        val response = sendPostRequestAsserted<String>(
+          url = createPrisonerAddressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          body = addressContactRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_FOUND,
+        ).returnResult().responseBody!!
+        assertThat(response).contains("\"error\":\"Not Found\"")
+      }
+    }
+
+    @Nested
+    @ActiveProfiles("preprod")
+    inner class PreProductionProfile {
+
+      @Test
+      fun `should have the correct profile active`() {
+        val response = sendPostRequestAsserted<String>(
+          url = createPrisonerAddressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          body = addressContactRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_FOUND,
+        ).returnResult().responseBody!!
+        assertThat(response).contains("\"error\":\"Not Found\"")
+      }
+    }
+
     @Nested
     inner class Validation {
 
       @Test
-      fun `should respond with 501 as not currently implemented`() {
-        sendPostRequestAsserted<SysconContactMapping>(
-          url = createPrisonerAddressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = prisonContact(),
+      fun `address does not exist - returns 404 not found`() {
+        val prisonNumber = randomPrisonNumber()
+        val addressId = UUID.randomUUID().toString()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        val response = sendPostRequestAsserted<String>(
+          url = createPrisonerAddressContactUrl(prisonNumber, addressId),
+          body = addressContactRequestBody,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_IMPLEMENTED,
-        )
+          expectedStatus = NOT_FOUND,
+        ).returnResult().responseBody!!
+        assertThat(response).contains("Address with $addressId not found")
       }
     }
 
@@ -426,7 +527,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       fun `should return Access Denied 403 when role is wrong`() {
         sendPostRequestAsserted<String>(
           url = createPrisonerAddressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = prisonContact(),
+          body = addressContactRequestBody,
           roles = listOf("UNSUPPORTED-ROLE"),
           expectedStatus = FORBIDDEN,
         ).returnResult().responseBody!!
@@ -436,11 +537,33 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       fun `should return UNAUTHORIZED 401 when role is not set`() {
         sendPostRequestAsserted<SysconContactMapping>(
           url = createPrisonerAddressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = prisonContact(),
+          body = addressContactRequestBody,
           roles = emptyList(),
           expectedStatus = UNAUTHORIZED,
           sendAuthorised = false,
         )
+      }
+    }
+
+    @Nested
+    inner class Creation {
+
+      @Test
+      fun `successful save returns the correct response body`() {
+        val prisonNumber = randomPrisonNumber()
+        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        val addressEntity = addressRepository.save(AddressEntity(person = personEntity))
+
+        val response = sendPostRequestAsserted<SysconContactMapping>(
+          url = createPrisonerAddressContactUrl(prisonNumber, addressEntity.updateId.toString()),
+          body = addressContactRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+        ).returnResult().responseBody!!
+
+        val updatedAddressEntity = addressRepository.findByUpdateId(addressEntity.updateId!!)!!
+        val contactEntity = updatedAddressEntity.contacts.single { response.cprContactId == it.updateId.toString() }
+        assertContactMatches(addressContactRequestBody, contactEntity)
       }
     }
   }
@@ -448,17 +571,64 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
   @Nested
   inner class UpdatePrisonerAddressContact {
 
+    private val addressContactRequestBody = PrisonContact(
+      nomisContactId = 11000L,
+      value = "01234567890",
+      type = HOME,
+      extension = "extension",
+      createDateTime = LocalDateTime.of(2017, 3, 1, 12, 0),
+      createUserId = "createUserId",
+      modifyDateTime = LocalDateTime.of(2017, 3, 2, 12, 0),
+      modifyUserId = "modifyUserId",
+    )
+
+    @Nested
+    @ActiveProfiles("prod")
+    inner class ProductionProfile {
+
+      @Test
+      fun `should have the correct profile active`() {
+        val response = sendPutRequestAsserted<String>(
+          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
+          body = addressContactRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_FOUND,
+        ).returnResult().responseBody!!
+        assertThat(response).contains("\"error\":\"Not Found\"")
+      }
+    }
+
+    @Nested
+    @ActiveProfiles("preprod")
+    inner class PreProductionProfile {
+
+      @Test
+      fun `should have the correct profile active`() {
+        val response = sendPutRequestAsserted<String>(
+          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
+          body = addressContactRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_FOUND,
+        ).returnResult().responseBody!!
+        assertThat(response).contains("\"error\":\"Not Found\"")
+      }
+    }
+
     @Nested
     inner class Validation {
 
       @Test
-      fun `should respond with 501 as not currently implemented`() {
-        sendPutRequestAsserted<Unit>(
-          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
-          body = prisonContact(),
+      fun `contact does not exist - returns 404 not found`() {
+        val prisonNumber = randomPrisonNumber()
+        val contactId = UUID.randomUUID().toString()
+        val addressId = UUID.randomUUID().toString()
+        val response = sendPutRequestAsserted<String>(
+          url = addressContactUrl(prisonNumber, addressId, contactId),
+          body = addressContactRequestBody,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_IMPLEMENTED,
-        )
+          expectedStatus = NOT_FOUND,
+        ).returnResult().responseBody!!
+        assertThat(response).contains("Contact with $contactId not found")
       }
     }
 
@@ -469,7 +639,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       fun `should return Access Denied 403 when role is wrong`() {
         sendPutRequestAsserted<String>(
           url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
-          body = prisonContact(),
+          body = addressContactRequestBody,
           roles = listOf("UNSUPPORTED-ROLE"),
           expectedStatus = FORBIDDEN,
         ).returnResult().responseBody!!
@@ -479,11 +649,33 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       fun `should return UNAUTHORIZED 401 when role is not set`() {
         sendPutRequestAsserted<Unit>(
           url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
-          body = prisonContact(),
+          body = addressContactRequestBody,
           roles = emptyList(),
           expectedStatus = UNAUTHORIZED,
           sendAuthorised = false,
         )
+      }
+    }
+
+    @Nested
+    inner class Updating {
+
+      @Test
+      fun `successful update of an address contact`() {
+        val prisonNumber = randomPrisonNumber()
+        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        val addressEntity = addressRepository.saveAndFlush(AddressEntity(person = personEntity))
+        val contactEntity = contactRepository.saveAndFlush(ContactEntity(address = addressEntity, contactType = HOME))
+
+        sendPutRequestAsserted<Unit>(
+          url = addressContactUrl(prisonNumber, addressEntity.updateId.toString(), contactEntity.updateId.toString()),
+          body = addressContactRequestBody,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NO_CONTENT,
+        )
+
+        val updatedContactEntity = contactRepository.findByUpdateId(contactEntity.updateId!!)!!
+        assertContactMatches(addressContactRequestBody, updatedContactEntity)
       }
     }
   }
@@ -492,15 +684,32 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
   inner class DeletePrisonerAddressContact {
 
     @Nested
-    inner class Validation {
+    @ActiveProfiles("prod")
+    inner class ProductionProfile {
 
       @Test
-      fun `should respond with 501 as not currently implemented`() {
-        sendDeleteRequestAsserted<Unit>(
+      fun `should have the correct profile active`() {
+        val response = sendDeleteRequestAsserted<String>(
           url = addressNoIdContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_IMPLEMENTED,
-        )
+          expectedStatus = NOT_FOUND,
+        ).returnResult().responseBody!!
+        assertThat(response).contains("\"error\":\"Not Found\"")
+      }
+    }
+
+    @Nested
+    @ActiveProfiles("preprod")
+    inner class PreProductionProfile {
+
+      @Test
+      fun `should have the correct profile active`() {
+        val response = sendDeleteRequestAsserted<String>(
+          url = addressNoIdContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_FOUND,
+        ).returnResult().responseBody!!
+        assertThat(response).contains("\"error\":\"Not Found\"")
       }
     }
 
@@ -526,13 +735,34 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
         )
       }
     }
+
+    @Nested
+    inner class Deleting {
+
+      @Test
+      fun `successful delete of an address contact`() {
+        val prisonNumber = randomPrisonNumber()
+        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        val addressEntity = addressRepository.saveAndFlush(AddressEntity(person = personEntity))
+        val contactEntity = contactRepository.saveAndFlush(ContactEntity(address = addressEntity, contactType = HOME))
+
+        sendDeleteRequestAsserted<Unit>(
+          url = addressNoIdContactUrl(prisonNumber, contactEntity.updateId.toString()),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NO_CONTENT,
+        )
+
+        assertThat(contactRepository.findByUpdateId(contactEntity.updateId!!)).isNull()
+      }
+    }
   }
 
-  private fun addressesUrl(prisonNumber: String) = "/syscon-sync/addresses-contacts/$prisonNumber"
+  private fun migrationUrl(prisonNumber: String) = "/syscon-sync/addresses-contacts/$prisonNumber"
 
   private fun createPrisonerAddressContactUrl(prisonNumber: String, addressId: String) = "/syscon-sync/person/$prisonNumber/address/$addressId/contact"
 
   private fun addressContactUrl(prisonNumber: String, addressId: String, contactId: String) = "${createPrisonerAddressContactUrl(prisonNumber, addressId)}/$contactId"
+
   private fun addressNoIdContactUrl(prisonNumber: String, contactId: String) = "/syscon-sync/person/$prisonNumber/address/contact/$contactId"
 
   private fun addressUsageMatcher(request: PrisonAddressUsage, entity: AddressUsageEntity) = entity.usageCode == request.addressUsageCode
@@ -546,28 +776,6 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
   private fun addressMatcher(request: PrisonAddress, entity: AddressEntity) = entity.fullAddress == request.fullAddress
 
   private fun addressMatcher(request: PrisonAddress, mapping: SysconAddressMapping) = mapping.nomisAddressId == request.nomisAddressId
-
-  private fun assertAddressMatches(request: PrisonAddress, address: AddressEntity) = with(address) {
-    assertThat(fullAddress).isEqualTo(request.fullAddress)
-    assertThat(noFixedAbode).isEqualTo(request.noFixedAbode)
-    assertThat(startDate).isEqualTo(request.startDate?.toUkZonedDateTime())
-    assertThat(endDate).isEqualTo(request.endDate?.toUkZonedDateTime())
-    assertThat(postcode).isEqualTo(request.postcode)
-    assertThat(subBuildingName).isEqualTo(request.subBuildingName)
-    assertThat(buildingName).isEqualTo(request.buildingName)
-    assertThat(buildingNumber).isEqualTo(request.buildingNumber)
-    assertThat(thoroughfareName).isEqualTo(request.thoroughfareName)
-    assertThat(dependentLocality).isEqualTo(request.dependentLocality)
-    assertThat(postTown).isEqualTo(request.postTown)
-    assertThat(county).isEqualTo(request.county)
-    assertThat(countryCode).isEqualTo(request.countryCode)
-    assertThat(comment).isEqualTo(request.comment)
-    assertThat(statusCode).isEqualTo(AddressStatusCode.fromPrison(request.isPrimary, request.isMail ?: false))
-    assertThat(modifyUserId).isEqualTo(request.modifyUserId)
-    assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
-    assertThat(createUserId).isEqualTo(request.createUserId)
-    assertThat(createDateTime).isEqualTo(request.createDateTime)
-  }
 
   private fun assertAddressUsageMatches(request: PrisonAddressUsage, entity: AddressUsageEntity) = with(entity) {
     assertThat(usageCode).isEqualTo(request.addressUsageCode)

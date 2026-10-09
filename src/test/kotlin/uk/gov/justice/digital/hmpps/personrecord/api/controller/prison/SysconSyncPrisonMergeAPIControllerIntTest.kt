@@ -29,6 +29,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
     @BeforeEach
     fun beforeEach() {
       stubPersonMatchUpsert()
+      stubPersonMatchScores()
       stubDeletePersonMatch()
     }
 
@@ -159,6 +160,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
 
     @Test
     fun `processes prisoner merge event and target record passive state is maintained`() {
+      stubPersonMatchScores()
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
 
@@ -193,6 +195,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
     @Test
     fun `processes prisoner merge event and source record passive state is not maintained on target record`() {
       stubPersonMatchUpsert()
+      stubPersonMatchScores()
 
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()

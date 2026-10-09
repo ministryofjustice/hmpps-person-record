@@ -6,10 +6,10 @@ kotlin {
   jvmToolchain(25)
 }
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.11"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.12"
   kotlin("plugin.spring") version "2.4.10"
-  kotlin("jvm") version "2.4.10"
-  kotlin("plugin.jpa") version "2.4.10"
+  kotlin("jvm") version "2.4.20"
+  kotlin("plugin.jpa") version "2.4.20"
   id("org.jetbrains.kotlinx.kover") version "0.9.11"
   id("org.owasp.dependencycheck") version "12.2.2"
 }
@@ -32,7 +32,7 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
 
-  runtimeOnly("org.postgresql:postgresql:42.7.13")
+  runtimeOnly("org.postgresql:postgresql:42.7.14")
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
