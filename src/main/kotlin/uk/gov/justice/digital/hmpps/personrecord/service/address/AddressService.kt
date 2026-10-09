@@ -28,22 +28,28 @@ class AddressService(
 ) {
 
   @Transactional
-  fun processAddress(
+  fun upsert(
     address: Address,
-    findPerson: (() -> PersonEntity?)? = null,
+    findPerson: () -> PersonEntity,
     findAddress: () -> AddressEntity?,
     eventSource: DomainEventSource,
     childrenToIgnore: Set<KClass<*>> = emptySet(),
   ): AddressEntity = findAddress().exists(
     no = {
-      create(address, findPerson?.invoke()!!, eventSource)
+      create(address, eventSource, findPerson)
     },
     yes = {
-      update(address, it, eventSource, childrenToIgnore)
+      update(address, eventSource, childrenToIgnore) { it }
     },
   )
 
-  private fun create(address: Address, personEntity: PersonEntity, eventSource: DomainEventSource): AddressEntity {
+  @Transactional
+  fun create(
+    address: Address,
+    eventSource: DomainEventSource,
+    findPerson: () -> PersonEntity,
+  ): AddressEntity {
+    val personEntity = findPerson()
     val matchingFieldsBeforeUpdate = PersonMatchRecord.from(personEntity)
     val addressToSave = AddressEntity.from(address)
     addressToSave.person = personEntity
@@ -59,7 +65,14 @@ class AddressService(
     return addressEntity
   }
 
-  private fun update(address: Address, addressEntity: AddressEntity, eventSource: DomainEventSource, childrenToIgnore: Set<KClass<*>>): AddressEntity {
+  @Transactional
+  fun update(
+    address: Address,
+    eventSource: DomainEventSource,
+    childrenToIgnore: Set<KClass<*>> = emptySet(),
+    findAddress: () -> AddressEntity,
+  ): AddressEntity {
+    val addressEntity = findAddress()
     val matchingFieldsBeforeUpdate = PersonMatchRecord.from(addressEntity.person!!)
     addressEntity.update(address, childrenToIgnore)
     addressRepository.save(addressEntity)

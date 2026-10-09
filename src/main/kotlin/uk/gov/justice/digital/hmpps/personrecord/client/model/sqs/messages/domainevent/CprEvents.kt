@@ -8,6 +8,8 @@ const val CPR_PRISON_PERSON_CREATED = "core-person-record.prison.record.created"
 const val CPR_PRISON_PERSON_MERGED = "core-person-record.prison.record.merged"
 const val CPR_PRISON_RELIGION_CREATED = "core-person-record.prison.religion.created"
 const val CPR_PRISON_RELIGION_UPDATED = "core-person-record.prison.religion.updated"
+const val CPR_PRISON_CONTACT_CREATED = "core-person-record.prison.contact.created"
+const val CPR_PRISON_CONTACT_UPDATED = "core-person-record.prison.contact.updated"
 
 const val CPR_PROBATION_PERSON_CREATED = "core-person-record.probation.record.created"
 const val CPR_PROBATION_PERSON_DELETED = "core-person-record.probation.record.deleted"
@@ -133,4 +135,32 @@ data class CprReligionUpdated(
 
 data class CprReligionUpdatedInfo(
   val cprReligionId: UUID,
+)
+
+data class CprContactCreated(
+  override val eventType: String,
+  val version: Int = 1,
+  val occurredAt: String = Instant.now().asStringWithUkZone(),
+  val description: String,
+  val detailUrl: String,
+  val personReference: PersonReference,
+  val additionalInformation: CprContactCreatedInfo,
+) : DomainEvent
+
+data class CprContactCreatedInfo(
+  val cprContactId: UUID,
+)
+
+data class CprContactUpdated(
+  override val eventType: String,
+  val version: Int = 1,
+  val occurredAt: String = Instant.now().asStringWithUkZone(),
+  val description: String,
+  val detailUrl: String,
+  val personReference: PersonReference,
+  val additionalInformation: CprContactUpdatedInfo,
+) : DomainEvent
+
+data class CprContactUpdatedInfo(
+  val cprContactId: UUID,
 )
