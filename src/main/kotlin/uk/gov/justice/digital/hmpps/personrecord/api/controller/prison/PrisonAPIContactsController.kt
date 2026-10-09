@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonContactsHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactResponse
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
@@ -27,7 +27,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
 @RequestMapping("/person/prison")
-class PrisonAPIContactsController {
+class PrisonAPIContactsController(
+  private val prisonContactsHandler: PrisonContactsHandler,
+) {
 
   @Operation(
     description = "Retrieve the prisoner's contacts by Prison Number, optionally filtered by contact type. Role required is **$API_READ_ONLY**. ",
@@ -42,7 +44,7 @@ class PrisonAPIContactsController {
     @RequestParam(name = "excludeTypes", required = false)
     @Parameter(description = "Do not return contacts of these types", example = "EMAIL")
     excludeTypes: List<ContactType>? = null,
-  ): ResponseEntity<List<PrisonContactResponse>> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+  ): List<PrisonContactResponse> = prisonContactsHandler.get(prisonNumber, includeTypes, excludeTypes)
 
   @Operation(
     description = "Add a contact for the prisoner by Prison Number. Role required is **$PRISON_API_READ_WRITE**. ",
@@ -54,7 +56,7 @@ class PrisonAPIContactsController {
   fun createContactByPrisonNumber(
     @PathVariable(name = "prisonNumber") @Parameter(description = "The prisoner number") prisonNumber: String,
     @Valid @RequestBody request: PrisonContactRequest,
-  ): ResponseEntity<PrisonContactResponse> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+  ): PrisonContactResponse = prisonContactsHandler.create(prisonNumber, request)
 
   @Operation(
     description = "Update a contact for the prisoner by Prison Number and contact id. Role required is **$PRISON_API_READ_WRITE**. ",
@@ -66,5 +68,5 @@ class PrisonAPIContactsController {
     @PathVariable(name = "prisonNumber") @Parameter(description = "The prisoner number") prisonNumber: String,
     @PathVariable(name = "contactId") @Parameter(description = "The contact id") contactId: String,
     @Valid @RequestBody request: PrisonContactRequest,
-  ): ResponseEntity<PrisonContactResponse> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+  ): PrisonContactResponse = prisonContactsHandler.update(prisonNumber, contactId, request)
 }
