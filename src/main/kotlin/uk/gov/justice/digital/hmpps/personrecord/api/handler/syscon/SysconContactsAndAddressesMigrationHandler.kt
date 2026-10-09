@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonCont
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressesAndContactsResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
@@ -22,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepositor
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressUsageRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
@@ -43,7 +43,7 @@ class SysconContactsAndAddressesMigrationHandler(
     prisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest,
   ): SysconAddressesAndContactsResponseBody {
     val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
-    val matchingFieldsBeforeUpdate = PersonMatchRecord.from(personEntity)
+    val personChangeChecker = PersonChangeChecker(personEntity)
 
     val addressesRequest = prisonAddressesAndContactsRequest.addresses
     val contactsRequest = prisonAddressesAndContactsRequest.contacts
@@ -53,8 +53,7 @@ class SysconContactsAndAddressesMigrationHandler(
     val addressMappings = handleAddressesInsert(addressesRequest, personEntity)
     val contactMappings = handleContactsInsert(contactsRequest, personEntity)
 
-    val matchingFieldsChanged = matchingFieldsBeforeUpdate.matchingFieldsAreDifferent(personEntity)
-    tryRecluster(personEntity, matchingFieldsChanged)
+    tryRecluster(personEntity, personChangeChecker)
 
     return SysconAddressesAndContactsResponseBody(prisonNumber, addressMappings, contactMappings)
   }
@@ -139,9 +138,9 @@ class SysconContactsAndAddressesMigrationHandler(
 
   private fun tryRecluster(
     personEntity: PersonEntity,
-    matchingFieldsChanged: Boolean,
+    personChangeChecker: PersonChangeChecker,
   ) {
-    if (matchingFieldsChanged && personEntity.isNotPassive()) {
+    if (personChangeChecker.shouldSaveToPersonMatch(personEntity)) {
       personMatchService.saveToPersonMatch(personEntity)
       reclusterService.recluster(personEntity)
     }
