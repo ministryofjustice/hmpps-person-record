@@ -58,7 +58,7 @@ class SysconSyncPrisonAddressesAPIController(private val sysconSyncAddressesHand
     @PathVariable prisonNumber: String,
     @PathVariable cprAddressId: String,
     @RequestBody requestBody: PrisonAddress,
-  ) = sysconSyncAddressesHandler.handleUpdate(prisonNumber, cprAddressId, requestBody)
+  ) = sysconSyncAddressesHandler.handleUpdate(cprAddressId, requestBody)
 
   @Operation(
     description = """Delete prisoner address record by Prison Number and address uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
