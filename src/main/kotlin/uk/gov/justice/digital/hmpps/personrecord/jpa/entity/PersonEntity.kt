@@ -207,8 +207,6 @@ class PersonEntity(
 
   fun isPassive() = this.passiveState
 
-  fun isNotPassive() = !this.passiveState
-
   fun updateChildEntities(person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()) {
     if (!childrenToIgnore.contains<Any>(AddressEntity::class)) {
       updatePersonAddresses(buildAddresses(person, this))
