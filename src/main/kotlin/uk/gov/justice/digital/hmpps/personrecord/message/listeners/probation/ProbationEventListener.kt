@@ -54,7 +54,7 @@ class ProbationEventListener(
 
   private fun upsertAddress(crn: String, deliusAddressId: Long) {
     val probationAddress = corePersonRecordAndDeliusClient.getAddress(deliusAddressId)!!
-    addressService.processAddress(
+    addressService.upsert(
       address = probationAddress,
       findPerson = { personRepository.findByCrn(crn)!! },
       findAddress = { addressRepository.findByDeliusAddressId(deliusAddressId) },

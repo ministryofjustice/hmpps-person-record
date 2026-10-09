@@ -23,7 +23,7 @@ class ProbationPersonRecoveredEventProcessor(
     corePersonRecordAndDeliusClient.getProbationCase(event.crn).let { case ->
       val personEntity = probationEventProcessor.processPerson(Person.from(case))
       case.addresses.forEach { address ->
-        addressService.processAddress(
+        addressService.upsert(
           address = Address.from(address)!!,
           findPerson = { personEntity },
           findAddress = { addressRepository.findByDeliusAddressId(address.deliusAddressId) },
