@@ -12,16 +12,15 @@ import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.HttpStatus.FORBIDDEN
 import org.springframework.http.HttpStatus.NOT_FOUND
-import org.springframework.http.HttpStatus.NOT_IMPLEMENTED
 import org.springframework.http.HttpStatus.OK
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContactType
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonAddressRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactResponse
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCreateAddressRequest
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
@@ -340,7 +339,7 @@ class PrisonAPIAddressesControllerIntTest : WebTestBase() {
       }
     }
 
-    private fun validAddressRequest() = PrisonAddressRequest(
+    private fun validAddressRequest() = PrisonCreateAddressRequest(
       subBuildingName = "3B",
       buildingNumber = "102",
       thoroughfareName = "Slinn Street",

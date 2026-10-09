@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonAddressRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCreateAddressRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -27,7 +27,7 @@ class PrisonAddressesHandler(
     .map { CanonicalAddress.from(it) }
 
   @Transactional
-  fun create(prisonNumber: String, request: PrisonAddressRequest): CanonicalAddress {
+  fun create(prisonNumber: String, request: PrisonCreateAddressRequest): CanonicalAddress {
     val person = findPerson(prisonNumber)
 
     val newAddressIsPrimary = request.statusCode in PRIMARY_TYPES

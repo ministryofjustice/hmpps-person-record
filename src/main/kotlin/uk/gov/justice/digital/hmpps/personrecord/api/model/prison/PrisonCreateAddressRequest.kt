@@ -7,8 +7,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import java.time.LocalDate
 
-@Schema(description = "Create or update a prisoner address")
-data class PrisonAddressRequest(
+@Schema(description = "Create a prisoner address")
+data class PrisonCreateAddressRequest(
   @Schema(description = "The address sub building name. Previously `flat` in Prison API", example = "3B")
   val subBuildingName: String? = null,
 
