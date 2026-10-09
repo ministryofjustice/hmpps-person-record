@@ -8,6 +8,8 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -35,6 +37,16 @@ class SysconSyncAddressesHandler(
     return SysconAddressMapping(
       nomisAddressId = prisonAddress.nomisAddressId!!,
       cprAddressId = addressEntity.updateId.toString(),
+    )
+  }
+
+  @Transactional
+  fun handleUpdate(cprAddressId: String, prisonAddress: PrisonAddress) {
+    addressService.update(
+      address = prisonAddress.toAddress(),
+      findAddress = { addressRepository.findByUpdateId(UUID.fromString(cprAddressId)) },
+      eventSource = DomainEventSource.NOMIS,
+      childrenToIgnore = setOf(ContactEntity::class, AddressUsageEntity::class),
     )
   }
 

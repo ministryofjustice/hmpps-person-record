@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.address
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
@@ -15,6 +16,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
+import kotlin.collections.emptySet
+import kotlin.reflect.KClass
 
 @Service
 class AddressService(
@@ -31,12 +34,13 @@ class AddressService(
     findPerson: () -> PersonEntity,
     findAddress: () -> AddressEntity?,
     eventSource: DomainEventSource,
+    childrenToIgnore: Set<KClass<*>> = emptySet(),
   ): AddressEntity = findAddress().exists(
     no = {
       create(address, eventSource, findPerson)
     },
     yes = {
-      update(address, eventSource) { it }
+      update(address, eventSource, childrenToIgnore) { it }
     },
   )
 
@@ -65,12 +69,13 @@ class AddressService(
   fun update(
     address: Address,
     eventSource: DomainEventSource,
-    findAddress: () -> AddressEntity,
+    childrenToIgnore: Set<KClass<*>> = emptySet(),
+    findAddress: () -> AddressEntity?,
   ): AddressEntity {
-    val addressEntity = findAddress()
+    val addressEntity = findAddress() ?: throw ResourceNotFoundException("Address not found")
     val personEntity = addressEntity.person!!
     val personChangeChecker = PersonChangeChecker(personEntity)
-    addressEntity.update(address)
+    addressEntity.update(address, childrenToIgnore)
     addressRepository.save(addressEntity)
 
     tryRecluster(personEntity, personChangeChecker)
