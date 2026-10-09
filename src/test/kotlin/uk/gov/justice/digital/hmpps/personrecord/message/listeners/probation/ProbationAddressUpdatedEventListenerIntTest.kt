@@ -11,6 +11,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 @ExtendWith(OutputCaptureExtension::class)
@@ -66,9 +67,9 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
 
   @Test
   fun `consuming address updated event - address not retrieved from probation - does not update address`(output: CapturedOutput) {
-    val startDate = ZonedDateTime.now()
+    val startDateAtMidnight = ZonedDateTime.of(2026, 10, 9, 0, 0, 0, 0, ZoneOffset.ofOffset("GMT", ZoneOffset.of("+1")))
     val probationAddress = randomProbationAddress()
-    val addressOld = Address.from(probationAddress)?.copy(startDate = startDate)
+    val addressOld = Address.from(probationAddress)?.copy(startDate = startDateAtMidnight)
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails(),
       configure = addAddressToRecord(addressOld!!),
