@@ -11,4 +11,5 @@ data class PrisonerAlias(
   val middleNames: String? = null,
   val dateOfBirth: LocalDate? = null,
   val gender: String? = null,
+  val identifiers: List<Identifier> = emptyList(),
 )
