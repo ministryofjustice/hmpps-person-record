@@ -78,4 +78,17 @@ class PrisonAPIAddressesController(
     @PathVariable(name = "phoneNumberId") @Parameter(description = "The phone number id") phoneNumberId: String,
     @Valid @RequestBody request: PrisonContactRequest,
   ): PrisonContactResponse = prisonContactsHandler.updatePhoneNumber(prisonNumber, addressId, phoneNumberId, request)
+
+  @Operation(
+    description = "Update phone number for a prisoner's address by Prison Number and address id. Role required is **$PRISON_API_READ_WRITE**. ",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @PreAuthorize("hasRole('$PRISON_API_READ_WRITE')")
+  @PutMapping("/{prisonNumber}/addresses/{addressId}/phone-numbers/{phoneNumberId}")
+  fun updateAddressPhoneNumbersByPrisonNumber(
+    @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
+    @PathVariable(name = "addressId") @Parameter(description = "The address id") addressId: String,
+    @PathVariable(name = "phoneNumberId") @Parameter(description = "The phone number id") phoneNumberId: String,
+    @Valid @RequestBody request: PrisonContactRequest,
+  ): PrisonContactResponse = prisonContactsHandler.updatePhoneNumber(prisonNumber, addressId, phoneNumberId, request)
 }
