@@ -147,7 +147,7 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
       apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
     )
 
-    targetPerson.assertMergedTo(targetPerson)
+    offender.assertMergedTo(targetPerson)
     targetPerson.assertHasSameOverrideMarker(defendantRecord)
     // RESULT: fails because the override marker is not maintained after merge
   }
@@ -176,23 +176,74 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
 
     offender.assertLinkedToCluster(updatedDefendant.personKey!!)
 
-    val targetCrn = randomCrn()
-    val targetPersonDetails = createRandomProbationCase(targetCrn)
+    val sourceCrn = randomCrn()
+    val sourcePersonDetails = createRandomProbationCase(sourceCrn)
 
-    probationCreateEventAndResponseSetup(ApiResponseSetup.from(targetPersonDetails))
-    val sourcePerson = awaitNotNull { personRepository.findByCrn(targetCrn) }
+    probationCreateEventAndResponseSetup(ApiResponseSetup.from(sourcePersonDetails))
+    val sourcePerson = awaitNotNull { personRepository.findByCrn(sourceCrn) }
     sourcePerson.assertNotLinkedToCluster(offender.personKey!!)
 
     probationMergeEventAndResponseSetup(
       sourceCrn = sourcePerson.crn!!,
       targetCrn = offender.crn!!,
-      apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
+      apiResponseSetup = ApiResponseSetup.from(probationCase),
     )
 
     sourcePerson.assertMergedTo(offender)
     offender.assertHasSameOverrideMarker(updatedDefendant)
     offender.assertHasSameOverrideScope(updatedDefendant)
   }
+
+  @Test
+  fun `should merge remand probation record and then unmerge`() {
+    val defendantId = randomDefendantId()
+    val defendant = createRandomCommonPlatformPersonDetails(defendantId)
+    val probationCase = ProbationCase(
+      name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
+      identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
+      dateOfBirth = defendant.dateOfBirth,
+    )
+    val defendantRecord = createPersonWithNewKey(defendant)
+
+    webTestClient.put()
+      .uri(probationApiUrl(defendantId))
+      .authorised(listOf(PROBATION_API_READ_WRITE))
+      .bodyValue(probationCase)
+      .exchange()
+      .expectStatus()
+      .isOk
+
+    val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+    val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
+
+    offender.assertLinkedToCluster(updatedDefendant.personKey!!)
+
+    val targetCrn = randomCrn()
+    val targetPersonDetails = createRandomProbationCase(targetCrn)
+
+    probationCreateEventAndResponseSetup(ApiResponseSetup.from(targetPersonDetails))
+    val targetPerson = awaitNotNull { personRepository.findByCrn(targetCrn) }
+    targetPerson.assertNotLinkedToCluster(offender.personKey!!)
+
+    probationMergeEventAndResponseSetup(
+      sourceCrn = offender.crn!!,
+      targetCrn = targetPerson.crn!!,
+      apiResponseSetup = ApiResponseSetup.from(targetPersonDetails),
+    )
+
+    offender.assertMergedTo(targetPerson)
+    //    targetPerson.assertHasSameOverrideMarker(defendantRecord) // this assertion fails because the override marker is not maintained after merge
+
+    probationUnmergeEventAndResponseSetup(offender.crn!!, targetCrn,
+      reactivatedSetup = ApiResponseSetup.from(probationCase).copy(crn = offender.crn!!),
+      unmergedSetup = ApiResponseSetup.from(targetPersonDetails).copy(crn = targetPerson.crn!!))
+
+    offender.assertNotMerged()
+    defendantRecord.personKey?.assertClusterIsOfSize(2)
+    // RESULT: fails because PersonMatchService.removeExcludedClusters is filtering out all markers with scopes
+  }
+
+  // merge -> unmerge -> create remand -> merge
 
   private fun probationApiUrl(defendantId: String) = "/person/probation/$defendantId"
 }
