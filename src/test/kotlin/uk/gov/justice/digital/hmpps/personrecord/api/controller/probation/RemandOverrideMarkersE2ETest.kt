@@ -234,9 +234,12 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
     offender.assertMergedTo(targetPerson)
     //    targetPerson.assertHasSameOverrideMarker(defendantRecord) // this assertion fails because the override marker is not maintained after merge
 
-    probationUnmergeEventAndResponseSetup(offender.crn!!, targetCrn,
+    probationUnmergeEventAndResponseSetup(
+      offender.crn!!,
+      targetCrn,
       reactivatedSetup = ApiResponseSetup.from(probationCase).copy(crn = offender.crn!!),
-      unmergedSetup = ApiResponseSetup.from(targetPersonDetails).copy(crn = targetPerson.crn!!))
+      unmergedSetup = ApiResponseSetup.from(targetPersonDetails).copy(crn = targetPerson.crn!!),
+    )
 
     offender.assertNotMerged()
     defendantRecord.personKey?.assertClusterIsOfSize(2)
