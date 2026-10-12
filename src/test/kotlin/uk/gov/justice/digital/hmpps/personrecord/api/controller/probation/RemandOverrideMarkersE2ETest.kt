@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -153,6 +154,7 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
     probationCreateEventAndResponseSetup(ApiResponseSetup.from(similarPersonDetails))
     val similarPerson = awaitNotNull { personRepository.findByCrn(similarCrn) }
     similarPerson.assertNotLinkedToCluster(offender.personKey!!)
+    similarPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
   }
 
   @Test
