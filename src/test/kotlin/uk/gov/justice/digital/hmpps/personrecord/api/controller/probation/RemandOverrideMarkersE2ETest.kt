@@ -6,9 +6,13 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_A
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class RemandOverrideMarkersE2ETest : E2ETestBase() {
@@ -69,13 +73,54 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
 
     offender.assertLinkedToCluster(updatedDefendant.personKey!!)
 
-    val targetCrn = randomCrn()
-    val targetPersonDetails = probationCase.copy(identifiers = Identifiers(crn = targetCrn, cro = defendant.getCro(), pnc = defendant.getPnc()))
+    val similarPersonCrn = randomCrn()
+    val similarPersonDetails = probationCase.copy(identifiers = Identifiers(crn = similarPersonCrn, cro = defendant.getCro(), pnc = defendant.getPnc()))
 
-    probationCreateEventAndResponseSetup(ApiResponseSetup.from(targetPersonDetails))
-    val targetPerson = awaitNotNull { personRepository.findByCrn(targetCrn) }
-    targetPerson.assertLinkedToCluster(updatedDefendant.personKey!!)
-    // RESULT: fails because PersonKeyService.containsExcluded returns true and a new cluster is created instead of joining the existing cluster
+    probationCreateEventAndResponseSetup(ApiResponseSetup.from(similarPersonDetails))
+    val similarPerson = awaitNotNull { personRepository.findByCrn(similarPersonCrn) }
+    similarPerson.assertLinkedToCluster(updatedDefendant.personKey!!)
+    // RESULT: on a separate cluster in NEEDS_ATTENTION - fails because PersonKeyService.containsExcluded returns true and a new cluster is created instead of joining the existing cluster
+  }
+
+  @Test
+  fun `should create new prison record and join existing cluster when created with the same person details`() {
+    val defendantId = randomDefendantId()
+    val defendant = createRandomCommonPlatformPersonDetails(defendantId)
+    val probationCase = ProbationCase(
+      name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
+      identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
+      dateOfBirth = defendant.dateOfBirth,
+    )
+    val defendantRecord = createPersonWithNewKey(defendant)
+
+    webTestClient.put()
+      .uri(probationApiUrl(defendantId))
+      .authorised(listOf(PROBATION_API_READ_WRITE))
+      .bodyValue(probationCase)
+      .exchange()
+      .expectStatus()
+      .isOk
+
+    val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+    val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
+
+    offender.assertLinkedToCluster(updatedDefendant.personKey!!)
+
+    val prisonNumber = randomPrisonNumber()
+    prisonCreateEventAndResponseSetup(
+      ApiResponseSetup(
+        firstName = defendant.firstName,
+        lastName = defendant.lastName,
+        prisonNumber = prisonNumber,
+        pnc = defendant.getPnc(),
+        cro = defendant.getCro(),
+        dateOfBirth = defendant.dateOfBirth,
+      ),
+    )
+
+    val prisonPerson = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
+    prisonPerson.assertLinkedToCluster(updatedDefendant.personKey!!)
+    // RESULT: on a separate cluster in NEEDS_ATTENTION - fails because PersonKeyService.containsExcluded returns true and a new cluster is created instead of joining the existing cluster
   }
 
   @Test
@@ -102,12 +147,12 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
 
     offender.assertLinkedToCluster(updatedDefendant.personKey!!)
 
-    val targetCrn = randomCrn()
-    val targetPersonDetails = createRandomProbationCase(targetCrn)
+    val similarCrn = randomCrn()
+    val similarPersonDetails = createRandomProbationCase(similarCrn)
 
-    probationCreateEventAndResponseSetup(ApiResponseSetup.from(targetPersonDetails))
-    val targetPerson = awaitNotNull { personRepository.findByCrn(targetCrn) }
-    targetPerson.assertNotLinkedToCluster(offender.personKey!!)
+    probationCreateEventAndResponseSetup(ApiResponseSetup.from(similarPersonDetails))
+    val similarPerson = awaitNotNull { personRepository.findByCrn(similarCrn) }
+    similarPerson.assertNotLinkedToCluster(offender.personKey!!)
   }
 
   @Test
@@ -232,7 +277,8 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
     )
 
     offender.assertMergedTo(targetPerson)
-    //    targetPerson.assertHasSameOverrideMarker(defendantRecord) // this assertion fails because the override marker is not maintained after merge
+//    targetPerson.assertHasSameOverrideMarker(defendantRecord)
+    // the above assertion fails because the override marker is not maintained after merge
 
     probationUnmergeEventAndResponseSetup(
       offender.crn!!,
@@ -249,4 +295,17 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
   // merge -> unmerge -> create remand -> merge
 
   private fun probationApiUrl(defendantId: String) = "/person/probation/$defendantId"
+
+  private fun publishPrisonPersonCreatedEvent(prisonNumber: String) {
+    publishDomainEvent(
+      PrisonPersonCreated(
+        personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))),
+      ),
+    )
+  }
+
+  private fun prisonCreateEventAndResponseSetup(apiResponseSetup: ApiResponseSetup) {
+    stubPrisonResponse(apiResponseSetup)
+    publishPrisonPersonCreatedEvent(apiResponseSetup.prisonNumber!!)
+  }
 }
