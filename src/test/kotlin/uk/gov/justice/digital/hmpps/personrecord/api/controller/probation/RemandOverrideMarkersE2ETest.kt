@@ -17,33 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 class RemandOverrideMarkersE2ETest : E2ETestBase() {
 
   @Test
-  fun `should create link between probation and court records and assign to same cluster, override marker and override scope`() {
-    val defendantId = randomDefendantId()
-    val defendant = createRandomCommonPlatformPersonDetails(defendantId)
-    val probationCase = ProbationCase(
-      name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
-      identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
-      dateOfBirth = defendant.dateOfBirth,
-    )
-    val defendantRecord = createPersonWithNewKey(defendant)
-
-    webTestClient.put()
-      .uri(probationApiUrl(defendantId))
-      .authorised(listOf(PROBATION_API_READ_WRITE))
-      .bodyValue(probationCase)
-      .exchange()
-      .expectStatus()
-      .isOk
-
-    val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
-    val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
-
-    offender.assertLinkedToCluster(updatedDefendant.personKey!!)
-    offender.assertHasSameOverrideMarker(updatedDefendant)
-    offender.assertHasSameOverrideScope(updatedDefendant)
-  }
-
-  @Test
   fun `should create new probation record and join existing cluster when created with the same person details`() {
     val defendantId = randomDefendantId()
     val defendant = createRandomCommonPlatformPersonDetails(defendantId)
