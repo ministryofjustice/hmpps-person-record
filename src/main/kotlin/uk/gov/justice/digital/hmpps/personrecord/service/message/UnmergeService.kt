@@ -29,9 +29,6 @@ class UnmergeService(
       .also { personService.update(reactivated, it) }
 
     unmerge(reactivatedPersonEntity, existingPersonEntity)
-    when {
-      clusterContainsAdditionalRecords(existingPersonEntity) -> raiseForReview(existingPersonEntity, reactivatedPersonEntity)
-    }
   }
 
   private fun unmerge(reactivated: PersonEntity, existing: PersonEntity) {
@@ -41,13 +38,4 @@ class UnmergeService(
     personKeyService.linkRecordToPersonKey(reactivated)
     publisher.publishEvent(PersonUnmerged(reactivated, existing))
   }
-
-  private fun raiseForReview(existing: PersonEntity, reactivated: PersonEntity) {
-    existing.personKey?.let {
-      it.setAsNeedsAttention(UUIDStatusReasonType.OVERRIDE_CONFLICT)
-      publisher.publishEvent(OverrideConflict(it, listOf(reactivated.personKey!!)))
-    }
-  }
-
-  private fun clusterContainsAdditionalRecords(existing: PersonEntity): Boolean = existing.personKey?.personEntities?.let { it.size > 1 } ?: false
 }
