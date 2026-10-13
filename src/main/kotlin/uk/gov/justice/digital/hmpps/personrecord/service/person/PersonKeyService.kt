@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.review.ReviewRaised
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
+import java.util.UUID
 
 @Component
 class PersonKeyService(
@@ -62,10 +63,29 @@ class PersonKeyService(
     }
   }
 
+  /**
+   * new record ->
+   * c1 -> { 1, 2 }
+   * c2 -> { 3, 3 }     CAN JOIN
+   * c3 -> { 4, 5 }
+   *
+   *    * c1 -> { 1, 2 }
+   *    * c2 -> { 2, 3 }     NO JOIN
+   *    * c3 -> { 4, 5 }
+   */
   private fun List<PersonKeyEntity>.containsExcluded(): Boolean {
-    val scopesPerCluster = this.map { cluster -> cluster.getScopes() }
-    val allScopesAcrossClusters = scopesPerCluster.flatten()
-    val hasSameScopes = allScopesAcrossClusters.size != allScopesAcrossClusters.toSet().size
-    return hasSameScopes
+    val map = this.map { it.personUUID to it.getScopes() }.associate { it.first to it.second }
+
+    val seen = mutableSetOf<UUID>()
+    return map.values.any { scopes ->
+      val x = scopes.toSet()
+      x.any { !seen.add(it) }
+    }
+
+//    this.forEach { cluster ->
+//      val scopes = cluster.getScopes()
+//
+//
+//    }
   }
 }
