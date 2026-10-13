@@ -20,7 +20,7 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
   }
 
   @Test
-  fun `should create link between probation and court records and assign to same cluster, override marker and override scope`() {
+  fun `should create link between probation and court records and assign to same cluster`() {
     val defendantId = randomDefendantId()
     val defendant = createRandomCommonPlatformPersonDetails(defendantId)
     val probationCase = ProbationCase(
@@ -43,7 +43,6 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
 
     offender.assertLinkedToCluster(updatedDefendant.personKey!!)
     offender.assertHasSameOverrideMarker(updatedDefendant)
-    offender.assertHasSameOverrideScope(updatedDefendant)
   }
 
   @Test
@@ -77,6 +76,44 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
     val similarPerson = awaitNotNull { personRepository.findByCrn(similarPersonCrn) }
     similarPerson.assertLinkedToCluster(updatedDefendant.personKey!!)
     // RESULT: on a separate cluster in NEEDS_ATTENTION - fails because PersonKeyService.containsExcluded returns true and a new cluster is created instead of joining the existing cluster
+  }
+
+  @Test
+  fun `should update new probation record and join existing cluster when updated with the same person details`() {
+    val defendantId = randomDefendantId()
+    val defendant = createRandomCommonPlatformPersonDetails(defendantId)
+    val probationCase = ProbationCase(
+      name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
+      identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
+      dateOfBirth = defendant.dateOfBirth,
+    )
+    val defendantRecord = createPersonWithNewKey(defendant)
+
+    webTestClient.put()
+      .uri(probationApiUrl(defendantId))
+      .authorised(listOf(PROBATION_API_READ_WRITE))
+      .bodyValue(probationCase)
+      .exchange()
+      .expectStatus()
+      .isOk
+
+    val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+    val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
+
+    offender.assertLinkedToCluster(updatedDefendant.personKey!!)
+
+    val probationPersonCrn = randomCrn()
+    val probationCaseToCreate = createRandomProbationCase().copy(identifiers = Identifiers(crn = probationPersonCrn))
+
+    probationCreateEventAndResponseSetup(ApiResponseSetup.from(probationCaseToCreate))
+
+    val createdProbationPerson = awaitNotNull { personRepository.findByCrn(probationPersonCrn) }
+    createdProbationPerson.assertNotLinkedToCluster(updatedDefendant.personKey!!)
+
+    val updateProbationPerson = probationCase.copy(identifiers = Identifiers(crn = probationPersonCrn, cro = defendant.getCro(), pnc = defendant.getPnc()))
+    probationUpdateEventAndResponseSetup(ApiResponseSetup.from(updateProbationPerson))
+
+    updatedDefendant.assertLinkedToCluster(createdProbationPerson.personKey!!)
   }
 
   @Test
@@ -193,7 +230,6 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
 
     sourcePerson.assertMergedTo(offender)
     offender.assertHasSameOverrideMarker(updatedDefendant)
-    offender.assertHasSameOverrideScope(updatedDefendant)
   }
 
   @Test

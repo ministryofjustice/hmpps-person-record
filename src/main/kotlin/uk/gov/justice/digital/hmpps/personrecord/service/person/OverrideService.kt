@@ -24,9 +24,8 @@ class OverrideService(
 
   fun systemInclude(vararg records: PersonEntity) {
     val marker = OverrideScopeEntity.newMarker()
-    val scopeEntity = createScope()
     records.forEach {
-      it.addOverrideMarker(scopeEntity, marker)
+      it.overrideMarker = marker
       personMatchService.saveToPersonMatch(it)
     }
   }

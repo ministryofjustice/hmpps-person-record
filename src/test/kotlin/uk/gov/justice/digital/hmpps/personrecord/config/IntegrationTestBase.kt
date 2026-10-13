@@ -723,7 +723,6 @@ class IntegrationTestBase {
 
   internal fun PersonEntity.assertIncluded(personEntity: PersonEntity) {
     this.assertHasSameOverrideMarker(personEntity)
-    this.assertHasSameOverrideScope(personEntity)
   }
 
   fun PersonEntity.assertPersonDeleted() = awaitAssert { assertThat(personRepository.findByMatchId(this.matchId)).isNull() }
