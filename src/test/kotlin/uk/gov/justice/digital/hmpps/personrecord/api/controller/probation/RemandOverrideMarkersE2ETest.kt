@@ -77,7 +77,8 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
   }
 
   @Test
-  fun `should update new probation record and join existing cluster when updated with the same person details`() {
+  @Disabled("clusters with more than one record on which have a record unmerged out of them automatically go into needs attention")
+  fun `should update new probation record and join existing cluster with include and exclude override markers when updated with the same person details`() {
     val defendantId = randomDefendantId()
     val defendant = createRandomCommonPlatformPersonDetails(defendantId)
     val probationCase = ProbationCase(
@@ -112,6 +113,45 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
     probationUnmergeEventAndResponseSetup(excludedCrnOnDifferentCluster, offender.crn!!, reactivatedSetup = excludedCrnSetup)
 
     checkEventLogExist(excludedCrnOnDifferentCluster, CPRLogEvents.CPR_UUID_CREATED)
+
+    // create a new probation record with different CRN but same person details
+    val probationPersonCrn = randomCrn()
+    val probationCaseToCreate = createRandomProbationCase().copy(identifiers = Identifiers(crn = probationPersonCrn))
+
+    probationCreateEventAndResponseSetup(ApiResponseSetup.from(probationCaseToCreate))
+
+    val createdProbationPerson = awaitNotNull { personRepository.findByCrn(probationPersonCrn) }
+    createdProbationPerson.assertNotLinkedToCluster(updatedDefendant.personKey!!)
+
+    val updateProbationPerson = probationCase.copy(identifiers = Identifiers(crn = probationPersonCrn, cro = defendant.getCro(), pnc = defendant.getPnc()))
+    probationUpdateEventAndResponseSetup(ApiResponseSetup.from(updateProbationPerson))
+
+    updatedDefendant.assertLinkedToCluster(createdProbationPerson.personKey!!)
+  }
+
+  @Test
+  fun `should update new probation record and join existing cluster when updated with the same person details`() {
+    val defendantId = randomDefendantId()
+    val defendant = createRandomCommonPlatformPersonDetails(defendantId)
+    val probationCase = ProbationCase(
+      name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
+      identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
+      dateOfBirth = defendant.dateOfBirth,
+    )
+    val defendantRecord = createPersonWithNewKey(defendant)
+
+    webTestClient.put()
+      .uri(probationApiUrl(defendantId))
+      .authorised(listOf(PROBATION_API_READ_WRITE))
+      .bodyValue(probationCase)
+      .exchange()
+      .expectStatus()
+      .isOk
+
+    val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+    val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
+
+    offender.assertLinkedToCluster(updatedDefendant.personKey!!)
 
     // create a new probation record with different CRN but same person details
     val probationPersonCrn = randomCrn()
