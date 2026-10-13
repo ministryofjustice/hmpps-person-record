@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.probation
 
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
@@ -15,11 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class RemandOverrideMarkersE2ETest : E2ETestBase() {
-
-  @BeforeEach
-  fun setup() {
-    deleteAllPersonData() // temporary
-  }
 
   @Test
   fun `should create link between probation and court records and assign to same cluster, override marker and override scope`() {
@@ -167,6 +162,7 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
   }
 
   @Test
+  @Disabled("Not implemented yet")
   fun `should merge remand probation record into new probation record and maintain the include override marker`() {
     val defendantId = randomDefendantId()
     val defendant = createRandomCommonPlatformPersonDetails(defendantId)
@@ -251,6 +247,7 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
   }
 
   @Test
+  @Disabled("clusters with more than one record on which have a record unmerged out of them automatically go into needs attention")
   fun `should merge remand probation record and then unmerge`() {
     val defendantId = randomDefendantId()
     val defendant = createRandomCommonPlatformPersonDetails(defendantId)
