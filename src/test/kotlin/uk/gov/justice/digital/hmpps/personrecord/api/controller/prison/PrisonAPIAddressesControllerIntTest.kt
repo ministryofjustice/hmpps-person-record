@@ -362,22 +362,22 @@ class PrisonAPIAddressesControllerIntTest(
   }
 
   @Nested
-  @DisplayName("POST /person/prison/{prisonNumber}/addresses/{addressId}/phone-numbers")
-  inner class CreateAddressPhoneNumbersByPrisonNumber {
+  @DisplayName("POST /person/prison/{prisonNumber}/addresses/{addressId}/contacts")
+  inner class CreateAddressContactsByPrisonNumber {
 
     @Nested
     inner class HappyPath {
       @Test
-      fun `should add the phone numbers to the address and return them`() {
+      fun `should add the contacts to the address and return them`() {
         val prisonNumber = randomPrisonNumber()
         val addressId = createPersonWithAddress(prisonNumber)
         val requests = listOf(
-          phoneNumberRequest().copy(type = HOME, value = "01234 111111", extension = null),
-          phoneNumberRequest().copy(type = MOBILE, value = "07777 222222", extension = "12"),
+          contactRequest().copy(type = HOME, value = "01234 111111", extension = null),
+          contactRequest().copy(type = MOBILE, value = "07777 222222", extension = "12"),
         )
 
         val response = sendPostRequestAsserted<List<PrisonContactResponse>>(
-          url = addressPhoneNumbersUrl(prisonNumber, addressId),
+          url = addressContactsUrl(prisonNumber, addressId),
           body = requests,
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = CREATED,
@@ -405,7 +405,7 @@ class PrisonAPIAddressesControllerIntTest(
       @Test
       fun `should return bad request when contact type is invalid`() {
         sendPostRequestAsserted<String>(
-          url = addressPhoneNumbersUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          url = addressContactsUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
           body = listOf(mapOf("type" to "NOT_A_TYPE", "value" to "01234 567 890", "userId" to "TEST")),
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = BAD_REQUEST,
@@ -418,8 +418,8 @@ class PrisonAPIAddressesControllerIntTest(
         createPersonWithAddress(prisonNumber)
         val addressId = UUID.randomUUID().toString()
         val response = sendPostRequestAsserted<String>(
-          url = addressPhoneNumbersUrl(prisonNumber, addressId),
-          body = listOf(phoneNumberRequest()),
+          url = addressContactsUrl(prisonNumber, addressId),
+          body = listOf(contactRequest()),
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = NOT_FOUND,
         ).returnResult().responseBody!!
@@ -429,7 +429,7 @@ class PrisonAPIAddressesControllerIntTest(
       @Test
       fun `should return bad request when value is missing`() {
         sendPostRequestAsserted<String>(
-          url = addressPhoneNumbersUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          url = addressContactsUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
           body = listOf(mapOf("type" to BUS.name, "userId" to "TEST")),
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = BAD_REQUEST,
@@ -442,8 +442,8 @@ class PrisonAPIAddressesControllerIntTest(
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         sendPostRequestAsserted<String>(
-          url = addressPhoneNumbersUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = listOf(phoneNumberRequest()),
+          url = addressContactsUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          body = listOf(contactRequest()),
           roles = listOf(API_READ_ONLY),
           expectedStatus = FORBIDDEN,
         )
@@ -452,8 +452,8 @@ class PrisonAPIAddressesControllerIntTest(
       @Test
       fun `should return UNAUTHORIZED 401 when role is not set`() {
         sendPostRequestAsserted<Unit>(
-          url = addressPhoneNumbersUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = listOf(phoneNumberRequest()),
+          url = addressContactsUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+          body = listOf(contactRequest()),
           roles = emptyList(),
           expectedStatus = UNAUTHORIZED,
           sendAuthorised = false,
@@ -466,7 +466,7 @@ class PrisonAPIAddressesControllerIntTest(
       return personRepository.findByPrisonNumber(prisonNumber)!!.addresses.single().updateId.toString()
     }
 
-    private fun phoneNumberRequest() = PrisonContactRequest(
+    private fun contactRequest() = PrisonContactRequest(
       type = BUS,
       value = "01234 567 890",
       extension = "123",
@@ -476,8 +476,8 @@ class PrisonAPIAddressesControllerIntTest(
 
   @Nested
   @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-  @DisplayName("PUT /person/prison/{prisonNumber}/addresses/{addressId}/phone-numbers/{phoneNumberId}")
-  inner class UpdateAddressPhoneNumberByPrisonNumber {
+  @DisplayName("PUT /person/prison/{prisonNumber}/addresses/{addressId}/contacts/{contactId}")
+  inner class UpdateAddressContactByPrisonNumber {
 
     private val prisonNumber = randomPrisonNumber()
     private lateinit var addressId: String
@@ -502,18 +502,18 @@ class PrisonAPIAddressesControllerIntTest(
     @Nested
     inner class HappyPath {
       @Test
-      fun `should update the phone number and return it`() {
-        val phoneNumberId = personRepository.findByPrisonNumber(prisonNumber)!!.addresses.single().contacts.single().updateId.toString()
-        val request = phoneNumberRequest()
+      fun `should update the contact and return it`() {
+        val contactId = personRepository.findByPrisonNumber(prisonNumber)!!.addresses.single().contacts.single().updateId.toString()
+        val request = contactRequest()
 
         val response = sendPutRequestAsserted<PrisonContactResponse>(
-          url = addressPhoneNumberUrl(prisonNumber, addressId, phoneNumberId),
+          url = addressContactUrl(prisonNumber, addressId, contactId),
           body = request,
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = OK,
         ).returnResult().responseBody!!
 
-        assertThat(response.contactId).isEqualTo(phoneNumberId)
+        assertThat(response.contactId).isEqualTo(contactId)
         assertThat(response.type).isEqualTo(CanonicalContactType.from(BUS))
         assertThat(response.value).isEqualTo(request.value)
         assertThat(response.extension).isEqualTo(request.extension)
@@ -521,7 +521,7 @@ class PrisonAPIAddressesControllerIntTest(
         assertThat(response.modifyUserId).isEqualTo(request.userId)
         assertThat(response.modifyDateTime).isCloseTo(LocalDateTime.now(), within(1, MINUTES))
 
-        val contactEntity = contactRepository.findByUpdateId(UUID.fromString(phoneNumberId))!!
+        val contactEntity = contactRepository.findByUpdateId(UUID.fromString(contactId))!!
         assertThat(contactEntity.contactType).isEqualTo(BUS)
         assertThat(contactEntity.contactValue).isEqualTo(request.value)
         assertThat(contactEntity.extension).isEqualTo(request.extension)
@@ -539,8 +539,8 @@ class PrisonAPIAddressesControllerIntTest(
       fun `should return not found when the address does not exist`() {
         val unknownAddressId = UUID.randomUUID().toString()
         val response = sendPutRequestAsserted<String>(
-          url = addressPhoneNumberUrl(prisonNumber, unknownAddressId, UUID.randomUUID().toString()),
-          body = phoneNumberRequest(),
+          url = addressContactUrl(prisonNumber, unknownAddressId, UUID.randomUUID().toString()),
+          body = contactRequest(),
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = NOT_FOUND,
         ).returnResult().responseBody!!
@@ -548,21 +548,21 @@ class PrisonAPIAddressesControllerIntTest(
       }
 
       @Test
-      fun `should return not found when the phone number does not exist for the address`() {
-        val phoneNumberId = UUID.randomUUID().toString()
+      fun `should return not found when the contact does not exist for the address`() {
+        val contactId = UUID.randomUUID().toString()
         val response = sendPutRequestAsserted<String>(
-          url = addressPhoneNumberUrl(prisonNumber, addressId, phoneNumberId),
-          body = phoneNumberRequest(),
+          url = addressContactUrl(prisonNumber, addressId, contactId),
+          body = contactRequest(),
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = NOT_FOUND,
         ).returnResult().responseBody!!
-        assertThat(response).contains("Phone number with $phoneNumberId not found for address with $addressId")
+        assertThat(response).contains("Contact with $contactId not found for address with $addressId")
       }
 
       @Test
       fun `should return bad request when contact type is invalid`() {
         sendPutRequestAsserted<String>(
-          url = addressPhoneNumberUrl(prisonNumber, addressId, UUID.randomUUID().toString()),
+          url = addressContactUrl(prisonNumber, addressId, UUID.randomUUID().toString()),
           body = mapOf("type" to "NOT_A_TYPE", "value" to "01234 567 890", "userId" to "TEST"),
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = BAD_REQUEST,
@@ -572,7 +572,7 @@ class PrisonAPIAddressesControllerIntTest(
       @Test
       fun `should return bad request when value is missing`() {
         sendPutRequestAsserted<String>(
-          url = addressPhoneNumberUrl(prisonNumber, addressId, UUID.randomUUID().toString()),
+          url = addressContactUrl(prisonNumber, addressId, UUID.randomUUID().toString()),
           body = mapOf("type" to BUS.name, "userId" to "TEST"),
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = BAD_REQUEST,
@@ -585,8 +585,8 @@ class PrisonAPIAddressesControllerIntTest(
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         sendPutRequestAsserted<String>(
-          url = addressPhoneNumberUrl(prisonNumber, addressId, UUID.randomUUID().toString()),
-          body = phoneNumberRequest(),
+          url = addressContactUrl(prisonNumber, addressId, UUID.randomUUID().toString()),
+          body = contactRequest(),
           roles = listOf(API_READ_ONLY),
           expectedStatus = FORBIDDEN,
         )
@@ -595,8 +595,8 @@ class PrisonAPIAddressesControllerIntTest(
       @Test
       fun `should return UNAUTHORIZED 401 when role is not set`() {
         sendPutRequestAsserted<Unit>(
-          url = addressPhoneNumberUrl(prisonNumber, addressId, UUID.randomUUID().toString()),
-          body = phoneNumberRequest(),
+          url = addressContactUrl(prisonNumber, addressId, UUID.randomUUID().toString()),
+          body = contactRequest(),
           roles = emptyList(),
           expectedStatus = UNAUTHORIZED,
           sendAuthorised = false,
@@ -604,7 +604,7 @@ class PrisonAPIAddressesControllerIntTest(
       }
     }
 
-    private fun phoneNumberRequest() = PrisonContactRequest(
+    private fun contactRequest() = PrisonContactRequest(
       type = BUS,
       value = "01234 567 890",
       extension = "123",
@@ -621,6 +621,6 @@ class PrisonAPIAddressesControllerIntTest(
   }
 
   private fun addressesUrl(prisonNumber: String) = "/person/prison/$prisonNumber/addresses"
-  private fun addressPhoneNumbersUrl(prisonNumber: String, addressId: String) = "/person/prison/$prisonNumber/addresses/$addressId/phone-numbers"
-  private fun addressPhoneNumberUrl(prisonNumber: String, addressId: String, phoneNumberId: String) = "${addressPhoneNumbersUrl(prisonNumber, addressId)}/$phoneNumberId"
+  private fun addressContactsUrl(prisonNumber: String, addressId: String) = "/person/prison/$prisonNumber/addresses/$addressId/contacts"
+  private fun addressContactUrl(prisonNumber: String, addressId: String, contactId: String) = "${addressContactsUrl(prisonNumber, addressId)}/$contactId"
 }

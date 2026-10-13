@@ -54,17 +54,17 @@ class PrisonAPIAddressesController(
   ): CanonicalAddress = prisonAddressesHandler.create(prisonNumber, request)
 
   @Operation(
-    description = "Add phone numbers for a prisoner's address by Prison Number and address id. Role required is **$PRISON_API_READ_WRITE**. ",
+    description = "Add contacts to a prisoner's address by Prison Number and address id. Role required is **$PRISON_API_READ_WRITE**. ",
     security = [SecurityRequirement(name = "api-role")],
   )
   @PreAuthorize("hasRole('$PRISON_API_READ_WRITE')")
-  @PostMapping("/{prisonNumber}/addresses/{addressId}/phone-numbers")
+  @PostMapping("/{prisonNumber}/addresses/{addressId}/contacts")
   @ResponseStatus(HttpStatus.CREATED)
-  fun createAddressPhoneNumbersByPrisonNumber(
+  fun createAddressContactsByPrisonNumber(
     @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
     @PathVariable(name = "addressId") @Parameter(description = "The address id") addressId: String,
     @Valid @RequestBody request: List<@Valid PrisonContactRequest>,
-  ): List<PrisonContactResponse> = prisonContactsHandler.createPhoneNumbers(prisonNumber, addressId, request)
+  ): List<PrisonContactResponse> = prisonContactsHandler.createContacts(prisonNumber, addressId, request)
 
   @Operation(
     description = "Update phone number for a prisoner's address by Prison Number and address id. Role required is **$PRISON_API_READ_WRITE**. ",
@@ -80,15 +80,15 @@ class PrisonAPIAddressesController(
   ): PrisonContactResponse = prisonContactsHandler.updatePhoneNumber(prisonNumber, addressId, phoneNumberId, request)
 
   @Operation(
-    description = "Update phone number for a prisoner's address by Prison Number and address id. Role required is **$PRISON_API_READ_WRITE**. ",
+    description = "Update contacts for a prisoner's address by Prison Number and address id. Role required is **$PRISON_API_READ_WRITE**. ",
     security = [SecurityRequirement(name = "api-role")],
   )
   @PreAuthorize("hasRole('$PRISON_API_READ_WRITE')")
-  @PutMapping("/{prisonNumber}/addresses/{addressId}/phone-numbers/{phoneNumberId}")
-  fun updateAddressPhoneNumbersByPrisonNumber(
+  @PutMapping("/{prisonNumber}/addresses/{addressId}/contacts/{contactId}")
+  fun updateAddressContactsByPrisonNumber(
     @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
     @PathVariable(name = "addressId") @Parameter(description = "The address id") addressId: String,
-    @PathVariable(name = "phoneNumberId") @Parameter(description = "The phone number id") phoneNumberId: String,
+    @PathVariable(name = "contactId") @Parameter(description = "The contact id") contactId: String,
     @Valid @RequestBody request: PrisonContactRequest,
-  ): PrisonContactResponse = prisonContactsHandler.updatePhoneNumber(prisonNumber, addressId, phoneNumberId, request)
+  ): PrisonContactResponse = prisonContactsHandler.updateContact(prisonNumber, addressId, contactId, request)
 }
