@@ -63,9 +63,7 @@ class PersonKeyService(
   }
 
   private fun List<PersonKeyEntity>.containsExcluded(): Boolean {
-    val scopesPerCluster = this.map { cluster -> cluster.getScopes() }
-    val allScopesAcrossClusters = scopesPerCluster.flatten()
-    val hasSameScopes = allScopesAcrossClusters.size != allScopesAcrossClusters.toSet().size
-    return hasSameScopes
+    val excludeScopes = this.flatMap { cluster -> cluster.getExcludeScopes() }
+    return excludeScopes.size != excludeScopes.toSet().size
   }
 }
