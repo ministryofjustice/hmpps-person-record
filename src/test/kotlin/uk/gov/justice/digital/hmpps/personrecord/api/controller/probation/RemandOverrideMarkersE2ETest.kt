@@ -133,7 +133,6 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
     updatedDefendant.assertLinkedToCluster(createdProbationPerson.personKey!!)
   }
 
-
   @Test
   fun `should create new probation record on separate cluster when created with different person details`() {
     val defendantId = randomDefendantId()
