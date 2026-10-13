@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.review.ReviewRaised
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
-import java.util.UUID
 
 @Component
 class PersonKeyService(
@@ -64,28 +63,27 @@ class PersonKeyService(
   }
 
   /**
-   * new record ->
-   * c1 -> { 1, 2 }
-   * c2 -> { 3, 3 }     CAN JOIN
-   * c3 -> { 4, 5 }
+   * new record -> CAN JOIN
+   * c1 -> [ p1{ 1, 2 } p2{ 1, 2 }]
+   * c2 -> [ p1{ 3, 4 } p2{ 3, 4 }]
+   * c3 -> [ p1{ 5, 6 } p2{ 5, 6 }]
    *
-   *    * c1 -> { 1, 2 }
-   *    * c2 -> { 2, 3 }     NO JOIN
-   *    * c3 -> { 4, 5 }
+   * new record -> NO JOIN
+   * c1 -> [ p1{ 1, 2 } p2{ 1, 2 }]
+   * c2 -> [ p1{ 2, 4 } p2{ 3, 4 }]
+   * c2 -> [ p1{ 5, 6 } p2{ 5, 6 }]
    */
   private fun List<PersonKeyEntity>.containsExcluded(): Boolean {
-    val map = this.map { it.personUUID to it.getScopes() }.associate { it.first to it.second }
-
-    val seen = mutableSetOf<UUID>()
-    return map.values.any { scopes ->
-      val x = scopes.toSet()
-      x.any { !seen.add(it) }
+    this.forEach { cluster ->
+      val outerScopes = cluster.getScopes()
+      val otherCluster = this.filter { it != cluster }
+      otherCluster.forEach { innerCluster ->
+        val innerScopes = innerCluster.getScopes()
+        if (innerScopes.any { outerScopes.contains(it) }) {
+          return true
+        }
+      }
     }
-
-//    this.forEach { cluster ->
-//      val scopes = cluster.getScopes()
-//
-//
-//    }
+    return false
   }
 }
