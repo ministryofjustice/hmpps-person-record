@@ -16,8 +16,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class RemandOverrideMarkersE2ETest : E2ETestBase() {
 
+  // TODO ideally this should create a court or prison record to join the cluster
   @Test
-  fun `should create new probation record and join existing cluster when created with the same person details`() {
+  fun `should create record to match and join an existing cluster with include override markers`() {
     val defendantId = randomDefendantId()
     val defendant = createRandomCommonPlatformPersonDetails(defendantId)
     val probationCase = ProbationCase(
@@ -36,22 +37,21 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
       .isOk
 
     val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
-    val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
+    val updatedDefendant = personRepository.findByMatchId(defendantRecord.matchId)!!
 
     offender.assertLinkedToCluster(updatedDefendant.personKey!!)
 
-    val similarPersonCrn = randomCrn()
-    val similarPersonDetails = probationCase.copy(identifiers = Identifiers(crn = similarPersonCrn, cro = defendant.getCro(), pnc = defendant.getPnc()))
+    val matchingPersonCrn = randomCrn()
+    val matchingPersonDetails = probationCase.copy(identifiers = Identifiers(crn = matchingPersonCrn, cro = defendant.getCro(), pnc = defendant.getPnc()))
 
-    probationCreateEventAndResponseSetup(ApiResponseSetup.from(similarPersonDetails))
-    val similarPerson = awaitNotNull { personRepository.findByCrn(similarPersonCrn) }
-    similarPerson.assertLinkedToCluster(updatedDefendant.personKey!!)
-    // RESULT: on a separate cluster in NEEDS_ATTENTION - fails because PersonKeyService.containsExcluded returns true and a new cluster is created instead of joining the existing cluster
+    probationCreateEventAndResponseSetup(ApiResponseSetup.from(matchingPersonDetails))
+    val matchingPerson = awaitNotNull { personRepository.findByCrn(matchingPersonCrn) }
+    matchingPerson.assertLinkedToCluster(updatedDefendant.personKey!!)
   }
 
   @Test
   @Disabled("clusters with more than one record on which have a record unmerged out of them automatically go into needs attention")
-  fun `should update new probation record and join existing cluster with include and exclude override markers when updated with the same person details`() {
+  fun `should update a record to match and join an existing cluster with include and exclude override markers`() {
     val defendantId = randomDefendantId()
     val defendant = createRandomCommonPlatformPersonDetails(defendantId)
     val probationCase = ProbationCase(
@@ -102,8 +102,9 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
     updatedDefendant.assertLinkedToCluster(createdProbationPerson.personKey!!)
   }
 
+  // TODO should have a prison/court record joining this rather than a probation record
   @Test
-  fun `should update new probation record and join existing cluster when updated with the same person details`() {
+  fun `should update a record to match and join an existing cluster with include override markers`() {
     val defendantId = randomDefendantId()
     val defendant = createRandomCommonPlatformPersonDetails(defendantId)
     val probationCase = ProbationCase(
@@ -122,11 +123,10 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
       .isOk
 
     val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
-    val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
+    val updatedDefendant = personRepository.findByMatchId(defendantRecord.matchId)!!
 
     offender.assertLinkedToCluster(updatedDefendant.personKey!!)
 
-    // create a new probation record with different CRN but same person details
     val probationPersonCrn = randomCrn()
     val probationCaseToCreate = createRandomProbationCase().copy(identifiers = Identifiers(crn = probationPersonCrn))
 
@@ -139,6 +139,7 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
     probationUpdateEventAndResponseSetup(ApiResponseSetup.from(updateProbationPerson))
 
     updatedDefendant.assertLinkedToCluster(createdProbationPerson.personKey!!)
+    createdProbationPerson.personKey!!.assertClusterIsOfSize(3)
   }
 
   @Test
