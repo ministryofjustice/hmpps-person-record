@@ -8,7 +8,7 @@ kotlin {
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.12"
   kotlin("plugin.spring") version "2.4.10"
-  kotlin("jvm") version "2.4.20"
+  kotlin("jvm") version "2.4.21"
   kotlin("plugin.jpa") version "2.4.20"
   id("org.jetbrains.kotlinx.kover") version "0.9.11"
   id("org.owasp.dependencycheck") version "12.2.2"
