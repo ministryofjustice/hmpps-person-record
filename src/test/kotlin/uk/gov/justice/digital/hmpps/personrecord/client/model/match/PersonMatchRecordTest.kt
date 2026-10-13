@@ -37,6 +37,7 @@ class PersonMatchRecordTest {
     assertThat(personMatchRecord.sentenceDates).isEqualTo(listOf("1970-01-01"))
   }
 
+  // TODO remove this test when RemandOverrideMarkersE2ETest.kt:54 is enabled
   @Test
   fun `should build override marker and override scopes`() {
     val overrideMarker = UUID.randomUUID()
