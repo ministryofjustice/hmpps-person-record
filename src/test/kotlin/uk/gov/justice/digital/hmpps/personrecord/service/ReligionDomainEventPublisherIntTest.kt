@@ -3,14 +3,12 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionInsertHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionUpdateHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionInsertRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionUpdateRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PRISON_RELIGION_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PRISON_RELIGION_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprReligionCreated
@@ -43,10 +41,7 @@ class ReligionDomainEventPublisherIntTest : MessagingTestBase() {
     val cprReligionId = prisonReligionInsertHandler.handleNomisInsert(prisonNumber, createPrisonReligionHistory()).cprReligionId
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-    )
-    val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
+    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_RELIGION_CREATED))
     assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(NOMIS.identifier))
     val domainEvent: CprReligionCreated = jsonMapper.readValue<CprReligionCreated>(sqsMessage.message)
@@ -73,10 +68,7 @@ class ReligionDomainEventPublisherIntTest : MessagingTestBase() {
     val cprReligionId = prisonReligionInsertHandler.handleCprInsert(prisonNumber, request).cprReligionId
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-    )
-    val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
+    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_RELIGION_CREATED))
     assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(CPR.identifier))
     val domainEvent: CprReligionCreated = jsonMapper.readValue<CprReligionCreated>(sqsMessage.message)
@@ -105,10 +97,7 @@ class ReligionDomainEventPublisherIntTest : MessagingTestBase() {
     )
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-    )
-    val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
+    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_RELIGION_UPDATED))
     assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(NOMIS.identifier))
     val domainEvent: CprReligionUpdated = jsonMapper.readValue<CprReligionUpdated>(sqsMessage.message)
