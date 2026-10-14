@@ -55,16 +55,16 @@ class PrisonEventProcessorProfileTest {
 
     @Test
     fun `uses the correct prison person service proxy for the active profile`() {
-      assertThat(prisonPersonServiceProxy).isInstanceOf(PrisonPersonServiceProxyProd::class.java)
+      assertThat(prisonPersonServiceProxy).isInstanceOf(PrisonPersonServiceProxyDev::class.java)
     }
 
     @Test
-    fun `passes emptySet for the childrenToIgnore`() {
+    fun `passes set of addresses and contacts for the childrenToIgnore`() {
       prisonPersonServiceProxy.processPerson(person, { personEntity })
 
       verify(personService).processPerson(
         person = eq(person),
-        childrenToIgnore = eq(emptySet()),
+        childrenToIgnore = eq(setOf(AddressEntity::class, ContactEntity::class)),
         findPerson = any(),
       )
     }
@@ -72,7 +72,7 @@ class PrisonEventProcessorProfileTest {
 
   @Nested
   @ActiveProfiles("dev")
-  inner class DevrofileTest(@Autowired private val prisonPersonServiceProxy: PrisonPersonServiceProxy) {
+  inner class DevProfileTest(@Autowired private val prisonPersonServiceProxy: PrisonPersonServiceProxy) {
 
     @Test
     fun `uses the correct prison person service proxy for the active profile`() {
