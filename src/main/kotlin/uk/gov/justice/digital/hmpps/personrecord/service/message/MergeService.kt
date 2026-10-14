@@ -8,7 +8,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.PersonMerged
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyDeletionService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.updatePersonEntity
@@ -37,6 +39,16 @@ class MergeService(
     val personChangeChecker = PersonChangeChecker(to)
     to.updatePersonEntity(person)
     personRepository.save(to)
+    publisher.publishEvent(
+      RecordEventLog(
+        eventType = CPR_RECORD_UPDATED,
+        personEntity = to,
+        clusterDetail = EventLogClusterDetail(
+          personUUID = to.personKey!!.personUUID,
+          status = to.personKey!!.status,
+        ),
+      ),
+    )
 
     if (personChangeChecker.shouldSaveToPersonMatch(to)) {
       personMatchService.saveToPersonMatch(to)
