@@ -83,7 +83,7 @@ class ProbationMergeEventListenerIntTest : MessagingTestBase() {
         ),
       )
       checkEventLogExist(sourcePerson.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
-      checkEventLogExist(sourcePerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(targetPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED)
 
       sourcePerson.assertMergedTo(targetPerson)
       val sourceClusterPostMerge = personKeyRepository.findById(sourceClusterId!!).getOrNull()
