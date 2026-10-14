@@ -71,6 +71,39 @@ jobs:
       - name: Start Containers
         run: make e2e-start-containers
 
+      - name: Resolve provider app version
+        id: resolve-provider-version
+        shell: bash
+        env:
+          INPUT_PROVIDER_APP_VERSION: ${{ inputs.providerAppVersion }}
+          PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
+          PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
+          PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [[ -n "${INPUT_PROVIDER_APP_VERSION}" ]]; then
+            version="${INPUT_PROVIDER_APP_VERSION}"
+            echo "Using workflow input provider version: ${version}"
+          else
+            echo "No providerAppVersion supplied - querying Pact Broker latest version"
+
+            version="$({
+              curl -fsSL \
+                -u "${PACT_BROKER_USERNAME}:${PACT_BROKER_PASSWORD}" \
+                "${PACT_BROKER_URL}/pacticipants/hmpps-person-record/latest-version"
+            } | jq -r '.number // empty')"
+
+            if [[ -z "${version}" ]]; then
+              echo "Could not resolve latest provider version from Pact Broker" >&2
+              exit 1
+            fi
+
+            echo "Resolved latest provider version from broker: ${version}"
+          fi
+
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
       - name: Verify pacts
         run: ./gradlew pactTest
         env:
@@ -81,11 +114,11 @@ jobs:
           GITHUB_BRANCH: ${{ github.ref_name }}
           PACT_CONSUMER_NAME: ${{ inputs.consumerName }}
           PACT_CONSUMER_BRANCH: ${{ inputs.consumerBranch }}
-          PACT_PROVIDER_APP_VERSION: ${{ inputs.providerAppVersion }}
+          PACT_PROVIDER_APP_VERSION: ${{ steps.resolve-provider-version.outputs.version }}
 
       - name: Upload the test artifacts
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: pact-test-results
           path: |
