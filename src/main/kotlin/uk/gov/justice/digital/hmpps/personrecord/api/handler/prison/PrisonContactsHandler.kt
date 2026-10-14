@@ -66,7 +66,7 @@ class PrisonContactsHandler(
   }
 
   @Transactional
-  fun createPhoneNumbers(addressId: String, requests: List<PrisonContactRequest>): List<PrisonContactResponse> {
+  fun createPhoneNumbers(prisonNumber: String, addressId: String, requests: List<PrisonContactRequest>): List<PrisonContactResponse> {
     val addressEntity = findAddress(addressId)
     val contactEntities = contactRepository.saveAllAndFlush(
       requests.map {
@@ -81,6 +81,9 @@ class PrisonContactsHandler(
       },
     )
     addressEntity.contacts.addAll(contactEntities)
+    contactEntities.forEach {
+      publisher.publishEvent(ContactCreated(DomainEventSource.CPR, prisonNumber, it, SourceSystemType.NOMIS))
+    }
     return contactEntities.map { PrisonContactResponse.from(it) }
   }
 

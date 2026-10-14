@@ -1,6 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.matches
+import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
@@ -14,9 +17,11 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprContactCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprContactUpdated
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.BUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
@@ -69,13 +74,55 @@ class ContactDomainEventPublisherIntTest(
     assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(prisonNumber)
   }
 
-  private fun receiveDomainEvent(): SQSMessage {
-    expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
+  @Test
+  fun `should publish a CPR contact created domain event for each address phone number created through CPR`() {
+    val prisonNumber = randomPrisonNumber()
+    createPersonWithNewKey(
+      createRandomPrisonPersonDetails(prisonNumber).copy(addresses = listOf(Address(postcode = "AB1 1AA")), contacts = emptyList()),
     )
-    return rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
+    val addressId = personRepository.findByPrisonNumber(prisonNumber)!!.addresses.single().updateId.toString()
+
+    val cprContactIds = prisonContactsHandler.createPhoneNumbers(
+      prisonNumber,
+      addressId,
+      listOf(
+        contactRequest().copy(type = HOME, value = "01234 111111"),
+        contactRequest().copy(type = MOBILE, value = "07777 222222"),
+      ),
+    ).map { it.contactId }
+
+    val sqsMessages = receiveDomainEvents(2)
+    assertThat(sqsMessages).allSatisfy { sqsMessage ->
+      assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_CONTACT_CREATED))
+      assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(CPR.identifier))
+    }
+    val domainEvents = sqsMessages.map { jsonMapper.readValue<CprContactCreated>(it.message) }
+    assertThat(domainEvents.map { it.additionalInformation.cprContactId.toString() }).containsExactlyInAnyOrderElementsOf(cprContactIds)
+    assertThat(domainEvents).allSatisfy { domainEvent ->
+      assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_CONTACT_CREATED)
+      assertThat(domainEvent.description).isEqualTo("A prison contact has been created for a person")
+      assertThat(domainEvent.detailUrl)
+        .isEqualTo("http://localhost:8080/person/prison/$prisonNumber/contacts/${domainEvent.additionalInformation.cprContactId}")
+      assertThat(domainEvent.occurredAt).isNotNull()
+      assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
+      assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("prisonNumber")
+      assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(prisonNumber)
+    }
   }
+
+  private fun receiveDomainEvents(expectedCount: Int): List<SQSMessage> {
+    expectMessageCountMessagesOn(testOnlyCPRDomainEventsQueue, expectedCount)
+    val messages = mutableListOf<SQSMessage>()
+    await untilCallTo {
+      testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
+        ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).maxNumberOfMessages(10).build(),
+      )?.get()?.messages()?.forEach { messages.add(jsonMapper.readValue<SQSMessage>(it.body())) }
+      messages.size
+    } matches { it == expectedCount }
+    return messages
+  }
+
+  private fun receiveDomainEvent(): SQSMessage = receiveDomainEvents(1).single()
 
   private fun contactRequest() = PrisonContactRequest(
     type = BUS,
