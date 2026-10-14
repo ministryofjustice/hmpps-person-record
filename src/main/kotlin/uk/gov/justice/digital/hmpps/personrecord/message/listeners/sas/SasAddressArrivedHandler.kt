@@ -24,7 +24,7 @@ class SasAddressArrivedHandler(
     newMainAddress.address.isVerified = true
     newMainAddress.address.statusCode = M
 
-    addressService.processAddress(
+    addressService.update(
       address = newMainAddress.address,
       findAddress = { addressRepository.findByUpdateId(newMainAddress.cprAddressId)!! },
       eventSource = CPR,
@@ -36,9 +36,8 @@ class SasAddressArrivedHandler(
     personEntity.currentMainAddress(incomingAddressId)?.let { oldMainAddress ->
       oldMainAddress.statusCode = P
       oldMainAddress.endDate = startDate
-      addressService.processAddress(
+      addressService.update(
         address = Address.from(oldMainAddress),
-        findPerson = { personEntity },
         findAddress = { oldMainAddress },
         eventSource = CPR,
       )

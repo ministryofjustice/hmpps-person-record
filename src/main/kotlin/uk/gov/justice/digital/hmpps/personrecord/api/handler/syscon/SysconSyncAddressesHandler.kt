@@ -8,13 +8,14 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.M
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.MA
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.PM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.Companion.MAIL_TYPES
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.Companion.PRIMARY_TYPES
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import java.util.UUID
@@ -28,15 +29,24 @@ class SysconSyncAddressesHandler(
   @Transactional
   fun handleInsert(prisonNumber: String, prisonAddress: PrisonAddress): SysconAddressMapping {
     val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
-    val addressEntity = addressService.processAddress(
+    val addressEntity = addressService.create(
       address = prisonAddress.toAddress(),
       findPerson = { personEntity },
-      findAddress = { null },
       eventSource = DomainEventSource.NOMIS,
     )
     return SysconAddressMapping(
       nomisAddressId = prisonAddress.nomisAddressId!!,
       cprAddressId = addressEntity.updateId.toString(),
+    )
+  }
+
+  @Transactional
+  fun handleUpdate(cprAddressId: String, prisonAddress: PrisonAddress) {
+    addressService.update(
+      address = prisonAddress.toAddress(),
+      findAddress = { addressRepository.findByUpdateId(UUID.fromString(cprAddressId)) },
+      eventSource = DomainEventSource.NOMIS,
+      childrenToIgnore = setOf(ContactEntity::class, AddressUsageEntity::class),
     )
   }
 
@@ -55,17 +65,6 @@ class SysconSyncAddressesHandler(
   }
 
   companion object {
-
-    fun isPrimary(addressStatusCode: AddressStatusCode?): Boolean = when (addressStatusCode) {
-      M, PM -> true
-      else -> false
-    }
-
-    fun isMail(addressStatusCode: AddressStatusCode?): Boolean = when (addressStatusCode) {
-      PM, MA -> true
-      else -> false
-    }
-
     fun AddressEntity.toPrisonAddress() = PrisonAddress(
       startDate = startDate?.toUkLocalDate(),
       endDate = endDate?.toUkLocalDate(),
@@ -81,8 +80,8 @@ class SysconSyncAddressesHandler(
       county = county,
       countryCode = countryCode,
       comment = comment,
-      isPrimary = isPrimary(statusCode),
-      isMail = isMail(statusCode),
+      isPrimary = PRIMARY_TYPES.contains(statusCode),
+      isMail = MAIL_TYPES.contains(statusCode),
       modifyDateTime = modifyDateTime,
       modifyUserId = modifyUserId,
       createDateTime = createDateTime!!,

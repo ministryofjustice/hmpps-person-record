@@ -60,12 +60,7 @@ class ProbationAddressCreateAPIController(
     if (probationCreateAddress.statusCode == AddressStatusCode.M) {
       sasAddressArrivedHandler.setMainAddressToPrevious(person, address.startDate!!)
     }
-    val createdAddress: AddressEntity = addressService.processAddress(
-      address,
-      findPerson = { person },
-      findAddress = { null },
-      CPR,
-    )
+    val createdAddress: AddressEntity = addressService.create(address, CPR) { person }
     val responseBody = ProbationCreateAddressResponse(crn, createdAddress.updateId!!.toString())
     return ResponseEntity.status(HttpStatus.CREATED).body(responseBody)
   }
