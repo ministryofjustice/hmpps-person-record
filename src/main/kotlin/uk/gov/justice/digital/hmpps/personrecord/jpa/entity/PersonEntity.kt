@@ -33,6 +33,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.OverrideType
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -166,6 +167,8 @@ class PersonEntity(
   fun getScopes(): Set<UUID> = this.overrideScopes
     .map { scopeEntity -> scopeEntity.scope }
     .toSet()
+
+  fun getExcludeScopes(): Set<OverrideScopeEntity> = this.overrideScopes.filter { it.overrideType == OverrideType.EXCLUDE }.toSet()
 
   fun extractSourceSystemId(): String? = mapOf(
     DELIUS to this.crn,
