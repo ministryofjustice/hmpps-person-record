@@ -21,10 +21,10 @@ class PersonKeyService(
 ) {
 
   fun linkRecordToPersonKey(personEntity: PersonEntity) {
-    val matches = personMatchService.findClustersToJoin(personEntity)
+    val clusters = personMatchService.findClustersToJoin(personEntity)
     when {
-      matches.containsExcluded() -> personEntity.setAsOverrideConflict(matches)
-      else -> personEntity.selectClusterToAssignTo(matches)
+      clusters.containsExcludeOverrides() -> personEntity.setAsOverrideConflict(clusters)
+      else -> personEntity.selectClusterToAssignTo(clusters)
     }
   }
 
@@ -62,8 +62,17 @@ class PersonKeyService(
     }
   }
 
-  private fun List<PersonKeyEntity>.containsExcluded(): Boolean {
-    val excludeScopes = this.flatMap { cluster -> cluster.getExcludeScopes() }
-    return excludeScopes.size != excludeScopes.toSet().size
+  private fun List<PersonKeyEntity>.containsExcludeOverrides(): Boolean {
+    this.forEach { cluster ->
+      val thisClusterScopes = cluster.getExcludeScopes()
+      val otherClusters = this.filter { it != cluster }
+      otherClusters.forEach { otherCluster ->
+        val otherClusterScopes = otherCluster.getExcludeScopes()
+        if (otherClusterScopes.any { thisClusterScopes.contains(it) }) {
+          return true
+        }
+      }
+    }
+    return false
   }
 }
