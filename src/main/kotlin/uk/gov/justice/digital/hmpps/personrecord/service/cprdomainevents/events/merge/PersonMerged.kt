@@ -8,5 +8,5 @@ data class PersonMerged(
   val from: PersonEntity?,
   val fromClusterDetail: EventLogClusterDetail,
   val to: PersonEntity,
-  val personChangeChecker: PersonChangeChecker? = null,
+  val personChangeChecker: PersonChangeChecker,
 )
