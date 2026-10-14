@@ -38,8 +38,13 @@ data class ProbationCreateAddress(
   val statusCode: AddressStatusCode,
   @Schema(description = "Is the address type verified", examples = ["false", "true"], required = true)
   val typeVerified: Boolean = true,
-  @Schema(description = "List of address usages", required = true)
+  @Deprecated(message = "Use usage instead. This is kept temporarily for provider compatibility during consumer migration.")
+  @Schema(description = "Legacy list of address usages kept for provider compatibility during migration")
   val usages: List<ProbationCreateAddressUsage> = emptyList(),
+  @Schema(description = "The address usage")
+  val usage: ProbationCreateAddressUsage? = null,
   @Schema(description = "List of address contacts")
   val contacts: List<ProbationCreateAddressContact> = emptyList(),
-)
+) {
+  fun normalisedUsages(): List<ProbationCreateAddressUsage> = usage?.let { listOf(it) } ?: usages
+}
