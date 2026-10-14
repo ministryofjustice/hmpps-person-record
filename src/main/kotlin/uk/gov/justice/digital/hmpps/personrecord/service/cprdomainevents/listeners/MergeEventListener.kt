@@ -18,6 +18,7 @@ class MergeEventListener(
   @TransactionalEventListener
   fun onMergeEvent(personMerged: PersonMerged) {
     personMerged.from?.let { publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_MERGED, it, personMerged.fromClusterDetail)) }
+    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_UPDATED, personMerged.to))
     publisher.publishEvent(
       RecordTelemetry(
         TelemetryEventType.CPR_RECORD_MERGED,
