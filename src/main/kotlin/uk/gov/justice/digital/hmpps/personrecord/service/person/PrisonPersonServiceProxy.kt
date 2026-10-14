@@ -15,7 +15,7 @@ interface PrisonPersonServiceProxy {
 }
 
 @Component
-@Profile("preprod | prod")
+@Profile("prod")
 class PrisonPersonServiceProxyProd(
   private val personService: PersonService,
 ) : PrisonPersonServiceProxy {
@@ -26,7 +26,7 @@ class PrisonPersonServiceProxyProd(
 }
 
 @Component
-@Profile("!preprod & !prod")
+@Profile("!prod")
 class PrisonPersonServiceProxyDev(
   private val personService: PersonService,
 ) : PrisonPersonServiceProxy {
