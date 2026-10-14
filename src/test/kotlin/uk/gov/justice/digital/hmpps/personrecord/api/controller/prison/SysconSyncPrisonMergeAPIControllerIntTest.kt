@@ -62,6 +62,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
         ),
       )
       checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
+      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
     }
 
     @Test
@@ -100,6 +101,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
         ),
       )
       checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
+      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
     }
 
     @Test
@@ -134,6 +136,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
         assertThat(eventLogs.first().recordMergedTo).isEqualTo(targetPerson.id)
         assertThat(eventLogs.first().personUUID).isEqualTo(sourcePerson.personKey!!.personUUID)
       }
+      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
     }
   }
 
@@ -190,6 +193,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
         ),
       )
       checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
+      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
     }
 
     @Test
@@ -226,6 +230,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
         ),
       )
       checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
+      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
     }
   }
 

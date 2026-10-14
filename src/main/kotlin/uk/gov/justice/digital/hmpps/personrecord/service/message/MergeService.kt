@@ -24,17 +24,17 @@ class MergeService(
 ) {
 
   fun processMerge(from: PersonEntity, to: PersonEntity, person: Person) {
-    updateToPerson(to, person)
+    val personChangeChecker = PersonChangeChecker(to)
+    updateToPerson(to, person, personChangeChecker)
     val fromClusterDetail = EventLogClusterDetail.from(from.personKey)
     when {
       fromClusterHasOneRecord(from) -> deleteSingleRecordCluster(from)
     }
-    merge(from, to, fromClusterDetail)
+    merge(from, to, fromClusterDetail, personChangeChecker)
     reclusterService.recluster(to)
   }
 
-  private fun updateToPerson(to: PersonEntity, person: Person) {
-    val personChangeChecker = PersonChangeChecker(to)
+  private fun updateToPerson(to: PersonEntity, person: Person, personChangeChecker: PersonChangeChecker) {
     to.updatePersonEntity(person)
     personRepository.save(to)
 
@@ -49,13 +49,18 @@ class MergeService(
     personKeyDeletionService.deletePersonKey(personKeyEntity, from)
   }
 
-  private fun merge(from: PersonEntity, to: PersonEntity, fromClusterDetail: EventLogClusterDetail) {
+  private fun merge(
+    from: PersonEntity,
+    to: PersonEntity,
+    fromClusterDetail: EventLogClusterDetail,
+    personChangeChecker: PersonChangeChecker,
+  ) {
     from.throwIfCircularMerge(to)
     from.removePersonKeyLink()
     from.mergeTo(to)
     personRepository.save(from)
     personMatchService.deleteFromPersonMatch(from)
-    publisher.publishEvent(PersonMerged(from, fromClusterDetail, to))
+    publisher.publishEvent(PersonMerged(from, fromClusterDetail, to, personChangeChecker))
   }
 
   private fun PersonEntity.throwIfCircularMerge(to: PersonEntity) {
