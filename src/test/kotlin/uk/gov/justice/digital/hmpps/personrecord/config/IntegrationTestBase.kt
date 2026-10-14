@@ -255,7 +255,7 @@ class IntegrationTestBase {
     comment = randomName(),
     statusCode = listOf(AddressStatusCode.M, AddressStatusCode.PR).random(),
     typeVerified = true,
-    usages = listOf(ProbationCreateAddressUsage(randomAddressUsageCode(), randomBoolean())),
+    usage = ProbationCreateAddressUsage(randomAddressUsageCode(), randomBoolean()),
     contacts = listOf(ProbationCreateAddressContact(randomContactType(), randomPhoneNumber(), "44")),
   )
 
