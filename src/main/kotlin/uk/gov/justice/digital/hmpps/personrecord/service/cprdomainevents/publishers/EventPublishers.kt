@@ -4,6 +4,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.contact.ContactCreated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.contact.ContactUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.religion.ReligionCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.religion.ReligionUpdated
 
@@ -18,4 +20,10 @@ interface AddressEventPublisher {
   fun onCreate(addressCreated: AddressCreated)
   fun onUpdate(addressUpdated: AddressUpdated)
   fun onDelete(addressDeleted: AddressDeleted)
+}
+
+interface ContactEventPublisher {
+  val sourceSystemType: SourceSystemType
+  fun onCreate(contactCreated: ContactCreated)
+  fun onUpdate(contactUpdated: ContactUpdated)
 }

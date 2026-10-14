@@ -407,25 +407,28 @@ class IntegrationTestBase {
     return personKeyRepository.save(this)
   }
 
-  internal fun PersonKeyEntity.addPerson(person: Person): PersonKeyEntity = this.addPerson(createPerson(person))
+  internal fun PersonKeyEntity.addPerson(person: Person): PersonKeyEntity = createPerson(person, this).personKey!!
 
-  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null, configure: PersonEntity.() -> Unit = {}): PersonEntity {
-    val personEntity = createPerson(person, configure)
-    createPersonKey(status, reason).addPerson(personEntity)
-    return personRepository.findByMatchId(personEntity.matchId)!!
-  }
+  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null, configure: PersonEntity.() -> Unit = {}): PersonEntity = createPerson(person, createPersonKey(status, reason), configure)
 
-  internal fun createMergedPerson(person: Person, mergedToId: Long?): PersonEntity = createPerson(
-    person,
-    { mergedTo = mergedToId!! },
-  )
+  internal fun createMergedPerson(person: Person, mergedToId: Long?): PersonEntity = PersonEntity.new(
+    person.sourceSystem,
+  ).updatePersonEntity(person)
+    .apply { mergedTo = mergedToId!! }
+    .let(personRepository::saveAndFlush)
 
-  @Deprecated("use createPersonWithNewKey, createMergedPerson or addPerson instead")
-  internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
+  internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
     person.sourceSystem,
   ).updatePersonEntity(person)
     .apply(configure)
-    .let(personRepository::saveAndFlush)
+    .let {
+      it.personKey = personKeyEntity
+      personRepository.save(it)
+      val personEntity = personRepository.findByMatchId(it.matchId)!!
+      personKeyEntity.personEntities.add(personEntity)
+      personKeyRepository.save(personKeyEntity)
+      personEntity
+    }
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
     val source = personRepository.findByMatchId(sourceRecord.matchId)

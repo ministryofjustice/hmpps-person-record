@@ -46,21 +46,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
     }
 
     @Nested
-    @ActiveProfiles("preprod")
-    inner class PreProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendGetRequestAsserted<String>(
-          url = getPrisonerContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
     inner class Validation {
 
       @Test
@@ -193,22 +178,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
     }
 
     @Nested
-    @ActiveProfiles("preprod")
-    inner class PreProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendPostRequestAsserted<String>(
-          url = createPrisonerContactUrl(randomPrisonNumber()),
-          body = validRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
     inner class Validation {
 
       @Test
@@ -288,22 +257,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
     @Nested
     @ActiveProfiles("prod")
     inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendPutRequestAsserted<String>(
-          url = updatePrisonerContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = validRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
-    @ActiveProfiles("preprod")
-    inner class PreProductionProfile {
 
       @Test
       fun `should have the correct profile active`() {
@@ -401,36 +354,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
     }
 
     @Nested
-    @ActiveProfiles("preprod")
-    inner class PreProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendDeleteRequestAsserted<String>(
-          url = deletePrisonerContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
-    inner class Validation {
-
-      @Test
-      fun `person does not exist - returns 404 not found`() {
-        val prisonNumber = randomPrisonNumber()
-        val response = sendDeleteRequestAsserted<String>(
-          url = deletePrisonerContactUrl(prisonNumber, UUID.randomUUID().toString()),
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("Not found: Person with $prisonNumber not found")
-      }
-    }
-
-    @Nested
     inner class Auth {
 
       @Test
@@ -471,14 +394,16 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
     }
   }
 
-  private fun assertContactMatches(request: PrisonContact, entity: ContactEntity) = with(entity) {
-    assertThat(contactType).isEqualTo(request.type)
-    assertThat(contactValue).isEqualTo(request.value)
-    assertThat(extension).isEqualTo(request.extension)
-    assertThat(modifyUserId).isEqualTo(request.modifyUserId)
-    assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
-    assertThat(createUserId).isEqualTo(request.createUserId)
-    assertThat(createDateTime).isEqualTo(request.createDateTime)
+  companion object {
+    fun assertContactMatches(request: PrisonContact, entity: ContactEntity) = with(entity) {
+      assertThat(contactType).isEqualTo(request.type)
+      assertThat(contactValue).isEqualTo(request.value)
+      assertThat(extension).isEqualTo(request.extension)
+      assertThat(modifyUserId).isEqualTo(request.modifyUserId)
+      assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
+      assertThat(createUserId).isEqualTo(request.createUserId)
+      assertThat(createDateTime).isEqualTo(request.createDateTime)
+    }
   }
 
   private fun getPrisonerContactUrl(prisonNumber: String, contactId: String) = "/syscon-sync/person/$prisonNumber/contact/$contactId"
