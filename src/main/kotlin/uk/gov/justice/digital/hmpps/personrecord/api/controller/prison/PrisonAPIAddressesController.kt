@@ -63,5 +63,5 @@ class PrisonAPIAddressesController(
     @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
     @PathVariable(name = "addressId") @Parameter(description = "The address id") addressId: String,
     @Valid @RequestBody request: List<@Valid PrisonContactRequest>,
-  ): List<PrisonContactResponse> = prisonContactsHandler.createPhoneNumbers(addressId, request)
+  ): List<PrisonContactResponse> = prisonContactsHandler.createPhoneNumbers(prisonNumber, addressId, request)
 }
