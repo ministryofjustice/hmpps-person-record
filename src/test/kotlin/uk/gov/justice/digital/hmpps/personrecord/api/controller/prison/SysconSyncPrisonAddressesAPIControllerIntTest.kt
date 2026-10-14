@@ -60,21 +60,6 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
     }
 
     @Nested
-    @ActiveProfiles("preprod")
-    inner class PreProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendGetRequestAsserted<String>(
-          url = getPrisonerAddressUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
     inner class Validation {
 
       @Test
@@ -248,22 +233,6 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
     }
 
     @Nested
-    @ActiveProfiles("preprod")
-    inner class PreProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendPostRequestAsserted<String>(
-          url = createPrisonerAddressUrl(randomPrisonNumber()),
-          body = validRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
     inner class Validation {
 
       @Test
@@ -357,22 +326,6 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
     @Nested
     @ActiveProfiles("prod")
     inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendPutRequestAsserted<String>(
-          url = updatePrisonerAddressUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = validRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
-    @ActiveProfiles("preprod")
-    inner class PreProductionProfile {
 
       @Test
       fun `should have the correct profile active`() {

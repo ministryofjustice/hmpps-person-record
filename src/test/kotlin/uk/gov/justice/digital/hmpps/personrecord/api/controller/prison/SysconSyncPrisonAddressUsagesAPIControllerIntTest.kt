@@ -58,22 +58,6 @@ class SysconSyncPrisonAddressUsagesAPIControllerIntTest : WebTestBase() {
     }
 
     @Nested
-    @ActiveProfiles("preprod")
-    inner class PreProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendPostRequestAsserted<String>(
-          url = createPrisonerAddressUsageUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = validRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
     inner class Validation {
 
       @Test
@@ -171,22 +155,6 @@ class SysconSyncPrisonAddressUsagesAPIControllerIntTest : WebTestBase() {
     }
 
     @Nested
-    @ActiveProfiles("preprod")
-    inner class PreProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendPutRequestAsserted<String>(
-          url = updatePrisonerAddressUsageUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
-          body = validRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
     inner class Validation {
 
       @Test
@@ -258,21 +226,6 @@ class SysconSyncPrisonAddressUsagesAPIControllerIntTest : WebTestBase() {
     @Nested
     @ActiveProfiles("prod")
     inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendDeleteRequestAsserted<String>(
-          url = deletePrisonerAddressUsageUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
-    @ActiveProfiles("preprod")
-    inner class PreProductionProfile {
 
       @Test
       fun `should have the correct profile active`() {
