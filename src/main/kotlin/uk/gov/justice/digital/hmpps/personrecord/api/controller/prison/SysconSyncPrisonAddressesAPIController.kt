@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECO
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressesHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 
-@Profile("!prod && !preprod")
+@Profile("!prod")
 @Tag(name = "Syscon Sync")
 @RestController
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
