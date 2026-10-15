@@ -59,7 +59,7 @@ class PrisonContactsHandler(
     ?: throw ResourceNotFoundException("Contact with $contactId not found for person with $prisonNumber")
 
   @Transactional
-  fun createPhoneNumbers(prisonNumber: String, addressId: String, requests: List<PrisonContactRequest>): List<PrisonContactResponse> {
+  fun createContacts(prisonNumber: String, addressId: String, requests: List<PrisonContactRequest>): List<PrisonContactResponse> {
     val addressEntity = findAddress(addressId)
     val contactEntities = contactRepository.saveAllAndFlush(
       requests.map {
@@ -89,10 +89,10 @@ class PrisonContactsHandler(
     ?: throw ResourceNotFoundException("Address with $addressId not found")
 
   @Transactional
-  fun updatePhoneNumber(prisonNumber: String, addressId: String, phoneNumberId: String, request: PrisonContactRequest): PrisonContactResponse = findAddress(addressId).contacts.firstOrNull { it.updateId.toString() == phoneNumberId }?.let {
+  fun updateContact(prisonNumber: String, addressId: String, contactId: String, request: PrisonContactRequest): PrisonContactResponse = findAddress(addressId).contacts.firstOrNull { it.updateId.toString() == contactId }?.let {
     update(prisonNumber, it, request)
   }
-    ?: throw ResourceNotFoundException("Phone number with $phoneNumberId not found for address with $addressId")
+    ?: throw ResourceNotFoundException("Contact with $contactId not found for address with $addressId")
 
   private fun update(prisonNumber: String, contactEntity: ContactEntity, request: PrisonContactRequest): PrisonContactResponse = with(request) {
     contactEntity.contactType = type
