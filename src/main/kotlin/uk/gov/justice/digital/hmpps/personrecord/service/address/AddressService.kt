@@ -3,18 +3,21 @@ package uk.gov.justice.digital.hmpps.personrecord.service.address
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
+import kotlin.collections.emptySet
+import kotlin.reflect.KClass
 
 @Service
 class AddressService(
@@ -26,17 +29,18 @@ class AddressService(
 ) {
 
   @Transactional
-  fun processAddress(
+  fun upsert(
     address: Address,
     findPerson: () -> PersonEntity,
     findAddress: () -> AddressEntity?,
     eventSource: DomainEventSource,
+    childrenToIgnore: Set<KClass<*>> = emptySet(),
   ): AddressEntity = findAddress().exists(
     no = {
       create(address, eventSource, findPerson)
     },
     yes = {
-      update(address, eventSource) { it }
+      update(address, eventSource, childrenToIgnore) { it }
     },
   )
 
@@ -47,17 +51,16 @@ class AddressService(
     findPerson: () -> PersonEntity,
   ): AddressEntity {
     val personEntity = findPerson()
-    val matchingFieldsBeforeUpdate = PersonMatchRecord.from(personEntity)
+    val personChangeChecker = PersonChangeChecker(personEntity)
     val addressToSave = AddressEntity.from(address)
     addressToSave.person = personEntity
     personEntity.addresses.add(addressToSave)
 
     val addressEntity = addressRepository.save(addressToSave)
 
-    val matchingFieldsChanged = matchingFieldsBeforeUpdate.matchingFieldsAreDifferent(personEntity)
-    tryRecluster(personEntity, matchingFieldsChanged)
+    tryRecluster(personEntity, personChangeChecker)
 
-    publisher.publishEvent(AddressCreated(addressEntity, matchingFieldsChanged, eventSource))
+    publisher.publishEvent(AddressCreated(addressEntity, personChangeChecker.matchingFieldsHaveChanged(personEntity), eventSource))
 
     return addressEntity
   }
@@ -66,17 +69,18 @@ class AddressService(
   fun update(
     address: Address,
     eventSource: DomainEventSource,
-    findAddress: () -> AddressEntity,
+    childrenToIgnore: Set<KClass<*>> = emptySet(),
+    findAddress: () -> AddressEntity?,
   ): AddressEntity {
-    val addressEntity = findAddress()
-    val matchingFieldsBeforeUpdate = PersonMatchRecord.from(addressEntity.person!!)
-    addressEntity.update(address)
+    val addressEntity = findAddress() ?: throw ResourceNotFoundException("Address not found")
+    val personEntity = addressEntity.person!!
+    val personChangeChecker = PersonChangeChecker(personEntity)
+    addressEntity.update(address, childrenToIgnore)
     addressRepository.save(addressEntity)
 
-    val matchingFieldsChanged = matchingFieldsBeforeUpdate.matchingFieldsAreDifferent(addressEntity.person!!)
-    tryRecluster(addressEntity.person!!, matchingFieldsChanged)
+    tryRecluster(personEntity, personChangeChecker)
 
-    publisher.publishEvent(AddressUpdated(addressEntity, matchingFieldsChanged, eventSource))
+    publisher.publishEvent(AddressUpdated(addressEntity, personChangeChecker.matchingFieldsHaveChanged(personEntity), eventSource))
 
     return addressEntity
   }
@@ -85,20 +89,21 @@ class AddressService(
   fun deleteAddress(findAddress: () -> AddressEntity?, eventSource: DomainEventSource) {
     findAddress()?.let { addressEntity ->
       val personEntity = addressEntity.person!!
+      val personChangeChecker = PersonChangeChecker(personEntity)
       personEntity.addresses.remove(addressEntity)
       addressEntity.person = null
       personRepository.save(personEntity)
 
-      tryRecluster(personEntity, true)
+      tryRecluster(personEntity, personChangeChecker)
       publisher.publishEvent(AddressDeleted(addressEntity, personEntity, eventSource))
     }
   }
 
   private fun tryRecluster(
     personEntity: PersonEntity,
-    matchingFieldsChanged: Boolean,
+    personChangeChecker: PersonChangeChecker,
   ) {
-    if (matchingFieldsChanged && personEntity.isNotPassive()) {
+    if (personChangeChecker.shouldSaveToPersonMatch(personEntity)) {
       personMatchService.saveToPersonMatch(personEntity)
       personEntity.personKey?.let { reclusterService.recluster(personEntity) }
     }
