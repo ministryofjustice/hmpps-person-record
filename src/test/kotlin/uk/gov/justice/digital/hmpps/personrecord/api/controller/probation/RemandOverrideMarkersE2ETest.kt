@@ -10,13 +10,14 @@ import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class RemandOverrideMarkersE2ETest : E2ETestBase() {
 
-  // TODO ideally this should create a court or prison record to join the cluster
   @Test
   fun `should create record to match and join an existing cluster with include override markers`() {
     val defendantId = randomDefendantId()
@@ -41,11 +42,12 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
 
     offender.assertLinkedToCluster(updatedDefendant.personKey!!)
 
-    val matchingPersonCrn = randomCrn()
-    val matchingPersonDetails = probationCase.copy(identifiers = Identifiers(crn = matchingPersonCrn, cro = defendant.getCro(), pnc = defendant.getPnc()))
+    val matchingDefendantId = randomDefendantId()
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = defendant.getPnc(), lastName = defendant.lastName!!, cro = defendant.getCro()!!, defendantId = matchingDefendantId, masterDefendantId = defendant.masterDefendantId!!))),
+    )
 
-    probationCreateEventAndResponseSetup(ApiResponseSetup.from(matchingPersonDetails))
-    val matchingPerson = awaitNotNull { personRepository.findByCrn(matchingPersonCrn) }
+    val matchingPerson = awaitNotNull { personRepository.findByDefendantId(matchingDefendantId) }
     matchingPerson.assertLinkedToCluster(updatedDefendant.personKey!!)
   }
 
