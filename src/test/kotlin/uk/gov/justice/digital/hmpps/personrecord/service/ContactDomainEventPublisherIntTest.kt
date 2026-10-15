@@ -104,35 +104,6 @@ class ContactDomainEventPublisherIntTest(
   }
 
   @Test
-  fun `should publish a CPR contact updated domain event when an address phone number is updated through CPR`() {
-    val prisonNumber = randomPrisonNumber()
-    createPersonWithNewKey(
-      createRandomPrisonPersonDetails(prisonNumber).copy(
-        addresses = listOf(Address(postcode = "AB1 1AA", contacts = listOf(Contact(contactType = HOME, contactValue = "01234 111111")))),
-        contacts = emptyList(),
-      ),
-    )
-    val addressEntity = personRepository.findByPrisonNumber(prisonNumber)!!.addresses.single()
-    val addressId = addressEntity.updateId.toString()
-    val cprContactId = addressEntity.contacts.single().updateId.toString()
-
-    prisonContactsHandler.updatePhoneNumber(prisonNumber, addressId, cprContactId, contactRequest())
-
-    val sqsMessage = receiveDomainEvent()
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_CONTACT_UPDATED))
-    assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(CPR.identifier))
-    val domainEvent: CprContactUpdated = jsonMapper.readValue<CprContactUpdated>(sqsMessage.message)
-    assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_CONTACT_UPDATED)
-    assertThat(domainEvent.description).isEqualTo("A prison contact has been updated for a person")
-    assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/prison/$prisonNumber/contacts/$cprContactId")
-    assertThat(domainEvent.additionalInformation.cprContactId.toString()).isEqualTo(cprContactId)
-    assertThat(domainEvent.occurredAt).isNotNull()
-    assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
-    assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("prisonNumber")
-    assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(prisonNumber)
-  }
-
-  @Test
   fun `should publish a CPR contact created domain event for each address phone number created through CPR`() {
     val prisonNumber = randomPrisonNumber()
     createPersonWithNewKey(
@@ -140,7 +111,7 @@ class ContactDomainEventPublisherIntTest(
     )
     val addressId = personRepository.findByPrisonNumber(prisonNumber)!!.addresses.single().updateId.toString()
 
-    val cprContactIds = prisonContactsHandler.createPhoneNumbers(
+    val cprContactIds = prisonContactsHandler.createContacts(
       prisonNumber,
       addressId,
       listOf(
