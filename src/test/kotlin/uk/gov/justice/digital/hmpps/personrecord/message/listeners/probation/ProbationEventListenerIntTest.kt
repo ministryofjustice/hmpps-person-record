@@ -455,9 +455,8 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
         sourceSystem = NOMIS,
       )
 
-      val personKeyEntity = createPersonKey().addPerson(existingPrisoner)
+      val existingPerson = createPersonWithNewKey(existingPrisoner)
 
-      val existingPerson = personRepository.findByPrisonNumber(existingPrisoner.prisonNumber!!)!!
       stubOnePersonMatchAboveJoinThreshold(matchedRecord = existingPerson.matchId)
 
       val apiResponse = ApiResponseSetup(
@@ -490,14 +489,13 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
         mapOf(
           "SOURCE_SYSTEM" to DELIUS.name,
           "CLUSTER_SIZE" to "1",
-          "UUID" to personKeyEntity.personUUID.toString(),
+          "UUID" to existingPerson.personKey!!.personUUID.toString(),
         ),
       )
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
 
-      val personKey = personKeyRepository.findByPersonUUID(personKeyEntity.personUUID)
-      assertThat(personKey?.personEntities?.size).isEqualTo(2)
+      existingPerson.personKey!!.assertClusterIsOfSize(2)
     }
 
     @Test
