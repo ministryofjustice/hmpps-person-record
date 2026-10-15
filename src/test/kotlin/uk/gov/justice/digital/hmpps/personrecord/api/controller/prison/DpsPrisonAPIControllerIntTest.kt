@@ -18,10 +18,13 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAl
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContactType
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDateTime
@@ -444,3 +447,26 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
     private fun prisonApiUrl(prisonNumber: String?) = "/person/prison/dps/$prisonNumber"
   }
 }
+
+// JsonUnwrapped annotation on DpsPrisonRecord produces this structure, so we cannot use DpsPrisonRecord directly to mimic return value
+// this is a copy/paste of CanonicalRecord with the additional properties of DpsPrisonRecord
+data class DpsPrisonRecordTest(
+  val cprUUID: String? = null,
+  val firstName: String? = null,
+  val middleNames: String? = null,
+  val lastName: String? = null,
+  val dateOfBirth: String? = null,
+  val disability: Boolean? = null,
+  val interestToImmigration: Boolean? = null,
+  val title: CanonicalTitle,
+  val sex: CanonicalSex,
+  val sexualOrientation: CanonicalSexualOrientation,
+  val religion: CanonicalReligion,
+  val ethnicity: CanonicalEthnicity,
+  val aliases: List<CanonicalAlias> = emptyList(),
+  var nationalities: List<CanonicalNationality> = emptyList(),
+  val addresses: List<CanonicalAddress> = emptyList(),
+  val identifiers: CanonicalIdentifiers,
+  val contacts: List<CanonicalContact> = emptyList(),
+  val religionHistory: List<PrisonReligion>,
+)

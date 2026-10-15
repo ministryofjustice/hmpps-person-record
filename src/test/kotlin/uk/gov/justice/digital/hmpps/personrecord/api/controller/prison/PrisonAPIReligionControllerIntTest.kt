@@ -12,16 +12,6 @@ import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifiers
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReligion
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSexualOrientation
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionInsertRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.ReferenceDataResponse
@@ -383,26 +373,3 @@ class PrisonAPIReligionControllerIntTest : WebTestBase() {
     private fun religionCodesApiUrl() = "/person/prison/religion-codes"
   }
 }
-
-// JsonUnwrapped annotation on DpsPrisonRecord produces this structure, so we cannot use DpsPrisonRecord directly to mimic return value
-// this is a copy/paste of CanonicalRecord with the additional properties of DpsPrisonRecord
-data class DpsPrisonRecordTest(
-  val cprUUID: String? = null,
-  val firstName: String? = null,
-  val middleNames: String? = null,
-  val lastName: String? = null,
-  val dateOfBirth: String? = null,
-  val disability: Boolean? = null,
-  val interestToImmigration: Boolean? = null,
-  val title: CanonicalTitle,
-  val sex: CanonicalSex,
-  val sexualOrientation: CanonicalSexualOrientation,
-  val religion: CanonicalReligion,
-  val ethnicity: CanonicalEthnicity,
-  val aliases: List<CanonicalAlias> = emptyList(),
-  var nationalities: List<CanonicalNationality> = emptyList(),
-  val addresses: List<CanonicalAddress> = emptyList(),
-  val identifiers: CanonicalIdentifiers,
-  val contacts: List<CanonicalContact> = emptyList(),
-  val religionHistory: List<PrisonReligion>,
-)
