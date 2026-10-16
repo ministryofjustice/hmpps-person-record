@@ -22,9 +22,10 @@ on:
         type: string
         default: "main"
       providerTag:
-        required: true
+        required: false
         description: Provider tag / provider version tag
         type: string
+        default: ${{ github.sha }}
   repository_dispatch:
     types:
       - pact_changed
