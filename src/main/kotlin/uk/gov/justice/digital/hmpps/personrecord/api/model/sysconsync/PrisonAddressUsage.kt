@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 data class PrisonAddressUsage(
   @Schema(description = "The nomis address usage id", example = "5678")
-  val nomisAddressUsageId: Long,
+  val nomisAddressUsageId: Long? = null,
   @Schema(description = "The address usage code", example = "DSH")
   val addressUsageCode: AddressUsageCode,
   @Schema(description = "Is the address active", example = "true")

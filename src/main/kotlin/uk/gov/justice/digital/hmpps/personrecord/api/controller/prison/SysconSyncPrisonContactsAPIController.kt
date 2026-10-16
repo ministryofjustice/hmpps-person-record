@@ -73,4 +73,41 @@ class SysconSyncPrisonContactsAPIController(
     @PathVariable prisonNumber: String,
     @PathVariable cprContactId: String,
   ) = sysconSyncContactsHandler.handleDelete(cprContactId)
+
+  @Operation(
+    description = """Create prisoner address contact record by Prison Number and address uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @PostMapping("/syscon-sync/person/{prisonNumber}/address/{cprAddressId}/contact")
+  @ResponseStatus(HttpStatus.CREATED)
+  fun createPrisonerAddressContact(
+    @PathVariable prisonNumber: String,
+    @PathVariable cprAddressId: String,
+    @RequestBody requestBody: PrisonContact,
+  ) = sysconSyncContactsHandler.handleInsert(prisonNumber, cprAddressId, requestBody)
+
+  @Operation(
+    description = """Update prisoner address contact record by Prison Number, address uuid and contact uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @PutMapping("/syscon-sync/person/{prisonNumber}/address/{cprAddressId}/contact/{cprContactId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  fun updatePrisonerAddressContact(
+    @PathVariable prisonNumber: String,
+    @PathVariable cprAddressId: String,
+    @PathVariable cprContactId: String,
+    @RequestBody requestBody: PrisonContact,
+  ) = sysconSyncContactsHandler.handleUpdate(prisonNumber, cprContactId, requestBody)
+
+  @Operation(
+    description = """Delete prisoner address contact record by Prison Number and contact uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @DeleteMapping("/syscon-sync/person/{prisonNumber}/address/contact/{cprContactId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  fun deletePrisonerAddressContact(
+    // prisonNumber is unused, but having it here will enable us to find all changes to a prisoner in Log Analytics
+    @PathVariable prisonNumber: String,
+    @PathVariable cprContactId: String,
+  ) = sysconSyncContactsHandler.handleDelete(cprContactId)
 }
