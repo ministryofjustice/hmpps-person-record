@@ -8,11 +8,11 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.HttpStatus.FORBIDDEN
 import org.springframework.http.HttpStatus.NOT_FOUND
-import org.springframework.http.HttpStatus.NO_CONTENT
-import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressUsagesAPIControllerIntTest.Companion.assertAddressUsageMatches
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesAPIControllerIntTest.Companion.assertAddressMatches
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonContactsAPIControllerIntTest.Companion.assertContactMatches
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
@@ -39,7 +39,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
 
 class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBase() {
 
@@ -440,267 +439,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
     }
   }
 
-  @Nested
-  inner class CreatePrisonerAddressContact {
-
-    private val addressContactRequestBody = PrisonContact(
-      nomisContactId = 11000L,
-      value = "01234567890",
-      type = HOME,
-      extension = "extension",
-      createDateTime = LocalDateTime.of(2017, 3, 1, 12, 0),
-      createUserId = "createUserId",
-      modifyDateTime = LocalDateTime.of(2017, 3, 2, 12, 0),
-      modifyUserId = "modifyUserId",
-    )
-
-    @Nested
-    @ActiveProfiles("prod")
-    inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendPostRequestAsserted<String>(
-          url = createPrisonerAddressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = addressContactRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
-    inner class Validation {
-
-      @Test
-      fun `address does not exist - returns 404 not found`() {
-        val prisonNumber = randomPrisonNumber()
-        val addressId = UUID.randomUUID().toString()
-        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-        val response = sendPostRequestAsserted<String>(
-          url = createPrisonerAddressContactUrl(prisonNumber, addressId),
-          body = addressContactRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("Address with $addressId not found")
-      }
-    }
-
-    @Nested
-    inner class Auth {
-
-      @Test
-      fun `should return Access Denied 403 when role is wrong`() {
-        sendPostRequestAsserted<String>(
-          url = createPrisonerAddressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = addressContactRequestBody,
-          roles = listOf("UNSUPPORTED-ROLE"),
-          expectedStatus = FORBIDDEN,
-        ).returnResult().responseBody!!
-      }
-
-      @Test
-      fun `should return UNAUTHORIZED 401 when role is not set`() {
-        sendPostRequestAsserted<SysconContactMapping>(
-          url = createPrisonerAddressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = addressContactRequestBody,
-          roles = emptyList(),
-          expectedStatus = UNAUTHORIZED,
-          sendAuthorised = false,
-        )
-      }
-    }
-
-    @Nested
-    inner class Creation {
-
-      @Test
-      fun `successful save returns the correct response body`() {
-        val prisonNumber = randomPrisonNumber()
-        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-        val addressEntity = addressRepository.save(AddressEntity(person = personEntity))
-
-        val response = sendPostRequestAsserted<SysconContactMapping>(
-          url = createPrisonerAddressContactUrl(prisonNumber, addressEntity.updateId.toString()),
-          body = addressContactRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = CREATED,
-        ).returnResult().responseBody!!
-
-        val updatedAddressEntity = addressRepository.findByUpdateId(addressEntity.updateId!!)!!
-        val contactEntity = updatedAddressEntity.contacts.single { response.cprContactId == it.updateId.toString() }
-        assertContactMatches(addressContactRequestBody, contactEntity)
-      }
-    }
-  }
-
-  @Nested
-  inner class UpdatePrisonerAddressContact {
-
-    private val addressContactRequestBody = PrisonContact(
-      nomisContactId = 11000L,
-      value = "01234567890",
-      type = HOME,
-      extension = "extension",
-      createDateTime = LocalDateTime.of(2017, 3, 1, 12, 0),
-      createUserId = "createUserId",
-      modifyDateTime = LocalDateTime.of(2017, 3, 2, 12, 0),
-      modifyUserId = "modifyUserId",
-    )
-
-    @Nested
-    @ActiveProfiles("prod")
-    inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendPutRequestAsserted<String>(
-          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
-          body = addressContactRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
-    inner class Validation {
-
-      @Test
-      fun `contact does not exist - returns 404 not found`() {
-        val prisonNumber = randomPrisonNumber()
-        val contactId = UUID.randomUUID().toString()
-        val addressId = UUID.randomUUID().toString()
-        val response = sendPutRequestAsserted<String>(
-          url = addressContactUrl(prisonNumber, addressId, contactId),
-          body = addressContactRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("Contact with $contactId not found")
-      }
-    }
-
-    @Nested
-    inner class Auth {
-
-      @Test
-      fun `should return Access Denied 403 when role is wrong`() {
-        sendPutRequestAsserted<String>(
-          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
-          body = addressContactRequestBody,
-          roles = listOf("UNSUPPORTED-ROLE"),
-          expectedStatus = FORBIDDEN,
-        ).returnResult().responseBody!!
-      }
-
-      @Test
-      fun `should return UNAUTHORIZED 401 when role is not set`() {
-        sendPutRequestAsserted<Unit>(
-          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
-          body = addressContactRequestBody,
-          roles = emptyList(),
-          expectedStatus = UNAUTHORIZED,
-          sendAuthorised = false,
-        )
-      }
-    }
-
-    @Nested
-    inner class Updating {
-
-      @Test
-      fun `successful update of an address contact`() {
-        val prisonNumber = randomPrisonNumber()
-        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-        val addressEntity = addressRepository.saveAndFlush(AddressEntity(person = personEntity))
-        val contactEntity = contactRepository.saveAndFlush(ContactEntity(address = addressEntity, contactType = HOME))
-
-        sendPutRequestAsserted<Unit>(
-          url = addressContactUrl(prisonNumber, addressEntity.updateId.toString(), contactEntity.updateId.toString()),
-          body = addressContactRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NO_CONTENT,
-        )
-
-        val updatedContactEntity = contactRepository.findByUpdateId(contactEntity.updateId!!)!!
-        assertContactMatches(addressContactRequestBody, updatedContactEntity)
-      }
-    }
-  }
-
-  @Nested
-  inner class DeletePrisonerAddressContact {
-
-    @Nested
-    @ActiveProfiles("prod")
-    inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendDeleteRequestAsserted<String>(
-          url = addressNoIdContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
-    inner class Auth {
-
-      @Test
-      fun `should return Access Denied 403 when role is wrong`() {
-        sendDeleteRequestAsserted<String>(
-          url = addressNoIdContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          roles = listOf("UNSUPPORTED-ROLE"),
-          expectedStatus = FORBIDDEN,
-        ).returnResult().responseBody!!
-      }
-
-      @Test
-      fun `should return UNAUTHORIZED 401 when role is not set`() {
-        sendDeleteRequestAsserted<Unit>(
-          url = addressNoIdContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          roles = emptyList(),
-          expectedStatus = UNAUTHORIZED,
-          sendAuthorised = false,
-        )
-      }
-    }
-
-    @Nested
-    inner class Deleting {
-
-      @Test
-      fun `successful delete of an address contact`() {
-        val prisonNumber = randomPrisonNumber()
-        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-        val addressEntity = addressRepository.saveAndFlush(AddressEntity(person = personEntity))
-        val contactEntity = contactRepository.saveAndFlush(ContactEntity(address = addressEntity, contactType = HOME))
-
-        sendDeleteRequestAsserted<Unit>(
-          url = addressNoIdContactUrl(prisonNumber, contactEntity.updateId.toString()),
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NO_CONTENT,
-        )
-
-        assertThat(contactRepository.findByUpdateId(contactEntity.updateId!!)).isNull()
-      }
-    }
-  }
-
   private fun migrationUrl(prisonNumber: String) = "/syscon-sync/addresses-contacts/$prisonNumber"
-
-  private fun createPrisonerAddressContactUrl(prisonNumber: String, addressId: String) = "/syscon-sync/person/$prisonNumber/address/$addressId/contact"
-
-  private fun addressContactUrl(prisonNumber: String, addressId: String, contactId: String) = "${createPrisonerAddressContactUrl(prisonNumber, addressId)}/$contactId"
-
-  private fun addressNoIdContactUrl(prisonNumber: String, contactId: String) = "/syscon-sync/person/$prisonNumber/address/contact/$contactId"
 
   private fun addressUsageMatcher(request: PrisonAddressUsage, entity: AddressUsageEntity) = entity.usageCode == request.addressUsageCode
 
@@ -713,25 +452,6 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
   private fun addressMatcher(request: PrisonAddress, entity: AddressEntity) = entity.fullAddress == request.fullAddress
 
   private fun addressMatcher(request: PrisonAddress, mapping: SysconAddressMapping) = mapping.nomisAddressId == request.nomisAddressId
-
-  private fun assertAddressUsageMatches(request: PrisonAddressUsage, entity: AddressUsageEntity) = with(entity) {
-    assertThat(usageCode).isEqualTo(request.addressUsageCode)
-    assertThat(active).isEqualTo(request.isActive)
-    assertThat(modifyUserId).isEqualTo(request.modifyUserId)
-    assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
-    assertThat(createUserId).isEqualTo(request.createUserId)
-    assertThat(createDateTime).isEqualTo(request.createDateTime)
-  }
-
-  private fun assertContactMatches(request: PrisonContact, entity: ContactEntity) = with(entity) {
-    assertThat(contactType).isEqualTo(request.type)
-    assertThat(contactValue).isEqualTo(request.value)
-    assertThat(extension).isEqualTo(request.extension)
-    assertThat(modifyUserId).isEqualTo(request.modifyUserId)
-    assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
-    assertThat(createUserId).isEqualTo(request.createUserId)
-    assertThat(createDateTime).isEqualTo(request.createDateTime)
-  }
 
   private fun prisonContact() = PrisonContact(
     nomisContactId = 10000L,
