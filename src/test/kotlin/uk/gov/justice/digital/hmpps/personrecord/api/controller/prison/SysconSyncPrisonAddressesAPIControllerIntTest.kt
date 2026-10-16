@@ -130,7 +130,7 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
             person = personEntity,
           ),
         )
-        addressUsageRepository.saveAndFlush(
+        val addressUsageEntity = addressUsageRepository.saveAndFlush(
           AddressUsageEntity(
             address = addressEntity,
             usageCode = AddressUsageCode.HOME,
@@ -150,6 +150,7 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
 
         assertAddressMatches(response, addressEntity)
         val usage = response.addressUsage.single()
+        assertThat(usage.cprAddressUsageId).isEqualTo(addressUsageEntity.updateId.toString())
         assertThat(usage.nomisAddressUsageId).isNull()
         assertThat(usage.addressUsageCode).isEqualTo(AddressUsageCode.HOME)
         assertThat(usage.isActive).isTrue()

@@ -92,6 +92,7 @@ class SysconSyncAddressesHandler(
     )
 
     private fun AddressUsageEntity.toPrisonAddressUsage() = PrisonAddressUsage(
+      cprAddressUsageId = updateId.toString(),
       addressUsageCode = usageCode,
       isActive = active,
       modifyDateTime = modifyDateTime,

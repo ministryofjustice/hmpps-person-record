@@ -5,6 +5,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import java.time.LocalDateTime
 
 data class PrisonAddressUsage(
+  @Schema(description = "The CPR address usage id of the address")
+  val cprAddressUsageId: String? = null,
   @Schema(description = "The nomis address usage id", example = "5678")
   val nomisAddressUsageId: Long? = null,
   @Schema(description = "The address usage code", example = "DSH")
