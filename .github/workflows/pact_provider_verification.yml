@@ -68,8 +68,16 @@ permissions:
   contents: read
 
 concurrency:
-  group: pact-provider-verification-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  group: >-
+    ${{ github.event_name == 'repository_dispatch' &&
+      format('pact-provider-verification-{0}-{1}-{2}',
+        github.event.client_payload.consumerName || 'unknown',
+        github.event.client_payload.consumerBranch || 'unknown',
+        github.run_id)
+      || format('pact-provider-verification-{0}-{1}',
+        github.ref_name || github.ref,
+        github.run_id) }}
+  cancel-in-progress: false
 
 jobs:
   pact-verify:
