@@ -134,7 +134,7 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
     val newCourtRecord = awaitNotNull { personRepository.findByDefendantId(matchingDefendantId) }
     newCourtRecord.assertNotLinkedToCluster(updatedDefendant.personKey!!)
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = defendant.getPnc(), lastName = defendant.lastName!!, cro = defendant.getCro()!!, defendantId = matchingDefendantId, masterDefendantId = defendant.masterDefendantId!!))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = defendant.getPnc(), lastName = defendant.lastName!!, firstName = defendant.firstName, dateOfBirth = defendant.dateOfBirth.toString(), cro = defendant.getCro()!!, defendantId = matchingDefendantId, masterDefendantId = defendant.masterDefendantId!!))),
     )
 
     updatedDefendant.assertLinkedToCluster(newCourtRecord.personKey!!)
