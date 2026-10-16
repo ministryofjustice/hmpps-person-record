@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import java.time.LocalDate
 
 @Component
-class AddressMergeHandler : MergeHandler {
+class AddressDataMerger : PersonGranularDataMerger {
   override fun handleMerge(fromPerson: PersonEntity, toPerson: PersonEntity) {
     val fromPersonAddresses = fromPerson.addresses.onEach {
       it.person = toPerson

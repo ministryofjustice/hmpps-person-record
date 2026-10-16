@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
+class PrisonReligionPersonGranularDataMergerIntTest : IntegrationTestBase() {
 
   @Autowired
   lateinit var prisonReligionMergeHandler: PrisonReligionMergeHandler
