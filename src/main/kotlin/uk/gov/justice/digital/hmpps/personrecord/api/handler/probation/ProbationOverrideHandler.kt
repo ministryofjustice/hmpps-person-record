@@ -13,17 +13,12 @@ class ProbationOverrideHandler(
   private val reclusterService: ReclusterService,
 ) {
   fun assignIncludeOverrideAndRecluster(defendant: PersonEntity, offender: PersonEntity) {
-    if (recordsAreIncluded(defendant, offender)) {
-      return
+    if (recordsNotIncluded(defendant, offender)) {
+      overrideService.systemInclude(defendant, offender)
+      personRepository.saveAll(listOf(defendant, offender))
+      offender.personKey?.let { reclusterService.recluster(offender) }
     }
-
-    overrideService.systemInclude(defendant, offender)
-    personRepository.saveAll(listOf(defendant, offender))
-    offender.personKey?.let { reclusterService.recluster(offender) }
   }
 
-  private fun recordsAreIncluded(defendant: PersonEntity, offender: PersonEntity): Boolean = defendant.overrideMarker != null &&
-    defendant.overrideMarker == offender.overrideMarker &&
-    defendant.getScopes().intersect(offender.getScopes()).isNotEmpty()
-  // TODO check include scopes only
+  private fun recordsNotIncluded(defendant: PersonEntity, offender: PersonEntity): Boolean = defendant.getIncludeScopes().intersect(offender.getIncludeScopes()).isEmpty()
 }
