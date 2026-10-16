@@ -25,14 +25,12 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import java.net.URI
 
 @Tag(name = "Probation")
 @RestController
 class ProbationAPIController(
   private val personRepository: PersonRepository,
-  private val personService: PersonService,
   private val probationOverrideHandler: ProbationOverrideHandler,
 ) {
   @Operation(
