@@ -43,5 +43,5 @@ class OverrideService(
     OverrideScopeEntity.new(ConfidenceType.VERIFIED, ActorType.SYSTEM, overrideType),
   )
 
-  private fun recordsNotIncluded(defendant: PersonEntity, offender: PersonEntity): Boolean = defendant.getIncludeScopes().intersect(offender.getIncludeScopes()).isEmpty()
+  private fun recordsNotIncluded(recordOne: PersonEntity, recordTwo: PersonEntity): Boolean = recordOne.getIncludeScopes().intersect(recordTwo.getIncludeScopes()).isEmpty()
 }
