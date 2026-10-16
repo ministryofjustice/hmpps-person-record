@@ -9,12 +9,14 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.Conf
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.OverrideType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.OverrideType.EXCLUDE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.OverrideType.INCLUDE
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
 class OverrideService(
   private val overrideScopeRepository: OverrideScopeRepository,
   private val personMatchService: PersonMatchService,
+  private val reclusterService: ReclusterService,
 ) {
 
   fun systemExclude(vararg records: PersonEntity) {
@@ -25,16 +27,21 @@ class OverrideService(
     }
   }
 
-  fun systemInclude(vararg records: PersonEntity) {
-    val marker = OverrideScopeEntity.newMarker()
-    val scopeEntity = createScope(INCLUDE)
-    records.forEach {
-      it.addOverrideMarker(scopeEntity, marker)
-      personMatchService.saveToPersonMatch(it)
+  fun systemInclude(recordOne: PersonEntity, recordTwo: PersonEntity) {
+    if (recordsNotIncluded(recordOne, recordTwo)) {
+      val marker = OverrideScopeEntity.newMarker()
+      val scopeEntity = createScope(INCLUDE)
+      listOf(recordOne, recordTwo).forEach {
+        it.addOverrideMarker(scopeEntity, marker)
+        personMatchService.saveToPersonMatch(it)
+      }
+      reclusterService.recluster(recordOne)
     }
   }
 
   private fun createScope(overrideType: OverrideType): OverrideScopeEntity = overrideScopeRepository.save(
     OverrideScopeEntity.new(ConfidenceType.VERIFIED, ActorType.SYSTEM, overrideType),
   )
+
+  private fun recordsNotIncluded(defendant: PersonEntity, offender: PersonEntity): Boolean = defendant.getIncludeScopes().intersect(offender.getIncludeScopes()).isEmpty()
 }

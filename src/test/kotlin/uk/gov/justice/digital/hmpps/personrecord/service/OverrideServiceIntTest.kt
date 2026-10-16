@@ -10,31 +10,28 @@ class OverrideServiceIntTest : IntegrationTestBase() {
   @BeforeEach
   fun beforeEach() {
     stubPersonMatchUpsert()
+    stubPersonMatchScores()
   }
 
   @Test
   fun `should not overwrite include marker when excluding a record`() {
     val personACrn = randomCrn()
     val personBCrn = randomCrn()
-    val personCCrn = randomCrn()
     createPersonKey()
       .addPerson(createRandomProbationPersonDetails(personACrn))
       .addPerson(createRandomProbationPersonDetails(personBCrn))
-      .addPerson(createRandomProbationPersonDetails(personCCrn))
 
     val personA = personRepository.findByCrn(personACrn)!!
     val personB = personRepository.findByCrn(personBCrn)!!
-    val personC = personRepository.findByCrn(personCCrn)!!
     val personD = createPersonWithNewKey(createRandomProbationPersonDetails())
 
-    includeRecords(personA, personB, personC)
+    includeRecords(personA, personB)
 
     personA.assertIncluded(personB)
-    personA.assertIncluded(personC)
 
-    excludeRecord(personC, personD)
+    excludeRecord(personB, personD)
 
-    personC.assertExcluded(personD)
-    personA.assertIncluded(personC)
+    personB.assertExcluded(personD)
+    personA.assertIncluded(personB)
   }
 }
