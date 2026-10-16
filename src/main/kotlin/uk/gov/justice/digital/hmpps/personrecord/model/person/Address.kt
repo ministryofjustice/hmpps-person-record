@@ -155,7 +155,7 @@ data class Address(
       startDate = address.startDate.toUkZonedDateTime(),
       endDate = address.endDate?.toUkZonedDateTime(),
       postcode = address.postcode,
-      subBuildingName = address.subBuildingName,
+      buildingName = address.buildingName,
       buildingNumber = address.buildingNumber,
       thoroughfareName = address.thoroughfareName,
       dependentLocality = address.dependentLocality,

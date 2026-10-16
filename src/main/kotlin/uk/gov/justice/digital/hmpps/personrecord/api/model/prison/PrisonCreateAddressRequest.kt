@@ -9,11 +9,11 @@ import java.time.LocalDate
 
 @Schema(description = "Create a prisoner address")
 data class PrisonCreateAddressRequest(
-  @Schema(description = "The address sub building name. Previously `flat` in Prison API", example = "3B")
-  val subBuildingName: String? = null,
-
-  @Schema(description = "The address building number. Previously `premise` in Prison API", example = "Liverpool Prison")
+  @Schema(description = "The address building number. Previously `flat` in Prison API", example = "3B")
   val buildingNumber: String? = null,
+
+  @Schema(description = "The address building name. Previously `premise` in Prison API", example = "The Priory")
+  val buildingName: String? = null,
 
   @Schema(description = "The address thoroughfare name. Previously `street` in Prison API", example = "Slinn Street")
   val thoroughfareName: String? = null,

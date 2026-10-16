@@ -162,7 +162,7 @@ class PrisonAPIAddressesControllerIntTest(
         ).returnResult().responseBody!!
 
         assertThat(created.cprAddressId).isNotBlank()
-        assertThat(created.subBuildingName).isEqualTo("3B")
+        assertThat(created.buildingName).isEqualTo("Oak House")
         assertThat(created.buildingNumber).isEqualTo("102")
         assertThat(created.thoroughfareName).isEqualTo("Slinn Street")
         assertThat(created.dependentLocality).isEqualTo("Brincliffe")
@@ -345,7 +345,7 @@ class PrisonAPIAddressesControllerIntTest(
     }
 
     private fun validAddressRequest() = PrisonCreateAddressRequest(
-      subBuildingName = "3B",
+      buildingName = "Oak House",
       buildingNumber = "102",
       thoroughfareName = "Slinn Street",
       dependentLocality = "Brincliffe",
