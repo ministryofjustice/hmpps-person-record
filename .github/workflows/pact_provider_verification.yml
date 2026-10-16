@@ -47,6 +47,38 @@ jobs:
     name: Verify provider pacts
     runs-on: ubuntu-latest
     steps:
+      - name: Resolve provider app version
+        id: resolve-provider-version
+        shell: bash
+        env:
+          INPUT_PROVIDER_APP_VERSION: ${{ github.event.client_payload.providerAppVersion || inputs.providerAppVersion }}
+          PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
+          PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
+          PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
+        run: |
+          set -euo pipefail
+          
+          if [[ -n "${INPUT_PROVIDER_APP_VERSION}" ]]; then
+            version="${INPUT_PROVIDER_APP_VERSION}"
+            echo "Using workflow input provider version: ${version}"
+          else
+            echo "No providerAppVersion supplied - querying Pact Broker latest version"
+          
+            version="$({
+              curl -fsSL \
+                -u "${PACT_BROKER_USERNAME}:${PACT_BROKER_PASSWORD}" \
+                "${PACT_BROKER_URL}/pacticipants/hmpps-person-record/latest-version"
+            } | jq -r '.number // empty')"
+          
+            if [[ -z "${version}" ]]; then
+              echo "Could not resolve latest provider version from Pact Broker" >&2
+              exit 1
+            fi
+          
+            echo "Resolved latest provider version from broker: ${version}"
+          fi
+          
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -75,7 +107,7 @@ jobs:
           GITHUB_BRANCH: ${{ github.event.client_payload.providerBranch || inputs.providerBranch }}
           PACT_CONSUMER_NAME: ${{ github.event.client_payload.consumerName || inputs.consumerName }}
           PACT_CONSUMER_BRANCH: ${{ github.event.client_payload.consumerBranch || inputs.consumerBranch }}
-          PACT_PROVIDER_APP_VERSION: ${{ github.event.client_payload.providerAppVersion || inputs.providerAppVersion }}
+          PACT_PROVIDER_APP_VERSION: ${{ steps.resolve-provider-version.outputs.version }}
           PACT_PROVIDER_TAG: ${{ (github.event.client_payload.providerTag && fromJSON(github.event.client_payload.providerTag)[0]) || inputs.providerTag }}
 
       - name: Upload the test artifacts
