@@ -43,10 +43,10 @@ class AddressUsageEntity(
 
   @Column(name = "usage_code")
   @Enumerated(EnumType.STRING)
-  val usageCode: AddressUsageCode,
+  var usageCode: AddressUsageCode,
 
   @Column(name = "active")
-  val active: Boolean,
+  var active: Boolean,
 
   @Column(name = "create_date_time")
   var createDateTime: LocalDateTime? = null,

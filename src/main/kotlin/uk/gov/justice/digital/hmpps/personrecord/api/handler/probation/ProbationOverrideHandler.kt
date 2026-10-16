@@ -25,4 +25,5 @@ class ProbationOverrideHandler(
   private fun recordsAreIncluded(defendant: PersonEntity, offender: PersonEntity): Boolean = defendant.overrideMarker != null &&
     defendant.overrideMarker == offender.overrideMarker &&
     defendant.getScopes().intersect(offender.getScopes()).isNotEmpty()
+  // TODO check include scopes only
 }

@@ -56,6 +56,14 @@ data class CanonicalAddress(
   val usages: List<CanonicalAddressUsage> = emptyList(),
   @Schema(description = "List of person address contacts")
   val contacts: List<CanonicalContact> = emptyList(),
+  @Schema(description = "Date address was created", example = "2023-01-01T12:00:00")
+  val createDateTime: LocalDateTime? = null,
+  @Schema(description = "Username of staff member that added address")
+  val createUserId: String? = null,
+  @Schema(description = "Date address was last modified", example = "2023-01-01T12:00:00")
+  val modifyDateTime: LocalDateTime? = null,
+  @Schema(description = "Username of staff member that last modified address")
+  val modifyUserId: String? = null,
 ) {
 
   companion object {
@@ -82,6 +90,10 @@ data class CanonicalAddress(
       typeVerified = addressEntity.isVerified,
       usages = CanonicalAddressUsage.fromAddressUsageEntityList(addressEntity.usages),
       contacts = CanonicalContact.fromContactEntityList(addressEntity.contacts),
+      createDateTime = addressEntity.createDateTime,
+      createUserId = addressEntity.createUserId,
+      modifyDateTime = addressEntity.modifyDateTime,
+      modifyUserId = addressEntity.modifyUserId,
     )
 
     fun fromAddressEntityList(addressEntities: List<AddressEntity>): List<CanonicalAddress> = addressEntities.map { from(it) }

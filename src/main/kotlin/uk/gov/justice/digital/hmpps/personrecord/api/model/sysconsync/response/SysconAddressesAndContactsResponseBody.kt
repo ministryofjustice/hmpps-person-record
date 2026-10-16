@@ -12,8 +12,8 @@ data class SysconAddressesAndContactsResponseBody(
 data class SysconAddressMapping(
   val nomisAddressId: Long,
   val cprAddressId: String,
-  val addressUsageMappings: List<SysconAddressUsageMapping>,
-  val contactMappings: List<SysconContactMapping>,
+  val addressUsageMappings: List<SysconAddressUsageMapping> = emptyList(),
+  val contactMappings: List<SysconContactMapping> = emptyList(),
 )
 
 data class SysconAddressUsageMapping(

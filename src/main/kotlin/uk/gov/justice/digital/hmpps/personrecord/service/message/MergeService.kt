@@ -9,31 +9,32 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.PersonMerged
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyDeletionService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.updatePersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
 class MergeService(
   private val personRepository: PersonRepository,
-  private val personService: PersonService,
+  private val reclusterService: ReclusterService,
   private val personMatchService: PersonMatchService,
   private val publisher: ApplicationEventPublisher,
   private val personKeyDeletionService: PersonKeyDeletionService,
 ) {
 
   fun processMerge(from: PersonEntity, to: PersonEntity, person: Person) {
-    updateToPerson(to, person)
+    val personChangeChecker = PersonChangeChecker(to)
+    updateToPerson(to, person, personChangeChecker)
     val fromClusterDetail = EventLogClusterDetail.from(from.personKey)
     when {
       fromClusterHasOneRecord(from) -> deleteSingleRecordCluster(from)
     }
-    merge(from, to, fromClusterDetail)
+    merge(from, to, fromClusterDetail, personChangeChecker)
+    reclusterService.recluster(to)
   }
 
-  private fun updateToPerson(to: PersonEntity, person: Person) {
-    val personChangeChecker = PersonChangeChecker(to)
+  private fun updateToPerson(to: PersonEntity, person: Person, personChangeChecker: PersonChangeChecker) {
     to.updatePersonEntity(person)
     personRepository.save(to)
 
@@ -48,13 +49,18 @@ class MergeService(
     personKeyDeletionService.deletePersonKey(personKeyEntity, from)
   }
 
-  private fun merge(from: PersonEntity, to: PersonEntity, fromClusterDetail: EventLogClusterDetail) {
+  private fun merge(
+    from: PersonEntity,
+    to: PersonEntity,
+    fromClusterDetail: EventLogClusterDetail,
+    personChangeChecker: PersonChangeChecker,
+  ) {
     from.throwIfCircularMerge(to)
     from.removePersonKeyLink()
     from.mergeTo(to)
     personRepository.save(from)
     personMatchService.deleteFromPersonMatch(from)
-    publisher.publishEvent(PersonMerged(from, fromClusterDetail, to))
+    publisher.publishEvent(PersonMerged(from, fromClusterDetail, to, personChangeChecker))
   }
 
   private fun PersonEntity.throwIfCircularMerge(to: PersonEntity) {

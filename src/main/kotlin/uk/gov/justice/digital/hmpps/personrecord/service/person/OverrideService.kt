@@ -6,6 +6,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OverrideScopeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ActorType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ConfidenceType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.OverrideType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.OverrideType.EXCLUDE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.OverrideType.INCLUDE
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
@@ -15,7 +18,7 @@ class OverrideService(
 ) {
 
   fun systemExclude(vararg records: PersonEntity) {
-    val scopeEntity = createScope()
+    val scopeEntity = createScope(EXCLUDE)
     records.forEach {
       it.addOverrideMarker(scopeEntity)
       personMatchService.saveToPersonMatch(it)
@@ -24,14 +27,14 @@ class OverrideService(
 
   fun systemInclude(vararg records: PersonEntity) {
     val marker = OverrideScopeEntity.newMarker()
-    val scopeEntity = createScope()
+    val scopeEntity = createScope(INCLUDE)
     records.forEach {
       it.addOverrideMarker(scopeEntity, marker)
       personMatchService.saveToPersonMatch(it)
     }
   }
 
-  private fun createScope(): OverrideScopeEntity = overrideScopeRepository.save(
-    OverrideScopeEntity.new(ConfidenceType.VERIFIED, ActorType.SYSTEM),
+  private fun createScope(overrideType: OverrideType): OverrideScopeEntity = overrideScopeRepository.save(
+    OverrideScopeEntity.new(ConfidenceType.VERIFIED, ActorType.SYSTEM, overrideType),
   )
 }

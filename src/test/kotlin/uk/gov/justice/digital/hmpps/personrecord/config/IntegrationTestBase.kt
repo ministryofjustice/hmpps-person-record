@@ -72,6 +72,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
@@ -89,7 +90,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.updatePersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
@@ -243,7 +243,6 @@ class IntegrationTestBase {
   internal fun createRandomProbationAddress(): ProbationCreateAddress = ProbationCreateAddress(
     noFixedAbode = false,
     startDate = randomZonedDateTime(),
-    endDate = randomZonedDateTime(),
     postcode = randomPostcode(),
     uprn = randomUprn(),
     subBuildingName = randomName(),
@@ -254,9 +253,9 @@ class IntegrationTestBase {
     postTown = randomName(),
     county = randomName(),
     comment = randomName(),
-    statusCode = randomAddressStatusCode(),
+    statusCode = listOf(AddressStatusCode.M, AddressStatusCode.PR).random(),
     typeVerified = true,
-    usages = listOf(ProbationCreateAddressUsage(randomAddressUsageCode(), randomBoolean())),
+    usage = ProbationCreateAddressUsage(randomAddressUsageCode(), randomBoolean()),
     contacts = listOf(ProbationCreateAddressContact(randomContactType(), randomPhoneNumber(), "44")),
   )
 
@@ -402,31 +401,25 @@ class IntegrationTestBase {
     return personKeyRepository.save(personKeyEntity)
   }
 
-  internal fun PersonKeyEntity.addPerson(personEntity: PersonEntity): PersonKeyEntity {
-    this.personEntities.add(personEntity)
-    personEntity.personKey = this
-    return personKeyRepository.save(this)
-  }
+  internal fun PersonKeyEntity.addPerson(person: Person): PersonKeyEntity = createPerson(person, this).personKey!!
 
-  internal fun PersonKeyEntity.addPerson(person: Person): PersonKeyEntity = this.addPerson(createPerson(person))
+  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null, configure: PersonEntity.() -> Unit = {}): PersonEntity = createPerson(person, createPersonKey(status, reason), configure)
 
-  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null, configure: PersonEntity.() -> Unit = {}): PersonEntity {
-    val personEntity = createPerson(person, configure)
-    createPersonKey(status, reason).addPerson(personEntity)
-    return personRepository.findByMatchId(personEntity.matchId)!!
-  }
+  internal fun createMergedPerson(person: Person, mergedToId: Long?): PersonEntity = PersonEntity.new(
+    person.sourceSystem,
+  ).updatePersonEntity(person)
+    .apply { mergedTo = mergedToId!! }
+    .let(personRepository::saveAndFlush)
 
-  internal fun createMergedPerson(person: Person, mergedToId: Long?): PersonEntity = createPerson(
-    person,
-    { mergedTo = mergedToId!! },
-  )
-
-  @Deprecated("use createPersonWithNewKey, createMergedPerson or addPerson instead")
-  internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
+  internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
     person.sourceSystem,
   ).updatePersonEntity(person)
     .apply(configure)
-    .let(personRepository::saveAndFlush)
+    .let {
+      it.personKey = personKeyEntity
+      personKeyEntity.personEntities.add(it)
+      personRepository.save(it)
+    }
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
     val source = personRepository.findByMatchId(sourceRecord.matchId)

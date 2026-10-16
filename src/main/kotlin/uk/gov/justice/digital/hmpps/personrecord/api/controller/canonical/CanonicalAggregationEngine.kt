@@ -39,7 +39,7 @@ class CanonicalAggregationEngine {
         sex = CanonicalSex.from(latestPerson.getPrimaryName().sexCode),
         sexualOrientation = CanonicalSexualOrientation.from(latestPerson.sexualOrientation),
         religion = CanonicalReligion.from(latestPerson.religion),
-        ethnicity = CanonicalEthnicity.from(latestPerson.ethnicityCode),
+        ethnicity = CanonicalEthnicity.from(latestPerson.getPrimaryName().ethnicityCode),
         aliases = getAliases(latestPerson).toList(),
         addresses = getAddresses(latestPerson).toList(),
         identifiers = CanonicalIdentifiers.from(personKey.personEntities),

@@ -30,11 +30,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
   JsonSubTypes.Type(value = CprPersonDeleted::class, name = CPR_PROBATION_PERSON_DELETED),
   JsonSubTypes.Type(value = CprPersonMerged::class, names = [CPR_PRISON_PERSON_MERGED, CPR_PROBATION_PERSON_MERGED]),
   JsonSubTypes.Type(value = CprPersonUnmerged::class, name = CPR_PROBATION_PERSON_UNMERGED),
-  JsonSubTypes.Type(value = CprAddressCreated::class, name = CPR_PROBATION_ADDRESS_CREATED),
+  JsonSubTypes.Type(value = CprAddressCreated::class, names = [CPR_PRISON_ADDRESS_CREATED, CPR_PROBATION_ADDRESS_CREATED]),
   JsonSubTypes.Type(value = CprAddressUpdated::class, name = CPR_PROBATION_ADDRESS_UPDATED),
   JsonSubTypes.Type(value = CprAddressDeleted::class, name = CPR_PROBATION_ADDRESS_DELETED),
   JsonSubTypes.Type(value = CprReligionCreated::class, name = CPR_PRISON_RELIGION_CREATED),
   JsonSubTypes.Type(value = CprReligionUpdated::class, name = CPR_PRISON_RELIGION_UPDATED),
+  JsonSubTypes.Type(value = CprContactCreated::class, name = CPR_PRISON_CONTACT_CREATED),
+  JsonSubTypes.Type(value = CprContactUpdated::class, name = CPR_PRISON_CONTACT_UPDATED),
 )
 @JsonIgnoreProperties(ignoreUnknown = true)
 sealed interface DomainEvent {

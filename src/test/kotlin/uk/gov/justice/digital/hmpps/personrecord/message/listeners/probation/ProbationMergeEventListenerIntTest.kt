@@ -24,6 +24,7 @@ class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
     @BeforeEach
     fun beforeEach() {
       stubPersonMatchUpsert()
+      stubPersonMatchScores()
       stubDeletePersonMatch()
     }
 
@@ -52,6 +53,7 @@ class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
         ),
       )
       checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
+      checkEventLogExist(targetCrn, CPRLogEvents.CPR_RECORD_UPDATED)
 
       sourceCluster.assertClusterStatus(UUIDStatusType.ACTIVE)
       sourceCluster.assertClusterIsOfSize(1)
@@ -82,6 +84,7 @@ class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
         ),
       )
       checkEventLogExist(sourcePerson.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
+      checkEventLogExist(targetPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED)
 
       sourcePerson.assertMergedTo(targetPerson)
       val sourceClusterPostMerge = personKeyRepository.findById(sourceClusterId!!).getOrNull()
@@ -175,6 +178,7 @@ class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
       val targetCrn = randomCrn()
       stub5xxResponse(probationUrl(targetCrn), "next request will succeed", "retry")
       stubPersonMatchUpsert()
+      stubPersonMatchScores()
       stubDeletePersonMatch()
 
       createPersonKey()
@@ -210,6 +214,7 @@ class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
 
       // stubs for successful delete
       stubDeletePersonMatch(currentScenarioState = "deleteWillWork")
+      stubPersonMatchScores()
       probationMergeEventAndResponseSetup(sourceCrn, targetCrn, currentScenarioState = "deleteWillWork", nextScenarioState = "deleteWillWork", apiResponseSetup = response)
 
       sourcePersonEntity.assertMergedTo(targetPersonEntity)
@@ -227,6 +232,7 @@ class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
       val targetPerson = personRepository.findByCrn(targetCrn)!!
       stubDeletePersonMatch(status = 404)
       stubPersonMatchUpsert()
+      stubPersonMatchScores()
       probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
       sourcePerson.assertMergedTo(targetPerson)
     }
@@ -275,6 +281,7 @@ class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
 
       stubDeletePersonMatch()
       stubPersonMatchUpsert()
+      stubPersonMatchScores()
       probationMergeEventAndResponseSetup(recordACrn, recordBCrn)
 
       checkTelemetry(

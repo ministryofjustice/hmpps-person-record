@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 data class PrisonNationality(
   @Schema(description = "The nationality code", example = "BIS")
   val nationalityCode: String? = null,
-  @Schema(description = "The nationality modify date and time", example = "2000-01-01 12:00:00", required = true)
+  @Schema(description = "The nationality modify date and time", example = "2000-01-01T12:00:00", required = true)
   val modifyDateTime: LocalDateTime,
   @Schema(description = "The nationality modify user id", example = "12345", required = true)
   val modifyUserId: String,

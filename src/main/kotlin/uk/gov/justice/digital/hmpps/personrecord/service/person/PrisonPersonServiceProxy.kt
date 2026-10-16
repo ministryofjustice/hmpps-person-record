@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 
@@ -13,7 +15,7 @@ interface PrisonPersonServiceProxy {
 }
 
 @Component
-@Profile("preprod | prod")
+@Profile("prod")
 class PrisonPersonServiceProxyProd(
   private val personService: PersonService,
 ) : PrisonPersonServiceProxy {
@@ -24,12 +26,17 @@ class PrisonPersonServiceProxyProd(
 }
 
 @Component
-@Profile("!preprod & !prod")
+@Profile("!prod")
 class PrisonPersonServiceProxyDev(
   private val personService: PersonService,
 ) : PrisonPersonServiceProxy {
   override fun processPerson(
     person: Person,
     findPerson: () -> PersonEntity?,
-  ): PersonEntity = personService.processPerson(person) { findPerson() }
+  ): PersonEntity = personService.processPerson(
+    person = person,
+    childrenToIgnore = setOf(AddressEntity::class, ContactEntity::class),
+  ) {
+    findPerson()
+  }
 }
