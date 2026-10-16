@@ -165,10 +165,6 @@ class PersonEntity(
 
   fun getPrimaryName(): PseudonymEntity = this.pseudonyms.firstOrNull { it.nameType == PRIMARY } ?: PseudonymEntity(nameType = PRIMARY)
 
-  fun getScopes(): Set<UUID> = this.overrideScopes
-    .map { scopeEntity -> scopeEntity.scope }
-    .toSet()
-
   fun getExcludeScopes(): Set<OverrideScopeEntity> = this.overrideScopes.filter { it.overrideType == EXCLUDE }.toSet()
   fun getIncludeScopes(): Set<OverrideScopeEntity> = this.overrideScopes.filter { it.overrideType == INCLUDE }.toSet()
 
