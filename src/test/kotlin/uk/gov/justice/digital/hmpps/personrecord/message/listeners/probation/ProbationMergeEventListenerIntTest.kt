@@ -137,6 +137,7 @@ class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
       )
 
       checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
+      checkEventLogExist(targetCrn, CPRLogEvents.CPR_RECORD_UPDATED)
       val sourcePersonAfterMerge = personRepository.findByCrn(sourceCrn)!!
       val targetPersonAfterMerge = personRepository.findByCrn(targetCrn)!!
       sourcePersonAfterMerge.assertMergedTo(targetPersonAfterMerge)
