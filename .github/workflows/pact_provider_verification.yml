@@ -59,7 +59,7 @@ on:
         required: false
         description: Provider branch / provider version branch
         type: string
-        default: ${{ github.ref }}
+        default: ${{ github.ref_name }}
   repository_dispatch:
     types:
       - pact_changed
