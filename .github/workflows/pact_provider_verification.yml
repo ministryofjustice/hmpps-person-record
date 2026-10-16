@@ -25,7 +25,7 @@ on:
         required: false
         description: Provider branch / provider version branch
         type: string
-        default: "main"
+        default: ""
       providerTag:
         required: false
         description: Provider tag / provider version tag
