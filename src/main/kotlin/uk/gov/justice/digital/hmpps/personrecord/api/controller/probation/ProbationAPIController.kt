@@ -11,8 +11,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus.MOVED_PERMANENTLY
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
@@ -21,12 +19,12 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.probation.ProbationOverrideHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import java.net.URI
 
@@ -35,7 +33,7 @@ import java.net.URI
 class ProbationAPIController(
   private val personRepository: PersonRepository,
   private val personService: PersonService,
-  private val overrideService: OverrideService,
+  private val probationOverrideHandler: ProbationOverrideHandler,
 ) {
   @Operation(
     description = """Retrieve person record by CRN. Role required is **$API_READ_ONLY** . 
@@ -88,21 +86,12 @@ class ProbationAPIController(
     ),
   )
   @PreAuthorize("hasRole('$PROBATION_API_READ_WRITE')")
-  @Transactional(isolation = REPEATABLE_READ)
   fun createProbationPerson(
     @PathVariable defendantId: String,
     @RequestBody probationCase: ProbationCase,
   ) {
-    val defendant = retrieveDefendant(defendantId)
-    val person = Person.from(probationCase)
-    val offender = personService.processPerson(person) {
-      personRepository.findByCrn(probationCase.identifiers.crn!!)
-    }
-    overrideService.systemInclude(defendant, offender)
+    probationOverrideHandler.assignIncludeOverrideAndRecluster(defendantId, Person.from(probationCase))
   }
-
-  private fun retrieveDefendant(defendantId: String): PersonEntity = personRepository.findByDefendantId(defendantId) ?: throw ResourceNotFoundException(defendantId)
-
   private fun getMergedToCrn(personEntity: PersonEntity): String = personRepository.findByIdOrNull(personEntity.mergedTo!!)!!.crn!!
 
   private fun <T : Any> respondWithRedirect(crn: String): ResponseEntity<T> = ResponseEntity.status(MOVED_PERMANENTLY)
