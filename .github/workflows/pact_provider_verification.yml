@@ -25,7 +25,7 @@ on:
         required: false
         description: Provider tag / provider version tag
         type: string
-        default: ${{ github.sha }}
+        default: ''
   repository_dispatch:
     types:
       - pact_changed
