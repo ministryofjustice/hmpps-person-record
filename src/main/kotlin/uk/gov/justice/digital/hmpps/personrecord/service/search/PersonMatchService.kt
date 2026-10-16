@@ -34,7 +34,6 @@ class PersonMatchService(
   fun findClustersToJoin(personEntity: PersonEntity): List<PersonKeyEntity> = findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity)
     .getClustersThatItCanJoin()
     .collectDistinctClusters()
-    .removeExcludedClusters(personEntity)
 
   fun findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity: PersonEntity): List<PersonMatchResult> {
     val personScores = collectPersonScores(personEntity)

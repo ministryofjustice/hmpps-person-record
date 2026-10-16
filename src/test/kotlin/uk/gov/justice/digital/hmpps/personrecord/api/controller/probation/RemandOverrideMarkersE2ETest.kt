@@ -44,7 +44,7 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
 
     val matchingDefendantId = randomDefendantId()
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = defendant.getPnc(), lastName = defendant.lastName!!, cro = defendant.getCro()!!, defendantId = matchingDefendantId, masterDefendantId = defendant.masterDefendantId!!))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = defendant.getPnc(), lastName = defendant.lastName!!, firstName = defendant.firstName, dateOfBirth = defendant.dateOfBirth.toString(), cro = defendant.getCro()!!, defendantId = matchingDefendantId, masterDefendantId = defendant.masterDefendantId!!))),
     )
 
     val matchingPerson = awaitNotNull { personRepository.findByDefendantId(matchingDefendantId) }
