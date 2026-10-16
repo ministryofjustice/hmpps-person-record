@@ -105,6 +105,7 @@ tasks.register<Test>("pactTest") {
   systemProperty("pact.verifier.publishResults", System.getenv("PACT_PUBLISH_RESULTS") ?: "false")
   systemProperty("pact.provider.version", System.getenv("PACT_PROVIDER_APP_VERSION") ?: "local")
   systemProperty("pact.provider.branch", System.getenv("GITHUB_BRANCH") ?: "local")
+  systemProperty("pact.provider.tag", System.getenv("PACT_PROVIDER_TAG") ?: "local")
 }
 
 kover {
