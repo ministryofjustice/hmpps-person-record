@@ -34,7 +34,6 @@ class PersonMatchService(
   fun findClustersToJoin(personEntity: PersonEntity): List<PersonKeyEntity> = findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity)
     .getClustersThatItCanJoin()
     .collectDistinctClusters()
-    .removeExcludedClusters(personEntity)
 
   fun findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity: PersonEntity): List<PersonMatchResult> {
     val personScores = collectPersonScores(personEntity)
@@ -117,12 +116,6 @@ class PersonMatchService(
       ),
     )
     return this
-  }
-
-  private fun List<PersonKeyEntity>.removeExcludedClusters(personEntity: PersonEntity): List<PersonKeyEntity> {
-    // TODO check exclude scopes only
-    val evaluatingClusterScopes: Set<UUID> = personEntity.personKey?.getScopes()?.toSet() ?: personEntity.getScopes()
-    return this.filter { evaluatingClusterScopes.intersect(it.getScopes().toSet()).isEmpty() }
   }
 
   private suspend fun List<String>.checkClusterIsValid(): IsClusterValidResponse = runCatching { personMatchClient.isClusterValid(this) }.fold(

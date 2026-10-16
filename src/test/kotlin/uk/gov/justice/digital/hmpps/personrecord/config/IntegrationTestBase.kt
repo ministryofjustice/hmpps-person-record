@@ -428,10 +428,11 @@ class IntegrationTestBase {
     personRepository.saveAll(listOf(source, target))
   }
 
-  internal fun includeRecords(vararg records: PersonEntity) {
-    val updatedRecords = records.mapNotNull { personRepository.findByMatchId(it.matchId) }.toTypedArray()
-    overrideService.systemInclude(*updatedRecords)
-    personRepository.saveAll(updatedRecords.asList())
+  internal fun includeRecords(recordOne: PersonEntity, recordTwo: PersonEntity) {
+    val updatedRecordOne = personRepository.findByMatchId(recordOne.matchId)!!
+    val updatedRecordTwo = personRepository.findByMatchId(recordTwo.matchId)!!
+    overrideService.systemInclude(updatedRecordOne, updatedRecordTwo)
+    personRepository.saveAll(listOf(updatedRecordTwo))
   }
 
   internal fun stubNoMatchesPersonMatch(matchId: UUID? = null) = stubPersonMatchScores(matchId = matchId, personMatchResponse = emptyList())
