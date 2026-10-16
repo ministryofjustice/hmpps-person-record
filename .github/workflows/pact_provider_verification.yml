@@ -12,7 +12,7 @@ on:
         required: false
         description: Consumer branch from broker webhook payload
         type: string
-      publishTestResults:
+      publishResults:
         required: false
         description: Publish verification results to broker
         type: boolean
