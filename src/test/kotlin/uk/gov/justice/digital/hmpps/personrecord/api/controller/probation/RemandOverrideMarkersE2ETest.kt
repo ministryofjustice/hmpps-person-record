@@ -104,7 +104,6 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
     updatedDefendant.assertLinkedToCluster(createdProbationPerson.personKey!!)
   }
 
-  // TODO should have a prison/court record joining this rather than a probation record
   @Test
   fun `should update a record to match and join an existing cluster with include override markers`() {
     val defendantId = randomDefendantId()
@@ -128,20 +127,18 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
     val updatedDefendant = personRepository.findByMatchId(defendantRecord.matchId)!!
 
     offender.assertLinkedToCluster(updatedDefendant.personKey!!)
+    val matchingDefendantId = randomDefendantId()
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = matchingDefendantId, masterDefendantId = defendant.masterDefendantId!!))),
+    )
+    val newCourtRecord = awaitNotNull { personRepository.findByDefendantId(matchingDefendantId) }
+    newCourtRecord.assertNotLinkedToCluster(updatedDefendant.personKey!!)
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = defendant.getPnc(), lastName = defendant.lastName!!, cro = defendant.getCro()!!, defendantId = matchingDefendantId, masterDefendantId = defendant.masterDefendantId!!))),
+    )
 
-    val probationPersonCrn = randomCrn()
-    val probationCaseToCreate = createRandomProbationCase().copy(identifiers = Identifiers(crn = probationPersonCrn))
-
-    probationCreateEventAndResponseSetup(ApiResponseSetup.from(probationCaseToCreate))
-
-    val createdProbationPerson = awaitNotNull { personRepository.findByCrn(probationPersonCrn) }
-    createdProbationPerson.assertNotLinkedToCluster(updatedDefendant.personKey!!)
-
-    val updateProbationPerson = probationCase.copy(identifiers = Identifiers(crn = probationPersonCrn, cro = defendant.getCro(), pnc = defendant.getPnc()))
-    probationUpdateEventAndResponseSetup(ApiResponseSetup.from(updateProbationPerson))
-
-    updatedDefendant.assertLinkedToCluster(createdProbationPerson.personKey!!)
-    createdProbationPerson.personKey!!.assertClusterIsOfSize(3)
+    updatedDefendant.assertLinkedToCluster(newCourtRecord.personKey!!)
+    newCourtRecord.personKey!!.assertClusterIsOfSize(3)
   }
 
   @Test
