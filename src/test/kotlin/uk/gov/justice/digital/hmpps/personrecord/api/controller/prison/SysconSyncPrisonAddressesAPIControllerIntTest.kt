@@ -130,6 +130,17 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
             person = personEntity,
           ),
         )
+        addressUsageRepository.saveAndFlush(
+          AddressUsageEntity(
+            address = addressEntity,
+            usageCode = AddressUsageCode.HOME,
+            active = true,
+            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+            createUserId = "usageCreateUserId",
+            modifyDateTime = LocalDateTime.of(2020, 1, 2, 12, 0),
+            modifyUserId = "usageModifyUserId",
+          ),
+        )
 
         val response = sendGetRequestAsserted<PrisonAddress>(
           url = getPrisonerAddressUrl(prisonNumber, addressEntity.updateId.toString()),
@@ -138,6 +149,14 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
         ).returnResult().responseBody!!
 
         assertAddressMatches(response, addressEntity)
+        val usage = response.addressUsage.single()
+        assertThat(usage.nomisAddressUsageId).isNull()
+        assertThat(usage.addressUsageCode).isEqualTo(AddressUsageCode.HOME)
+        assertThat(usage.isActive).isTrue()
+        assertThat(usage.createDateTime).isEqualTo(LocalDateTime.of(2020, 1, 1, 12, 0))
+        assertThat(usage.createUserId).isEqualTo("usageCreateUserId")
+        assertThat(usage.modifyDateTime).isEqualTo(LocalDateTime.of(2020, 1, 2, 12, 0))
+        assertThat(usage.modifyUserId).isEqualTo("usageModifyUserId")
       }
 
       @Test

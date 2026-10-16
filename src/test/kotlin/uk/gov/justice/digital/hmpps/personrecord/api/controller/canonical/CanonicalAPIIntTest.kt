@@ -490,7 +490,7 @@ class CanonicalAPIIntTest : WebTestBase() {
 
   @Test
   fun `should add an empty list of additional identifiers to the canonical record when null`() {
-    val personKey = createPersonKey().addPerson(
+    val personKey = createPersonWithNewKey(
       Person(
         firstName = randomName(),
         lastName = randomName(),
@@ -501,7 +501,7 @@ class CanonicalAPIIntTest : WebTestBase() {
         religion = randomReligionCode(),
         masterDefendantId = randomDefendantId(),
       ),
-    )
+    ).personKey!!
 
     val responseBody = webTestClient.get()
       .uri(canonicalAPIUrl(personKey.personUUID.toString()))
