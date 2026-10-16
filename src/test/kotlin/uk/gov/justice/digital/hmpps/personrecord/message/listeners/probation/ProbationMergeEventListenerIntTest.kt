@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import kotlin.jvm.optionals.getOrNull
 
 class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
@@ -95,7 +96,7 @@ class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
     }
 
     @Test
-    fun `when addresses are not carried over from the source person - merge results in target person address not to be overridden`() {
+    fun `when addresses are not carried over from the source person - target persons maintains address and gains source addresses`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
 
@@ -119,9 +120,18 @@ class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
         ),
       )
 
-      probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
-      checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
+      val apiResponse = ApiResponseSetup(crn = targetCrn, addresses = listOf(ApiResponseSetupAddress(postcode = targetPerson.addresses.first().postcode)))
+      stubSingleProbationResponse(apiResponse)
+      publishDomainEvent(
+        ProbationPersonMerged(
+          additionalInformation = ProbationPersonMergedInfo(
+            sourceCrn = sourceCrn,
+            targetCrn = targetCrn,
+          ),
+        ),
+      )
 
+      checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
       val sourcePersonAfterMerge = personRepository.findByCrn(sourceCrn)!!
       val targetPersonAfterMerge = personRepository.findByCrn(targetCrn)!!
       sourcePersonAfterMerge.assertMergedTo(targetPersonAfterMerge)
@@ -132,7 +142,7 @@ class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
     }
 
     @Test
-    fun `when addresses are carried over from the source person - merge results in target person addresses being overridden with source addresses`() {
+    fun `when addresses are carried over from the source person - target person addresses are overridden with source addresses`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
 
@@ -156,9 +166,18 @@ class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
         ),
       )
 
-      probationMergeEventAndResponseSetup(sourceCrn, targetCrn)
-      checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
+      val apiResponse = ApiResponseSetup(crn = targetCrn, addresses = listOf(ApiResponseSetupAddress(postcode = sourcePerson.addresses.first().postcode)))
+      stubSingleProbationResponse(apiResponse)
+      publishDomainEvent(
+        ProbationPersonMerged(
+          additionalInformation = ProbationPersonMergedInfo(
+            sourceCrn = sourceCrn,
+            targetCrn = targetCrn,
+          ),
+        ),
+      )
 
+      checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
       val sourcePersonAfterMerge = personRepository.findByCrn(sourceCrn)!!
       val targetPersonAfterMerge = personRepository.findByCrn(targetCrn)!!
       sourcePersonAfterMerge.assertMergedTo(targetPersonAfterMerge)
