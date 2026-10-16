@@ -2,6 +2,35 @@ name: Pact Provider Verification
 run-name: Pact verify - ${{ inputs.consumerName && inputs.consumerBranch && format('{0}@{1}', inputs.consumerName, inputs.consumerBranch) || github.ref_name || 'manual' }}
 
 on:
+  workflow_call:
+    inputs:
+      consumerName:
+        required: false
+        description: Consumer name from broker webhook payload
+        type: string
+      consumerBranch:
+        required: false
+        description: Consumer branch from broker webhook payload
+        type: string
+      publishResults:
+        required: false
+        description: Publish verification results to broker
+        type: boolean
+        default: true
+      providerAppVersion:
+        required: true
+        description: Application version
+        type: string
+      providerTag:
+        required: false
+        description: Provider tag / provider version tag
+        type: string
+        default: ${{ github.sha }}
+      providerBranch:
+        required: false
+        description: Provider branch / provider version branch
+        type: string
+        default: ${{ github.ref }}
   workflow_dispatch:
     inputs:
       consumerName:
@@ -79,6 +108,7 @@ jobs:
           fi
           
           echo "version=${version}" >> "$GITHUB_OUTPUT"
+
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -100,7 +130,7 @@ jobs:
       - name: Verify pacts
         run: ./gradlew pactTest
         env:
-          PACT_PUBLISH_RESULTS: true
+          PACT_PUBLISH_RESULTS: ${{ inputs.publishResults || true }}
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
           PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
