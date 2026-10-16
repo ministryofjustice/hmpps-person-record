@@ -2,35 +2,6 @@ name: Pact Provider Verification
 run-name: Pact verify - ${{ inputs.consumerName && inputs.consumerBranch && format('{0}@{1}', inputs.consumerName, inputs.consumerBranch) || github.ref_name || 'manual' }}
 
 on:
-  workflow_call:
-    inputs:
-      consumerName:
-        required: false
-        description: Consumer name from broker webhook payload
-        type: string
-      consumerBranch:
-        required: false
-        description: Consumer branch from broker webhook payload
-        type: string
-      publishResults:
-        required: false
-        description: Publish verification results to broker
-        type: boolean
-        default: true
-      providerAppVersion:
-        required: true
-        description: Application version
-        type: string
-      providerTag:
-        required: false
-        description: Provider tag / provider version tag
-        type: string
-        default: ${{ github.sha }}
-      providerBranch:
-        required: false
-        description: Provider branch / provider version branch
-        type: string
-        default: ${{ github.ref }}
   workflow_dispatch:
     inputs:
       consumerName:
@@ -60,6 +31,35 @@ on:
         description: Provider tag / provider version tag
         type: string
         default: ''
+  workflow_call:
+    inputs:
+      consumerName:
+        required: false
+        description: Consumer name from broker webhook payload
+        type: string
+      consumerBranch:
+        required: false
+        description: Consumer branch from broker webhook payload
+        type: string
+      publishResults:
+        required: false
+        description: Publish verification results to broker
+        type: boolean
+        default: true
+      providerAppVersion:
+        required: true
+        description: Application version
+        type: string
+      providerTag:
+        required: false
+        description: Provider tag / provider version tag
+        type: string
+        default: ${{ github.sha }}
+      providerBranch:
+        required: false
+        description: Provider branch / provider version branch
+        type: string
+        default: ${{ github.ref }}
   repository_dispatch:
     types:
       - pact_changed
