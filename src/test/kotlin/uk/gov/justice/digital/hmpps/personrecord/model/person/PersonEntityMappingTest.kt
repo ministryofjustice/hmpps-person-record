@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.model.person
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddress
-import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
@@ -86,30 +84,6 @@ class PersonEntityMappingTest {
     val mappedAddress = Address.from(AddressEntity.from(address))
 
     assertThat(mappedAddress).isEqualTo(address)
-  }
-
-  @Test
-  fun `should support legacy usages list and new usage value`() {
-    val legacyAddress = ProbationCreateAddress(
-      noFixedAbode = false,
-      startDate = randomZonedDateTime(),
-      postcode = randomPostcode(),
-      statusCode = uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.M,
-      usages = listOf(ProbationCreateAddressUsage(AddressUsageCode.A01, true)),
-    )
-    val newAddress = legacyAddress.copy(
-      usages = emptyList(),
-      usage = ProbationCreateAddressUsage(AddressUsageCode.A02, false),
-    )
-
-    val legacyMapped = Address.from(legacyAddress)
-    val newMapped = Address.from(newAddress)
-
-    assertThat(legacyMapped.usages).hasSize(1)
-    assertThat(legacyMapped.usages.first().addressUsageCode).isEqualTo(AddressUsageCode.A01)
-    assertThat(newMapped.usages).hasSize(1)
-    assertThat(newMapped.usages.first().addressUsageCode).isEqualTo(AddressUsageCode.A02)
-    assertThat(newMapped.usages.first().isActive).isFalse()
   }
 
   @Test

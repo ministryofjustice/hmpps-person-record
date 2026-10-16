@@ -43,7 +43,7 @@ class SysconSyncAddressUsagesHandler(
   companion object {
 
     fun Pair<PrisonAddressUsage, AddressUsageEntity>.toMapping() = SysconAddressUsageMapping(
-      nomisAddressUsageId = first.nomisAddressUsageId,
+      nomisAddressUsageId = first.nomisAddressUsageId!!,
       nomisAddressUsageCode = first.addressUsageCode,
       cprAddressUsageId = second.updateId.toString(),
     )

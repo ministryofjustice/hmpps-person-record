@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -36,7 +37,7 @@ class PrisonAPIAddressesController(
     security = [SecurityRequirement(name = "api-role")],
   )
   @GetMapping("/{prisonNumber}/addresses")
-  fun getAddressesByPrisonNumberDps(
+  fun getAddressesByPrisonNumber(
     @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
   ): List<CanonicalAddress> = prisonAddressesHandler.get(prisonNumber)
 
@@ -47,21 +48,34 @@ class PrisonAPIAddressesController(
   @PreAuthorize("hasRole('$PRISON_API_READ_WRITE')")
   @PostMapping("/{prisonNumber}/addresses")
   @ResponseStatus(HttpStatus.CREATED)
-  fun createAddressByPrisonNumberDps(
+  fun createAddressByPrisonNumber(
     @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
     @Valid @RequestBody request: PrisonCreateAddressRequest,
   ): CanonicalAddress = prisonAddressesHandler.create(prisonNumber, request)
 
   @Operation(
-    description = "Add phone numbers for a prisoner's address by Prison Number and address id. Role required is **$PRISON_API_READ_WRITE**. ",
+    description = "Add contacts to a prisoner's address by Prison Number and address id. Role required is **$PRISON_API_READ_WRITE**. ",
     security = [SecurityRequirement(name = "api-role")],
   )
   @PreAuthorize("hasRole('$PRISON_API_READ_WRITE')")
-  @PostMapping("/{prisonNumber}/addresses/{addressId}/phone-numbers")
+  @PostMapping("/{prisonNumber}/addresses/{addressId}/contacts")
   @ResponseStatus(HttpStatus.CREATED)
-  fun createAddressPhoneNumbersByPrisonNumberDps(
+  fun createAddressContactsByPrisonNumber(
     @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
     @PathVariable(name = "addressId") @Parameter(description = "The address id") addressId: String,
     @Valid @RequestBody request: List<@Valid PrisonContactRequest>,
-  ): List<PrisonContactResponse> = prisonContactsHandler.createPhoneNumbers(prisonNumber, addressId, request)
+  ): List<PrisonContactResponse> = prisonContactsHandler.createContacts(prisonNumber, addressId, request)
+
+  @Operation(
+    description = "Update contacts for a prisoner's address by Prison Number and address id. Role required is **$PRISON_API_READ_WRITE**. ",
+    security = [SecurityRequirement(name = "api-role")],
+  )
+  @PreAuthorize("hasRole('$PRISON_API_READ_WRITE')")
+  @PutMapping("/{prisonNumber}/addresses/{addressId}/contacts/{contactId}")
+  fun updateAddressContactsByPrisonNumber(
+    @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
+    @PathVariable(name = "addressId") @Parameter(description = "The address id") addressId: String,
+    @PathVariable(name = "contactId") @Parameter(description = "The contact id") contactId: String,
+    @Valid @RequestBody request: PrisonContactRequest,
+  ): PrisonContactResponse = prisonContactsHandler.updateContact(prisonNumber, addressId, contactId, request)
 }
