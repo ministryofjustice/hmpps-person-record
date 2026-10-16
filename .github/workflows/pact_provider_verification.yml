@@ -71,7 +71,7 @@ jobs:
           PACT_CONSUMER_NAME: ${{ github.event.client_payload.consumerName || inputs.consumerName }}
           PACT_CONSUMER_BRANCH: ${{ github.event.client_payload.consumerBranch || inputs.consumerBranch }}
           PACT_PROVIDER_APP_VERSION: ${{ github.event.client_payload.providerAppVersion || inputs.providerAppVersion }}
-          PACT_PROVIDER_TAG: ${{ fromJSON(github.event.client_payload.providerTag)[0] || inputs.providerTag }}
+          PACT_PROVIDER_TAG: ${{ (github.event.client_payload.providerTag && fromJSON(github.event.client_payload.providerTag)[0]) || inputs.providerTag }}
 
       - name: Upload the test artifacts
         if: always()
