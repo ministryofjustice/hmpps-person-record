@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressMapping
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
@@ -58,6 +59,7 @@ class SysconSyncAddressesHandler(
     )
   }
 
+  @Transactional(readOnly = true)
   fun handleGet(prisonNumber: String, cprAddressId: String): PrisonAddress {
     val addressEntity = addressRepository.findByUpdateId(UUID.fromString(cprAddressId))
       ?: throw ResourceNotFoundException("Address with $cprAddressId not found for person with $prisonNumber")
@@ -82,6 +84,16 @@ class SysconSyncAddressesHandler(
       comment = comment,
       isPrimary = PRIMARY_TYPES.contains(statusCode),
       isMail = MAIL_TYPES.contains(statusCode),
+      addressUsage = usages.map { it.toPrisonAddressUsage() },
+      modifyDateTime = modifyDateTime,
+      modifyUserId = modifyUserId,
+      createDateTime = createDateTime!!,
+      createUserId = createUserId!!,
+    )
+
+    private fun AddressUsageEntity.toPrisonAddressUsage() = PrisonAddressUsage(
+      addressUsageCode = usageCode,
+      isActive = active,
       modifyDateTime = modifyDateTime,
       modifyUserId = modifyUserId,
       createDateTime = createDateTime!!,

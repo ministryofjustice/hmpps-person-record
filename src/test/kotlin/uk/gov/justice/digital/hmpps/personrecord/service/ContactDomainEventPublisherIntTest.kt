@@ -87,7 +87,7 @@ class ContactDomainEventPublisherIntTest(
     val addressId = addressEntity.updateId.toString()
     val cprContactId = addressEntity.contacts.single().updateId.toString()
 
-    prisonContactsHandler.updatePhoneNumber(prisonNumber, addressId, cprContactId, contactRequest())
+    prisonContactsHandler.updateContact(prisonNumber, addressId, cprContactId, contactRequest())
 
     val sqsMessage = receiveDomainEvent()
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_CONTACT_UPDATED))
@@ -111,7 +111,7 @@ class ContactDomainEventPublisherIntTest(
     )
     val addressId = personRepository.findByPrisonNumber(prisonNumber)!!.addresses.single().updateId.toString()
 
-    val cprContactIds = prisonContactsHandler.createPhoneNumbers(
+    val cprContactIds = prisonContactsHandler.createContacts(
       prisonNumber,
       addressId,
       listOf(
