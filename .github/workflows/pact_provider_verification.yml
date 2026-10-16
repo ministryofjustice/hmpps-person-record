@@ -86,27 +86,27 @@ jobs:
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
         run: |
           set -euo pipefail
-          
+
           if [[ -n "${INPUT_PROVIDER_APP_VERSION}" ]]; then
             version="${INPUT_PROVIDER_APP_VERSION}"
             echo "Using workflow input provider version: ${version}"
           else
             echo "No providerAppVersion supplied - querying Pact Broker latest version"
-          
+
             version="$({
               curl -fsSL \
                 -u "${PACT_BROKER_USERNAME}:${PACT_BROKER_PASSWORD}" \
                 "${PACT_BROKER_URL}/pacticipants/hmpps-person-record/latest-version"
             } | jq -r '.number // empty')"
-          
+
             if [[ -z "${version}" ]]; then
               echo "Could not resolve latest provider version from Pact Broker" >&2
               exit 1
             fi
-          
+
             echo "Resolved latest provider version from broker: ${version}"
           fi
-          
+
           echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout code
