@@ -142,7 +142,7 @@ jobs:
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
           PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
-          GITHUB_BRANCH: ${{ github.event.client_payload.providerBranch || inputs.providerBranch }}
+          GITHUB_BRANCH: ${{ github.event.client_payload.providerBranch || inputs.providerBranch || github.ref_name }}
           PACT_CONSUMER_NAME: ${{ github.event.client_payload.consumerName || inputs.consumerName }}
           PACT_CONSUMER_BRANCH: ${{ github.event.client_payload.consumerBranch || inputs.consumerBranch }}
           PACT_PROVIDER_APP_VERSION: ${{ steps.resolve-provider-version.outputs.version }}
