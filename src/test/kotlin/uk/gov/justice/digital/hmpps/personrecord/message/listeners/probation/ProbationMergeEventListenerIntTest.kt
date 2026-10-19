@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddressStatus
 import kotlin.jvm.optionals.getOrNull
 
 class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
@@ -97,7 +98,7 @@ class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
     }
 
     @Test
-    fun `when addresses are not carried over from the source person - target persons maintains addresses and gains source addresses`() {
+    fun `to person addresses should mirror what delius send in the callback`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
 
@@ -108,7 +109,7 @@ class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
       val targetPerson = personRepository.findByCrn(targetCrn)!!
 
       val sourcePostcode = randomPostcode()
-      addressRepository.save(
+      val sourceAddress = addressRepository.save(
         AddressEntity(
           person = sourcePerson,
           statusCode = AddressStatusCode.M,
@@ -125,7 +126,13 @@ class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
         ),
       )
 
-      val apiResponse = ApiResponseSetup(crn = targetCrn, addresses = listOf(ApiResponseSetupAddress(postcode = targetAddress.postcode)))
+      val apiResponse = ApiResponseSetup(
+        crn = targetCrn,
+        addresses = listOf(
+          ApiResponseSetupAddress(postcode = sourceAddress.postcode, status = ApiResponseSetupAddressStatus(AddressStatusCode.P.name, AddressStatusCode.P.description)),
+          ApiResponseSetupAddress(postcode = targetAddress.postcode, status = ApiResponseSetupAddressStatus(AddressStatusCode.M.name, AddressStatusCode.M.description)),
+        ),
+      )
       stubSingleProbationResponse(apiResponse)
       publishDomainEvent(
         ProbationPersonMerged(
@@ -142,17 +149,13 @@ class ProbationMergeEventListenerIntTest : ProbationEventListenerTestBase() {
       val targetPersonAfterMerge = personRepository.findByCrn(targetCrn)!!
       sourcePersonAfterMerge.assertMergedTo(targetPersonAfterMerge)
       sourcePersonAfterMerge.assertNotLinkedToCluster()
-      assertThat(sourcePersonAfterMerge.addresses.size).isEqualTo(0)
+      assertThat(sourcePersonAfterMerge.addresses.size).isEqualTo(1)
       assertThat(targetPersonAfterMerge.addresses.size).isEqualTo(2)
 
       val sourceAddressAfterMerge = targetPersonAfterMerge.addresses.first { it.postcode == sourcePostcode }
       val targetAddressAfterMerge = targetPersonAfterMerge.addresses.first { it.postcode == targetPostcode }
       assertThat(sourceAddressAfterMerge.statusCode).isEqualTo(AddressStatusCode.P)
       assertThat(targetAddressAfterMerge.statusCode).isEqualTo(AddressStatusCode.M)
-    }
-
-    @Test
-    fun `when addresses are carried over from the source person - target person addresses are replaced with source persons address`() {
     }
   }
 

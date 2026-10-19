@@ -32,7 +32,7 @@ class MergeService(
       fromClusterHasOneRecord(from) -> deleteSingleRecordCluster(from)
     }
     merge(from, to, fromClusterDetail, personChangeChecker)
-    personGranularDataMergers.forEach { it.handleMerge(from, to) }
+    personGranularDataMergers.forEach { it.handleMerge(from, to, person) }
     reclusterService.recluster(to)
   }
 

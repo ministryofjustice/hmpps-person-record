@@ -1,21 +1,19 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
-import java.time.LocalDate
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 
 @Component
 class AddressDataMerger : PersonGranularDataMerger {
-  override fun handleMerge(fromPerson: PersonEntity, toPerson: PersonEntity) {
-    val fromPersonAddresses = fromPerson.addresses.onEach {
-      it.person = toPerson
-      if (it.statusCode == AddressStatusCode.M) {
-        it.statusCode = AddressStatusCode.P
-        it.endDate = LocalDate.now().toUkZonedDateTime()
-      }
+  override fun handleMerge(fromPerson: PersonEntity, toPerson: PersonEntity, person: Person) {
+    toPerson.addresses.clear()
+    val addresses = person.addresses.map {
+      val addressEntity = AddressEntity.from(it)
+      addressEntity.person = toPerson
+      addressEntity
     }
-    toPerson.addresses.addAll(fromPersonAddresses)
+    toPerson.addresses.addAll(addresses)
   }
 }
