@@ -53,7 +53,7 @@ class ServiceNowMergeRequestService(
     log.info("Found ${clustersWithMoreThanOneProbationRecord.size} clusters with more than one probation record")
 
     val clustersWithNoIncludeScopes = clustersWithMoreThanOneProbationRecord.filter { it.personKey?.getIncludeScopes()?.isEmpty() ?: false }
-    log.info("Removed ${clustersWithMoreThanOneProbationRecord.size - clustersWithNoIncludeScopes.size} clusters with include scopes")
+    log.info("Removed ${clustersWithMoreThanOneProbationRecord.size - clustersWithNoIncludeScopes.size} clusters with an include override marker")
 
     val activeClusters = clustersWithNoIncludeScopes.filter { it.personKey!!.isActive() }
     log.info("Removed ${clustersWithNoIncludeScopes.size - activeClusters.size} NEEDS_ATTENTION clusters")
