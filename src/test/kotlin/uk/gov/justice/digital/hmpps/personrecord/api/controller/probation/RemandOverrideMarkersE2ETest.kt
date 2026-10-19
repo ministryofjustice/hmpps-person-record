@@ -10,13 +10,14 @@ import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class RemandOverrideMarkersE2ETest : E2ETestBase() {
 
-  // TODO ideally this should create a court or prison record to join the cluster
   @Test
   fun `should create record to match and join an existing cluster with include override markers`() {
     val defendantId = randomDefendantId()
@@ -41,11 +42,12 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
 
     offender.assertLinkedToCluster(updatedDefendant.personKey!!)
 
-    val matchingPersonCrn = randomCrn()
-    val matchingPersonDetails = probationCase.copy(identifiers = Identifiers(crn = matchingPersonCrn, cro = defendant.getCro(), pnc = defendant.getPnc()))
+    val matchingDefendantId = randomDefendantId()
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = defendant.getPnc(), lastName = defendant.lastName!!, firstName = defendant.firstName, dateOfBirth = defendant.dateOfBirth.toString(), cro = defendant.getCro()!!, defendantId = matchingDefendantId, masterDefendantId = defendant.masterDefendantId!!))),
+    )
 
-    probationCreateEventAndResponseSetup(ApiResponseSetup.from(matchingPersonDetails))
-    val matchingPerson = awaitNotNull { personRepository.findByCrn(matchingPersonCrn) }
+    val matchingPerson = awaitNotNull { personRepository.findByDefendantId(matchingDefendantId) }
     matchingPerson.assertLinkedToCluster(updatedDefendant.personKey!!)
   }
 
@@ -102,7 +104,6 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
     updatedDefendant.assertLinkedToCluster(createdProbationPerson.personKey!!)
   }
 
-  // TODO should have a prison/court record joining this rather than a probation record
   @Test
   fun `should update a record to match and join an existing cluster with include override markers`() {
     val defendantId = randomDefendantId()
@@ -126,20 +127,18 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
     val updatedDefendant = personRepository.findByMatchId(defendantRecord.matchId)!!
 
     offender.assertLinkedToCluster(updatedDefendant.personKey!!)
+    val matchingDefendantId = randomDefendantId()
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = matchingDefendantId, masterDefendantId = defendant.masterDefendantId!!))),
+    )
+    val newCourtRecord = awaitNotNull { personRepository.findByDefendantId(matchingDefendantId) }
+    newCourtRecord.assertNotLinkedToCluster(updatedDefendant.personKey!!)
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = defendant.getPnc(), lastName = defendant.lastName!!, firstName = defendant.firstName, dateOfBirth = defendant.dateOfBirth.toString(), cro = defendant.getCro()!!, defendantId = matchingDefendantId, masterDefendantId = defendant.masterDefendantId!!))),
+    )
 
-    val probationPersonCrn = randomCrn()
-    val probationCaseToCreate = createRandomProbationCase().copy(identifiers = Identifiers(crn = probationPersonCrn))
-
-    probationCreateEventAndResponseSetup(ApiResponseSetup.from(probationCaseToCreate))
-
-    val createdProbationPerson = awaitNotNull { personRepository.findByCrn(probationPersonCrn) }
-    createdProbationPerson.assertNotLinkedToCluster(updatedDefendant.personKey!!)
-
-    val updateProbationPerson = probationCase.copy(identifiers = Identifiers(crn = probationPersonCrn, cro = defendant.getCro(), pnc = defendant.getPnc()))
-    probationUpdateEventAndResponseSetup(ApiResponseSetup.from(updateProbationPerson))
-
-    updatedDefendant.assertLinkedToCluster(createdProbationPerson.personKey!!)
-    createdProbationPerson.personKey!!.assertClusterIsOfSize(3)
+    updatedDefendant.assertLinkedToCluster(newCourtRecord.personKey!!)
+    newCourtRecord.personKey!!.assertClusterIsOfSize(3)
   }
 
   @Test

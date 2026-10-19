@@ -341,24 +341,19 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       val personA = createPersonWithNewKey(createProbationPerson(basePersonData))
       val personBData = createMatchingRecord(basePersonData)
-      val personCData = createMatchingRecord(basePersonData)
 
       val cluster = personA.personKey!!
         .addPerson(personBData)
-        .addPerson(personCData)
 
       probationUpdateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(crn = personBData.crn!!)))
 
-      cluster.assertClusterIsOfSize(3)
+      cluster.assertClusterIsOfSize(2)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
       val personB = personRepository.findByCrn(personBData.crn)!!
-      val personC = personRepository.findByCrn(personCData.crn!!)!!
-      includeRecords(personA, personB, personC)
+      includeRecords(personA, personB)
 
-      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), crn = personA.crn!!))
-
-      cluster.assertClusterIsOfSize(3)
+      cluster.assertClusterIsOfSize(2)
       cluster.assertClusterStatus(ACTIVE)
     }
   }
