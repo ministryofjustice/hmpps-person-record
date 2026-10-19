@@ -46,7 +46,7 @@ data class ApiResponseSetupAddressUsage(val code: String?, val description: Stri
 
 data class ApiResponseSetupSentences(val sentenceDate: LocalDate?)
 
-data class ApiResponseSetupAlias(val title: String? = null, val firstName: String? = null, val middleName: String? = null, val lastName: String? = null, val dateOfBirth: LocalDate? = null, val gender: String? = null)
+data class ApiResponseSetupAlias(val title: String? = null, val firstName: String? = null, val middleName: String? = null, val lastName: String? = null, val dateOfBirth: LocalDate? = null, val gender: String? = null, val identifiers: List<ApiResponseSetupIdentifier> = listOf())
 
 data class ApiResponseSetup(
   val title: String? = null,

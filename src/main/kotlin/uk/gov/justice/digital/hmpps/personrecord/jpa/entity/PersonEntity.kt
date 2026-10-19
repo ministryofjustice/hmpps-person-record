@@ -257,7 +257,10 @@ class PersonEntity(
 
   private fun updatePseudonyms(pseudonyms: List<PseudonymEntity>) {
     this.pseudonyms.clear()
-    pseudonyms.forEach { pseudonymEntity -> pseudonymEntity.person = this }
+    pseudonyms.forEach { pseudonymEntity ->
+      pseudonymEntity.person = this
+      pseudonymEntity.references.forEach { it.person = this }
+    }
     this.pseudonyms.addAll(pseudonyms)
   }
 
