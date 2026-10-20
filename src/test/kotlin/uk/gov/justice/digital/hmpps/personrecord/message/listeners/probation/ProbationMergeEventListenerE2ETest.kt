@@ -209,6 +209,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
         "FROM_SOURCE_SYSTEM_ID" to sourceCrn,
         "TO_SOURCE_SYSTEM_ID" to targetCrn,
         "SOURCE_SYSTEM" to "DELIUS",
+        "INCLUDE_OVERRIDE_LOST" to "false",
       ),
     )
     checkEventLog(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED) { eventLogs ->
