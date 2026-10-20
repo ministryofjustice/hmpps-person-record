@@ -291,7 +291,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
-    expectedStatus: HttpStatus = HttpStatus.OK,
+    expectedStatus: HttpStatus = HttpStatus.CREATED,
   ): WebTestClient.BodySpec<SysconPersonMergeResponseBody, *> {
     stubPrisonResponse(
       ApiResponseSetup(prisonNumber = targetPrisonNumber),
@@ -304,7 +304,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
   private inline fun <reified T : Any> publishPrisonPersonMergedEvent(
     targetPrisonNumber: String,
     prisonMerge: PrisonMerge,
-    expectedStatus: HttpStatus = HttpStatus.OK,
+    expectedStatus: HttpStatus = HttpStatus.CREATED,
   ): WebTestClient.BodySpec<T, *> = sendPostRequestAsserted<T>(
     url = prisonMergeEndpoint(targetPrisonNumber),
     body = prisonMerge,

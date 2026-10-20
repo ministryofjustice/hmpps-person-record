@@ -193,7 +193,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
         url = "/syscon-sync/person/$toPrisonNumber/merge",
         body = PrisonMerge(fromPrisonNumber),
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.OK,
+        expectedStatus = HttpStatus.CREATED,
       )
 
       expectOneMessageOn(testOnlyCPRDomainEventsQueue)
