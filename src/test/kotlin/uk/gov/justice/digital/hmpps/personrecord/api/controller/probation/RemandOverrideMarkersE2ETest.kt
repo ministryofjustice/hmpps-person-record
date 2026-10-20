@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -175,8 +176,7 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
   }
 
   @Test
-  @Disabled("Not implemented yet")
-  fun `should merge remand probation record into new probation record and maintain the include override marker`() {
+  fun `should merge remand probation record into new probation record and log include override is lost`() {
     val defendantId = randomDefendantId()
     val defendant = createRandomCommonPlatformPersonDetails(defendantId)
     val probationCase = ProbationCase(
@@ -213,8 +213,16 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
     )
 
     offender.assertMergedTo(targetPerson)
-    targetPerson.assertHasSameOverrideMarker(defendantRecord)
-    // RESULT: fails because the override marker is not maintained after merge
+
+    checkTelemetry(
+      CPR_RECORD_MERGED,
+      mapOf(
+        "FROM_SOURCE_SYSTEM_ID" to offender.crn,
+        "TO_SOURCE_SYSTEM_ID" to targetCrn,
+        "SOURCE_SYSTEM" to "DELIUS",
+        "INCLUDE_OVERRIDE_LOST" to "true",
+      ),
+    )
   }
 
   @Test
