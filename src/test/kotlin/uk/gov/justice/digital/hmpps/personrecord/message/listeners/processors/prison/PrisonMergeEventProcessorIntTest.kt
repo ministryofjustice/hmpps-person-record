@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonMergeEventProcessor
@@ -22,6 +23,28 @@ class PrisonMergeEventProcessorIntTest(
   @Autowired private val prisonMergeEventProcessor: PrisonMergeEventProcessor,
   @Autowired private val prisonReligionRepository: PrisonReligionRepository,
 ) : MessagingTestBase() {
+
+  @Nested
+  inner class MergeAddressesAndContacts {
+    @BeforeEach
+    fun beforeEach() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+      stubDeletePersonMatch()
+    }
+
+    @Test
+    fun `Should return mappings for the merge`() {
+      val toPrisonNumber = randomPrisonNumber()
+      val fromPrisonNumber = randomPrisonNumber()
+      createPersonKey()
+        .addPerson(Person(prisonNumber = toPrisonNumber, sourceSystem = NOMIS))
+        .addPerson(Person(prisonNumber = fromPrisonNumber, sourceSystem = NOMIS))
+      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
+      val response = prisonMergeEventProcessor.processEvent(toPrisonNumber = toPrisonNumber, prisonMerge = PrisonMerge(fromPrisonNumber = fromPrisonNumber))
+      assertThat(response.toPrisonNumber).isEqualTo(toPrisonNumber)
+    }
+  }
 
   @Nested
   inner class MergingReligion {
@@ -57,7 +80,7 @@ class PrisonMergeEventProcessorIntTest(
       stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
 
       // Method under test
-      prisonMergeEventProcessor.processEvent(fromPrisonNumber = fromPrisonNumber, toPrisonNumber = toPrisonNumber)
+      prisonMergeEventProcessor.processEvent(toPrisonNumber = toPrisonNumber, prisonMerge = PrisonMerge(fromPrisonNumber = fromPrisonNumber))
 
       assertThat(personRepository.findByPrisonNumber(toPrisonNumber)?.religion).isEqualTo(AGNO)
       assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonNumber))

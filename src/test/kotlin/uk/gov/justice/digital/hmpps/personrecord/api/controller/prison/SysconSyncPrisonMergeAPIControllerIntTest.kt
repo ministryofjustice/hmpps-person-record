@@ -9,8 +9,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
+import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconPersonMergeResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
@@ -22,6 +24,30 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import kotlin.jvm.optionals.getOrNull
 
 class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
+
+  @Nested
+  inner class Merging {
+
+    @BeforeEach
+    fun beforeEach() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+      stubDeletePersonMatch()
+    }
+
+    @Test
+    fun `processes prisoner merge event returns mappings`() {
+      val targetPrisonNumber = randomPrisonNumber()
+      val sourcePrisonNumber = randomPrisonNumber()
+
+      createPersonKey()
+        .addPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
+        .addPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
+
+      val response = prisonMergeEventAndResponseSetup(targetPrisonNumber = targetPrisonNumber, prisonMerge = PrisonMerge(sourcePrisonNumber)).returnResult().responseBody!!
+      assertThat(response.toPrisonNumber).isEqualTo(targetPrisonNumber)
+    }
+  }
 
   @Nested
   inner class SuccessfulProcessing {
@@ -42,7 +68,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
         .addPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
         .addPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
-      prisonMergeEventAndResponseSetup(sourcePrisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
+      prisonMergeEventAndResponseSetup(targetPrisonNumber = targetPrisonNumber, prisonMerge = PrisonMerge(sourcePrisonNumber))
 
       awaitAssert {
         val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)!!
@@ -76,7 +102,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
 
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
-      prisonMergeEventAndResponseSetup(sourcePrisonNumber, targetPrisonNumber)
+      prisonMergeEventAndResponseSetup(targetPrisonNumber, PrisonMerge(sourcePrisonNumber))
       awaitAssert {
         val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)!!
         sourcePerson.assertNotLinkedToCluster()
@@ -112,7 +138,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
       val sourceClusterId = sourcePerson.personKey?.id
 
-      prisonMergeEventAndResponseSetup(sourcePrisonNumber, targetPrisonNumber)
+      prisonMergeEventAndResponseSetup(targetPrisonNumber, PrisonMerge(sourcePrisonNumber))
 
       sourcePerson.assertMergedTo(targetPerson)
       sourcePerson.assertNotLinkedToCluster()
@@ -149,7 +175,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       val sourcePrisonNumber = randomPrisonNumber()
       stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure")
 
-      publishPrisonPersonMergedEvent(sourcePrisonNumber, targetPrisonNumber, HttpStatus.INTERNAL_SERVER_ERROR)
+      publishPrisonPersonMergedEvent<Unit>(targetPrisonNumber, PrisonMerge(sourcePrisonNumber), HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -170,10 +196,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       val sourcePerson = createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS)) { markAsPassive() }
 
-      prisonMergeEventAndResponseSetup(
-        sourcePrisonNumber = sourcePrisonNumber,
-        targetPrisonNumber = targetPrisonNumber,
-      )
+      prisonMergeEventAndResponseSetup(targetPrisonNumber, PrisonMerge(sourcePrisonNumber))
 
       sourcePerson.assertNotLinkedToCluster()
       sourcePerson.assertMergedTo(targetPerson)
@@ -208,8 +231,8 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
       prisonMergeEventAndResponseSetup(
-        sourcePrisonNumber = sourcePrisonNumber,
-        targetPrisonNumber = targetPrisonNumber,
+        targetPrisonNumber,
+        PrisonMerge(sourcePrisonNumber),
       )
 
       sourcePerson.assertNotLinkedToCluster()
@@ -263,31 +286,29 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
   private fun prisonURL(prisonNumber: String) = "/prisoner/$prisonNumber"
 
   private fun prisonMergeEventAndResponseSetup(
-    sourcePrisonNumber: String,
     targetPrisonNumber: String,
+    prisonMerge: PrisonMerge,
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
-    expectedStatus: HttpStatus = HttpStatus.NO_CONTENT,
-  ) {
+    expectedStatus: HttpStatus = HttpStatus.CREATED,
+  ): WebTestClient.BodySpec<SysconPersonMergeResponseBody, *> {
     stubPrisonResponse(
       ApiResponseSetup(prisonNumber = targetPrisonNumber),
       scenario,
       currentScenarioState,
       nextScenarioState,
     )
-    publishPrisonPersonMergedEvent(sourcePrisonNumber, targetPrisonNumber, expectedStatus)
+    return publishPrisonPersonMergedEvent<SysconPersonMergeResponseBody>(targetPrisonNumber, prisonMerge, expectedStatus)
   }
-  private fun publishPrisonPersonMergedEvent(
-    sourcePrisonNumber: String,
+  private inline fun <reified T : Any> publishPrisonPersonMergedEvent(
     targetPrisonNumber: String,
-    expectedStatus: HttpStatus = HttpStatus.NO_CONTENT,
-  ) {
-    sendPostRequestAsserted<Unit>(
-      url = prisonMergeEndpoint(targetPrisonNumber),
-      body = PrisonMerge(fromPrisonNumber = sourcePrisonNumber),
-      roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-      expectedStatus = expectedStatus,
-    )
-  }
+    prisonMerge: PrisonMerge,
+    expectedStatus: HttpStatus = HttpStatus.CREATED,
+  ): WebTestClient.BodySpec<T, *> = sendPostRequestAsserted<T>(
+    url = prisonMergeEndpoint(targetPrisonNumber),
+    body = prisonMerge,
+    roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+    expectedStatus = expectedStatus,
+  )
 }
