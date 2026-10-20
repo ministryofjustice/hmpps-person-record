@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonProcessingCompleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
@@ -36,9 +35,7 @@ class PersonService(
       publisher.publishEvent(PersonUpdated(personEntity, personChangeChecker))
       personEntity
     },
-  ).also {
-    publisher.publishEvent(PersonProcessingCompleted(it))
-  }
+  )
 
   private fun create(person: Person, childrenToIgnore: Set<KClass<*>>): PersonEntity {
     val personEntity = PersonEntity.new(person.sourceSystem).updatePersonEntity(person, childrenToIgnore)
