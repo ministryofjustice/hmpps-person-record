@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconPersonResponseBody
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconPersonMergeResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
@@ -45,7 +45,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
         .addPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
       val response = prisonMergeEventAndResponseSetup(targetPrisonNumber = targetPrisonNumber, prisonMerge = PrisonMerge(sourcePrisonNumber)).returnResult().responseBody!!
-      assertThat(response.prisonNumber).isEqualTo(targetPrisonNumber)
+      assertThat(response.toPrisonNumber).isEqualTo(targetPrisonNumber)
     }
   }
 
@@ -292,14 +292,14 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
     expectedStatus: HttpStatus = HttpStatus.OK,
-  ): WebTestClient.BodySpec<SysconPersonResponseBody, *> {
+  ): WebTestClient.BodySpec<SysconPersonMergeResponseBody, *> {
     stubPrisonResponse(
       ApiResponseSetup(prisonNumber = targetPrisonNumber),
       scenario,
       currentScenarioState,
       nextScenarioState,
     )
-    return publishPrisonPersonMergedEvent<SysconPersonResponseBody>(targetPrisonNumber, prisonMerge, expectedStatus)
+    return publishPrisonPersonMergedEvent<SysconPersonMergeResponseBody>(targetPrisonNumber, prisonMerge, expectedStatus)
   }
   private inline fun <reified T : Any> publishPrisonPersonMergedEvent(
     targetPrisonNumber: String,

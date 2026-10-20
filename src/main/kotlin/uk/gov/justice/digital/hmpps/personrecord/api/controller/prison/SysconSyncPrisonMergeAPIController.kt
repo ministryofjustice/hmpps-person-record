@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconPersonResponseBody
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconPersonMergeResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonMergeEventProcessor
 
 @Tag(name = "Syscon Sync")
@@ -30,7 +30,7 @@ class SysconSyncPrisonMergeAPIController(
   fun processPrisonMerge(
     @PathVariable toPrisonNumber: String,
     @RequestBody prisonMergeRequest: PrisonMerge,
-  ): SysconPersonResponseBody = prisonMergeEventProcessor.processEvent(
+  ): SysconPersonMergeResponseBody = prisonMergeEventProcessor.processEvent(
     toPrisonNumber = toPrisonNumber,
     prisonMerge = prisonMergeRequest,
   )

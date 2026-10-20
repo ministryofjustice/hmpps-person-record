@@ -42,7 +42,7 @@ class PrisonMergeEventProcessorIntTest(
         .addPerson(Person(prisonNumber = fromPrisonNumber, sourceSystem = NOMIS))
       stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
       val response = prisonMergeEventProcessor.processEvent(toPrisonNumber = toPrisonNumber, prisonMerge = PrisonMerge(fromPrisonNumber = fromPrisonNumber))
-      assertThat(response.prisonNumber).isEqualTo(toPrisonNumber)
+      assertThat(response.toPrisonNumber).isEqualTo(toPrisonNumber)
     }
   }
 
