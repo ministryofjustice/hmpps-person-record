@@ -41,6 +41,7 @@ class SysconContactsAndAddressesMigrationHandler(
   fun handleInsert(
     prisonNumber: String,
     prisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest,
+    reclusterIfRequired: Boolean = true,
   ): SysconAddressesAndContactsResponseBody {
     val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
     val personChangeChecker = PersonChangeChecker(personEntity)
@@ -53,7 +54,9 @@ class SysconContactsAndAddressesMigrationHandler(
     val addressMappings = handleAddressesInsert(addressesRequest, personEntity)
     val contactMappings = handleContactsInsert(contactsRequest, personEntity)
 
-    tryRecluster(personEntity, personChangeChecker)
+    if (reclusterIfRequired) {
+      tryRecluster(personEntity, personChangeChecker)
+    }
 
     return SysconAddressesAndContactsResponseBody(prisonNumber, addressMappings, contactMappings)
   }
