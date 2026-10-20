@@ -17,7 +17,7 @@ class MergeEventListener(
 
   @TransactionalEventListener
   fun onMergeEvent(personMerged: PersonMerged) {
-    personMerged.from?.let { publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_MERGED, it, personMerged.fromClusterDetail)) }
+    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_MERGED, personMerged.from, personMerged.fromClusterDetail))
     if (personMerged.personChangeChecker.matchingFieldsHaveChanged(personMerged.to)) {
       publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_UPDATED, personMerged.to))
     }
@@ -25,11 +25,12 @@ class MergeEventListener(
       RecordTelemetry(
         TelemetryEventType.CPR_RECORD_MERGED,
         mapOf(
-          EventKeys.FROM_SOURCE_SYSTEM_ID to personMerged.from?.extractSourceSystemId(),
+          EventKeys.FROM_SOURCE_SYSTEM_ID to personMerged.from.extractSourceSystemId(),
           EventKeys.FROM_UUID to personMerged.fromClusterDetail.personUUID.toString(),
           EventKeys.TO_SOURCE_SYSTEM_ID to personMerged.to.extractSourceSystemId(),
           EventKeys.TO_UUID to personMerged.to.personKey?.personUUID.toString(),
           EventKeys.SOURCE_SYSTEM to personMerged.to.sourceSystem.name,
+          EventKeys.INCLUDE_OVERRIDE_LOST to personMerged.from.getIncludeScopes().isNotEmpty().toString(),
         ),
       ),
     )
