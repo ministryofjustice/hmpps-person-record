@@ -68,6 +68,8 @@ class PersonKeyEntity(
 
   fun getExcludeScopes(): List<OverrideScopeEntity> = this.personEntities.flatMap { person -> person.getExcludeScopes() }
 
+  fun getIncludeScopes(): List<OverrideScopeEntity> = this.personEntities.flatMap { person -> person.getIncludeScopes() }
+
   companion object {
     val empty: PersonKeyEntity? = null
 
