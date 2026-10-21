@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
 
 interface PrisonMergeEventProcessor {
@@ -54,9 +55,17 @@ class PrisonMergeEventProcessorDev(
   override fun processEvent(toPrisonNumber: String, prisonMerge: PrisonMerge): SysconPersonMergeResponseBody = prisonerSearchClient.getPrisoner(toPrisonNumber)!!.let {
     val fromPersonEntity = personRepository.findByPrisonNumber(prisonMerge.fromPrisonNumber)!!
     val toPersonEntity = personRepository.findByPrisonNumber(toPrisonNumber)!!
+    val personChangeChecker = PersonChangeChecker(toPersonEntity)
+
     prisonReligionMergeHandler?.handleMerge(fromPersonEntity, toPersonEntity)
     val sysconAddressesAndContactsResponseBody = sysconContactsAndAddressesMigrationHandler.insertAddressesAndContacts(toPersonEntity, prisonMerge.toPrisonAddressesAndContactsRequest)
-    mergeService.processMerge(fromPersonEntity, toPersonEntity, it, setOf(AddressEntity::class, ContactEntity::class))
+    mergeService.processMerge(
+      from = fromPersonEntity,
+      to = toPersonEntity,
+      person = it,
+      personChangeChecker = personChangeChecker,
+      childrenToIgnore = setOf(AddressEntity::class, ContactEntity::class),
+    )
     SysconPersonMergeResponseBody(toPrisonNumber, sysconAddressesAndContactsResponseBody)
   }
 }

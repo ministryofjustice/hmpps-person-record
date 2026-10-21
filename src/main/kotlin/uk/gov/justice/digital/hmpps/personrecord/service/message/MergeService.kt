@@ -24,8 +24,13 @@ class MergeService(
   private val personKeyDeletionService: PersonKeyDeletionService,
 ) {
 
-  fun processMerge(from: PersonEntity, to: PersonEntity, person: Person, childrenToIgnore: Set<KClass<*>> = emptySet()) {
-    val personChangeChecker = PersonChangeChecker(to)
+  fun processMerge(
+    from: PersonEntity,
+    to: PersonEntity,
+    person: Person,
+    personChangeChecker: PersonChangeChecker = PersonChangeChecker(to),
+    childrenToIgnore: Set<KClass<*>> = emptySet(),
+  ) {
     updateToPerson(to, person, personChangeChecker, childrenToIgnore)
     val fromClusterDetail = EventLogClusterDetail.from(from.personKey)
     when {
