@@ -10,27 +10,22 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.system.CapturedOutput
 import org.springframework.boot.test.system.OutputCaptureExtension
 import org.springframework.context.ApplicationContext
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.test.context.TestPropertySource
-import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jobs.recluster.FileWaiter
-import uk.gov.justice.digital.hmpps.personrecord.jobs.recluster.ReclusterRecord
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.TransactionalReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.jobs.splitclusters.TransactionalClusterSplitService
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.jvm.java
 @ExtendWith(OutputCaptureExtension::class)
 class SplitClustersJobTest(
-  @Autowired private val transactionalReclusterService: TransactionalReclusterService,
-  @Autowired private val personRepo: PersonRepository,
   @Autowired private val personMatchService: PersonMatchService,
-  @Autowired private val publisher: ApplicationEventPublisher,
+  @Autowired private val transactionalClusterSplitService: TransactionalClusterSplitService,
   @Autowired private val fileWaiter: FileWaiter,
-) : IntegrationTestBase() {
+) : E2ETestBase() {
 
   private lateinit var splitClustersJob: SplitClustersJob
   private lateinit var testDir: Path
@@ -42,9 +37,11 @@ class SplitClustersJobTest(
   fun beforeEach() {
     deleteAllPersonData()
     telemetryRepository.deleteAll()
-    testDir = Files.createTempDirectory("recluster-test-")
+    testDir = Files.createTempDirectory("split-clusters-test-")
     splitClustersJob = SplitClustersJob(
-      jsonMapper,
+      personKeyRepository,
+      personMatchService,
+      transactionalClusterSplitService,
       fileWaiter,
       testDir,
     )
@@ -61,7 +58,7 @@ class SplitClustersJobTest(
     @Test
     fun `should register and run job when batch is enabled`(output: CapturedOutput) {
       assertThat(context.getBeansOfType(SplitClustersJob::class.java)).size().isEqualTo(1)
-      assertThat(output.out).contains("R  unning cluster split job")
+      assertThat(output.out).contains("Running batch job 'SPLIT_CLUSTERS' ")
     }
   }
 
@@ -78,28 +75,99 @@ class SplitClustersJobTest(
   @Nested
   inner class SuccessfulProcessing {
 
-    @BeforeEach
-    fun beforeEach() {
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
+    @Test
+    fun `should split when 2 records exist on the same cluster`() {
+      val firstPerson = createRandomProbationPersonDetails()
+      val secondPerson = createRandomProbationPersonDetails()
+      val cluster = createPersonKey().addPerson(firstPerson).addPerson(secondPerson)
+
+      val clustersToSplit = listOf(cluster.personUUID.toString())
+
+      runJobWith(clustersToSplit)
+
+      val first = personRepository.findByCrn(firstPerson.crn!!)!!
+      val second = personRepository.findByCrn(secondPerson.crn!!)!!
+      assertThat(first.personKey!!.personUUID).isNotEqualTo(second.personKey!!.personUUID)
+
+      val (leftUUID, stayedOnUUID) = when {
+        first.personKey!!.personUUID != cluster.personUUID -> Pair(first, second) else -> Pair(second, first)
+      }
+      checkEventLog(leftUUID.crn!!, CPRLogEvents.CPR_UUID_CREATED) { eventLogs ->
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.personUUID).isNotEqualTo(cluster.personUUID)
+      }
+      checkEventLogExist(stayedOnUUID.crn!!, CPRLogEvents.CPR_UUID_CREATED, 0)
+
+      checkEventLog(leftUUID.crn!!, CPRLogEvents.CPR_UUID_LEAVE) { eventLogs ->
+        assertThat(eventLogs).isNotEmpty()
+        assertThat(eventLogs.first().personUUID).isEqualTo(stayedOnUUID.personKey?.personUUID)
+      }
+
+      checkEventLogExist(leftUUID.crn!!, CPRLogEvents.CPR_UUID_SPLIT)
+      checkEventLogExist(stayedOnUUID.crn!!, CPRLogEvents.CPR_UUID_SPLIT, 0)
     }
 
     @Test
-    fun `should split record single person record`() {
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails())
-      val records = listOf(ReclusterRecord(DELIUS, person.crn!!))
+    fun `should split into two clusters of 2 records`() {
+      val firstCrn = randomCrn()
+      val secondCrn = randomCrn()
+      val thirdCrn = randomCrn()
+      val fourthCrn = randomCrn()
+      val firstPair = createRandomProbationPersonDetails(crn = firstCrn)
+      val secondPair = createRandomProbationPersonDetails(crn = thirdCrn)
+      val cluster = createPersonKey()
+        .addPerson(firstPair)
+        .addPerson(firstPair.copy(crn = secondCrn))
+        .addPerson(secondPair)
+        .addPerson(secondPair.copy(crn = fourthCrn))
 
-      runJobWith(records)
+      val clustersToSplit = listOf(cluster.personUUID!!.toString())
 
-      checkTelemetry(
-        CPR_ADMIN_RECLUSTER_TRIGGERED,
-        mapOf("UUID" to person.personKey?.personUUID.toString()),
-      )
+      runJobWith(clustersToSplit)
+
+      val first = personRepository.findByCrn(firstCrn)!!
+      val second = personRepository.findByCrn(secondCrn)!!
+      val third = personRepository.findByCrn(thirdCrn)!!
+      val fourth = personRepository.findByCrn(fourthCrn)!!
+      assertThat(first.personKey!!.personUUID).isEqualTo(second.personKey!!.personUUID)
+      assertThat(second.personKey!!.personUUID).isNotEqualTo(third.personKey!!.personUUID)
+      assertThat(third.personKey!!.personUUID).isEqualTo(fourth.personKey!!.personUUID)
+
+      val eventLogClustersToCheck = listOf(first, second, third, fourth).filter { it.personKey!!.personUUID != cluster.personUUID }
+      val eventLogClustersToCheckWithoutUUIDCreated = listOf(first, second, third, fourth).filter { it.personKey!!.personUUID == cluster.personUUID }
+
+      val eventLogs = eventLogClustersToCheck.map { recordToCheck ->
+        eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(
+          CPRLogEvents.CPR_UUID_CREATED,
+          recordToCheck.crn!!,
+        )
+      }.filter { it?.size == 1 }
+      assertThat(eventLogs.size).isEqualTo(1)
+      eventLogClustersToCheck.forEach { recordToCheck ->
+        checkEventLogExist(recordToCheck.crn!!, CPRLogEvents.CPR_UUID_SPLIT)
+      }
+
+      val noEventLogs = eventLogClustersToCheckWithoutUUIDCreated.map { recordToCheck ->
+        eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(
+          CPRLogEvents.CPR_UUID_CREATED,
+          recordToCheck.crn!!,
+        )
+      }.filter { it?.size == 1 }
+      assertThat(noEventLogs.isEmpty()).isTrue()
     }
   }
-  private fun runJobWith(records: List<ReclusterRecord>) {
-    val file = testDir.resolve("splitClusters.json")
-    Files.writeString(file, jsonMapper.writeValueAsString(records))
+
+  // TODO: add following tests
+  // 1. missing cluster uuid
+  // 2. missing file
+  // 3. valid cluster so wont split
+  // 4. consider retry (i.e. as a result of concurrent update)
+
+  // remeber to remove first line of generated uuid list
+
+  private fun runJobWith(records: List<String>) {
+    val file = testDir.resolve("clusters.csv")
+    Files.write(file, records)
     splitClustersJob.run()
   }
 }
