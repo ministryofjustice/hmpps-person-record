@@ -21,6 +21,7 @@ class MergeService(
   private val personMatchService: PersonMatchService,
   private val publisher: ApplicationEventPublisher,
   private val personKeyDeletionService: PersonKeyDeletionService,
+  private val personGranularDataMergers: List<PersonGranularDataMerger>,
 ) {
 
   fun processMerge(from: PersonEntity, to: PersonEntity, person: Person) {
@@ -31,6 +32,7 @@ class MergeService(
       fromClusterHasOneRecord(from) -> deleteSingleRecordCluster(from)
     }
     merge(from, to, fromClusterDetail, personChangeChecker)
+    personGranularDataMergers.forEach { it.handleMerge(from, to, person) }
     reclusterService.recluster(to)
   }
 
