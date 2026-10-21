@@ -163,7 +163,7 @@ class SplitClustersJobTest(
   // 3. valid cluster so wont split
   // 4. consider retry (i.e. as a result of concurrent update)
 
-  // remeber to remove first line of generated uuid list
+  // remember to remove first line of generated uuid list
 
   private fun runJobWith(records: List<String>) {
     val file = testDir.resolve("clusters.csv")
