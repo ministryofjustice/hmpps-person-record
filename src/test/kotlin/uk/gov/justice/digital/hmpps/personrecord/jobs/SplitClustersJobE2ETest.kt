@@ -20,8 +20,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.jvm.java
+
 @ExtendWith(OutputCaptureExtension::class)
-class SplitClustersJobTest(
+class SplitClustersJobE2ETest(
   @Autowired private val personMatchService: PersonMatchService,
   @Autowired private val transactionalClusterSplitService: TransactionalClusterSplitService,
   @Autowired private val fileWaiter: FileWaiter,
@@ -76,7 +77,7 @@ class SplitClustersJobTest(
   inner class SuccessfulProcessing {
 
     @Test
-    fun `should split when 2 records exist on the same cluster`() {
+    fun `should split 2 records into separate clusters`() {
       val firstPerson = createRandomProbationPersonDetails()
       val secondPerson = createRandomProbationPersonDetails()
       val cluster = createPersonKey().addPerson(firstPerson).addPerson(secondPerson)
@@ -108,7 +109,7 @@ class SplitClustersJobTest(
     }
 
     @Test
-    fun `should split into two clusters of 2 records`() {
+    fun `should split records into two clusters of 2 records`() {
       val firstCrn = randomCrn()
       val secondCrn = randomCrn()
       val thirdCrn = randomCrn()
@@ -157,11 +158,29 @@ class SplitClustersJobTest(
     }
   }
 
+  @Nested
+  inner class MissingFile {
+
+    @Test
+    fun `should log warning and not process anything when cluster file is not found within timeout`(output: CapturedOutput) {
+      val job = SplitClustersJob(
+        personKeyRepository,
+        personMatchService,
+        transactionalClusterSplitService,
+        fileWaiter,
+        testDir,
+      )
+
+      job.run()
+
+      assertThat(output.out).contains("File not found after waiting")
+    }
+  }
+
   // TODO: add following tests
   // 1. missing cluster uuid
-  // 2. missing file
-  // 3. valid cluster so wont split
-  // 4. consider retry (i.e. as a result of concurrent update)
+  // 2. valid cluster so wont split
+  // 3. consider retry (i.e. as a result of concurrent update)
 
   // remember to remove first line of generated uuid list
 
