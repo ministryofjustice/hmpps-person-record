@@ -8,19 +8,28 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertNotNull
 import org.springframework.http.HttpStatus
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesAPIControllerIntTest.Companion.assertAddressMatches
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest.Companion.validPrisonAddressesAndContactsRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconPersonMergeResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import kotlin.jvm.optionals.getOrNull
@@ -51,29 +60,94 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `merging prisoners replaces addresses and contact and returns the mappings for them`() {
+    fun `should overwrite all addresses and contacts for to person after a merge`() {
       val toPrisonNumber = randomPrisonNumber()
       val fromPrisonNumber = randomPrisonNumber()
 
       createPersonKey()
-        .addPerson(Person(prisonNumber = fromPrisonNumber, sourceSystem = NOMIS))
-        .addPerson(Person(prisonNumber = toPrisonNumber, sourceSystem = NOMIS))
+        .addPerson(
+          createRandomPrisonPersonDetails(fromPrisonNumber).copy(
+            addresses = listOf(
+              Address(postcode = randomPostcode()),
+              Address(postcode = randomPostcode()),
+            ),
+            contacts = listOf(
+              Contact(contactType = randomContactType(), contactValue = randomLowerCaseString()),
+              Contact(contactType = randomContactType(), contactValue = randomLowerCaseString()),
+            ),
+          ),
+        )
+        .addPerson(
+          createRandomPrisonPersonDetails(toPrisonNumber).copy(
+            addresses = listOf(Address(postcode = randomPostcode())),
+            contacts = listOf(Contact(contactType = randomContactType(), contactValue = randomLowerCaseString())),
+          ),
+        )
+
+      val fromPersonBeforeMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!
+      val toPersonBeforeMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!
+      assertThat(fromPersonBeforeMerge.addresses.size).isEqualTo(2)
+      assertThat(toPersonBeforeMerge.addresses.size).isEqualTo(1)
 
       val requestBody = validPrisonMerge(fromPrisonNumber)
-      val addressRequestBodyFirst = requestBody.toPrisonAddressesAndContactsRequest!!.addresses.first()
-      val addressRequestBodyLast = requestBody.toPrisonAddressesAndContactsRequest.addresses.last()
+      val requestBodyAddressOne = requestBody.toPrisonAddressesAndContactsRequest.addresses.first()
+      val requestBodyAddressTwo = requestBody.toPrisonAddressesAndContactsRequest.addresses.last()
+      prisonMergeEventAndResponseSetup(targetPrisonNumber = toPrisonNumber, prisonMerge = requestBody).returnResult().responseBody!!
 
-      val response = prisonMergeEventAndResponseSetup(targetPrisonNumber = toPrisonNumber, prisonMerge = requestBody).returnResult().responseBody!!
-      assertThat(response.toPrisonNumber).isEqualTo(toPrisonNumber)
-      val toMergedPerson = personRepository.findByPrisonNumber(toPrisonNumber)!!
-      assertThat(toMergedPerson.addresses).hasSize(requestBody.toPrisonAddressesAndContactsRequest.addresses.size)
-      assertThat(toMergedPerson.contacts).hasSize(requestBody.toPrisonAddressesAndContactsRequest.contacts.size)
+      val fromPersonAfterMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!
+      assertThat(fromPersonAfterMerge.addresses.size).isEqualTo(2) // from persons maintain data
+      assertThat(fromPersonAfterMerge.contacts.size).isEqualTo(2) // from persons maintain data
 
-      val firstAddressEntity = toMergedPerson.addresses.first { it.fullAddress == addressRequestBodyFirst.fullAddress }
-      val lastAddressEntity = toMergedPerson.addresses.first { it.fullAddress == addressRequestBodyLast.fullAddress }
+      val toPersonAfterMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!
+      assertThat(toPersonAfterMerge.addresses).hasSize(2)
+      assertThat(toPersonAfterMerge.contacts).hasSize(2)
+      val toPersonAddressOne = toPersonAfterMerge.addresses.first { it.fullAddress == requestBodyAddressOne.fullAddress }
+      val toPersonAddressTwo = toPersonAfterMerge.addresses.first { it.fullAddress == requestBodyAddressTwo.fullAddress }
+      assertAddressMatches(requestBodyAddressOne, toPersonAddressOne)
+      assertAddressMatches(requestBodyAddressTwo, toPersonAddressTwo)
+    }
 
-      assertAddressMatches(addressRequestBodyFirst, firstAddressEntity)
-      assertAddressMatches(addressRequestBodyLast, lastAddressEntity)
+    @Test
+    fun `should return correct id mappings after a merge`() {
+      val toPrisonNumber = randomPrisonNumber()
+      val fromPrisonNumber = randomPrisonNumber()
+
+      createPersonKey()
+        .addPerson(
+          createRandomPrisonPersonDetails(fromPrisonNumber).copy(
+            addresses = listOf(Address(postcode = randomPostcode())),
+            contacts = listOf(Contact(contactType = randomContactType(), contactValue = randomLowerCaseString())),
+          ),
+        )
+        .addPerson(
+          createRandomPrisonPersonDetails(toPrisonNumber).copy(
+            addresses = listOf(Address(postcode = randomPostcode())),
+            contacts = listOf(Contact(contactType = randomContactType(), contactValue = randomLowerCaseString())),
+          ),
+        )
+
+      val requestBody = validPrisonMerge(fromPrisonNumber)
+      val addressOne = requestBody.toPrisonAddressesAndContactsRequest.addresses.first()
+      val addressTwo = requestBody.toPrisonAddressesAndContactsRequest.addresses.last()
+      val contactOne = requestBody.toPrisonAddressesAndContactsRequest.contacts.first()
+      val contactTwo = requestBody.toPrisonAddressesAndContactsRequest.contacts.last()
+
+      val actualResponseBody = prisonMergeEventAndResponseSetup(targetPrisonNumber = toPrisonNumber, prisonMerge = requestBody).returnResult().responseBody!!
+      val toPersonAfterMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!
+
+      val actualAddressMappings = actualResponseBody.sysconAddressesAndContactsResponseBody.addressesMappings
+      assertThat(actualAddressMappings.size).isEqualTo(2)
+      val actualAddressMappingOne = actualAddressMappings.first { it.nomisAddressId == addressOne.nomisAddressId }
+      val actualAddressMappingTwo = actualAddressMappings.first { it.nomisAddressId == addressTwo.nomisAddressId }
+      assertNotNull(toPersonAfterMerge.addresses.first { it.updateId.toString() == actualAddressMappingOne.cprAddressId })
+      assertNotNull(toPersonAfterMerge.addresses.last { it.updateId.toString() == actualAddressMappingTwo.cprAddressId })
+
+      val actualContactMappings = actualResponseBody.sysconAddressesAndContactsResponseBody.contactMappings
+      assertThat(actualContactMappings.size).isEqualTo(2)
+      val actualContactMappingOne = actualContactMappings.first { it.nomisContactId == contactOne.nomisContactId }
+      val actualContactMappingTwo = actualContactMappings.first { it.nomisContactId == contactTwo.nomisContactId }
+      assertNotNull(toPersonAfterMerge.contacts.first { it.updateId.toString() == actualContactMappingOne.cprContactId })
+      assertNotNull(toPersonAfterMerge.contacts.last { it.updateId.toString() == actualContactMappingTwo.cprContactId })
     }
   }
 
@@ -344,4 +418,28 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
     fromPrisonNumber = fromPrisonNumber,
     toPrisonAddressesAndContactsRequest = validPrisonAddressesAndContactsRequest,
   )
+
+  companion object {
+    fun assertAddressMatches(request: PrisonAddress, entity: AddressEntity): Unit = with(entity) {
+      assertThat(fullAddress).isEqualTo(request.fullAddress)
+      assertThat(noFixedAbode).isEqualTo(request.noFixedAbode)
+      assertThat(startDate?.toUkLocalDate()).isEqualTo(request.startDate)
+      assertThat(endDate?.toUkLocalDate()).isEqualTo(request.endDate)
+      assertThat(postcode).isEqualTo(request.postcode)
+      assertThat(subBuildingName).isEqualTo(request.subBuildingName)
+      assertThat(buildingName).isEqualTo(request.buildingName)
+      assertThat(buildingNumber).isEqualTo(request.buildingNumber)
+      assertThat(thoroughfareName).isEqualTo(request.thoroughfareName)
+      assertThat(dependentLocality).isEqualTo(request.dependentLocality)
+      assertThat(postTown).isEqualTo(request.postTown)
+      assertThat(county).isEqualTo(request.county)
+      assertThat(countryCode).isEqualTo(request.countryCode)
+      assertThat(comment).isEqualTo(request.comment)
+      assertThat(statusCode).isEqualTo(AddressStatusCode.fromPrison(request.isPrimary, request.isMail ?: false))
+      assertThat(createDateTime).isEqualTo(request.createDateTime)
+      assertThat(createUserId).isEqualTo(request.createUserId)
+      assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
+      assertThat(modifyUserId).isEqualTo(request.modifyUserId)
+    }
+  }
 }

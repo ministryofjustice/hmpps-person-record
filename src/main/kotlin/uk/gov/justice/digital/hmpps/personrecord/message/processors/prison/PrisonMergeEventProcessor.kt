@@ -55,7 +55,7 @@ class PrisonMergeEventProcessorDev(
     val fromPersonEntity = personRepository.findByPrisonNumber(prisonMerge.fromPrisonNumber)!!
     val toPersonEntity = personRepository.findByPrisonNumber(toPrisonNumber)!!
     prisonReligionMergeHandler?.handleMerge(fromPersonEntity, toPersonEntity)
-    val sysconAddressesAndContactsResponseBody = sysconContactsAndAddressesMigrationHandler.handleInsert(toPrisonNumber, prisonMerge.toPrisonAddressesAndContactsRequest, false)
+    val sysconAddressesAndContactsResponseBody = sysconContactsAndAddressesMigrationHandler.insertAddressesAndContacts(toPersonEntity, prisonMerge.toPrisonAddressesAndContactsRequest)
     mergeService.processMerge(fromPersonEntity, toPersonEntity, it, setOf(AddressEntity::class, ContactEntity::class))
     SysconPersonMergeResponseBody(toPrisonNumber, sysconAddressesAndContactsResponseBody)
   }

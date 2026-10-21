@@ -35,5 +35,5 @@ class SysconSyncPrisonAddressesContactsMigrationAPIController(
   fun saveAddressesAndContacts(
     @PathVariable prisonNumber: String,
     @Valid @RequestBody addressesAndContactsRequest: PrisonAddressesAndContactsRequest,
-  ) = sysconAliasesAndIdentifiersMigrationHandler.handleInsert(prisonNumber, addressesAndContactsRequest)
+  ) = sysconAliasesAndIdentifiersMigrationHandler.handleInsertForMigration(prisonNumber, addressesAndContactsRequest)
 }

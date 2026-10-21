@@ -38,27 +38,30 @@ class SysconContactsAndAddressesMigrationHandler(
 ) {
 
   @Transactional
-  fun handleInsert(
+  fun handleInsertForMigration(
     prisonNumber: String,
     prisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest,
-    reclusterIfRequired: Boolean = true,
   ): SysconAddressesAndContactsResponseBody {
     val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
     val personChangeChecker = PersonChangeChecker(personEntity)
+    val mappings = insertAddressesAndContacts(personEntity, prisonAddressesAndContactsRequest)
+    tryRecluster(personEntity, personChangeChecker)
 
+    return mappings
+  }
+
+  @Transactional
+  fun insertAddressesAndContacts(
+    personEntity: PersonEntity,
+    prisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest,
+  ): SysconAddressesAndContactsResponseBody {
     val addressesRequest = prisonAddressesAndContactsRequest.addresses
     val contactsRequest = prisonAddressesAndContactsRequest.contacts
-
-    validateRequest(prisonNumber, addressesRequest, contactsRequest)
+    validateRequest(personEntity.prisonNumber!!, addressesRequest, contactsRequest)
 
     val addressMappings = handleAddressesInsert(addressesRequest, personEntity)
     val contactMappings = handleContactsInsert(contactsRequest, personEntity)
-
-    if (reclusterIfRequired) {
-      tryRecluster(personEntity, personChangeChecker)
-    }
-
-    return SysconAddressesAndContactsResponseBody(prisonNumber, addressMappings, contactMappings)
+    return SysconAddressesAndContactsResponseBody(personEntity.prisonNumber!!, addressMappings, contactMappings)
   }
 
   private fun validateRequest(prisonNumber: String, addressesRequest: List<PrisonAddress>, contactsRequest: List<PrisonContact>) {
