@@ -28,3 +28,7 @@ This will create a local `job.yaml` file that you can edit to change various par
 ```shell
 kubectl create -f job.yaml
 ```
+## Copying Data into the pod
+```shell
+kubectl cp ./recluster.json hmpps-person-record-dev/hmpps-person-record-recluster-records-manual-lbevan-8qv2q:/tmp/recluster.json
+```
