@@ -24,7 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddr
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
 class SysconSyncPrisonAddressesContactsMigrationAPIController(
-  private val sysconAliasesAndIdentifiersMigrationHandler: SysconContactsAndAddressesMigrationHandler,
+  private val sysconContactsAndAddressesMigrationHandler: SysconContactsAndAddressesMigrationHandler,
 ) {
   @Operation(
     description = "Save the prisoner addresses and contacts for the given prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.",
@@ -35,5 +35,5 @@ class SysconSyncPrisonAddressesContactsMigrationAPIController(
   fun saveAddressesAndContacts(
     @PathVariable prisonNumber: String,
     @Valid @RequestBody addressesAndContactsRequest: PrisonAddressesAndContactsRequest,
-  ) = sysconAliasesAndIdentifiersMigrationHandler.handleInsertForMigration(prisonNumber, addressesAndContactsRequest)
+  ) = sysconContactsAndAddressesMigrationHandler.handleInsertForMigration(prisonNumber, addressesAndContactsRequest)
 }
