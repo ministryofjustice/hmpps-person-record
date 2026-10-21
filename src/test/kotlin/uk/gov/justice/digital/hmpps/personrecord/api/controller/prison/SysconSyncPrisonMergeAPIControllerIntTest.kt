@@ -14,11 +14,13 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest.Companion.validPrisonAddressesAndContactsRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconPersonMergeResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -87,11 +89,15 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       val fromPersonBeforeMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!
       val toPersonBeforeMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!
       assertThat(fromPersonBeforeMerge.addresses.size).isEqualTo(2)
+      assertThat(fromPersonBeforeMerge.contacts.size).isEqualTo(2)
       assertThat(toPersonBeforeMerge.addresses.size).isEqualTo(1)
+      assertThat(toPersonBeforeMerge.contacts.size).isEqualTo(1)
 
       val requestBody = validPrisonMerge(fromPrisonNumber)
       val requestBodyAddressOne = requestBody.toPrisonAddressesAndContactsRequest.addresses.first()
       val requestBodyAddressTwo = requestBody.toPrisonAddressesAndContactsRequest.addresses.last()
+      val requestBodyContactOne = requestBody.toPrisonAddressesAndContactsRequest.contacts.first()
+      val requestBodyContactTwo = requestBody.toPrisonAddressesAndContactsRequest.contacts.last()
       prisonMergeEventAndResponseSetup(targetPrisonNumber = toPrisonNumber, prisonMerge = requestBody).returnResult().responseBody!!
 
       val fromPersonAfterMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!
@@ -100,11 +106,16 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
 
       val toPersonAfterMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!
       assertThat(toPersonAfterMerge.addresses).hasSize(2)
-      assertThat(toPersonAfterMerge.contacts).hasSize(2)
       val toPersonAddressOne = toPersonAfterMerge.addresses.first { it.fullAddress == requestBodyAddressOne.fullAddress }
       val toPersonAddressTwo = toPersonAfterMerge.addresses.first { it.fullAddress == requestBodyAddressTwo.fullAddress }
       assertAddressMatches(requestBodyAddressOne, toPersonAddressOne)
       assertAddressMatches(requestBodyAddressTwo, toPersonAddressTwo)
+
+      assertThat(toPersonAfterMerge.contacts).hasSize(2)
+      val toPersonContactOne = toPersonAfterMerge.contacts.first { it.contactValue == requestBodyContactOne.value }
+      val toPersonContactTwo = toPersonAfterMerge.contacts.first { it.contactValue == requestBodyContactTwo.value }
+      assertContactMatches(requestBodyContactOne, toPersonContactOne)
+      assertContactMatches(requestBodyContactTwo, toPersonContactTwo)
     }
 
     @Test
@@ -440,6 +451,16 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       assertThat(createUserId).isEqualTo(request.createUserId)
       assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
       assertThat(modifyUserId).isEqualTo(request.modifyUserId)
+    }
+
+    fun assertContactMatches(request: PrisonContact, entity: ContactEntity) = with(entity) {
+      assertThat(contactType).isEqualTo(request.type)
+      assertThat(contactValue).isEqualTo(request.value)
+      assertThat(extension).isEqualTo(request.extension)
+      assertThat(modifyUserId).isEqualTo(request.modifyUserId)
+      assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
+      assertThat(createUserId).isEqualTo(request.createUserId)
+      assertThat(createDateTime).isEqualTo(request.createDateTime)
     }
   }
 }
