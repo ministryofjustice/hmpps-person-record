@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchServi
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.UUID
 import kotlin.jvm.java
 
 @ExtendWith(OutputCaptureExtension::class)
@@ -156,6 +157,34 @@ class SplitClustersJobE2ETest(
       }.filter { it?.size == 1 }
       assertThat(noEventLogs.isEmpty()).isTrue()
     }
+
+    @Test
+    fun `should not split cluster if it is valid`(output: CapturedOutput) {
+      val firstPerson = createRandomProbationPersonDetails()
+      val secondPerson = firstPerson.copy(crn = randomCrn())
+      val cluster = createPersonKey().addPerson(firstPerson).addPerson(secondPerson)
+
+      val clustersToSplit = listOf(cluster.personUUID.toString())
+
+      runJobWith(clustersToSplit)
+
+      val first = personRepository.findByCrn(firstPerson.crn!!)!!
+      val second = personRepository.findByCrn(secondPerson.crn!!)!!
+      assertThat(first.personKey!!.personUUID).isEqualTo(second.personKey!!.personUUID)
+      assertThat(output.out).contains("Cluster ${cluster.personUUID} is valid, not splitting")
+    }
+  }
+
+  @Nested
+  inner class MissingCluster {
+
+    @Test
+    fun `should log warning and not process anything when cluster uuid is not found`(output: CapturedOutput) {
+      val nonExistentUuid = UUID.randomUUID().toString()
+      runJobWith(listOf(nonExistentUuid))
+
+      assertThat(output.out).contains("Cluster not found for person UUID: $nonExistentUuid, skipping")
+    }
   }
 
   @Nested
@@ -178,9 +207,7 @@ class SplitClustersJobE2ETest(
   }
 
   // TODO: add following tests
-  // 1. missing cluster uuid
-  // 2. valid cluster so wont split
-  // 3. consider retry (i.e. as a result of concurrent update)
+  // 1. consider retry (i.e. as a result of concurrent update)
 
   // remember to remove first line of generated uuid list
 
