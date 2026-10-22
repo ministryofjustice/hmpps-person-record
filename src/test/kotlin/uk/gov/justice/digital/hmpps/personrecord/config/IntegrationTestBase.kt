@@ -734,6 +734,33 @@ class IntegrationTestBase {
     return thisPersonScopes.intersect(evalPersonScopes)
   }
 
+  internal fun stubPrisonerImage(
+    offenderNo: String,
+    status: Int = 200,
+    fullSizeImage: Boolean = false,
+    imageBytes: ByteArray = byteArrayOf(
+      0xFF.toByte(),
+      0xD8.toByte(),
+      0xFF.toByte(),
+      0xD9.toByte(),
+    ),
+  ) {
+    authSetup()
+    wiremock.stubFor(
+      WireMock.get(
+        WireMock.urlEqualTo(
+          "/api/bookings/offenderNo/$offenderNo/image/data?fullSizeImage=$fullSizeImage",
+        ),
+      )
+        .willReturn(
+          aResponse()
+            .withStatus(status)
+            .withHeader("Content-Type", "image/jpeg")
+            .withBody(imageBytes),
+        ),
+    )
+  }
+
   private fun List<Reference>.getType(type: IdentifierType): List<Reference> = this.filter { it.identifierType == type }
 
   companion object {
