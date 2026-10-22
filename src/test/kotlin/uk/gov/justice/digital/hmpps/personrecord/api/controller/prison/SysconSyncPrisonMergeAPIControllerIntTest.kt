@@ -13,24 +13,28 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest.Companion.validPrisonAddressesAndContactsRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressesHandler.Companion.toPrisonAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toDto
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressesAndContactsResponseBody
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconPersonMergeResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -141,6 +145,76 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
 
     @Test
     fun `should overwrite all contacts for to person after a merge and return correct id mappings`() {
+      val toPrisonNumber = randomPrisonNumber()
+      val fromPrisonNumber = randomPrisonNumber()
+
+      createPersonKey()
+        .addPerson(
+          createRandomPrisonPersonDetails(fromPrisonNumber).copy(
+            contacts = listOf(
+              Contact(contactType = randomContactType(), contactValue = randomLowerCaseString(), createDateTime = randomDateTime(), createUserId = randomLowerCaseString()),
+              Contact(contactType = randomContactType(), contactValue = randomLowerCaseString(), createDateTime = randomDateTime(), createUserId = randomLowerCaseString()),
+            ),
+          ),
+        )
+        .addPerson(
+          createRandomPrisonPersonDetails(toPrisonNumber).copy(
+            contacts = listOf(
+              Contact(contactType = randomContactType(), contactValue = randomLowerCaseString(), createDateTime = randomDateTime(), createUserId = randomLowerCaseString()),
+            ),
+          ),
+        )
+
+      val fromPersonBeforeMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!
+      val fromContactBeforeMergeOne = fromPersonBeforeMerge.contacts.first()
+      val fromContactBeforeMergeTwo = fromPersonBeforeMerge.contacts.last()
+
+      val fromPersonContactReqBodyOne = fromContactBeforeMergeOne.toDto().copy(nomisContactId = 1L)
+      val fromPersonContactReqBodyTwo = fromContactBeforeMergeTwo.toDto().copy(nomisContactId = 2L)
+      val requestBody = PrisonMerge(
+        fromPrisonNumber = fromPrisonNumber,
+        toPrisonAddressesAndContactsRequest = PrisonAddressesAndContactsRequest(
+          contacts = listOf(fromPersonContactReqBodyOne, fromPersonContactReqBodyTwo),
+          addresses = emptyList(),
+        ),
+      )
+
+      val actualResponseBody = prisonMergeEventAndResponseSetup(targetPrisonNumber = toPrisonNumber, prisonMerge = requestBody).returnResult().responseBody!!
+
+      val fromPersonAfterMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!
+      assertThat(fromPersonAfterMerge.contacts.size).isEqualTo(0)
+
+      val toPersonAfterMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!
+      assertThat(toPersonAfterMerge.contacts).hasSize(2)
+
+      val toPersonContactAfterMergeOne = toPersonAfterMerge.contacts.first { it.contactValue == fromContactBeforeMergeOne.contactValue }
+      assertThat(toPersonContactAfterMergeOne.updateId).isEqualTo(fromContactBeforeMergeOne.updateId)
+      assertContactMatches(fromPersonContactReqBodyOne, toPersonContactAfterMergeOne)
+
+      val toPersonContactAfterMergeTwo = toPersonAfterMerge.contacts.first { it.contactValue == fromContactBeforeMergeTwo.contactValue }
+      assertThat(toPersonContactAfterMergeTwo.updateId).isEqualTo(fromContactBeforeMergeTwo.updateId)
+      assertContactMatches(fromPersonContactReqBodyTwo, toPersonContactAfterMergeTwo)
+
+      val expectedBody = SysconPersonMergeResponseBody(
+        toPrisonNumber = toPrisonNumber,
+        sysconAddressesAndContactsResponseBody = SysconAddressesAndContactsResponseBody(
+          prisonNumber = toPrisonNumber,
+          addressesMappings = emptyList(),
+          contactMappings = listOf(
+            SysconContactMapping(
+              nomisContactId = fromPersonContactReqBodyOne.nomisContactId!!,
+              nomisContactType = toPersonContactAfterMergeOne.contactType,
+              cprContactId = toPersonContactAfterMergeOne.updateId.toString(),
+            ),
+            SysconContactMapping(
+              nomisContactId = fromPersonContactReqBodyTwo.nomisContactId!!,
+              nomisContactType = toPersonContactAfterMergeTwo.contactType,
+              cprContactId = toPersonContactAfterMergeTwo.updateId.toString(),
+            ),
+          ),
+        ),
+      )
+      assertThat(actualResponseBody).isEqualTo(expectedBody)
     }
   }
 

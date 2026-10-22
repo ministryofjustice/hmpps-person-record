@@ -89,6 +89,7 @@ class SysconSyncContactsHandler(
       modifyUserId = modifyUserId,
       createDateTime = createDateTime!!,
       createUserId = createUserId!!,
+      cprContactId = updateId.toString(),
     )
 
     fun PrisonContact.toEntity(personEntity: PersonEntity) = ContactEntity(
