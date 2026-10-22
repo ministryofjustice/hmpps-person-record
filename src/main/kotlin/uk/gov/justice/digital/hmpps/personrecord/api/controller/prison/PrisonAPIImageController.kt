@@ -17,22 +17,22 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.service.image.PrisonImageService
+import uk.gov.justice.digital.hmpps.personrecord.client.PrisonImageClient
 
 @Tag(name = "Prison")
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
 @RequestMapping("/person/prison")
 class PrisonAPIImageController(
-  private val prisonImageService: PrisonImageService,
+  private val prisonImageClient: PrisonImageClient,
 ) {
 
   @Operation(
     security = [SecurityRequirement(name = "api-role")],
-    description = "Retrieve image data (as bytes) by offender number from Prison API." +
+    description = "Retrieve image data (as bytes) by prison number from Prison API." +
       "This is a proxy endpoint to prison api. Role required is **$API_READ_ONLY**.",
   )
-  @GetMapping("/{offenderNo}/image", produces = [MediaType.IMAGE_JPEG_VALUE])
+  @GetMapping("/{prisonNumber}/image", produces = [MediaType.IMAGE_JPEG_VALUE])
   @ApiResponses(
     ApiResponse(
       responseCode = "200",
@@ -44,12 +44,10 @@ class PrisonAPIImageController(
         ),
       ],
     ),
-    ApiResponse(responseCode = "404", description = "Requested resource not found."),
-    ApiResponse(responseCode = "500", description = "Unrecoverable error occurred whilst processing request."),
   )
   fun getMainBookingImageDataByNo(
-    @PathVariable @Parameter(example = "A1234AA") offenderNo: String,
+    @PathVariable @Parameter(example = "A1234AA") prisonNumber: String,
     @RequestParam(name = "fullSizeImage", required = false, defaultValue = "false") fullSizeImage: Boolean,
   ): ResponseEntity<ByteArray> = ResponseEntity.ok()
-    .contentType(MediaType.IMAGE_JPEG).body(prisonImageService.getOffenderImage(offenderNo, fullSizeImage))
+    .contentType(MediaType.IMAGE_JPEG).body(prisonImageClient.getPrisonerImage(prisonNumber, fullSizeImage))
 }

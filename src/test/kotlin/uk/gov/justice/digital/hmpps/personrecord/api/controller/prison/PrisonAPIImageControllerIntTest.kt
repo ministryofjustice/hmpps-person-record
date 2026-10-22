@@ -15,7 +15,7 @@ class PrisonAPIImageControllerIntTest : WebTestSetup() {
 
     @Test
     fun `should return image bytes with status 200`() {
-      val offenderNo = "A1234AA"
+      val prisonNumber = "A1234AA"
       val imageBytes = byteArrayOf(
         0xFF.toByte(),
         0xD8.toByte(),
@@ -24,13 +24,13 @@ class PrisonAPIImageControllerIntTest : WebTestSetup() {
       )
 
       stubPrisonerImage(
-        offenderNo = offenderNo,
+        offenderNo = prisonNumber,
         status = 200,
         imageBytes = imageBytes,
       )
 
       val response = webTestClient.get()
-        .uri(imageUrl(offenderNo))
+        .uri(imageUrl(prisonNumber))
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
@@ -61,15 +61,15 @@ class PrisonAPIImageControllerIntTest : WebTestSetup() {
 
     @Test
     fun `should return 404 when upstream image is not found`() {
-      val offenderNo = "A1234AA"
+      val prisonNumber = "A1234AA"
 
       stubPrisonerImage(
-        offenderNo = offenderNo,
+        offenderNo = prisonNumber,
         status = 404,
       )
 
       webTestClient.get()
-        .uri(imageUrl(offenderNo))
+        .uri(imageUrl(prisonNumber))
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
@@ -78,15 +78,15 @@ class PrisonAPIImageControllerIntTest : WebTestSetup() {
 
     @Test
     fun `should return 500 when upstream returns an internal server error`() {
-      val offenderNo = "A1234AA"
+      val prisonNumber = "A1234AA"
 
       stubPrisonerImage(
-        offenderNo = offenderNo,
+        offenderNo = prisonNumber,
         status = 500,
       )
 
       webTestClient.get()
-        .uri(imageUrl(offenderNo))
+        .uri(imageUrl(prisonNumber))
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
@@ -95,16 +95,16 @@ class PrisonAPIImageControllerIntTest : WebTestSetup() {
 
     @Test
     fun `should return 500 when upstream image response body is empty`() {
-      val offenderNo = "A1234AA"
+      val prisonNumber = "A1234AA"
 
       stubPrisonerImage(
-        offenderNo = offenderNo,
+        offenderNo = prisonNumber,
         status = 200,
         imageBytes = byteArrayOf(),
       )
 
       webTestClient.get()
-        .uri(imageUrl(offenderNo))
+        .uri(imageUrl(prisonNumber))
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
