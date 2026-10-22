@@ -35,7 +35,7 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
     @Test
     fun `should create a new proposed address and recluster`() {
       val crn = randomCrn()
-      val newAddress = createRandomProbationAddress().copy(statusCode = PR)
+      val newAddress = probationCreateAddress().copy(statusCode = PR)
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
       val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
@@ -60,8 +60,8 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
     @Test
     fun `should create a new proposed address when there is an existing main address`() {
       val crn = randomCrn()
-      val newAddress = createRandomProbationAddress().copy(statusCode = PR)
-      val mainAddress = createRandomProbationAddress().copy(statusCode = M)
+      val newAddress = probationCreateAddress().copy(statusCode = PR)
+      val mainAddress = probationCreateAddress().copy(statusCode = M)
       createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(Address.from(mainAddress)))
 
       val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
@@ -88,7 +88,7 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
     @Test
     fun `should create a new main address`() {
       val crn = randomCrn()
-      val newAddress = createRandomProbationAddress().copy(statusCode = M)
+      val newAddress = probationCreateAddress().copy(statusCode = M)
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
       val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
@@ -113,8 +113,8 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
     @Test
     fun `should create a new main address when there is already a main address`() {
       val crn = randomCrn()
-      val newAddress = createRandomProbationAddress().copy(statusCode = M)
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(Address.from(createRandomProbationAddress().copy(statusCode = M))))
+      val newAddress = probationCreateAddress().copy(statusCode = M)
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(Address.from(probationCreateAddress().copy(statusCode = M))))
 
       val existingAddressId = person.addresses.first().updateId!!
 
@@ -159,7 +159,7 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
     @Test
     fun `should create new address and not recluster passive record`() {
       val crn = randomCrn()
-      val newAddress = createRandomProbationAddress()
+      val newAddress = probationCreateAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList())) { this.passiveState = true }
 
       val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
@@ -184,7 +184,7 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
     @Test
     fun `should create a new address with typeVerified as true when typeVerified is not supplied`() {
       val crn = randomCrn()
-      val newAddress = createRandomProbationAddress()
+      val newAddress = probationCreateAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
       // simulate missing field
@@ -213,7 +213,7 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
     @Test
     fun `should create a new address and recluster - with invalid country code`() {
       val crn = randomCrn()
-      val newAddress = createRandomProbationAddress()
+      val newAddress = probationCreateAddress()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
       val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
@@ -242,7 +242,7 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
     fun `should return 500 not found when probation record does not exist`() {
       sendPostRequestAsserted<Unit>(
         url = probationAddressApiUrl(randomCrn()),
-        body = createRandomProbationAddress(),
+        body = probationCreateAddress(),
         roles = listOf(PROBATION_API_READ_WRITE),
         expectedStatus = HttpStatus.INTERNAL_SERVER_ERROR,
       )
@@ -252,7 +252,7 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
     fun `should return Access Denied 403 when role is wrong`() {
       sendPostRequestAsserted<Unit>(
         url = probationAddressApiUrl(randomCrn()),
-        body = createRandomProbationAddress(),
+        body = probationCreateAddress(),
         roles = listOf("UNSUPPORTED_ROLE"),
         expectedStatus = HttpStatus.FORBIDDEN,
       )
@@ -262,7 +262,7 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       sendPostRequestAsserted<Unit>(
         url = probationAddressApiUrl(randomCrn()),
-        body = createRandomProbationAddress(),
+        body = probationCreateAddress(),
         roles = listOf("UNSUPPORTED_ROLE"),
         expectedStatus = HttpStatus.UNAUTHORIZED,
         sendAuthorised = false,

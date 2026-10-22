@@ -240,7 +240,7 @@ class IntegrationTestBase {
     this.addresses.addAll(addressEntities)
   }
 
-  internal fun createRandomProbationAddress(): ProbationCreateAddress = ProbationCreateAddress(
+  internal fun probationCreateAddress(): ProbationCreateAddress = ProbationCreateAddress(
     noFixedAbode = false,
     startDate = randomZonedDateTime(),
     postcode = randomPostcode(),
