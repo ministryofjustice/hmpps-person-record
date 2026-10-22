@@ -18,6 +18,5 @@ class RetryableClusterSplitService(
   fun split(recordsToSplit: List<String>) = transactionalClusterSplitService.split(recordsToSplit)
 
   @WebRetryable(retryFor = [WebClientResponseException::class])
-  fun examineIsClusterValid(cluster: PersonKeyEntity): IsClusterValidResponse =
-    personMatchService.examineIsClusterValid(cluster)
+  fun examineIsClusterValid(cluster: PersonKeyEntity): IsClusterValidResponse = personMatchService.examineIsClusterValid(cluster)
 }

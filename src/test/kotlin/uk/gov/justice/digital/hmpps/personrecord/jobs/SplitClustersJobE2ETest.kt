@@ -203,11 +203,6 @@ class SplitClustersJobE2ETest(
     }
   }
 
-  // TODO: add following tests
-  // 1. consider retry (i.e. as a result of concurrent update)
-
-  // remember to remove first line of generated uuid list
-
   private fun runJobWith(records: List<String>) {
     val file = testDir.resolve("clusters.csv")
     Files.write(file, records)
