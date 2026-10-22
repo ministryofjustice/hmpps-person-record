@@ -1,13 +1,12 @@
-package uk.gov.justice.digital.hmpps.personrecord.jobs
+package uk.gov.justice.digital.hmpps.personrecord.jobs.splitclusters
 
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.jobs.BatchJob
 import uk.gov.justice.digital.hmpps.personrecord.jobs.recluster.FileWaiter
-import uk.gov.justice.digital.hmpps.personrecord.jobs.splitclusters.TransactionalClusterSplitService
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
-import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import java.nio.file.Path
 import java.util.UUID
 
@@ -15,8 +14,7 @@ import java.util.UUID
 @ConditionalOnProperty(name = ["batch.enabled"], havingValue = "true")
 class SplitClustersJob(
   private val personKeyRepository: PersonKeyRepository,
-  private val personMatchService: PersonMatchService,
-  private val transactionalClusterSplitService: TransactionalClusterSplitService,
+  private val retryableClusterSplitService: RetryableClusterSplitService,
   private val fileWaiter: FileWaiter,
   dataDir: Path = Path.of("/tmp"),
 ) : BatchJob {
@@ -43,7 +41,7 @@ class SplitClustersJob(
       }
       log.info("Splitting cluster for person UUID: ${cluster.personUUID}")
 
-      val isClusterValidResponse = personMatchService.examineIsClusterValid(cluster)
+      val isClusterValidResponse = retryableClusterSplitService.examineIsClusterValid(cluster)
       if (isClusterValidResponse.isClusterValid) {
         log.info("Cluster ${cluster.personUUID} is valid, not splitting")
       } else {
@@ -51,7 +49,7 @@ class SplitClustersJob(
         log.info("Cluster ${cluster.personUUID} will keep matchIds ${isClusterValidResponse.clusters.first().map{ it }}")
         val clustersToSplitOff = isClusterValidResponse.clusters.subList(1, isClusterValidResponse.clusters.size)
         clustersToSplitOff.forEach { cluster ->
-          transactionalClusterSplitService.split(cluster)
+          retryableClusterSplitService.split(cluster)
         }
       }
     }

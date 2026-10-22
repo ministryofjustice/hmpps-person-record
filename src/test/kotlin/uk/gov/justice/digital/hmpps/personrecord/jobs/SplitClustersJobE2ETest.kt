@@ -13,9 +13,9 @@ import org.springframework.context.ApplicationContext
 import org.springframework.test.context.TestPropertySource
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jobs.recluster.FileWaiter
-import uk.gov.justice.digital.hmpps.personrecord.jobs.splitclusters.TransactionalClusterSplitService
+import uk.gov.justice.digital.hmpps.personrecord.jobs.splitclusters.RetryableClusterSplitService
+import uk.gov.justice.digital.hmpps.personrecord.jobs.splitclusters.SplitClustersJob
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import java.nio.file.Files
 import java.nio.file.Path
@@ -24,8 +24,7 @@ import kotlin.jvm.java
 
 @ExtendWith(OutputCaptureExtension::class)
 class SplitClustersJobE2ETest(
-  @Autowired private val personMatchService: PersonMatchService,
-  @Autowired private val transactionalClusterSplitService: TransactionalClusterSplitService,
+  @Autowired private val retryableClusterSplitService: RetryableClusterSplitService,
   @Autowired private val fileWaiter: FileWaiter,
 ) : E2ETestBase() {
 
@@ -42,8 +41,7 @@ class SplitClustersJobE2ETest(
     testDir = Files.createTempDirectory("split-clusters-test-")
     splitClustersJob = SplitClustersJob(
       personKeyRepository,
-      personMatchService,
-      transactionalClusterSplitService,
+      retryableClusterSplitService,
       fileWaiter,
       testDir,
     )
@@ -194,8 +192,7 @@ class SplitClustersJobE2ETest(
     fun `should log warning and not process anything when cluster file is not found within timeout`(output: CapturedOutput) {
       val job = SplitClustersJob(
         personKeyRepository,
-        personMatchService,
-        transactionalClusterSplitService,
+        retryableClusterSplitService,
         fileWaiter,
         testDir,
       )
