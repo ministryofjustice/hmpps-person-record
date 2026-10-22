@@ -4,13 +4,12 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
 
 data class PrisonAddress(
   @Schema(description = "Is nomis address id", example = "5678")
   val nomisAddressId: Long? = null,
   @Schema(description = "Is CPR update id", example = "d64d9e9f-ff52-460b-94aa-749dbe3bd83d")
-  val cprUpdateId: UUID? = null,
+  val cprUpdateId: String? = null,
   @Schema(description = "The full address", example = "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ")
   val fullAddress: String? = null,
   @Schema(description = "Is the person without a permanent residence", example = "false")
