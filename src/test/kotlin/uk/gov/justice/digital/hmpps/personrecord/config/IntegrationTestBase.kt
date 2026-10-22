@@ -344,6 +344,7 @@ class IntegrationTestBase {
     code = code,
     changeReasonKnown = false,
     startDate = startDate,
+    endDate = endDate,
     createDateTime = createDateTime,
     createUserId = createdUserId,
   )
