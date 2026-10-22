@@ -101,8 +101,8 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
 
       val actualResponseBody = prisonMergeEventAndResponseSetup(targetPrisonNumber = toPrisonNumber, prisonMerge = requestBody).returnResult().responseBody!!
 
-//      val fromPersonAfterMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!
-//      assertThat(fromPersonAfterMerge.addresses.size).isEqualTo(2) // I think this should be 0 as they've been moved over?
+      val fromPersonAfterMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!
+      assertThat(fromPersonAfterMerge.addresses.size).isEqualTo(0)
 
       val toPersonAfterMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!
       assertThat(toPersonAfterMerge.addresses).hasSize(2)
