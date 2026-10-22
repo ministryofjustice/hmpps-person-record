@@ -114,6 +114,31 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
       unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
     }
+
+    @Test
+    fun `should unmerge when reactivated record does not exist`() {
+      val reactivatedCrn = randomCrn()
+      val unmergedCrn = randomCrn()
+
+      val unmergedPerson = createPersonWithNewKey(createRandomProbationPersonDetails(unmergedCrn))
+      val reactivatedPersonData = createRandomProbationCase(reactivatedCrn)
+
+      val reactivatedSetup = ApiResponseSetup.from(reactivatedPersonData)
+      probationUnmergeEventAndResponseSetup(reactivatedCrn, unmergedCrn, reactivatedSetup = reactivatedSetup)
+
+      checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_RECORD_UNMERGED)
+
+      val reactivatedPerson = personRepository.findByCrn(reactivatedCrn)!!
+      unmergedPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      unmergedPerson.personKey?.assertClusterIsOfSize(1)
+      unmergedPerson.assertExcluded(reactivatedPerson)
+
+      reactivatedPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      reactivatedPerson.personKey?.assertClusterIsOfSize(1)
+
+      unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
+      unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
+    }
   }
 
   @Nested
