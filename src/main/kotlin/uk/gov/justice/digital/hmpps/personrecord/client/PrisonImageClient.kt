@@ -6,7 +6,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 
 @Component
-class PrisonerImageClient(
+class PrisonImageClient(
   private val prisonWebClient: WebClient,
 ) {
   fun getPrisonerImage(

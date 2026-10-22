@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.image
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerImageClient
+import uk.gov.justice.digital.hmpps.personrecord.client.PrisonImageClient
 
 @Component
 class PrisonImageService(
-  private val prisonerImageClient: PrisonerImageClient,
+  private val prisonImageClient: PrisonImageClient,
 ) {
 
-  fun getOffenderImage(offenderNo: String, fullSizeImage: Boolean): ByteArray = prisonerImageClient.getPrisonerImage(offenderNo, fullSizeImage)
+  fun getOffenderImage(offenderNo: String, fullSizeImage: Boolean): ByteArray = prisonImageClient.getPrisonerImage(offenderNo, fullSizeImage)
 }
