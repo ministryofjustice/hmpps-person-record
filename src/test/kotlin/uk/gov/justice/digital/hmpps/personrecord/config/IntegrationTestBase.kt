@@ -240,7 +240,7 @@ class IntegrationTestBase {
     this.addresses.addAll(addressEntities)
   }
 
-  internal fun createRandomProbationAddress(): ProbationCreateAddress = ProbationCreateAddress(
+  internal fun probationCreateAddress(statusCode: AddressStatusCode = listOf(AddressStatusCode.M, AddressStatusCode.PR).random()): ProbationCreateAddress = ProbationCreateAddress(
     noFixedAbode = false,
     startDate = randomZonedDateTime(),
     postcode = randomPostcode(),
@@ -253,7 +253,7 @@ class IntegrationTestBase {
     postTown = randomName(),
     county = randomName(),
     comment = randomName(),
-    statusCode = listOf(AddressStatusCode.M, AddressStatusCode.PR).random(),
+    statusCode = statusCode,
     typeVerified = true,
     usage = ProbationCreateAddressUsage(randomAddressUsageCode(), randomBoolean()),
     contacts = listOf(ProbationCreateAddressContact(randomContactType(), randomPhoneNumber(), "44")),
@@ -344,6 +344,7 @@ class IntegrationTestBase {
     code = code,
     changeReasonKnown = false,
     startDate = startDate,
+    endDate = endDate,
     createDateTime = createDateTime,
     createUserId = createdUserId,
   )
@@ -731,6 +732,33 @@ class IntegrationTestBase {
     val thisPersonScopes = personRepository.findByMatchId(this.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
     val evalPersonScopes = personRepository.findByMatchId(personEntity.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
     return thisPersonScopes.intersect(evalPersonScopes)
+  }
+
+  internal fun stubPrisonerImage(
+    offenderNo: String,
+    status: Int = 200,
+    fullSizeImage: Boolean = false,
+    imageBytes: ByteArray = byteArrayOf(
+      0xFF.toByte(),
+      0xD8.toByte(),
+      0xFF.toByte(),
+      0xD9.toByte(),
+    ),
+  ) {
+    authSetup()
+    wiremock.stubFor(
+      WireMock.get(
+        WireMock.urlEqualTo(
+          "/api/bookings/offenderNo/$offenderNo/image/data?fullSizeImage=$fullSizeImage",
+        ),
+      )
+        .willReturn(
+          aResponse()
+            .withStatus(status)
+            .withHeader("Content-Type", "image/jpeg")
+            .withBody(imageBytes),
+        ),
+    )
   }
 
   private fun List<Reference>.getType(type: IdentifierType): List<Reference> = this.filter { it.identifierType == type }

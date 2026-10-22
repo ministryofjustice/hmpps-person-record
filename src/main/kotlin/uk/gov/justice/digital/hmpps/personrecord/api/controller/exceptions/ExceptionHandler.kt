@@ -13,6 +13,7 @@ import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestControllerAdvice
@@ -97,4 +98,16 @@ class ExceptionHandler {
         userMessage = "Unauthorized: ${e.message}",
       ),
     )
+
+  @ExceptionHandler(WebClientResponseException::class)
+  fun handleWebClientResponseException(
+    e: WebClientResponseException,
+  ): ResponseEntity<ErrorResponse> {
+    val status = e.statusCode
+    return ResponseEntity
+      .status(status)
+      .body(
+        ErrorResponse(status = status.value(), userMessage = e.statusText),
+      )
+  }
 }

@@ -15,6 +15,7 @@ generic-service:
     CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: https://core-person-record-and-delius-preprod.hmpps.service.justice.gov.uk
     SERVICE_NOW_BASE_URL: https://mojuat.service-now.com
     SAS_BASE_URL: https://single-accommodation-service-api-preprod.hmpps.service.justice.gov.uk
+    PRISON_API_BASE_URL: 'https://prison-api-preprod.prison.service.justice.gov.uk'
     SPRINGDOC_API_DOCS_ENABLED: false
     SPRINGDOC_SWAGGER_UI_ENABLED: false
 
