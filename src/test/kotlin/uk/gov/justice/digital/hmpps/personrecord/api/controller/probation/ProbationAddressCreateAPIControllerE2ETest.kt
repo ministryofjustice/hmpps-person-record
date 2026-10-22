@@ -35,7 +35,7 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
     @Test
     fun `should create a new proposed address and recluster`() {
       val crn = randomCrn()
-      val newAddress = probationCreateAddress().copy(statusCode = PR)
+      val newAddress = probationCreateAddress(PR)
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
       val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
@@ -60,8 +60,8 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
     @Test
     fun `should create a new proposed address when there is an existing main address`() {
       val crn = randomCrn()
-      val newAddress = probationCreateAddress().copy(statusCode = PR)
-      val mainAddress = probationCreateAddress().copy(statusCode = M)
+      val newAddress = probationCreateAddress(PR)
+      val mainAddress = probationCreateAddress(M)
       createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(Address.from(mainAddress)))
 
       val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
@@ -88,7 +88,7 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
     @Test
     fun `should create a new main address`() {
       val crn = randomCrn()
-      val newAddress = probationCreateAddress().copy(statusCode = M)
+      val newAddress = probationCreateAddress(M)
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
       val responseBody = sendPostRequestAsserted<ProbationCreateAddressResponse>(
@@ -113,8 +113,8 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
     @Test
     fun `should create a new main address when there is already a main address`() {
       val crn = randomCrn()
-      val newAddress = probationCreateAddress().copy(statusCode = M)
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(Address.from(probationCreateAddress().copy(statusCode = M))))
+      val newAddress = probationCreateAddress(M)
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(Address.from(probationCreateAddress(M))))
 
       val existingAddressId = person.addresses.first().updateId!!
 
