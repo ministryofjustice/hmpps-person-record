@@ -91,7 +91,7 @@ class ProbationEventListenerTestBase : MessagingTestBase() {
     )
   }
 
-  fun stubGetRequestToProbation(
+  fun stubGetProbationAddress(
     probationAddress: ProbationAddress,
     scenarioName: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,

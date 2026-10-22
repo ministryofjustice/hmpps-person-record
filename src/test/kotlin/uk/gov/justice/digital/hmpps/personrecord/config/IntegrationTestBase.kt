@@ -240,7 +240,7 @@ class IntegrationTestBase {
     this.addresses.addAll(addressEntities)
   }
 
-  internal fun createRandomProbationAddress(): ProbationCreateAddress = ProbationCreateAddress(
+  internal fun probationCreateAddress(statusCode: AddressStatusCode = listOf(AddressStatusCode.M, AddressStatusCode.PR).random()): ProbationCreateAddress = ProbationCreateAddress(
     noFixedAbode = false,
     startDate = randomZonedDateTime(),
     postcode = randomPostcode(),
@@ -253,7 +253,7 @@ class IntegrationTestBase {
     postTown = randomName(),
     county = randomName(),
     comment = randomName(),
-    statusCode = listOf(AddressStatusCode.M, AddressStatusCode.PR).random(),
+    statusCode = statusCode,
     typeVerified = true,
     usage = ProbationCreateAddressUsage(randomAddressUsageCode(), randomBoolean()),
     contacts = listOf(ProbationCreateAddressContact(randomContactType(), randomPhoneNumber(), "44")),

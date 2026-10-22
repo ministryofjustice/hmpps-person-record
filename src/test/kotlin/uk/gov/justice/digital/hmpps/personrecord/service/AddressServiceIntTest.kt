@@ -31,7 +31,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val crn = randomCrn()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
-      val addressToCreate = Address.from(createRandomProbationAddress())
+      val addressToCreate = Address.from(probationCreateAddress())
 
       addressService.create(
         addressToCreate,
@@ -62,7 +62,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val crn = randomCrn()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
-      val addressToCreate = Address.from(createRandomProbationAddress().copy(postcode = null))
+      val addressToCreate = Address.from(probationCreateAddress().copy(postcode = null))
 
       addressService.create(
         addressToCreate,
@@ -95,7 +95,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
       stubPersonMatchScores()
 
       val crn = randomCrn()
-      val initialAddress = Address.from(createRandomProbationAddress())
+      val initialAddress = Address.from(probationCreateAddress())
       val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(initialAddress))
       val addressToCreate = initialAddress.copy(postcode = randomPostcode())
 
@@ -126,7 +126,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
     @Test
     fun `should update address and not recluster when no matching fields have changed`() {
       val crn = randomCrn()
-      val initialAddress = Address.from(createRandomProbationAddress())
+      val initialAddress = Address.from(probationCreateAddress())
       val person = createPersonWithNewKey(
         createRandomProbationPersonDetails(crn),
         configure = addAddressToRecord(
