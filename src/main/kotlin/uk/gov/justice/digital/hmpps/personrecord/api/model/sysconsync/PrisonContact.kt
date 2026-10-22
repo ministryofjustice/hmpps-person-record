@@ -5,6 +5,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import java.time.LocalDateTime
 
 data class PrisonContact(
+  @Schema(description = "The cpr contact id", example = "1234")
+  val cprContactId: String? = null,
   @Schema(description = "The nomis contact id", example = "1234")
   val nomisContactId: Long? = null,
   @Schema(description = "The contact value", example = "01234567890")

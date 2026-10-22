@@ -6,7 +6,9 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class PrisonAddress(
-  @Schema(description = "Is nomis address id", example = "5678")
+  @Schema(description = "The cpr address id", example = "5678")
+  val cprAddressId: String? = null,
+  @Schema(description = "The nomis address id", example = "5678")
   val nomisAddressId: Long? = null,
   @Schema(description = "The full address", example = "Sub building 2, Main Building, 102 Petty France, Westminster, London, Greater London, SW1H 9AJ")
   val fullAddress: String? = null,
