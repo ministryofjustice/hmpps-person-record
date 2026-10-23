@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest.Companion.validPrisonAddressesAndContactsRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
@@ -41,7 +42,7 @@ class PrisonMergeEventProcessorIntTest(
         .addPerson(Person(prisonNumber = toPrisonNumber, sourceSystem = NOMIS))
         .addPerson(Person(prisonNumber = fromPrisonNumber, sourceSystem = NOMIS))
       stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
-      val response = prisonMergeEventProcessor.processEvent(toPrisonNumber = toPrisonNumber, prisonMerge = PrisonMerge(fromPrisonNumber = fromPrisonNumber))
+      val response = prisonMergeEventProcessor.processEvent(toPrisonNumber = toPrisonNumber, prisonMerge = validPrisonMerge(fromPrisonNumber))
       assertThat(response.toPrisonNumber).isEqualTo(toPrisonNumber)
     }
   }
@@ -80,7 +81,7 @@ class PrisonMergeEventProcessorIntTest(
       stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
 
       // Method under test
-      prisonMergeEventProcessor.processEvent(toPrisonNumber = toPrisonNumber, prisonMerge = PrisonMerge(fromPrisonNumber = fromPrisonNumber))
+      prisonMergeEventProcessor.processEvent(toPrisonNumber = toPrisonNumber, prisonMerge = validPrisonMerge(fromPrisonNumber))
 
       assertThat(personRepository.findByPrisonNumber(toPrisonNumber)?.religion).isEqualTo(AGNO)
       assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonNumber))
@@ -96,4 +97,9 @@ class PrisonMergeEventProcessorIntTest(
         )
     }
   }
+
+  private fun validPrisonMerge(fromPrisonNumber: String) = PrisonMerge(
+    fromPrisonNumber = fromPrisonNumber,
+    toPrisonAddressesAndContactsRequest = validPrisonAddressesAndContactsRequest,
+  )
 }

@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest.Companion.validPrisonAddressesAndContactsRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
@@ -191,7 +192,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
       stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
       sendPostRequestAsserted<Unit>(
         url = "/syscon-sync/person/$toPrisonNumber/merge",
-        body = PrisonMerge(fromPrisonNumber),
+        body = validPrisonMerge(fromPrisonNumber),
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.CREATED,
       )
@@ -259,7 +260,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
       stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
       sendPostRequestAsserted<Unit>(
         url = "/syscon-sync/person/$toPrisonNumber/merge",
-        body = PrisonMerge(randomPrisonNumber()),
+        body = validPrisonMerge(randomPrisonNumber()),
         roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
         expectedStatus = HttpStatus.INTERNAL_SERVER_ERROR,
       )
@@ -364,4 +365,9 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
     assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("CRN")
     assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(crn)
   }
+
+  private fun validPrisonMerge(fromPrisonNumber: String) = PrisonMerge(
+    fromPrisonNumber = fromPrisonNumber,
+    toPrisonAddressesAndContactsRequest = validPrisonAddressesAndContactsRequest,
+  )
 }

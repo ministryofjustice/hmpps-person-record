@@ -7,5 +7,5 @@ data class PrisonMerge(
   val fromPrisonNumber: String,
   // TODO once the calling code is providing these details then make this non-nullable
   @Schema(description = "The merged addresses and contacts to overwrite on the person being merged to")
-  val toPrisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest? = null,
+  val toPrisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest,
 )

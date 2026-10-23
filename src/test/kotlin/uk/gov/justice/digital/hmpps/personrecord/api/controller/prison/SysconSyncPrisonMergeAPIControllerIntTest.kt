@@ -11,14 +11,33 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest.Companion.validPrisonAddressesAndContactsRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressesHandler.Companion.toPrisonAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toDto
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressMapping
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressesAndContactsResponseBody
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconPersonMergeResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import kotlin.jvm.optionals.getOrNull
@@ -44,8 +63,158 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
         .addPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
         .addPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
-      val response = prisonMergeEventAndResponseSetup(targetPrisonNumber = targetPrisonNumber, prisonMerge = PrisonMerge(sourcePrisonNumber)).returnResult().responseBody!!
+      val response = prisonMergeEventAndResponseSetup(targetPrisonNumber = targetPrisonNumber, prisonMerge = validPrisonMerge(sourcePrisonNumber)).returnResult().responseBody!!
       assertThat(response.toPrisonNumber).isEqualTo(targetPrisonNumber)
+    }
+
+    @Test
+    fun `should overwrite all addresses for to person after a merge and return correct id mappings`() {
+      val toPrisonNumber = randomPrisonNumber()
+      val fromPrisonNumber = randomPrisonNumber()
+
+      createPersonKey()
+        .addPerson(
+          createRandomPrisonPersonDetails(fromPrisonNumber).copy(
+            addresses = listOf(
+              Address(postcode = randomPostcode(), createDateTime = randomDateTime(), createUserId = randomLowerCaseString(), fullAddress = randomLowerCaseString()),
+              Address(postcode = randomPostcode(), createDateTime = randomDateTime(), createUserId = randomLowerCaseString(), fullAddress = randomLowerCaseString()),
+            ),
+          ),
+        )
+        .addPerson(
+          createRandomPrisonPersonDetails(toPrisonNumber).copy(
+            addresses = listOf(
+              Address(postcode = randomPostcode(), createDateTime = randomDateTime(), createUserId = randomLowerCaseString(), fullAddress = randomLowerCaseString()),
+            ),
+          ),
+        )
+
+      val fromPersonBeforeMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!
+      val fromAddressBeforeMergeOne = fromPersonBeforeMerge.addresses.first()
+      val fromAddressBeforeMergeTwo = fromPersonBeforeMerge.addresses.last()
+
+      val fromPersonAddressReqBodyOne = fromAddressBeforeMergeOne.toPrisonAddress().copy(nomisAddressId = 1L)
+      val fromPersonAddressReqBodyTwo = fromAddressBeforeMergeTwo.toPrisonAddress().copy(nomisAddressId = 2L)
+      val requestBody = PrisonMerge(
+        fromPrisonNumber = fromPrisonNumber,
+        toPrisonAddressesAndContactsRequest = PrisonAddressesAndContactsRequest(
+          addresses = listOf(fromPersonAddressReqBodyOne, fromPersonAddressReqBodyTwo),
+          contacts = emptyList(),
+        ),
+      )
+
+      val actualResponseBody = prisonMergeEventAndResponseSetup(targetPrisonNumber = toPrisonNumber, prisonMerge = requestBody).returnResult().responseBody!!
+
+      val fromPersonAfterMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!
+      assertThat(fromPersonAfterMerge.addresses.size).isEqualTo(0)
+
+      val toPersonAfterMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!
+      assertThat(toPersonAfterMerge.addresses).hasSize(2)
+
+      val toPersonAddressAfterMergeOne = toPersonAfterMerge.addresses.first { it.fullAddress == fromAddressBeforeMergeOne.fullAddress }
+      assertThat(toPersonAddressAfterMergeOne.updateId).isEqualTo(fromAddressBeforeMergeOne.updateId)
+      assertAddressMatches(fromPersonAddressReqBodyOne, toPersonAddressAfterMergeOne)
+
+      val toPersonAddressAfterMergeTwo = toPersonAfterMerge.addresses.first { it.fullAddress == fromAddressBeforeMergeTwo.fullAddress }
+      assertThat(toPersonAddressAfterMergeTwo.updateId).isEqualTo(fromAddressBeforeMergeTwo.updateId)
+      assertAddressMatches(fromPersonAddressReqBodyTwo, toPersonAddressAfterMergeTwo)
+
+      val expectedBody = SysconPersonMergeResponseBody(
+        toPrisonNumber = toPrisonNumber,
+        sysconAddressesAndContactsResponseBody = SysconAddressesAndContactsResponseBody(
+          prisonNumber = toPrisonNumber,
+          addressesMappings = listOf(
+            SysconAddressMapping(
+              nomisAddressId = fromPersonAddressReqBodyOne.nomisAddressId!!,
+              cprAddressId = toPersonAddressAfterMergeOne.updateId.toString(),
+              addressUsageMappings = emptyList(),
+              contactMappings = emptyList(),
+            ),
+            SysconAddressMapping(
+              nomisAddressId = fromPersonAddressReqBodyTwo.nomisAddressId!!,
+              cprAddressId = toPersonAddressAfterMergeTwo.updateId.toString(),
+              addressUsageMappings = emptyList(),
+              contactMappings = emptyList(),
+            ),
+          ),
+          contactMappings = emptyList(),
+        ),
+      )
+      assertThat(actualResponseBody).isEqualTo(expectedBody)
+    }
+
+    @Test
+    fun `should overwrite all contacts for to person after a merge and return correct id mappings`() {
+      val toPrisonNumber = randomPrisonNumber()
+      val fromPrisonNumber = randomPrisonNumber()
+
+      createPersonKey()
+        .addPerson(
+          createRandomPrisonPersonDetails(fromPrisonNumber).copy(
+            contacts = listOf(
+              Contact(contactType = randomContactType(), contactValue = randomLowerCaseString(), createDateTime = randomDateTime(), createUserId = randomLowerCaseString()),
+              Contact(contactType = randomContactType(), contactValue = randomLowerCaseString(), createDateTime = randomDateTime(), createUserId = randomLowerCaseString()),
+            ),
+          ),
+        )
+        .addPerson(
+          createRandomPrisonPersonDetails(toPrisonNumber).copy(
+            contacts = listOf(
+              Contact(contactType = randomContactType(), contactValue = randomLowerCaseString(), createDateTime = randomDateTime(), createUserId = randomLowerCaseString()),
+            ),
+          ),
+        )
+
+      val fromPersonBeforeMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!
+      val fromContactBeforeMergeOne = fromPersonBeforeMerge.contacts.first()
+      val fromContactBeforeMergeTwo = fromPersonBeforeMerge.contacts.last()
+
+      val fromPersonContactReqBodyOne = fromContactBeforeMergeOne.toDto().copy(nomisContactId = 1L)
+      val fromPersonContactReqBodyTwo = fromContactBeforeMergeTwo.toDto().copy(nomisContactId = 2L)
+      val requestBody = PrisonMerge(
+        fromPrisonNumber = fromPrisonNumber,
+        toPrisonAddressesAndContactsRequest = PrisonAddressesAndContactsRequest(
+          contacts = listOf(fromPersonContactReqBodyOne, fromPersonContactReqBodyTwo),
+          addresses = emptyList(),
+        ),
+      )
+
+      val actualResponseBody = prisonMergeEventAndResponseSetup(targetPrisonNumber = toPrisonNumber, prisonMerge = requestBody).returnResult().responseBody!!
+
+      val fromPersonAfterMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!
+      assertThat(fromPersonAfterMerge.contacts.size).isEqualTo(0)
+
+      val toPersonAfterMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!
+      assertThat(toPersonAfterMerge.contacts).hasSize(2)
+
+      val toPersonContactAfterMergeOne = toPersonAfterMerge.contacts.first { it.contactValue == fromContactBeforeMergeOne.contactValue }
+      assertThat(toPersonContactAfterMergeOne.updateId).isEqualTo(fromContactBeforeMergeOne.updateId)
+      assertContactMatches(fromPersonContactReqBodyOne, toPersonContactAfterMergeOne)
+
+      val toPersonContactAfterMergeTwo = toPersonAfterMerge.contacts.first { it.contactValue == fromContactBeforeMergeTwo.contactValue }
+      assertThat(toPersonContactAfterMergeTwo.updateId).isEqualTo(fromContactBeforeMergeTwo.updateId)
+      assertContactMatches(fromPersonContactReqBodyTwo, toPersonContactAfterMergeTwo)
+
+      val expectedBody = SysconPersonMergeResponseBody(
+        toPrisonNumber = toPrisonNumber,
+        sysconAddressesAndContactsResponseBody = SysconAddressesAndContactsResponseBody(
+          prisonNumber = toPrisonNumber,
+          addressesMappings = emptyList(),
+          contactMappings = listOf(
+            SysconContactMapping(
+              nomisContactId = fromPersonContactReqBodyOne.nomisContactId!!,
+              nomisContactType = toPersonContactAfterMergeOne.contactType,
+              cprContactId = toPersonContactAfterMergeOne.updateId.toString(),
+            ),
+            SysconContactMapping(
+              nomisContactId = fromPersonContactReqBodyTwo.nomisContactId!!,
+              nomisContactType = toPersonContactAfterMergeTwo.contactType,
+              cprContactId = toPersonContactAfterMergeTwo.updateId.toString(),
+            ),
+          ),
+        ),
+      )
+      assertThat(actualResponseBody).isEqualTo(expectedBody)
     }
   }
 
@@ -68,7 +237,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
         .addPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
         .addPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
-      prisonMergeEventAndResponseSetup(targetPrisonNumber = targetPrisonNumber, prisonMerge = PrisonMerge(sourcePrisonNumber))
+      prisonMergeEventAndResponseSetup(targetPrisonNumber = targetPrisonNumber, prisonMerge = validPrisonMerge(sourcePrisonNumber))
 
       awaitAssert {
         val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)!!
@@ -102,7 +271,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
 
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
-      prisonMergeEventAndResponseSetup(targetPrisonNumber, PrisonMerge(sourcePrisonNumber))
+      prisonMergeEventAndResponseSetup(targetPrisonNumber, validPrisonMerge(sourcePrisonNumber))
       awaitAssert {
         val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)!!
         sourcePerson.assertNotLinkedToCluster()
@@ -138,7 +307,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
       val sourceClusterId = sourcePerson.personKey?.id
 
-      prisonMergeEventAndResponseSetup(targetPrisonNumber, PrisonMerge(sourcePrisonNumber))
+      prisonMergeEventAndResponseSetup(targetPrisonNumber, validPrisonMerge(sourcePrisonNumber))
 
       sourcePerson.assertMergedTo(targetPerson)
       sourcePerson.assertNotLinkedToCluster()
@@ -175,7 +344,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       val sourcePrisonNumber = randomPrisonNumber()
       stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure")
 
-      publishPrisonPersonMergedEvent<Unit>(targetPrisonNumber, PrisonMerge(sourcePrisonNumber), HttpStatus.INTERNAL_SERVER_ERROR)
+      publishPrisonPersonMergedEvent<Unit>(targetPrisonNumber, validPrisonMerge(sourcePrisonNumber), HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -196,7 +365,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       val sourcePerson = createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS)) { markAsPassive() }
 
-      prisonMergeEventAndResponseSetup(targetPrisonNumber, PrisonMerge(sourcePrisonNumber))
+      prisonMergeEventAndResponseSetup(targetPrisonNumber, validPrisonMerge(sourcePrisonNumber))
 
       sourcePerson.assertNotLinkedToCluster()
       sourcePerson.assertMergedTo(targetPerson)
@@ -232,7 +401,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
 
       prisonMergeEventAndResponseSetup(
         targetPrisonNumber,
-        PrisonMerge(sourcePrisonNumber),
+        validPrisonMerge(sourcePrisonNumber),
       )
 
       sourcePerson.assertNotLinkedToCluster()
@@ -264,7 +433,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       sendPostRequestAsserted<Unit>(
         url = prisonMergeEndpoint(randomPrisonNumber()),
-        body = PrisonMerge(fromPrisonNumber = randomPrisonNumber()),
+        body = validPrisonMerge(fromPrisonNumber = randomPrisonNumber()),
         roles = listOf(),
         expectedStatus = HttpStatus.UNAUTHORIZED,
         sendAuthorised = false,
@@ -275,7 +444,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
     fun `should return Access Denied 403 when role is wrong`() {
       sendPostRequestAsserted<Unit>(
         url = prisonMergeEndpoint(randomPrisonNumber()),
-        body = PrisonMerge(fromPrisonNumber = randomPrisonNumber()),
+        body = validPrisonMerge(fromPrisonNumber = randomPrisonNumber()),
         roles = listOf("UNSUPPORTED_ROLE"),
         expectedStatus = HttpStatus.FORBIDDEN,
       )
@@ -311,4 +480,43 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
     roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
     expectedStatus = expectedStatus,
   )
+
+  private fun validPrisonMerge(fromPrisonNumber: String) = PrisonMerge(
+    fromPrisonNumber = fromPrisonNumber,
+    toPrisonAddressesAndContactsRequest = validPrisonAddressesAndContactsRequest,
+  )
+
+  companion object {
+    fun assertAddressMatches(request: PrisonAddress, entity: AddressEntity): Unit = with(entity) {
+      assertThat(fullAddress).isEqualTo(request.fullAddress)
+      assertThat(noFixedAbode).isEqualTo(request.noFixedAbode)
+      assertThat(startDate?.toUkLocalDate()).isEqualTo(request.startDate)
+      assertThat(endDate?.toUkLocalDate()).isEqualTo(request.endDate)
+      assertThat(postcode).isEqualTo(request.postcode)
+      assertThat(subBuildingName).isEqualTo(request.subBuildingName)
+      assertThat(buildingName).isEqualTo(request.buildingName)
+      assertThat(buildingNumber).isEqualTo(request.buildingNumber)
+      assertThat(thoroughfareName).isEqualTo(request.thoroughfareName)
+      assertThat(dependentLocality).isEqualTo(request.dependentLocality)
+      assertThat(postTown).isEqualTo(request.postTown)
+      assertThat(county).isEqualTo(request.county)
+      assertThat(countryCode).isEqualTo(request.countryCode)
+      assertThat(comment).isEqualTo(request.comment)
+      assertThat(statusCode).isEqualTo(AddressStatusCode.fromPrison(request.isPrimary, request.isMail ?: false))
+      assertThat(createDateTime).isEqualTo(request.createDateTime)
+      assertThat(createUserId).isEqualTo(request.createUserId)
+      assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
+      assertThat(modifyUserId).isEqualTo(request.modifyUserId)
+    }
+
+    fun assertContactMatches(request: PrisonContact, entity: ContactEntity) = with(entity) {
+      assertThat(contactType).isEqualTo(request.type)
+      assertThat(contactValue).isEqualTo(request.value)
+      assertThat(extension).isEqualTo(request.extension)
+      assertThat(modifyUserId).isEqualTo(request.modifyUserId)
+      assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
+      assertThat(createUserId).isEqualTo(request.createUserId)
+      assertThat(createDateTime).isEqualTo(request.createDateTime)
+    }
+  }
 }
