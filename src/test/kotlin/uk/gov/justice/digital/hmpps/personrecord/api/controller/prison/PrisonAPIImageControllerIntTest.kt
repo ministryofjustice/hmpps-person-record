@@ -66,6 +66,7 @@ class PrisonAPIImageControllerIntTest : WebTestSetup() {
       stubPrisonerImage(
         offenderNo = prisonNumber,
         status = 404,
+        responseContentType = "application/json",
       )
 
       webTestClient.get()
@@ -83,6 +84,25 @@ class PrisonAPIImageControllerIntTest : WebTestSetup() {
       stubPrisonerImage(
         offenderNo = prisonNumber,
         status = 500,
+        responseContentType = "application/json",
+      )
+
+      webTestClient.get()
+        .uri(imageUrl(prisonNumber))
+        .authorised(listOf(API_READ_ONLY))
+        .exchange()
+        .expectStatus()
+        .is5xxServerError
+    }
+
+    @Test
+    fun `should return 500, when a server cannot produce a response format that matches what the client requested`() {
+      val prisonNumber = "A1234AA"
+
+      stubPrisonerImage(
+        offenderNo = prisonNumber,
+        status = 500,
+        responseContentType = "image/jpeg",
       )
 
       webTestClient.get()
