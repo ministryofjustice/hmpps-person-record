@@ -5,17 +5,16 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
-class RecordCountReportJobIntTest(@Autowired applicationEventPublisher: ApplicationEventPublisher, @Autowired personRepo: PersonRepository) : IntegrationTestBase() {
-
-  val recordCountReportJob = RecordCountReportJob(personRepo, applicationEventPublisher)
+class RecordCountReportJobIntTest(@Autowired val applicationEventPublisher: ApplicationEventPublisher) : IntegrationTestBase() {
+  private lateinit var recordCountReportJob: RecordCountReportJob
 
   @BeforeEach
   fun beforeEach() {
     deleteAllPersonData()
     telemetryRepository.deleteAll()
+    recordCountReportJob = RecordCountReportJob(personRepository, applicationEventPublisher)
   }
 
   @Test
@@ -25,6 +24,7 @@ class RecordCountReportJobIntTest(@Autowired applicationEventPublisher: Applicat
     createPersonWithNewKey(createRandomPrisonPersonDetails())
     createPersonWithNewKey(createRandomLibraPersonDetails())
     createPersonWithNewKey(createRandomCommonPlatformPersonDetails())
+
     recordCountReportJob.run()
     checkTelemetry(
       TelemetryEventType.CPR_RECORD_COUNT_REPORT,
