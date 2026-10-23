@@ -744,6 +744,7 @@ class IntegrationTestBase {
       0xFF.toByte(),
       0xD9.toByte(),
     ),
+    responseContentType: String = "image/jpeg",
   ) {
     authSetup()
     wiremock.stubFor(
@@ -755,7 +756,7 @@ class IntegrationTestBase {
         .willReturn(
           aResponse()
             .withStatus(status)
-            .withHeader("Content-Type", "image/jpeg")
+            .withHeader("Content-Type", responseContentType)
             .withBody(imageBytes),
         ),
     )

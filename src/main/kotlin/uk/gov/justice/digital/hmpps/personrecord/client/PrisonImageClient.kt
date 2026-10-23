@@ -20,7 +20,7 @@ class PrisonImageClient(
         .queryParam("fullSizeImage", fullSizeImage)
         .build(offenderNo)
     }
-    .accept(MediaType.IMAGE_JPEG)
+    .accept(MediaType.IMAGE_JPEG, MediaType.APPLICATION_JSON)
     .retrieve()
     .bodyToMono<ByteArray>()
     .block()
