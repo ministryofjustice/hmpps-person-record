@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.jobs
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
@@ -14,10 +15,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class RecordCountReportJob(
   private val personRepository: PersonRepository,
   private val applicationEventPublisher: ApplicationEventPublisher,
+  private val personMatchClient: PersonMatchClient,
 ) : BatchJob {
   override val jobName = "RECORD_COUNT_REPORT"
 
   override fun run() {
+    personMatchClient.recordCount()
     applicationEventPublisher.publishEvent(
       RecordTelemetry(
         TelemetryEventType.CPR_RECORD_COUNT_REPORT,
