@@ -26,6 +26,10 @@ generic-service:
     timeZone: Europe/London
 
   batchjobs:
+    - name: split-clusters
+      type: SPLIT_CLUSTERS
+      schedule: "0 0 1 1 *"
+      suspend: true
     - name: record-count-report
       type: RECORD_COUNT_REPORT
       schedule: "0 8-17 * * 1-5"
