@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions
 
 import org.springframework.http.HttpStatus.BAD_REQUEST
-import org.springframework.http.HttpStatus.CONFLICT
 import org.springframework.http.HttpStatus.FORBIDDEN
 import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.HttpStatus.NOT_FOUND
@@ -19,43 +18,13 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RestControllerAdvice
 class ExceptionHandler {
 
-  @ExceptionHandler(MethodArgumentTypeMismatchException::class)
+  @ExceptionHandler(MethodArgumentTypeMismatchException::class, IllegalArgumentException::class, HttpMessageNotReadableException::class)
   fun handleBadRequest(e: MethodArgumentTypeMismatchException): ResponseEntity<ErrorResponse> = ResponseEntity
-    .status(BAD_REQUEST)
-    .body(
-      ErrorResponse(
-        status = BAD_REQUEST,
-        userMessage = "Bad request: ${e.message}",
-      ),
-    )
-
-  @ExceptionHandler(IllegalArgumentException::class)
-  fun handleBadRequest(e: IllegalArgumentException): ResponseEntity<ErrorResponse> = ResponseEntity
-    .status(BAD_REQUEST)
-    .body(
-      ErrorResponse(
-        status = BAD_REQUEST,
-        userMessage = "Bad request: ${e.message}",
-      ),
-    )
-
-  @ExceptionHandler(HttpMessageNotReadableException::class)
-  fun handleBadRequest(e: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> = ResponseEntity
     .badRequest()
     .body(
       ErrorResponse(
         status = BAD_REQUEST,
         userMessage = "Bad request: ${e.message}",
-      ),
-    )
-
-  @ExceptionHandler(ConflictException::class)
-  fun handleBadRequest(e: ConflictException): ResponseEntity<ErrorResponse> = ResponseEntity
-    .status(CONFLICT)
-    .body(
-      ErrorResponse(
-        status = CONFLICT,
-        userMessage = "Conflict: ${e.message}",
       ),
     )
 
