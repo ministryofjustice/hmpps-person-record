@@ -18,9 +18,9 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RestControllerAdvice
 class ExceptionHandler {
 
-  @ExceptionHandler(MethodArgumentTypeMismatchException::class, IllegalArgumentException::class, HttpMessageNotReadableException::class)
-  fun handleBadRequest(e: MethodArgumentTypeMismatchException): ResponseEntity<ErrorResponse> = ResponseEntity
-    .badRequest()
+  @ExceptionHandler(value = [MethodArgumentTypeMismatchException::class, IllegalArgumentException::class, HttpMessageNotReadableException::class])
+  fun handleBadRequest(e: Exception): ResponseEntity<ErrorResponse> = ResponseEntity
+    .status(BAD_REQUEST)
     .body(
       ErrorResponse(
         status = BAD_REQUEST,
