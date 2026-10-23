@@ -156,8 +156,8 @@ class SysconContactsAndAddressesMigrationHandler(
   }
 
   private fun PrisonAddress.toEntity(personEntity: PersonEntity): AddressEntity {
-    val addressEntity = if (!cprUpdateId.isNullOrBlank()) {
-      addressRepository.findByUpdateId(UUID.fromString(cprUpdateId)) ?: throw ResourceNotFoundException("Address with updateId $cprUpdateId not found")
+    val addressEntity = if (!cprAddressId.isNullOrBlank()) {
+      addressRepository.findByUpdateId(UUID.fromString(cprAddressId)) ?: throw ResourceNotFoundException("Address with updateId $cprAddressId not found")
     } else {
       AddressEntity()
     }
