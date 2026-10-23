@@ -40,6 +40,10 @@ generic-service:
     SPRINGDOC_SWAGGER_UI_ENABLED: false
 
   batchjobs:
+    - name: split-clusters
+      type: SPLIT_CLUSTERS
+      schedule: "0 0 1 1 *"
+      suspend: true
     - name: record-count-report
       type: RECORD_COUNT_REPORT
       schedule: "0 0-23 * * *"
