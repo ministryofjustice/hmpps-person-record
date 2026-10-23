@@ -4,17 +4,27 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
+import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
-class RecordCountReportJobIntTest(@Autowired val applicationEventPublisher: ApplicationEventPublisher) : IntegrationTestBase() {
+class RecordCountReportJobIntTest(@Autowired val applicationEventPublisher: ApplicationEventPublisher, @Autowired val personMatchClient: PersonMatchClient) : IntegrationTestBase() {
   private lateinit var recordCountReportJob: RecordCountReportJob
 
   @BeforeEach
   fun beforeEach() {
     deleteAllPersonData()
     telemetryRepository.deleteAll()
-    recordCountReportJob = RecordCountReportJob(personRepository, applicationEventPublisher)
+    recordCountReportJob = RecordCountReportJob(personRepository, applicationEventPublisher, personMatchClient)
+    stubPersonMatchRecordCount()
+  }
+
+  private fun stubPersonMatchRecordCount() {
+    stubPostRequest(
+      url = "/jobs/recordcountreport",
+      status = 200,
+      responseBody = "{}",
+    )
   }
 
   @Test
