@@ -13,16 +13,16 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.PrisonMergeEventHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconPersonMergeResponseBody
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonMergeEventProcessor
 
 @Tag(name = "Syscon Sync")
 @RestController
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [APPLICATION_JSON_VALUE])
 class SysconSyncPrisonMergeAPIController(
-  private val prisonMergeEventProcessor: PrisonMergeEventProcessor,
+  private val prisonMergeEventHandler: PrisonMergeEventHandler,
 ) {
   @Operation(
     description = """Processes a prisoner merge record by Prison Number. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
@@ -33,7 +33,7 @@ class SysconSyncPrisonMergeAPIController(
   fun processPrisonMerge(
     @PathVariable toPrisonNumber: String,
     @RequestBody prisonMergeRequest: PrisonMerge,
-  ): SysconPersonMergeResponseBody = prisonMergeEventProcessor.processEvent(
+  ): SysconPersonMergeResponseBody = prisonMergeEventHandler.handleMerge(
     toPrisonNumber = toPrisonNumber,
     prisonMerge = prisonMergeRequest,
   )

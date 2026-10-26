@@ -1,10 +1,9 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.processors.prison
+package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionMergeHandler
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconContactsAndAddressesMigrationHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressesAndContactsResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconPersonMergeResponseBody
@@ -15,21 +14,21 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
 
-interface PrisonMergeEventProcessor {
-  fun processEvent(toPrisonNumber: String, prisonMerge: PrisonMerge): SysconPersonMergeResponseBody
+interface PrisonMergeEventHandler {
+  fun handleMerge(toPrisonNumber: String, prisonMerge: PrisonMerge): SysconPersonMergeResponseBody
 }
 
 @Profile("prod | preprod")
 @Component
-class PrisonMergeEventProcessorProd(
+class PrisonMergeEventHandlerProd(
   private val personRepository: PersonRepository,
   private val mergeService: MergeService,
   private val prisonerSearchClient: PrisonerSearchClient,
   private val prisonReligionMergeHandler: PrisonReligionMergeHandler?,
-) : PrisonMergeEventProcessor {
+) : PrisonMergeEventHandler {
 
   @Transactional
-  override fun processEvent(toPrisonNumber: String, prisonMerge: PrisonMerge): SysconPersonMergeResponseBody {
+  override fun handleMerge(toPrisonNumber: String, prisonMerge: PrisonMerge): SysconPersonMergeResponseBody {
     prisonerSearchClient.getPrisoner(toPrisonNumber)?.let {
       val fromPersonEntity = personRepository.findByPrisonNumber(prisonMerge.fromPrisonNumber)!!
       val toPersonEntity = personRepository.findByPrisonNumber(toPrisonNumber)!!
@@ -43,16 +42,16 @@ class PrisonMergeEventProcessorProd(
 
 @Profile("!preprod & !prod")
 @Component
-class PrisonMergeEventProcessorDev(
+class PrisonMergeEventHandlerDev(
   private val personRepository: PersonRepository,
   private val mergeService: MergeService,
   private val prisonerSearchClient: PrisonerSearchClient,
   private val prisonReligionMergeHandler: PrisonReligionMergeHandler?,
   private val sysconContactsAndAddressesMigrationHandler: SysconContactsAndAddressesMigrationHandler,
-) : PrisonMergeEventProcessor {
+) : PrisonMergeEventHandler {
 
   @Transactional
-  override fun processEvent(toPrisonNumber: String, prisonMerge: PrisonMerge): SysconPersonMergeResponseBody = prisonerSearchClient.getPrisoner(toPrisonNumber)!!.let {
+  override fun handleMerge(toPrisonNumber: String, prisonMerge: PrisonMerge): SysconPersonMergeResponseBody = prisonerSearchClient.getPrisoner(toPrisonNumber)!!.let {
     val fromPersonEntity = personRepository.findByPrisonNumber(prisonMerge.fromPrisonNumber)!!
     val toPersonEntity = personRepository.findByPrisonNumber(toPrisonNumber)!!
     val personChangeChecker = PersonChangeChecker(toPersonEntity)
