@@ -29,7 +29,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchServi
 import java.util.UUID
 
 @Component
-class SysconContactsAndAddressesMigrationHandler(
+class SysconPersonContactsAndAddressesInsertHandler(
   private val personRepository: PersonRepository,
   private val contactRepository: ContactRepository,
   private val addressUsageRepository: AddressUsageRepository,

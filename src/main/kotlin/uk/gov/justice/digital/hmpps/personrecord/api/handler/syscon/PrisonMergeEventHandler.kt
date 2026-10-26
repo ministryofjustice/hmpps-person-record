@@ -47,7 +47,7 @@ class PrisonMergeEventHandlerDev(
   private val mergeService: MergeService,
   private val prisonerSearchClient: PrisonerSearchClient,
   private val prisonReligionMergeHandler: PrisonReligionMergeHandler?,
-  private val sysconContactsAndAddressesMigrationHandler: SysconContactsAndAddressesMigrationHandler,
+  private val sysconPersonContactsAndAddressesInsertHandler: SysconPersonContactsAndAddressesInsertHandler,
 ) : PrisonMergeEventHandler {
 
   @Transactional
@@ -57,7 +57,7 @@ class PrisonMergeEventHandlerDev(
     val personChangeChecker = PersonChangeChecker(toPersonEntity)
 
     prisonReligionMergeHandler?.handleMerge(fromPersonEntity, toPersonEntity)
-    val sysconAddressesAndContactsResponseBody = sysconContactsAndAddressesMigrationHandler.insertAddressesAndContacts(toPersonEntity, prisonMerge.toPrisonAddressesAndContactsRequest)
+    val sysconAddressesAndContactsResponseBody = sysconPersonContactsAndAddressesInsertHandler.insertAddressesAndContacts(toPersonEntity, prisonMerge.toPrisonAddressesAndContactsRequest)
     mergeService.processMerge(
       from = fromPersonEntity,
       to = toPersonEntity,
