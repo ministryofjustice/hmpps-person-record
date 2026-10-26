@@ -8,21 +8,14 @@ import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest.Companion.validPrisonAddressesAndContactsRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressesHandler.Companion.toPrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toDto
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconPersonMergeResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
@@ -174,43 +167,4 @@ class SysonSyncPrisonMergeProdIntTest : WebTestBase() {
     roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
     expectedStatus = expectedStatus,
   )
-
-  private fun validPrisonMerge(fromPrisonNumber: String) = PrisonMerge(
-    fromPrisonNumber = fromPrisonNumber,
-    toPrisonAddressesAndContactsRequest = validPrisonAddressesAndContactsRequest,
-  )
-
-  companion object {
-    fun assertAddressMatches(request: PrisonAddress, entity: AddressEntity): Unit = with(entity) {
-      assertThat(fullAddress).isEqualTo(request.fullAddress)
-      assertThat(noFixedAbode).isEqualTo(request.noFixedAbode)
-      assertThat(startDate?.toUkLocalDate()).isEqualTo(request.startDate)
-      assertThat(endDate?.toUkLocalDate()).isEqualTo(request.endDate)
-      assertThat(postcode).isEqualTo(request.postcode)
-      assertThat(subBuildingName).isEqualTo(request.subBuildingName)
-      assertThat(buildingName).isEqualTo(request.buildingName)
-      assertThat(buildingNumber).isEqualTo(request.buildingNumber)
-      assertThat(thoroughfareName).isEqualTo(request.thoroughfareName)
-      assertThat(dependentLocality).isEqualTo(request.dependentLocality)
-      assertThat(postTown).isEqualTo(request.postTown)
-      assertThat(county).isEqualTo(request.county)
-      assertThat(countryCode).isEqualTo(request.countryCode)
-      assertThat(comment).isEqualTo(request.comment)
-      assertThat(statusCode).isEqualTo(AddressStatusCode.fromPrison(request.isPrimary, request.isMail ?: false))
-      assertThat(createDateTime).isEqualTo(request.createDateTime)
-      assertThat(createUserId).isEqualTo(request.createUserId)
-      assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
-      assertThat(modifyUserId).isEqualTo(request.modifyUserId)
-    }
-
-    fun assertContactMatches(request: PrisonContact, entity: ContactEntity) = with(entity) {
-      assertThat(contactType).isEqualTo(request.type)
-      assertThat(contactValue).isEqualTo(request.value)
-      assertThat(extension).isEqualTo(request.extension)
-      assertThat(modifyUserId).isEqualTo(request.modifyUserId)
-      assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
-      assertThat(createUserId).isEqualTo(request.createUserId)
-      assertThat(createDateTime).isEqualTo(request.createDateTime)
-    }
-  }
 }
