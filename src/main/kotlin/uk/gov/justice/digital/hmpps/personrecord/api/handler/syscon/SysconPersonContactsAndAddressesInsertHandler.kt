@@ -120,20 +120,26 @@ class SysconPersonContactsAndAddressesInsertHandler(
   }
 
   private fun handleAddressesInsert(addresses: List<PrisonAddress>, personEntity: PersonEntity): List<SysconAddressMapping> {
-    personEntity.addresses.clear()
+    // Hibernate cascade deletes, and we want to keep the entities with the provided update ids.
+    // Therefore, we must not remove them from their parent collections.
+    val addressIdsToRetain = addresses.mapNotNull { it.cprAddressId }
+    val contactIdsToRetain = addresses.flatMap { it.contacts }.mapNotNull { it.cprContactId }
+    val addressUsageIdsToRetain = addresses.flatMap { it.addressUsage }.mapNotNull { it.cprAddressUsageId }
+
+    personEntity.removeAllAddressesBut(addressIdsToRetain)
     val mappings = addresses.map { prisonAddress ->
       val addressEntity = addressRepository.save(prisonAddress.toEntity(personEntity))
-      personEntity.addresses.add(addressEntity)
+      personEntity.addresses.addIfAbsent(addressEntity)
 
       val contactEntities = contactRepository.saveAllAndFlush(prisonAddress.contacts.map { it.toEntity(addressEntity) })
       val contactMappings = prisonAddress.contacts.zip(contactEntities).map { it.toMapping() }
-      addressEntity.contacts.clear()
-      addressEntity.contacts.addAll(contactEntities)
+      addressEntity.removeAllContactsBut(contactIdsToRetain)
+      addressEntity.contacts.addIfAbsent(contactEntities)
 
       val addressUsageEntities = addressUsageRepository.saveAllAndFlush(prisonAddress.addressUsage.map { it.toEntity(addressEntity) })
       val addressUsageMappings = prisonAddress.addressUsage.zip(addressUsageEntities).map { it.toMapping() }
-      addressEntity.usages.clear()
-      addressEntity.usages.addAll(addressUsageEntities)
+      addressEntity.removeAllAddressUsagesBut(addressUsageIdsToRetain)
+      addressEntity.usages.addIfAbsent(addressUsageEntities)
 
       SysconAddressMapping(
         nomisAddressId = prisonAddress.nomisAddressId!!,
@@ -144,6 +150,16 @@ class SysconPersonContactsAndAddressesInsertHandler(
     }
     return mappings
   }
+
+  fun <T> MutableList<T>.addIfAbsent(item: T) = if (item in this) false else add(item)
+
+  fun <T> MutableList<T>.addIfAbsent(items: MutableList<T>) = items.forEach { addIfAbsent(it) }
+
+  private fun PersonEntity.removeAllAddressesBut(toRetain: List<String>) = addresses.removeIf { it.updateId.toString() !in toRetain }
+
+  private fun AddressEntity.removeAllContactsBut(toRetain: List<String>) = contacts.removeIf { it.updateId.toString() !in toRetain }
+
+  private fun AddressEntity.removeAllAddressUsagesBut(toRetain: List<String>) = usages.removeIf { it.updateId.toString() !in toRetain }
 
   private fun tryRecluster(
     personEntity: PersonEntity,
