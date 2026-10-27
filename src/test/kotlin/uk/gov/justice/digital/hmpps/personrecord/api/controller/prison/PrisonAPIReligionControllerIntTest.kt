@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECO
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionInsertRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.ReferenceDataResponse
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.ReferenceDataWithActiveResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
@@ -320,13 +320,13 @@ class PrisonAPIReligionControllerIntTest : WebTestBase() {
           .exchange()
           .expectStatus()
           .isOk
-          .expectBody<List<ReferenceDataResponse>>()
+          .expectBody<List<ReferenceDataWithActiveResponse>>()
           .returnResult()
           .responseBody!!
 
         val expectedReligionCodes = ReligionCode.entries
           .filter { it.current }
-          .map { ReferenceDataResponse(it.name, it.description, it.current) }
+          .map { ReferenceDataWithActiveResponse(it.name, it.description, it.current) }
         assertThat(responseBody).isEqualTo(expectedReligionCodes)
       }
 
@@ -338,12 +338,12 @@ class PrisonAPIReligionControllerIntTest : WebTestBase() {
           .exchange()
           .expectStatus()
           .isOk
-          .expectBody<List<ReferenceDataResponse>>()
+          .expectBody<List<ReferenceDataWithActiveResponse>>()
           .returnResult()
           .responseBody!!
 
         val expectedReligionCodes = ReligionCode.entries
-          .map { ReferenceDataResponse(it.name, it.description, it.current) }
+          .map { ReferenceDataWithActiveResponse(it.name, it.description, it.current) }
         assertThat(responseBody).isEqualTo(expectedReligionCodes)
       }
     }

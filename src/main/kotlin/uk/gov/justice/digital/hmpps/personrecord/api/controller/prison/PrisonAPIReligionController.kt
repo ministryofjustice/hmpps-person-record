@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligi
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionInsertHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionInsertRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.ReferenceDataResponse
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.ReferenceDataWithActiveResponse
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 
 @Tag(name = "Prison")
@@ -57,5 +57,5 @@ class PrisonAPIReligionController(
     security = [SecurityRequirement(name = "api-role")],
   )
   @GetMapping("/religion-codes")
-  fun getReligionCodes(@RequestParam(name = "active", required = false) active: Boolean = true): List<ReferenceDataResponse> = ReligionCode.entries.filter { !active || it.current }.map { ReferenceDataResponse(it.name, it.description, it.current) }
+  fun getReligionCodes(@RequestParam(name = "active", required = false) active: Boolean = true): List<ReferenceDataWithActiveResponse> = ReligionCode.entries.filter { !active || it.current }.map { ReferenceDataWithActiveResponse(it.name, it.description, it.current) }
 }
