@@ -113,7 +113,11 @@ class SysconPersonContactsAndAddressesInsertHandler(
   }
 
   private fun handleContactsInsert(contacts: List<PrisonContact>, personEntity: PersonEntity): List<SysconContactMapping> {
-    personEntity.contacts.clear()
+    // Hibernate cascade deletes, and we want to keep the entities with the provided update ids.
+    // Therefore, we must not remove them from their parent collections.
+    val contactIdsToRetain = contacts.mapNotNull { it.cprContactId }
+    personEntity.removeAllContactsBut(contactIdsToRetain)
+
     val contactEntities = contactRepository.saveAllAndFlush(contacts.map { it.toEntity(personEntity) })
     personEntity.contacts.addAll(contactEntities)
     return contacts.zip(contactEntities).map { it.toMapping() }
@@ -125,8 +129,8 @@ class SysconPersonContactsAndAddressesInsertHandler(
     val addressIdsToRetain = addresses.mapNotNull { it.cprAddressId }
     val contactIdsToRetain = addresses.flatMap { it.contacts }.mapNotNull { it.cprContactId }
     val addressUsageIdsToRetain = addresses.flatMap { it.addressUsage }.mapNotNull { it.cprAddressUsageId }
-
     personEntity.removeAllAddressesBut(addressIdsToRetain)
+
     val mappings = addresses.map { prisonAddress ->
       val addressEntity = addressRepository.save(prisonAddress.toEntity(personEntity))
       personEntity.addresses.addIfAbsent(addressEntity)
@@ -158,6 +162,8 @@ class SysconPersonContactsAndAddressesInsertHandler(
   private fun PersonEntity.removeAllAddressesBut(toRetain: List<String>) = addresses.removeIf { it.updateId.toString() !in toRetain }
 
   private fun AddressEntity.removeAllContactsBut(toRetain: List<String>) = contacts.removeIf { it.updateId.toString() !in toRetain }
+
+  private fun PersonEntity.removeAllContactsBut(toRetain: List<String>) = contacts.removeIf { it.updateId.toString() !in toRetain }
 
   private fun AddressEntity.removeAllAddressUsagesBut(toRetain: List<String>) = usages.removeIf { it.updateId.toString() !in toRetain }
 
