@@ -19,10 +19,12 @@ import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAd
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressesHandler.Companion.toPrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toDto
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressMapping
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressUsageMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressesAndContactsResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconPersonMergeResponseBody
@@ -137,11 +139,11 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       val toPersonAfterMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!
       assertThat(toPersonAfterMerge.addresses).hasSize(2)
 
-      val toAddressAfterMergeRetained = toPersonAfterMerge.addresses.first { it.fullAddress == toAddressBeforeMergeToBeRetained.fullAddress }
+      val toAddressAfterMergeRetained = toPersonAfterMerge.addresses.first { it.id == toAddressBeforeMergeToBeRetained.id }
       assertThat(toAddressAfterMergeRetained.updateId).isEqualTo(toAddressBeforeMergeToBeRetained.updateId)
       assertAddressMatches(mergeAddressReqBodyRetained, toAddressAfterMergeRetained)
 
-      val toAddressAfterMergeDonated = toPersonAfterMerge.addresses.first { it.fullAddress == fromAddressBeforeMergeToDonate.fullAddress }
+      val toAddressAfterMergeDonated = toPersonAfterMerge.addresses.first { it.id == fromAddressBeforeMergeToDonate.id }
       assertThat(toAddressAfterMergeDonated.updateId).isEqualTo(fromAddressBeforeMergeToDonate.updateId)
       assertAddressMatches(mergeAddressReqBodyDonated, toAddressAfterMergeDonated)
 
@@ -245,23 +247,116 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
 
       // The to address has both its original usage and the donated usage
       assertThat(toAddressAfterMerge.usages).hasSize(2)
-      val toAddressUsageAfterMergeRetained = toAddressAfterMerge.usages.first { it.usageCode == toAddressUsageBeforeMergeToBeRetained.usageCode }
+      val toAddressUsageAfterMergeRetained = toAddressAfterMerge.usages.first { it.id == toAddressUsageBeforeMergeToBeRetained.id }
       assertThat(toAddressUsageAfterMergeRetained.updateId).isEqualTo(toAddressUsageBeforeMergeToBeRetained.updateId)
       assertAddressUsageMatches(toAddressUsageToBeRetainedReqBody, toAddressUsageAfterMergeRetained)
 
-      val toAddressUsageAfterMergeDonated = toAddressAfterMerge.usages.first { it.usageCode == fromAddressUsageBeforeMergeToDonate.usageCode }
+      val toAddressUsageAfterMergeDonated = toAddressAfterMerge.usages.first { it.id == fromAddressUsageBeforeMergeToDonate.id }
       assertThat(toAddressUsageAfterMergeDonated.updateId).isEqualTo(fromAddressUsageBeforeMergeToDonate.updateId)
       assertAddressUsageMatches(fromAddressUsageToDonateReqBody, toAddressUsageAfterMergeDonated)
 
       // The to address has both its original contact and the donated contact
       assertThat(toAddressAfterMerge.contacts).hasSize(2)
-      val toAddressContactAfterMergeRetained = toAddressAfterMerge.contacts.first { it.contactValue == toAddressContactBeforeMergeToBeRetained.contactValue }
+      val toAddressContactAfterMergeRetained = toAddressAfterMerge.contacts.first { it.id == toAddressContactBeforeMergeToBeRetained.id }
       assertThat(toAddressContactAfterMergeRetained.updateId).isEqualTo(toAddressContactBeforeMergeToBeRetained.updateId)
       assertContactMatches(toAddressContactToBeRetainedReqBody, toAddressContactAfterMergeRetained)
 
-      val toAddressContactAfterMergeDonated = toAddressAfterMerge.contacts.first { it.contactValue == fromAddressContactBeforeMergeToDonate.contactValue }
+      val toAddressContactAfterMergeDonated = toAddressAfterMerge.contacts.first { it.id == fromAddressContactBeforeMergeToDonate.id }
       assertThat(toAddressContactAfterMergeDonated.updateId).isEqualTo(fromAddressContactBeforeMergeToDonate.updateId)
       assertContactMatches(fromAddressContactToDonateReqBody, toAddressContactAfterMergeDonated)
+    }
+
+    @Test
+    fun `should retain the to address with its original address usage and add a new address usage after a merge`() {
+      val toPrisonNumber = randomPrisonNumber()
+      val fromPrisonNumber = randomPrisonNumber()
+
+      createPersonKey()
+        .addPerson(createRandomPrisonPersonDetails(fromPrisonNumber))
+        .addPerson(
+          createRandomPrisonPersonDetails(toPrisonNumber).copy(
+            addresses = listOf(
+              // This address and its usage will be retained
+              Address(
+                postcode = randomPostcode(),
+                createDateTime = randomDateTime(),
+                createUserId = randomLowerCaseString(),
+                fullAddress = randomLowerCaseString(),
+                usages = listOf(AddressUsage(addressUsageCode = A01, isActive = true, createDateTime = randomDateTime(), createUserId = randomLowerCaseString())),
+              ),
+            ),
+          ),
+        )
+
+      val toAddressBeforeMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!.addresses.first()
+      val toAddressUsageBeforeMergeToBeRetained = toAddressBeforeMerge.usages.first()
+
+      val nomisAddressId = 1L // The address usage id has to be the same as the address id it is associated with.
+      val toAddressUsageToBeRetainedReqBody = toAddressUsageBeforeMergeToBeRetained.toPrisonAddressUsage().copy(nomisAddressUsageId = nomisAddressId)
+      // A brand new usage with no cpr id
+      val newAddressUsageReqBody = PrisonAddressUsage(
+        nomisAddressUsageId = nomisAddressId,
+        addressUsageCode = A02,
+        isActive = false,
+        createDateTime = randomDateTime(),
+        createUserId = randomLowerCaseString(),
+      )
+      val mergeAddressReqBody = toAddressBeforeMerge.toPrisonAddress().copy(
+        nomisAddressId = nomisAddressId,
+        addressUsage = listOf(toAddressUsageToBeRetainedReqBody, newAddressUsageReqBody),
+      )
+      val requestBody = PrisonMerge(
+        fromPrisonNumber = fromPrisonNumber,
+        toPrisonAddressesAndContactsRequest = PrisonAddressesAndContactsRequest(
+          addresses = listOf(mergeAddressReqBody),
+          contacts = emptyList(),
+        ),
+      )
+
+      val actualResponseBody = prisonMergeEventAndResponseSetup(targetPrisonNumber = toPrisonNumber, prisonMerge = requestBody).returnResult().responseBody!!
+
+      // The to person still has its original address
+      val toAddressAfterMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!.addresses.single()
+      assertThat(toAddressAfterMerge.updateId).isEqualTo(toAddressBeforeMerge.updateId)
+      assertAddressMatches(mergeAddressReqBody, toAddressAfterMerge)
+
+      // The to address has its original usage and the new usage
+      assertThat(toAddressAfterMerge.usages).hasSize(2)
+      val toAddressUsageAfterMergeRetained = toAddressAfterMerge.usages.first { it.id == toAddressUsageBeforeMergeToBeRetained.id }
+      assertThat(toAddressUsageAfterMergeRetained.updateId).isEqualTo(toAddressUsageBeforeMergeToBeRetained.updateId)
+      assertAddressUsageMatches(toAddressUsageToBeRetainedReqBody, toAddressUsageAfterMergeRetained)
+
+      val toAddressUsageAfterMergeNew = toAddressAfterMerge.usages.first { it.usageCode == A02 }
+      assertThat(toAddressUsageAfterMergeNew.updateId).isNotNull()
+      assertAddressUsageMatches(newAddressUsageReqBody, toAddressUsageAfterMergeNew)
+
+      val expectedBody = SysconPersonMergeResponseBody(
+        toPrisonNumber = toPrisonNumber,
+        sysconAddressesAndContactsResponseBody = SysconAddressesAndContactsResponseBody(
+          prisonNumber = toPrisonNumber,
+          addressesMappings = listOf(
+            SysconAddressMapping(
+              nomisAddressId = nomisAddressId,
+              cprAddressId = toAddressBeforeMerge.updateId.toString(),
+              addressUsageMappings = listOf(
+                SysconAddressUsageMapping(
+                  nomisAddressUsageId = nomisAddressId,
+                  nomisAddressUsageCode = A01,
+                  cprAddressUsageId = toAddressUsageBeforeMergeToBeRetained.updateId.toString(),
+                ),
+                SysconAddressUsageMapping(
+                  nomisAddressUsageId = nomisAddressId,
+                  nomisAddressUsageCode = A02,
+                  cprAddressUsageId = toAddressUsageAfterMergeNew.updateId.toString(),
+                ),
+              ),
+              contactMappings = emptyList(),
+            ),
+          ),
+          contactMappings = emptyList(),
+        ),
+      )
+      assertThat(actualResponseBody).isEqualTo(expectedBody)
     }
 
     @Test
@@ -315,11 +410,11 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       val toPersonAfterMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!
       assertThat(toPersonAfterMerge.contacts).hasSize(2)
 
-      val toContactAfterMergeRetained = toPersonAfterMerge.contacts.first { it.contactValue == toContactBeforeMergeToBeRetained.contactValue }
+      val toContactAfterMergeRetained = toPersonAfterMerge.contacts.first { it.id == toContactBeforeMergeToBeRetained.id }
       assertThat(toContactAfterMergeRetained.updateId).isEqualTo(toContactBeforeMergeToBeRetained.updateId)
       assertContactMatches(mergeContactReqBodyRetained, toContactAfterMergeRetained)
 
-      val toContactAfterMergeDonated = toPersonAfterMerge.contacts.first { it.contactValue == fromContactBeforeMergeToDonate.contactValue }
+      val toContactAfterMergeDonated = toPersonAfterMerge.contacts.first { it.id == fromContactBeforeMergeToDonate.id }
       assertThat(toContactAfterMergeDonated.updateId).isEqualTo(fromContactBeforeMergeToDonate.updateId)
       assertContactMatches(mergeContactReqBodyDonated, toContactAfterMergeDonated)
 
