@@ -5,6 +5,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import java.time.LocalDateTime
 
 data class CanonicalContact(
+  @Schema(description = "CPR contact Id", example = "aa7299c5-0201-4cab-be25-e4eb9d1ac655")
+  val cprContactId: String,
   @Schema(description = "Contact type")
   val type: CanonicalContactType,
   @Schema(description = "Contact value", example = "+44 20 7946 0000")
@@ -23,6 +25,7 @@ data class CanonicalContact(
 
   companion object {
     fun from(contactEntity: ContactEntity): CanonicalContact = CanonicalContact(
+      cprContactId = contactEntity.updateId!!.toString(),
       type = CanonicalContactType.from(contactEntity.contactType),
       value = contactEntity.contactValue,
       extension = contactEntity.extension,

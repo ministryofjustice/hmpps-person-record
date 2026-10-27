@@ -148,7 +148,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
           comment = address2.comment,
           usages = address2.usages.map { CanonicalAddressUsage(CanonicalAddressUsageCode.from(it.usageCode), it.active) },
         )
-        val canonicalContacts = person.contacts.map { CanonicalContact(type = CanonicalContactType.from(it.contactType), value = it.contactValue, extension = it.extension) }
+        val canonicalContacts = person.contacts.map { CanonicalContact(cprContactId = it.updateId.toString(), type = CanonicalContactType.from(it.contactType), value = it.contactValue, extension = it.extension) }
 
         val canonicalReligion = CanonicalReligion(code = prisonPerson.religion?.name, description = prisonPerson.religion?.description)
         val canonicalEthnicity = CanonicalEthnicity.from(prisonPerson.ethnicityCode)
