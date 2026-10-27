@@ -11,7 +11,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.test.context.TestPropertySource
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jobs.recluster.ReclusterDatabaseJob
-import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
@@ -35,19 +35,18 @@ class ReclusterDatabaseJobTest : E2ETestBase() {
       val crnOne = randomCrn()
       val crnTwo = randomCrn()
 
-      createPersonKey()
+      val clusterOne = createPersonKey()
         .addPerson(createRandomPrisonPersonDetails(prisonNumberOne))
         .addPerson(createRandomPrisonPersonDetails(prisonNumberTwo))
 
-      createPersonKey()
+      val clusterTwo = createPersonKey()
         .addPerson(createRandomProbationPersonDetails(crnOne))
         .addPerson(createRandomProbationPersonDetails(crnTwo))
 
       reclusterDatabaseJob.run()
 
-      checkEventLogExist(prisonNumberOne, CPR_RECLUSTER_RECORD_MERGED, 1)
-      // telemetry event (CPR_RECLUSTER_MERGE)
-      // telemetry monitoring (CPR_ADMIN_RECLUSTER_TRIGGERED)
+      checkTelemetry(CPR_ADMIN_RECLUSTER_TRIGGERED, mapOf("UUID" to clusterOne.personUUID.toString()), times = 2)
+      checkTelemetry(CPR_ADMIN_RECLUSTER_TRIGGERED, mapOf("UUID" to clusterTwo.personUUID.toString()), times = 2)
     }
 
     @Test
