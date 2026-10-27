@@ -23,8 +23,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAd
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCreateAddressRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.ReferenceDataResponse
-import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 
 @Tag(name = "Prison")
 @RestController
@@ -80,11 +78,4 @@ class PrisonAPIAddressesController(
     @PathVariable(name = "contactId") @Parameter(description = "The contact id") contactId: String,
     @Valid @RequestBody request: PrisonContactRequest,
   ): CanonicalContact = prisonContactsHandler.updateContact(prisonNumber, addressId, contactId, request)
-
-  @Operation(
-    description = "Retrieve list of prison country codes. Role required is **$API_READ_ONLY**. ",
-    security = [SecurityRequirement(name = "api-role")],
-  )
-  @GetMapping("/country-codes")
-  fun getCountryCodes(): List<ReferenceDataResponse> = CountryCode.entries.map { ReferenceDataResponse(it.name, it.description) }
 }

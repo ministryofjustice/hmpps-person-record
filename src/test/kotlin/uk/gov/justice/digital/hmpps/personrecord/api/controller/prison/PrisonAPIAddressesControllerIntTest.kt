@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatus.FORBIDDEN
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.OK
 import org.springframework.http.HttpStatus.UNAUTHORIZED
-import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
@@ -23,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalCo
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContactType
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCreateAddressRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.ReferenceDataResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -612,54 +610,6 @@ class PrisonAPIAddressesControllerIntTest(
       extension = "123",
       userId = "UPDATER",
     )
-  }
-
-  @Nested
-  @DisplayName("GET /person/prison/country-codes")
-  inner class GetCountryCodes {
-    @Nested
-    inner class SuccessfulProcessing {
-      @Test
-      fun `should return all prison country codes`() {
-        val responseBody = webTestClient.get()
-          .uri(countryCodesApiUrl())
-          .authorised(listOf(API_READ_ONLY))
-          .exchange()
-          .expectStatus()
-          .isOk
-          .expectBody<List<ReferenceDataResponse>>()
-          .returnResult()
-          .responseBody!!
-
-        val expectedCountryCodes = CountryCode.entries
-          .map { ReferenceDataResponse(it.name, it.description) }
-        assertThat(responseBody).isEqualTo(expectedCountryCodes)
-      }
-    }
-
-    @Nested
-    inner class ErrorScenarios {
-      @Test
-      fun `should return Access Denied 403 when role is wrong`() {
-        webTestClient.get()
-          .uri(countryCodesApiUrl())
-          .authorised(listOf("UNSUPPORTED-ROLE"))
-          .exchange()
-          .expectStatus()
-          .isForbidden
-      }
-
-      @Test
-      fun `should return UNAUTHORIZED 401 when role is not set`() {
-        webTestClient.get()
-          .uri(countryCodesApiUrl())
-          .exchange()
-          .expectStatus()
-          .isUnauthorized
-      }
-    }
-
-    private fun countryCodesApiUrl() = "/person/prison/country-codes"
   }
 
   private companion object {

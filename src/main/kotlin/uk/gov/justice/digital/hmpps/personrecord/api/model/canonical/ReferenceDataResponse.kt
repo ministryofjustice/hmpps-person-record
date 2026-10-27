@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.model.prison
+package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
 data class ReferenceDataResponse(
   val code: String,
