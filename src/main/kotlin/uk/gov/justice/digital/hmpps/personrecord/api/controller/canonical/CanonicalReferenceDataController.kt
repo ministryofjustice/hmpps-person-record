@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 @Tag(name = "Canonical")
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
-@RequestMapping("/person/reference-data/")
+@RequestMapping("/person/reference-data")
 class CanonicalReferenceDataController {
   @Operation(
     description = "Retrieve list of religion codes. Role required is **$API_READ_ONLY**. ",
