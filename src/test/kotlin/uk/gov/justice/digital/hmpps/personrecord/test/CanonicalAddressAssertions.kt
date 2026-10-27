@@ -55,6 +55,7 @@ private fun AddressEntity.toCanonicalAddress(): CanonicalAddress = CanonicalAddr
   },
   contacts = contacts.map {
     CanonicalContact(
+      cprContactId = it.updateId.toString(),
       type = CanonicalContactType.from(it.contactType),
       value = it.contactValue,
       extension = it.extension,
