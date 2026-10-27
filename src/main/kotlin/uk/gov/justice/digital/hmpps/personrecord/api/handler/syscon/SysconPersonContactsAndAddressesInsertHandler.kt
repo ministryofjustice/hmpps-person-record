@@ -119,7 +119,7 @@ class SysconPersonContactsAndAddressesInsertHandler(
     personEntity.removeAllContactsBut(contactIdsToRetain)
 
     val contactEntities = contactRepository.saveAllAndFlush(contacts.map { it.toEntity(personEntity) })
-    personEntity.contacts.addAll(contactEntities)
+    personEntity.contacts.addIfAbsent(contactEntities)
     return contacts.zip(contactEntities).map { it.toMapping() }
   }
 
