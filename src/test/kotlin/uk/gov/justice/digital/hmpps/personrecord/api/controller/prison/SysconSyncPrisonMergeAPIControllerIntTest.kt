@@ -360,6 +360,73 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
     }
 
     @Test
+    fun `should move primary and mail flags from the retained to address to the donated from address after a merge`() {
+      val toPrisonNumber = randomPrisonNumber()
+      val fromPrisonNumber = randomPrisonNumber()
+
+      createPersonKey()
+        .addPerson(
+          createRandomPrisonPersonDetails(fromPrisonNumber).copy(
+            addresses = listOf(
+              // This primary and mail address will be donated and remain primary and mail
+              Address(
+                postcode = randomPostcode(),
+                createDateTime = randomDateTime(),
+                createUserId = randomLowerCaseString(),
+                fullAddress = randomLowerCaseString(),
+                statusCode = AddressStatusCode.PM,
+              ),
+            ),
+          ),
+        )
+        .addPerson(
+          createRandomPrisonPersonDetails(toPrisonNumber).copy(
+            addresses = listOf(
+              // This primary and mail address will be retained but will no longer be primary or mail
+              Address(
+                postcode = randomPostcode(),
+                createDateTime = randomDateTime(),
+                createUserId = randomLowerCaseString(),
+                fullAddress = randomLowerCaseString(),
+                statusCode = AddressStatusCode.PM,
+              ),
+            ),
+          ),
+        )
+
+      val fromAddressBeforeMergeToDonate = personRepository.findByPrisonNumber(fromPrisonNumber)!!.addresses.first()
+      assertThat(fromAddressBeforeMergeToDonate.statusCode).isEqualTo(AddressStatusCode.PM)
+      val toAddressBeforeMergeToBeRetained = personRepository.findByPrisonNumber(toPrisonNumber)!!.addresses.first()
+      assertThat(toAddressBeforeMergeToBeRetained.statusCode).isEqualTo(AddressStatusCode.PM)
+
+      // Only one address can be primary and only one can be mail, so the to address loses both flags
+      val mergeAddressReqBodyRetained = toAddressBeforeMergeToBeRetained.toPrisonAddress().copy(nomisAddressId = 1L, isPrimary = false, isMail = false)
+      val mergeAddressReqBodyDonated = fromAddressBeforeMergeToDonate.toPrisonAddress().copy(nomisAddressId = 2L, isPrimary = true, isMail = true)
+      val requestBody = PrisonMerge(
+        fromPrisonNumber = fromPrisonNumber,
+        toPrisonAddressesAndContactsRequest = PrisonAddressesAndContactsRequest(
+          addresses = listOf(mergeAddressReqBodyRetained, mergeAddressReqBodyDonated),
+          contacts = emptyList(),
+        ),
+      )
+
+      prisonMergeEventAndResponseSetup(targetPrisonNumber = toPrisonNumber, prisonMerge = requestBody).returnResult().responseBody!!
+
+      val toPersonAfterMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!
+      assertThat(toPersonAfterMerge.addresses).hasSize(2)
+
+      // The retained to address is no longer primary or mail
+      val toAddressAfterMergeRetained = toPersonAfterMerge.addresses.first { it.id == toAddressBeforeMergeToBeRetained.id }
+      assertThat(toAddressAfterMergeRetained.updateId).isEqualTo(toAddressBeforeMergeToBeRetained.updateId)
+      assertThat(toAddressAfterMergeRetained.statusCode).isNull()
+
+      // The donated from address is now the primary and mail address
+      val toAddressAfterMergeDonated = toPersonAfterMerge.addresses.first { it.id == fromAddressBeforeMergeToDonate.id }
+      assertThat(toAddressAfterMergeDonated.updateId).isEqualTo(fromAddressBeforeMergeToDonate.updateId)
+      assertThat(toAddressAfterMergeDonated.statusCode).isEqualTo(AddressStatusCode.PM)
+    }
+
+    @Test
     fun `should retain some contacts and overwrite others for to person after a merge and return correct id mappings`() {
       val toPrisonNumber = randomPrisonNumber()
       val fromPrisonNumber = randomPrisonNumber()
