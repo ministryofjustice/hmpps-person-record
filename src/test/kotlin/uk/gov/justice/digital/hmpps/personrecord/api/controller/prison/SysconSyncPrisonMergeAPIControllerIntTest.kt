@@ -8,6 +8,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertNull
 import org.springframework.http.HttpStatus
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
@@ -68,7 +69,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should overwrite all addresses for to person after a merge and return correct id mappings`() {
+    fun `should overwrite addresses for to person after a merge and return correct id mappings`() {
       val toPrisonNumber = randomPrisonNumber()
       val fromPrisonNumber = randomPrisonNumber()
 
@@ -76,7 +77,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
         .addPerson(
           createRandomPrisonPersonDetails(fromPrisonNumber).copy(
             addresses = listOf(
-              Address(postcode = randomPostcode(), createDateTime = randomDateTime(), createUserId = randomLowerCaseString(), fullAddress = randomLowerCaseString()),
+              // This address will replace an address on the to person address
               Address(postcode = randomPostcode(), createDateTime = randomDateTime(), createUserId = randomLowerCaseString(), fullAddress = randomLowerCaseString()),
             ),
           ),
@@ -84,40 +85,51 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
         .addPerson(
           createRandomPrisonPersonDetails(toPrisonNumber).copy(
             addresses = listOf(
+              // One address of the to person will be retained, the other replaced
+              Address(postcode = randomPostcode(), createDateTime = randomDateTime(), createUserId = randomLowerCaseString(), fullAddress = randomLowerCaseString()),
               Address(postcode = randomPostcode(), createDateTime = randomDateTime(), createUserId = randomLowerCaseString(), fullAddress = randomLowerCaseString()),
             ),
           ),
         )
 
       val fromPersonBeforeMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!
-      val fromAddressBeforeMergeOne = fromPersonBeforeMerge.addresses.first()
-      val fromAddressBeforeMergeTwo = fromPersonBeforeMerge.addresses.last()
+      val fromAddressBeforeMergeToDonate = fromPersonBeforeMerge.addresses.first()
 
-      val fromPersonAddressReqBodyOne = fromAddressBeforeMergeOne.toPrisonAddress().copy(nomisAddressId = 1L)
-      val fromPersonAddressReqBodyTwo = fromAddressBeforeMergeTwo.toPrisonAddress().copy(nomisAddressId = 2L)
+      val toPersonBeforeMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!
+      val toAddressBeforeMergeToBeRetained = toPersonBeforeMerge.addresses.first()
+      val toAddressBeforeMergeToBeReplaced = toPersonBeforeMerge.addresses.last()
+
+      // The to person retains one of the addresses and the other is replaced by the from person address
+      val mergeAddressReqBodyRetained = toAddressBeforeMergeToBeRetained.toPrisonAddress().copy(nomisAddressId = 1L)
+      val mergeAddressReqBodyDonated = fromAddressBeforeMergeToDonate.toPrisonAddress().copy(nomisAddressId = 2L)
       val requestBody = PrisonMerge(
         fromPrisonNumber = fromPrisonNumber,
         toPrisonAddressesAndContactsRequest = PrisonAddressesAndContactsRequest(
-          addresses = listOf(fromPersonAddressReqBodyOne, fromPersonAddressReqBodyTwo),
+          addresses = listOf(mergeAddressReqBodyRetained, mergeAddressReqBodyDonated),
           contacts = emptyList(),
         ),
       )
 
       val actualResponseBody = prisonMergeEventAndResponseSetup(targetPrisonNumber = toPrisonNumber, prisonMerge = requestBody).returnResult().responseBody!!
 
+      // The from person has donated its address to the to person
       val fromPersonAfterMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!
       assertThat(fromPersonAfterMerge.addresses.size).isEqualTo(0)
 
+      // The to person should still have two addresses
+      // One was retained. One was replaced by the from person
       val toPersonAfterMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!
       assertThat(toPersonAfterMerge.addresses).hasSize(2)
 
-      val toPersonAddressAfterMergeOne = toPersonAfterMerge.addresses.first { it.fullAddress == fromAddressBeforeMergeOne.fullAddress }
-      assertThat(toPersonAddressAfterMergeOne.updateId).isEqualTo(fromAddressBeforeMergeOne.updateId)
-      assertAddressMatches(fromPersonAddressReqBodyOne, toPersonAddressAfterMergeOne)
+      val toAddressAfterMergeRetained = toPersonAfterMerge.addresses.first { it.fullAddress == toAddressBeforeMergeToBeRetained.fullAddress }
+      assertThat(toAddressAfterMergeRetained.updateId).isEqualTo(toAddressBeforeMergeToBeRetained.updateId)
+      assertAddressMatches(mergeAddressReqBodyRetained, toAddressAfterMergeRetained)
 
-      val toPersonAddressAfterMergeTwo = toPersonAfterMerge.addresses.first { it.fullAddress == fromAddressBeforeMergeTwo.fullAddress }
-      assertThat(toPersonAddressAfterMergeTwo.updateId).isEqualTo(fromAddressBeforeMergeTwo.updateId)
-      assertAddressMatches(fromPersonAddressReqBodyTwo, toPersonAddressAfterMergeTwo)
+      val toAddressAfterMergeDonated = toPersonAfterMerge.addresses.first { it.fullAddress == fromAddressBeforeMergeToDonate.fullAddress }
+      assertThat(toAddressAfterMergeDonated.updateId).isEqualTo(fromAddressBeforeMergeToDonate.updateId)
+      assertAddressMatches(mergeAddressReqBodyDonated, toAddressAfterMergeDonated)
+
+      assertNull(addressRepository.findByUpdateId(toAddressBeforeMergeToBeReplaced.updateId!!))
 
       val expectedBody = SysconPersonMergeResponseBody(
         toPrisonNumber = toPrisonNumber,
@@ -125,14 +137,14 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
           prisonNumber = toPrisonNumber,
           addressesMappings = listOf(
             SysconAddressMapping(
-              nomisAddressId = fromPersonAddressReqBodyOne.nomisAddressId!!,
-              cprAddressId = toPersonAddressAfterMergeOne.updateId.toString(),
+              nomisAddressId = mergeAddressReqBodyRetained.nomisAddressId!!,
+              cprAddressId = toAddressBeforeMergeToBeRetained.updateId.toString(),
               addressUsageMappings = emptyList(),
               contactMappings = emptyList(),
             ),
             SysconAddressMapping(
-              nomisAddressId = fromPersonAddressReqBodyTwo.nomisAddressId!!,
-              cprAddressId = toPersonAddressAfterMergeTwo.updateId.toString(),
+              nomisAddressId = mergeAddressReqBodyDonated.nomisAddressId!!,
+              cprAddressId = fromAddressBeforeMergeToDonate.updateId.toString(),
               addressUsageMappings = emptyList(),
               contactMappings = emptyList(),
             ),
