@@ -23,7 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 @Tag(name = "Prison")
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
-@RequestMapping("/person/prison/")
+@RequestMapping("/person/prison")
 class PrisonAPIReligionController(
   private val prisonReligionGetHandler: PrisonReligionGetHandler,
   private val prisonReligionInsertHandler: PrisonReligionInsertHandler,
