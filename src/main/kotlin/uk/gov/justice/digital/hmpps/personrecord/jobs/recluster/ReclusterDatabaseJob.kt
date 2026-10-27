@@ -36,7 +36,11 @@ class ReclusterDatabaseJob(
         val pageTime = measureTime {
           val pageable = PageRequest.of(pageNumber, BATCH_SIZE, Sort.by("id"))
           personEntities = personRepository.findAll(pageable)
-          val personsNotMergedOrPassive = personEntities.content.filter { it.personKey != null && !it.isPassive() }
+
+          val personsNotMergedOrPassive = personEntities.content
+            .filter { it.isNotMerged() }
+            .filter { it.isNotPassive() }
+
           reclusterPersons(personsNotMergedOrPassive)
           pageNumber++
         }
