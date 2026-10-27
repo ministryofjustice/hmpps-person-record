@@ -13,8 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressUsagesAPIControllerIntTest.Companion.assertAddressUsageMatches
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest.Companion.validPrisonAddressesAndContactsRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressesHandler.Companion.toPrisonAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressesHandler.Companion.toPrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toDto
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
@@ -28,11 +30,17 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressUsageRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode.A01
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode.A02
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.BUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -49,6 +57,9 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
 
   @Autowired
   lateinit var contactRepository: ContactRepository
+
+  @Autowired
+  lateinit var addressUsageRepository: AddressUsageRepository
 
   @Nested
   inner class Merging {
@@ -158,6 +169,99 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
         ),
       )
       assertThat(actualResponseBody).isEqualTo(expectedBody)
+    }
+
+    @Test
+    fun `should retain the to address with its original address usage and contact and an address usage and contact donated from the from address after a merge`() {
+      val toPrisonNumber = randomPrisonNumber()
+      val fromPrisonNumber = randomPrisonNumber()
+
+      createPersonKey()
+        .addPerson(
+          createRandomPrisonPersonDetails(fromPrisonNumber).copy(
+            addresses = listOf(
+              // The usage and contact on this address will be donated to the to person's address
+              Address(
+                postcode = randomPostcode(),
+                createDateTime = randomDateTime(),
+                createUserId = randomLowerCaseString(),
+                fullAddress = randomLowerCaseString(),
+                usages = listOf(AddressUsage(addressUsageCode = A02, isActive = true, createDateTime = randomDateTime(), createUserId = randomLowerCaseString())),
+                contacts = listOf(Contact(contactType = BUS, contactValue = randomLowerCaseString(), createDateTime = randomDateTime(), createUserId = randomLowerCaseString())),
+              ),
+            ),
+          ),
+        )
+        .addPerson(
+          createRandomPrisonPersonDetails(toPrisonNumber).copy(
+            addresses = listOf(
+              // This address and its usage and contact will be retained
+              Address(
+                postcode = randomPostcode(),
+                createDateTime = randomDateTime(),
+                createUserId = randomLowerCaseString(),
+                fullAddress = randomLowerCaseString(),
+                usages = listOf(AddressUsage(addressUsageCode = A01, isActive = true, createDateTime = randomDateTime(), createUserId = randomLowerCaseString())),
+                contacts = listOf(Contact(contactType = HOME, contactValue = randomLowerCaseString(), createDateTime = randomDateTime(), createUserId = randomLowerCaseString())),
+              ),
+            ),
+          ),
+        )
+
+      val fromAddressBeforeMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!.addresses.first()
+      val fromAddressUsageBeforeMergeToDonate = fromAddressBeforeMerge.usages.first()
+      val fromAddressContactBeforeMergeToDonate = fromAddressBeforeMerge.contacts.first()
+
+      val toAddressBeforeMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!.addresses.first()
+      val toAddressUsageBeforeMergeToBeRetained = toAddressBeforeMerge.usages.first()
+      val toAddressContactBeforeMergeToBeRetained = toAddressBeforeMerge.contacts.first()
+
+      val nomisAddressId = 1L // The address usage id has to be the same as the address id it is associated with.
+      val toAddressContactToBeRetainedReqBody = toAddressContactBeforeMergeToBeRetained.toDto().copy(nomisContactId = 2L)
+      val fromAddressContactToDonateReqBody = fromAddressContactBeforeMergeToDonate.toDto().copy(nomisContactId = 3L)
+      val toAddressUsageToBeRetainedReqBody = toAddressUsageBeforeMergeToBeRetained.toPrisonAddressUsage().copy(nomisAddressUsageId = nomisAddressId)
+      val fromAddressUsageToDonateReqBody = fromAddressUsageBeforeMergeToDonate.toPrisonAddressUsage().copy(nomisAddressUsageId = nomisAddressId)
+      // The to address keeps its own usage and contact and gains the usage and contact from the from address
+      val mergeAddressReqBody = toAddressBeforeMerge.toPrisonAddress()
+        .copy(
+          nomisAddressId = 1L,
+          contacts = listOf(toAddressContactToBeRetainedReqBody, fromAddressContactToDonateReqBody),
+          addressUsage = listOf(toAddressUsageToBeRetainedReqBody, fromAddressUsageToDonateReqBody),
+        )
+      val requestBody = PrisonMerge(
+        fromPrisonNumber = fromPrisonNumber,
+        toPrisonAddressesAndContactsRequest = PrisonAddressesAndContactsRequest(
+          addresses = listOf(mergeAddressReqBody),
+          contacts = emptyList(),
+        ),
+      )
+
+      prisonMergeEventAndResponseSetup(targetPrisonNumber = toPrisonNumber, prisonMerge = requestBody).returnResult().responseBody!!
+
+      // The to person still has its original address
+      val toAddressAfterMerge = personRepository.findByPrisonNumber(toPrisonNumber)!!.addresses.first { it.id == toAddressBeforeMerge.id }
+      assertThat(toAddressAfterMerge.updateId).isEqualTo(toAddressBeforeMerge.updateId)
+      assertAddressMatches(mergeAddressReqBody, toAddressAfterMerge)
+
+      // The to address has both its original usage and the donated usage
+      assertThat(toAddressAfterMerge.usages).hasSize(2)
+      val toAddressUsageAfterMergeRetained = toAddressAfterMerge.usages.first { it.usageCode == toAddressUsageBeforeMergeToBeRetained.usageCode }
+      assertThat(toAddressUsageAfterMergeRetained.updateId).isEqualTo(toAddressUsageBeforeMergeToBeRetained.updateId)
+      assertAddressUsageMatches(toAddressUsageToBeRetainedReqBody, toAddressUsageAfterMergeRetained)
+
+      val toAddressUsageAfterMergeDonated = toAddressAfterMerge.usages.first { it.usageCode == fromAddressUsageBeforeMergeToDonate.usageCode }
+      assertThat(toAddressUsageAfterMergeDonated.updateId).isEqualTo(fromAddressUsageBeforeMergeToDonate.updateId)
+      assertAddressUsageMatches(fromAddressUsageToDonateReqBody, toAddressUsageAfterMergeDonated)
+
+      // The to address has both its original contact and the donated contact
+      assertThat(toAddressAfterMerge.contacts).hasSize(2)
+      val toAddressContactAfterMergeRetained = toAddressAfterMerge.contacts.first { it.contactValue == toAddressContactBeforeMergeToBeRetained.contactValue }
+      assertThat(toAddressContactAfterMergeRetained.updateId).isEqualTo(toAddressContactBeforeMergeToBeRetained.updateId)
+      assertContactMatches(toAddressContactToBeRetainedReqBody, toAddressContactAfterMergeRetained)
+
+      val toAddressContactAfterMergeDonated = toAddressAfterMerge.contacts.first { it.contactValue == fromAddressContactBeforeMergeToDonate.contactValue }
+      assertThat(toAddressContactAfterMergeDonated.updateId).isEqualTo(fromAddressContactBeforeMergeToDonate.updateId)
+      assertContactMatches(fromAddressContactToDonateReqBody, toAddressContactAfterMergeDonated)
     }
 
     @Test
