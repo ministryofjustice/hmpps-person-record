@@ -155,7 +155,7 @@ class SysconPersonContactsAndAddressesInsertHandler(
     return mappings
   }
 
-  fun <T> MutableList<T>.addIfAbsent(item: T) = if (item in this) false else add(item)
+  fun <T> MutableList<T>.addIfAbsent(item: T) = item !in this && add(item)
 
   fun <T> MutableList<T>.addIfAbsent(items: MutableList<T>) = items.forEach { addIfAbsent(it) }
 
