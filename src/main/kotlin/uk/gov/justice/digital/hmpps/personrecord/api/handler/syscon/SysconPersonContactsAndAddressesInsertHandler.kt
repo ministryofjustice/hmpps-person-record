@@ -113,7 +113,7 @@ class SysconPersonContactsAndAddressesInsertHandler(
   }
 
   private fun handleContactsInsert(contacts: List<PrisonContact>, personEntity: PersonEntity): List<SysconContactMapping> {
-    val contactEntities = contactRepository.saveAllAndFlush(contacts.map { it.toEntity(personEntity) })
+    val contactEntities = contactRepository.saveAllAndFlush(contacts.map { it.findExistingElseNewContactUsageAndUpdateFields(personEntity) })
     personEntity.contacts.addIfAbsent(contactEntities)
     val mappings = contacts.zip(contactEntities).map { it.toMapping() }
     // Hibernate cascade deletes. Therefore, we can only remove entities at the end
@@ -123,15 +123,15 @@ class SysconPersonContactsAndAddressesInsertHandler(
 
   private fun handleAddressesInsert(addresses: List<PrisonAddress>, personEntity: PersonEntity): List<SysconAddressMapping> {
     val mappings = addresses.map { prisonAddress ->
-      val addressEntity = addressRepository.save(prisonAddress.toEntity(personEntity))
+      val addressEntity = addressRepository.save(prisonAddress.findExistingElseNewAddressAndUpdateFields(personEntity))
       personEntity.addresses.addIfAbsent(addressEntity)
 
-      val contactEntities = contactRepository.saveAllAndFlush(prisonAddress.contacts.map { it.toEntity(addressEntity) })
+      val contactEntities = contactRepository.saveAllAndFlush(prisonAddress.contacts.map { it.findExistingElseNewContactAndUpdateFields(addressEntity) })
       val contactMappings = prisonAddress.contacts.zip(contactEntities).map { it.toMapping() }
 
       addressEntity.contacts.addIfAbsent(contactEntities)
 
-      val addressUsageEntities = addressUsageRepository.saveAllAndFlush(prisonAddress.addressUsage.map { it.toEntity(addressEntity) })
+      val addressUsageEntities = addressUsageRepository.saveAllAndFlush(prisonAddress.addressUsage.map { it.findExistingElseNewAddressUsageAndUpdateFields(addressEntity) })
       val addressUsageMappings = prisonAddress.addressUsage.zip(addressUsageEntities).map { it.toMapping() }
 
       addressEntity.usages.addIfAbsent(addressUsageEntities)
@@ -172,7 +172,7 @@ class SysconPersonContactsAndAddressesInsertHandler(
     }
   }
 
-  private fun PrisonAddress.toEntity(personEntity: PersonEntity): AddressEntity {
+  private fun PrisonAddress.findExistingElseNewAddressAndUpdateFields(personEntity: PersonEntity): AddressEntity {
     val addressEntity = if (!cprAddressId.isNullOrBlank()) {
       addressRepository.findByUpdateId(UUID.fromString(cprAddressId)) ?: throw ResourceNotFoundException("Address with updateId $cprAddressId not found")
     } else {
@@ -202,7 +202,7 @@ class SysconPersonContactsAndAddressesInsertHandler(
     return addressEntity
   }
 
-  fun PrisonContact.toEntity(addressEntity: AddressEntity): ContactEntity {
+  fun PrisonContact.findExistingElseNewContactAndUpdateFields(addressEntity: AddressEntity): ContactEntity {
     val contactEntity = if (!cprContactId.isNullOrBlank()) {
       contactRepository.findByUpdateId(UUID.fromString(cprContactId)) ?: throw ResourceNotFoundException("Contact with updateId $cprContactId not found")
     } else {
@@ -220,7 +220,7 @@ class SysconPersonContactsAndAddressesInsertHandler(
     return contactEntity
   }
 
-  private fun PrisonContact.toEntity(personEntity: PersonEntity): ContactEntity {
+  private fun PrisonContact.findExistingElseNewContactUsageAndUpdateFields(personEntity: PersonEntity): ContactEntity {
     val contactEntity = if (!cprContactId.isNullOrBlank()) {
       contactRepository.findByUpdateId(UUID.fromString(cprContactId)) ?: throw ResourceNotFoundException("Contact with updateId $cprContactId not found")
     } else {
@@ -238,7 +238,7 @@ class SysconPersonContactsAndAddressesInsertHandler(
     return contactEntity
   }
 
-  fun PrisonAddressUsage.toEntity(addressEntity: AddressEntity): AddressUsageEntity {
+  fun PrisonAddressUsage.findExistingElseNewAddressUsageAndUpdateFields(addressEntity: AddressEntity): AddressUsageEntity {
     val addressUsageEntity = if (!cprAddressUsageId.isNullOrBlank()) {
       addressUsageRepository.findByUpdateId(UUID.fromString(cprAddressUsageId)) ?: throw ResourceNotFoundException("AddressUsage with updateId $cprAddressUsageId not found")
     } else {
