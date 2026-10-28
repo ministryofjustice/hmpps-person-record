@@ -27,6 +27,7 @@ import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -155,6 +156,11 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var addressRepository: AddressRepository
+
+  @BeforeEach
+  fun resetWireMock() {
+    wiremock.resetAll()
+  }
 
   fun authSetup() {
     wiremock.stubFor(

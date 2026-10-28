@@ -30,6 +30,7 @@ class SysonSyncPrisonMergePreProdIntTest : WebTestBase() {
 
   @BeforeEach
   fun setup() {
+    deleteAllPersonData()
     stubPersonMatchUpsert()
     stubPersonMatchScores()
     stubDeletePersonMatch()
