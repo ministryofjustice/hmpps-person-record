@@ -129,8 +129,6 @@ class SysconPersonContactsAndAddressesInsertHandler(
     val addressIdsToRetain = addresses.mapNotNull { it.cprAddressId }
     val contactIdsToRetain = addresses.flatMap { it.contacts }.mapNotNull { it.cprContactId }
     val addressUsageIdsToRetain = addresses.flatMap { it.addressUsage }.mapNotNull { it.cprAddressUsageId }
-    personEntity.removeAllAddressesBut(addressIdsToRetain)
-
     val mappings = addresses.map { prisonAddress ->
       val addressEntity = addressRepository.save(prisonAddress.toEntity(personEntity))
       personEntity.addresses.addIfAbsent(addressEntity)
@@ -152,6 +150,8 @@ class SysconPersonContactsAndAddressesInsertHandler(
         contactMappings = contactMappings,
       )
     }
+    // We can now safely remove any addresses that should not be retained
+    personEntity.removeAllAddressesBut(addressIdsToRetain)
     return mappings
   }
 
