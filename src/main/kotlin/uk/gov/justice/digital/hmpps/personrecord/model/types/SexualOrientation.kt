@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.types
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 
-enum class SexualOrientation(val description: String) {
+enum class SexualOrientation(override val description: String) : ReferenceData {
   BIS("Bisexual"),
   HOM("Gay or Lesbian"),
   HET("Heterosexual or Straight"),

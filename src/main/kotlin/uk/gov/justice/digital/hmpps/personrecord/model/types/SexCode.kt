@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAlias
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 
-enum class SexCode(val description: String) {
+enum class SexCode(override val description: String) : ReferenceData {
   M("Male"),
   F("Female"),
   N("Not Known / Not Recorded"),

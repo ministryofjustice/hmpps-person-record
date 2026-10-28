@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
-enum class ContactType(val description: String) {
+enum class ContactType(override val description: String) : ReferenceData {
   HOME("Home"),
   BUS("Business"),
   FAX("Fax"),

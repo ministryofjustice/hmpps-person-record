@@ -1,8 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types.nationality
 
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReferenceData
 
-enum class NationalityCode(val description: String) {
+enum class NationalityCode(override val description: String) : ReferenceData {
   AB("Aruban"),
   AFGA("Afghan"),
   AG("Anguillan"),

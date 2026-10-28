@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
-enum class ReligionCode(val description: String, val current: Boolean) {
+enum class ReligionCode(override val description: String, override val current: Boolean) : CurrentReferenceData {
   ADV("Adventist", false),
   AGNO("Agnostic", true),
   APO("Apostolic", false),

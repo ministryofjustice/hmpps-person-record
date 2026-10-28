@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
-enum class EthnicityCode(val description: String) {
+enum class EthnicityCode(override val description: String) : ReferenceData {
   A1("Asian/Asian British : Indian"),
   A2("Asian/Asian British : Pakistani"),
   A3("Asian/Asian British : Bangladeshi"),

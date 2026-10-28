@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
-enum class AddressUsageCode(val description: String, val current: Boolean) {
+enum class AddressUsageCode(override val description: String, override val current: Boolean) : CurrentReferenceData {
   // PRISON
   CARE("Care or Old Persons Home", true),
   CURFEW("Curfew Order", true),

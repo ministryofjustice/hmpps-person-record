@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
-enum class CountryCode(val description: String) {
+enum class CountryCode(override val description: String) : ReferenceData {
   ABW("Aruba"),
   AFG("Afghanistan"),
   AGO("Angola"),

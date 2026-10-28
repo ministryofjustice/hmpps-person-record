@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.types
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 
-enum class GenderIdentityCode(val description: String) {
+enum class GenderIdentityCode(override val description: String) : ReferenceData {
   GIF("Female"),
   GIM("Male"),
   GINB("Non-Binary"),

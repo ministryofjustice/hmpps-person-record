@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 
-enum class TitleCode(val description: String) {
+enum class TitleCode(override val description: String) : ReferenceData {
   MR("Mr"),
   MRS("Mrs"),
   MISS("Miss"),

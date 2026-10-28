@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
-enum class AddressStatusCode(val description: String) {
+enum class AddressStatusCode(override val description: String) : ReferenceData {
   B("Bail"),
   M("Main"),
   MA("Postal"),
