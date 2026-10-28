@@ -51,13 +51,6 @@ class ReferenceDataServiceTest {
     assertThat(allReferenceData["contactType"]).hasSize(ContactType.entries.size)
   }
 
-//  @Test
-//  fun `should map code and description and omit current for reference data without a current flag`() {
-//    val sex = referenceDataService.getReferenceData("sex")
-//
-//    assertThat(sex).isEqualTo(mapOf("sex" to SexCode.entries.map { ReferenceDataValue(it.name, it.description, true) }))
-//    assertThat(sex["sex"]).contains(ReferenceDataValue("M", "Male"))
-//  }
 
   @Test
   fun `should include current flag for reference data with a current flag`() {
@@ -67,14 +60,6 @@ class ReferenceDataServiceTest {
       .isEqualTo(mapOf("addressUsage" to AddressUsageCode.entries.map { ReferenceDataValue(it.name, it.description, it.current) }))
   }
 
-//  @Test
-//  fun `should only populate current for religion and address usage`() {
-//    val typesWithCurrent = referenceDataService.getAllReferenceData()
-//      .filterValues { values -> values.any { it.current != null } }
-//      .keys
-//
-//    assertThat(typesWithCurrent).containsExactlyInAnyOrder("religion", "addressUsage")
-//  }
 
   @Test
   fun `should look up reference data type ignoring case`() {
