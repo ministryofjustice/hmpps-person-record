@@ -113,34 +113,27 @@ class SysconPersonContactsAndAddressesInsertHandler(
   }
 
   private fun handleContactsInsert(contacts: List<PrisonContact>, personEntity: PersonEntity): List<SysconContactMapping> {
-    // Hibernate cascade deletes, and we want to keep the entities with the provided update ids.
-    // Therefore, we must not remove them from their parent collections.
-    val contactIdsToRetain = contacts.mapNotNull { it.cprContactId }
-    personEntity.removeAllContactsBut(contactIdsToRetain)
-
     val contactEntities = contactRepository.saveAllAndFlush(contacts.map { it.toEntity(personEntity) })
     personEntity.contacts.addIfAbsent(contactEntities)
-    return contacts.zip(contactEntities).map { it.toMapping() }
+    val mappings = contacts.zip(contactEntities).map { it.toMapping() }
+    // Hibernate cascade deletes. Therefore, we can only remove entities at the end
+    personEntity.removeAllContactsBut(mappings.map { it.cprContactId })
+    return mappings
   }
 
   private fun handleAddressesInsert(addresses: List<PrisonAddress>, personEntity: PersonEntity): List<SysconAddressMapping> {
-    // Hibernate cascade deletes, and we want to keep the entities with the provided update ids.
-    // Therefore, we must not remove them from their parent collections.
-    val addressIdsToRetain = addresses.mapNotNull { it.cprAddressId }
-    val contactIdsToRetain = addresses.flatMap { it.contacts }.mapNotNull { it.cprContactId }
-    val addressUsageIdsToRetain = addresses.flatMap { it.addressUsage }.mapNotNull { it.cprAddressUsageId }
     val mappings = addresses.map { prisonAddress ->
       val addressEntity = addressRepository.save(prisonAddress.toEntity(personEntity))
       personEntity.addresses.addIfAbsent(addressEntity)
 
       val contactEntities = contactRepository.saveAllAndFlush(prisonAddress.contacts.map { it.toEntity(addressEntity) })
       val contactMappings = prisonAddress.contacts.zip(contactEntities).map { it.toMapping() }
-      addressEntity.removeAllContactsBut(contactIdsToRetain)
+
       addressEntity.contacts.addIfAbsent(contactEntities)
 
       val addressUsageEntities = addressUsageRepository.saveAllAndFlush(prisonAddress.addressUsage.map { it.toEntity(addressEntity) })
       val addressUsageMappings = prisonAddress.addressUsage.zip(addressUsageEntities).map { it.toMapping() }
-      addressEntity.removeAllAddressUsagesBut(addressUsageIdsToRetain)
+
       addressEntity.usages.addIfAbsent(addressUsageEntities)
 
       SysconAddressMapping(
@@ -150,8 +143,10 @@ class SysconPersonContactsAndAddressesInsertHandler(
         contactMappings = contactMappings,
       )
     }
-    // We can now safely remove any addresses that should not be retained
-    personEntity.removeAllAddressesBut(addressIdsToRetain)
+    // Hibernate cascade deletes. Therefore, we can only remove entities at the end
+    personEntity.removeAllAddressesBut(mappings.map { it.cprAddressId })
+    personEntity.addresses.forEach { address -> address.removeAllAddressUsagesBut(mappings.flatMap { it.addressUsageMappings }.map { it.cprAddressUsageId }) }
+    personEntity.addresses.forEach { address -> address.removeAllContactsBut(mappings.flatMap { it.contactMappings }.map { it.cprContactId }) }
     return mappings
   }
 
