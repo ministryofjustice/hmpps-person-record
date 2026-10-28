@@ -35,13 +35,9 @@ class ReclusterDatabaseJob(
         LOG.info("Starting re-clustering of persons on page '$pageNumber' with batch size '$BATCH_SIZE'")
         val pageTime = measureTime {
           val pageable = PageRequest.of(pageNumber, BATCH_SIZE, Sort.by("id"))
-          personEntities = personRepository.findAll(pageable)
+          personEntities = personRepository.findAllByMergedToNullAndPassiveState(false, pageable)
 
-          val personsNotMergedOrPassive = personEntities.content
-            .filter { it.isNotMerged() }
-            .filter { it.isNotPassive() }
-
-          reclusterPersons(personsNotMergedOrPassive)
+          reclusterPersons(personEntities.content)
           pageNumber++
         }
         LOG.info("Time taken for page '$pageNumber' to complete '${pageTime.inWholeSeconds}' seconds")
