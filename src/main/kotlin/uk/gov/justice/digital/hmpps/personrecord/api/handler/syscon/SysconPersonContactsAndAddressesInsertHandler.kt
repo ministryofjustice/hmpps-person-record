@@ -113,27 +113,28 @@ class SysconPersonContactsAndAddressesInsertHandler(
   }
 
   private fun handleContactsInsert(contacts: List<PrisonContact>, personEntity: PersonEntity): List<SysconContactMapping> {
-    personEntity.contacts.clear()
-    val contactEntities = contactRepository.saveAllAndFlush(contacts.map { it.toEntity(personEntity) })
-    personEntity.contacts.addAll(contactEntities)
-    return contacts.zip(contactEntities).map { it.toMapping() }
+    val contactEntities = contactRepository.saveAllAndFlush(contacts.map { it.findExistingElseNewContactUsageAndUpdateFields(personEntity) })
+    personEntity.contacts.addIfAbsent(contactEntities)
+    val mappings = contacts.zip(contactEntities).map { it.toMapping() }
+    // Hibernate cascade deletes. Therefore, we can only remove entities at the end
+    personEntity.removeAllContactsBut(mappings.map { it.cprContactId })
+    return mappings
   }
 
   private fun handleAddressesInsert(addresses: List<PrisonAddress>, personEntity: PersonEntity): List<SysconAddressMapping> {
-    personEntity.addresses.clear()
     val mappings = addresses.map { prisonAddress ->
-      val addressEntity = addressRepository.save(prisonAddress.toEntity(personEntity))
-      personEntity.addresses.add(addressEntity)
+      val addressEntity = addressRepository.save(prisonAddress.findExistingElseNewAddressAndUpdateFields(personEntity))
+      personEntity.addresses.addIfAbsent(addressEntity)
 
-      val contactEntities = contactRepository.saveAllAndFlush(prisonAddress.contacts.map { it.toEntity(addressEntity) })
+      val contactEntities = contactRepository.saveAllAndFlush(prisonAddress.contacts.map { it.findExistingElseNewContactAndUpdateFields(addressEntity) })
       val contactMappings = prisonAddress.contacts.zip(contactEntities).map { it.toMapping() }
-      addressEntity.contacts.clear()
-      addressEntity.contacts.addAll(contactEntities)
 
-      val addressUsageEntities = addressUsageRepository.saveAllAndFlush(prisonAddress.addressUsage.map { it.toEntity(addressEntity) })
+      addressEntity.contacts.addIfAbsent(contactEntities)
+
+      val addressUsageEntities = addressUsageRepository.saveAllAndFlush(prisonAddress.addressUsage.map { it.findExistingElseNewAddressUsageAndUpdateFields(addressEntity) })
       val addressUsageMappings = prisonAddress.addressUsage.zip(addressUsageEntities).map { it.toMapping() }
-      addressEntity.usages.clear()
-      addressEntity.usages.addAll(addressUsageEntities)
+
+      addressEntity.usages.addIfAbsent(addressUsageEntities)
 
       SysconAddressMapping(
         nomisAddressId = prisonAddress.nomisAddressId!!,
@@ -142,8 +143,24 @@ class SysconPersonContactsAndAddressesInsertHandler(
         contactMappings = contactMappings,
       )
     }
+    // Hibernate cascade deletes. Therefore, we can only remove entities at the end
+    personEntity.removeAllAddressesBut(mappings.map { it.cprAddressId })
+    personEntity.addresses.forEach { address -> address.removeAllAddressUsagesBut(mappings.flatMap { it.addressUsageMappings }.map { it.cprAddressUsageId }) }
+    personEntity.addresses.forEach { address -> address.removeAllContactsBut(mappings.flatMap { it.contactMappings }.map { it.cprContactId }) }
     return mappings
   }
+
+  fun <T> MutableList<T>.addIfAbsent(item: T) = item !in this && add(item)
+
+  fun <T> MutableList<T>.addIfAbsent(items: MutableList<T>) = items.forEach { addIfAbsent(it) }
+
+  private fun PersonEntity.removeAllAddressesBut(toRetain: List<String>) = addresses.removeIf { it.updateId.toString() !in toRetain }
+
+  private fun AddressEntity.removeAllContactsBut(toRetain: List<String>) = contacts.removeIf { it.updateId.toString() !in toRetain }
+
+  private fun PersonEntity.removeAllContactsBut(toRetain: List<String>) = contacts.removeIf { it.updateId.toString() !in toRetain }
+
+  private fun AddressEntity.removeAllAddressUsagesBut(toRetain: List<String>) = usages.removeIf { it.updateId.toString() !in toRetain }
 
   private fun tryRecluster(
     personEntity: PersonEntity,
@@ -155,7 +172,7 @@ class SysconPersonContactsAndAddressesInsertHandler(
     }
   }
 
-  private fun PrisonAddress.toEntity(personEntity: PersonEntity): AddressEntity {
+  private fun PrisonAddress.findExistingElseNewAddressAndUpdateFields(personEntity: PersonEntity): AddressEntity {
     val addressEntity = if (!cprAddressId.isNullOrBlank()) {
       addressRepository.findByUpdateId(UUID.fromString(cprAddressId)) ?: throw ResourceNotFoundException("Address with updateId $cprAddressId not found")
     } else {
@@ -185,7 +202,7 @@ class SysconPersonContactsAndAddressesInsertHandler(
     return addressEntity
   }
 
-  fun PrisonContact.toEntity(addressEntity: AddressEntity): ContactEntity {
+  fun PrisonContact.findExistingElseNewContactAndUpdateFields(addressEntity: AddressEntity): ContactEntity {
     val contactEntity = if (!cprContactId.isNullOrBlank()) {
       contactRepository.findByUpdateId(UUID.fromString(cprContactId)) ?: throw ResourceNotFoundException("Contact with updateId $cprContactId not found")
     } else {
@@ -203,7 +220,7 @@ class SysconPersonContactsAndAddressesInsertHandler(
     return contactEntity
   }
 
-  private fun PrisonContact.toEntity(personEntity: PersonEntity): ContactEntity {
+  private fun PrisonContact.findExistingElseNewContactUsageAndUpdateFields(personEntity: PersonEntity): ContactEntity {
     val contactEntity = if (!cprContactId.isNullOrBlank()) {
       contactRepository.findByUpdateId(UUID.fromString(cprContactId)) ?: throw ResourceNotFoundException("Contact with updateId $cprContactId not found")
     } else {
@@ -221,7 +238,7 @@ class SysconPersonContactsAndAddressesInsertHandler(
     return contactEntity
   }
 
-  fun PrisonAddressUsage.toEntity(addressEntity: AddressEntity): AddressUsageEntity {
+  fun PrisonAddressUsage.findExistingElseNewAddressUsageAndUpdateFields(addressEntity: AddressEntity): AddressUsageEntity {
     val addressUsageEntity = if (!cprAddressUsageId.isNullOrBlank()) {
       addressUsageRepository.findByUpdateId(UUID.fromString(cprAddressUsageId)) ?: throw ResourceNotFoundException("AddressUsage with updateId $cprAddressUsageId not found")
     } else {
