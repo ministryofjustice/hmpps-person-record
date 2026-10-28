@@ -52,7 +52,7 @@ class SysconPersonContactsAndAddressesInsertHandler(
   }
 
   @Transactional
-  fun insertAddressesAndContacts(
+  private fun insertAddressesAndContacts(
     personEntity: PersonEntity,
     prisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest,
   ): SysconAddressesAndContactsResponseBody {
@@ -156,6 +156,7 @@ class SysconPersonContactsAndAddressesInsertHandler(
   }
 
   private fun PrisonAddress.toEntity(personEntity: PersonEntity): AddressEntity {
+    // TODO: remove these
     val addressEntity = if (!cprAddressId.isNullOrBlank()) {
       addressRepository.findByUpdateId(UUID.fromString(cprAddressId)) ?: throw ResourceNotFoundException("Address with updateId $cprAddressId not found")
     } else {
