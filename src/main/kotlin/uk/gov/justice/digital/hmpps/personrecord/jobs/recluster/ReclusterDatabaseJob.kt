@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.jobs.recluster
 
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.Page
@@ -22,19 +23,22 @@ class ReclusterDatabaseJob(
   private val personRepository: PersonRepository,
   private val transactionalReclusterService: TransactionalReclusterService,
   private val publisher: ApplicationEventPublisher,
+  @Value($$"${RECLUSTER_DATABASE_BATCH_SIZE:0}") private val batchSize: Int,
+  @Value($$"${RECLUSTER_DATABASE_START_PAGE:0}") private val startPage: Int,
+
 ) : BatchJob {
   override val jobName = "RECLUSTER_DATABASE"
 
   override fun run() {
-    var pageNumber = START_PAGE_NUMBER
+    var pageNumber = startPage
     var personEntities: Page<PersonEntity>
-    LOG.info("Starting '$jobName' with parameters: page number '$START_PAGE_NUMBER' and batch size '$BATCH_SIZE'")
+    LOG.info("Starting '$jobName' with parameters: page number '$startPage' and batch size '$batchSize'")
 
     val fullJobTime: Duration = measureTime {
       do {
-        LOG.info("Starting re-clustering of persons on page '$pageNumber' with batch size '$BATCH_SIZE'")
+        LOG.info("Starting re-clustering of persons on page '$pageNumber' with batch size '$batchSize'")
         val pageTime = measureTime {
-          val pageable = PageRequest.of(pageNumber, BATCH_SIZE, Sort.by("id"))
+          val pageable = PageRequest.of(pageNumber, batchSize, Sort.by("id"))
           personEntities = personRepository.findAllByMergedToNullAndPassiveState(false, pageable)
 
           reclusterPersons(personEntities.content)
@@ -56,7 +60,5 @@ class ReclusterDatabaseJob(
 
   companion object {
     private val LOG = LoggerFactory.getLogger(ReclusterDatabaseJob::class.java)
-    private val BATCH_SIZE = 50
-    private val START_PAGE_NUMBER = 0
   }
 }

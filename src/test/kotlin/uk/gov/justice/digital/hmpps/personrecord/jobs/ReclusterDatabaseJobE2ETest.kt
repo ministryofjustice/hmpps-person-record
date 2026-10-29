@@ -28,6 +28,8 @@ class ReclusterDatabaseJobE2ETest(
       personRepository = personRepository,
       transactionalReclusterService = transactionalReclusterService,
       publisher = publisher,
+      batchSize = 50,
+      startPage = 0,
     )
   }
 
