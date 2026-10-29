@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
 @ExtendWith(OutputCaptureExtension::class)
-class ReclusterDatabaseJobTest(
+class ReclusterDatabaseJobE2ETest(
   @Autowired private val transactionalReclusterService: TransactionalReclusterService,
   @Autowired private val publisher: ApplicationEventPublisher,
 ) : E2ETestBase() {
