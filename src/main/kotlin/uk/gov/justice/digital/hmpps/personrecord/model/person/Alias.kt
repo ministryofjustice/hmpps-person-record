@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAlias
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import java.time.LocalDate
@@ -16,6 +17,7 @@ data class Alias(
   val titleCode: TitleCode? = null,
   val dateOfBirth: LocalDate? = null,
   val sexCode: SexCode? = null,
+  val references: List<Reference> = emptyList(),
 ) {
   companion object {
 
@@ -40,6 +42,7 @@ data class Alias(
       lastName = alias.lastName,
       dateOfBirth = alias.dateOfBirth,
       sexCode = SexCode.from(alias),
+      references = alias.identifiers.mapNotNull { Reference.from(IdentifierType.valueOf(it.type), it.value) },
     )
 
     fun from(pseudonymEntity: PseudonymEntity): Alias = Alias(
