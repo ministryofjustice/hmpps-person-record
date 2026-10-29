@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
@@ -17,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
@@ -27,8 +27,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupContact
 
 @ActiveProfiles("preprod")
-@Disabled
-class SysonSyncPrisonMergePreProdIntTest : WebTestBase() {
+class SysconSyncPrisonMergePreProdIntTest : WebTestBase() {
 
   @BeforeEach
   fun setup() {
@@ -126,7 +125,7 @@ class SysonSyncPrisonMergePreProdIntTest : WebTestBase() {
       ),
     )
 
-    val callbackResponse = ApiResponseSetup(prisonNumber = toPrisonNumber, contacts = listOf(ApiResponseSetupContact(randomContactType(), randomLowerCaseString())))
+    val callbackResponse = ApiResponseSetup(prisonNumber = toPrisonNumber, contacts = listOf(ApiResponseSetupContact(ContactType.HOME, randomLowerCaseString())), email = null)
     prisonMergeEventAndResponseSetup(targetPrisonNumber = toPrisonNumber, prisonMerge = requestBody, callbackResponse = callbackResponse).returnResult().responseBody!!
 
     val fromPersonAfterMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!
