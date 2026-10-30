@@ -44,7 +44,7 @@ class ReclusterDatabaseJob(
           reclusterPersons(personEntities.content)
           pageNumber++
         }
-        LOG.info("Time taken for page '$pageNumber' to complete '${pageTime.inWholeSeconds}' seconds")
+        LOG.info("Time taken for page '${pageNumber--}' to complete '${pageTime.inWholeSeconds}' seconds")
       } while (personEntities.hasNext())
     }
 
