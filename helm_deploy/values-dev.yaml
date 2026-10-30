@@ -16,6 +16,8 @@ generic-service:
     PRISON_API_BASE_URL: 'https://prison-api-dev.prison.service.justice.gov.uk'
     SERVICE_NOW_BASE_URL: https://mojdev.service-now.com
     SAS_BASE_URL: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk
+    RECLUSTER_DATABASE_BATCH_SIZE: 50
+    RECLUSTER_DATABASE_START_PAGE: 0
 
   scheduledDowntime:
     enabled: true
@@ -42,6 +44,10 @@ generic-service:
       schedule: "0 19 * * 1-5"
     - name: recluster-records
       type: RECLUSTER_RECORDS
+      schedule: "0 0 1 1 *"
+      suspend: true
+    - name: recluster-database
+      type: RECLUSTER_DATABASE
       schedule: "0 0 1 1 *"
       suspend: true
 
