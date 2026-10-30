@@ -1,0 +1,263 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    cronjob.kubernetes.io/instantiate: manual
+  name: hmpps-person-record-recluster-database-josh-dev-1
+  namespace: hmpps-person-record-dev
+  ownerReferences:
+  - apiVersion: batch/v1
+    controller: true
+    kind: CronJob
+    name: hmpps-person-record-recluster-database
+    uid: 1ea641d6-0299-432d-ae35-86e56717eee0
+spec:
+  template:
+    metadata: {}
+    spec:
+      containers:
+      - env:
+        - name: HMPPS_SQS_TOPICS_CPRCOURTCASESTOPIC_ARN
+          valueFrom:
+            secretKeyRef:
+              key: topic_arn
+              name: court-topic
+        - name: HMPPS_SQS_TOPICS_DOMAINEVENTS_ARN
+          valueFrom:
+            secretKeyRef:
+              key: topic_arn
+              name: hmpps-domain-events-topic
+        - name: APPINSIGHTS_INSTRUMENTATIONKEY
+          valueFrom:
+            secretKeyRef:
+              key: APPINSIGHTS_INSTRUMENTATIONKEY
+              name: hmpps-person-record
+        - name: CORE_PERSON_RECORD_AND_DELIUS_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              key: NOMIS_OAUTH_CLIENT_ID
+              name: hmpps-person-record
+        - name: CORE_PERSON_RECORD_AND_DELIUS_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: NOMIS_OAUTH_CLIENT_SECRET
+              name: hmpps-person-record
+        - name: PERSON_MATCH_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              key: NOMIS_OAUTH_CLIENT_ID
+              name: hmpps-person-record
+        - name: PERSON_MATCH_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: NOMIS_OAUTH_CLIENT_SECRET
+              name: hmpps-person-record
+        - name: PRISONER_SEARCH_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              key: NOMIS_OAUTH_CLIENT_ID
+              name: hmpps-person-record
+        - name: PRISONER_SEARCH_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: NOMIS_OAUTH_CLIENT_SECRET
+              name: hmpps-person-record
+        - name: PRISON_API_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              key: NOMIS_OAUTH_CLIENT_ID
+              name: hmpps-person-record
+        - name: PRISON_API_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: NOMIS_OAUTH_CLIENT_SECRET
+              name: hmpps-person-record
+        - name: SAS_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              key: NOMIS_OAUTH_CLIENT_ID
+              name: hmpps-person-record
+        - name: SAS_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: NOMIS_OAUTH_CLIENT_SECRET
+              name: hmpps-person-record
+        - name: DATABASE_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              key: rds_instance_endpoint
+              name: hmpps-person-record-rds-instance-output
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: database_name
+              name: hmpps-person-record-rds-instance-output
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: database_password
+              name: hmpps-person-record-rds-instance-output
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: database_username
+              name: hmpps-person-record-rds-instance-output
+        - name: SERVICE_NOW_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              key: client_id
+              name: hmpps-person-record-servicenow-client
+        - name: SERVICE_NOW_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: client_secret
+              name: hmpps-person-record-servicenow-client
+        - name: SERVICE_NOW_REQUESTED_FOR
+          valueFrom:
+            secretKeyRef:
+              key: requested_for
+              name: hmpps-person-record-servicenow-client
+        - name: SERVICE_NOW_REQUESTOR
+          valueFrom:
+            secretKeyRef:
+              key: requestor
+              name: hmpps-person-record-servicenow-client
+        - name: SERVICE_NOW_SYSPARM_ID
+          valueFrom:
+            secretKeyRef:
+              key: sysparm_id
+              name: hmpps-person-record-servicenow-client
+        - name: HMPPS_SQS_QUEUES_CPRCOURTCASESQUEUE_DLQ_NAME
+          valueFrom:
+            secretKeyRef:
+              key: sqs_queue_name
+              name: sqs-cpr-court-cases-dlq-secret
+        - name: HMPPS_SQS_QUEUES_CPRCOURTCASESQUEUE_QUEUE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: sqs_queue_name
+              name: sqs-cpr-court-cases-secret
+        - name: HMPPS_SQS_QUEUES_CPRDELIUSADDRESSEVENTSFROMCPRQUEUE_DLQ_NAME
+          valueFrom:
+            secretKeyRef:
+              key: sqs_queue_name
+              name: sqs-cpr-delius-address-events-from-cpr-dlq-secret
+        - name: HMPPS_SQS_QUEUES_CPRDELIUSADDRESSEVENTSFROMCPRQUEUE_QUEUE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: sqs_queue_name
+              name: sqs-cpr-delius-address-events-from-cpr-secret
+        - name: HMPPS_SQS_QUEUES_CPRDELIUSDELETEEVENTSQUEUE_DLQ_NAME
+          valueFrom:
+            secretKeyRef:
+              key: sqs_queue_name
+              name: sqs-cpr-delius-delete-events-dlq-secret
+        - name: HMPPS_SQS_QUEUES_CPRDELIUSDELETEEVENTSQUEUE_QUEUE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: sqs_queue_name
+              name: sqs-cpr-delius-delete-events-secret
+        - name: HMPPS_SQS_QUEUES_CPRDELIUSMERGEEVENTSQUEUE_DLQ_NAME
+          valueFrom:
+            secretKeyRef:
+              key: sqs_queue_name
+              name: sqs-cpr-delius-merge-events-dlq-secret
+        - name: HMPPS_SQS_QUEUES_CPRDELIUSMERGEEVENTSQUEUE_QUEUE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: sqs_queue_name
+              name: sqs-cpr-delius-merge-events-secret
+        - name: HMPPS_SQS_QUEUES_CPRDELIUSOFFENDEREVENTSQUEUE_DLQ_NAME
+          valueFrom:
+            secretKeyRef:
+              key: sqs_queue_name
+              name: sqs-cpr-delius-offender-events-dlq-secret
+        - name: HMPPS_SQS_QUEUES_CPRDELIUSOFFENDEREVENTSQUEUE_QUEUE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: sqs_queue_name
+              name: sqs-cpr-delius-offender-events-secret
+        - name: HMPPS_SQS_QUEUES_CPRNOMISEVENTSQUEUE_DLQ_NAME
+          valueFrom:
+            secretKeyRef:
+              key: sqs_queue_name
+              name: sqs-cpr-nomis-events-dlq-secret
+        - name: HMPPS_SQS_QUEUES_CPRNOMISEVENTSQUEUE_QUEUE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: sqs_queue_name
+              name: sqs-cpr-nomis-events-secret
+        - name: HMPPS_SQS_QUEUES_CPRSASEVENTSQUEUE_DLQ_NAME
+          valueFrom:
+            secretKeyRef:
+              key: sqs_queue_name
+              name: sqs-cpr-sas-events-dlq-secret
+        - name: HMPPS_SQS_QUEUES_CPRSASEVENTSQUEUE_QUEUE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: sqs_queue_name
+              name: sqs-cpr-sas-events-secret
+        - name: AWS_CPR_COURT_MESSAGE_BUCKET_NAME
+          valueFrom:
+            secretKeyRef:
+              key: bucket_name
+              name: uuid-enriched-large-court-cases-s3-bucket
+        - name: APPLICATIONINSIGHTS_CONFIGURATION_FILE
+          value: applicationinsights.dev.json
+        - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+          value: InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)
+        - name: APP_BASE_URL
+          value: https://hmpps-person-record-dev.hmpps.service.justice.gov.uk
+        - name: CORE_PERSON_RECORD_AND_DELIUS_BASE_URL
+          value: https://core-person-record-and-delius-dev.hmpps.service.justice.gov.uk
+        - name: HMPPS_SQS_USE_WEB_TOKEN
+          value: "true"
+        - name: JAVA_OPTS
+          value: -Xmx4096m
+        - name: NOMIS_OAUTH_BASE_URL
+          value: https://sign-in-dev.hmpps.service.justice.gov.uk
+        - name: PERSON_MATCH_BASE_URL
+          value: https://hmpps-person-match-dev.hmpps.service.justice.gov.uk
+        - name: PRISONER_SEARCH_BASE_URL
+          value: https://prisoner-search-dev.prison.service.justice.gov.uk
+        - name: PRISON_API_BASE_URL
+          value: https://prison-api-dev.prison.service.justice.gov.uk
+        - name: RECLUSTER_DATABASE_BATCH_SIZE
+          value: "50"
+        - name: RECLUSTER_DATABASE_START_PAGE
+          value: "0"
+        - name: SAS_BASE_URL
+          value: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk
+        - name: SERVER_PORT
+          value: "8080"
+        - name: SERVICE_NOW_BASE_URL
+          value: https://mojdev.service-now.com
+        - name: SPRING_PROFILES_ACTIVE
+          value: dev
+        - name: BATCH_ENABLED
+          value: "true"
+        - name: BATCH_TYPE
+          value: RECLUSTER_DATABASE
+        image: ghcr.io/ministryofjustice/hmpps-person-record:2026-10-30.6088.57e1066
+        imagePullPolicy: IfNotPresent
+        name: recluster-database
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: person-record-service
+      serviceAccountName: person-record-service
+      terminationGracePeriodSeconds: 30
+  ttlSecondsAfterFinished: 345600
+status: {}
