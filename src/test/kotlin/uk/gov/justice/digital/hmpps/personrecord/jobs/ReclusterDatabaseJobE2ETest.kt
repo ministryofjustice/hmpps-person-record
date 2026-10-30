@@ -24,6 +24,7 @@ class ReclusterDatabaseJobE2ETest(
 
   @BeforeEach
   fun beforeEach() {
+    deleteAllPersonData()
     reclusterDatabaseJob = ReclusterDatabaseJob(
       personRepository = personRepository,
       transactionalReclusterService = transactionalReclusterService,
