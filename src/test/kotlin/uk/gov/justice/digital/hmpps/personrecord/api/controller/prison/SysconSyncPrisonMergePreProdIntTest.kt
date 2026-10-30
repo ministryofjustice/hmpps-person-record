@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
@@ -25,8 +26,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupContact
 
-@ActiveProfiles("prod")
-class SysonSyncPrisonMergeProdIntTest : WebTestBase() {
+@ActiveProfiles("preprod")
+class SysconSyncPrisonMergePreProdIntTest : WebTestBase() {
 
   @BeforeEach
   fun setup() {
@@ -124,7 +125,7 @@ class SysonSyncPrisonMergeProdIntTest : WebTestBase() {
       ),
     )
 
-    val callbackResponse = ApiResponseSetup(prisonNumber = toPrisonNumber, contacts = listOf(ApiResponseSetupContact(randomContactType(), randomLowerCaseString())))
+    val callbackResponse = ApiResponseSetup(prisonNumber = toPrisonNumber, contacts = listOf(ApiResponseSetupContact(ContactType.HOME, randomLowerCaseString())), email = null)
     prisonMergeEventAndResponseSetup(targetPrisonNumber = toPrisonNumber, prisonMerge = requestBody, callbackResponse = callbackResponse).returnResult().responseBody!!
 
     val fromPersonAfterMerge = personRepository.findByPrisonNumber(fromPrisonNumber)!!
