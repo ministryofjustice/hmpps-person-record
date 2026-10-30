@@ -40,11 +40,10 @@ class ReclusterDatabaseJob(
         val pageTime = measureTime {
           val pageable = PageRequest.of(pageNumber, batchSize, Sort.by("id"))
           personEntities = personRepository.findAllByMergedToNullAndPassiveState(false, pageable)
-
           reclusterPersons(personEntities.content)
-          pageNumber++
         }
         LOG.info("Time taken for page '$pageNumber' to complete '${pageTime.inWholeSeconds}' seconds")
+        pageNumber++
       } while (personEntities.hasNext())
     }
 
