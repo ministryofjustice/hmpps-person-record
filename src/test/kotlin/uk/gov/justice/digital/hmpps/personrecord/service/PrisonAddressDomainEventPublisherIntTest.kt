@@ -47,7 +47,7 @@ class PrisonAddressDomainEventPublisherIntTest(
   }
 
   private fun addressRequest() = PrisonCreateAddressRequest(
-    buildingNumber = "102",
+    buildingName = "102",
     thoroughfareName = "Slinn Street",
     postTown = "Liverpool",
     countryCode = CountryCode.ENG,

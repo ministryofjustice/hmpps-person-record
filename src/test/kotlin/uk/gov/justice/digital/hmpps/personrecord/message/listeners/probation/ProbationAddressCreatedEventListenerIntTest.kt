@@ -18,7 +18,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
 
     stubPersonMatchUpsert()
     stubPersonMatchScores()
-    stubGetRequestToProbation(probationAddress)
+    stubGetProbationAddress(probationAddress)
 
     publishProbationAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
 
@@ -38,7 +38,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     stubPersonMatchUpsert()
     stubPersonMatchScores()
     val updatedProbationAddress = randomProbationAddress(originalProbationAddress.deliusAddressId)
-    stubGetRequestToProbation(updatedProbationAddress)
+    stubGetProbationAddress(updatedProbationAddress)
 
     publishProbationAddressCreatedEvent(personEntity.crn, null, originalProbationAddress.deliusAddressId, DELIUS)
 
@@ -57,7 +57,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     val probationAddress = randomProbationAddress()
     val cprPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
 
-    stubGetRequestToProbation(probationAddress, status = 404)
+    stubGetProbationAddress(probationAddress, status = 404)
     publishProbationAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
 
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
@@ -73,8 +73,8 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
 
     stubPersonMatchUpsert()
     stubPersonMatchScores()
-    stubGetRequestToProbation(probationAddress, status = 404, scenarioName = "retry-address", nextScenarioState = "retry-success")
-    stubGetRequestToProbation(probationAddress, status = 200, scenarioName = "retry-address", currentScenarioState = "retry-success")
+    stubGetProbationAddress(probationAddress, status = 404, scenarioName = "retry-address", nextScenarioState = "retry-success")
+    stubGetProbationAddress(probationAddress, status = 200, scenarioName = "retry-address", currentScenarioState = "retry-success")
     publishProbationAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
 
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
@@ -89,7 +89,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     val probationAddress = randomProbationAddress()
     val cprPerson = createPersonWithNewKey(createRandomProbationPersonDetails().copy(addresses = emptyList()))
 
-    stubGetRequestToProbation(probationAddress)
+    stubGetProbationAddress(probationAddress)
     publishProbationAddressCreatedEvent(randomCrn(), null, probationAddress.deliusAddressId, DELIUS)
 
     expectNoMessagesOn(probationEventsQueue)

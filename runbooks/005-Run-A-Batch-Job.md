@@ -28,3 +28,9 @@ This will create a local `job.yaml` file that you can edit to change various par
 ```shell
 kubectl create -f job.yaml
 ```
+
+## Copying files into the pod
+If you need to copy data into the pod, for example a JSON file, you can use the `kubectl cp` command. It is recommended that you copy the file into the `/tmp` directory as that has the necessary permissions.
+```shell
+kubectl cp ./<local-file-name> <namespace>/<batch-job-pod-name>:/tmp/<file-name>
+```

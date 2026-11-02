@@ -20,6 +20,9 @@ core-person-record-and-delius:
 sas:
   base-url: http://localhost:8090
 
+prison-api:
+  base-url: http://localhost:8090
+
 service-now:
   base-url: http://localhost:8090
   sysparm-id: sysparm12345

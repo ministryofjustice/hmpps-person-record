@@ -34,7 +34,7 @@ class ContactDomainEventPublisherIntTest(
     val prisonNumber = randomPrisonNumber()
     createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
-    val cprContactId = prisonContactsHandler.create(prisonNumber, contactRequest()).contactId
+    val cprContactId = prisonContactsHandler.create(prisonNumber, contactRequest()).cprContactId
 
     val sqsMessage = receiveDomainEvent()
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_CONTACT_CREATED))
@@ -118,7 +118,7 @@ class ContactDomainEventPublisherIntTest(
         contactRequest().copy(type = HOME, value = "01234 111111"),
         contactRequest().copy(type = MOBILE, value = "07777 222222"),
       ),
-    ).map { it.contactId }
+    ).map { it.cprContactId }
 
     val sqsMessages = receiveDomainEvents(2)
     assertThat(sqsMessages).allSatisfy { sqsMessage ->

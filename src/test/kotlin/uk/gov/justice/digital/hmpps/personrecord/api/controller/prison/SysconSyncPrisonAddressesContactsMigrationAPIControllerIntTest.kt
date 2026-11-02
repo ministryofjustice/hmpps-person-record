@@ -59,7 +59,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       fun `should have the correct profile active`() {
         sendPostRequestAsserted<String>(
           url = migrationUrl(randomPrisonNumber()),
-          body = validRequestBody,
+          body = validPrisonAddressesAndContactsRequest,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = NOT_FOUND,
           sendAuthorised = true,
@@ -85,28 +85,28 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       @Test
       fun `should return bad request when there are duplicate nomis ids on the addresses`() {
         val duplicateAddressIdsOnRequestBody =
-          validRequestBody.copy(addresses = validRequestBody.addresses.map { it.copy(nomisAddressId = 10000L) })
+          validPrisonAddressesAndContactsRequest.copy(addresses = validPrisonAddressesAndContactsRequest.addresses.map { it.copy(nomisAddressId = 10000L) })
         assertThat(badRequest(duplicateAddressIdsOnRequestBody)).contains("Duplicate nomis address ids were detected")
       }
 
       @Test
       fun `should return bad request when there are multiple primary addresses`() {
         val multiplePrimaryAddressesRequestBody =
-          validRequestBody.copy(addresses = validRequestBody.addresses.map { it.copy(isPrimary = true) })
+          validPrisonAddressesAndContactsRequest.copy(addresses = validPrisonAddressesAndContactsRequest.addresses.map { it.copy(isPrimary = true) })
         assertThat(badRequest(multiplePrimaryAddressesRequestBody)).contains("There cannot be more than one primary address for")
       }
 
       @Test
       fun `should return bad request when there are multiple mail addresses`() {
         val multipleMailAddressesRequestBody =
-          validRequestBody.copy(addresses = validRequestBody.addresses.map { it.copy(isMail = true) })
+          validPrisonAddressesAndContactsRequest.copy(addresses = validPrisonAddressesAndContactsRequest.addresses.map { it.copy(isMail = true) })
         assertThat(badRequest(multipleMailAddressesRequestBody)).contains("There cannot be more than one mail address for")
       }
 
       @Test
       fun `should return bad request when the is an address usage which does not match its parent address id`() {
         val nomisAddressId = 20000L
-        val addressUsageDoesNotMatchAddressRequestBody = validRequestBody.copy(
+        val addressUsageDoesNotMatchAddressRequestBody = validPrisonAddressesAndContactsRequest.copy(
           addresses = listOf(
             PrisonAddress(
               nomisAddressId = nomisAddressId,
@@ -131,7 +131,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       @Test
       fun `should return bad request when the is are address usage duplicate codes`() {
         val multipleDuplicateAddressUsageCodesRequestBody =
-          validRequestBody.copy(
+          validPrisonAddressesAndContactsRequest.copy(
             addresses = listOf(
               PrisonAddress(
                 nomisAddressId = 20000L,
@@ -163,7 +163,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
 
       @Test
       fun `should return bad request when there is an email contact on an address`() {
-        val emailContactOnAddressRequestBody = validRequestBody.copy(
+        val emailContactOnAddressRequestBody = validPrisonAddressesAndContactsRequest.copy(
           addresses = listOf(
             PrisonAddress(
               nomisAddressId = 20000L,
@@ -187,7 +187,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       @Test
       fun `should return bad request when there are email contacts with the same nomis id`() {
         val duplicateEmailContactId = 20000L
-        val duplicateEmailContactIdsRequestBody = validRequestBody.copy(
+        val duplicateEmailContactIdsRequestBody = validPrisonAddressesAndContactsRequest.copy(
           contacts = listOf(
             PrisonContact(
               nomisContactId = duplicateEmailContactId,
@@ -209,7 +209,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       @Test
       fun `should return bad request when there are phone contacts with the same nomis id`() {
         val duplicatePhoneContactId = 20000L
-        val duplicatePhoneContactIdsRequestBody = validRequestBody.copy(
+        val duplicatePhoneContactIdsRequestBody = validPrisonAddressesAndContactsRequest.copy(
           addresses = listOf(
             PrisonAddress(
               nomisAddressId = 10000L,
@@ -246,7 +246,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       fun `should return Access Denied 403 when role is wrong`() {
         sendPostRequestAsserted<String>(
           url = migrationUrl(randomPrisonNumber()),
-          body = validRequestBody,
+          body = validPrisonAddressesAndContactsRequest,
           roles = listOf("UNSUPPORTED-ROLE"),
           expectedStatus = FORBIDDEN,
         ).returnResult().responseBody!!
@@ -272,16 +272,16 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
         // No stubbing of the matcher - test will fail if we call it.
         val prisonNumber = randomPrisonNumber()
         // We have no guarentee of order so check when the orders differ
-        val addressesMatchingRequestPostcodesDifferentOrder = validRequestBody.addresses.map { Address(postcode = it.postcode) }
+        val addressesMatchingRequestPostcodesDifferentOrder = validPrisonAddressesAndContactsRequest.addresses.map { Address(postcode = it.postcode) }
         val person = createRandomPrisonPersonDetails(prisonNumber).copy(addresses = addressesMatchingRequestPostcodesDifferentOrder)
         val personEntity = createPersonWithNewKey(person)
 
         // Assert that the postcodes are going to be the same
-        assertThat(postCodesAreSame(personEntity.addresses, validRequestBody.addresses)).isTrue()
+        assertThat(postCodesAreSame(personEntity.addresses, validPrisonAddressesAndContactsRequest.addresses)).isTrue()
 
         sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
           url = migrationUrl(prisonNumber),
-          body = validRequestBody,
+          body = validPrisonAddressesAndContactsRequest,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = CREATED,
           sendAuthorised = true,
@@ -297,11 +297,11 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
         val prisonNumber = randomPrisonNumber()
         val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
         // Assert that the postcodes are not going to be the same
-        assertThat(postCodesAreSame(personEntity.addresses, validRequestBody.addresses)).isFalse()
+        assertThat(postCodesAreSame(personEntity.addresses, validPrisonAddressesAndContactsRequest.addresses)).isFalse()
 
         sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
           url = migrationUrl(prisonNumber),
-          body = validRequestBody,
+          body = validPrisonAddressesAndContactsRequest,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = CREATED,
           sendAuthorised = true,
@@ -317,7 +317,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
 
         val response = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
           url = migrationUrl(prisonNumber),
-          body = validRequestBody,
+          body = validPrisonAddressesAndContactsRequest,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = CREATED,
           sendAuthorised = true,
@@ -326,8 +326,8 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
         val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
 
         // Addresses
-        assertThat(validRequestBody.addresses.size).isEqualTo(2)
-        for (addressRequest in validRequestBody.addresses) {
+        assertThat(validPrisonAddressesAndContactsRequest.addresses.size).isEqualTo(2)
+        for (addressRequest in validPrisonAddressesAndContactsRequest.addresses) {
           // Because ordering is not guaranteed, we need to find the matching address entity for each request
           val matchingAddressEntity = personEntity.addresses.single { addressMatcher(addressRequest, it) }
           assertAddressMatches(addressRequest, matchingAddressEntity)
@@ -355,7 +355,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
         }
 
         // Contacts
-        for (contactRequest in validRequestBody.contacts) {
+        for (contactRequest in validPrisonAddressesAndContactsRequest.contacts) {
           // Because ordering is not guaranteed, we need to find the matching contact entity for each request
           val matchingContactEntity = personEntity.contacts.single { contactMatcher(contactRequest, it) }
           assertContactMatches(contactRequest, matchingContactEntity)
@@ -393,7 +393,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
 
         sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
           url = migrationUrl(prisonNumber),
-          body = validRequestBody,
+          body = validPrisonAddressesAndContactsRequest,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = CREATED,
           sendAuthorised = true,
@@ -427,7 +427,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
 
         sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
           url = migrationUrl(prisonNumber),
-          body = validRequestBody,
+          body = validPrisonAddressesAndContactsRequest,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
           expectedStatus = CREATED,
           sendAuthorised = true,
@@ -438,7 +438,148 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       }
     }
   }
+  companion object {
+    fun addressMatcher(request: PrisonAddress, entity: AddressEntity) = entity.fullAddress == request.fullAddress
+    fun addressMatcher(request: PrisonAddress, mapping: SysconAddressMapping) = mapping.nomisAddressId == request.nomisAddressId
+    val validPrisonAddressesAndContactsRequest = PrisonAddressesAndContactsRequest(
+      addresses = listOf(
+        PrisonAddress(
+          nomisAddressId = 10000L,
+          fullAddress = "fullAddress1",
+          noFixedAbode = false,
+          startDate = LocalDate.of(2010, 1, 1),
+          endDate = LocalDate.of(2025, 1, 1),
+          postcode = "S10 3HR",
+          subBuildingName = "subBuildingName1",
+          buildingName = "buildingName1",
+          buildingNumber = "buildingNumber1",
+          thoroughfareName = "thoroughfareName1",
+          dependentLocality = "dependentLocality1",
+          postTown = "postTown1",
+          county = "county1",
+          countryCode = CountryCode.ABW,
+          comment = "comment1",
+          isPrimary = true,
+          isMail = true,
+          createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+          createUserId = "createUserIdAddress1",
+          modifyDateTime = LocalDateTime.of(2020, 1, 2, 12, 0),
+          modifyUserId = "modifyUserIdAddress1",
+          addressUsage = listOf(
+            PrisonAddressUsage(
+              nomisAddressUsageId = 10000L,
+              addressUsageCode = AddressUsageCode.A01,
+              isActive = true,
+              createDateTime = LocalDateTime.of(2019, 1, 1, 12, 0),
+              createUserId = "createUserIdAddress1Usage1",
+              modifyDateTime = LocalDateTime.of(2019, 1, 2, 12, 0),
+              modifyUserId = "modifyUserIdAddress1Usage1",
+            ),
+            PrisonAddressUsage(
+              nomisAddressUsageId = 10000L,
+              addressUsageCode = AddressUsageCode.A02,
+              isActive = true,
+              createDateTime = LocalDateTime.of(2018, 2, 1, 12, 0),
+              createUserId = "createUserIdAddress1Usage2",
+              modifyDateTime = LocalDateTime.of(2018, 2, 2, 12, 0),
+              modifyUserId = "modifyUserIdAddress1Usage2",
+            ),
+          ),
+          contacts = listOf(
+            PrisonContact(
+              nomisContactId = 11000L,
+              value = "valueAddress1Contact1",
+              type = HOME,
+              extension = "extensionAddress1Contact1",
+              createDateTime = LocalDateTime.of(2017, 3, 1, 12, 0),
+              createUserId = "createUserIdAddress1Contact1",
+              modifyDateTime = LocalDateTime.of(2017, 3, 2, 12, 0),
+              modifyUserId = "modifyUserIdAddress1Contact1",
+            ),
+            PrisonContact(
+              nomisContactId = 11001L,
+              value = "valueAddress1Contact2",
+              type = BUS,
+              extension = "extensionAddress1Contact2",
+              createDateTime = LocalDateTime.of(2016, 1, 1, 12, 0),
+              createUserId = "createUserIdAddress1Contact2",
+              modifyDateTime = LocalDateTime.of(2016, 1, 2, 12, 0),
+              modifyUserId = "modifyUserIdAddress1Contact2",
+            ),
+          ),
+        ),
+        PrisonAddress(
+          nomisAddressId = 10001L,
+          fullAddress = "fullAddress2",
+          noFixedAbode = false,
+          startDate = LocalDate.of(2010, 1, 1),
+          endDate = LocalDate.of(2025, 1, 1),
+          postcode = "S10 3HR",
+          subBuildingName = "subBuildingName2",
+          buildingName = "buildingName2",
+          buildingNumber = "buildingNumber2",
+          thoroughfareName = "thoroughfareName2",
+          dependentLocality = "dependentLocality2",
+          postTown = "postTown2",
+          county = "county2",
+          countryCode = CountryCode.AFG,
+          comment = "comment2",
+          isPrimary = false,
+          isMail = false,
+          createDateTime = LocalDateTime.of(2021, 1, 1, 12, 0),
+          createUserId = "createUserIdAddress2",
+          modifyDateTime = LocalDateTime.of(2021, 1, 2, 12, 0),
+          modifyUserId = "modifyUserIdAddress2",
+          addressUsage = listOf(
+            PrisonAddressUsage(
+              nomisAddressUsageId = 10001L,
+              addressUsageCode = AddressUsageCode.A01,
+              isActive = false,
+              createDateTime = LocalDateTime.of(2019, 1, 1, 12, 0),
+              createUserId = "createUserIdAddress2Usage1",
+              modifyDateTime = LocalDateTime.of(2019, 1, 2, 12, 0),
+              modifyUserId = "modifyUserIdAddress2Usage1",
+            ),
+          ),
+          contacts = listOf(
+            PrisonContact(
+              nomisContactId = 11002L,
+              value = "valueAddress2Contact1",
+              type = HOME,
+              extension = "extensionAddress2Contact1",
+              createDateTime = LocalDateTime.of(2017, 7, 1, 12, 0),
+              createUserId = "createUserIdAddress2Contact1",
+              modifyDateTime = LocalDateTime.of(2017, 7, 2, 12, 0),
+              modifyUserId = "modifyUserIdAddress2Contact1",
+            ),
+          ),
+        ),
 
+      ),
+      contacts = listOf(
+        PrisonContact(
+          nomisContactId = 11003L,
+          value = "valueContact1",
+          type = ContactType.EMAIL,
+          extension = "extensionContact1",
+          createDateTime = LocalDateTime.of(2017, 4, 1, 12, 0),
+          createUserId = "createUserIdContact1",
+          modifyDateTime = LocalDateTime.of(2017, 4, 2, 12, 0),
+          modifyUserId = "modifyUserIdContact1",
+        ),
+        PrisonContact(
+          nomisContactId = 11004L,
+          value = "valueContact2",
+          type = BUS,
+          extension = "extensionContact2",
+          createDateTime = LocalDateTime.of(2016, 5, 1, 12, 0),
+          createUserId = "createUserIdContact2",
+          modifyDateTime = LocalDateTime.of(2016, 5, 2, 12, 0),
+          modifyUserId = "modifyUserIdContact2",
+        ),
+      ),
+    )
+  }
   private fun migrationUrl(prisonNumber: String) = "/syscon-sync/addresses-contacts/$prisonNumber"
 
   private fun addressUsageMatcher(request: PrisonAddressUsage, entity: AddressUsageEntity) = entity.usageCode == request.addressUsageCode
@@ -449,154 +590,11 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
 
   private fun contactMatcher(request: PrisonContact, mapping: SysconContactMapping) = mapping.nomisContactId == request.nomisContactId
 
-  private fun addressMatcher(request: PrisonAddress, entity: AddressEntity) = entity.fullAddress == request.fullAddress
-
-  private fun addressMatcher(request: PrisonAddress, mapping: SysconAddressMapping) = mapping.nomisAddressId == request.nomisAddressId
-
   private fun prisonContact() = PrisonContact(
     nomisContactId = 10000L,
     value = "01234567890",
     type = HOME,
     createDateTime = LocalDateTime.parse("2020-01-01T12:00:00"),
     createUserId = "johnnydoe",
-  )
-
-  private val validRequestBody = PrisonAddressesAndContactsRequest(
-    addresses = listOf(
-      PrisonAddress(
-        nomisAddressId = 10000L,
-        fullAddress = "fullAddress1",
-        noFixedAbode = false,
-        startDate = LocalDate.of(2010, 1, 1),
-        endDate = LocalDate.of(2025, 1, 1),
-        postcode = "S10 3HR",
-        subBuildingName = "subBuildingName1",
-        buildingName = "buildingName1",
-        buildingNumber = "buildingNumber1",
-        thoroughfareName = "thoroughfareName1",
-        dependentLocality = "dependentLocality1",
-        postTown = "postTown1",
-        county = "county1",
-        countryCode = CountryCode.ABW,
-        comment = "comment1",
-        isPrimary = true,
-        isMail = true,
-        createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-        createUserId = "createUserIdAddress1",
-        modifyDateTime = LocalDateTime.of(2020, 1, 2, 12, 0),
-        modifyUserId = "modifyUserIdAddress1",
-        addressUsage = listOf(
-          PrisonAddressUsage(
-            nomisAddressUsageId = 10000L,
-            addressUsageCode = AddressUsageCode.A01,
-            isActive = true,
-            createDateTime = LocalDateTime.of(2019, 1, 1, 12, 0),
-            createUserId = "createUserIdAddress1Usage1",
-            modifyDateTime = LocalDateTime.of(2019, 1, 2, 12, 0),
-            modifyUserId = "modifyUserIdAddress1Usage1",
-          ),
-          PrisonAddressUsage(
-            nomisAddressUsageId = 10000L,
-            addressUsageCode = AddressUsageCode.A02,
-            isActive = true,
-            createDateTime = LocalDateTime.of(2018, 2, 1, 12, 0),
-            createUserId = "createUserIdAddress1Usage2",
-            modifyDateTime = LocalDateTime.of(2018, 2, 2, 12, 0),
-            modifyUserId = "modifyUserIdAddress1Usage2",
-          ),
-        ),
-        contacts = listOf(
-          PrisonContact(
-            nomisContactId = 11000L,
-            value = "valueAddress1Contact1",
-            type = HOME,
-            extension = "extensionAddress1Contact1",
-            createDateTime = LocalDateTime.of(2017, 3, 1, 12, 0),
-            createUserId = "createUserIdAddress1Contact1",
-            modifyDateTime = LocalDateTime.of(2017, 3, 2, 12, 0),
-            modifyUserId = "modifyUserIdAddress1Contact1",
-          ),
-          PrisonContact(
-            nomisContactId = 11001L,
-            value = "valueAddress1Contact2",
-            type = BUS,
-            extension = "extensionAddress1Contact2",
-            createDateTime = LocalDateTime.of(2016, 1, 1, 12, 0),
-            createUserId = "createUserIdAddress1Contact2",
-            modifyDateTime = LocalDateTime.of(2016, 1, 2, 12, 0),
-            modifyUserId = "modifyUserIdAddress1Contact2",
-          ),
-        ),
-      ),
-      PrisonAddress(
-        nomisAddressId = 10001L,
-        fullAddress = "fullAddress2",
-        noFixedAbode = false,
-        startDate = LocalDate.of(2010, 1, 1),
-        endDate = LocalDate.of(2025, 1, 1),
-        postcode = "S10 3HR",
-        subBuildingName = "subBuildingName2",
-        buildingName = "buildingName2",
-        buildingNumber = "buildingNumber2",
-        thoroughfareName = "thoroughfareName2",
-        dependentLocality = "dependentLocality2",
-        postTown = "postTown2",
-        county = "county2",
-        countryCode = CountryCode.AFG,
-        comment = "comment2",
-        isPrimary = false,
-        isMail = false,
-        createDateTime = LocalDateTime.of(2021, 1, 1, 12, 0),
-        createUserId = "createUserIdAddress2",
-        modifyDateTime = LocalDateTime.of(2021, 1, 2, 12, 0),
-        modifyUserId = "modifyUserIdAddress2",
-        addressUsage = listOf(
-          PrisonAddressUsage(
-            nomisAddressUsageId = 10001L,
-            addressUsageCode = AddressUsageCode.A01,
-            isActive = false,
-            createDateTime = LocalDateTime.of(2019, 1, 1, 12, 0),
-            createUserId = "createUserIdAddress2Usage1",
-            modifyDateTime = LocalDateTime.of(2019, 1, 2, 12, 0),
-            modifyUserId = "modifyUserIdAddress2Usage1",
-          ),
-        ),
-        contacts = listOf(
-          PrisonContact(
-            nomisContactId = 11002L,
-            value = "valueAddress2Contact1",
-            type = HOME,
-            extension = "extensionAddress2Contact1",
-            createDateTime = LocalDateTime.of(2017, 7, 1, 12, 0),
-            createUserId = "createUserIdAddress2Contact1",
-            modifyDateTime = LocalDateTime.of(2017, 7, 2, 12, 0),
-            modifyUserId = "modifyUserIdAddress2Contact1",
-          ),
-        ),
-      ),
-
-    ),
-    contacts = listOf(
-      PrisonContact(
-        nomisContactId = 11003L,
-        value = "valueContact1",
-        type = ContactType.EMAIL,
-        extension = "extensionContact1",
-        createDateTime = LocalDateTime.of(2017, 4, 1, 12, 0),
-        createUserId = "createUserIdContact1",
-        modifyDateTime = LocalDateTime.of(2017, 4, 2, 12, 0),
-        modifyUserId = "modifyUserIdContact1",
-      ),
-      PrisonContact(
-        nomisContactId = 11004L,
-        value = "valueContact2",
-        type = BUS,
-        extension = "extensionContact2",
-        createDateTime = LocalDateTime.of(2016, 5, 1, 12, 0),
-        createUserId = "createUserIdContact2",
-        modifyDateTime = LocalDateTime.of(2016, 5, 2, 12, 0),
-        modifyUserId = "modifyUserIdContact2",
-      ),
-    ),
   )
 }

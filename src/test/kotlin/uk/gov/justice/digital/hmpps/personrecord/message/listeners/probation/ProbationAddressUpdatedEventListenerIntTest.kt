@@ -32,7 +32,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     stubPersonMatchUpsert()
     stubPersonMatchScores()
     val updatedProbationAddress = randomProbationAddress().copy(deliusAddressId = cprAddressBeforeUpdate.deliusAddressId)
-    stubGetRequestToProbation(updatedProbationAddress)
+    stubGetProbationAddress(updatedProbationAddress)
 
     publishProbationAddressUpdatedEvent(
       personEntity.crn,
@@ -58,7 +58,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     )
 
     val updatedProbationAddress = originalProbationAddress.copy(notes = randomLowerCaseString())
-    stubGetRequestToProbation(updatedProbationAddress)
+    stubGetProbationAddress(updatedProbationAddress)
 
     publishProbationAddressUpdatedEvent(personEntity.crn, updatedProbationAddress.deliusAddressId)
 
@@ -79,7 +79,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     val cprAddressBeforeUpdate = personEntity.addresses.first()
     assertThat(Address.from(cprAddressBeforeUpdate)).usingRecursiveComparison().isEqualTo(addressOld)
 
-    stubGetRequestToProbation(probationAddress, status = 404)
+    stubGetProbationAddress(probationAddress, status = 404)
 
     publishProbationAddressUpdatedEvent(personEntity.crn, probationAddress.deliusAddressId)
 
@@ -106,7 +106,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
 
     stubPersonMatchUpsert()
     stubPersonMatchScores()
-    stubGetRequestToProbation(probationAddress)
+    stubGetProbationAddress(probationAddress)
 
     publishProbationAddressUpdatedEvent(personEntity.crn, probationAddress.deliusAddressId)
 

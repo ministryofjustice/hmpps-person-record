@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecke
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 
 data class PersonMerged(
-  val from: PersonEntity?,
+  val from: PersonEntity,
   val fromClusterDetail: EventLogClusterDetail,
   val to: PersonEntity,
   val personChangeChecker: PersonChangeChecker,

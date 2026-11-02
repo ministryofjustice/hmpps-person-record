@@ -204,6 +204,7 @@ class CanonicalAPIIntTest : WebTestBase() {
       .isEqualTo(listOf(canonicalAddress))
 
     val expectedCanonicalContact = CanonicalContact(
+      cprContactId = person.contacts.first().updateId.toString(),
       type = CanonicalContactType.from(person.contacts.first().contactType),
       value = person.contacts.first().contactValue,
       extension = person.contacts.first().extension,

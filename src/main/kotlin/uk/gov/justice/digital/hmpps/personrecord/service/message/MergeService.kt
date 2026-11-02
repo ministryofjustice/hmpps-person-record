@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.Reclu
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyDeletionService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.updatePersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
+import kotlin.reflect.KClass
 
 @Component
 class MergeService(
@@ -23,9 +24,14 @@ class MergeService(
   private val personKeyDeletionService: PersonKeyDeletionService,
 ) {
 
-  fun processMerge(from: PersonEntity, to: PersonEntity, person: Person) {
-    val personChangeChecker = PersonChangeChecker(to)
-    updateToPerson(to, person, personChangeChecker)
+  fun processMerge(
+    from: PersonEntity,
+    to: PersonEntity,
+    person: Person,
+    personChangeChecker: PersonChangeChecker = PersonChangeChecker(to),
+    childrenToIgnore: Set<KClass<*>> = emptySet(),
+  ) {
+    updateToPerson(to, person, personChangeChecker, childrenToIgnore)
     val fromClusterDetail = EventLogClusterDetail.from(from.personKey)
     when {
       fromClusterHasOneRecord(from) -> deleteSingleRecordCluster(from)
@@ -34,8 +40,8 @@ class MergeService(
     reclusterService.recluster(to)
   }
 
-  private fun updateToPerson(to: PersonEntity, person: Person, personChangeChecker: PersonChangeChecker) {
-    to.updatePersonEntity(person)
+  private fun updateToPerson(to: PersonEntity, person: Person, personChangeChecker: PersonChangeChecker, childrenToIgnore: Set<KClass<*>> = emptySet()) {
+    to.updatePersonEntity(person, childrenToIgnore)
     personRepository.save(to)
 
     if (personChangeChecker.shouldSaveToPersonMatch(to)) {

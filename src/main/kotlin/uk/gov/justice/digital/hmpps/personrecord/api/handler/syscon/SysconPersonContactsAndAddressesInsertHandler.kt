@@ -3,11 +3,10 @@ package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressUsagesHandler.Companion.toEntity
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressUsagesHandler.Companion.toMapping
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toEntity
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressMapping
@@ -15,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
@@ -26,9 +26,10 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
+import java.util.UUID
 
 @Component
-class SysconContactsAndAddressesMigrationHandler(
+class SysconPersonContactsAndAddressesInsertHandler(
   private val personRepository: PersonRepository,
   private val contactRepository: ContactRepository,
   private val addressUsageRepository: AddressUsageRepository,
@@ -38,24 +39,30 @@ class SysconContactsAndAddressesMigrationHandler(
 ) {
 
   @Transactional
-  fun handleInsert(
+  fun handleInsertForMigration(
     prisonNumber: String,
     prisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest,
   ): SysconAddressesAndContactsResponseBody {
     val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
     val personChangeChecker = PersonChangeChecker(personEntity)
+    val mappings = insertAddressesAndContacts(personEntity, prisonAddressesAndContactsRequest)
+    tryRecluster(personEntity, personChangeChecker)
 
+    return mappings
+  }
+
+  @Transactional
+  fun insertAddressesAndContacts(
+    personEntity: PersonEntity,
+    prisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest,
+  ): SysconAddressesAndContactsResponseBody {
     val addressesRequest = prisonAddressesAndContactsRequest.addresses
     val contactsRequest = prisonAddressesAndContactsRequest.contacts
-
-    validateRequest(prisonNumber, addressesRequest, contactsRequest)
+    validateRequest(personEntity.prisonNumber!!, addressesRequest, contactsRequest)
 
     val addressMappings = handleAddressesInsert(addressesRequest, personEntity)
     val contactMappings = handleContactsInsert(contactsRequest, personEntity)
-
-    tryRecluster(personEntity, personChangeChecker)
-
-    return SysconAddressesAndContactsResponseBody(prisonNumber, addressMappings, contactMappings)
+    return SysconAddressesAndContactsResponseBody(personEntity.prisonNumber!!, addressMappings, contactMappings)
   }
 
   private fun validateRequest(prisonNumber: String, addressesRequest: List<PrisonAddress>, contactsRequest: List<PrisonContact>) {
@@ -106,25 +113,28 @@ class SysconContactsAndAddressesMigrationHandler(
   }
 
   private fun handleContactsInsert(contacts: List<PrisonContact>, personEntity: PersonEntity): List<SysconContactMapping> {
-    personEntity.contacts.clear()
-    val contactEntities = contactRepository.saveAllAndFlush(contacts.map { it.toEntity(personEntity) })
-    personEntity.contacts.addAll(contactEntities)
-    return contacts.zip(contactEntities).map { it.toMapping() }
+    val contactEntities = contactRepository.saveAllAndFlush(contacts.map { it.findExistingElseNewContactUsageAndUpdateFields(personEntity) })
+    personEntity.contacts.addIfAbsent(contactEntities)
+    val mappings = contacts.zip(contactEntities).map { it.toMapping() }
+    // Hibernate cascade deletes. Therefore, we can only remove entities at the end
+    personEntity.removeAllContactsBut(mappings.map { it.cprContactId })
+    return mappings
   }
 
   private fun handleAddressesInsert(addresses: List<PrisonAddress>, personEntity: PersonEntity): List<SysconAddressMapping> {
-    personEntity.addresses.clear()
     val mappings = addresses.map { prisonAddress ->
-      val addressEntity = addressRepository.save(prisonAddress.toEntity(personEntity))
-      personEntity.addresses.add(addressEntity)
+      val addressEntity = addressRepository.save(prisonAddress.findExistingElseNewAddressAndUpdateFields(personEntity))
+      personEntity.addresses.addIfAbsent(addressEntity)
 
-      val contactEntities = contactRepository.saveAllAndFlush(prisonAddress.contacts.map { it.toEntity(addressEntity) })
+      val contactEntities = contactRepository.saveAllAndFlush(prisonAddress.contacts.map { it.findExistingElseNewContactAndUpdateFields(addressEntity) })
       val contactMappings = prisonAddress.contacts.zip(contactEntities).map { it.toMapping() }
-      addressEntity.contacts.addAll(contactEntities)
 
-      val addressUsageEntities = addressUsageRepository.saveAllAndFlush(prisonAddress.addressUsage.map { it.toEntity(addressEntity) })
+      addressEntity.contacts.addIfAbsent(contactEntities)
+
+      val addressUsageEntities = addressUsageRepository.saveAllAndFlush(prisonAddress.addressUsage.map { it.findExistingElseNewAddressUsageAndUpdateFields(addressEntity) })
       val addressUsageMappings = prisonAddress.addressUsage.zip(addressUsageEntities).map { it.toMapping() }
-      addressEntity.usages.addAll(addressUsageEntities)
+
+      addressEntity.usages.addIfAbsent(addressUsageEntities)
 
       SysconAddressMapping(
         nomisAddressId = prisonAddress.nomisAddressId!!,
@@ -133,8 +143,24 @@ class SysconContactsAndAddressesMigrationHandler(
         contactMappings = contactMappings,
       )
     }
+    // Hibernate cascade deletes. Therefore, we can only remove entities at the end
+    personEntity.removeAllAddressesBut(mappings.map { it.cprAddressId })
+    personEntity.addresses.forEach { address -> address.removeAllAddressUsagesBut(mappings.flatMap { it.addressUsageMappings }.map { it.cprAddressUsageId }) }
+    personEntity.addresses.forEach { address -> address.removeAllContactsBut(mappings.flatMap { it.contactMappings }.map { it.cprContactId }) }
     return mappings
   }
+
+  fun <T> MutableList<T>.addIfAbsent(item: T) = item !in this && add(item)
+
+  fun <T> MutableList<T>.addIfAbsent(items: MutableList<T>) = items.forEach { addIfAbsent(it) }
+
+  private fun PersonEntity.removeAllAddressesBut(toRetain: List<String>) = addresses.removeIf { it.updateId.toString() !in toRetain }
+
+  private fun AddressEntity.removeAllContactsBut(toRetain: List<String>) = contacts.removeIf { it.updateId.toString() !in toRetain }
+
+  private fun PersonEntity.removeAllContactsBut(toRetain: List<String>) = contacts.removeIf { it.updateId.toString() !in toRetain }
+
+  private fun AddressEntity.removeAllAddressUsagesBut(toRetain: List<String>) = usages.removeIf { it.updateId.toString() !in toRetain }
 
   private fun tryRecluster(
     personEntity: PersonEntity,
@@ -146,40 +172,85 @@ class SysconContactsAndAddressesMigrationHandler(
     }
   }
 
-  companion object {
+  private fun PrisonAddress.findExistingElseNewAddressAndUpdateFields(personEntity: PersonEntity): AddressEntity {
+    val addressEntity = if (!cprAddressId.isNullOrBlank()) {
+      addressRepository.findByUpdateId(UUID.fromString(cprAddressId)) ?: throw ResourceNotFoundException("Address with updateId $cprAddressId not found")
+    } else {
+      AddressEntity()
+    }
 
-    fun PrisonContact.toEntity(addressEntity: AddressEntity) = ContactEntity(
-      contactType = type,
-      contactValue = value,
-      extension = extension,
-      address = addressEntity,
-      modifyDateTime = modifyDateTime,
-      modifyUserId = modifyUserId,
-      createDateTime = createDateTime,
-      createUserId = createUserId,
-    )
+    addressEntity.startDate = startDate?.toUkZonedDateTime()
+    addressEntity.endDate = endDate?.toUkZonedDateTime()
+    addressEntity.noFixedAbode = noFixedAbode
+    addressEntity.fullAddress = fullAddress
+    addressEntity.postcode = postcode
+    addressEntity.subBuildingName = subBuildingName
+    addressEntity.buildingName = buildingName
+    addressEntity.buildingNumber = buildingNumber
+    addressEntity.thoroughfareName = thoroughfareName
+    addressEntity.dependentLocality = dependentLocality
+    addressEntity.postTown = postTown
+    addressEntity.county = county
+    addressEntity.countryCode = countryCode
+    addressEntity.comment = comment
+    addressEntity.statusCode = AddressStatusCode.fromPrison(isPrimary, isMail ?: false)
+    addressEntity.modifyDateTime = modifyDateTime
+    addressEntity.modifyUserId = modifyUserId
+    addressEntity.createDateTime = createDateTime
+    addressEntity.createUserId = createUserId
+    addressEntity.person = personEntity
+    return addressEntity
+  }
 
-    fun PrisonAddress.toEntity(personEntity: PersonEntity) = AddressEntity(
-      startDate = startDate?.toUkZonedDateTime(),
-      endDate = endDate?.toUkZonedDateTime(),
-      noFixedAbode = noFixedAbode,
-      fullAddress = fullAddress,
-      postcode = postcode,
-      subBuildingName = subBuildingName,
-      buildingName = buildingName,
-      buildingNumber = buildingNumber,
-      thoroughfareName = thoroughfareName,
-      dependentLocality = dependentLocality,
-      postTown = postTown,
-      county = county,
-      countryCode = countryCode,
-      comment = comment,
-      statusCode = AddressStatusCode.fromPrison(isPrimary, isMail ?: false),
-      modifyDateTime = modifyDateTime,
-      modifyUserId = modifyUserId,
-      createDateTime = createDateTime,
-      createUserId = createUserId,
-      person = personEntity,
-    )
+  fun PrisonContact.findExistingElseNewContactAndUpdateFields(addressEntity: AddressEntity): ContactEntity {
+    val contactEntity = if (!cprContactId.isNullOrBlank()) {
+      contactRepository.findByUpdateId(UUID.fromString(cprContactId)) ?: throw ResourceNotFoundException("Contact with updateId $cprContactId not found")
+    } else {
+      ContactEntity(contactType = type)
+    }
+
+    contactEntity.contactType = type
+    contactEntity.contactValue = value
+    contactEntity.extension = extension
+    contactEntity.address = addressEntity
+    contactEntity.modifyDateTime = modifyDateTime
+    contactEntity.modifyUserId = modifyUserId
+    contactEntity.createDateTime = createDateTime
+    contactEntity.createUserId = createUserId
+    return contactEntity
+  }
+
+  private fun PrisonContact.findExistingElseNewContactUsageAndUpdateFields(personEntity: PersonEntity): ContactEntity {
+    val contactEntity = if (!cprContactId.isNullOrBlank()) {
+      contactRepository.findByUpdateId(UUID.fromString(cprContactId)) ?: throw ResourceNotFoundException("Contact with updateId $cprContactId not found")
+    } else {
+      ContactEntity(contactType = type)
+    }
+
+    contactEntity.contactType = type
+    contactEntity.contactValue = value
+    contactEntity.extension = extension
+    contactEntity.person = personEntity
+    contactEntity.modifyDateTime = modifyDateTime
+    contactEntity.modifyUserId = modifyUserId
+    contactEntity.createDateTime = createDateTime
+    contactEntity.createUserId = createUserId
+    return contactEntity
+  }
+
+  fun PrisonAddressUsage.findExistingElseNewAddressUsageAndUpdateFields(addressEntity: AddressEntity): AddressUsageEntity {
+    val addressUsageEntity = if (!cprAddressUsageId.isNullOrBlank()) {
+      addressUsageRepository.findByUpdateId(UUID.fromString(cprAddressUsageId)) ?: throw ResourceNotFoundException("AddressUsage with updateId $cprAddressUsageId not found")
+    } else {
+      AddressUsageEntity(usageCode = addressUsageCode, active = isActive)
+    }
+    addressUsageEntity.usageCode = addressUsageCode
+    addressUsageEntity.active = isActive
+    addressUsageEntity.address = addressEntity
+    addressUsageEntity.modifyDateTime = modifyDateTime
+    addressUsageEntity.modifyUserId = modifyUserId
+    addressUsageEntity.createDateTime = createDateTime
+    addressUsageEntity.createUserId = createUserId
+    return addressUsageEntity
   }
 }

@@ -15,9 +15,9 @@ import org.springframework.http.HttpStatus.OK
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContactType
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
@@ -64,7 +64,7 @@ class PrisonAPIContactsControllerIntTest(
         assertThat(home.value).isEqualTo("01234 111111")
         assertThat(home.type.description).isEqualTo(HOME.description)
         assertThat(home.createUserId).isEqualTo("CREATOR")
-        assertThat(home.contactId).isNotBlank()
+        assertThat(home.cprContactId).isNotBlank()
         assertThat(contacts.single { it.type.code == MOBILE.name }.extension).isEqualTo("12")
       }
 
@@ -89,7 +89,7 @@ class PrisonAPIContactsControllerIntTest(
         assertThat(contacts.map { it.type.code }).containsExactly(HOME.name)
       }
 
-      private fun getContacts(url: String) = sendGetRequestAsserted<List<PrisonContactResponse>>(
+      private fun getContacts(url: String) = sendGetRequestAsserted<List<CanonicalContact>>(
         url = url,
         roles = listOf(API_READ_ONLY),
         expectedStatus = OK,
@@ -161,7 +161,7 @@ class PrisonAPIContactsControllerIntTest(
         createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber).copy(contacts = emptyList()))
         val request = validContactRequest()
 
-        val response = sendPostRequestAsserted<PrisonContactResponse>(
+        val response = sendPostRequestAsserted<CanonicalContact>(
           url = contactsUrl(prisonNumber),
           body = request,
           roles = listOf(PRISON_API_READ_WRITE),
@@ -175,7 +175,7 @@ class PrisonAPIContactsControllerIntTest(
         assertThat(response.createDateTime).isNotNull()
 
         val contactEntity = personRepository.findByPrisonNumber(prisonNumber)!!.contacts.single()
-        assertThat(contactEntity.updateId.toString()).isEqualTo(response.contactId)
+        assertThat(contactEntity.updateId.toString()).isEqualTo(response.cprContactId)
         assertThat(contactEntity.contactType).isEqualTo(BUS)
         assertThat(contactEntity.contactValue).isEqualTo(request.value)
         assertThat(contactEntity.extension).isEqualTo(request.extension)
@@ -263,14 +263,14 @@ class PrisonAPIContactsControllerIntTest(
         val contactId = personRepository.findByPrisonNumber(prisonNumber)!!.contacts.single().updateId.toString()
         val request = validContactRequest()
 
-        val response = sendPutRequestAsserted<PrisonContactResponse>(
+        val response = sendPutRequestAsserted<CanonicalContact>(
           url = contactUrl(prisonNumber, contactId),
           body = request,
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = OK,
         ).returnResult().responseBody!!
 
-        assertThat(response.contactId).isEqualTo(contactId)
+        assertThat(response.cprContactId).isEqualTo(contactId)
         assertThat(response.type).isEqualTo(CanonicalContactType.from(BUS))
         assertThat(response.value).isEqualTo(request.value)
         assertThat(response.extension).isEqualTo(request.extension)

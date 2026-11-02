@@ -20,8 +20,8 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonAddressesHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonContactsHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCreateAddressRequest
 
 @Tag(name = "Prison")
@@ -64,7 +64,7 @@ class PrisonAPIAddressesController(
     @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
     @PathVariable(name = "addressId") @Parameter(description = "The address id") addressId: String,
     @Valid @RequestBody request: List<@Valid PrisonContactRequest>,
-  ): List<PrisonContactResponse> = prisonContactsHandler.createContacts(prisonNumber, addressId, request)
+  ): List<CanonicalContact> = prisonContactsHandler.createContacts(prisonNumber, addressId, request)
 
   @Operation(
     description = "Update contacts for a prisoner's address by Prison Number and address id. Role required is **$PRISON_API_READ_WRITE**. ",
@@ -77,5 +77,5 @@ class PrisonAPIAddressesController(
     @PathVariable(name = "addressId") @Parameter(description = "The address id") addressId: String,
     @PathVariable(name = "contactId") @Parameter(description = "The contact id") contactId: String,
     @Valid @RequestBody request: PrisonContactRequest,
-  ): PrisonContactResponse = prisonContactsHandler.updateContact(prisonNumber, addressId, contactId, request)
+  ): CanonicalContact = prisonContactsHandler.updateContact(prisonNumber, addressId, contactId, request)
 }

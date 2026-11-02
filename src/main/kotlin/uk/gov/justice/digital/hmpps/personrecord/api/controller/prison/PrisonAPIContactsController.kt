@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonContactsHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactResponse
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 
 @Tag(name = "Prison")
@@ -44,7 +44,7 @@ class PrisonAPIContactsController(
     @RequestParam(name = "excludeTypes", required = false)
     @Parameter(description = "Do not return contacts of these types", example = "EMAIL")
     excludeTypes: List<ContactType>? = null,
-  ): List<PrisonContactResponse> = prisonContactsHandler.get(prisonNumber, includeTypes, excludeTypes)
+  ): List<CanonicalContact> = prisonContactsHandler.get(prisonNumber, includeTypes, excludeTypes)
 
   @Operation(
     description = "Add a contact for the prisoner by Prison Number. Role required is **$PRISON_API_READ_WRITE**. ",
@@ -56,7 +56,7 @@ class PrisonAPIContactsController(
   fun createContactByPrisonNumber(
     @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
     @Valid @RequestBody request: PrisonContactRequest,
-  ): PrisonContactResponse = prisonContactsHandler.create(prisonNumber, request)
+  ): CanonicalContact = prisonContactsHandler.create(prisonNumber, request)
 
   @Operation(
     description = "Update a contact for the prisoner by Prison Number and contact id. Role required is **$PRISON_API_READ_WRITE**. ",
@@ -68,5 +68,5 @@ class PrisonAPIContactsController(
     @PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String,
     @PathVariable(name = "contactId") @Parameter(description = "The contact id") contactId: String,
     @Valid @RequestBody request: PrisonContactRequest,
-  ): PrisonContactResponse = prisonContactsHandler.update(prisonNumber, contactId, request)
+  ): CanonicalContact = prisonContactsHandler.update(prisonNumber, contactId, request)
 }
