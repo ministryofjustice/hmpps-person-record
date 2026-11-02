@@ -31,6 +31,7 @@ class ReclusterDatabaseJobE2ETest(
       publisher = publisher,
       batchSize = 50,
       startPage = 0,
+      endPageInclusive = Int.MAX_VALUE,
     )
   }
 
@@ -86,5 +87,62 @@ class ReclusterDatabaseJobE2ETest(
     checkTelemetry(CPR_ADMIN_RECLUSTER_TRIGGERED, mapOf("UUID" to fromCluster.personUUID.toString()), times = 0)
     checkTelemetry(CPR_ADMIN_RECLUSTER_TRIGGERED, mapOf("UUID" to toCluster.personUUID.toString()), times = 1)
     checkTelemetry(CPR_ADMIN_RECLUSTER_TRIGGERED, mapOf("UUID" to passiveCluster.personUUID.toString()), times = 0)
+  }
+
+  @Test
+  fun `should stop when last page is complete`() {
+    reclusterDatabaseJob = ReclusterDatabaseJob(
+      personRepository = personRepository,
+      transactionalReclusterService = transactionalReclusterService,
+      publisher = publisher,
+      batchSize = 2,
+      startPage = 0,
+      endPageInclusive = Int.MAX_VALUE,
+    )
+
+    val clusterOne = createPersonKey().addPerson(createRandomPrisonPersonDetails(randomPrisonNumber()))
+    val clusterTwo = createPersonKey().addPerson(createRandomPrisonPersonDetails(randomPrisonNumber()))
+    val clusterThree = createPersonKey().addPerson(createRandomPrisonPersonDetails(randomPrisonNumber()))
+    val clusterFour = createPersonKey().addPerson(createRandomPrisonPersonDetails(randomPrisonNumber()))
+
+    reclusterDatabaseJob.run()
+
+    checkTelemetry(CPR_ADMIN_RECLUSTER_TRIGGERED, mapOf("UUID" to clusterOne.personUUID.toString()), times = 1)
+    checkTelemetry(CPR_ADMIN_RECLUSTER_TRIGGERED, mapOf("UUID" to clusterTwo.personUUID.toString()), times = 1)
+    checkTelemetry(CPR_ADMIN_RECLUSTER_TRIGGERED, mapOf("UUID" to clusterThree.personUUID.toString()), times = 1)
+    checkTelemetry(CPR_ADMIN_RECLUSTER_TRIGGERED, mapOf("UUID" to clusterFour.personUUID.toString()), times = 1)
+  }
+
+  @Test
+  fun `should stop when end page is completed even when more persons existsss`() {
+    reclusterDatabaseJob = ReclusterDatabaseJob(
+      personRepository = personRepository,
+      transactionalReclusterService = transactionalReclusterService,
+      publisher = publisher,
+      batchSize = 2,
+      startPage = 0,
+      endPageInclusive = 1, // <-- zero based (2nd page)
+    )
+
+    val clusterOne = createPersonKey().addPerson(createRandomPrisonPersonDetails(randomPrisonNumber()))
+    val clusterTwo = createPersonKey().addPerson(createRandomPrisonPersonDetails(randomPrisonNumber()))
+
+    val clusterThree = createPersonKey().addPerson(createRandomPrisonPersonDetails(randomPrisonNumber()))
+    val clusterFour = createPersonKey().addPerson(createRandomPrisonPersonDetails(randomPrisonNumber()))
+
+    val clusterFive = createPersonKey().addPerson(createRandomPrisonPersonDetails(randomPrisonNumber()))
+    val clusterSix = createPersonKey().addPerson(createRandomPrisonPersonDetails(randomPrisonNumber()))
+
+    reclusterDatabaseJob.run()
+
+    checkTelemetry(CPR_ADMIN_RECLUSTER_TRIGGERED, mapOf("UUID" to clusterOne.personUUID.toString()), times = 1)
+    checkTelemetry(CPR_ADMIN_RECLUSTER_TRIGGERED, mapOf("UUID" to clusterTwo.personUUID.toString()), times = 1)
+
+    checkTelemetry(CPR_ADMIN_RECLUSTER_TRIGGERED, mapOf("UUID" to clusterThree.personUUID.toString()), times = 1)
+    checkTelemetry(CPR_ADMIN_RECLUSTER_TRIGGERED, mapOf("UUID" to clusterFour.personUUID.toString()), times = 1)
+
+    // these would have been done on page 2 (3rd page)
+    checkTelemetry(CPR_ADMIN_RECLUSTER_TRIGGERED, mapOf("UUID" to clusterFive.personUUID.toString()), times = 0)
+    checkTelemetry(CPR_ADMIN_RECLUSTER_TRIGGERED, mapOf("UUID" to clusterSix.personUUID.toString()), times = 0)
   }
 }

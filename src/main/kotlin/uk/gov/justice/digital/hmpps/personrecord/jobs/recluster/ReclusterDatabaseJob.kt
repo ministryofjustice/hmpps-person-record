@@ -25,26 +25,35 @@ class ReclusterDatabaseJob(
   private val publisher: ApplicationEventPublisher,
   @Value($$"${RECLUSTER_DATABASE_BATCH_SIZE:0}") private val batchSize: Int,
   @Value($$"${RECLUSTER_DATABASE_START_PAGE:0}") private val startPage: Int,
+  @Value($$"${RECLUSTER_DATABASE_END_PAGE:2147483647}") private val endPageInclusive: Int,
 
 ) : BatchJob {
   override val jobName = "RECLUSTER_DATABASE"
 
   override fun run() {
     var pageNumber = startPage
-    var personEntities: Page<PersonEntity>
-    LOG.info("Starting '$jobName' with parameters: page number '$startPage' and batch size '$batchSize'")
+    var page: Page<PersonEntity>
+    if (startPage >= endPageInclusive) {
+      throw IllegalArgumentException("End page (inclusive) '$endPageInclusive' must be greater than start page '$startPage'")
+    }
+    LOG.info("Starting '$jobName' with parameters: start page '$startPage', end page '$endPageInclusive' and batch size '$batchSize'")
 
+    var hasNotCompletedEndPage = true
     val fullJobTime: Duration = measureTime {
       do {
         LOG.info("Starting re-clustering of persons on page '$pageNumber' with batch size '$batchSize'")
         val pageTime = measureTime {
           val pageable = PageRequest.of(pageNumber, batchSize, Sort.by("id"))
-          personEntities = personRepository.findAllByMergedToNullAndPassiveState(false, pageable)
-          reclusterPersons(personEntities.content)
+          page = personRepository.findAllByMergedToNullAndPassiveState(false, pageable)
+          reclusterPersons(page.content)
         }
         LOG.info("Time taken for page '$pageNumber' to complete '${pageTime.inWholeSeconds}' seconds")
+        if (pageNumber >= endPageInclusive) {
+          hasNotCompletedEndPage = false
+        }
+
         pageNumber++
-      } while (personEntities.hasNext())
+      } while (page.hasNext() && hasNotCompletedEndPage)
     }
 
     LOG.info("Total run time of '$jobName': '${fullJobTime.inWholeSeconds}' seconds")

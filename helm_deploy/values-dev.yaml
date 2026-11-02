@@ -18,6 +18,7 @@ generic-service:
     SAS_BASE_URL: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk
     RECLUSTER_DATABASE_BATCH_SIZE: 50
     RECLUSTER_DATABASE_START_PAGE: 0
+    RECLUSTER_DATABASE_END_PAGE: 2147483647
 
   scheduledDowntime:
     enabled: true
