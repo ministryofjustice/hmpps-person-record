@@ -18,7 +18,7 @@ interface PrisonMergeEventHandler {
   fun handleMerge(toPrisonNumber: String, prisonMerge: PrisonMerge): SysconPersonMergeResponseBody
 }
 
-@Profile("prod | preprod")
+@Profile("prod")
 @Component
 class PrisonMergeEventHandlerProd(
   private val personRepository: PersonRepository,
@@ -40,7 +40,7 @@ class PrisonMergeEventHandlerProd(
   }
 }
 
-@Profile("!preprod & !prod")
+@Profile("!prod")
 @Component
 class PrisonMergeEventHandlerDev(
   private val personRepository: PersonRepository,
