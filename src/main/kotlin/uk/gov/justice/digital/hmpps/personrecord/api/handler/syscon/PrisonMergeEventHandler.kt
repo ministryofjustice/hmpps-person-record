@@ -17,7 +17,7 @@ interface PrisonMergeEventHandler {
 }
 
 @Component
-class PrisonMergeEventHandlerDev(
+class PrisonMergeEventHandlerImpl(
   private val personRepository: PersonRepository,
   private val mergeService: MergeService,
   private val prisonerSearchClient: PrisonerSearchClient,
