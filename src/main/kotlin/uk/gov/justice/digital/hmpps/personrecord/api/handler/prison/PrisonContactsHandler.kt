@@ -4,8 +4,8 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonContactResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -29,13 +29,13 @@ class PrisonContactsHandler(
 ) {
 
   @Transactional(readOnly = true)
-  fun get(prisonNumber: String, includeTypes: List<ContactType>?, excludeTypes: List<ContactType>?): List<PrisonContactResponse> = findPerson(prisonNumber).contacts
+  fun get(prisonNumber: String, includeTypes: List<ContactType>?, excludeTypes: List<ContactType>?): List<CanonicalContact> = findPerson(prisonNumber).contacts
     .filter { includeTypes.isNullOrEmpty() || it.contactType in includeTypes }
     .filterNot { excludeTypes?.contains(it.contactType) == true }
-    .map { PrisonContactResponse.from(it) }
+    .map { CanonicalContact.from(it) }
 
   @Transactional
-  fun create(prisonNumber: String, request: PrisonContactRequest): PrisonContactResponse {
+  fun create(prisonNumber: String, request: PrisonContactRequest): CanonicalContact {
     val personEntity = findPerson(prisonNumber)
     val contactEntity = contactRepository.saveAndFlush(
       ContactEntity(
@@ -49,17 +49,17 @@ class PrisonContactsHandler(
     )
     personEntity.contacts.add(contactEntity)
     publisher.publishEvent(ContactCreated(DomainEventSource.CPR, prisonNumber, contactEntity, SourceSystemType.NOMIS))
-    return PrisonContactResponse.from(contactEntity)
+    return CanonicalContact.from(contactEntity)
   }
 
   @Transactional
-  fun update(prisonNumber: String, contactId: String, request: PrisonContactRequest): PrisonContactResponse = findPerson(prisonNumber).contacts.firstOrNull { it.updateId.toString() == contactId }?.let {
+  fun update(prisonNumber: String, contactId: String, request: PrisonContactRequest): CanonicalContact = findPerson(prisonNumber).contacts.firstOrNull { it.updateId.toString() == contactId }?.let {
     update(prisonNumber, it, request)
   }
     ?: throw ResourceNotFoundException("Contact with $contactId not found for person with $prisonNumber")
 
   @Transactional
-  fun createContacts(prisonNumber: String, addressId: String, requests: List<PrisonContactRequest>): List<PrisonContactResponse> {
+  fun createContacts(prisonNumber: String, addressId: String, requests: List<PrisonContactRequest>): List<CanonicalContact> {
     val addressEntity = findAddress(addressId)
     val contactEntities = contactRepository.saveAllAndFlush(
       requests.map {
@@ -77,7 +77,7 @@ class PrisonContactsHandler(
     contactEntities.forEach {
       publisher.publishEvent(ContactCreated(DomainEventSource.CPR, prisonNumber, it, SourceSystemType.NOMIS))
     }
-    return contactEntities.map { PrisonContactResponse.from(it) }
+    return contactEntities.map { CanonicalContact.from(it) }
   }
 
   private fun findPerson(prisonNumber: String): PersonEntity = personRepository.findByPrisonNumber(prisonNumber)
@@ -89,12 +89,12 @@ class PrisonContactsHandler(
     ?: throw ResourceNotFoundException("Address with $addressId not found")
 
   @Transactional
-  fun updateContact(prisonNumber: String, addressId: String, contactId: String, request: PrisonContactRequest): PrisonContactResponse = findAddress(addressId).contacts.firstOrNull { it.updateId.toString() == contactId }?.let {
+  fun updateContact(prisonNumber: String, addressId: String, contactId: String, request: PrisonContactRequest): CanonicalContact = findAddress(addressId).contacts.firstOrNull { it.updateId.toString() == contactId }?.let {
     update(prisonNumber, it, request)
   }
     ?: throw ResourceNotFoundException("Contact with $contactId not found for address with $addressId")
 
-  private fun update(prisonNumber: String, contactEntity: ContactEntity, request: PrisonContactRequest): PrisonContactResponse = with(request) {
+  private fun update(prisonNumber: String, contactEntity: ContactEntity, request: PrisonContactRequest): CanonicalContact = with(request) {
     contactEntity.contactType = type
     contactEntity.contactValue = value
     contactEntity.extension = extension
@@ -102,5 +102,5 @@ class PrisonContactsHandler(
     contactEntity.modifyUserId = userId
   }.also {
     publisher.publishEvent(ContactUpdated(DomainEventSource.CPR, prisonNumber, contactEntity, SourceSystemType.NOMIS))
-  }.let { PrisonContactResponse.from(contactEntity) }
+  }.let { CanonicalContact.from(contactEntity) }
 }

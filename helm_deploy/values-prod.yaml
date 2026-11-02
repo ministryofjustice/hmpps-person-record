@@ -38,6 +38,8 @@ generic-service:
     PRISON_API_BASE_URL: 'https://prison-api.prison.service.justice.gov.uk'
     SPRINGDOC_API_DOCS_ENABLED: false
     SPRINGDOC_SWAGGER_UI_ENABLED: false
+    RECLUSTER_DATABASE_BATCH_SIZE: 50
+    RECLUSTER_DATABASE_START_PAGE: 0
 
   batchjobs:
     - name: split-clusters
@@ -65,6 +67,10 @@ generic-service:
           memory: 4Gi
     - name: recluster-records
       type: RECLUSTER_RECORDS
+      schedule: "0 0 1 1 *"
+      suspend: true
+    - name: recluster-database
+      type: RECLUSTER_DATABASE
       schedule: "0 0 1 1 *"
       suspend: true
 
