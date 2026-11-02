@@ -29,7 +29,7 @@ class RetryableReclusterService(
     ],
   )
   fun triggerRecluster(person: PersonEntity) {
-    val person = personRepository.findById(person.id).orElseThrow()
+    val person = personRepository.findById(person.id!!).orElseThrow()
     reclusterService.recluster(person)
   }
 }
