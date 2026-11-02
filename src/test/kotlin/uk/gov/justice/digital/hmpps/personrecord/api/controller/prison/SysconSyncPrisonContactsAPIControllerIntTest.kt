@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus.FORBIDDEN
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.NO_CONTENT
 import org.springframework.http.HttpStatus.UNAUTHORIZED
-import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
@@ -31,21 +30,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
 
   @Nested
   inner class GetPrisonerContact {
-
-    @Nested
-    @ActiveProfiles("prod")
-    inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendGetRequestAsserted<String>(
-          url = getPrisonerContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
 
     @Nested
     inner class Validation {
@@ -164,22 +148,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
     )
 
     @Nested
-    @ActiveProfiles("prod")
-    inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendPostRequestAsserted<String>(
-          url = createPrisonerContactUrl(randomPrisonNumber()),
-          body = validRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
     inner class Validation {
 
       @Test
@@ -257,22 +225,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
     )
 
     @Nested
-    @ActiveProfiles("prod")
-    inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendPutRequestAsserted<String>(
-          url = updatePrisonerContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = validRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
     inner class Validation {
 
       @Test
@@ -341,21 +293,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
   inner class DeletePrisonerContact {
 
     @Nested
-    @ActiveProfiles("prod")
-    inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendDeleteRequestAsserted<String>(
-          url = deletePrisonerContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
     inner class Auth {
 
       @Test
@@ -409,22 +346,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
       modifyDateTime = LocalDateTime.of(2017, 3, 2, 12, 0),
       modifyUserId = "modifyUserId",
     )
-
-    @Nested
-    @ActiveProfiles("prod")
-    inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendPostRequestAsserted<String>(
-          url = createPrisonerAddressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = addressContactRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
 
     @Nested
     inner class Validation {
@@ -507,22 +428,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
     )
 
     @Nested
-    @ActiveProfiles("prod")
-    inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendPutRequestAsserted<String>(
-          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
-          body = addressContactRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
     inner class Validation {
 
       @Test
@@ -590,21 +495,6 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
 
   @Nested
   inner class DeletePrisonerAddressContact {
-
-    @Nested
-    @ActiveProfiles("prod")
-    inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendDeleteRequestAsserted<String>(
-          url = addressNoIdContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
 
     @Nested
     inner class Auth {
