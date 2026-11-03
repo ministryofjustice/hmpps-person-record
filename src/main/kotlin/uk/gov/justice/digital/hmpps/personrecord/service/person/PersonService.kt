@@ -28,34 +28,39 @@ class PersonService(
     findPerson: () -> PersonEntity?,
   ): PersonEntity = findPerson().exists(
     no = {
-      create(person, childrenToIgnore)
+      processCreate(PersonEntity.new(person.sourceSystem)) { personEntity ->
+        personEntity.updatePersonEntity(person, childrenToIgnore)
+      }
     },
     yes = {
-      val (personEntity, personChangeChecker) = update(person, it, childrenToIgnore)
-      publisher.publishEvent(PersonUpdated(personEntity, personChangeChecker))
-      personEntity
+      processUpdate(it) { personEntity ->
+        personEntity.updatePersonEntity(person, childrenToIgnore)
+      }
     },
   )
 
-  private fun create(person: Person, childrenToIgnore: Set<KClass<*>>): PersonEntity {
-    val personEntity = PersonEntity.new(person.sourceSystem).updatePersonEntity(person, childrenToIgnore)
-    personRepository.save(personEntity)
-    personMatchService.saveToPersonMatch(personEntity)
-    personKeyService.linkRecordToPersonKey(personEntity)
-    publisher.publishEvent(PersonCreated(personEntity))
-    return personEntity
+  @Transactional
+  fun processCreate(new: PersonEntity, callBack: (PersonEntity) -> PersonEntity): PersonEntity {
+    val edited = callBack(new)
+    personRepository.save(edited)
+    personMatchService.saveToPersonMatch(edited)
+    personKeyService.linkRecordToPersonKey(edited)
+    publisher.publishEvent(PersonCreated(edited))
+    return edited
   }
 
-  fun update(person: Person, personEntity: PersonEntity, childrenToIgnore: Set<KClass<*>> = emptySet()): Pair<PersonEntity, PersonChangeChecker> {
-    val personChangeChecker = PersonChangeChecker(personEntity)
-    personEntity.updatePersonEntity(person, childrenToIgnore)
-    personRepository.save(personEntity)
-
-    if (personChangeChecker.shouldSaveToPersonMatch(personEntity)) {
-      personMatchService.saveToPersonMatch(personEntity)
-      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
+  @Transactional
+  fun <T> processUpdate(original: PersonEntity, callBack: (PersonEntity) -> T): T {
+    val personChangeChecker = PersonChangeChecker(original)
+    val value = callBack(original) // Do work.
+    val edited = personRepository.findById(original.id!!).get() // Reload
+    personRepository.save(original)
+    if (personChangeChecker.shouldSaveToPersonMatch(edited)) {
+      personMatchService.saveToPersonMatch(edited)
+      edited.personKey?.let { reclusterService.recluster(edited) }
     }
-    return personEntity to personChangeChecker
+    publisher.publishEvent(PersonUpdated(edited, personChangeChecker))
+    return value
   }
 
   private fun PersonEntity?.exists(no: () -> PersonEntity, yes: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
