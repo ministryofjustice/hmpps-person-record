@@ -45,7 +45,7 @@ class PersonService(
 
   @Transactional
   fun <T> processCreate(sourceSystem: SourceSystemType, callBack: (PersonEntity) -> T): T {
-    val personEntity = PersonEntity.new(sourceSystem)
+    val personEntity = personRepository.save(PersonEntity.new(sourceSystem))
     val value = callBack(personEntity)
     personRepository.save(personEntity)
     personMatchService.saveToPersonMatch(personEntity)
@@ -56,13 +56,14 @@ class PersonService(
 
   @Transactional
   fun <T> processUpdate(personEntity: PersonEntity, callBack: (PersonEntity) -> T): T {
-    val personChangeChecker = PersonChangeChecker(personEntity)
-    val value = callBack(personEntity)
-    if (personChangeChecker.shouldSaveToPersonMatch(personEntity)) {
-      personMatchService.saveToPersonMatch(personEntity)
-      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
+    val personEntityAttached = personRepository.save(personEntity)
+    val personChangeChecker = PersonChangeChecker(personEntityAttached)
+    val value = callBack(personEntityAttached)
+    if (personChangeChecker.shouldSaveToPersonMatch(personEntityAttached)) {
+      personMatchService.saveToPersonMatch(personEntityAttached)
+      personEntityAttached.personKey?.let { reclusterService.recluster(personEntityAttached) }
     }
-    publisher.publishEvent(PersonUpdated(personEntity, personChangeChecker))
+    publisher.publishEvent(PersonUpdated(personEntityAttached, personChangeChecker))
     return value
   }
 
