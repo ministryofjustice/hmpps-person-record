@@ -52,9 +52,9 @@ class PersonService(
   @Transactional
   fun <T> processUpdate(original: PersonEntity, callBack: (PersonEntity) -> T): T {
     val personChangeChecker = PersonChangeChecker(original)
-    val value = callBack(original) // Do work.
-    val edited = personRepository.findById(original.id!!).get() // Reload
-    personRepository.save(original)
+    val value = callBack(original)
+    val edited = personRepository.findById(original.id!!).get()
+    personRepository.save(edited)
     if (personChangeChecker.shouldSaveToPersonMatch(edited)) {
       personMatchService.saveToPersonMatch(edited)
       edited.personKey?.let { reclusterService.recluster(edited) }

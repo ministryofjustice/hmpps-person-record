@@ -7,16 +7,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonUpdated
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PrisonPersonServiceProxy
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 
 @Component
 class PrisonEventListener(
   private val domainEventProcessor: DomainEventProcessor,
-  private val personService: PrisonPersonServiceProxy,
-  private val personRepository: PersonRepository,
+  private val prisonEventProcessor: PrisonEventProcessor,
   private val prisonerSearchClient: PrisonerSearchClient,
 ) {
 
@@ -29,12 +27,9 @@ class PrisonEventListener(
     }
   }
 
-  // TODO we now need to create a person via a different route. This route should throw
   private fun processPrisonEvent(prisonNumber: String) {
     prisonerSearchClient.getPrisoner(prisonNumber)?.let { person ->
-      personService.processPerson(person) {
-        personRepository.findByPrisonNumber(person.prisonNumber!!)
-      }
+      prisonEventProcessor.processEvent(person)
     }
   }
 
