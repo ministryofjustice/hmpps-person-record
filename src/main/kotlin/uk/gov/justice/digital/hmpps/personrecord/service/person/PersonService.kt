@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
+import java.time.LocalDateTime
 import kotlin.reflect.KClass
 
 @Component
@@ -59,6 +60,7 @@ class PersonService(
     val personEntityAttached = personRepository.save(personEntity)
     val personChangeChecker = PersonChangeChecker(personEntityAttached)
     val value = callBack(personEntityAttached)
+    personEntityAttached.lastModified = LocalDateTime.now()
     if (personChangeChecker.shouldSaveToPersonMatch(personEntityAttached)) {
       personMatchService.saveToPersonMatch(personEntityAttached)
       personEntityAttached.personKey?.let { reclusterService.recluster(personEntityAttached) }
