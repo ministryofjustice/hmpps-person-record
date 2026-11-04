@@ -122,7 +122,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     val originalEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber)) { markAsPassive() }
     val originalCluster = originalEntity.personKey
 
-    val updatedPerson = Person.from(originalEntity).copy(firstName = randomName())
+    val updatedPerson = Person.from(originalEntity).copy(firstName = "Hello")
 
     personService.processPerson(updatedPerson) { originalEntity }
 
