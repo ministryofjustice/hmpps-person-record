@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.NO_CONTENT
 import org.springframework.http.HttpStatus.OK
 import org.springframework.http.HttpStatus.UNAUTHORIZED
-import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressMapping
@@ -43,21 +42,6 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
 
   @Nested
   inner class GetPrisonerAddress {
-
-    @Nested
-    @ActiveProfiles("prod")
-    inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendGetRequestAsserted<String>(
-          url = getPrisonerAddressUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
 
     @Nested
     inner class Validation {
@@ -237,22 +221,6 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
     )
 
     @Nested
-    @ActiveProfiles("prod")
-    inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendPostRequestAsserted<String>(
-          url = createPrisonerAddressUrl(randomPrisonNumber()),
-          body = validRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
-
-    @Nested
     inner class Validation {
 
       @Test
@@ -342,22 +310,6 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
       modifyDateTime = LocalDateTime.of(2020, 1, 2, 12, 0),
       modifyUserId = "modifyUserId",
     )
-
-    @Nested
-    @ActiveProfiles("prod")
-    inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        val response = sendPutRequestAsserted<String>(
-          url = updatePrisonerAddressUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = validRequestBody,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-        ).returnResult().responseBody!!
-        assertThat(response).contains("\"error\":\"Not Found\"")
-      }
-    }
 
     @Nested
     inner class Validation {

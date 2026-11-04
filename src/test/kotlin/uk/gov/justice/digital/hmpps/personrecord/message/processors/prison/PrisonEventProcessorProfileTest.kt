@@ -17,10 +17,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PrisonPersonServiceProxy
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PrisonPersonServiceProxyDev
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PrisonPersonServiceProxyProd
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PrisonPersonServiceProxyImpl
 
-@SpringJUnitConfig(PrisonPersonServiceProxyProd::class, PrisonPersonServiceProxyDev::class)
+@SpringJUnitConfig(PrisonPersonServiceProxyImpl::class)
 class PrisonEventProcessorProfileTest {
   private val person = Person(sourceSystem = NOMIS)
   private val personEntity = PersonEntity.new(NOMIS)
@@ -34,16 +33,16 @@ class PrisonEventProcessorProfileTest {
 
     @Test
     fun `uses the correct prison person service proxy for the active profile`() {
-      assertThat(prisonPersonServiceProxy).isInstanceOf(PrisonPersonServiceProxyProd::class.java)
+      assertThat(prisonPersonServiceProxy).isInstanceOf(PrisonPersonServiceProxyImpl::class.java)
     }
 
     @Test
-    fun `passes emptySet for the childrenToIgnore`() {
+    fun `passes set of addresses and contacts for the childrenToIgnore`() {
       prisonPersonServiceProxy.processPerson(person, { personEntity })
 
       verify(personService).processPerson(
         person = eq(person),
-        childrenToIgnore = eq(emptySet()),
+        childrenToIgnore = eq(setOf(AddressEntity::class, ContactEntity::class)),
         findPerson = any(),
       )
     }
@@ -55,7 +54,7 @@ class PrisonEventProcessorProfileTest {
 
     @Test
     fun `uses the correct prison person service proxy for the active profile`() {
-      assertThat(prisonPersonServiceProxy).isInstanceOf(PrisonPersonServiceProxyDev::class.java)
+      assertThat(prisonPersonServiceProxy).isInstanceOf(PrisonPersonServiceProxyImpl::class.java)
     }
 
     @Test
@@ -76,7 +75,7 @@ class PrisonEventProcessorProfileTest {
 
     @Test
     fun `uses the correct prison person service proxy for the active profile`() {
-      assertThat(prisonPersonServiceProxy).isInstanceOf(PrisonPersonServiceProxyDev::class.java)
+      assertThat(prisonPersonServiceProxy).isInstanceOf(PrisonPersonServiceProxyImpl::class.java)
     }
 
     @Test
