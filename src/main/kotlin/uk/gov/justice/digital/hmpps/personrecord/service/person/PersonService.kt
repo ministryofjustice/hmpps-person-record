@@ -47,7 +47,7 @@ class PersonService(
   fun <T> processCreate(sourceSystem: SourceSystemType, callBack: (PersonEntity) -> T): T {
     val personEntity = personRepository.save(PersonEntity.new(sourceSystem))
     val value = callBack(personEntity)
-    personRepository.save(personEntity)
+    personRepository.saveAndFlush(personEntity)
     personMatchService.saveToPersonMatch(personEntity)
     personKeyService.linkRecordToPersonKey(personEntity)
     publisher.publishEvent(PersonCreated(personEntity))
