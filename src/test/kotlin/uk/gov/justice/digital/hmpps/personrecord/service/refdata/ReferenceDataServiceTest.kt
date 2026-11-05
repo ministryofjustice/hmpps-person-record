@@ -51,7 +51,6 @@ class ReferenceDataServiceTest {
     assertThat(allReferenceData["contactType"]).hasSize(ContactType.entries.size)
   }
 
-
   @Test
   fun `should include current flag for reference data with a current flag`() {
     assertThat(referenceDataService.getReferenceData("religion"))
@@ -59,7 +58,6 @@ class ReferenceDataServiceTest {
     assertThat(referenceDataService.getReferenceData("addressUsage"))
       .isEqualTo(mapOf("addressUsage" to AddressUsageCode.entries.map { ReferenceDataValue(it.name, it.description, it.current) }))
   }
-
 
   @Test
   fun `should look up reference data type ignoring case`() {

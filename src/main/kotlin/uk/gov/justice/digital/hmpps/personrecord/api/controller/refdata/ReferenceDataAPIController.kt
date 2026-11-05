@@ -23,7 +23,9 @@ class ReferenceDataAPIController(
 ) {
 
   @Operation(
-    description = """Retrieve all reference data, grouped by reference data type. Role required is **$API_READ_ONLY**.""",
+    description = """Retrieve all reference data, grouped by reference data type. Role required is **$API_READ_ONLY**.
+      Supported types are: sex, religion, nationality, country, title, ethnicity, genderIdentity, sexualOrientation, 
+      addressStatus, addressUsage, contactType.""",
     security = [SecurityRequirement(name = "api-role")],
   )
   @ApiResponses(
