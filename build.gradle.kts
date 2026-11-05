@@ -60,7 +60,7 @@ tasks.register<Test>("initialiseDatabase") {
   testClassesDirs = files(test.map { it.sources.output.classesDirs })
   classpath = files(test.map { it.sources.runtimeClasspath })
   include("**/InitialiseDatabase.class")
-  onlyIf { gradle.startParameter.taskNames.contains("initialiseDatabase") }
+  onlyIf { gradle.startParameter.taskNames.any { it.contains("initialiseDatabase") } }
 }
 
 tasks.register<Test>("e2eTest") {
@@ -68,7 +68,7 @@ tasks.register<Test>("e2eTest") {
   testClassesDirs = files(test.map { it.sources.output.classesDirs })
   classpath = files(test.map { it.sources.runtimeClasspath })
   include("**/**E2ETest.class")
-  onlyIf { gradle.startParameter.taskNames.contains("e2eTest") }
+  onlyIf { gradle.startParameter.taskNames.any { it.contains("e2eTest") } }
 }
 
 tasks.register<Exec>("setUpS3Bucket") {
