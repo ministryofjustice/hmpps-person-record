@@ -7,24 +7,20 @@ import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.Resou
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
-import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import kotlin.collections.emptySet
 import kotlin.reflect.KClass
 
 @Service
 class AddressService(
   private val addressRepository: AddressRepository,
-  private val personRepository: PersonRepository,
-  private val personMatchService: PersonMatchService,
-  private val reclusterService: ReclusterService,
+  private val personService: PersonService,
   private val publisher: ApplicationEventPublisher,
 ) {
 
@@ -52,14 +48,12 @@ class AddressService(
   ): AddressEntity {
     val personEntity = findPerson()
     val personChangeChecker = PersonChangeChecker(personEntity)
-    val addressToSave = AddressEntity.from(address)
-    addressToSave.person = personEntity
-    personEntity.addresses.add(addressToSave)
-
-    val addressEntity = addressRepository.save(addressToSave)
-
-    tryRecluster(personEntity, personChangeChecker)
-
+    val addressEntity = personService.processUpdate(personEntity) {
+      val addressToSave = AddressEntity.from(address)
+      addressToSave.person = personEntity
+      personEntity.addresses.add(addressToSave)
+      addressRepository.save(addressToSave)
+    }
     publisher.publishEvent(AddressCreated(addressEntity, personChangeChecker.matchingFieldsHaveChanged(personEntity), eventSource))
 
     return addressEntity
@@ -75,10 +69,10 @@ class AddressService(
     val addressEntity = findAddress() ?: throw ResourceNotFoundException("Address not found")
     val personEntity = addressEntity.person!!
     val personChangeChecker = PersonChangeChecker(personEntity)
-    addressEntity.update(address, childrenToIgnore)
-    addressRepository.save(addressEntity)
-
-    tryRecluster(personEntity, personChangeChecker)
+    personService.processUpdate(personEntity) {
+      addressEntity.update(address, childrenToIgnore)
+      addressRepository.save(addressEntity)
+    }
 
     publisher.publishEvent(AddressUpdated(addressEntity, personChangeChecker.matchingFieldsHaveChanged(personEntity), eventSource))
 
@@ -89,23 +83,11 @@ class AddressService(
   fun deleteAddress(findAddress: () -> AddressEntity?, eventSource: DomainEventSource) {
     findAddress()?.let { addressEntity ->
       val personEntity = addressEntity.person!!
-      val personChangeChecker = PersonChangeChecker(personEntity)
-      personEntity.addresses.remove(addressEntity)
-      addressEntity.person = null
-      personRepository.save(personEntity)
-
-      tryRecluster(personEntity, personChangeChecker)
+      personService.processUpdate(personEntity) {
+        personEntity.addresses.remove(addressEntity)
+        addressEntity.person = null
+      }
       publisher.publishEvent(AddressDeleted(addressEntity, personEntity, eventSource))
-    }
-  }
-
-  private fun tryRecluster(
-    personEntity: PersonEntity,
-    personChangeChecker: PersonChangeChecker,
-  ) {
-    if (personChangeChecker.shouldSaveToPersonMatch(personEntity)) {
-      personMatchService.saveToPersonMatch(personEntity)
-      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
     }
   }
 
