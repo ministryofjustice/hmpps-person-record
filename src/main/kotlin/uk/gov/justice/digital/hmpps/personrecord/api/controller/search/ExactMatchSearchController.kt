@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -26,7 +27,17 @@ class ExactMatchSearchController(
   @ApiResponses(
     ApiResponse(
       responseCode = "200",
-      description = "",
+      description = "This endpoint returns person identifiers which exactly match all the search terms",
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = ExactMatchSearchResponse::class),
+        ),
+      ],
+    ),
+    ApiResponse(
+      responseCode = "404",
+      description = "Nothing exactly matches all the search terms",
       content = [
         Content(
           mediaType = "application/json",
@@ -37,7 +48,7 @@ class ExactMatchSearchController(
   )
   @PostMapping("/person/search/exact-match")
   @PreAuthorize("hasRole('$API_READ_ONLY')")
-  fun search(@RequestBody body: ExactMatchSearchRequest): ExactMatchSearchResponse {
+  fun search(@Valid @RequestBody body: ExactMatchSearchRequest): ExactMatchSearchResponse {
     val matchIds = personMatchClient.exactMatchSearch(body).matchIds
     val persons = matchIds.map { personRepository.findByMatchId(UUID.fromString(it))!! }
     return ExactMatchSearchResponse.from(persons)
