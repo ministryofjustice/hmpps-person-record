@@ -6,7 +6,9 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Retryable
+import org.springframework.security.oauth2.core.OAuth2AuthorizationException
 import org.springframework.stereotype.Component
+import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.reactive.function.client.WebClientException
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -26,6 +28,8 @@ class RetryableReclusterService(
       OptimisticLockException::class,
       DataIntegrityViolationException::class,
       CannotAcquireLockException::class,
+      OAuth2AuthorizationException::class,
+      ResourceAccessException::class,
     ],
   )
   fun triggerRecluster(person: PersonEntity) {
