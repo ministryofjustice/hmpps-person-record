@@ -35,14 +35,11 @@ class PersonService(
       }
     },
     yes = {
-      update(person, it, childrenToIgnore)
+      processUpdate(it) { personEntity ->
+        personEntity.updatePersonEntity(person, childrenToIgnore)
+      }
     },
   )
-
-  @Transactional
-  fun update(person: Person, personEntity: PersonEntity, childrenToIgnore: Set<KClass<*>> = emptySet()) = processUpdate(personEntity) { personEntity ->
-    personEntity.updatePersonEntity(person, childrenToIgnore)
-  }
 
   @Transactional
   fun <T> processCreate(sourceSystem: SourceSystemType, callBack: (PersonEntity) -> T): T {
@@ -56,16 +53,21 @@ class PersonService(
   }
 
   @Transactional
-  fun <T> processUpdate(personEntity: PersonEntity, callBack: (PersonEntity) -> T): T {
+  fun <T> processUpdate(personEntity: PersonEntity, callBack: (PersonEntity) -> T): T = processUpdate(personEntity, callBack) { personEntityAttached, personChangeChecker ->
+    publisher.publishEvent(PersonUpdated(personEntityAttached, personChangeChecker))
+  }
+
+  @Transactional
+  fun <T> processUpdate(personEntity: PersonEntity, callBack: (PersonEntity) -> T, eventPublisher: (PersonEntity, PersonChangeChecker) -> Unit): T {
     val personEntityAttached = personRepository.save(personEntity)
     val personChangeChecker = PersonChangeChecker(personEntityAttached)
-    val value = callBack(personEntityAttached)
     personEntityAttached.lastModified = LocalDateTime.now()
+    val value = callBack(personEntityAttached)
     if (personChangeChecker.shouldSaveToPersonMatch(personEntityAttached)) {
       personMatchService.saveToPersonMatch(personEntityAttached)
       personEntityAttached.personKey?.let { reclusterService.recluster(personEntityAttached) }
     }
-    publisher.publishEvent(PersonUpdated(personEntityAttached, personChangeChecker))
+    eventPublisher(personEntityAttached, personChangeChecker)
     return value
   }
 
