@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressDeleted
@@ -45,18 +44,13 @@ class AddressService(
     address: Address,
     eventSource: DomainEventSource,
     findPerson: () -> PersonEntity,
-  ): AddressEntity {
-    val personEntity = findPerson()
-    val personChangeChecker = PersonChangeChecker(personEntity)
-    val addressEntity = personService.processUpdate(personEntity) {
-      val addressToSave = AddressEntity.from(address)
-      addressToSave.person = personEntity
-      personEntity.addresses.add(addressToSave)
-      addressRepository.save(addressToSave)
-    }
-    publisher.publishEvent(AddressCreated(addressEntity, personChangeChecker.matchingFieldsHaveChanged(personEntity), eventSource))
-
-    return addressEntity
+  ): AddressEntity = personService.processUpdate(findPerson()) { personEntity, personChangeChecker ->
+    val addressToSave = AddressEntity.from(address)
+    addressToSave.person = personEntity
+    personEntity.addresses.add(addressToSave)
+    val savedAddress = addressRepository.save(addressToSave)
+    publisher.publishEvent(AddressCreated(savedAddress, personChangeChecker.matchingFieldsHaveChanged(personEntity), eventSource))
+    savedAddress
   }
 
   @Transactional
@@ -67,27 +61,23 @@ class AddressService(
     findAddress: () -> AddressEntity?,
   ): AddressEntity {
     val addressEntity = findAddress() ?: throw ResourceNotFoundException("Address not found")
-    val personEntity = addressEntity.person!!
-    val personChangeChecker = PersonChangeChecker(personEntity)
-    personService.processUpdate(personEntity) {
+    return personService.processUpdate(addressEntity.person!!) { personEntity, personChangeChecker ->
       addressEntity.update(address, childrenToIgnore)
-      addressRepository.save(addressEntity)
+      val savedAddress = addressRepository.save(addressEntity)
+      publisher.publishEvent(AddressUpdated(savedAddress, personChangeChecker.matchingFieldsHaveChanged(personEntity), eventSource))
+      savedAddress
     }
-
-    publisher.publishEvent(AddressUpdated(addressEntity, personChangeChecker.matchingFieldsHaveChanged(personEntity), eventSource))
-
-    return addressEntity
   }
 
   @Transactional
   fun deleteAddress(findAddress: () -> AddressEntity?, eventSource: DomainEventSource) {
     findAddress()?.let { addressEntity ->
-      val personEntity = addressEntity.person!!
-      personService.processUpdate(personEntity) {
+      personService.processUpdate(addressEntity.person!!) { personEntity, _ ->
+        addressRepository.save(addressEntity)
         personEntity.addresses.remove(addressEntity)
         addressEntity.person = null
+        publisher.publishEvent(AddressDeleted(addressEntity, personEntity, eventSource))
       }
-      publisher.publishEvent(AddressDeleted(addressEntity, personEntity, eventSource))
     }
   }
 

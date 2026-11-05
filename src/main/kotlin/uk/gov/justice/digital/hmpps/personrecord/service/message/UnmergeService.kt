@@ -25,8 +25,7 @@ class UnmergeService(
   private fun update(person: Person, personEntity: PersonEntity) {
     personService.processUpdate(
       personEntity,
-      { entity -> entity.updatePersonEntity(person) },
-      { _, _ -> }, // No event to publish for unmerge update
+      { entity, _ -> entity.updatePersonEntity(person) },
     )
   }
 

@@ -53,21 +53,22 @@ class PersonService(
   }
 
   @Transactional
-  fun <T> processUpdate(personEntity: PersonEntity, callBack: (PersonEntity) -> T): T = processUpdate(personEntity, callBack) { personEntityAttached, personChangeChecker ->
-    publisher.publishEvent(PersonUpdated(personEntityAttached, personChangeChecker))
+  fun <T> processUpdate(personEntity: PersonEntity, callBack: (PersonEntity) -> T): T = processUpdate(personEntity) { personEntity, personChangeChecker ->
+    val result = callBack(personEntity)
+    publisher.publishEvent(PersonUpdated(personEntity, personChangeChecker))
+    result
   }
 
   @Transactional
-  fun <T> processUpdate(personEntity: PersonEntity, callBack: (PersonEntity) -> T, eventPublisher: (PersonEntity, PersonChangeChecker) -> Unit): T {
+  fun <T> processUpdate(personEntity: PersonEntity, callBack: (PersonEntity, PersonChangeChecker) -> T): T {
     val personEntityAttached = personRepository.save(personEntity)
-    val personChangeChecker = PersonChangeChecker(personEntityAttached)
     personEntityAttached.lastModified = LocalDateTime.now()
-    val value = callBack(personEntityAttached)
+    val personChangeChecker = PersonChangeChecker(personEntityAttached)
+    val value = callBack(personEntityAttached, personChangeChecker)
     if (personChangeChecker.shouldSaveToPersonMatch(personEntityAttached)) {
       personMatchService.saveToPersonMatch(personEntityAttached)
       personEntityAttached.personKey?.let { reclusterService.recluster(personEntityAttached) }
     }
-    eventPublisher(personEntityAttached, personChangeChecker)
     return value
   }
 
