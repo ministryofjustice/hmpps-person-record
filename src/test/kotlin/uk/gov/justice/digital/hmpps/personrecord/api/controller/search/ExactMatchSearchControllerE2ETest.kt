@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.search
 
+import au.com.dius.pact.core.model.OptionalBody.Companion.body
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -8,7 +9,9 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ON
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.ExactMatchSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.search.ExactMatchSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 
 class ExactMatchSearchControllerE2ETest : E2ETestBase() {
   private val url = "/person/search/exact-match"
@@ -73,27 +76,36 @@ class ExactMatchSearchControllerE2ETest : E2ETestBase() {
     @Test
     fun `should return bad request when request is invalid`() {
     }
-
-    // ...
   }
 
   @Nested
   inner class Auth {
     @Test
-    fun `should return not authenticated`() {
+    fun `should return not authorised when no authorisation`() {
       sendPostRequestAsserted<Unit>(
         url = url,
-        body = Any(),
+        body = ExactMatchSearchRequest(
+          firstName = randomName(),
+          lastName = randomName(),
+          dateOfBirth = randomDate(),
+          pnc = randomLongPnc(),
+        ),
         roles = emptyList(),
+        sendAuthorised = false,
         expectedStatus = HttpStatus.UNAUTHORIZED,
       )
     }
 
     @Test
-    fun `should return not authorized`() {
+    fun `should return forbidden when wrong role supplied`() {
       sendPostRequestAsserted<Unit>(
         url = url,
-        body = Any(),
+        body = ExactMatchSearchRequest(
+          firstName = randomName(),
+          lastName = randomName(),
+          dateOfBirth = randomDate(),
+          pnc = randomLongPnc(),
+        ),
         roles = listOf("BAD_ROLE"),
         expectedStatus = HttpStatus.FORBIDDEN,
       )
