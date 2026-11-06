@@ -24,7 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 
 class ProviderPactTest : AbstractProviderPactTests() {
   override fun rolesFor(request: HttpRequest): List<String> = when (request.method.uppercase()) {
-    "POST" -> listOf(PROBATION_API_READ_WRITE)
+    "POST" -> listOf(PROBATION_API_READ_WRITE, API_READ_ONLY)
     else -> listOf(API_READ_ONLY)
   }
 
