@@ -84,6 +84,17 @@ tasks.register<Test>("pactTest") {
   filter.includeTestsMatching("uk.gov.justice.digital.hmpps.personrecord.pacttest.ProviderPactTest")
   group = "verification"
 
+  testLogging {
+    events("failed")
+    showStandardStreams = true
+    showExceptions = false
+  }
+
+  extensions.configure<com.adarshr.gradle.testlogger.TestLoggerExtension> {
+    showExceptions = false
+    showStandardStreams = false
+  }
+
   systemProperty("pactbroker.url", System.getenv("PACT_BROKER_URL"))
   systemProperty("pactbroker.auth.username", System.getenv("PACT_BROKER_USERNAME") ?: "")
   systemProperty("pactbroker.auth.password", System.getenv("PACT_BROKER_PASSWORD") ?: "")
@@ -106,6 +117,11 @@ tasks.register<Test>("pactTest") {
   systemProperty("pact.provider.version", System.getenv("PACT_PROVIDER_APP_VERSION") ?: "local")
   systemProperty("pact.provider.branch", System.getenv("GITHUB_BRANCH") ?: "local")
   systemProperty("pact.provider.tag", System.getenv("PACT_PROVIDER_TAG") ?: "local")
+  systemProperty("spring.main.banner-mode", "off")
+  systemProperty("spring.main.log-startup-info", "false")
+  systemProperty("springdoc.api-docs.enabled", "false")
+  systemProperty("springdoc.swagger-ui.enabled", "false")
+  systemProperty("pact_do_not_track", "true")
 }
 
 kover {
