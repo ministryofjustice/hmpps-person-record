@@ -4,8 +4,7 @@ services:
     container_name: hmpps-person-match
     image: ghcr.io/ministryofjustice/hmpps-person-match
     command: |
-      sh -c "/app/.venv/bin/python -m pip install --no-cache-dir debugpy &&
-             python -m debugpy --listen 0.0.0.0:5678 -m uvicorn asgi:app --host 0.0.0.0 --port 5000 --reload --log-level debug"
+      sh -c "python -m uvicorn asgi:app --host 0.0.0.0 --port 5000 --reload --log-level debug"
     networks:
       - hmpps
     environment: &database_config
