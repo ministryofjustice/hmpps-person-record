@@ -7,10 +7,14 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_A
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -64,6 +68,9 @@ class ProviderPactTest : AbstractProviderPactTests() {
     val person = createRandomPrisonPersonDetails()
     createPersonKey()
       .addPerson(person)
+      .addPerson(person.copy(prisonNumber = null, crn = randomCrn(), sourceSystem = DELIUS))
+      .addPerson(person.copy(prisonNumber = null, defendantId = randomDefendantId(), sourceSystem = COMMON_PLATFORM))
+      .addPerson(person.copy(prisonNumber = null, cId = randomCId(), sourceSystem = LIBRA))
 
     return mapOf(
       "firstName" to person.firstName!!,
