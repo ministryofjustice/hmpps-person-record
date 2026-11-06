@@ -18,7 +18,7 @@ class PrisonPersonMergedEventPublisher(
   override val sourceSystemType = SourceSystemType.NOMIS
 
   override fun onMerge(personMerged: PersonMerged) {
-    val fromPrisonNumber = personMerged.from!!.prisonNumber!!
+    val fromPrisonNumber = personMerged.from.prisonNumber!!
     val toPrisonNumber = personMerged.to.prisonNumber!!
 
     domainEventPublisher.publish(
