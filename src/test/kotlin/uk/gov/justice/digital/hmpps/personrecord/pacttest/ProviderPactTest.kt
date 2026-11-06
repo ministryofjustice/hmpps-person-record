@@ -59,6 +59,20 @@ class ProviderPactTest : AbstractProviderPactTests() {
   @State("A person exists for the requested prisoner number")
   fun aPersonExistsForTheRequestedPrisonerNumber(): Map<String, String> = createCourtDataIngestionPerson()
 
+  @State("A person exists as an exact match for the requested first name, last name, date of birth and PNC")
+  fun aPersonExistsForExactMatch(): Map<String, String> {
+    val person = createRandomPrisonPersonDetails()
+    createPersonKey()
+      .addPerson(person)
+
+    return mapOf(
+      "firstName" to person.firstName!!,
+      "lastName" to person.lastName!!,
+      "dateOfBirth" to person.dateOfBirth.toString(),
+      "pnc" to person.getPnc().toString(),
+    )
+  }
+
   private fun createProbationPersonWithAddress(crn: String) = createPersonWithNewKey(
     createRandomProbationPersonDetails(crn),
     configure = addAddressToRecord(buildPactAddress()),
@@ -66,15 +80,15 @@ class ProviderPactTest : AbstractProviderPactTests() {
 
   private fun createCourtDataIngestionPerson(): Map<String, String> {
     val defendantId = randomDefendantId()
-    val prisonerNumber = randomPrisonNumber()
+    val prisonNumber = randomPrisonNumber()
 
     createPersonKey()
       .addPerson(createRandomCommonPlatformPersonDetails(defendantId))
-      .addPerson(createRandomPrisonPersonDetails(prisonerNumber))
+      .addPerson(createRandomPrisonPersonDetails(prisonNumber))
 
     return mapOf(
       "defendantId" to defendantId,
-      "prisonerNumber" to prisonerNumber,
+      "prisonerNumber" to prisonNumber,
     )
   }
 
