@@ -122,6 +122,7 @@ tasks.register<Test>("pactTest") {
   systemProperty("springdoc.api-docs.enabled", "false")
   systemProperty("springdoc.swagger-ui.enabled", "false")
   systemProperty("pact_do_not_track", "true")
+  systemProperty("logging.level.org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor", "ERROR")
 }
 
 kover {
