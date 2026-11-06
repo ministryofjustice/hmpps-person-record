@@ -238,12 +238,12 @@ class SysconPersonContactsAndAddressesInsertHandler(
     return contactEntity
   }
 
-  fun PrisonAddressUsage.findExistingElseNewAddressUsageAndUpdateFields(addressEntity: AddressEntity): AddressUsageEntity {
-    val addressUsageEntity = if (!cprAddressUsageId.isNullOrBlank()) {
-      addressUsageRepository.findByUpdateId(UUID.fromString(cprAddressUsageId)) ?: throw ResourceNotFoundException("AddressUsage with updateId $cprAddressUsageId not found")
-    } else {
-      AddressUsageEntity(usageCode = addressUsageCode, active = isActive)
-    }
+  private fun PrisonAddressUsage.findExistingElseNewAddressUsageAndUpdateFields(addressEntity: AddressEntity): AddressUsageEntity {
+    // if no id is passed in, or if the id no longer exists then we create a new one
+    val addressUsageEntity = cprAddressUsageId.takeUnless { it.isNullOrBlank() }?.let {
+      addressUsageRepository.findByUpdateId(UUID.fromString(it))
+    } ?: AddressUsageEntity(usageCode = addressUsageCode, active = isActive)
+
     addressUsageEntity.usageCode = addressUsageCode
     addressUsageEntity.active = isActive
     addressUsageEntity.address = addressEntity
