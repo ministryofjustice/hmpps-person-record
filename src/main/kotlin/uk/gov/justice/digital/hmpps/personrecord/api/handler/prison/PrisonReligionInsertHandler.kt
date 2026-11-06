@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
@@ -52,10 +51,11 @@ class PrisonReligionInsertHandler(
     prisonReligionHistory: PrisonReligionHistory,
     domainEventSource: DomainEventSource,
   ): PrisonReligionMapping {
-    val personEntity = personRepository.findByPrisonNumber(prisonNumber)
-      ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
-    val cprReligionId = savePrisonReligion(prisonNumber, prisonReligionHistory, personEntity, domainEventSource)
-    return PrisonReligionMapping(prisonReligionHistory.nomisReligionId, cprReligionId)
+    val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
+    return personService.processUpdate(personEntity) { personEntity ->
+      val cprReligionId = savePrisonReligion(prisonNumber, prisonReligionHistory, personEntity, domainEventSource)
+      PrisonReligionMapping(prisonReligionHistory.nomisReligionId, cprReligionId)
+    }
   }
 
   private fun savePrisonReligion(
@@ -75,7 +75,6 @@ class PrisonReligionInsertHandler(
     val prisonReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, prisonReligionHistory))
     personEntity.religion = prisonReligionHistory.religionCode
     publisher.publishEvent(ReligionCreated(domainEventSource, prisonReligionEntity, SourceSystemType.NOMIS))
-    personService.processPerson(Person.from(personEntity)) { personEntity }
     return prisonReligionEntity.updateId.toString()
   }
 }
