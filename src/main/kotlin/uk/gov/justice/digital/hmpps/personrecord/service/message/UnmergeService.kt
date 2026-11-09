@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService.PersonLookup.ByCrn
 import uk.gov.justice.digital.hmpps.personrecord.service.person.updatePersonEntity
 
 @Component
@@ -23,11 +24,11 @@ class UnmergeService(
 ) {
 
   fun processUnmerge(reactivated: Person, existing: Person) {
-    val existingPersonEntity = personService.processUpdate(personRepository.findByCrn(existing.crn!!)!!) { personEntity, _ ->
+    val existingPersonEntity = personService.processUpdate(ByCrn(existing.crn!!)) { personEntity, _ ->
       personEntity.updatePersonEntity(existing)
     }
 
-    val reactivatedPersonEntity = personService.processUpdate(personRepository.findByCrn(reactivated.crn!!)!!) { personEntity, _ ->
+    val reactivatedPersonEntity = personService.processUpdate(ByCrn(reactivated.crn!!)) { personEntity, _ ->
       personEntity.updatePersonEntity(reactivated)
     }
 

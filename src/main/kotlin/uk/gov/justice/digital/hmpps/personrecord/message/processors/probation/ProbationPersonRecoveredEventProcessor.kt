@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService.PersonLookup.ByEntity
 
 @Component
 class ProbationPersonRecoveredEventProcessor(
@@ -25,7 +26,7 @@ class ProbationPersonRecoveredEventProcessor(
       case.addresses.forEach { address ->
         addressService.upsert(
           address = Address.from(address)!!,
-          findPerson = { personEntity },
+          personLookup = ByEntity(personEntity),
           findAddress = { addressRepository.findByDeliusAddressId(address.deliusAddressId) },
           eventSource = DomainEventSource.DELIUS,
         )

@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService.PersonLookup.ByEntity
 
 @Component
 class ProbationAddressCreateHandler(
@@ -24,6 +25,6 @@ class ProbationAddressCreateHandler(
     if (address.statusCode == AddressStatusCode.M) {
       sasAddressArrivedHandler.setMainAddressToPrevious(person, address.startDate!!)
     }
-    return addressService.create(address, CPR) { person }
+    return addressService.create(address, CPR, ByEntity(person))
   }
 }

@@ -12,12 +12,12 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonRecovered
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationPersonRecoveredEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService.PersonLookup.ByCrn
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.PROBATION_EVENT_QUEUE_ID
 
@@ -26,7 +26,6 @@ class ProbationEventListener(
   private val domainEventProcessor: DomainEventProcessor,
   private val probationEventProcessor: ProbationEventProcessor,
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
-  private val personRepository: PersonRepository,
   private val addressRepository: AddressRepository,
   private val addressService: AddressService,
   private val probationPersonRecoveredEventProcessor: ProbationPersonRecoveredEventProcessor,
@@ -56,7 +55,7 @@ class ProbationEventListener(
     val probationAddress = corePersonRecordAndDeliusClient.getAddress(deliusAddressId)!!
     addressService.upsert(
       address = probationAddress,
-      findPerson = { personRepository.findByCrn(crn)!! },
+      personLookup = ByCrn(crn),
       findAddress = { addressRepository.findByDeliusAddressId(deliusAddressId) },
       eventSource = DELIUS,
     )

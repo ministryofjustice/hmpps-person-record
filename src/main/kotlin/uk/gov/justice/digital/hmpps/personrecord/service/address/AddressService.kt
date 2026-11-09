@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
@@ -13,6 +12,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService.PersonLookup
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService.PersonLookup.ById
 import kotlin.collections.emptySet
 import kotlin.reflect.KClass
 
@@ -26,13 +27,13 @@ class AddressService(
   @Transactional
   fun upsert(
     address: Address,
-    findPerson: () -> PersonEntity,
+    personLookup: PersonLookup,
     findAddress: () -> AddressEntity?,
     eventSource: DomainEventSource,
     childrenToIgnore: Set<KClass<*>> = emptySet(),
   ): AddressEntity = findAddress().exists(
     no = {
-      create(address, eventSource, findPerson)
+      create(address, eventSource, personLookup)
     },
     yes = {
       update(address, eventSource, childrenToIgnore) { it }
@@ -43,8 +44,8 @@ class AddressService(
   fun create(
     address: Address,
     eventSource: DomainEventSource,
-    findPerson: () -> PersonEntity,
-  ): AddressEntity = personService.processUpdate(findPerson()) { personEntity, personChangeChecker ->
+    personLookup: PersonLookup,
+  ): AddressEntity = personService.processUpdate(personLookup) { personEntity, personChangeChecker ->
     val addressToSave = AddressEntity.from(address)
     addressToSave.person = personEntity
     personEntity.addresses.add(addressToSave)
@@ -61,7 +62,7 @@ class AddressService(
     findAddress: () -> AddressEntity?,
   ): AddressEntity {
     val addressEntity = findAddress() ?: throw ResourceNotFoundException("Address not found")
-    return personService.processUpdate(addressEntity.person!!) { personEntity, personChangeChecker ->
+    return personService.processUpdate(ById(addressEntity.person!!.id!!)) { personEntity, personChangeChecker ->
       addressEntity.update(address, childrenToIgnore)
       val savedAddress = addressRepository.save(addressEntity)
       publisher.publishEvent(AddressUpdated(savedAddress, personChangeChecker.matchingFieldsHaveChanged(personEntity), eventSource))
@@ -72,7 +73,7 @@ class AddressService(
   @Transactional
   fun deleteAddress(findAddress: () -> AddressEntity?, eventSource: DomainEventSource) {
     findAddress()?.let { addressEntity ->
-      personService.processUpdate(addressEntity.person!!) { personEntity, _ ->
+      personService.processUpdate(ById(addressEntity.person!!.id!!)) { personEntity, _ ->
         addressRepository.save(addressEntity)
         personEntity.addresses.remove(addressEntity)
         addressEntity.person = null

@@ -35,7 +35,7 @@ class PersonService(
       }
     },
     yes = {
-      processUpdate(it) { personEntity ->
+      processUpdate(PersonLookup.ByEntity(it)) { personEntity ->
         personEntity.updatePersonEntity(person, childrenToIgnore)
       }
     },
@@ -53,21 +53,21 @@ class PersonService(
   }
 
   @Transactional
-  fun <T> processUpdate(personEntity: PersonEntity, callBack: (PersonEntity) -> T): T = processUpdate(personEntity) { personEntity, personChangeChecker ->
+  fun <T> processUpdate(personLookup: PersonLookup, callBack: (PersonEntity) -> T): T = processUpdate(personLookup) { personEntity, personChangeChecker ->
     val result = callBack(personEntity)
     publisher.publishEvent(PersonUpdated(personEntity, personChangeChecker))
     result
   }
 
   @Transactional
-  fun <T> processUpdate(personEntity: PersonEntity, callBack: (PersonEntity, PersonChangeChecker) -> T): T {
-    val personEntityAttached = personRepository.save(personEntity)
-    personEntityAttached.lastModified = LocalDateTime.now()
-    val personChangeChecker = PersonChangeChecker(personEntityAttached)
-    val value = callBack(personEntityAttached, personChangeChecker)
-    if (personChangeChecker.shouldSaveToPersonMatch(personEntityAttached)) {
-      personMatchService.saveToPersonMatch(personEntityAttached)
-      personEntityAttached.personKey?.let { reclusterService.recluster(personEntityAttached) }
+  fun <T> processUpdate(personLookup: PersonLookup, callBack: (PersonEntity, PersonChangeChecker) -> T): T {
+    val personEntity = personLookup.find(personRepository)
+    personEntity.lastModified = LocalDateTime.now()
+    val personChangeChecker = PersonChangeChecker(personEntity)
+    val value = callBack(personEntity, personChangeChecker)
+    if (personChangeChecker.shouldSaveToPersonMatch(personEntity)) {
+      personMatchService.saveToPersonMatch(personEntity)
+      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
     }
     return value
   }
@@ -75,5 +75,25 @@ class PersonService(
   private fun PersonEntity?.exists(no: () -> PersonEntity, yes: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
     this == null -> no()
     else -> yes(this)
+  }
+
+  sealed interface PersonLookup {
+    fun find(repo: PersonRepository): PersonEntity
+
+    data class ByPrisonNumber(val prisonNumber: String) : PersonLookup {
+      override fun find(repo: PersonRepository) = repo.findByPrisonNumber(prisonNumber)!!
+    }
+
+    data class ByCrn(val crn: String) : PersonLookup {
+      override fun find(repo: PersonRepository) = repo.findByCrn(crn)!!
+    }
+
+    data class ByEntity(val personEntity: PersonEntity) : PersonLookup {
+      override fun find(repo: PersonRepository): PersonEntity = repo.findById(personEntity.id!!).orElseThrow()
+    }
+
+    data class ById(val id: Long) : PersonLookup {
+      override fun find(repo: PersonRepository): PersonEntity = repo.findById(id).orElseThrow()
+    }
   }
 }

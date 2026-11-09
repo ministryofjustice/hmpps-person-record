@@ -2,45 +2,39 @@ package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService.PersonLookup.ByPrisonNumber
 
 @Component
 class SysconReligionInsertHandler(
   private val prisonReligionRepository: PrisonReligionRepository,
   private val personService: PersonService,
-  private val personRepository: PersonRepository,
 ) {
 
   @Transactional
-  fun handleInsert(prisonNumber: String, prisonReligionRequest: PrisonReligionRequest): Map<String, String> {
-    val (personEntity, currentPrisonReligion) = validateRequest(prisonNumber, prisonReligionRequest)
+  fun handleInsert(prisonNumber: String, prisonReligionRequest: PrisonReligionRequest): Map<String, String> = personService.processUpdate(ByPrisonNumber(prisonNumber)) { personEntity ->
+    val currentPrisonReligion = validateRequest(personEntity, prisonReligionRequest)
     prisonReligionRepository.deleteAllByPrisonNumber(prisonNumber).also { prisonReligionRepository.flush() }
-    return personService.processUpdate(personEntity) { personEntity ->
-      saveReligionsMapped(prisonNumber, prisonReligionRequest).also {
-        personEntity.religion = currentPrisonReligion.religionCode
-      }
+    saveReligionsMapped(prisonNumber, prisonReligionRequest).also {
+      personEntity.religion = currentPrisonReligion.religionCode
     }
   }
 
-  private fun validateRequest(prisonNumber: String, prisonReligionRequest: PrisonReligionRequest): Pair<PersonEntity, PrisonReligionHistory> {
-    val currentPrisonReligion = prisonReligionRequest.getCurrentReligion() ?: throw IllegalArgumentException("Exactly one current prison religion must be sent for $prisonNumber")
+  private fun validateRequest(personEntity: PersonEntity, prisonReligionRequest: PrisonReligionRequest): PrisonReligionHistory {
+    val currentPrisonReligion = prisonReligionRequest.getCurrentReligion() ?: throw IllegalArgumentException("Exactly one current prison religion must be sent for ${personEntity.prisonNumber}")
     val nomisIdSet = hashSetOf<String>()
     prisonReligionRequest.religions.forEach {
       when (nomisIdSet.contains(it.nomisReligionId)) {
-        true -> throw IllegalArgumentException("Duplicate nomis religion id '${it.nomisReligionId}' were detected for $prisonNumber")
+        true -> throw IllegalArgumentException("Duplicate nomis religion id '${it.nomisReligionId}' were detected for ${personEntity.prisonNumber}")
         false -> nomisIdSet.add(it.nomisReligionId)
       }
     }
-
-    val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException(prisonNumber)
-    return personEntity to currentPrisonReligion
+    return currentPrisonReligion
   }
 
   private fun saveReligionsMapped(prisonNumber: String, prisonReligionRequest: PrisonReligionRequest) = prisonReligionRequest.religions.associate { prisonReligion ->

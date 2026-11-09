@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.C
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.Companion.removeFlags
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import java.time.LocalDateTime
 
 @Component
@@ -46,7 +47,7 @@ class PrisonAddressesHandler(
 
     val addressEntity = addressService.create(
       address = Address.from(request),
-      findPerson = { person },
+      personLookup = PersonService.PersonLookup.ByEntity(person),
       eventSource = CPR,
     )
     return CanonicalAddress.from(addressEntity)

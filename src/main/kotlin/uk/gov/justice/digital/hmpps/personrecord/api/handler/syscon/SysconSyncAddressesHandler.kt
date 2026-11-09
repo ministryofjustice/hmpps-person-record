@@ -12,27 +12,25 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.Companion.MAIL_TYPES
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.Companion.PRIMARY_TYPES
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService.PersonLookup.ByPrisonNumber
 import java.util.UUID
 
 @Component
 class SysconSyncAddressesHandler(
   private val addressService: AddressService,
   private val addressRepository: AddressRepository,
-  private val personRepository: PersonRepository,
 ) {
   @Transactional
   fun handleInsert(prisonNumber: String, prisonAddress: PrisonAddress): SysconAddressMapping {
-    val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
     val addressEntity = addressService.create(
       address = prisonAddress.toAddress(),
-      findPerson = { personEntity },
+      personLookup = ByPrisonNumber(prisonNumber),
       eventSource = DomainEventSource.NOMIS,
     )
     return SysconAddressMapping(
