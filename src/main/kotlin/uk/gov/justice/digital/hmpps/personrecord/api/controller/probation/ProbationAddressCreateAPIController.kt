@@ -15,22 +15,15 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.probation.ProbationAddressCreateHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas.SasAddressArrivedHandler
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
-import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
-import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 
 @Tag(name = "Probation")
 @RestController
 class ProbationAddressCreateAPIController(
-  private val addressService: AddressService,
-  private val personRepository: PersonRepository,
-  private val sasAddressArrivedHandler: SasAddressArrivedHandler,
+  private val probationAddressCreateHandler: ProbationAddressCreateHandler,
 ) {
   @Operation(
     description = """Create an address for the given CRN person record. Role required is **$PROBATION_API_READ_WRITE**.""",
@@ -54,13 +47,7 @@ class ProbationAddressCreateAPIController(
     @PathVariable crn: String,
     @RequestBody probationCreateAddress: ProbationCreateAddress,
   ): ResponseEntity<ProbationCreateAddressResponse> {
-    val address = Address.from(probationCreateAddress)
-    val person = personRepository.findByCrn(crn)!!
-
-    if (probationCreateAddress.statusCode == AddressStatusCode.M) {
-      sasAddressArrivedHandler.setMainAddressToPrevious(person, address.startDate!!)
-    }
-    val createdAddress: AddressEntity = addressService.create(address, CPR) { person }
+    val createdAddress = probationAddressCreateHandler.create(crn, Address.from(probationCreateAddress))
     val responseBody = ProbationCreateAddressResponse(crn, createdAddress.updateId!!.toString())
     return ResponseEntity.status(HttpStatus.CREATED).body(responseBody)
   }
