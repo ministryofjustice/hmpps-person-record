@@ -53,8 +53,7 @@ class PersonService(
   }
 
   @Transactional
-  fun <T> processPersonUpdate(personEntity: PersonEntity, callBack: (PersonEntity) -> T): T = processUpdate(personEntity) {
-    personEntity, personChangeChecker ->
+  fun <T> processPersonUpdate(personEntity: PersonEntity, callBack: (PersonEntity) -> T): T = processUpdate(personEntity) { personEntity, personChangeChecker ->
     val result = callBack(personEntity)
     publisher.publishEvent(PersonUpdated(personEntity, personChangeChecker))
     result

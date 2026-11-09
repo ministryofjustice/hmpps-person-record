@@ -22,19 +22,14 @@ class UnmergeService(
   private val overrideService: OverrideService,
 ) {
 
-  private fun update(person: Person, personEntity: PersonEntity) {
-    personService.processUpdate(
-      personEntity,
-      { entity, _ -> entity.updatePersonEntity(person) },
-    )
-  }
-
   fun processUnmerge(reactivated: Person, existing: Person) {
-    val existingPersonEntity = personRepository.findByCrn(existing.crn!!)!!
-      .also { update(existing, it) }
+    val existingPersonEntity = personService.processUpdate(personRepository.findByCrn(existing.crn!!)!!) { personEntity, _ ->
+      personEntity.updatePersonEntity(existing)
+    }
 
-    val reactivatedPersonEntity = personRepository.findByCrn(reactivated.crn!!)!!
-      .also { update(reactivated, it) }
+    val reactivatedPersonEntity = personService.processUpdate(personRepository.findByCrn(reactivated.crn!!)!!) { personEntity, _ ->
+      personEntity.updatePersonEntity(existing)
+    }
 
     unmerge(reactivatedPersonEntity, existingPersonEntity)
     when {
