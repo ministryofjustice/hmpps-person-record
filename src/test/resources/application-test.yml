@@ -20,6 +20,9 @@ core-person-record-and-delius:
 sas:
   base-url: http://localhost:8090
 
+prison-api:
+  base-url: http://localhost:8090
+
 service-now:
   base-url: http://localhost:8090
   sysparm-id: sysparm12345
@@ -46,7 +49,7 @@ hmpps.sqs:
     testcprdomaineventsqueue:
       queueName: test_only_cpr_domain_events_queue
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "core-person-record.prison.record.created", "core-person-record.prison.record.merged", "core-person-record.probation.record.created", "core-person-record.probation.record.updated", "core-person-record.probation.record.deleted", "core-person-record.probation.record.merged", "core-person-record.probation.address.created", "core-person-record.probation.address.updated", "core-person-record.probation.address.deleted", "core-person-record.prison.religion.created", "core-person-record.prison.religion.updated", "core-person-record.probation.record.unmerged"] }'
+      subscribeFilter: '{"eventType":[ "core-person-record.prison.record.created", "core-person-record.prison.record.merged", "core-person-record.probation.record.created", "core-person-record.probation.record.updated", "core-person-record.probation.record.deleted", "core-person-record.probation.record.merged", "core-person-record.probation.address.created", "core-person-record.probation.address.updated", "core-person-record.probation.address.deleted", "core-person-record.prison.religion.created", "core-person-record.prison.religion.updated", "core-person-record.prison.contact.created", "core-person-record.prison.contact.updated", "core-person-record.prison.address.created", "core-person-record.probation.record.unmerged"] }'
       dlqName: test_only_cpr_domain_events_queue_dlq
       dlqMaxReceiveCount: 2
     cprdeliusoffendereventsqueue:

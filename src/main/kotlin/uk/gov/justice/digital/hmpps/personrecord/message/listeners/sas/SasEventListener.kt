@@ -38,9 +38,8 @@ class SasEventListener(
 
   private fun processSasAddressUpdated(event: SasAddressUpdated) {
     val sasResponse = sasClient.getAddress(event.detailUrl)
-    addressService.processAddress(
+    addressService.update(
       address = sasResponse.address,
-      findPerson = { personRepository.findByCrn(sasResponse.crn)!! },
       findAddress = { personRepository.findByCrn(sasResponse.crn)!!.addresses.first { address -> address.updateId == sasResponse.cprAddressId } },
       eventSource = CPR,
     )
@@ -55,7 +54,8 @@ class SasEventListener(
 
   private fun processSasAddressArrived(event: SasAddressArrived) {
     val newMainAddress = sasClient.getAddress(event.detailUrl)
-    sasAddressArrivedHandler.setMainAddressToPrevious(newMainAddress.cprAddressId, newMainAddress.address.startDate!!)
+    val person = personRepository.findByCrn(newMainAddress.crn)!!
+    sasAddressArrivedHandler.setMainAddressToPrevious(person, newMainAddress.address.startDate!!, newMainAddress.cprAddressId)
     sasAddressArrivedHandler.setProposedAddressToMain(newMainAddress)
   }
 

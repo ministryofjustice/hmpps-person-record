@@ -209,6 +209,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
         "FROM_SOURCE_SYSTEM_ID" to sourceCrn,
         "TO_SOURCE_SYSTEM_ID" to targetCrn,
         "SOURCE_SYSTEM" to "DELIUS",
+        "INCLUDE_OVERRIDE_LOST" to "false",
       ),
     )
     checkEventLog(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED) { eventLogs ->
@@ -224,23 +225,18 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
   @Test
   fun `processes offender merge event with records on different cluster`() {
-    val sourcePersonDetails = createRandomProbationPersonDetails()
-    val targetPersonDetails = createRandomProbationPersonDetails()
-
-    val sourceCrn = sourcePersonDetails.crn!!
-    val targetCrn = targetPersonDetails.crn!!
-    val sourceCluster = createPersonKey()
-      .addPerson(sourcePersonDetails)
-    val targetCluster = createPersonKey()
-      .addPerson(targetPersonDetails)
+    val sourcePerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val sourceCluster = sourcePerson.personKey!!
+    val targetCluster = targetPerson.personKey!!
+    val sourceCrn = sourcePerson.crn!!
+    val targetCrn = targetPerson.crn!!
 
     probationMergeEventAndResponseSetup(
       sourceCrn = sourceCrn,
       targetCrn = targetCrn,
     )
 
-    val sourcePerson = personRepository.findByCrn(sourceCrn)!!
-    val targetPerson = personRepository.findByCrn(targetCrn)!!
     sourcePerson.assertMergedTo(targetPerson)
     sourcePerson.assertNotLinkedToCluster()
 

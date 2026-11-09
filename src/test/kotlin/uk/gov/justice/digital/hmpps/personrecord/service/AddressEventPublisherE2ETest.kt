@@ -26,7 +26,7 @@ class AddressEventPublisherE2ETest : E2ETestBase() {
   @Test
   fun `should publish a CPR address created domain event when an address is created in sas`() {
     val crn = randomCrn()
-    val newAddress = createRandomProbationAddress()
+    val newAddress = probationCreateAddress()
     createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
     val responseBody = webTestClient

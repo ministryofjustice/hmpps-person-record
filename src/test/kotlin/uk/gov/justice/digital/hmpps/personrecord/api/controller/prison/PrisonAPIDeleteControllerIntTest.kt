@@ -48,8 +48,7 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
       val person = createRandomPrisonPersonDetails()
       val prisonNumber = person.prisonNumber!!
 
-      createPersonKey()
-        .addPerson(person)
+      createPersonWithNewKey(person)
 
       sendDeleteRequestAsserted<Unit>(
         url = prisonPersonDeleteUrl(randomPrisonNumber()),

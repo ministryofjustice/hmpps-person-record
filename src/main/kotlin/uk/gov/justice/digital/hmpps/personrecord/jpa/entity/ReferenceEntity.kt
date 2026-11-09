@@ -14,6 +14,7 @@ import jakarta.persistence.Version
 import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Entity
@@ -50,6 +51,21 @@ class ReferenceEntity(
 
   @Column(name = "identifier_comment")
   val comment: String? = null,
+
+  @Column(name = "is_verified")
+  var isVerified: Boolean? = null,
+
+  @Column(name = "create_date_time")
+  var createDateTime: LocalDateTime? = null,
+
+  @Column(name = "create_user_id")
+  var createUserId: String? = null,
+
+  @Column(name = "modify_date_time")
+  var modifyDateTime: LocalDateTime? = null,
+
+  @Column(name = "modify_user_id")
+  var modifyUserId: String? = null,
 
   @Version
   var version: Int = 0,

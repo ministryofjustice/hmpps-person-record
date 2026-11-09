@@ -29,7 +29,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
   inner class Creation {
 
     @Test
-    fun `when no existing religions exist by prisoner number - should save religions`() {
+    fun `when no existing religions exist by prison number - should save religions`() {
       val prisonNumber = randomPrisonNumber()
       val religionsInsertRequest = createRandomReligions()
       createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
@@ -71,7 +71,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
     }
 
     @Test
-    fun `when existing religions do exist by prisoner number - should replace existing religions`() {
+    fun `when existing religions do exist by prison number - should replace existing religions`() {
       val prisonNumber = randomPrisonNumber()
       val originalReligionsInsertRequest = createRandomReligions()
       createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))

@@ -37,7 +37,8 @@ data class CanonicalRecord(
   val addresses: List<CanonicalAddress> = emptyList(),
   @Schema(description = "Person identifiers")
   val identifiers: CanonicalIdentifiers,
-
+  @Schema(description = "Person contacts")
+  val contacts: List<CanonicalContact> = emptyList(),
 ) {
   companion object {
     fun from(personKey: PersonKeyEntity): CanonicalRecord {
@@ -54,11 +55,12 @@ data class CanonicalRecord(
         sex = CanonicalSex.from(latestPerson.getPrimaryName().sexCode),
         sexualOrientation = CanonicalSexualOrientation.from(latestPerson.sexualOrientation),
         religion = CanonicalReligion.from(latestPerson.religion),
-        ethnicity = CanonicalEthnicity.from(latestPerson.ethnicityCode),
+        ethnicity = CanonicalEthnicity.from(latestPerson.getPrimaryName().ethnicityCode),
         aliases = getAliases(latestPerson),
         addresses = getAddresses(latestPerson),
         identifiers = CanonicalIdentifiers.from(personKey.personEntities),
         nationalities = CanonicalNationality.from(latestPerson),
+        contacts = latestPerson.contacts.map { CanonicalContact.from(it) },
       )
     }
 
@@ -73,11 +75,12 @@ data class CanonicalRecord(
       sex = CanonicalSex.from(person.getPrimaryName().sexCode),
       sexualOrientation = CanonicalSexualOrientation.from(person.sexualOrientation),
       religion = CanonicalReligion.from(person.religion),
-      ethnicity = CanonicalEthnicity.from(person.ethnicityCode),
+      ethnicity = CanonicalEthnicity.from(person.getPrimaryName().ethnicityCode),
       aliases = getAliases(person),
       addresses = getAddresses(person),
       identifiers = CanonicalIdentifiers.from(person),
       nationalities = CanonicalNationality.from(person),
+      contacts = person.contacts.map { CanonicalContact.from(it) },
     )
 
     private fun getAliases(person: PersonEntity?): List<CanonicalAlias> = CanonicalAlias.from(person) ?: emptyList()

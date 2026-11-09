@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
@@ -10,9 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.getHome
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
@@ -25,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
@@ -73,48 +69,6 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
 
   @Nested
   inner class AddressesAndContacts {
-
-    // TODO delete this test when we switch PrisonPersonServiceProxy to ignore addresses and contacts in dev
-    @Test
-    fun `should save address and contact when saving person level data`() {
-      val prisonNumber = randomPrisonNumber()
-
-      val addressResponse = ApiResponseSetupAddress(
-        noFixedAbode = randomBoolean(),
-        postcode = randomPostcode(),
-        fullAddress = randomFullAddress(),
-        startDate = randomDate(),
-      )
-      val contactResponse = ApiResponseSetupContact(
-        value = randomPhoneNumber(),
-        type = ContactType.HOME,
-      )
-
-      stubNoMatchesPersonMatch()
-      stubPersonMatchUpsert()
-      prisonUpdateEventAndResponseSetup(
-        ApiResponseSetup(
-          prisonNumber = prisonNumber,
-          firstName = randomName(),
-          addresses = listOf(addressResponse),
-          contacts = listOf(contactResponse),
-        ),
-      )
-
-      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
-      val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber)!!
-      assertThat(actualPersonEntity.addresses).isNotEmpty()
-      assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-      assertThat(actualPersonEntity.addresses[0].updateId).isNotNull()
-      assertThat(actualPersonEntity.addresses[0].postcode).isEqualTo(addressResponse.postcode)
-      assertThat(actualPersonEntity.addresses[0].fullAddress).isEqualTo(addressResponse.fullAddress)
-      assertThat(actualPersonEntity.addresses[0].startDate).isEqualTo(addressResponse.startDate!!.toUkZonedDateTime())
-      assertThat(actualPersonEntity.addresses[0].noFixedAbode).isEqualTo(addressResponse.noFixedAbode)
-      assertThat(actualPersonEntity.contacts).isNotEmpty()
-      assertThat(actualPersonEntity.contacts.getHome()?.contactValue).isEqualTo(contactResponse.value)
-    }
-
-    @Disabled("This test is disabled until we switch PrisonPersonServiceProxy to ignore addresses and contacts in dev")
     @Test
     fun `should not save address and contact when saving person level data`() {
       val prisonNumber = randomPrisonNumber()

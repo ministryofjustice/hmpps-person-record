@@ -56,8 +56,8 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
         createRandomProbationPersonDetails(crn = crn),
         configure = addAddressesToRecord(
           listOf(
-            Address(postcode = randomPostcode(), statusCode = M, deliusAddressId = randomDeliusAddressId()),
-            Address(postcode = randomPostcode(), statusCode = PR, deliusAddressId = randomDeliusAddressId()),
+            Address(postcode = randomPostcode(), statusCode = M, deliusAddressId = randomDeliusAddressId(), endDate = null),
+            Address(postcode = randomPostcode(), statusCode = PR, deliusAddressId = randomDeliusAddressId(), endDate = null),
           ),
         ),
       )
@@ -103,6 +103,7 @@ class SasAddressArrivedEventListenerIntTest : ProbationEventListenerTestBase() {
 
       publishSasAddressArrivedEvent(originalMainAddress.updateId!!)
 
+      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
       awaitAssert {
         val actualAddress = addressRepository.findByUpdateId(originalMainAddress.updateId!!)!!
         assertThat(actualAddress.isVerified).isEqualTo(true)

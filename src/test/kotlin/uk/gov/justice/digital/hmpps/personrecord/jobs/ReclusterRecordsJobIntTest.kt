@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jobs.recluster.FileWaiter
 import uk.gov.justice.digital.hmpps.personrecord.jobs.recluster.ReclusterRecord
 import uk.gov.justice.digital.hmpps.personrecord.jobs.recluster.ReclusterRecordsJob
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
@@ -30,7 +29,6 @@ import java.nio.file.Path
 @ExtendWith(OutputCaptureExtension::class)
 class ReclusterRecordsJobIntTest(
   @Autowired private val transactionalReclusterService: TransactionalReclusterService,
-  @Autowired private val personRepo: PersonRepository,
   @Autowired private val personMatchService: PersonMatchService,
   @Autowired private val publisher: ApplicationEventPublisher,
   @Autowired private val fileWaiter: FileWaiter,
@@ -41,12 +39,10 @@ class ReclusterRecordsJobIntTest(
 
   @BeforeEach
   fun beforeEach() {
-    deleteAllPersonData()
-    telemetryRepository.deleteAll()
     testDir = Files.createTempDirectory("recluster-test-")
     reclusterRecordsJob = ReclusterRecordsJob(
       transactionalReclusterService,
-      personRepo,
+      personRepository,
       personMatchService,
       publisher,
       fileWaiter,
@@ -177,9 +173,10 @@ class ReclusterRecordsJobIntTest(
 
     @Test
     fun `should log warning and not process anything when recluster file is not found within timeout`(output: CapturedOutput) {
+      telemetryRepository.deleteAll()
       val job = ReclusterRecordsJob(
         transactionalReclusterService,
-        personRepo,
+        personRepository,
         personMatchService,
         publisher,
         fileWaiter,

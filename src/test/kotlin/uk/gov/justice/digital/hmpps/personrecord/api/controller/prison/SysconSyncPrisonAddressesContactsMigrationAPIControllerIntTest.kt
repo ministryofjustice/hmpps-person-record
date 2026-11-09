@@ -5,11 +5,14 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.HttpStatus.FORBIDDEN
-import org.springframework.http.HttpStatus.NOT_IMPLEMENTED
-import org.springframework.http.HttpStatus.UNAUTHORIZED
+import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressUsagesAPIControllerIntTest.Companion.assertAddressUsageMatches
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesAPIControllerIntTest.Companion.assertAddressMatches
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonContactsAPIControllerIntTest.Companion.assertContactMatches
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
@@ -19,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressesAndContactsResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkZonedDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
@@ -28,7 +30,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepositor
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
-import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.BUS
@@ -49,373 +50,193 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
   lateinit var addressUsageRepository: AddressUsageRepository
 
   @Nested
-  @ActiveProfiles("prod")
-  inner class ProductionProfile {
+  inner class Migration {
 
-    @Test
-    fun `should have the correct profile active`() {
-      sendPostRequestAsserted<String>(
-        url = addressesUrl(randomPrisonNumber()),
-        body = validRequestBody,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.NOT_FOUND,
-        sendAuthorised = true,
-      ).returnResult().responseBody!!
-    }
-  }
+    @Nested
+    @ActiveProfiles("prod")
+    inner class ProductionProfile {
 
-  @Nested
-  @ActiveProfiles("preprod")
-  inner class PreProductionProfile {
-
-    @Test
-    fun `should have the correct profile active`() {
-      sendPostRequestAsserted<String>(
-        url = addressesUrl(randomPrisonNumber()),
-        body = validRequestBody,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.NOT_FOUND,
-        sendAuthorised = true,
-      ).returnResult().responseBody!!
-    }
-  }
-
-  @Nested
-  inner class Validation {
-
-    private fun badRequest(badRequest: PrisonAddressesAndContactsRequest): String {
-      val prisonNumber = randomPrisonNumber()
-      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-      return sendPostRequestAsserted<String>(
-        url = addressesUrl(prisonNumber),
-        body = badRequest,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.BAD_REQUEST,
-        sendAuthorised = true,
-      ).returnResult().responseBody!!
+      @Test
+      fun `should have the correct profile active`() {
+        sendPostRequestAsserted<String>(
+          url = migrationUrl(randomPrisonNumber()),
+          body = validPrisonAddressesAndContactsRequest,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = NOT_FOUND,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+      }
     }
 
-    @Test
-    fun `should return bad request when there are duplicate nomis ids on the addresses`() {
-      val duplicateAddressIdsOnRequestBody = validRequestBody.copy(addresses = validRequestBody.addresses.map { it.copy(nomisAddressId = 10000L) })
-      assertThat(badRequest(duplicateAddressIdsOnRequestBody)).contains("Duplicate nomis address ids were detected")
-    }
+    @Nested
+    inner class Validation {
 
-    @Test
-    fun `should return bad request when there are multiple primary addresses`() {
-      val multiplePrimaryAddressesRequestBody = validRequestBody.copy(addresses = validRequestBody.addresses.map { it.copy(isPrimary = true) })
-      assertThat(badRequest(multiplePrimaryAddressesRequestBody)).contains("There cannot be more than one primary address for")
-    }
+      private fun badRequest(badRequest: PrisonAddressesAndContactsRequest): String {
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        return sendPostRequestAsserted<String>(
+          url = migrationUrl(prisonNumber),
+          body = badRequest,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = HttpStatus.BAD_REQUEST,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+      }
 
-    @Test
-    fun `should return bad request when there are multiple mail addresses`() {
-      val multipleMailAddressesRequestBody = validRequestBody.copy(addresses = validRequestBody.addresses.map { it.copy(isMail = true) })
-      assertThat(badRequest(multipleMailAddressesRequestBody)).contains("There cannot be more than one mail address for")
-    }
+      @Test
+      fun `should return bad request when there are duplicate nomis ids on the addresses`() {
+        val duplicateAddressIdsOnRequestBody =
+          validPrisonAddressesAndContactsRequest.copy(addresses = validPrisonAddressesAndContactsRequest.addresses.map { it.copy(nomisAddressId = 10000L) })
+        assertThat(badRequest(duplicateAddressIdsOnRequestBody)).contains("Duplicate nomis address ids were detected")
+      }
 
-    @Test
-    fun `should return bad request when the is an address usage which does not match its parent address id`() {
-      val nomisAddressId = 20000L
-      val addressUsageDoesNotMatchAddressRequestBody = validRequestBody.copy(
-        addresses = listOf(
-          PrisonAddress(
-            nomisAddressId = nomisAddressId,
-            createUserId = "createUserId",
-            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-            isPrimary = true,
-            addressUsage = listOf(
-              PrisonAddressUsage(
-                nomisAddressUsageId = nomisAddressId + 1, // Does not match
-                addressUsageCode = AddressUsageCode.A01,
-                isActive = false,
-                createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-                createUserId = "createUserId",
+      @Test
+      fun `should return bad request when there are multiple primary addresses`() {
+        val multiplePrimaryAddressesRequestBody =
+          validPrisonAddressesAndContactsRequest.copy(addresses = validPrisonAddressesAndContactsRequest.addresses.map { it.copy(isPrimary = true) })
+        assertThat(badRequest(multiplePrimaryAddressesRequestBody)).contains("There cannot be more than one primary address for")
+      }
+
+      @Test
+      fun `should return bad request when there are multiple mail addresses`() {
+        val multipleMailAddressesRequestBody =
+          validPrisonAddressesAndContactsRequest.copy(addresses = validPrisonAddressesAndContactsRequest.addresses.map { it.copy(isMail = true) })
+        assertThat(badRequest(multipleMailAddressesRequestBody)).contains("There cannot be more than one mail address for")
+      }
+
+      @Test
+      fun `should return bad request when the is an address usage which does not match its parent address id`() {
+        val nomisAddressId = 20000L
+        val addressUsageDoesNotMatchAddressRequestBody = validPrisonAddressesAndContactsRequest.copy(
+          addresses = listOf(
+            PrisonAddress(
+              nomisAddressId = nomisAddressId,
+              createUserId = "createUserId",
+              createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+              isPrimary = true,
+              addressUsage = listOf(
+                PrisonAddressUsage(
+                  nomisAddressUsageId = nomisAddressId + 1, // Does not match
+                  addressUsageCode = AddressUsageCode.A01,
+                  isActive = false,
+                  createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+                  createUserId = "createUserId",
+                ),
               ),
             ),
           ),
-        ),
-      )
-      assertThat(badRequest(addressUsageDoesNotMatchAddressRequestBody)).contains("Incorrect nomis address usage ids were detected for")
-    }
+        )
+        assertThat(badRequest(addressUsageDoesNotMatchAddressRequestBody)).contains("Incorrect nomis address usage ids were detected for")
+      }
 
-    @Test
-    fun `should return bad request when the is are address usage duplicate codes`() {
-      val multipleDuplicateAddressUsageCodesRequestBody =
-        validRequestBody.copy(
+      @Test
+      fun `should return bad request when the is are address usage duplicate codes`() {
+        val multipleDuplicateAddressUsageCodesRequestBody =
+          validPrisonAddressesAndContactsRequest.copy(
+            addresses = listOf(
+              PrisonAddress(
+                nomisAddressId = 20000L,
+                createUserId = "createUserId",
+                createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+                isPrimary = true,
+                addressUsage = listOf(
+                  PrisonAddressUsage(
+                    nomisAddressUsageId = 20000L,
+                    addressUsageCode = AddressUsageCode.A01,
+                    isActive = false,
+                    createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+                    createUserId = "createUserId",
+                  ),
+                  PrisonAddressUsage(
+                    nomisAddressUsageId = 20000L,
+                    addressUsageCode = AddressUsageCode.A01,
+                    isActive = false,
+                    createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+                    createUserId = "createUserId",
+                  ),
+
+                ),
+              ),
+            ),
+          )
+        assertThat(badRequest(multipleDuplicateAddressUsageCodesRequestBody)).contains("Duplicate nomis address usage codes were detected for")
+      }
+
+      @Test
+      fun `should return bad request when there is an email contact on an address`() {
+        val emailContactOnAddressRequestBody = validPrisonAddressesAndContactsRequest.copy(
           addresses = listOf(
             PrisonAddress(
               nomisAddressId = 20000L,
               createUserId = "createUserId",
               createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
               isPrimary = true,
-              addressUsage = listOf(
-                PrisonAddressUsage(
-                  nomisAddressUsageId = 20000L,
-                  addressUsageCode = AddressUsageCode.A01,
-                  isActive = false,
+              contacts = listOf(
+                PrisonContact(
+                  nomisContactId = 30000L,
+                  type = ContactType.EMAIL,
                   createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
                   createUserId = "createUserId",
                 ),
-                PrisonAddressUsage(
-                  nomisAddressUsageId = 20000L,
-                  addressUsageCode = AddressUsageCode.A01,
-                  isActive = false,
-                  createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-                  createUserId = "createUserId",
-                ),
-
               ),
             ),
           ),
         )
-      assertThat(badRequest(multipleDuplicateAddressUsageCodesRequestBody)).contains("Duplicate nomis address usage codes were detected for")
-    }
-
-    @Test
-    fun `should return bad request when there is an email contact on an address`() {
-      val emailContactOnAddressRequestBody = validRequestBody.copy(
-        addresses = listOf(
-          PrisonAddress(
-            nomisAddressId = 20000L,
-            createUserId = "createUserId",
-            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-            isPrimary = true,
-            contacts = listOf(
-              PrisonContact(
-                nomisContactId = 30000L,
-                type = ContactType.EMAIL,
-                createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-                createUserId = "createUserId",
-              ),
-            ),
-          ),
-        ),
-      )
-      assertThat(badRequest(emailContactOnAddressRequestBody)).contains("Email address contacts detected for")
-    }
-
-    @Test
-    fun `should return bad request when there are email contacts with the same nomis id`() {
-      val duplicateEmailContactId = 20000L
-      val duplicateEmailContactIdsRequestBody = validRequestBody.copy(
-        contacts = listOf(
-          PrisonContact(
-            nomisContactId = duplicateEmailContactId,
-            type = ContactType.EMAIL,
-            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-            createUserId = "createUserId",
-          ),
-          PrisonContact(
-            nomisContactId = duplicateEmailContactId,
-            type = ContactType.EMAIL,
-            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-            createUserId = "createUserId",
-          ),
-        ),
-      )
-      assertThat(badRequest(duplicateEmailContactIdsRequestBody)).contains("Duplicate nomis email contact ids were detected for")
-    }
-
-    @Test
-    fun `should return bad request when there are phone contacts with the same nomis id`() {
-      val duplicatePhoneContactId = 20000L
-      val duplicatePhoneContactIdsRequestBody = validRequestBody.copy(
-        addresses = listOf(
-          PrisonAddress(
-            nomisAddressId = 10000L,
-            isPrimary = true,
-            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-            createUserId = "createUserId",
-            contacts = listOf(
-              PrisonContact(
-                nomisContactId = duplicatePhoneContactId,
-                type = BUS,
-                createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-                createUserId = "createUserId",
-              ),
-            ),
-          ),
-        ),
-        contacts = listOf(
-          PrisonContact(
-            nomisContactId = duplicatePhoneContactId,
-            type = HOME,
-            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-            createUserId = "createUserId",
-          ),
-        ),
-      )
-      assertThat(badRequest(duplicatePhoneContactIdsRequestBody)).contains("Duplicate nomis phone contact ids were detected for")
-    }
-  }
-
-  @Nested
-  inner class Auth {
-
-    @Test
-    fun `should return Access Denied 403 when role is wrong`() {
-      sendPostRequestAsserted<String>(
-        url = addressesUrl(randomPrisonNumber()),
-        body = validRequestBody,
-        roles = listOf("UNSUPPORTED-ROLE"),
-        expectedStatus = HttpStatus.FORBIDDEN,
-      ).returnResult().responseBody!!
-    }
-
-    @Test
-    fun `should return UNAUTHORIZED 401 when role is not set`() {
-      webTestClient.post()
-        .uri(addressesUrl(randomPrisonNumber()))
-        .exchange()
-        .expectStatus()
-        .isUnauthorized
-    }
-  }
-
-  @Nested
-  inner class Creation {
-
-    @Test
-    fun `successful save returns the correct response body`() {
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-      val prisonNumber = randomPrisonNumber()
-      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-
-      val response = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
-        url = addressesUrl(prisonNumber),
-        body = validRequestBody,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.CREATED,
-        sendAuthorised = true,
-      ).returnResult().responseBody!!
-
-      val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
-
-      // Addresses
-      for (addressRequest in validRequestBody.addresses) {
-        // Because ordering is not guaranteed, we need to find the matching address entity for each request
-        val matchingAddressEntity = personEntity.addresses.single { addressMatcher(addressRequest, it) }
-        assertAddressMatches(addressRequest, matchingAddressEntity)
-
-        val addressMapping = response.addressesMappings.single { addressMatcher(addressRequest, it) }
-        assertThat(addressMapping.cprAddressId).isEqualTo(matchingAddressEntity.updateId.toString())
-
-        for (contactRequest in addressRequest.contacts) {
-          // Because ordering is not guaranteed, we need to find the matching contact entity for each request
-          val matchingContactEntity = matchingAddressEntity.contacts.single { contactMatcher(contactRequest, it) }
-          assertContactMatches(contactRequest, matchingContactEntity)
-          val contactMapping = addressMapping.contactMappings.single { contactMatcher(contactRequest, it) }
-          assertThat(contactMapping.cprContactId).isEqualTo(matchingContactEntity.updateId.toString())
-        }
-
-        for (addressUsageRequest in addressRequest.addressUsage) {
-          // Because ordering is not guaranteed, we need to find the matching address usage entity for each request
-          val matchingAddressUsageEntity = matchingAddressEntity.usages.single { addressUsageMatcher(addressUsageRequest, it) }
-          assertAddressUsageMatches(addressUsageRequest, matchingAddressUsageEntity)
-          val addressUsageMapping = addressMapping.addressUsageMappings.single { addressUsageMatcher(addressUsageRequest, it) }
-          assertThat(addressUsageMapping.cprAddressUsageId).isEqualTo(matchingAddressUsageEntity.updateId.toString())
-        }
+        assertThat(badRequest(emailContactOnAddressRequestBody)).contains("Email address contacts detected for")
       }
-
-      // Contacts
-      for (contactRequest in validRequestBody.contacts) {
-        // Because ordering is not guaranteed, we need to find the matching contact entity for each request
-        val matchingContactEntity = personEntity.contacts.single { contactMatcher(contactRequest, it) }
-        assertContactMatches(contactRequest, matchingContactEntity)
-        val contactMapping = response.contactMappings.single { contactMatcher(contactRequest, it) }
-        assertThat(contactMapping.cprContactId).isEqualTo(matchingContactEntity.updateId.toString())
-      }
-    }
-
-    @Test
-    fun `successful save deletes orphaned addresses and its children`() {
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-      val prisonNumber = randomPrisonNumber()
-      createPersonWithNewKey(
-        createRandomPrisonPersonDetails(prisonNumber).copy(
-          addresses = listOf(
-            Address(
-              fullAddress = randomFullAddress(),
-              usages = listOf(AddressUsage(addressUsageCode = AddressUsageCode.A01, isActive = true)),
-              contacts = listOf(
-                Contact(contactType = HOME),
-              ),
-            ),
-          ),
-        ),
-      )
-      val person = personRepository.findByPrisonNumber(prisonNumber)!!
-      val addressToBeDeleted = person.addresses[0]
-      val addressUsageToBeDeleted = person.addresses[0].usages[0]
-      val addressContactToBeDeleted = person.addresses[0].contacts[0]
-
-      assertThat(addressToBeDeleted.id).isNotNull()
-      assertThat(addressUsageToBeDeleted.id).isNotNull()
-      assertThat(addressContactToBeDeleted.id).isNotNull()
-
-      sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
-        url = addressesUrl(prisonNumber),
-        body = validRequestBody,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.CREATED,
-        sendAuthorised = true,
-      ).returnResult().responseBody!!
-
-      // Check that we can no longer find the orphaned addresses and its children in the repository
-      assertThat(addressRepository.findById(addressToBeDeleted.id!!)).isEmpty
-      assertThat(contactRepository.findById(addressContactToBeDeleted.id!!)).isEmpty
-      assertThat(addressUsageRepository.findById(addressUsageToBeDeleted.id!!)).isEmpty
-    }
-
-    @Test
-    fun `successful save deletes orphaned contacts`() {
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-      val prisonNumber = randomPrisonNumber()
-      createPersonWithNewKey(
-        createRandomPrisonPersonDetails(prisonNumber).copy(
-          contacts = listOf(
-            Contact(
-              contactType = HOME,
-              contactValue = "01234567890",
-            ),
-          ),
-        ),
-      )
-      val person = personRepository.findByPrisonNumber(prisonNumber)!!
-      val contactToBeDeleted = person.contacts[0]
-
-      assertThat(contactToBeDeleted.id).isNotNull()
-
-      sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
-        url = addressesUrl(prisonNumber),
-        body = validRequestBody,
-        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-        expectedStatus = HttpStatus.CREATED,
-        sendAuthorised = true,
-      ).returnResult().responseBody!!
-
-      // Check that we can no longer find the orphaned contact in the repository
-      assertThat(contactRepository.findById(contactToBeDeleted.id!!)).isEmpty
-    }
-  }
-
-  @Nested
-  inner class CreatePrisonerAddressContact {
-
-    @Nested
-    inner class Validation {
 
       @Test
-      fun `should respond with 501 as not currently implemented`() {
-        sendPostRequestAsserted<SysconContactMapping>(
-          url = createPrisonerAddressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = prisonContact(),
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_IMPLEMENTED,
+      fun `should return bad request when there are email contacts with the same nomis id`() {
+        val duplicateEmailContactId = 20000L
+        val duplicateEmailContactIdsRequestBody = validPrisonAddressesAndContactsRequest.copy(
+          contacts = listOf(
+            PrisonContact(
+              nomisContactId = duplicateEmailContactId,
+              type = ContactType.EMAIL,
+              createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+              createUserId = "createUserId",
+            ),
+            PrisonContact(
+              nomisContactId = duplicateEmailContactId,
+              type = ContactType.EMAIL,
+              createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+              createUserId = "createUserId",
+            ),
+          ),
         )
+        assertThat(badRequest(duplicateEmailContactIdsRequestBody)).contains("Duplicate nomis email contact ids were detected for")
+      }
+
+      @Test
+      fun `should return bad request when there are phone contacts with the same nomis id`() {
+        val duplicatePhoneContactId = 20000L
+        val duplicatePhoneContactIdsRequestBody = validPrisonAddressesAndContactsRequest.copy(
+          addresses = listOf(
+            PrisonAddress(
+              nomisAddressId = 10000L,
+              isPrimary = true,
+              createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+              createUserId = "createUserId",
+              contacts = listOf(
+                PrisonContact(
+                  nomisContactId = duplicatePhoneContactId,
+                  type = BUS,
+                  createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+                  createUserId = "createUserId",
+                ),
+              ),
+            ),
+          ),
+          contacts = listOf(
+            PrisonContact(
+              nomisContactId = duplicatePhoneContactId,
+              type = HOME,
+              createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+              createUserId = "createUserId",
+            ),
+          ),
+        )
+        assertThat(badRequest(duplicatePhoneContactIdsRequestBody)).contains("Duplicate nomis phone contact ids were detected for")
       }
     }
 
@@ -425,8 +246,8 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         sendPostRequestAsserted<String>(
-          url = createPrisonerAddressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = prisonContact(),
+          url = migrationUrl(randomPrisonNumber()),
+          body = validPrisonAddressesAndContactsRequest,
           roles = listOf("UNSUPPORTED-ROLE"),
           expectedStatus = FORBIDDEN,
         ).returnResult().responseBody!!
@@ -434,106 +255,529 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
 
       @Test
       fun `should return UNAUTHORIZED 401 when role is not set`() {
-        sendPostRequestAsserted<SysconContactMapping>(
-          url = createPrisonerAddressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          body = prisonContact(),
-          roles = emptyList(),
-          expectedStatus = UNAUTHORIZED,
-          sendAuthorised = false,
-        )
+        webTestClient.post()
+          .uri(migrationUrl(randomPrisonNumber()))
+          .exchange()
+          .expectStatus()
+          .isUnauthorized
       }
     }
-  }
-
-  @Nested
-  inner class UpdatePrisonerAddressContact {
 
     @Nested
-    inner class Validation {
+    inner class Creation {
+
+      fun postCodesAreSame(addressEntities: List<AddressEntity>, addressRequest: List<PrisonAddress>) = addressEntities.map { it.postcode }.toSet() == addressRequest.map { it.postcode }.toSet()
 
       @Test
-      fun `should respond with 501 as not currently implemented`() {
-        sendPutRequestAsserted<Unit>(
-          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
-          body = prisonContact(),
+      fun `successful save returns the correct response body and does not call the matching service when postcodes are the same`() {
+        // No stubbing of the matcher - test will fail if we call it.
+        val prisonNumber = randomPrisonNumber()
+        // We have no guarentee of order so check when the orders differ
+        val addressesMatchingRequestPostcodesDifferentOrder = validPrisonAddressesAndContactsRequest.addresses.map { Address(postcode = it.postcode) }
+        val person = createRandomPrisonPersonDetails(prisonNumber).copy(addresses = addressesMatchingRequestPostcodesDifferentOrder)
+        val personEntity = createPersonWithNewKey(person)
+
+        // Assert that the postcodes are going to be the same
+        assertThat(postCodesAreSame(personEntity.addresses, validPrisonAddressesAndContactsRequest.addresses)).isTrue()
+
+        sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validPrisonAddressesAndContactsRequest,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_IMPLEMENTED,
-        )
-      }
-    }
-
-    @Nested
-    inner class Auth {
-
-      @Test
-      fun `should return Access Denied 403 when role is wrong`() {
-        sendPutRequestAsserted<String>(
-          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
-          body = prisonContact(),
-          roles = listOf("UNSUPPORTED-ROLE"),
-          expectedStatus = FORBIDDEN,
+          expectedStatus = CREATED,
+          sendAuthorised = true,
         ).returnResult().responseBody!!
       }
 
       @Test
-      fun `should return UNAUTHORIZED 401 when role is not set`() {
-        sendPutRequestAsserted<Unit>(
-          url = addressContactUrl(randomPrisonNumber(), UUID.randomUUID().toString(), UUID.randomUUID().toString()),
-          body = prisonContact(),
-          roles = emptyList(),
-          expectedStatus = UNAUTHORIZED,
-          sendAuthorised = false,
-        )
-      }
-    }
-  }
+      fun `successful save returns the correct response body and calls the matching service when postcodes differ`() {
+        // Stub the matcher - test will fail if we do not call it
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
 
-  @Nested
-  inner class DeletePrisonerAddressContact {
+        val prisonNumber = randomPrisonNumber()
+        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        // Assert that the postcodes are not going to be the same
+        assertThat(postCodesAreSame(personEntity.addresses, validPrisonAddressesAndContactsRequest.addresses)).isFalse()
 
-    @Nested
-    inner class Validation {
-
-      @Test
-      fun `should respond with 501 as not currently implemented`() {
-        sendDeleteRequestAsserted<Unit>(
-          url = addressNoIdContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
+        sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validPrisonAddressesAndContactsRequest,
           roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_IMPLEMENTED,
-        )
-      }
-    }
-
-    @Nested
-    inner class Auth {
-
-      @Test
-      fun `should return Access Denied 403 when role is wrong`() {
-        sendDeleteRequestAsserted<String>(
-          url = addressNoIdContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          roles = listOf("UNSUPPORTED-ROLE"),
-          expectedStatus = FORBIDDEN,
+          expectedStatus = CREATED,
+          sendAuthorised = true,
         ).returnResult().responseBody!!
       }
 
       @Test
-      fun `should return UNAUTHORIZED 401 when role is not set`() {
-        sendDeleteRequestAsserted<Unit>(
-          url = addressNoIdContactUrl(randomPrisonNumber(), UUID.randomUUID().toString()),
-          roles = emptyList(),
-          expectedStatus = UNAUTHORIZED,
-          sendAuthorised = false,
+      fun `successful save returns the correct response body`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+
+        val response = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validPrisonAddressesAndContactsRequest,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+
+        // Addresses
+        assertThat(validPrisonAddressesAndContactsRequest.addresses.size).isEqualTo(2)
+        for (addressRequest in validPrisonAddressesAndContactsRequest.addresses) {
+          // Because ordering is not guaranteed, we need to find the matching address entity for each request
+          val matchingAddressEntity = personEntity.addresses.single { addressMatcher(addressRequest, it) }
+          assertAddressMatches(addressRequest, matchingAddressEntity)
+
+          val addressMapping = response.addressesMappings.single { addressMatcher(addressRequest, it) }
+          assertThat(addressMapping.cprAddressId).isEqualTo(matchingAddressEntity.updateId.toString())
+
+          for (contactRequest in addressRequest.contacts) {
+            // Because ordering is not guaranteed, we need to find the matching contact entity for each request
+            val matchingContactEntity = matchingAddressEntity.contacts.single { contactMatcher(contactRequest, it) }
+            assertContactMatches(contactRequest, matchingContactEntity)
+            val contactMapping = addressMapping.contactMappings.single { contactMatcher(contactRequest, it) }
+            assertThat(contactMapping.cprContactId).isEqualTo(matchingContactEntity.updateId.toString())
+          }
+
+          for (addressUsageRequest in addressRequest.addressUsage) {
+            // Because ordering is not guaranteed, we need to find the matching address usage entity for each request
+            val matchingAddressUsageEntity =
+              matchingAddressEntity.usages.single { addressUsageMatcher(addressUsageRequest, it) }
+            assertAddressUsageMatches(addressUsageRequest, matchingAddressUsageEntity)
+            val addressUsageMapping =
+              addressMapping.addressUsageMappings.single { addressUsageMatcher(addressUsageRequest, it) }
+            assertThat(addressUsageMapping.cprAddressUsageId).isEqualTo(matchingAddressUsageEntity.updateId.toString())
+          }
+        }
+
+        // Contacts
+        for (contactRequest in validPrisonAddressesAndContactsRequest.contacts) {
+          // Because ordering is not guaranteed, we need to find the matching contact entity for each request
+          val matchingContactEntity = personEntity.contacts.single { contactMatcher(contactRequest, it) }
+          assertContactMatches(contactRequest, matchingContactEntity)
+          val contactMapping = response.contactMappings.single { contactMatcher(contactRequest, it) }
+          assertThat(contactMapping.cprContactId).isEqualTo(matchingContactEntity.updateId.toString())
+        }
+      }
+
+      @Test
+      fun `successful save deletes orphaned addresses and its children`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(
+          createRandomPrisonPersonDetails(prisonNumber).copy(
+            addresses = listOf(
+              Address(
+                fullAddress = randomFullAddress(),
+                usages = listOf(AddressUsage(addressUsageCode = AddressUsageCode.A01, isActive = true)),
+                contacts = listOf(
+                  Contact(contactType = HOME),
+                ),
+              ),
+            ),
+          ),
         )
+        val person = personRepository.findByPrisonNumber(prisonNumber)!!
+        val addressToBeDeleted = person.addresses[0]
+        val addressUsageToBeDeleted = person.addresses[0].usages[0]
+        val addressContactToBeDeleted = person.addresses[0].contacts[0]
+
+        assertThat(addressToBeDeleted.id).isNotNull()
+        assertThat(addressUsageToBeDeleted.id).isNotNull()
+        assertThat(addressContactToBeDeleted.id).isNotNull()
+
+        sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validPrisonAddressesAndContactsRequest,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        // Check that we can no longer find the orphaned addresses and its children in the repository
+        assertThat(addressRepository.findById(addressToBeDeleted.id!!)).isEmpty
+        assertThat(contactRepository.findById(addressContactToBeDeleted.id!!)).isEmpty
+        assertThat(addressUsageRepository.findById(addressUsageToBeDeleted.id!!)).isEmpty
+      }
+
+      @Test
+      fun `successful save deletes orphaned contacts`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(
+          createRandomPrisonPersonDetails(prisonNumber).copy(
+            contacts = listOf(
+              Contact(
+                contactType = HOME,
+                contactValue = "01234567890",
+              ),
+            ),
+          ),
+        )
+        val person = personRepository.findByPrisonNumber(prisonNumber)!!
+        val contactToBeDeleted = person.contacts[0]
+
+        assertThat(contactToBeDeleted.id).isNotNull()
+
+        sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validPrisonAddressesAndContactsRequest,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        // Check that we can no longer find the orphaned contact in the repository
+        assertThat(contactRepository.findById(contactToBeDeleted.id!!)).isEmpty
+      }
+
+      @Test
+      fun `successful save ignores address usage ids that no longer exist and creates a new address usage`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+
+        val firstResponse = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validPrisonAddressesAndContactsRequest,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val addressRequest = validPrisonAddressesAndContactsRequest.addresses[0]
+        val addressMapping = firstResponse.addressesMappings.single { addressMatcher(addressRequest, it) }
+        val (invalidUsageRequest, validUsageRequest) = addressRequest.addressUsage
+        val staleUsageId = addressMapping.addressUsageMappings.single { addressUsageMatcher(invalidUsageRequest, it) }.cprAddressUsageId
+        val validUsageId = addressMapping.addressUsageMappings.single { addressUsageMatcher(validUsageRequest, it) }.cprAddressUsageId
+
+        val requestWithInvalidUsageId = validPrisonAddressesAndContactsRequest.copy(
+          addresses = listOf(
+            addressRequest.copy(
+              cprAddressId = addressMapping.cprAddressId,
+              addressUsage = listOf(
+                invalidUsageRequest.copy(cprAddressUsageId = UUID.randomUUID().toString()),
+                validUsageRequest.copy(cprAddressUsageId = validUsageId),
+              ),
+            ),
+            validPrisonAddressesAndContactsRequest.addresses[1],
+          ),
+        )
+
+        val secondResponse = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = requestWithInvalidUsageId,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val secondAddressMapping = secondResponse.addressesMappings.single { addressMatcher(addressRequest, it) }
+        assertThat(secondAddressMapping.cprAddressId).isEqualTo(addressMapping.cprAddressId)
+        val newUsageId = secondAddressMapping.addressUsageMappings.single { addressUsageMatcher(invalidUsageRequest, it) }.cprAddressUsageId
+        assertThat(newUsageId).isNotEqualTo(staleUsageId)
+        assertThat(secondAddressMapping.addressUsageMappings.single { addressUsageMatcher(validUsageRequest, it) }.cprAddressUsageId).isEqualTo(validUsageId)
+
+        val addressEntity = personRepository.findByPrisonNumber(prisonNumber)!!.addresses.single { addressMatcher(addressRequest, it) }
+        assertThat(addressEntity.usages.map { it.updateId.toString() }).containsExactlyInAnyOrder(newUsageId, validUsageId)
+        assertAddressUsageMatches(invalidUsageRequest, addressEntity.usages.single { it.updateId.toString() == newUsageId })
+        assertThat(addressUsageRepository.findByUpdateId(UUID.fromString(staleUsageId))).isNull()
+      }
+
+      @Test
+      fun `successful save ignores address contact ids that no longer exist and creates a new address contact`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+
+        val firstResponse = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validPrisonAddressesAndContactsRequest,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val addressRequest = validPrisonAddressesAndContactsRequest.addresses[0]
+        val addressMapping = firstResponse.addressesMappings.single { addressMatcher(addressRequest, it) }
+        val (invalidContactRequest, validContactRequest) = addressRequest.contacts
+        val staleContactId = addressMapping.contactMappings.single { contactMatcher(invalidContactRequest, it) }.cprContactId
+        val validContactId = addressMapping.contactMappings.single { contactMatcher(validContactRequest, it) }.cprContactId
+
+        val requestWithInvalidContactId = validPrisonAddressesAndContactsRequest.copy(
+          addresses = listOf(
+            addressRequest.copy(
+              cprAddressId = addressMapping.cprAddressId,
+              contacts = listOf(
+                invalidContactRequest.copy(cprContactId = UUID.randomUUID().toString()),
+                validContactRequest.copy(cprContactId = validContactId),
+              ),
+            ),
+            validPrisonAddressesAndContactsRequest.addresses[1],
+          ),
+        )
+
+        val secondResponse = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = requestWithInvalidContactId,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val secondAddressMapping = secondResponse.addressesMappings.single { addressMatcher(addressRequest, it) }
+        assertThat(secondAddressMapping.cprAddressId).isEqualTo(addressMapping.cprAddressId)
+        val newContactId = secondAddressMapping.contactMappings.single { contactMatcher(invalidContactRequest, it) }.cprContactId
+        assertThat(newContactId).isNotEqualTo(staleContactId)
+        assertThat(secondAddressMapping.contactMappings.single { contactMatcher(validContactRequest, it) }.cprContactId).isEqualTo(validContactId)
+
+        val addressEntity = personRepository.findByPrisonNumber(prisonNumber)!!.addresses.single { addressMatcher(addressRequest, it) }
+        assertThat(addressEntity.contacts.map { it.updateId.toString() }).containsExactlyInAnyOrder(newContactId, validContactId)
+        assertContactMatches(invalidContactRequest, addressEntity.contacts.single { it.updateId.toString() == newContactId })
+        assertThat(contactRepository.findByUpdateId(UUID.fromString(staleContactId))).isNull()
+      }
+
+      @Test
+      fun `successful save ignores person contact ids that no longer exist and creates a new person contact`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+
+        val firstResponse = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validPrisonAddressesAndContactsRequest,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val (invalidContactRequest, validContactRequest) = validPrisonAddressesAndContactsRequest.contacts
+        val staleContactId = firstResponse.contactMappings.single { contactMatcher(invalidContactRequest, it) }.cprContactId
+        val validContactId = firstResponse.contactMappings.single { contactMatcher(validContactRequest, it) }.cprContactId
+
+        val requestWithInvalidContactId = validPrisonAddressesAndContactsRequest.copy(
+          contacts = listOf(
+            invalidContactRequest.copy(cprContactId = UUID.randomUUID().toString()),
+            validContactRequest.copy(cprContactId = validContactId),
+          ),
+        )
+
+        val secondResponse = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = requestWithInvalidContactId,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val newContactId = secondResponse.contactMappings.single { contactMatcher(invalidContactRequest, it) }.cprContactId
+        assertThat(newContactId).isNotEqualTo(staleContactId)
+        assertThat(secondResponse.contactMappings.single { contactMatcher(validContactRequest, it) }.cprContactId).isEqualTo(validContactId)
+
+        val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+        assertThat(personEntity.contacts.map { it.updateId.toString() }).containsExactlyInAnyOrder(newContactId, validContactId)
+        assertContactMatches(invalidContactRequest, personEntity.contacts.single { it.updateId.toString() == newContactId })
+        assertThat(contactRepository.findByUpdateId(UUID.fromString(staleContactId))).isNull()
+      }
+
+      @Test
+      fun `successful save ignores address ids that no longer exist and creates a new address`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+
+        val firstResponse = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validPrisonAddressesAndContactsRequest,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val (invalidAddressRequest, validAddressRequest) = validPrisonAddressesAndContactsRequest.addresses
+        val staleAddressId = firstResponse.addressesMappings.single { addressMatcher(invalidAddressRequest, it) }.cprAddressId
+        val validAddressId = firstResponse.addressesMappings.single { addressMatcher(validAddressRequest, it) }.cprAddressId
+
+        val requestWithInvalidAddressId = validPrisonAddressesAndContactsRequest.copy(
+          addresses = listOf(
+            invalidAddressRequest.copy(cprAddressId = UUID.randomUUID().toString()),
+            validAddressRequest.copy(cprAddressId = validAddressId),
+          ),
+        )
+
+        val secondResponse = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = requestWithInvalidAddressId,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val newAddressId = secondResponse.addressesMappings.single { addressMatcher(invalidAddressRequest, it) }.cprAddressId
+        assertThat(newAddressId).isNotEqualTo(staleAddressId)
+        assertThat(secondResponse.addressesMappings.single { addressMatcher(validAddressRequest, it) }.cprAddressId).isEqualTo(validAddressId)
+
+        val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+        assertThat(personEntity.addresses.map { it.updateId.toString() }).containsExactlyInAnyOrder(newAddressId, validAddressId)
+        assertAddressMatches(invalidAddressRequest, personEntity.addresses.single { it.updateId.toString() == newAddressId })
+        assertThat(addressRepository.findByUpdateId(UUID.fromString(staleAddressId))).isNull()
       }
     }
   }
+  companion object {
+    fun addressMatcher(request: PrisonAddress, entity: AddressEntity) = entity.fullAddress == request.fullAddress
+    fun addressMatcher(request: PrisonAddress, mapping: SysconAddressMapping) = mapping.nomisAddressId == request.nomisAddressId
+    val validPrisonAddressesAndContactsRequest = PrisonAddressesAndContactsRequest(
+      addresses = listOf(
+        PrisonAddress(
+          nomisAddressId = 10000L,
+          fullAddress = "fullAddress1",
+          noFixedAbode = false,
+          startDate = LocalDate.of(2010, 1, 1),
+          endDate = LocalDate.of(2025, 1, 1),
+          postcode = "S10 3HR",
+          subBuildingName = "subBuildingName1",
+          buildingName = "buildingName1",
+          buildingNumber = "buildingNumber1",
+          thoroughfareName = "thoroughfareName1",
+          dependentLocality = "dependentLocality1",
+          postTown = "postTown1",
+          county = "county1",
+          countryCode = CountryCode.ABW,
+          comment = "comment1",
+          isPrimary = true,
+          isMail = true,
+          createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+          createUserId = "createUserIdAddress1",
+          modifyDateTime = LocalDateTime.of(2020, 1, 2, 12, 0),
+          modifyUserId = "modifyUserIdAddress1",
+          addressUsage = listOf(
+            PrisonAddressUsage(
+              nomisAddressUsageId = 10000L,
+              addressUsageCode = AddressUsageCode.A01,
+              isActive = true,
+              createDateTime = LocalDateTime.of(2019, 1, 1, 12, 0),
+              createUserId = "createUserIdAddress1Usage1",
+              modifyDateTime = LocalDateTime.of(2019, 1, 2, 12, 0),
+              modifyUserId = "modifyUserIdAddress1Usage1",
+            ),
+            PrisonAddressUsage(
+              nomisAddressUsageId = 10000L,
+              addressUsageCode = AddressUsageCode.A02,
+              isActive = true,
+              createDateTime = LocalDateTime.of(2018, 2, 1, 12, 0),
+              createUserId = "createUserIdAddress1Usage2",
+              modifyDateTime = LocalDateTime.of(2018, 2, 2, 12, 0),
+              modifyUserId = "modifyUserIdAddress1Usage2",
+            ),
+          ),
+          contacts = listOf(
+            PrisonContact(
+              nomisContactId = 11000L,
+              value = "valueAddress1Contact1",
+              type = HOME,
+              extension = "extensionAddress1Contact1",
+              createDateTime = LocalDateTime.of(2017, 3, 1, 12, 0),
+              createUserId = "createUserIdAddress1Contact1",
+              modifyDateTime = LocalDateTime.of(2017, 3, 2, 12, 0),
+              modifyUserId = "modifyUserIdAddress1Contact1",
+            ),
+            PrisonContact(
+              nomisContactId = 11001L,
+              value = "valueAddress1Contact2",
+              type = BUS,
+              extension = "extensionAddress1Contact2",
+              createDateTime = LocalDateTime.of(2016, 1, 1, 12, 0),
+              createUserId = "createUserIdAddress1Contact2",
+              modifyDateTime = LocalDateTime.of(2016, 1, 2, 12, 0),
+              modifyUserId = "modifyUserIdAddress1Contact2",
+            ),
+          ),
+        ),
+        PrisonAddress(
+          nomisAddressId = 10001L,
+          fullAddress = "fullAddress2",
+          noFixedAbode = false,
+          startDate = LocalDate.of(2010, 1, 1),
+          endDate = LocalDate.of(2025, 1, 1),
+          postcode = "S10 3HR",
+          subBuildingName = "subBuildingName2",
+          buildingName = "buildingName2",
+          buildingNumber = "buildingNumber2",
+          thoroughfareName = "thoroughfareName2",
+          dependentLocality = "dependentLocality2",
+          postTown = "postTown2",
+          county = "county2",
+          countryCode = CountryCode.AFG,
+          comment = "comment2",
+          isPrimary = false,
+          isMail = false,
+          createDateTime = LocalDateTime.of(2021, 1, 1, 12, 0),
+          createUserId = "createUserIdAddress2",
+          modifyDateTime = LocalDateTime.of(2021, 1, 2, 12, 0),
+          modifyUserId = "modifyUserIdAddress2",
+          addressUsage = listOf(
+            PrisonAddressUsage(
+              nomisAddressUsageId = 10001L,
+              addressUsageCode = AddressUsageCode.A01,
+              isActive = false,
+              createDateTime = LocalDateTime.of(2019, 1, 1, 12, 0),
+              createUserId = "createUserIdAddress2Usage1",
+              modifyDateTime = LocalDateTime.of(2019, 1, 2, 12, 0),
+              modifyUserId = "modifyUserIdAddress2Usage1",
+            ),
+          ),
+          contacts = listOf(
+            PrisonContact(
+              nomisContactId = 11002L,
+              value = "valueAddress2Contact1",
+              type = HOME,
+              extension = "extensionAddress2Contact1",
+              createDateTime = LocalDateTime.of(2017, 7, 1, 12, 0),
+              createUserId = "createUserIdAddress2Contact1",
+              modifyDateTime = LocalDateTime.of(2017, 7, 2, 12, 0),
+              modifyUserId = "modifyUserIdAddress2Contact1",
+            ),
+          ),
+        ),
 
-  private fun addressesUrl(prisonNumber: String) = "/syscon-sync/addresses-contacts/$prisonNumber"
-
-  private fun createPrisonerAddressContactUrl(prisonNumber: String, addressId: String) = "/syscon-sync/person/$prisonNumber/address/$addressId/contact"
-
-  private fun addressContactUrl(prisonNumber: String, addressId: String, contactId: String) = "${createPrisonerAddressContactUrl(prisonNumber, addressId)}/$contactId"
-  private fun addressNoIdContactUrl(prisonNumber: String, contactId: String) = "/syscon-sync/person/$prisonNumber/address/contact/$contactId"
+      ),
+      contacts = listOf(
+        PrisonContact(
+          nomisContactId = 11003L,
+          value = "valueContact1",
+          type = ContactType.EMAIL,
+          extension = "extensionContact1",
+          createDateTime = LocalDateTime.of(2017, 4, 1, 12, 0),
+          createUserId = "createUserIdContact1",
+          modifyDateTime = LocalDateTime.of(2017, 4, 2, 12, 0),
+          modifyUserId = "modifyUserIdContact1",
+        ),
+        PrisonContact(
+          nomisContactId = 11004L,
+          value = "valueContact2",
+          type = BUS,
+          extension = "extensionContact2",
+          createDateTime = LocalDateTime.of(2016, 5, 1, 12, 0),
+          createUserId = "createUserIdContact2",
+          modifyDateTime = LocalDateTime.of(2016, 5, 2, 12, 0),
+          modifyUserId = "modifyUserIdContact2",
+        ),
+      ),
+    )
+  }
+  private fun migrationUrl(prisonNumber: String) = "/syscon-sync/addresses-contacts/$prisonNumber"
 
   private fun addressUsageMatcher(request: PrisonAddressUsage, entity: AddressUsageEntity) = entity.usageCode == request.addressUsageCode
 
@@ -543,195 +787,11 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
 
   private fun contactMatcher(request: PrisonContact, mapping: SysconContactMapping) = mapping.nomisContactId == request.nomisContactId
 
-  private fun addressMatcher(request: PrisonAddress, entity: AddressEntity) = entity.fullAddress == request.fullAddress
-
-  private fun addressMatcher(request: PrisonAddress, mapping: SysconAddressMapping) = mapping.nomisAddressId == request.nomisAddressId
-
-  private fun assertAddressMatches(request: PrisonAddress, address: AddressEntity) = with(address) {
-    assertThat(fullAddress).isEqualTo(request.fullAddress)
-    assertThat(noFixedAbode).isEqualTo(request.noFixedAbode)
-    assertThat(startDate).isEqualTo(request.startDate?.toUkZonedDateTime())
-    assertThat(endDate).isEqualTo(request.endDate?.toUkZonedDateTime())
-    assertThat(postcode).isEqualTo(request.postcode)
-    assertThat(subBuildingName).isEqualTo(request.subBuildingName)
-    assertThat(buildingName).isEqualTo(request.buildingName)
-    assertThat(buildingNumber).isEqualTo(request.buildingNumber)
-    assertThat(thoroughfareName).isEqualTo(request.thoroughfareName)
-    assertThat(dependentLocality).isEqualTo(request.dependentLocality)
-    assertThat(postTown).isEqualTo(request.postTown)
-    assertThat(county).isEqualTo(request.county)
-    assertThat(countryCode).isEqualTo(request.countryCode)
-    assertThat(comment).isEqualTo(request.comment)
-    assertThat(statusCode).isEqualTo(AddressStatusCode.fromPrison(request.isPrimary, request.isMail ?: false))
-    assertThat(modifyUserId).isEqualTo(request.modifyUserId)
-    assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
-    assertThat(createUserId).isEqualTo(request.createUserId)
-    assertThat(createDateTime).isEqualTo(request.createDateTime)
-  }
-
-  private fun assertAddressUsageMatches(request: PrisonAddressUsage, entity: AddressUsageEntity) = with(entity) {
-    assertThat(usageCode).isEqualTo(request.addressUsageCode)
-    assertThat(active).isEqualTo(request.isActive)
-    assertThat(modifyUserId).isEqualTo(request.modifyUserId)
-    assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
-    assertThat(createUserId).isEqualTo(request.createUserId)
-    assertThat(createDateTime).isEqualTo(request.createDateTime)
-  }
-
-  private fun assertContactMatches(request: PrisonContact, entity: ContactEntity) = with(entity) {
-    assertThat(contactType).isEqualTo(request.type)
-    assertThat(contactValue).isEqualTo(request.value)
-    assertThat(extension).isEqualTo(request.extension)
-    assertThat(modifyUserId).isEqualTo(request.modifyUserId)
-    assertThat(modifyDateTime).isEqualTo(request.modifyDateTime)
-    assertThat(createUserId).isEqualTo(request.createUserId)
-    assertThat(createDateTime).isEqualTo(request.createDateTime)
-  }
-
   private fun prisonContact() = PrisonContact(
     nomisContactId = 10000L,
     value = "01234567890",
     type = HOME,
     createDateTime = LocalDateTime.parse("2020-01-01T12:00:00"),
     createUserId = "johnnydoe",
-  )
-
-  private val validRequestBody = PrisonAddressesAndContactsRequest(
-    addresses = listOf(
-      PrisonAddress(
-        nomisAddressId = 10000L,
-        fullAddress = "fullAddress1",
-        noFixedAbode = false,
-        startDate = LocalDate.of(2010, 1, 1),
-        endDate = LocalDate.of(2025, 1, 1),
-        postcode = "S10 3HR",
-        subBuildingName = "subBuildingName1",
-        buildingName = "buildingName1",
-        buildingNumber = "buildingNumber1",
-        thoroughfareName = "thoroughfareName1",
-        dependentLocality = "dependentLocality1",
-        postTown = "postTown1",
-        county = "county1",
-        countryCode = CountryCode.ABW,
-        comment = "comment1",
-        isPrimary = true,
-        isMail = true,
-        createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
-        createUserId = "createUserIdAddress1",
-        modifyDateTime = LocalDateTime.of(2020, 1, 2, 12, 0),
-        modifyUserId = "modifyUserIdAddress1",
-        addressUsage = listOf(
-          PrisonAddressUsage(
-            nomisAddressUsageId = 10000L,
-            addressUsageCode = AddressUsageCode.A01,
-            isActive = true,
-            createDateTime = LocalDateTime.of(2019, 1, 1, 12, 0),
-            createUserId = "createUserIdAddress1Usage1",
-            modifyDateTime = LocalDateTime.of(2019, 1, 2, 12, 0),
-            modifyUserId = "modifyUserIdAddress1Usage1",
-          ),
-          PrisonAddressUsage(
-            nomisAddressUsageId = 10000L,
-            addressUsageCode = AddressUsageCode.A02,
-            isActive = true,
-            createDateTime = LocalDateTime.of(2018, 2, 1, 12, 0),
-            createUserId = "createUserIdAddress1Usage2",
-            modifyDateTime = LocalDateTime.of(2018, 2, 2, 12, 0),
-            modifyUserId = "modifyUserIdAddress1Usage2",
-          ),
-        ),
-        contacts = listOf(
-          PrisonContact(
-            nomisContactId = 11000L,
-            value = "valueAddress1Contact1",
-            type = HOME,
-            extension = "extensionAddress1Contact1",
-            createDateTime = LocalDateTime.of(2017, 3, 1, 12, 0),
-            createUserId = "createUserIdAddress1Contact1",
-            modifyDateTime = LocalDateTime.of(2017, 3, 2, 12, 0),
-            modifyUserId = "modifyUserIdAddress1Contact1",
-          ),
-          PrisonContact(
-            nomisContactId = 11001L,
-            value = "valueAddress1Contact2",
-            type = BUS,
-            extension = "extensionAddress1Contact2",
-            createDateTime = LocalDateTime.of(2016, 1, 1, 12, 0),
-            createUserId = "createUserIdAddress1Contact2",
-            modifyDateTime = LocalDateTime.of(2016, 1, 2, 12, 0),
-            modifyUserId = "modifyUserIdAddress1Contact2",
-          ),
-        ),
-      ),
-      PrisonAddress(
-        nomisAddressId = 10001L,
-        fullAddress = "fullAddress2",
-        noFixedAbode = false,
-        startDate = LocalDate.of(2010, 1, 1),
-        endDate = LocalDate.of(2025, 1, 1),
-        postcode = "S10 3HR",
-        subBuildingName = "subBuildingName2",
-        buildingName = "buildingName2",
-        buildingNumber = "buildingNumber2",
-        thoroughfareName = "thoroughfareName2",
-        dependentLocality = "dependentLocality2",
-        postTown = "postTown2",
-        county = "county2",
-        countryCode = CountryCode.AFG,
-        comment = "comment2",
-        isPrimary = false,
-        isMail = false,
-        createDateTime = LocalDateTime.of(2021, 1, 1, 12, 0),
-        createUserId = "createUserIdAddress2",
-        modifyDateTime = LocalDateTime.of(2021, 1, 2, 12, 0),
-        modifyUserId = "modifyUserIdAddress2",
-        addressUsage = listOf(
-          PrisonAddressUsage(
-            nomisAddressUsageId = 10001L,
-            addressUsageCode = AddressUsageCode.A01,
-            isActive = false,
-            createDateTime = LocalDateTime.of(2019, 1, 1, 12, 0),
-            createUserId = "createUserIdAddress2Usage1",
-            modifyDateTime = LocalDateTime.of(2019, 1, 2, 12, 0),
-            modifyUserId = "modifyUserIdAddress2Usage1",
-          ),
-        ),
-        contacts = listOf(
-          PrisonContact(
-            nomisContactId = 11002L,
-            value = "valueAddress2Contact1",
-            type = HOME,
-            extension = "extensionAddress2Contact1",
-            createDateTime = LocalDateTime.of(2017, 7, 1, 12, 0),
-            createUserId = "createUserIdAddress2Contact1",
-            modifyDateTime = LocalDateTime.of(2017, 7, 2, 12, 0),
-            modifyUserId = "modifyUserIdAddress2Contact1",
-          ),
-        ),
-      ),
-
-    ),
-    contacts = listOf(
-      PrisonContact(
-        nomisContactId = 11003L,
-        value = "valueContact1",
-        type = ContactType.EMAIL,
-        extension = "extensionContact1",
-        createDateTime = LocalDateTime.of(2017, 4, 1, 12, 0),
-        createUserId = "createUserIdContact1",
-        modifyDateTime = LocalDateTime.of(2017, 4, 2, 12, 0),
-        modifyUserId = "modifyUserIdContact1",
-      ),
-      PrisonContact(
-        nomisContactId = 11004L,
-        value = "valueContact2",
-        type = BUS,
-        extension = "extensionContact2",
-        createDateTime = LocalDateTime.of(2016, 5, 1, 12, 0),
-        createUserId = "createUserIdContact2",
-        modifyDateTime = LocalDateTime.of(2016, 5, 2, 12, 0),
-        modifyUserId = "modifyUserIdContact2",
-      ),
-    ),
   )
 }

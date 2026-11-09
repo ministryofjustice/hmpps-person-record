@@ -11,6 +11,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestJob
 import uk.gov.justice.digital.hmpps.personrecord.jobs.servicenow.ServiceNowMergeRequestRepository
@@ -21,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -286,6 +291,40 @@ class ServiceNowMergeRequestJobE2ETest(
     awaitAssert { wiremock.verify(1, RequestPatternBuilder.like(serviceNowStub?.request)) }
   }
 
+  @Test
+  fun `should not send a merge request for a cluster that has records with a include override marker`() {
+    val defendant = createRandomCommonPlatformPersonDetails()
+    val probationCase = ProbationCase(
+      name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
+      identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
+      dateOfBirth = defendant.dateOfBirth,
+    )
+    val defendantRecord = createPersonWithNewKey(defendant)
+
+    webTestClient.put()
+      .uri(probationApiUrl(defendant.defendantId!!))
+      .authorised(listOf(PROBATION_API_READ_WRITE))
+      .bodyValue(probationCase)
+      .exchange()
+      .expectStatus()
+      .isOk
+
+    val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+    val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
+    offender.assertLinkedToCluster(updatedDefendant.personKey!!)
+
+    val matchingOffenderCrn = randomCrn()
+    val matchingOffenderDetails = probationCase.copy(identifiers = Identifiers(crn = matchingOffenderCrn, cro = defendant.getCro(), pnc = defendant.getPnc()))
+
+    probationCreateEventAndResponseSetup(ApiResponseSetup.from(matchingOffenderDetails))
+    val matchingOffender = awaitNotNull { personRepository.findByCrn(matchingOffenderCrn) }
+    matchingOffender.assertLinkedToCluster(updatedDefendant.personKey!!)
+
+    serviceNowMergeRequestJob.run()
+
+    wiremock.verify(0, RequestPatternBuilder.like(serviceNowStub?.request))
+  }
+
   private fun PersonRepository.updateLastModifiedDate(crn: String, lastModified: LocalDateTime) {
     val personEntity = findByCrn(crn)!!
     personEntity.lastModified = lastModified
@@ -297,4 +336,6 @@ class ServiceNowMergeRequestJobE2ETest(
     personEntity.lastModified = lastModified
     saveAndFlush(personEntity)
   }
+
+  private fun probationApiUrl(defendantId: String) = "/person/probation/$defendantId"
 }

@@ -31,13 +31,12 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val crn = randomCrn()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
-      val addressToCreate = Address.from(createRandomProbationAddress())
+      val addressToCreate = Address.from(probationCreateAddress())
 
-      addressService.processAddress(
+      addressService.create(
         addressToCreate,
-        findPerson = { personRepository.findByCrn(crn) },
-        findAddress = { null },
         DomainEventSource.DELIUS,
+        findPerson = { personRepository.findByCrn(crn)!! },
       )
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
@@ -63,13 +62,12 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val crn = randomCrn()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
-      val addressToCreate = Address.from(createRandomProbationAddress().copy(postcode = null))
+      val addressToCreate = Address.from(probationCreateAddress().copy(postcode = null))
 
-      addressService.processAddress(
+      addressService.create(
         addressToCreate,
-        findPerson = { personRepository.findByCrn(crn) },
-        findAddress = { null },
         DomainEventSource.DELIUS,
+        findPerson = { personRepository.findByCrn(crn)!! },
       )
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
@@ -97,15 +95,14 @@ class AddressServiceIntTest : IntegrationTestBase() {
       stubPersonMatchScores()
 
       val crn = randomCrn()
-      val initialAddress = Address.from(createRandomProbationAddress())
+      val initialAddress = Address.from(probationCreateAddress())
       val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(initialAddress))
       val addressToCreate = initialAddress.copy(postcode = randomPostcode())
 
-      addressService.processAddress(
+      addressService.update(
         addressToCreate,
-        findPerson = { personRepository.findByCrn(crn) },
-        findAddress = { addressRepository.findByUpdateId(person.addresses[0].updateId!!) },
         DomainEventSource.DELIUS,
+        findAddress = { addressRepository.findByUpdateId(person.addresses[0].updateId!!)!! },
       )
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
@@ -129,7 +126,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
     @Test
     fun `should update address and not recluster when no matching fields have changed`() {
       val crn = randomCrn()
-      val initialAddress = Address.from(createRandomProbationAddress())
+      val initialAddress = Address.from(probationCreateAddress())
       val person = createPersonWithNewKey(
         createRandomProbationPersonDetails(crn),
         configure = addAddressToRecord(
@@ -138,11 +135,10 @@ class AddressServiceIntTest : IntegrationTestBase() {
       )
       val addressToCreate = initialAddress.copy(buildingNumber = randomBuildingNumber())
 
-      addressService.processAddress(
+      addressService.update(
         addressToCreate,
-        findPerson = { personRepository.findByCrn(crn) },
-        findAddress = { addressRepository.findByUpdateId(person.addresses[0].updateId!!) },
         DomainEventSource.DELIUS,
+        findAddress = { addressRepository.findByUpdateId(person.addresses[0].updateId!!)!! },
       )
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->

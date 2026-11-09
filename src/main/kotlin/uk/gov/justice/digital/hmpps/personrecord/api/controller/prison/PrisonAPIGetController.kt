@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -42,7 +43,7 @@ class PrisonAPIGetController(private val prisonGetHelper: PrisonGetHelper) {
       ],
     ),
   )
-  fun getByPrisonNumber(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<CanonicalRecord> = prisonGetHelper.get(prisonNumber) { personEntity ->
+  fun getByPrisonNumber(@PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String): ResponseEntity<CanonicalRecord> = prisonGetHelper.get(prisonNumber) { personEntity ->
     CanonicalRecord.from(personEntity)
   }
 }

@@ -21,6 +21,15 @@ on:
         required: false
         description: Application version
         type: string
+      providerBranch:
+        required: false
+        description: Provider branch / provider version branch
+        type: string
+        default: ''
+      providerTag:
+        required: false
+        description: Provider tag / provider version tag
+        type: string
         default: ''
   workflow_call:
     inputs:
@@ -41,26 +50,81 @@ on:
         required: true
         description: Application version
         type: string
+      providerTag:
+        required: false
+        description: Provider tag / provider version tag
+        type: string
+        default: ${{ github.sha }}
+      providerBranch:
+        required: false
+        description: Provider branch / provider version branch
+        type: string
+        default: ${{ github.ref_name }}
+  repository_dispatch:
+    types:
+      - pact_changed
 
 permissions:
   contents: read
 
 concurrency:
-  group: pact-provider-verification-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  group: >-
+    ${{ github.event_name == 'repository_dispatch' &&
+      format('pact-provider-verification-{0}-{1}-{2}',
+        github.event.client_payload.consumerName || 'unknown',
+        github.event.client_payload.consumerBranch || 'unknown',
+        github.run_id)
+      || format('pact-provider-verification-{0}-{1}',
+        github.ref_name || github.ref,
+        github.run_id) }}
+  cancel-in-progress: false
 
 jobs:
   pact-verify:
     name: Verify provider pacts
     runs-on: ubuntu-latest
     steps:
+      - name: Resolve provider app version
+        id: resolve-provider-version
+        shell: bash
+        env:
+          INPUT_PROVIDER_APP_VERSION: ${{ github.event.client_payload.providerAppVersion || inputs.providerAppVersion }}
+          PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
+          PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
+          PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [[ -n "${INPUT_PROVIDER_APP_VERSION}" ]]; then
+            version="${INPUT_PROVIDER_APP_VERSION}"
+            echo "Using workflow input provider version: ${version}"
+          else
+            echo "No providerAppVersion supplied - querying Pact Broker latest version"
+
+            version="$({
+              curl -fsSL \
+                -u "${PACT_BROKER_USERNAME}:${PACT_BROKER_PASSWORD}" \
+                "${PACT_BROKER_URL}/pacticipants/hmpps-person-record/latest-version"
+            } | jq -r '.number // empty')"
+
+            if [[ -z "${version}" ]]; then
+              echo "Could not resolve latest provider version from Pact Broker" >&2
+              exit 1
+            fi
+
+            echo "Resolved latest provider version from broker: ${version}"
+          fi
+
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ (github.event.client_payload.providerTag && fromJSON(github.event.client_payload.providerTag)[0]) || inputs.providerTag || github.sha }}
 
       - name: Setup Java
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: '25'
@@ -74,18 +138,19 @@ jobs:
       - name: Verify pacts
         run: ./gradlew pactTest
         env:
-          PACT_PUBLISH_RESULTS: ${{ inputs.publishResults }}
+          PACT_PUBLISH_RESULTS: ${{ github.event_name == 'repository_dispatch' || inputs.publishResults }}
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
           PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
-          GITHUB_BRANCH: ${{ github.ref_name }}
-          PACT_CONSUMER_NAME: ${{ inputs.consumerName }}
-          PACT_CONSUMER_BRANCH: ${{ inputs.consumerBranch }}
-          PACT_PROVIDER_APP_VERSION: ${{ inputs.providerAppVersion }}
+          GITHUB_BRANCH: ${{ github.event.client_payload.providerBranch || inputs.providerBranch || github.ref_name }}
+          PACT_CONSUMER_NAME: ${{ github.event.client_payload.consumerName || inputs.consumerName }}
+          PACT_CONSUMER_BRANCH: ${{ github.event.client_payload.consumerBranch || inputs.consumerBranch }}
+          PACT_PROVIDER_APP_VERSION: ${{ steps.resolve-provider-version.outputs.version }}
+          PACT_PROVIDER_TAG: ${{ (github.event.client_payload.providerTag && fromJSON(github.event.client_payload.providerTag)[0]) || inputs.providerTag }}
 
       - name: Upload the test artifacts
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: pact-test-results
           path: |

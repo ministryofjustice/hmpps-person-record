@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
+import java.util.EnumSet
+
 enum class AddressStatusCode(val description: String) {
   B("Bail"),
   M("Main"),
@@ -22,6 +24,15 @@ enum class AddressStatusCode(val description: String) {
       isPrimary -> M
       isMail -> MA
       else -> null
+    }
+
+    val PRIMARY_TYPES: Set<AddressStatusCode> = EnumSet.of(M, PM)
+    val MAIL_TYPES: Set<AddressStatusCode> = EnumSet.of(MA, PM)
+
+    fun AddressStatusCode?.removeFlags(primary: Boolean, mail: Boolean): AddressStatusCode? = if (this in PRIMARY_TYPES || this in MAIL_TYPES) {
+      fromPrison(isPrimary = !primary && this in PRIMARY_TYPES, isMail = !mail && this in MAIL_TYPES)
+    } else {
+      this
     }
   }
 }

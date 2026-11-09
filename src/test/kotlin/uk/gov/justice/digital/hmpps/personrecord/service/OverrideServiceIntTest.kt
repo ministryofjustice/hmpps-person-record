@@ -10,31 +10,28 @@ class OverrideServiceIntTest : IntegrationTestBase() {
   @BeforeEach
   fun beforeEach() {
     stubPersonMatchUpsert()
+    stubPersonMatchScores()
   }
 
   @Test
   fun `should not overwrite include marker when excluding a record`() {
-    val personACrn = randomCrn()
-    val personBCrn = randomCrn()
-    val personCCrn = randomCrn()
+    val includeRecordCrn = randomCrn()
+    val includeExcludeRecordCrn = randomCrn()
     createPersonKey()
-      .addPerson(createRandomProbationPersonDetails(personACrn))
-      .addPerson(createRandomProbationPersonDetails(personBCrn))
-      .addPerson(createRandomProbationPersonDetails(personCCrn))
+      .addPerson(createRandomProbationPersonDetails(includeRecordCrn))
+      .addPerson(createRandomProbationPersonDetails(includeExcludeRecordCrn))
 
-    val personA = personRepository.findByCrn(personACrn)!!
-    val personB = personRepository.findByCrn(personBCrn)!!
-    val personC = personRepository.findByCrn(personCCrn)!!
-    val personD = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val includeRecord = personRepository.findByCrn(includeRecordCrn)!!
+    val includeExcludeRecord = personRepository.findByCrn(includeExcludeRecordCrn)!!
+    val excludeRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
 
-    includeRecords(personA, personB, personC)
+    includeRecords(includeRecord, includeExcludeRecord)
 
-    personA.assertIncluded(personB)
-    personA.assertIncluded(personC)
+    includeRecord.assertIncluded(includeExcludeRecord)
 
-    excludeRecord(personC, personD)
+    excludeRecord(includeExcludeRecord, excludeRecord)
 
-    personC.assertExcluded(personD)
-    personA.assertIncluded(personC)
+    includeExcludeRecord.assertExcluded(excludeRecord)
+    includeRecord.assertIncluded(includeExcludeRecord)
   }
 }

@@ -6,10 +6,10 @@ kotlin {
   jvmToolchain(25)
 }
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.11"
-  kotlin("plugin.spring") version "2.4.10"
-  kotlin("jvm") version "2.4.10"
-  kotlin("plugin.jpa") version "2.4.10"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.15"
+  kotlin("plugin.spring") version "2.4.21"
+  kotlin("jvm") version "2.4.21"
+  kotlin("plugin.jpa") version "2.4.21"
   id("org.jetbrains.kotlinx.kover") version "0.9.11"
   id("org.owasp.dependencycheck") version "12.2.2"
 }
@@ -29,10 +29,10 @@ dependencies {
 
   implementation("software.amazon.sns:sns-extended-client:2.1.0")
   implementation("com.jayway.jsonpath:json-path:3.0.0")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
 
-  runtimeOnly("org.postgresql:postgresql:42.7.13")
+  runtimeOnly("org.postgresql:postgresql:42.7.14")
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
@@ -60,7 +60,7 @@ tasks.register<Test>("initialiseDatabase") {
   testClassesDirs = files(test.map { it.sources.output.classesDirs })
   classpath = files(test.map { it.sources.runtimeClasspath })
   include("**/InitialiseDatabase.class")
-  onlyIf { gradle.startParameter.taskNames.contains("initialiseDatabase") }
+  onlyIf { gradle.startParameter.taskNames.any { it.contains("initialiseDatabase") } }
 }
 
 tasks.register<Test>("e2eTest") {
@@ -68,7 +68,7 @@ tasks.register<Test>("e2eTest") {
   testClassesDirs = files(test.map { it.sources.output.classesDirs })
   classpath = files(test.map { it.sources.runtimeClasspath })
   include("**/**E2ETest.class")
-  onlyIf { gradle.startParameter.taskNames.contains("e2eTest") }
+  onlyIf { gradle.startParameter.taskNames.any { it.contains("e2eTest") } }
 }
 
 tasks.register<Exec>("setUpS3Bucket") {
@@ -84,6 +84,17 @@ tasks.register<Test>("pactTest") {
   filter.includeTestsMatching("uk.gov.justice.digital.hmpps.personrecord.pacttest.ApiProviderPactTest")
   filter.includeTestsMatching("uk.gov.justice.digital.hmpps.personrecord.pacttest.ProbationEventProviderPactTest")
   group = "verification"
+
+  testLogging {
+    events("failed")
+    showStandardStreams = true
+    showExceptions = false
+  }
+
+  extensions.configure<com.adarshr.gradle.testlogger.TestLoggerExtension> {
+    showExceptions = false
+    showStandardStreams = false
+  }
 
   systemProperty("pactbroker.url", System.getenv("PACT_BROKER_URL"))
   systemProperty("pactbroker.auth.username", System.getenv("PACT_BROKER_USERNAME") ?: "")
@@ -106,6 +117,13 @@ tasks.register<Test>("pactTest") {
   systemProperty("pact.verifier.publishResults", System.getenv("PACT_PUBLISH_RESULTS") ?: "false")
   systemProperty("pact.provider.version", System.getenv("PACT_PROVIDER_APP_VERSION") ?: "local")
   systemProperty("pact.provider.branch", System.getenv("GITHUB_BRANCH") ?: "local")
+  systemProperty("pact.provider.tag", System.getenv("PACT_PROVIDER_TAG") ?: "local")
+  systemProperty("spring.main.banner-mode", "off")
+  systemProperty("spring.main.log-startup-info", "false")
+  systemProperty("springdoc.api-docs.enabled", "false")
+  systemProperty("springdoc.swagger-ui.enabled", "false")
+  systemProperty("pact_do_not_track", "true")
+  systemProperty("logging.level.org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor", "ERROR")
 }
 
 kover {

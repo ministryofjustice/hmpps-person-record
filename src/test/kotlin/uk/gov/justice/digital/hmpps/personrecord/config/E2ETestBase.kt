@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.QUEUE_ADMIN
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -36,8 +37,8 @@ class E2ETestBase : MessagingTestBase() {
   @Autowired
   private lateinit var personMatchService: PersonMatchService
 
-  override fun createPerson(person: Person, configure: PersonEntity.() -> Unit): PersonEntity {
-    val personEntity = super.createPerson(person, configure)
+  override fun createPerson(person: Person, personKeyEntity: PersonKeyEntity, configure: PersonEntity.() -> Unit): PersonEntity {
+    val personEntity = super.createPerson(person, personKeyEntity, configure)
     personMatchService.saveToPersonMatch(personEntity)
     return personEntity
   }

@@ -583,6 +583,8 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
         val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
 
         offender.assertLinkedToCluster(updatedDefendant.personKey!!)
+        offender.assertHasSameOverrideMarker(updatedDefendant)
+        offender.assertHasSameOverrideScope(updatedDefendant)
       }
 
       @Test

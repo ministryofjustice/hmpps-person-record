@@ -12,6 +12,7 @@ import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ActorType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ConfidenceType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.OverrideType
 import java.util.UUID
 
 @Entity
@@ -36,16 +37,21 @@ class OverrideScopeEntity(
   @Enumerated(EnumType.STRING)
   val actor: ActorType,
 
+  @Column
+  @Enumerated(EnumType.STRING)
+  val overrideType: OverrideType,
+
   @Version
   var version: Int = 0,
 ) {
   companion object {
     fun newMarker(): UUID = UUID.randomUUID()
 
-    fun new(confidence: ConfidenceType, actor: ActorType): OverrideScopeEntity = OverrideScopeEntity(
+    fun new(confidence: ConfidenceType, actor: ActorType, overrideType: OverrideType): OverrideScopeEntity = OverrideScopeEntity(
       scope = newScope(),
       confidence = confidence,
       actor = actor,
+      overrideType = overrideType,
     )
 
     private fun newScope(): UUID = UUID.randomUUID()

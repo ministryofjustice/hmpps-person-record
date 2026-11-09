@@ -18,7 +18,7 @@ class ProbationPersonMergedEventPublisher(
   override val sourceSystemType = SourceSystemType.DELIUS
 
   override fun onMerge(personMerged: PersonMerged) {
-    val fromCrn = personMerged.from!!.crn!!
+    val fromCrn = personMerged.from.crn!!
     val toCrn = personMerged.to.crn!!
 
     domainEventPublisher.publish(

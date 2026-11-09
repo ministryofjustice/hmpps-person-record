@@ -107,9 +107,7 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
 
     @Test
     fun `single cluster - court record only - does not return anything`() {
-      val cluster = createPersonKey()
-        .addPerson(createRandomCommonPlatformPersonDetails())
-      val courtPersonEntity = cluster.personEntities.first()
+      val courtPersonEntity = createPersonWithNewKey(createRandomCommonPlatformPersonDetails())
 
       val vettingSearchResponse = sendPostRequestAsserted<VettingPersonSearchResponse>(
         url = "/person/vetting/search",
