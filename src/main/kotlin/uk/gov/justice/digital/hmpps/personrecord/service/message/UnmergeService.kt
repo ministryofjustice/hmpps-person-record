@@ -28,7 +28,7 @@ class UnmergeService(
     }
 
     val reactivatedPersonEntity = personService.processUpdate(personRepository.findByCrn(reactivated.crn!!)!!) { personEntity, _ ->
-      personEntity.updatePersonEntity(existing)
+      personEntity.updatePersonEntity(reactivated)
     }
 
     unmerge(reactivatedPersonEntity, existingPersonEntity)
