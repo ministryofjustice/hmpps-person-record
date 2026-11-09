@@ -129,7 +129,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     stubPersonMatchScores()
     val prisonNumber = randomPrisonNumber()
     val originalEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-    personService.processPersonUpdate(originalEntity) { personEntity ->
+    personService.processUpdate(originalEntity) { personEntity ->
       personEntity.prisonNumber = prisonNumber
       personEntity.pseudonyms.addAll(
         listOf(
@@ -159,7 +159,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     stubPersonMatchUpsert()
     stubPersonMatchScores()
     val prisonNumber = randomPrisonNumber()
-    personService.processPersonCreate(sourceSystem = SourceSystemType.NOMIS) { personEntity ->
+    personService.processCreate(sourceSystem = SourceSystemType.NOMIS) { personEntity ->
       personEntity.prisonNumber = prisonNumber
       personEntity.pseudonyms.addAll(
         listOf(

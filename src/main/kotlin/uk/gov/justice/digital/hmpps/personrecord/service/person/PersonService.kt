@@ -30,19 +30,19 @@ class PersonService(
     findPerson: () -> PersonEntity?,
   ): PersonEntity = findPerson().exists(
     no = {
-      processPersonCreate(person.sourceSystem) { personEntity ->
+      processCreate(person.sourceSystem) { personEntity ->
         personEntity.updatePersonEntity(person, childrenToIgnore)
       }
     },
     yes = {
-      processPersonUpdate(it) { personEntity ->
+      processUpdate(it) { personEntity ->
         personEntity.updatePersonEntity(person, childrenToIgnore)
       }
     },
   )
 
   @Transactional
-  fun <T> processPersonCreate(sourceSystem: SourceSystemType, callBack: (PersonEntity) -> T): T {
+  fun <T> processCreate(sourceSystem: SourceSystemType, callBack: (PersonEntity) -> T): T {
     val personEntity = personRepository.save(PersonEntity.new(sourceSystem))
     val value = callBack(personEntity)
     personRepository.saveAndFlush(personEntity)
@@ -53,7 +53,7 @@ class PersonService(
   }
 
   @Transactional
-  fun <T> processPersonUpdate(personEntity: PersonEntity, callBack: (PersonEntity) -> T): T = processUpdate(personEntity) { personEntity, personChangeChecker ->
+  fun <T> processUpdate(personEntity: PersonEntity, callBack: (PersonEntity) -> T): T = processUpdate(personEntity) { personEntity, personChangeChecker ->
     val result = callBack(personEntity)
     publisher.publishEvent(PersonUpdated(personEntity, personChangeChecker))
     result
