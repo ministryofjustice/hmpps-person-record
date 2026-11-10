@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.pacttest
 
 import au.com.dius.pact.provider.PactVerifyProvider
+import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify
 import au.com.dius.pact.provider.junitsupport.Provider
 import au.com.dius.pact.provider.junitsupport.State
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker
@@ -15,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublis
 
 @Provider("hmpps-person-record-events")
 @PactBroker(url = $$"${pactbroker.url}")
+@IgnoreNoPactsToVerify
 @Suppress("unused")
 class PrisonDomainEventPactTest : AbstractEventProviderPactTests() {
   @Autowired
