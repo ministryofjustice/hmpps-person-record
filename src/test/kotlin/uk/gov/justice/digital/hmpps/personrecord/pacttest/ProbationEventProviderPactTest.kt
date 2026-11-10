@@ -73,15 +73,15 @@ class ProbationEventProviderPactTest : E2ETestBase() {
   private var capturedDomainEvent: DomainEvent? = null
 
   @BeforeEach
-  fun setUpPactVerification(context: PactVerificationContext) {
-    context.target = MessageTestTarget(pactProviderScanPackages, javaClass.classLoader)
+  fun setUpPactVerification(context: PactVerificationContext?) {
+    context?.target = MessageTestTarget(pactProviderScanPackages, javaClass.classLoader)
     capturedDomainEvent = null
   }
 
   @TestTemplate
   @ExtendWith(PactVerificationInvocationContextProvider::class)
-  fun testTemplate(context: PactVerificationContext) {
-    context.verifyInteraction()
+  fun testTemplate(context: PactVerificationContext?) {
+    context?.verifyInteraction()
   }
 
   @State("CPR publishes a core-person-record.probation.address.created event")
