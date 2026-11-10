@@ -22,7 +22,7 @@ class SysconReligionInsertHandler(
   fun handleInsert(prisonNumber: String, prisonReligionRequest: PrisonReligionRequest): Map<String, String> {
     val (personEntity, currentPrisonReligion) = validateRequest(prisonNumber, prisonReligionRequest)
     prisonReligionRepository.deleteAllByPrisonNumber(prisonNumber).also { prisonReligionRepository.flush() }
-    return personService.processUpdate(personEntity) { personEntity ->
+    return personService.processUpdateAndPublish(personEntity) { personEntity ->
       saveReligionsMapped(prisonNumber, prisonReligionRequest).also {
         personEntity.religion = currentPrisonReligion.religionCode
       }

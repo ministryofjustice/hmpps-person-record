@@ -139,7 +139,7 @@ class PersonEntity(
 
   @Column
   @Enumerated(STRING)
-  var sourceSystem: SourceSystemType,
+  val sourceSystem: SourceSystemType,
 
   @Column(name = "match_id")
   val matchId: UUID,

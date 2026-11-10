@@ -52,7 +52,7 @@ class PrisonReligionInsertHandler(
     domainEventSource: DomainEventSource,
   ): PrisonReligionMapping {
     val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
-    return personService.processUpdate(personEntity) { personEntity ->
+    return personService.processUpdateAndPublish(personEntity) { personEntity ->
       val cprReligionId = savePrisonReligion(prisonNumber, prisonReligionHistory, personEntity, domainEventSource)
       PrisonReligionMapping(prisonReligionHistory.nomisReligionId, cprReligionId)
     }
