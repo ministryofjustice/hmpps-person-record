@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jobs.BatchJob
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordClusterTelemetry
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.TransactionalReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.recluster.TransactionalReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import kotlin.time.Duration
 import kotlin.time.measureTime

@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.TransactionalReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.recluster.TransactionalReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId

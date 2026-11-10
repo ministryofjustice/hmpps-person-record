@@ -8,7 +8,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension
 import org.springframework.context.ApplicationEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jobs.recluster.ReclusterDatabaseJob
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.TransactionalReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.recluster.TransactionalReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
