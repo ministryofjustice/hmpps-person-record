@@ -107,7 +107,7 @@ class ProbationEventProviderPactTest : E2ETestBase() {
     capturePublishedEvent()
     val crn = randomCrn()
     val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
-    val address = createRandomProbationAddress()
+    val address = probationCreateAddress()
     val addressEntity = AddressEntity.from(Address.from(address))
     addressEntity.person = person
     addressRepository.save(addressEntity)
@@ -122,7 +122,7 @@ class ProbationEventProviderPactTest : E2ETestBase() {
     capturePublishedEvent()
     val crn = randomCrn()
     val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
-    val address = createRandomProbationAddress()
+    val address = probationCreateAddress()
     val addressEntity = AddressEntity.from(Address.from(address))
     addressEntity.person = person
     addressRepository.save(addressEntity)
@@ -137,7 +137,7 @@ class ProbationEventProviderPactTest : E2ETestBase() {
     capturePublishedEvent()
     val crn = randomCrn()
     val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
-    val address = createRandomProbationAddress()
+    val address = probationCreateAddress()
     val addressEntity = AddressEntity.from(Address.from(address))
     addressEntity.person = person
     addressRepository.save(addressEntity)
@@ -175,6 +175,7 @@ class ProbationEventProviderPactTest : E2ETestBase() {
         from = fromPerson,
         fromClusterDetail = EventLogClusterDetail(UUID.randomUUID(), ACTIVE),
         to = toPerson,
+        personChangeChecker = PersonChangeChecker(toPerson),
       ),
     )
 
