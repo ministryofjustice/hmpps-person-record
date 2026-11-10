@@ -22,6 +22,14 @@ $ make e2e-test
 ```
 
 ### Deployment
+
+All Pact provider verification runs must supply `providerAppVersion` matching the
+code being verified; there is no fallback to the broker's latest version.
+Webhooks must supply `providerTag` as comma-separated tags containing exactly one
+distinct full 40-character commit SHA. JSON arrays are not supported.
+Manual runs accept a single Git reference in `providerTag`, falling back to the
+workflow commit when omitted. The resolved reference is also published as the
+provider tag.
  
 Helm is used to deploy the service to a Kubernetes Cluster using templates in the [`helm_deploy` folder](./helm_deploy).
 
@@ -73,4 +81,3 @@ Then you can run AWS CLI commands on the pod like this:
 `AWS_REGION=eu-west-2 AWS_ACCESS_KEY_ID=key AWS_SECRET_ACCESS_KEY=secret aws --endpoint-url=http://localhost:4566 sqs create-queue --queue-name cpr_court_events_queue.fifo --attributes '{"FifoQueue": "true", "ContentBasedDeduplication": "true"}'`
 
 `AWS_REGION=eu-west-2 AWS_ACCESS_KEY_ID=key AWS_SECRET_ACCESS_KEY=secret aws --endpoint-url=http://localhost:4566 sns subscribe --topic-arn arn:aws:sns:eu-west-2:000000000000:courteventstopic.fifo --protocol sqs --notification-endpoint arn:aws:sqs:eu-west-2:000000000000:cpr_court_events_queue.fifo`
-
