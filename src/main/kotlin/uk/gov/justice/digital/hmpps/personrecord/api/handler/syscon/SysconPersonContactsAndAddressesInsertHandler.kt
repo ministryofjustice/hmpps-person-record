@@ -173,11 +173,10 @@ class SysconPersonContactsAndAddressesInsertHandler(
   }
 
   private fun PrisonAddress.findExistingElseNewAddressAndUpdateFields(personEntity: PersonEntity): AddressEntity {
-    val addressEntity = if (!cprAddressId.isNullOrBlank()) {
-      addressRepository.findByUpdateId(UUID.fromString(cprAddressId)) ?: throw ResourceNotFoundException("Address with updateId $cprAddressId not found")
-    } else {
-      AddressEntity()
-    }
+    // if no id is passed in, or if the id no longer exists then we create a new one
+    val addressEntity = cprAddressId.takeUnless { it.isNullOrBlank() }?.let {
+      addressRepository.findByUpdateId(UUID.fromString(it))
+    } ?: AddressEntity()
 
     addressEntity.startDate = startDate?.toUkZonedDateTime()
     addressEntity.endDate = endDate?.toUkZonedDateTime()
@@ -202,12 +201,8 @@ class SysconPersonContactsAndAddressesInsertHandler(
     return addressEntity
   }
 
-  fun PrisonContact.findExistingElseNewContactAndUpdateFields(addressEntity: AddressEntity): ContactEntity {
-    val contactEntity = if (!cprContactId.isNullOrBlank()) {
-      contactRepository.findByUpdateId(UUID.fromString(cprContactId)) ?: throw ResourceNotFoundException("Contact with updateId $cprContactId not found")
-    } else {
-      ContactEntity(contactType = type)
-    }
+  private fun PrisonContact.findExistingElseNewContactAndUpdateFields(addressEntity: AddressEntity): ContactEntity {
+    val contactEntity = findExistingElseNewContact()
 
     contactEntity.contactType = type
     contactEntity.contactValue = value
@@ -221,11 +216,7 @@ class SysconPersonContactsAndAddressesInsertHandler(
   }
 
   private fun PrisonContact.findExistingElseNewContactUsageAndUpdateFields(personEntity: PersonEntity): ContactEntity {
-    val contactEntity = if (!cprContactId.isNullOrBlank()) {
-      contactRepository.findByUpdateId(UUID.fromString(cprContactId)) ?: throw ResourceNotFoundException("Contact with updateId $cprContactId not found")
-    } else {
-      ContactEntity(contactType = type)
-    }
+    val contactEntity = findExistingElseNewContact()
 
     contactEntity.contactType = type
     contactEntity.contactValue = value
@@ -238,12 +229,17 @@ class SysconPersonContactsAndAddressesInsertHandler(
     return contactEntity
   }
 
-  fun PrisonAddressUsage.findExistingElseNewAddressUsageAndUpdateFields(addressEntity: AddressEntity): AddressUsageEntity {
-    val addressUsageEntity = if (!cprAddressUsageId.isNullOrBlank()) {
-      addressUsageRepository.findByUpdateId(UUID.fromString(cprAddressUsageId)) ?: throw ResourceNotFoundException("AddressUsage with updateId $cprAddressUsageId not found")
-    } else {
-      AddressUsageEntity(usageCode = addressUsageCode, active = isActive)
-    }
+  // if no id is passed in, or if the id no longer exists then we create a new one
+  private fun PrisonContact.findExistingElseNewContact(): ContactEntity = cprContactId.takeUnless { it.isNullOrBlank() }?.let {
+    contactRepository.findByUpdateId(UUID.fromString(it))
+  } ?: ContactEntity(contactType = type)
+
+  private fun PrisonAddressUsage.findExistingElseNewAddressUsageAndUpdateFields(addressEntity: AddressEntity): AddressUsageEntity {
+    // if no id is passed in, or if the id no longer exists then we create a new one
+    val addressUsageEntity = cprAddressUsageId.takeUnless { it.isNullOrBlank() }?.let {
+      addressUsageRepository.findByUpdateId(UUID.fromString(it))
+    } ?: AddressUsageEntity(usageCode = addressUsageCode, active = isActive)
+
     addressUsageEntity.usageCode = addressUsageCode
     addressUsageEntity.active = isActive
     addressUsageEntity.address = addressEntity

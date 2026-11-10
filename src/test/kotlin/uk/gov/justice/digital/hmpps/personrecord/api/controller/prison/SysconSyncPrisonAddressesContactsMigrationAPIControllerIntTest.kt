@@ -39,6 +39,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBase() {
 
@@ -435,6 +436,202 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
 
         // Check that we can no longer find the orphaned contact in the repository
         assertThat(contactRepository.findById(contactToBeDeleted.id!!)).isEmpty
+      }
+
+      @Test
+      fun `successful save ignores address usage ids that no longer exist and creates a new address usage`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+
+        val firstResponse = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validPrisonAddressesAndContactsRequest,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val addressRequest = validPrisonAddressesAndContactsRequest.addresses[0]
+        val addressMapping = firstResponse.addressesMappings.single { addressMatcher(addressRequest, it) }
+        val (invalidUsageRequest, validUsageRequest) = addressRequest.addressUsage
+        val staleUsageId = addressMapping.addressUsageMappings.single { addressUsageMatcher(invalidUsageRequest, it) }.cprAddressUsageId
+        val validUsageId = addressMapping.addressUsageMappings.single { addressUsageMatcher(validUsageRequest, it) }.cprAddressUsageId
+
+        val requestWithInvalidUsageId = validPrisonAddressesAndContactsRequest.copy(
+          addresses = listOf(
+            addressRequest.copy(
+              cprAddressId = addressMapping.cprAddressId,
+              addressUsage = listOf(
+                invalidUsageRequest.copy(cprAddressUsageId = UUID.randomUUID().toString()),
+                validUsageRequest.copy(cprAddressUsageId = validUsageId),
+              ),
+            ),
+            validPrisonAddressesAndContactsRequest.addresses[1],
+          ),
+        )
+
+        val secondResponse = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = requestWithInvalidUsageId,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val secondAddressMapping = secondResponse.addressesMappings.single { addressMatcher(addressRequest, it) }
+        assertThat(secondAddressMapping.cprAddressId).isEqualTo(addressMapping.cprAddressId)
+        val newUsageId = secondAddressMapping.addressUsageMappings.single { addressUsageMatcher(invalidUsageRequest, it) }.cprAddressUsageId
+        assertThat(newUsageId).isNotEqualTo(staleUsageId)
+        assertThat(secondAddressMapping.addressUsageMappings.single { addressUsageMatcher(validUsageRequest, it) }.cprAddressUsageId).isEqualTo(validUsageId)
+
+        val addressEntity = personRepository.findByPrisonNumber(prisonNumber)!!.addresses.single { addressMatcher(addressRequest, it) }
+        assertThat(addressEntity.usages.map { it.updateId.toString() }).containsExactlyInAnyOrder(newUsageId, validUsageId)
+        assertAddressUsageMatches(invalidUsageRequest, addressEntity.usages.single { it.updateId.toString() == newUsageId })
+        assertThat(addressUsageRepository.findByUpdateId(UUID.fromString(staleUsageId))).isNull()
+      }
+
+      @Test
+      fun `successful save ignores address contact ids that no longer exist and creates a new address contact`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+
+        val firstResponse = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validPrisonAddressesAndContactsRequest,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val addressRequest = validPrisonAddressesAndContactsRequest.addresses[0]
+        val addressMapping = firstResponse.addressesMappings.single { addressMatcher(addressRequest, it) }
+        val (invalidContactRequest, validContactRequest) = addressRequest.contacts
+        val staleContactId = addressMapping.contactMappings.single { contactMatcher(invalidContactRequest, it) }.cprContactId
+        val validContactId = addressMapping.contactMappings.single { contactMatcher(validContactRequest, it) }.cprContactId
+
+        val requestWithInvalidContactId = validPrisonAddressesAndContactsRequest.copy(
+          addresses = listOf(
+            addressRequest.copy(
+              cprAddressId = addressMapping.cprAddressId,
+              contacts = listOf(
+                invalidContactRequest.copy(cprContactId = UUID.randomUUID().toString()),
+                validContactRequest.copy(cprContactId = validContactId),
+              ),
+            ),
+            validPrisonAddressesAndContactsRequest.addresses[1],
+          ),
+        )
+
+        val secondResponse = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = requestWithInvalidContactId,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val secondAddressMapping = secondResponse.addressesMappings.single { addressMatcher(addressRequest, it) }
+        assertThat(secondAddressMapping.cprAddressId).isEqualTo(addressMapping.cprAddressId)
+        val newContactId = secondAddressMapping.contactMappings.single { contactMatcher(invalidContactRequest, it) }.cprContactId
+        assertThat(newContactId).isNotEqualTo(staleContactId)
+        assertThat(secondAddressMapping.contactMappings.single { contactMatcher(validContactRequest, it) }.cprContactId).isEqualTo(validContactId)
+
+        val addressEntity = personRepository.findByPrisonNumber(prisonNumber)!!.addresses.single { addressMatcher(addressRequest, it) }
+        assertThat(addressEntity.contacts.map { it.updateId.toString() }).containsExactlyInAnyOrder(newContactId, validContactId)
+        assertContactMatches(invalidContactRequest, addressEntity.contacts.single { it.updateId.toString() == newContactId })
+        assertThat(contactRepository.findByUpdateId(UUID.fromString(staleContactId))).isNull()
+      }
+
+      @Test
+      fun `successful save ignores person contact ids that no longer exist and creates a new person contact`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+
+        val firstResponse = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validPrisonAddressesAndContactsRequest,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val (invalidContactRequest, validContactRequest) = validPrisonAddressesAndContactsRequest.contacts
+        val staleContactId = firstResponse.contactMappings.single { contactMatcher(invalidContactRequest, it) }.cprContactId
+        val validContactId = firstResponse.contactMappings.single { contactMatcher(validContactRequest, it) }.cprContactId
+
+        val requestWithInvalidContactId = validPrisonAddressesAndContactsRequest.copy(
+          contacts = listOf(
+            invalidContactRequest.copy(cprContactId = UUID.randomUUID().toString()),
+            validContactRequest.copy(cprContactId = validContactId),
+          ),
+        )
+
+        val secondResponse = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = requestWithInvalidContactId,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val newContactId = secondResponse.contactMappings.single { contactMatcher(invalidContactRequest, it) }.cprContactId
+        assertThat(newContactId).isNotEqualTo(staleContactId)
+        assertThat(secondResponse.contactMappings.single { contactMatcher(validContactRequest, it) }.cprContactId).isEqualTo(validContactId)
+
+        val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+        assertThat(personEntity.contacts.map { it.updateId.toString() }).containsExactlyInAnyOrder(newContactId, validContactId)
+        assertContactMatches(invalidContactRequest, personEntity.contacts.single { it.updateId.toString() == newContactId })
+        assertThat(contactRepository.findByUpdateId(UUID.fromString(staleContactId))).isNull()
+      }
+
+      @Test
+      fun `successful save ignores address ids that no longer exist and creates a new address`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+
+        val firstResponse = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = validPrisonAddressesAndContactsRequest,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val (invalidAddressRequest, validAddressRequest) = validPrisonAddressesAndContactsRequest.addresses
+        val staleAddressId = firstResponse.addressesMappings.single { addressMatcher(invalidAddressRequest, it) }.cprAddressId
+        val validAddressId = firstResponse.addressesMappings.single { addressMatcher(validAddressRequest, it) }.cprAddressId
+
+        val requestWithInvalidAddressId = validPrisonAddressesAndContactsRequest.copy(
+          addresses = listOf(
+            invalidAddressRequest.copy(cprAddressId = UUID.randomUUID().toString()),
+            validAddressRequest.copy(cprAddressId = validAddressId),
+          ),
+        )
+
+        val secondResponse = sendPostRequestAsserted<SysconAddressesAndContactsResponseBody>(
+          url = migrationUrl(prisonNumber),
+          body = requestWithInvalidAddressId,
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = CREATED,
+          sendAuthorised = true,
+        ).returnResult().responseBody!!
+
+        val newAddressId = secondResponse.addressesMappings.single { addressMatcher(invalidAddressRequest, it) }.cprAddressId
+        assertThat(newAddressId).isNotEqualTo(staleAddressId)
+        assertThat(secondResponse.addressesMappings.single { addressMatcher(validAddressRequest, it) }.cprAddressId).isEqualTo(validAddressId)
+
+        val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+        assertThat(personEntity.addresses.map { it.updateId.toString() }).containsExactlyInAnyOrder(newAddressId, validAddressId)
+        assertAddressMatches(invalidAddressRequest, personEntity.addresses.single { it.updateId.toString() == newAddressId })
+        assertThat(addressRepository.findByUpdateId(UUID.fromString(staleAddressId))).isNull()
       }
     }
   }

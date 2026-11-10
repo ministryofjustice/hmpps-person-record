@@ -6,7 +6,9 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
+import uk.gov.justice.digital.hmpps.personrecord.api.model.search.ExactMatchSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchDetailsResponse
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchExactMatchSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
@@ -82,4 +84,12 @@ class PersonMatchClient(private val personMatchWebClient: WebClient) {
     .retrieve()
     .toBodilessEntity()
     .block()
+
+  fun exactMatchSearch(searchRequest: ExactMatchSearchRequest) = personMatchWebClient
+    .post()
+    .uri("/person/search/exact-match")
+    .bodyValue(searchRequest)
+    .retrieve()
+    .bodyToMono<PersonMatchExactMatchSearchResponse>()
+    .block()!!
 }
