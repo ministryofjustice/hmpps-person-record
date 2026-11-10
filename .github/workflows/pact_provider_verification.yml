@@ -143,6 +143,7 @@ jobs:
         run: ./gradlew pactTest
         env:
           PACT_PUBLISH_RESULTS: ${{ github.event_name == 'repository_dispatch' || inputs.publishResults }}
+          PACT_ENABLE_PENDING: ${{ github.event_name != 'repository_dispatch' }}
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
           PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}

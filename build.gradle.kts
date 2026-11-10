@@ -99,6 +99,7 @@ tasks.register<Test>("pactTest") {
   systemProperty("pactbroker.url", System.getenv("PACT_BROKER_URL"))
   systemProperty("pactbroker.auth.username", System.getenv("PACT_BROKER_USERNAME") ?: "")
   systemProperty("pactbroker.auth.password", System.getenv("PACT_BROKER_PASSWORD") ?: "")
+  systemProperty("pactbroker.enablePending", System.getenv("PACT_ENABLE_PENDING") ?: "false")
 
   val consumerBranch = System.getenv("PACT_CONSUMER_BRANCH") ?: ""
   val requestedConsumerName = System.getenv("PACT_CONSUMER_NAME") ?: ""
@@ -110,7 +111,7 @@ tasks.register<Test>("pactTest") {
     requestedConsumerName.isNotEmpty() ->
       """[{"consumer":"$requestedConsumerName","mainBranch":true},{"consumer":"$requestedConsumerName","deployed":true}]"""
     else ->
-      """[{"deployed":true}]"""
+      """[{"mainBranch":true},{"deployed":true}]"""
   }
   systemProperty("pactbroker.consumerversionselectors.rawjson", selectors)
   systemProperty("pactbroker.providerBranch", System.getenv("GITHUB_BRANCH") ?: "local")
