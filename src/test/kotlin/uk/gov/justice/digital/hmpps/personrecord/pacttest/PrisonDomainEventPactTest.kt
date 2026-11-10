@@ -4,36 +4,41 @@ import au.com.dius.pact.provider.PactVerifyProvider
 import au.com.dius.pact.provider.junitsupport.Provider
 import au.com.dius.pact.provider.junitsupport.State
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PRISON_PERSON_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonCreated
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import org.mockito.Mockito.doAnswer
+import org.mockito.kotlin.any
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person.PrisonPersonCreatedEventPublisher
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
 
 @Provider("hmpps-person-record-events")
 @PactBroker(url = $$"${pactbroker.url}")
 @Suppress("unused")
 class PrisonDomainEventPactTest : AbstractEventProviderPactTests() {
-  private val baseUrl = "http://localhost:8080"
+  @Autowired
+  private lateinit var prisonPersonCreatedEventPublisher: PrisonPersonCreatedEventPublisher
+
+  @MockitoSpyBean
+  private lateinit var spyDomainEventPublisher: DomainEventPublisher
 
   @State("A prison person created event can be produced")
   fun aPrisonPersonCreatedEventCanBeProduced() {
   }
 
   @PactVerifyProvider("A CPR person has been created")
-  fun verifyCprPersonCreatedEvent(): CprPersonCreated {
-    val prisonNumber = "A1234BC"
-    val detailUrl = "$baseUrl/person/prison/$prisonNumber"
+  fun verifyCprPersonCreatedEvent(): String {
+    var capturedDomainEvent: DomainEvent? = null
+    doAnswer { invocation ->
+      capturedDomainEvent = invocation.getArgument(0)
+      null
+    }.`when`(spyDomainEventPublisher).publish(any(), any())
 
-    return CprPersonCreated(
-      eventType = CPR_PRISON_PERSON_CREATED,
-      description = "A prison person record has been created",
-      detailUrl = detailUrl,
-      occurredAt = "2026-10-05T10:00:00+01:00",
-      personReference = PersonReference(
-        identifiers = listOf(
-          PersonIdentifier("prisonNumber", prisonNumber),
-        ),
-      ),
-    )
+    val person = createPersonWithNewKey(createRandomPrisonPersonDetails())
+    prisonPersonCreatedEventPublisher.onCreate(PersonCreated(person))
+
+    val domainEvent = requireNotNull(capturedDomainEvent) { "Expected a prison person created event to be published" }
+    return jsonMapper.writeValueAsString(domainEvent)
   }
 }
