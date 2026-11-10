@@ -176,6 +176,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
           ),
         ),
       )
+      personEntity
     }
     awaitAssert {
       val createdPerson = personRepository.findByPrisonNumber(prisonNumber)

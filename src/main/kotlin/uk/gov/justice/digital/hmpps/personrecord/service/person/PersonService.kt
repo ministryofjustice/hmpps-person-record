@@ -42,7 +42,7 @@ class PersonService(
   )
 
   @Transactional
-  fun <T> processCreate(sourceSystem: SourceSystemType, callBack: (PersonEntity) -> T): T {
+  fun processCreate(sourceSystem: SourceSystemType, callBack: (PersonEntity) -> PersonEntity): PersonEntity {
     val personEntity = personRepository.save(PersonEntity.new(sourceSystem))
     val value = callBack(personEntity)
     personRepository.saveAndFlush(personEntity)
