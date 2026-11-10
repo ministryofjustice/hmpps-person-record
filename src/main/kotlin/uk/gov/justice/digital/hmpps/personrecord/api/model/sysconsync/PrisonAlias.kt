@@ -3,9 +3,12 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonAliasNameType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonPseudonymSuffix
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class PrisonAlias(
   @Schema(description = "The nomis offender id for this alias", example = "10000")
@@ -23,13 +26,25 @@ data class PrisonAlias(
   @Schema(description = "The alias sex code", example = "M")
   val sexCode: SexCode? = null,
   @Schema(description = "Indicates if this is a primary alias", example = "true")
-  val isPrimary: Boolean? = null,
+  val isPrimary: Boolean,
   @Schema(description = "Birth place of this offender record")
   val birthPlace: String?,
   @Schema(description = "Birth country of this offender record")
   val birthCountry: CountryCode?,
   @Schema(description = "Ethnicity of this offender record")
   val ethnicity: EthnicityCode?,
-  @Schema(description = "Date this offender record was created")
-  val createDate: LocalDate?,
+  @Schema(description = "List of identifiers associated with this alias")
+  val identifiers: List<PrisonIdentifier>,
+  @Schema(description = "Suffix")
+  val suffix: PrisonPseudonymSuffix?,
+  @Schema(description = "Name type")
+  val nameType: PrisonAliasNameType?,
+  @Schema(description = "The alias create date and time", example = "2000-01-01T12:00:00", required = true)
+  val createDateTime: LocalDateTime,
+  @Schema(description = "The alias create user id", example = "12345", required = true)
+  val createUserId: String,
+  @Schema(description = "The alias modify date and time", example = "2000-01-01T12:00:00")
+  val modifyDateTime: LocalDateTime? = null,
+  @Schema(description = "The alias modify user id", example = "12345")
+  val modifyUserId: String? = null,
 )
