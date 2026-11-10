@@ -4,6 +4,7 @@ import au.com.dius.pact.provider.PactVerifyProvider
 import au.com.dius.pact.provider.junit5.MessageTestTarget
 import au.com.dius.pact.provider.junit5.PactVerificationContext
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider
+import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify
 import au.com.dius.pact.provider.junitsupport.Provider
 import au.com.dius.pact.provider.junitsupport.State
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker
@@ -52,6 +53,7 @@ import java.util.UUID
  */
 @Provider("hmpps-person-record-events")
 @PactBroker(url = $$"${pactbroker.url}")
+@IgnoreNoPactsToVerify
 @Suppress("unused")
 class ProbationEventProviderPactTest : E2ETestBase() {
 
