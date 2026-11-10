@@ -234,7 +234,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
       assertThat(domainEventForMerge.detailUrl).isEqualTo("http://localhost:8080/person/probation/$toCrn")
       assertThat(domainEventForMerge.description).isEqualTo("A probation person record has been merged")
       assertThat(domainEventForMerge.personReference.identifiers!!.first()).isEqualTo(PersonIdentifier("fromCRN", fromCrn))
-      assertThat(domainEventForMerge.personReference.identifiers!!.last()).isEqualTo(PersonIdentifier("toCRN", toCrn))
+      assertThat(domainEventForMerge.personReference.identifiers.last()).isEqualTo(PersonIdentifier("toCRN", toCrn))
     }
 
     @Test

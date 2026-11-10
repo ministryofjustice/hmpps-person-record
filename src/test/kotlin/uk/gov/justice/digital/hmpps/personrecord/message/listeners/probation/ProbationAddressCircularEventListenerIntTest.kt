@@ -14,7 +14,7 @@ class ProbationAddressCircularEventListenerIntTest : ProbationEventListenerTestB
   fun `given an address created event - event contains CPR event source - updates delius address id only`() {
     val crn = randomCrn()
     val addressCreatedBySas = probationCreateAddress()
-    val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn = crn), configure = addAddressToRecord((Address.from(addressCreatedBySas)!!)))
+    val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn = crn), configure = addAddressToRecord((Address.from(addressCreatedBySas))))
     val addressEntity = personEntity.addresses.first()
 
     val deliusAddressId = randomDigit().toLong()
