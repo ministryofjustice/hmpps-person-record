@@ -123,6 +123,10 @@ jobs:
           persist-credentials: false
           ref: ${{ github.event.client_payload.providerTag || inputs.providerTag || github.sha }}
 
+      - name: Resolve checked-out commit
+        id: checkout-commit
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
       - name: Setup Java
         uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
@@ -146,7 +150,7 @@ jobs:
           PACT_CONSUMER_NAME: ${{ github.event.client_payload.consumerName || inputs.consumerName }}
           PACT_CONSUMER_BRANCH: ${{ github.event.client_payload.consumerBranch || inputs.consumerBranch }}
           PACT_PROVIDER_APP_VERSION: ${{ steps.resolve-provider-version.outputs.version }}
-          PACT_PROVIDER_TAG: ${{ github.event.client_payload.providerTag || inputs.providerTag }}
+          PACT_PROVIDER_TAG: ${{ steps.checkout-commit.outputs.sha }}
 
       - name: Upload the test artifacts
         if: always()
