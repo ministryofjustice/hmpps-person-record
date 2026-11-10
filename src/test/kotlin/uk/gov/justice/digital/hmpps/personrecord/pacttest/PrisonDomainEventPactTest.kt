@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 
-@Provider("hmpps-person-record")
+@Provider("hmpps-person-record-events")
 @PactBroker(url = $$"${pactbroker.url}")
 @Suppress("unused")
 class PrisonDomainEventPactTest : AbstractEventProviderPactTests() {
