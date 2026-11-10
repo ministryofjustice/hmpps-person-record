@@ -11,10 +11,13 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonAliasNameType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonPseudonymSuffix
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
@@ -25,7 +28,7 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
     fun `should respond with 501 as not currently implemented`() {
       webTestClient.post()
         .uri(aliasesIdentifiersUrl(randomPrisonNumber()))
-        .bodyValue(PrisonAliasesAndIdentifiersRequest(aliases = emptyList(), identifiers = emptyList()))
+        .bodyValue(PrisonAliasesAndIdentifiersRequest(aliases = emptyList()))
         .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
         .exchange()
         .expectStatus()
@@ -56,18 +59,23 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
                 birthPlace = "London",
                 birthCountry = CountryCode.UKR,
                 ethnicity = EthnicityCode.A1,
-                createDate = LocalDate.of(2020, 1, 1),
-              ),
-            ),
-            identifiers = listOf(
-              PrisonIdentifier(
-                nomisIdentifierId = NomisIdentifierId(nomisOffenderId = 10000L, nomisSequence = 0),
-                type = IdentifierType.PNC,
-                value = "2000/1234567A",
-                comment = "comment",
-                issuedAuthority = "Police",
-                issuedDate = LocalDate.of(2020, 1, 1),
-                verified = true,
+                createUserId = "createUserId",
+                suffix = PrisonPseudonymSuffix.I,
+                nameType = PrisonAliasNameType.CN,
+                createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+                identifiers = listOf(
+                  PrisonIdentifier(
+                    nomisIdentifierId = NomisIdentifierId(nomisOffenderId = 10000L, nomisSequence = 0),
+                    type = IdentifierType.PNC,
+                    value = "2000/1234567A",
+                    comment = "comment",
+                    issuedAuthority = "Police",
+                    issuedDate = LocalDate.of(2020, 1, 1),
+                    verified = true,
+                    createDateTime = LocalDateTime.of(2021, 1, 1, 12, 0),
+                    createUserId = "createUserId",
+                  ),
+                ),
               ),
             ),
           ),
