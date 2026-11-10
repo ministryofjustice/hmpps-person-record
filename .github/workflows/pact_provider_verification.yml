@@ -121,7 +121,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ (github.event.client_payload.providerTag && fromJSON(github.event.client_payload.providerTag)[0]) || inputs.providerTag || github.sha }}
+          ref: ${{ github.event.client_payload.providerTag || inputs.providerTag || github.sha }}
 
       - name: Setup Java
         uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
@@ -146,7 +146,7 @@ jobs:
           PACT_CONSUMER_NAME: ${{ github.event.client_payload.consumerName || inputs.consumerName }}
           PACT_CONSUMER_BRANCH: ${{ github.event.client_payload.consumerBranch || inputs.consumerBranch }}
           PACT_PROVIDER_APP_VERSION: ${{ steps.resolve-provider-version.outputs.version }}
-          PACT_PROVIDER_TAG: ${{ (github.event.client_payload.providerTag && fromJSON(github.event.client_payload.providerTag)[0]) || inputs.providerTag }}
+          PACT_PROVIDER_TAG: ${{ github.event.client_payload.providerTag || inputs.providerTag }}
 
       - name: Upload the test artifacts
         if: always()
