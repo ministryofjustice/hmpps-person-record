@@ -151,7 +151,7 @@ jobs:
       - gradle_verify
       - e2e_test
       - pact_test
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@ee55fb680f0398c1f6f8852813481d90c9aea16d
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@304442013204ed99de7752c66ab9dcb98defb25c
     secrets: inherit
     with:
       environment: 'dev'
@@ -162,7 +162,7 @@ jobs:
     needs:
       - build
       - deploy_dev
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@ee55fb680f0398c1f6f8852813481d90c9aea16d
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@304442013204ed99de7752c66ab9dcb98defb25c
     secrets: inherit
     with:
       environment: 'preprod'
@@ -173,7 +173,7 @@ jobs:
     needs:
       - build
       - deploy_preprod
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@ee55fb680f0398c1f6f8852813481d90c9aea16d
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@304442013204ed99de7752c66ab9dcb98defb25c
     secrets: inherit
     with:
       environment: 'prod'
