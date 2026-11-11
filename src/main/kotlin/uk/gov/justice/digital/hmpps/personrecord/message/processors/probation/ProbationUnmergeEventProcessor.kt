@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonUnmerged
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.message.UnmergeService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.UnmergeService
 
 @Component
 class ProbationUnmergeEventProcessor(

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.service.message.PersonDeletionService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonDeletionService
 
 @Tag(name = "Prison")
 @RestController
