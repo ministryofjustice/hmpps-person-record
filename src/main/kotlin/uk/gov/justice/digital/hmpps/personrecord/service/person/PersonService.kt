@@ -61,13 +61,12 @@ class PersonService(
 
   @Transactional
   fun <T> processUpdate(personEntity: PersonEntity, callBack: (PersonEntity, PersonChangeChecker) -> T): T {
-    val personEntityAttached = personRepository.save(personEntity)
-    personEntityAttached.lastModified = LocalDateTime.now()
-    val personChangeChecker = PersonChangeChecker(personEntityAttached)
-    val value = callBack(personEntityAttached, personChangeChecker)
-    if (personChangeChecker.shouldSaveToPersonMatch(personEntityAttached)) {
-      personMatchService.saveToPersonMatch(personEntityAttached)
-      personEntityAttached.personKey?.let { reclusterService.recluster(personEntityAttached) }
+    personEntity.lastModified = LocalDateTime.now()
+    val personChangeChecker = PersonChangeChecker(personEntity)
+    val value = callBack(personEntity, personChangeChecker)
+    if (personChangeChecker.shouldSaveToPersonMatch(personEntity)) {
+      personMatchService.saveToPersonMatch(personEntity)
+      personEntity.personKey?.let { reclusterService.recluster(personEntity) }
     }
     return value
   }

@@ -407,6 +407,7 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
       )
 
       stubPersonMatchUpsert()
+      stubClusterIsValid()
       stubOnePersonMatchAboveJoinThreshold(matchedRecord = defendant.matchId)
 
       webTestClient.put()
