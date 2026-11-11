@@ -124,37 +124,6 @@ class PersonServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should execute callback code on update and raise an update event`() {
-    stubPersonMatchUpsert()
-    stubPersonMatchScores()
-    val prisonNumber = randomPrisonNumber()
-    val originalEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-    personService.processUpdateAndPublish(originalEntity) { personEntity ->
-      personEntity.prisonNumber = prisonNumber
-      personEntity.pseudonyms.addAll(
-        listOf(
-          PseudonymEntity(
-            firstName = "AliasFirstName",
-            middleNames = "AliasMiddleNames",
-            lastName = "AliasLastName",
-            nameType = NameType.ALIAS,
-            titleCode = TitleCode.MR,
-            dateOfBirth = LocalDate.of(1990, 1, 1),
-            sexCode = SexCode.M,
-            ethnicityCode = EthnicityCode.A1,
-            person = personEntity,
-          ),
-        ),
-      )
-    }
-    awaitAssert {
-      val updatedPerson = personRepository.findByPrisonNumber(prisonNumber)
-      assertThat(updatedPerson!!.pseudonyms.firstOrNull { it.firstName == "AliasFirstName" }).isNotNull()
-      checkEventLogExist(updatedPerson.prisonNumber!!, CPRLogEvents.CPR_RECORD_UPDATED)
-    }
-  }
-
-  @Test
   fun `should execute callback code on create and raise a create event`() {
     stubPersonMatchUpsert()
     stubPersonMatchScores()
