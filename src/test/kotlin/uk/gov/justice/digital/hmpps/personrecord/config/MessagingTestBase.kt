@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
+import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
@@ -13,6 +14,7 @@ import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_PERSON_UPDATED
@@ -276,6 +278,18 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     hmppsQueue.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(hmppsQueue.dlqUrl).build(),
     ).get()
+  }
+
+  fun receiveNextMessageOnQueue(queue: HmppsQueue?, eventType: String): DomainEvent {
+    val rawDomainEventMessage = queue?.sqsClient?.receiveMessage(
+      ReceiveMessageRequest.builder().queueUrl(queue.queueUrl).maxNumberOfMessages(1).build(),
+    )
+    val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
+    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(eventType))
+
+    val domainEvent = jsonMapper.readValue<DomainEvent>(sqsMessage.message)
+    assertThat(domainEvent.eventType).isEqualTo(eventType)
+    return domainEvent
   }
 
   fun receiveNextMessageOnQueue(queue: HmppsQueue?): SQSMessage {

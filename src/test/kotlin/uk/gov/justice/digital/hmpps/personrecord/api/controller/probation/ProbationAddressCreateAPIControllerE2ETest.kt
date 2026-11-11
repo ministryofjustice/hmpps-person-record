@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.CREATED
 import tools.jackson.databind.node.ObjectNode
-import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
@@ -143,15 +142,11 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
         queue.sqsClient.countMessagesOnQueue(queue.queueUrl).get()
       } matches { it == 2 }
 
-      val updatedMessage = receiveNextMessageOnQueue(queue)
-      assertThat(updatedMessage.getEventType()).isEqualTo(CPR_PROBATION_ADDRESS_UPDATED)
-      val updatedEvent = jsonMapper.readValue<CprAddressUpdated>(updatedMessage.message)
+      val updatedEvent = receiveNextMessageOnQueue(queue, CPR_PROBATION_ADDRESS_UPDATED) as CprAddressUpdated
       assertThat(updatedEvent.additionalInformation.cprAddressId).isEqualTo(existingAddressId)
       assertThat(updatedEvent.personReference.identifiers?.single()?.value).isEqualTo(crn)
 
-      val createdMessage = receiveNextMessageOnQueue(queue)
-      assertThat(createdMessage.getEventType()).isEqualTo(CPR_PROBATION_ADDRESS_CREATED)
-      val createdEvent = jsonMapper.readValue<CprAddressCreated>(createdMessage.message)
+      val createdEvent = receiveNextMessageOnQueue(queue, CPR_PROBATION_ADDRESS_CREATED) as CprAddressCreated
       assertThat(createdEvent.additionalInformation.cprAddressId.toString()).isEqualTo(responseBody.cprAddressId)
       assertThat(createdEvent.personReference.identifiers?.single()?.value).isEqualTo(crn)
     }
@@ -299,4 +294,4 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
   }
 }
 
-private fun getMainAddress(personEntity: PersonEntity): AddressEntity = personEntity.addresses.first { it.statusCode == AddressStatusCode.M }
+private fun getMainAddress(personEntity: PersonEntity): AddressEntity = personEntity.addresses.first { it.statusCode == M }
