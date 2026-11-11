@@ -69,7 +69,6 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
                     type = IdentifierType.PNC,
                     value = "2000/1234567A",
                     comment = "comment",
-                    issuedAuthority = "Police",
                     issuedDate = LocalDate.of(2020, 1, 1),
                     verified = true,
                     createDateTime = LocalDateTime.of(2021, 1, 1, 12, 0),

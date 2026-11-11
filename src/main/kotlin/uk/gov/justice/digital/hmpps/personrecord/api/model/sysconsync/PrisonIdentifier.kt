@@ -8,14 +8,14 @@ import java.time.LocalDateTime
 data class PrisonIdentifier(
   @Schema(description = "The nomis identifier id")
   val nomisIdentifierId: NomisIdentifierId,
+  @Schema(description = "The cpr identifier id", example = "4f2c1d8a-9e3c-4a1f-8b2d-112233445566")
+  val cprIdentifierId: String? = null,
   @Schema(description = "The identifier type", example = "PNC")
   val type: IdentifierType,
   @Schema(description = "The identifier value", example = "2000/1234567A")
   val value: String,
   @Schema(description = "The identifier comment", example = "Some comment")
   val comment: String? = null,
-  @Schema(description = "The issued authority", example = "Police")
-  val issuedAuthority: String?,
   @Schema(description = "The issued date")
   val issuedDate: LocalDate?,
   @Schema(description = "Verified")

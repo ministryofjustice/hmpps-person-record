@@ -13,11 +13,13 @@ import java.time.LocalDateTime
 data class PrisonAlias(
   @Schema(description = "The nomis offender id for this alias", example = "10000")
   val nomisOffenderId: Long,
+  @Schema(description = "The cpr alias id", example = "4f2b1d8a-9f3c-4a1f-8b2d-112233445566")
+  val cprAliasId: String? = null,
   @Schema(description = "The alias title code", example = "MR")
   val titleCode: TitleCode? = null,
   @Schema(description = "The alias first name", example = "Jon")
   val firstName: String? = null,
-  @Schema(description = "The alias middles name", example = "James")
+  @Schema(description = "The alias middle names", example = "James")
   val middleNames: String? = null,
   @Schema(description = "The alias last name", example = "Smythe")
   val lastName: String? = null,
