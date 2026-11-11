@@ -198,10 +198,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
       )
 
       expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-      val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
-      assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_PERSON_MERGED))
-      val domainEvent = jsonMapper.readValue<CprPersonMerged>(sqsMessage.message)
-      assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_PERSON_MERGED)
+      val domainEvent = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PRISON_PERSON_MERGED) as CprPersonMerged
       assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/prison/$toPrisonNumber")
       assertThat(domainEvent.description).isEqualTo("A prison person record has been merged")
       assertThat(domainEvent.occurredAt).isNotNull()
