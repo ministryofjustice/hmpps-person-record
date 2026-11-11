@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.message
+package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
@@ -6,8 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyDeletionService
+import uk.gov.justice.digital.hmpps.personrecord.service.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component

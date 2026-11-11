@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.message.recluster
+package uk.gov.justice.digital.hmpps.personrecord.service.recluster
 
 import jakarta.persistence.OptimisticLockException
 import org.springframework.dao.CannotAcquireLockException
