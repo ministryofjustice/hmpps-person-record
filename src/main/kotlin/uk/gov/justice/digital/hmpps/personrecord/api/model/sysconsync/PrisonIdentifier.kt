@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class PrisonIdentifier(
   @Schema(description = "The nomis identifier id")
@@ -19,7 +20,14 @@ data class PrisonIdentifier(
   val issuedDate: LocalDate?,
   @Schema(description = "Verified")
   val verified: Boolean,
-
+  @Schema(description = "The identifier create date and time", example = "2000-01-01T12:00:00", required = true)
+  val createDateTime: LocalDateTime,
+  @Schema(description = "The identifier create user id", example = "12345", required = true)
+  val createUserId: String,
+  @Schema(description = "The identifier modify date and time", example = "2000-01-01T12:00:00")
+  val modifyDateTime: LocalDateTime? = null,
+  @Schema(description = "The identifier modify user id", example = "12345")
+  val modifyUserId: String? = null,
 )
 
 data class NomisIdentifierId(

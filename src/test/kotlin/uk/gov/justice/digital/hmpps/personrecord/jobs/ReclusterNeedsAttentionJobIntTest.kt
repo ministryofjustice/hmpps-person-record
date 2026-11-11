@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.TransactionalReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.recluster.TransactionalReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_SELF_HEALED
 
 class ReclusterNeedsAttentionJobIntTest(

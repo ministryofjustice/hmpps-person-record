@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
-import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.MergeService
 
 interface PrisonMergeEventHandler {
   fun handleMerge(toPrisonNumber: String, prisonMerge: PrisonMerge): SysconPersonMergeResponseBody

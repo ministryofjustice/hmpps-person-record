@@ -11,13 +11,19 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -27,6 +33,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import java.time.LocalDate
 
 class PersonServiceIntTest : IntegrationTestBase() {
 
@@ -113,6 +120,70 @@ class PersonServiceIntTest : IntegrationTestBase() {
     personService.processPerson(updatedPerson) { existingPersonEntity }
     checkEventLog(existingPersonEntity.crn!!, CPRLogEvents.CPR_RECORD_UPDATED) { logEvents ->
       assertThat(logEvents).isEmpty()
+    }
+  }
+
+  @Test
+  fun `should execute callback code on update and raise an update event`() {
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+    val prisonNumber = randomPrisonNumber()
+    val originalEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+    personService.processUpdateAndPublish(originalEntity) { personEntity ->
+      personEntity.prisonNumber = prisonNumber
+      personEntity.pseudonyms.addAll(
+        listOf(
+          PseudonymEntity(
+            firstName = "AliasFirstName",
+            middleNames = "AliasMiddleNames",
+            lastName = "AliasLastName",
+            nameType = NameType.ALIAS,
+            titleCode = TitleCode.MR,
+            dateOfBirth = LocalDate.of(1990, 1, 1),
+            sexCode = SexCode.M,
+            ethnicityCode = EthnicityCode.A1,
+            person = personEntity,
+          ),
+        ),
+      )
+    }
+    awaitAssert {
+      val updatedPerson = personRepository.findByPrisonNumber(prisonNumber)
+      assertThat(updatedPerson!!.pseudonyms.firstOrNull { it.firstName == "AliasFirstName" }).isNotNull()
+      checkEventLogExist(updatedPerson.prisonNumber!!, CPRLogEvents.CPR_RECORD_UPDATED)
+    }
+  }
+
+  @Test
+  fun `should execute callback code on create and raise a create event`() {
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+    val prisonNumber = randomPrisonNumber()
+    personService.processCreate(sourceSystem = SourceSystemType.NOMIS) { personEntity ->
+      personEntity.prisonNumber = prisonNumber
+      personEntity.pseudonyms.addAll(
+        listOf(
+          PseudonymEntity(
+            firstName = "PrimaryFirstName",
+            middleNames = "PrimaryMiddleNames",
+            lastName = "PrimaryLastName",
+            nameType = NameType.PRIMARY,
+            titleCode = TitleCode.MR,
+            dateOfBirth = LocalDate.of(1990, 1, 1),
+            sexCode = SexCode.M,
+            ethnicityCode = EthnicityCode.A1,
+            person = personEntity,
+          ),
+        ),
+      )
+      personEntity
+    }
+    awaitAssert {
+      val createdPerson = personRepository.findByPrisonNumber(prisonNumber)
+      assertThat(createdPerson).isNotNull
+      assertThat(createdPerson!!.pseudonyms).hasSize(1)
+      assertThat(createdPerson.getPrimaryName().firstName).isEqualTo("PrimaryFirstName")
+      checkEventLogExist(createdPerson.prisonNumber!!, CPRLogEvents.CPR_RECORD_CREATED)
     }
   }
 

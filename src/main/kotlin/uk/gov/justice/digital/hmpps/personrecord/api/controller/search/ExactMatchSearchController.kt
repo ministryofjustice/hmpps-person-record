@@ -1,9 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.search
 
+import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.security.access.prepost.PreAuthorize
@@ -23,7 +25,10 @@ class ExactMatchSearchController(
   private val personMatchClient: PersonMatchClient,
   private val personRepository: PersonRepository,
 ) {
-
+  @Operation(
+    description = """Exact match search. All search terms must match exactly. Role required is **$API_READ_ONLY** .""",
+    security = [SecurityRequirement(name = "api-role")],
+  )
   @ApiResponses(
     ApiResponse(
       responseCode = "200",

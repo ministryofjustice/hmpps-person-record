@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import kotlin.collections.emptySet
 import kotlin.reflect.KClass
