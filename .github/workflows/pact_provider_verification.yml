@@ -18,8 +18,8 @@ on:
         type: boolean
         default: true
       providerAppVersion:
-        required: false
-        description: Application version
+        required: true
+        description: Application version matching the provider checkout reference
         type: string
       providerBranch:
         required: false
@@ -84,44 +84,49 @@ jobs:
     name: Verify provider pacts
     runs-on: ubuntu-latest
     steps:
-      - name: Resolve provider app version
-        id: resolve-provider-version
+      - name: Resolve provider version and checkout reference
+        id: provider-ref
         shell: bash
         env:
           INPUT_PROVIDER_APP_VERSION: ${{ github.event.client_payload.providerAppVersion || inputs.providerAppVersion }}
-          PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
-          PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
-          PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
+          WEBHOOK_PROVIDER_TAG: ${{ github.event.client_payload.providerTag }}
+          INPUT_PROVIDER_TAG: ${{ inputs.providerTag }}
+          EVENT_NAME: ${{ github.event_name }}
+          DEFAULT_PROVIDER_REF: ${{ github.sha }}
         run: |
           set -euo pipefail
 
-          if [[ -n "${INPUT_PROVIDER_APP_VERSION}" ]]; then
-            version="${INPUT_PROVIDER_APP_VERSION}"
-            echo "Using workflow input provider version: ${version}"
-          else
-            echo "No providerAppVersion supplied - querying Pact Broker latest version"
-
-            version="$({
-              curl -fsSL \
-                -u "${PACT_BROKER_USERNAME}:${PACT_BROKER_PASSWORD}" \
-                "${PACT_BROKER_URL}/pacticipants/hmpps-person-record/latest-version"
-            } | jq -r '.number // empty')"
-
-            if [[ -z "${version}" ]]; then
-              echo "Could not resolve latest provider version from Pact Broker" >&2
-              exit 1
-            fi
-
-            echo "Resolved latest provider version from broker: ${version}"
+          if [[ -z "${INPUT_PROVIDER_APP_VERSION//[[:space:]]/}" ||
+                "$INPUT_PROVIDER_APP_VERSION" == *[[:cntrl:]]* ]]; then
+            echo "::error::providerAppVersion is required and must not contain control characters."
+            exit 1
           fi
 
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          if [[ "$EVENT_NAME" == "repository_dispatch" ]]; then
+            if ! ref="$(printf '%s' "$WEBHOOK_PROVIDER_TAG" | jq -Rsre '
+              if test("[[:cntrl:]]") then error("Invalid control character") else . end
+              | split(",") | map(gsub("^ +| +$"; ""))
+              | map(select(test("^[0-9a-fA-F]{40}$"))) | unique
+              | if length == 1 then .[0] else error("Expected exactly one commit SHA") end
+            ')"; then
+              echo "::error::Webhook providerTag must contain exactly one full commit SHA in its comma-separated tags."
+              exit 1
+            fi
+          else
+            ref="${INPUT_PROVIDER_TAG:-$DEFAULT_PROVIDER_REF}"
+            if [[ "$ref" == -* || "$ref" == *,* ]] || ! git check-ref-format --allow-onelevel "$ref"; then
+              echo "::error::providerTag must be a single valid Git reference."
+              exit 1
+            fi
+          fi
+
+          printf 'version=%s\nref=%s\n' "$INPUT_PROVIDER_APP_VERSION" "$ref" >> "$GITHUB_OUTPUT"
 
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ (github.event.client_payload.providerTag && fromJSON(github.event.client_payload.providerTag)[0]) || inputs.providerTag || github.sha }}
+          ref: ${{ steps.provider-ref.outputs.ref }}
 
       - name: Setup Java
         uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
@@ -139,14 +144,15 @@ jobs:
         run: ./gradlew pactTest
         env:
           PACT_PUBLISH_RESULTS: ${{ github.event_name == 'repository_dispatch' || inputs.publishResults }}
+          PACT_ENABLE_PENDING: ${{ github.event_name != 'repository_dispatch' }}
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
           PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
           PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
           GITHUB_BRANCH: ${{ github.event.client_payload.providerBranch || inputs.providerBranch || github.ref_name }}
           PACT_CONSUMER_NAME: ${{ github.event.client_payload.consumerName || inputs.consumerName }}
           PACT_CONSUMER_BRANCH: ${{ github.event.client_payload.consumerBranch || inputs.consumerBranch }}
-          PACT_PROVIDER_APP_VERSION: ${{ steps.resolve-provider-version.outputs.version }}
-          PACT_PROVIDER_TAG: ${{ (github.event.client_payload.providerTag && fromJSON(github.event.client_payload.providerTag)[0]) || inputs.providerTag }}
+          PACT_PROVIDER_APP_VERSION: ${{ steps.provider-ref.outputs.version }}
+          PACT_PROVIDER_TAG: ${{ steps.provider-ref.outputs.ref }}
 
       - name: Upload the test artifacts
         if: always()

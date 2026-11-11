@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.config
 
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.TestExecutionExceptionHandler
-import uk.gov.justice.digital.hmpps.personrecord.pacttest.AbstractProviderPactTests
 
 class RetryTestExtension : TestExecutionExceptionHandler {
 
@@ -10,7 +9,7 @@ class RetryTestExtension : TestExecutionExceptionHandler {
     context: ExtensionContext,
     throwable: Throwable,
   ) {
-    if (context.requiredTestInstance is AbstractProviderPactTests) {
+    if (context.requiredTestClass.simpleName.contains("PactTest")) {
       throw throwable
     }
 
