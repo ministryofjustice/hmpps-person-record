@@ -17,6 +17,7 @@ class OverrideService(
   private val overrideScopeRepository: OverrideScopeRepository,
   private val personMatchService: PersonMatchService,
   private val reclusterService: ReclusterService,
+  private val personService: PersonService,
 ) {
 
   fun systemExclude(vararg records: PersonEntity) {
@@ -29,13 +30,15 @@ class OverrideService(
 
   fun systemInclude(recordOne: PersonEntity, recordTwo: PersonEntity) {
     if (recordsNotIncluded(recordOne, recordTwo)) {
-      val marker = OverrideScopeEntity.newMarker()
       val scopeEntity = createScope(INCLUDE)
-      listOf(recordOne, recordTwo).forEach {
-        it.addOverrideMarker(scopeEntity, marker)
-        personMatchService.saveToPersonMatch(it)
+      val marker = OverrideScopeEntity.newMarker()
+
+      personService.processUpdate(recordOne) { personEntity, _ ->
+        personEntity.addOverrideMarker(scopeEntity, marker)
       }
-      reclusterService.recluster(recordOne)
+      personService.processUpdate(recordTwo) { personEntity, _ ->
+        personEntity.addOverrideMarker(scopeEntity, marker)
+      }
     }
   }
 

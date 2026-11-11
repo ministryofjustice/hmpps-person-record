@@ -11,6 +11,7 @@ class OverrideServiceIntTest : IntegrationTestBase() {
   fun beforeEach() {
     stubPersonMatchUpsert()
     stubPersonMatchScores()
+    stubClusterIsValid()
   }
 
   @Test

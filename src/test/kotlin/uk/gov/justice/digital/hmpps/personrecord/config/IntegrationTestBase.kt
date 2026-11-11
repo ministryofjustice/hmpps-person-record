@@ -433,7 +433,7 @@ class IntegrationTestBase {
     val updatedRecordOne = personRepository.findByMatchId(recordOne.matchId)!!
     val updatedRecordTwo = personRepository.findByMatchId(recordTwo.matchId)!!
     overrideService.systemInclude(updatedRecordOne, updatedRecordTwo)
-    personRepository.saveAll(listOf(updatedRecordTwo))
+//    personRepository.saveAll(listOf(updatedRecordTwo))
   }
 
   internal fun stubNoMatchesPersonMatch(matchId: UUID? = null) = stubPersonMatchScores(matchId = matchId, personMatchResponse = emptyList())
