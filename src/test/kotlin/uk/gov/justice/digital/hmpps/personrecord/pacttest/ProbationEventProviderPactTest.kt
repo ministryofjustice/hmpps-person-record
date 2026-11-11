@@ -18,6 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_ADDRESS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
@@ -32,8 +33,10 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.PersonMerged
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.ProbationAddressEventPublisher
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person.ProbationPersonDeletedEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person.ProbationPersonMergedEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person.ProbationPersonUpdatedEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
@@ -65,6 +68,9 @@ class ProbationEventProviderPactTest : E2ETestBase() {
 
   @Autowired
   private lateinit var probationPersonMergedEventPublisher: ProbationPersonMergedEventPublisher
+
+  @Autowired
+  private lateinit var probationPersonDeletedEventPublisher: ProbationPersonDeletedEventPublisher
 
   @MockitoSpyBean
   private lateinit var spyDomainEventPublisher: DomainEventPublisher
@@ -102,6 +108,10 @@ class ProbationEventProviderPactTest : E2ETestBase() {
 
   @State("CPR publishes a core-person-record.probation.record.merged event")
   fun probationPersonMergedState() {
+  }
+
+  @State("CPR publishes a core-person-record.probation.record.deleted event")
+  fun probationPersonDeletedState() {
   }
 
   @PactVerifyProvider(CPR_PROBATION_ADDRESS_CREATED)
@@ -180,6 +190,17 @@ class ProbationEventProviderPactTest : E2ETestBase() {
         personChangeChecker = PersonChangeChecker(toPerson),
       ),
     )
+
+    return captureLastPublishedEvent()
+  }
+
+  @PactVerifyProvider(CPR_PROBATION_PERSON_DELETED)
+  fun verifyProbationPersonDeletedEvent(): String {
+    capturePublishedEvent()
+    val crn = randomCrn()
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
+
+    probationPersonDeletedEventPublisher.onDelete(PersonDeleted(personEntity = person, cluster = null))
 
     return captureLastPublishedEvent()
   }
