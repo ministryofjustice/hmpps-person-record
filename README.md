@@ -30,6 +30,11 @@ distinct full 40-character commit SHA. JSON arrays are not supported.
 Manual runs accept a single Git reference in `providerTag`, falling back to the
 workflow commit when omitted. The resolved reference is also published as the
 provider tag.
+
+After each successful deployment to dev, preprod or prod, the pipeline records the
+same application version for both `hmpps-person-record` and
+`hmpps-person-record-events` in the Pact Broker. Events deployment recording must
+succeed before promotion to the next environment.
  
 Helm is used to deploy the service to a Kubernetes Cluster using templates in the [`helm_deploy` folder](./helm_deploy).
 
