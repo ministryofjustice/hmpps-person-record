@@ -268,6 +268,60 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
   }
 
   @Test
+  fun `should not overwrite include marker when excluding a record`() {
+    val defendantId = randomDefendantId()
+    val defendant = createRandomCommonPlatformPersonDetails(defendantId)
+    val probationCase = ProbationCase(
+      name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
+      identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
+      dateOfBirth = defendant.dateOfBirth,
+    )
+    val defendantRecord = createPersonWithNewKey(defendant)
+
+    webTestClient.put()
+      .uri(probationApiUrl(defendantId))
+      .authorised(listOf(PROBATION_API_READ_WRITE))
+      .bodyValue(probationCase)
+      .exchange()
+      .expectStatus()
+      .isOk
+
+    val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+    val updatedDefendant = awaitNotNull { personRepository.findByMatchId(defendantRecord.matchId) }
+
+    offender.assertLinkedToCluster(updatedDefendant.personKey!!)
+    offender.assertIncluded(updatedDefendant)
+
+    val targetCrn = randomCrn()
+    val targetPersonDetails = createRandomProbationCase(targetCrn)
+
+    probationCreateEventAndResponseSetup(ApiResponseSetup.from(targetPersonDetails))
+    val targetPerson = awaitNotNull { personRepository.findByCrn(targetCrn) }
+    targetPerson.assertNotLinkedToCluster(offender.personKey!!)
+
+    probationMergeEventAndResponseSetup(
+      sourceCrn = offender.crn!!,
+      targetCrn = targetCrn,
+      apiResponseSetup = ApiResponseSetup.from(probationCase),
+    )
+
+    offender.assertMergedTo(targetPerson)
+    offender.assertHasSameOverrideMarker(updatedDefendant)
+    offender.assertHasSameOverrideScope(updatedDefendant)
+
+    probationUnmergeEventAndResponseSetup(
+      offender.crn!!,
+      targetCrn,
+      reactivatedSetup = ApiResponseSetup.from(probationCase).copy(crn = offender.crn!!),
+      unmergedSetup = ApiResponseSetup.from(targetPersonDetails).copy(crn = targetCrn),
+    )
+
+    offender.assertNotMerged()
+    offender.assertExcluded(targetPerson)
+    offender.assertIncluded(updatedDefendant)
+  }
+
+  @Test
   @Disabled("clusters with more than one record on which have a record unmerged out of them automatically go into needs attention")
   fun `should merge remand probation record and then unmerge`() {
     val defendantId = randomDefendantId()
