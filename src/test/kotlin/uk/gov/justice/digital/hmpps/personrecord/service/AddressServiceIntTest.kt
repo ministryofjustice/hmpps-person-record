@@ -174,7 +174,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
 
       addressService.deleteAddress(
         eventSource = DomainEventSource.DELIUS,
-        findAddress = { addressToDelete },
+        findAddress = { addressRepository.findByUpdateId(addressToDelete.updateId!!) },
       )
 
       awaitAssert {
