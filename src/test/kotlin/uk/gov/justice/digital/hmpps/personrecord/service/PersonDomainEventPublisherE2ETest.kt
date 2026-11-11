@@ -224,10 +224,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
       probationMergeEventAndResponseSetup(fromCrn, toCrn)
 
       expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-      val sqsMessageForMerge = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
-      assertThat(sqsMessageForMerge.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_MERGED))
-      val domainEventForMerge = jsonMapper.readValue<CprPersonMerged>(sqsMessageForMerge.message)
-      assertThat(domainEventForMerge.eventType).isEqualTo(CPR_PROBATION_PERSON_MERGED)
+      val domainEventForMerge = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
       assertThat(domainEventForMerge.detailUrl).isEqualTo("http://localhost:8080/person/probation/$toCrn")
       assertThat(domainEventForMerge.description).isEqualTo("A probation person record has been merged")
       assertThat(domainEventForMerge.personReference.identifiers!!.first()).isEqualTo(PersonIdentifier("fromCRN", fromCrn))
@@ -287,10 +284,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
       probationUnmergeEventAndResponseSetup(reactivatedCrn = fromCrn, unmergedCrn = toCrn)
 
       expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-      val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
-      assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_UNMERGED))
-      val domainEvent = jsonMapper.readValue<CprPersonUnmerged>(sqsMessage.message)
-      assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_UNMERGED)
+      val domainEvent = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_PERSON_UNMERGED) as CprPersonUnmerged
       assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$fromCrn")
       assertThat(domainEvent.description).isEqualTo("A probation person record has been unmerged")
       assertThat(domainEvent.occurredAt).isNotNull()
