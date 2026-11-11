@@ -335,6 +335,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
   @Nested
   inner class ClusterWithInclusionOverride {
 
+    // We don't think this is actull possible!
     @Test
     fun `should set record to active when inclusive links within cluster`() {
       val basePersonData = createRandomProbationCase()
@@ -351,7 +352,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
       val personB = personRepository.findByCrn(personBData.crn)!!
-      includeRecords(personA, personB)
+      overrideService.systemInclude(personA, personB)
 
       cluster.assertClusterIsOfSize(2)
       cluster.assertClusterStatus(ACTIVE)
