@@ -280,13 +280,15 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     ).get()
   }
 
-  fun receiveNextMessageOnQueue(queue: HmppsQueue?, eventType: String): DomainEvent {
+  fun receiveNextMessageOnQueue(queue: HmppsQueue?, eventType: String, eventSource: DomainEventSource? = null): DomainEvent {
     val rawDomainEventMessage = queue?.sqsClient?.receiveMessage(
       ReceiveMessageRequest.builder().queueUrl(queue.queueUrl).maxNumberOfMessages(1).build(),
     )
     val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(eventType))
-
+    eventSource?.let {
+      assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(eventSource.identifier))
+    }
     val domainEvent = jsonMapper.readValue<DomainEvent>(sqsMessage.message)
     assertThat(domainEvent.eventType).isEqualTo(eventType)
     return domainEvent

@@ -284,11 +284,7 @@ class ProbationEventListenerTestBase : MessagingTestBase() {
   }
 
   fun assertCprAddressCreatedEventPublished(crn: String, cprAddressId: UUID) {
-    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
-    assertThat(sqsMessage.getEventType()).isEqualTo(CPR_PROBATION_ADDRESS_CREATED)
-    assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(DELIUS.identifier))
-    val domainEvent: CprAddressCreated = jsonMapper.readValue<CprAddressCreated>(sqsMessage.message)
-    assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_ADDRESS_CREATED)
+    val domainEvent = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_ADDRESS_CREATED, DELIUS) as CprAddressCreated
     assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn/address/$cprAddressId")
     assertThat(domainEvent.description).isEqualTo("A probation address has been created for a person")
     assertThat(domainEvent.occurredAt).isNotNull()
@@ -314,11 +310,7 @@ class ProbationEventListenerTestBase : MessagingTestBase() {
   }
 
   fun assertCprAddressDeletedEventPublished(crn: String, cprAddressId: UUID, deliusAddressId: Long?, eventSource: DomainEventSource) {
-    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
-    assertThat(sqsMessage.getEventType()).isEqualTo(CPR_PROBATION_ADDRESS_DELETED)
-    assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(eventSource.identifier))
-    val domainEvent: CprAddressDeleted = jsonMapper.readValue<CprAddressDeleted>(sqsMessage.message)
-    assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_ADDRESS_DELETED)
+    val domainEvent = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_ADDRESS_DELETED, eventSource) as CprAddressDeleted
     assertThat(domainEvent.description).isEqualTo("A probation address has been deleted for a person")
     assertThat(domainEvent.occurredAt).isNotNull()
     assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
