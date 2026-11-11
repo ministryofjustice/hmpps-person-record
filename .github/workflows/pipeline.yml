@@ -151,29 +151,32 @@ jobs:
       - gradle_verify
       - e2e_test
       - pact_test
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@1cd277cf487926d2f86fa68c87049e62a461d55e
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@ee55fb680f0398c1f6f8852813481d90c9aea16d
     secrets: inherit
     with:
       environment: 'dev'
       app_version: '${{ needs.build.outputs.app_version }}'
+      pacticipants: '["hmpps-person-record", "hmpps-person-record-events"]'
   deploy_preprod:
     name: Deploy to pre-production environment
     needs:
       - build
       - deploy_dev
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@1cd277cf487926d2f86fa68c87049e62a461d55e
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@ee55fb680f0398c1f6f8852813481d90c9aea16d
     secrets: inherit
     with:
       environment: 'preprod'
       app_version: '${{ needs.build.outputs.app_version }}'
+      pacticipants: '["hmpps-person-record", "hmpps-person-record-events"]'
   deploy_prod:
     name: Deploy to production environment
     needs:
       - build
       - deploy_preprod
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@1cd277cf487926d2f86fa68c87049e62a461d55e
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@ee55fb680f0398c1f6f8852813481d90c9aea16d
     secrets: inherit
     with:
       environment: 'prod'
       app_version: '${{ needs.build.outputs.app_version }}'
+      pacticipants: '["hmpps-person-record", "hmpps-person-record-events"]'
       slack_notification: true
