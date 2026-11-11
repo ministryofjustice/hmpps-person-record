@@ -352,7 +352,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
       val personB = personRepository.findByCrn(personBData.crn)!!
-      overrideService.systemInclude(personA, personB)
+      overrideService.systemInclude(personRepository.findByCrn(personA.crn!!)!!, personB)
 
       cluster.assertClusterIsOfSize(2)
       cluster.assertClusterStatus(ACTIVE)
