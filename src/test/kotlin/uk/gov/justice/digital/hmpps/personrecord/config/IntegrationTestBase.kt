@@ -148,7 +148,7 @@ class IntegrationTestBase {
   lateinit var eventLogRepository: EventLogRepository
 
   @Autowired
-  private lateinit var overrideService: OverrideService
+  lateinit var overrideService: OverrideService
 
   @Autowired
   lateinit var reviewRepository: ReviewRepository
@@ -427,13 +427,6 @@ class IntegrationTestBase {
     val target = personRepository.findByMatchId(excludingRecord.matchId)
     overrideService.systemExclude(source!!, target!!)
     personRepository.saveAll(listOf(source, target))
-  }
-
-  internal fun includeRecords(recordOne: PersonEntity, recordTwo: PersonEntity) {
-    val updatedRecordOne = personRepository.findByMatchId(recordOne.matchId)!!
-    val updatedRecordTwo = personRepository.findByMatchId(recordTwo.matchId)!!
-    overrideService.systemInclude(updatedRecordOne, updatedRecordTwo)
-    personRepository.saveAll(listOf(updatedRecordTwo))
   }
 
   internal fun stubNoMatchesPersonMatch(matchId: UUID? = null) = stubPersonMatchScores(matchId = matchId, personMatchResponse = emptyList())
