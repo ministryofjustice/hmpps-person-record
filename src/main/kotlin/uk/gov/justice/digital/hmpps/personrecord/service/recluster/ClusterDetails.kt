@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.message.recluster
+package uk.gov.justice.digital.hmpps.personrecord.service.recluster
 
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity

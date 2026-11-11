@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.message.recluster
+package uk.gov.justice.digital.hmpps.personrecord.service.recluster
 
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
