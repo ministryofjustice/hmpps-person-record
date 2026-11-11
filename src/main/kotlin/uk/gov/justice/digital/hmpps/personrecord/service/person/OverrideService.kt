@@ -9,14 +9,12 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.Conf
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.OverrideType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.OverrideType.EXCLUDE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.OverrideType.INCLUDE
-import uk.gov.justice.digital.hmpps.personrecord.service.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
 class OverrideService(
   private val overrideScopeRepository: OverrideScopeRepository,
   private val personMatchService: PersonMatchService,
-  private val reclusterService: ReclusterService,
   private val personService: PersonService,
 ) {
 
