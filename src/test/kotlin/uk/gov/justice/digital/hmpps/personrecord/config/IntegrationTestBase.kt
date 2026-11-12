@@ -742,7 +742,7 @@ class IntegrationTestBase {
     authSetup()
     wiremock.stubFor(
       WireMock.get(
-        WireMock.urlEqualTo(
+        urlEqualTo(
           "/api/bookings/offenderNo/$offenderNo/image/data?fullSizeImage=$fullSizeImage",
         ),
       )

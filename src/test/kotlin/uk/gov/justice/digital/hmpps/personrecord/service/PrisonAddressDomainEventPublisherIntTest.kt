@@ -3,10 +3,8 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonAddressesHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonCreateAddressRequest
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PRISON_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
@@ -31,11 +29,7 @@ class PrisonAddressDomainEventPublisherIntTest(
     val cprAddressId = prisonAddressesHandler.create(prisonNumber, addressRequest()).cprAddressId
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_ADDRESS_CREATED))
-    assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(CPR.identifier))
-    val domainEvent: CprAddressCreated = jsonMapper.readValue<CprAddressCreated>(sqsMessage.message)
-    assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_ADDRESS_CREATED)
+    val domainEvent = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PRISON_ADDRESS_CREATED, CPR) as CprAddressCreated
     assertThat(domainEvent.description).isEqualTo("A prison address has been created for a person")
     assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/prison/$prisonNumber/addresses/$cprAddressId")
     assertThat(domainEvent.additionalInformation.cprAddressId.toString()).isEqualTo(cprAddressId)

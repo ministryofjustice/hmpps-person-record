@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_PERSON_DELETED
@@ -383,10 +382,7 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
   }
 
   fun assertCprPersonDeletedEventPublished(crn: String) {
-    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
-    assertThat(sqsMessage.getEventType()).isEqualTo(CPR_PROBATION_PERSON_DELETED)
-    val domainEvent: CprPersonDeleted = jsonMapper.readValue<CprPersonDeleted>(sqsMessage.message)
-    assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_DELETED)
+    val domainEvent = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_PERSON_DELETED) as CprPersonDeleted
     assertThat(domainEvent.description).isEqualTo("A probation person record has been deleted")
     assertThat(domainEvent.occurredAt).isNotNull()
     assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
