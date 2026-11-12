@@ -334,7 +334,7 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
       )
 
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
-      assertThat(output.out).contains("Prison person created event for $prisonNumber returned more information than a single alias with no identifiers: aliases, contacts, addresses, references")
+      assertThat(output.out).contains("Prison person created event returned more information for $prisonNumber than a single alias with no identifiers: aliases, contacts, addresses, references")
     }
 
     @Test
@@ -350,7 +350,7 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
         ),
       )
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
-      assertThat(output.out).contains("Prison person created event for $prisonNumber returned no more information than a single alias with no identifiers")
+      assertThat(output.out).contains("Prison person created event returned no more information for $prisonNumber than a single alias with no identifiers")
     }
   }
 

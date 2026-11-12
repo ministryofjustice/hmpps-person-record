@@ -39,10 +39,10 @@ class PrisonEventListener(
     val extraFields = fieldsNotCoveredBySingleAlias(person)
     if (extraFields.isNotEmpty()) {
       log.info(
-        "Prison person created event for $prisonNumber returned more information than a single alias with no identifiers: ${extraFields.joinToString()}",
+        "Prison person created event returned more information for $prisonNumber than a single alias with no identifiers: ${extraFields.joinToString()}",
       )
     } else {
-      log.info("Prison person created event for $prisonNumber returned no more information than a single alias with no identifiers")
+      log.info("Prison person created event returned no more information for $prisonNumber than a single alias with no identifiers")
     }
   }
 
