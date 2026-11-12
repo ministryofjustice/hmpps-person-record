@@ -11,10 +11,7 @@ import au.com.dius.pact.provider.junitsupport.loader.PactBroker
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestTemplate
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.Mockito.doAnswer
-import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_ADDRESS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_ADDRESS_UPDATED
@@ -23,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
@@ -39,8 +35,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publish
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person.ProbationPersonDeletedEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person.ProbationPersonMergedEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person.ProbationPersonUpdatedEventPublisher
-import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublisher
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import java.util.UUID
 
 /**
@@ -71,9 +65,6 @@ class ProbationEventProviderPactTest : E2ETestBase() {
 
   @Autowired
   private lateinit var probationPersonDeletedEventPublisher: ProbationPersonDeletedEventPublisher
-
-  @MockitoSpyBean
-  private lateinit var spyDomainEventPublisher: DomainEventPublisher
 
   private val pactProviderScanPackages = listOf("uk.gov.justice.digital.hmpps.personrecord.pacttest")
   private var capturedDomainEvent: DomainEvent? = null
@@ -116,71 +107,44 @@ class ProbationEventProviderPactTest : E2ETestBase() {
 
   @PactVerifyProvider(CPR_PROBATION_ADDRESS_CREATED)
   fun verifyProbationAddressCreatedEvent(): String {
-    capturePublishedEvent()
-    val crn = randomCrn()
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
-    val address = probationCreateAddress()
-    val addressEntity = AddressEntity.from(Address.from(address))
-    addressEntity.person = person
-    addressRepository.save(addressEntity)
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails(), configure = addAddressToRecord(Address.from(probationCreateAddress())))
 
-    probationAddressEventPublisher.onCreate(AddressCreated(addressEntity, eventSource = CPR))
+    probationAddressEventPublisher.onCreate(AddressCreated(person.addresses.first(), eventSource = CPR))
 
-    return captureLastPublishedEvent()
+    return jsonMapper.writeValueAsString(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_ADDRESS_CREATED))
   }
 
   @PactVerifyProvider(CPR_PROBATION_ADDRESS_UPDATED)
   fun verifyProbationAddressUpdatedEvent(): String {
-    capturePublishedEvent()
-    val crn = randomCrn()
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
-    val address = probationCreateAddress()
-    val addressEntity = AddressEntity.from(Address.from(address))
-    addressEntity.person = person
-    addressRepository.save(addressEntity)
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails(), configure = addAddressToRecord(Address.from(probationCreateAddress())))
 
-    probationAddressEventPublisher.onUpdate(AddressUpdated(addressEntity, eventSource = CPR))
+    probationAddressEventPublisher.onUpdate(AddressUpdated(person.addresses.first(), eventSource = CPR))
 
-    return captureLastPublishedEvent()
+    return jsonMapper.writeValueAsString(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_ADDRESS_UPDATED))
   }
 
   @PactVerifyProvider(CPR_PROBATION_ADDRESS_DELETED)
   fun verifyProbationAddressDeletedEvent(): String {
-    capturePublishedEvent()
-    val crn = randomCrn()
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
-    val address = probationCreateAddress()
-    val addressEntity = AddressEntity.from(Address.from(address))
-    addressEntity.person = person
-    addressRepository.save(addressEntity)
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails(), configure = addAddressToRecord(Address.from(probationCreateAddress())))
+    probationAddressEventPublisher.onDelete(AddressDeleted(person.addresses.first(), person, CPR))
 
-    probationAddressEventPublisher.onDelete(AddressDeleted(addressEntity, person, CPR))
-
-    return captureLastPublishedEvent()
+    return jsonMapper.writeValueAsString(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_ADDRESS_DELETED))
   }
 
   @PactVerifyProvider(CPR_PROBATION_PERSON_UPDATED)
   fun verifyProbationPersonUpdatedEvent(): String {
-    capturePublishedEvent()
-    val crn = randomCrn()
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val changeChecker = PersonChangeChecker(person)
 
-    personRepository.flush()
-    val reloaded = personRepository.findByMatchId(person.matchId)!!
-    val changeChecker = PersonChangeChecker(reloaded)
+    probationPersonUpdatedEventPublisher.onUpdate(PersonUpdated(person, changeChecker))
 
-    probationPersonUpdatedEventPublisher.onUpdate(PersonUpdated(reloaded, changeChecker))
-
-    return captureLastPublishedEvent()
+    return jsonMapper.writeValueAsString(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_PERSON_UPDATED))
   }
 
   @PactVerifyProvider(CPR_PROBATION_PERSON_MERGED)
   fun verifyProbationPersonMergedEvent(): String {
-    capturePublishedEvent()
-    val fromCrn = randomCrn()
-    val toCrn = randomCrn()
-    val fromPerson = createPersonWithNewKey(createRandomProbationPersonDetails(fromCrn))
-    val toPerson = createPersonWithNewKey(createRandomProbationPersonDetails(toCrn))
+    val fromPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val toPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
 
     probationPersonMergedEventPublisher.onMerge(
       PersonMerged(
@@ -191,30 +155,14 @@ class ProbationEventProviderPactTest : E2ETestBase() {
       ),
     )
 
-    return captureLastPublishedEvent()
+    return jsonMapper.writeValueAsString(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_PERSON_MERGED))
   }
 
   @PactVerifyProvider(CPR_PROBATION_PERSON_DELETED)
   fun verifyProbationPersonDeletedEvent(): String {
-    capturePublishedEvent()
-    val crn = randomCrn()
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
-
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails())
     probationPersonDeletedEventPublisher.onDelete(PersonDeleted(personEntity = person, cluster = null))
 
-    return captureLastPublishedEvent()
-  }
-
-  private fun capturePublishedEvent() {
-    capturedDomainEvent = null
-    doAnswer { invocation ->
-      capturedDomainEvent = invocation.getArgument(0)
-      null
-    }.`when`(spyDomainEventPublisher).publish(any(), any())
-  }
-
-  private fun captureLastPublishedEvent(): String {
-    val domainEvent = requireNotNull(capturedDomainEvent) { "Expected a domain event to be published" }
-    return jsonMapper.writeValueAsString(domainEvent)
+    return jsonMapper.writeValueAsString(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_PERSON_DELETED))
   }
 }
