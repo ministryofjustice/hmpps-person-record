@@ -50,24 +50,12 @@ class PrisonEventListener(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     internal fun fieldsNotCoveredBySingleAlias(person: Person): List<String> = listOfNotNull(
-      "dateOfDeath".takeIf { person.dateOfDeath != null },
-      "crn".takeIf { person.crn != null },
-      "defendantId".takeIf { person.defendantId != null },
-      "masterDefendantId".takeIf { person.masterDefendantId != null },
-      "cId".takeIf { person.cId != null },
       "aliases".takeIf { person.aliases.isNotEmpty() },
       "nationalities".takeIf { person.nationalities.isNotEmpty() },
-      "nationalityNotes".takeIf { person.nationalityNotes != null },
-      "religion".takeIf { person.religion != null },
       "contacts".takeIf { person.contacts.isNotEmpty() },
       "addresses".takeIf { person.addresses.isNotEmpty() },
       "references".takeIf { person.references.isNotEmpty() },
       "sentences".takeIf { person.sentences.isNotEmpty() },
-      "genderIdentity".takeIf { person.genderIdentity != null },
-      "selfDescribedGenderIdentity".takeIf { person.selfDescribedGenderIdentity != null },
-      "sexualOrientation".takeIf { person.sexualOrientation != null },
-      "disability".takeIf { person.disability != null },
-      "immigrationStatus".takeIf { person.immigrationStatus != null },
     )
   }
 }
