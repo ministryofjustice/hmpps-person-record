@@ -107,7 +107,7 @@ class ProbationEventProviderPactTest : E2ETestBase() {
 
   @PactVerifyProvider(CPR_PROBATION_ADDRESS_CREATED)
   fun verifyProbationAddressCreatedEvent(): String {
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails()) { addAddressToRecord(Address.from(probationCreateAddress())) }
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails(), configure = addAddressToRecord(Address.from(probationCreateAddress())))
 
     probationAddressEventPublisher.onCreate(AddressCreated(person.addresses.first(), eventSource = CPR))
 
@@ -116,7 +116,7 @@ class ProbationEventProviderPactTest : E2ETestBase() {
 
   @PactVerifyProvider(CPR_PROBATION_ADDRESS_UPDATED)
   fun verifyProbationAddressUpdatedEvent(): String {
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails()) { addAddressToRecord(Address.from(probationCreateAddress())) }
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails(), configure = addAddressToRecord(Address.from(probationCreateAddress())))
 
     probationAddressEventPublisher.onUpdate(AddressUpdated(person.addresses.first(), eventSource = CPR))
 
@@ -125,8 +125,7 @@ class ProbationEventProviderPactTest : E2ETestBase() {
 
   @PactVerifyProvider(CPR_PROBATION_ADDRESS_DELETED)
   fun verifyProbationAddressDeletedEvent(): String {
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails()) { addAddressToRecord(Address.from(probationCreateAddress())) }
-
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails(), configure = addAddressToRecord(Address.from(probationCreateAddress())))
     probationAddressEventPublisher.onDelete(AddressDeleted(person.addresses.first(), person, CPR))
 
     return jsonMapper.writeValueAsString(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_ADDRESS_DELETED))
