@@ -4,6 +4,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.boot.test.system.CapturedOutput
+import org.springframework.boot.test.system.OutputCaptureExtension
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
@@ -305,6 +308,49 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
         mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
       expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
+    }
+  }
+
+  @Nested
+  @ExtendWith(OutputCaptureExtension::class)
+  inner class LogInformationNotCoveredBySingleAlias {
+
+    @BeforeEach
+    fun beforeEach() {
+      stubPersonMatchUpsert()
+      stubNoMatchesPersonMatch()
+    }
+
+    @Test
+    fun `should log fields not covered by a single alias when prisoner created event received`(output: CapturedOutput) {
+      val prisonNumber = randomPrisonNumber()
+      prisonCreateEventAndResponseSetup(
+        ApiResponseSetup(
+          prisonNumber = prisonNumber,
+          pnc = randomShortPnc(),
+          cro = randomCro(),
+          addresses = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress())),
+        ),
+      )
+
+      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
+      assertThat(output.out).contains("Prison person created event for $prisonNumber returned more information than a single alias with no identifiers: aliases, contacts, addresses, references")
+    }
+
+    @Test
+    fun `should log no extra information when prisoner created event only has single alias data`(output: CapturedOutput) {
+      val prisonNumber = randomPrisonNumber()
+      prisonCreateEventAndResponseSetup(
+        ApiResponseSetup(
+          prisonNumber = prisonNumber,
+          aliases = emptyList(),
+          addresses = emptyList(),
+          email = null,
+          driverLicenseNumber = null,
+        ),
+      )
+      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
+      assertThat(output.out).contains("Prison person created event for $prisonNumber returned no more information than a single alias with no identifiers")
     }
   }
 
