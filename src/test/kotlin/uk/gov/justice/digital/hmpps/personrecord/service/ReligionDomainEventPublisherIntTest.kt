@@ -3,12 +3,10 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionInsertHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.PrisonReligionUpdateHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionInsertRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionUpdateRequest
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PRISON_RELIGION_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PRISON_RELIGION_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprReligionCreated
@@ -41,11 +39,7 @@ class ReligionDomainEventPublisherIntTest : MessagingTestBase() {
     val cprReligionId = prisonReligionInsertHandler.handleNomisInsert(prisonNumber, createPrisonReligionHistory()).cprReligionId
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_RELIGION_CREATED))
-    assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(NOMIS.identifier))
-    val domainEvent: CprReligionCreated = jsonMapper.readValue<CprReligionCreated>(sqsMessage.message)
-    assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_RELIGION_CREATED)
+    val domainEvent = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PRISON_RELIGION_CREATED, NOMIS) as CprReligionCreated
     assertThat(domainEvent.description).isEqualTo("A prison religion has been created for a person")
     assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/prison/$prisonNumber/religion/$cprReligionId")
     assertThat(domainEvent.additionalInformation.cprReligionId.toString()).isEqualTo(cprReligionId)
@@ -68,11 +62,7 @@ class ReligionDomainEventPublisherIntTest : MessagingTestBase() {
     val cprReligionId = prisonReligionInsertHandler.handleCprInsert(prisonNumber, request).cprReligionId
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_RELIGION_CREATED))
-    assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(CPR.identifier))
-    val domainEvent: CprReligionCreated = jsonMapper.readValue<CprReligionCreated>(sqsMessage.message)
-    assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_RELIGION_CREATED)
+    val domainEvent = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PRISON_RELIGION_CREATED, CPR) as CprReligionCreated
     assertThat(domainEvent.description).isEqualTo("A prison religion has been created for a person")
     assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/prison/$prisonNumber/religion/$cprReligionId")
     assertThat(domainEvent.additionalInformation.cprReligionId.toString()).isEqualTo(cprReligionId)
@@ -97,11 +87,7 @@ class ReligionDomainEventPublisherIntTest : MessagingTestBase() {
     )
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    val sqsMessage = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue)
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_RELIGION_UPDATED))
-    assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(NOMIS.identifier))
-    val domainEvent: CprReligionUpdated = jsonMapper.readValue<CprReligionUpdated>(sqsMessage.message)
-    assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_RELIGION_UPDATED)
+    val domainEvent = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PRISON_RELIGION_UPDATED, NOMIS) as CprReligionUpdated
     assertThat(domainEvent.description).isEqualTo("A prison religion has been updated for a person")
     assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/prison/$prisonNumber/religion/$cprReligionId")
     assertThat(domainEvent.additionalInformation.cprReligionId.toString()).isEqualTo(cprReligionId)
