@@ -142,11 +142,11 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
         queue.sqsClient.countMessagesOnQueue(queue.queueUrl).get()
       } matches { it == 2 }
 
-      val updatedEvent = receiveNextMessageOnQueue(queue, CPR_PROBATION_ADDRESS_UPDATED) as CprAddressUpdated
+      val updatedEvent = receiveDomainEventMessage(CPR_PROBATION_ADDRESS_UPDATED) as CprAddressUpdated
       assertThat(updatedEvent.additionalInformation.cprAddressId).isEqualTo(existingAddressId)
       assertThat(updatedEvent.personReference.identifiers?.single()?.value).isEqualTo(crn)
 
-      val createdEvent = receiveNextMessageOnQueue(queue, CPR_PROBATION_ADDRESS_CREATED) as CprAddressCreated
+      val createdEvent = receiveDomainEventMessage(CPR_PROBATION_ADDRESS_CREATED) as CprAddressCreated
       assertThat(createdEvent.additionalInformation.cprAddressId.toString()).isEqualTo(responseBody.cprAddressId)
       assertThat(createdEvent.personReference.identifiers?.single()?.value).isEqualTo(crn)
     }

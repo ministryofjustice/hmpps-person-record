@@ -111,7 +111,7 @@ class ProbationEventProviderPactTest : E2ETestBase() {
 
     probationAddressEventPublisher.onCreate(AddressCreated(person.addresses.first(), eventSource = CPR))
 
-    return jsonMapper.writeValueAsString(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_ADDRESS_CREATED))
+    return jsonMapper.writeValueAsString(receiveDomainEventMessage(CPR_PROBATION_ADDRESS_CREATED))
   }
 
   @PactVerifyProvider(CPR_PROBATION_ADDRESS_UPDATED)
@@ -120,7 +120,7 @@ class ProbationEventProviderPactTest : E2ETestBase() {
 
     probationAddressEventPublisher.onUpdate(AddressUpdated(person.addresses.first(), eventSource = CPR))
 
-    return jsonMapper.writeValueAsString(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_ADDRESS_UPDATED))
+    return jsonMapper.writeValueAsString(receiveDomainEventMessage(CPR_PROBATION_ADDRESS_UPDATED))
   }
 
   @PactVerifyProvider(CPR_PROBATION_ADDRESS_DELETED)
@@ -129,7 +129,7 @@ class ProbationEventProviderPactTest : E2ETestBase() {
 
     probationAddressEventPublisher.onDelete(AddressDeleted(person.addresses.first(), person, CPR))
 
-    return jsonMapper.writeValueAsString(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_ADDRESS_DELETED))
+    return jsonMapper.writeValueAsString(receiveDomainEventMessage(CPR_PROBATION_ADDRESS_DELETED))
   }
 
   @PactVerifyProvider(CPR_PROBATION_PERSON_UPDATED)
@@ -139,7 +139,7 @@ class ProbationEventProviderPactTest : E2ETestBase() {
 
     probationPersonUpdatedEventPublisher.onUpdate(PersonUpdated(person, changeChecker))
 
-    return jsonMapper.writeValueAsString(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_PERSON_UPDATED))
+    return jsonMapper.writeValueAsString(receiveDomainEventMessage(CPR_PROBATION_PERSON_UPDATED))
   }
 
   @PactVerifyProvider(CPR_PROBATION_PERSON_MERGED)
@@ -156,7 +156,7 @@ class ProbationEventProviderPactTest : E2ETestBase() {
       ),
     )
 
-    return jsonMapper.writeValueAsString(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_PERSON_MERGED))
+    return jsonMapper.writeValueAsString(receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED))
   }
 
   @PactVerifyProvider(CPR_PROBATION_PERSON_DELETED)
@@ -164,6 +164,6 @@ class ProbationEventProviderPactTest : E2ETestBase() {
     val person = createPersonWithNewKey(createRandomProbationPersonDetails())
     probationPersonDeletedEventPublisher.onDelete(PersonDeleted(personEntity = person, cluster = null))
 
-    return jsonMapper.writeValueAsString(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_PERSON_DELETED))
+    return jsonMapper.writeValueAsString(receiveDomainEventMessage(CPR_PROBATION_PERSON_DELETED))
   }
 }

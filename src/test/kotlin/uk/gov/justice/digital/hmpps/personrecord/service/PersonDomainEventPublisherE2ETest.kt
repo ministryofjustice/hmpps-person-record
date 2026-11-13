@@ -198,7 +198,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
       )
 
       expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-      val domainEvent = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PRISON_PERSON_MERGED) as CprPersonMerged
+      val domainEvent = receiveDomainEventMessage(CPR_PRISON_PERSON_MERGED) as CprPersonMerged
       assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/prison/$toPrisonNumber")
       assertThat(domainEvent.description).isEqualTo("A prison person record has been merged")
       assertThat(domainEvent.occurredAt).isNotNull()
@@ -224,7 +224,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
       probationMergeEventAndResponseSetup(fromCrn, toCrn)
 
       expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-      val domainEventForMerge = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
+      val domainEventForMerge = receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
       assertThat(domainEventForMerge.detailUrl).isEqualTo("http://localhost:8080/person/probation/$toCrn")
       assertThat(domainEventForMerge.description).isEqualTo("A probation person record has been merged")
       assertThat(domainEventForMerge.personReference.identifiers!!.first()).isEqualTo(PersonIdentifier("fromCRN", fromCrn))
@@ -284,7 +284,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
       probationUnmergeEventAndResponseSetup(reactivatedCrn = fromCrn, unmergedCrn = toCrn)
 
       expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-      val domainEvent = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_PERSON_UNMERGED) as CprPersonUnmerged
+      val domainEvent = receiveDomainEventMessage(CPR_PROBATION_PERSON_UNMERGED) as CprPersonUnmerged
       assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$fromCrn")
       assertThat(domainEvent.description).isEqualTo("A probation person record has been unmerged")
       assertThat(domainEvent.occurredAt).isNotNull()

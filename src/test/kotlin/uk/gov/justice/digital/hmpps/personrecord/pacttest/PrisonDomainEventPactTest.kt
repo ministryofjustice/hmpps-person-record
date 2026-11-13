@@ -27,6 +27,6 @@ class PrisonDomainEventPactTest : AbstractEventProviderPactTests() {
     val person = createPersonWithNewKey(createRandomPrisonPersonDetails())
     prisonPersonCreatedEventPublisher.onCreate(PersonCreated(person))
 
-    return jsonMapper.writeValueAsString(receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PRISON_PERSON_CREATED))
+    return jsonMapper.writeValueAsString(receiveDomainEventMessage(CPR_PRISON_PERSON_CREATED))
   }
 }
