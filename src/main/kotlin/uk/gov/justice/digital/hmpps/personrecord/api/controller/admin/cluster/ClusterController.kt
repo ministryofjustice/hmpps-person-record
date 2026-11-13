@@ -4,10 +4,13 @@ import io.swagger.v3.oas.annotations.Hidden
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminClusterDetail
+import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.CompareRecordsDetail
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -20,6 +23,13 @@ class ClusterController(
   private val personMatchService: PersonMatchService,
   private val personRepository: PersonRepository,
 ) {
+
+  @Hidden
+  @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
+  @PostMapping("/admin/compare-records")
+  suspend fun postCompareRecords(
+    @RequestBody matchIds: List<String>,
+  ): CompareRecordsDetail = getRecordComparison(matchIds)
 
   @Hidden
   @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
@@ -41,6 +51,12 @@ class ClusterController(
   suspend fun getClusterFromPrisonNumber(
     @PathVariable(name = "prisonNumber") prisonNumber: String,
   ): AdminClusterDetail = getClusterDetail(prisonNumber) { personRepository.findByPrisonNumber(prisonNumber)?.personKey }
+
+  private fun getRecordComparison(matchIds: List<String>): CompareRecordsDetail {
+    val persons = matchIds.map { personRepository.findByMatchId(UUID.fromString(it))!! }
+    val clusterVisualisationSpec = personMatchService.retrieveClusterVisualisationSpec(matchIds).spec
+    return CompareRecordsDetail.from(persons, clusterVisualisationSpec)
+  }
 
   private fun getClusterDetail(identifier: String, findPersonKey: () -> PersonKeyEntity?): AdminClusterDetail = findPersonKey()?.let {
     val clusterVisualisationSpec = personMatchService.retrieveClusterVisualisationSpec(it).spec
