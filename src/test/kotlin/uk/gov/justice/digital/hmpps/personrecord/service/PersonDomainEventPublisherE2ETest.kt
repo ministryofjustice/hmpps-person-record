@@ -4,14 +4,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
-import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest.Companion.validPrisonAddressesAndContactsRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PRISON_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PRISON_PERSON_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_CREATED
@@ -62,14 +58,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
       awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
 
       expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-      val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-        ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-      )
-      val sqsMessage =
-        rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
-      assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PRISON_PERSON_CREATED))
-      val domainEvent: CprPersonCreated = jsonMapper.readValue<CprPersonCreated>(sqsMessage.message)
-      assertThat(domainEvent.eventType).isEqualTo(CPR_PRISON_PERSON_CREATED)
+      val domainEvent: CprPersonCreated = receiveDomainEventMessage(CPR_PRISON_PERSON_CREATED) as CprPersonCreated
       assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/prison/$prisonNumber")
       assertThat(domainEvent.description).isEqualTo("A prison person record has been created")
       assertThat(domainEvent.occurredAt).isNotNull()
@@ -87,14 +76,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
       awaitNotNull { personRepository.findByCrn(crn) }
 
       expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-      val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-        ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-      )
-      val sqsMessage =
-        rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
-      assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_CREATED))
-      val domainEvent: CprPersonCreated = jsonMapper.readValue<CprPersonCreated>(sqsMessage.message)
-      assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_CREATED)
+      val domainEvent: CprPersonCreated = receiveDomainEventMessage(CPR_PROBATION_PERSON_CREATED) as CprPersonCreated
       assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn")
       assertThat(domainEvent.description).isEqualTo("A probation person record has been created")
       assertThat(domainEvent.occurredAt).isNotNull()
@@ -119,14 +101,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
 
       probationUpdateEventAndResponseSetup(ApiResponseSetup.from(personDetails.copy(ethnicity = Value(EthnicityCode.A2.name))))
       expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-      val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-        ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-      )
-      val sqsMessage =
-        rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
-      assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_UPDATED))
-      val domainEvent: CprPersonUpdated = jsonMapper.readValue<CprPersonUpdated>(sqsMessage.message)
-      assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_UPDATED)
+      val domainEvent = receiveDomainEventMessage(CPR_PROBATION_PERSON_UPDATED) as CprPersonUpdated
       assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn")
       assertThat(domainEvent.description).isEqualTo("A probation person record has been updated")
       assertThat(domainEvent.occurredAt).isNotNull()
@@ -303,9 +278,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
     publishDomainEvent(PrisonPersonCreated(personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber)))))
     val personCreated = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-    )
+    purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
 
     webTestClient.delete()
       .uri("/person/prison/$prisonNumber")
@@ -336,20 +309,12 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
     probationCreateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(crn)))
     awaitNotNull { personRepository.findByCrn(crn) }
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-    )
+    purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
 
     publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, crn)
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-    )
-    val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_PERSON_DELETED))
-    val domainEvent: CprPersonDeleted = jsonMapper.readValue<CprPersonDeleted>(sqsMessage.message)
-    assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_DELETED)
+    val domainEvent: CprPersonDeleted = receiveDomainEventMessage(CPR_PROBATION_PERSON_DELETED) as CprPersonDeleted
     assertThat(domainEvent.description).isEqualTo("A probation person record has been deleted")
     assertThat(domainEvent.occurredAt).isNotNull()
     assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
