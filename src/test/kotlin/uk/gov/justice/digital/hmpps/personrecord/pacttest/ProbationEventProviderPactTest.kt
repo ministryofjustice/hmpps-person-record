@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.address.AddressDeleted
@@ -35,7 +34,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publish
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person.ProbationPersonDeletedEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person.ProbationPersonMergedEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.publishers.person.ProbationPersonUpdatedEventPublisher
-import java.util.UUID
 
 /**
  * Pact provider verification for CPR probation domain events.
@@ -150,7 +148,7 @@ class ProbationEventProviderPactTest : E2ETestBase() {
     probationPersonMergedEventPublisher.onMerge(
       PersonMerged(
         from = fromPerson,
-        fromClusterDetail = EventLogClusterDetail(UUID.randomUUID(), ACTIVE),
+        fromClusterDetail = EventLogClusterDetail.from(fromPerson.personKey),
         to = toPerson,
         personChangeChecker = PersonChangeChecker(toPerson),
       ),
