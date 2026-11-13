@@ -56,6 +56,8 @@ class PersonMatchService(
 
   fun retrieveClusterVisualisationSpec(cluster: PersonKeyEntity): VisualiseCluster = personMatchClient.postVisualiseCluster(cluster.getRecordsMatchIds())
 
+  fun retrieveClusterVisualisationSpec(matchIds: List<String>): VisualiseCluster = personMatchClient.postVisualiseCluster(matchIds)
+
   fun saveToPersonMatch(personEntity: PersonEntity): ResponseEntity<Void>? = personMatchClient.postPerson(PersonMatchRecord.from(personEntity))
 
   fun deleteFromPersonMatch(personEntity: PersonEntity) = try {
