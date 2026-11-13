@@ -29,7 +29,7 @@ class PrisonAddressDomainEventPublisherIntTest(
     val cprAddressId = prisonAddressesHandler.create(prisonNumber, addressRequest()).cprAddressId
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    val domainEvent = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PRISON_ADDRESS_CREATED, CPR) as CprAddressCreated
+    val domainEvent = receiveDomainEventMessage(CPR_PRISON_ADDRESS_CREATED, CPR) as CprAddressCreated
     assertThat(domainEvent.description).isEqualTo("A prison address has been created for a person")
     assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/prison/$prisonNumber/addresses/$cprAddressId")
     assertThat(domainEvent.additionalInformation.cprAddressId.toString()).isEqualTo(cprAddressId)
