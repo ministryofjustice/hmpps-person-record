@@ -1,9 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.probation
 
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -25,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.M
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode.PR
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 
 class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
 
@@ -137,11 +133,7 @@ class ProbationAddressCreateAPIControllerE2ETest : E2ETestBase() {
         assertThat(responseBody.cprAddressId).isEqualTo(mainAddress.updateId.toString())
       }
 
-      val queue = testOnlyCPRDomainEventsQueue!!
-      await untilCallTo {
-        queue.sqsClient.countMessagesOnQueue(queue.queueUrl).get()
-      } matches { it == 2 }
-
+      expectMessageCountMessagesOn(testOnlyCPRDomainEventsQueue!!, 2)
       val updatedEvent = receiveDomainEventMessage(CPR_PROBATION_ADDRESS_UPDATED) as CprAddressUpdated
       assertThat(updatedEvent.additionalInformation.cprAddressId).isEqualTo(existingAddressId)
       assertThat(updatedEvent.personReference.identifiers?.single()?.value).isEqualTo(crn)
