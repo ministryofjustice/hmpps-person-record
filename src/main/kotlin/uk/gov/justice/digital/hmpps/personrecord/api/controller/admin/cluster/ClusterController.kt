@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Hidden
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
@@ -27,6 +28,13 @@ class ClusterController(
   suspend fun getClusterFromUUID(
     @PathVariable(name = "uuid") uuid: UUID,
   ): AdminClusterDetail = getClusterDetail(uuid.toString()) { personKeyRepository.findByPersonUUID(uuid) }
+
+  @Hidden
+  @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
+  @GetMapping("/admin/cluster/{uuid}")
+  suspend fun getComparisons(
+    @RequestBody body: String,
+  ): String = ""
 
   @Hidden
   @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
