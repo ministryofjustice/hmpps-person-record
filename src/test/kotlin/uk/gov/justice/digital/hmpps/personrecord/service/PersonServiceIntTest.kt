@@ -73,7 +73,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     fun `should not set addresses when specified in creation`() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
-      val personToCreate = createRandomPrisonPersonDetails(randomPrisonNumber())
+      val personToCreate = createRandomPrisonPersonDetails(randomPrisonNumber()).copy(addresses = mutableListOf(Address(postcode = randomPostcode())))
       assertThat(personToCreate.addresses).isNotEmpty()
       val created = personService.processPerson(personToCreate, setOf(AddressEntity::class)) { null }
       assertThat(created.addresses).isEmpty()
