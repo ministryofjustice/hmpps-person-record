@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_ADMIN_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchStatus
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -16,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 @Tag(name = "Court")
 @RestController
 @RequestMapping("/person/commonplatform")
-@PreAuthorize("hasRole('$API_READ_ONLY')")
+@PreAuthorize("hasAnyRole('$API_READ_ONLY', '${PERSON_RECORD_ADMIN_READ_ONLY}')")
 class CommonPlatformMatchDetailsAPIController(
   private val personRepository: PersonRepository,
   private val personMatchClient: PersonMatchClient,
