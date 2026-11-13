@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTi
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDateTime
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
@@ -36,7 +35,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
 class PrisonAPIGetControllerIntTest : WebTestBase() {
@@ -50,10 +48,6 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
       val prisonPerson = createRandomPrisonPersonDetails(prisonNumber)
         .copy(
           contacts = listOf(Contact(MOBILE, randomPhoneNumber(), "+44")),
-          addresses = listOf(
-            Address(postcode = randomPostcode()),
-            Address(postcode = randomPostcode()),
-          ),
           nationalities = listOf(randomNationalityCode()),
         )
       val person = createPersonWithNewKey(prisonPerson)

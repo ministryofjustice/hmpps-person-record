@@ -17,10 +17,8 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDateTime
 import java.util.UUID
@@ -107,7 +105,7 @@ class SysconSyncPrisonContactsAPIControllerIntTest : WebTestBase() {
       @Test
       fun `successful get of an address contact returns the correct response body`() {
         val prisonNumber = randomPrisonNumber()
-        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber).copy(addresses = mutableListOf(Address(postcode = randomPostcode()))))
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
         val addressEntity = personRepository.findByPrisonNumber(prisonNumber)!!.addresses.first()
         val contactEntity = contactRepository.saveAndFlush(
           ContactEntity(

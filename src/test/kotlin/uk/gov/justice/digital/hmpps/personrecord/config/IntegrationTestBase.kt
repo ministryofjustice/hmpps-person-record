@@ -280,7 +280,7 @@ class IntegrationTestBase {
       ),
       nationality = randomPrisonNationalityCode(),
     ),
-  )
+  ).copy(addresses = mutableListOf(Address(postcode = randomPostcode()), Address(postcode = randomPostcode())))
 
   internal fun createRandomLibraPersonDetails(cId: String = randomCId()): Person = Person.from(LibraHearingEvent(name = LibraName(firstName = randomName(), lastName = randomName()), cId = cId, defendantAddress = uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Address(postcode = randomPostcode())))
 
