@@ -358,8 +358,6 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
         assertThat(createdLog.lastName).isEqualTo(lastName)
         assertThat(createdLog.dateOfBirth).isEqualTo(personDateOfBirth)
         assertThat(createdLog.sourceSystem).isEqualTo(NOMIS)
-        // TODO remove the address section when we turn change PrisonPersonServiceProxy to ignore addresses
-        // assertThat(createdLog.postcodes).isEqualTo(listOf(postcode))
         assertThat(createdLog.sentenceDates).isEqualTo(listOf(sentenceStartDate))
         assertThat(createdLog.firstNameAliases).isEqualTo(listOf(aliasFirstName, secondAliasFirstName).sorted())
         assertThat(createdLog.lastNameAliases).isEqualTo(listOf(aliasLastName, secondAliasLastName).sorted())
