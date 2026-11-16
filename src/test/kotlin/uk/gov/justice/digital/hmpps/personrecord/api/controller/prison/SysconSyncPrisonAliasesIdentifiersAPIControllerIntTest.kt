@@ -22,7 +22,7 @@ import java.time.LocalDateTime
 class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
   @Nested
-  inner class Validation {
+  inner class SuccessfulProcessing {
 
     @Test
     fun `should respond with 501 as not currently implemented`() {

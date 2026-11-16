@@ -23,7 +23,7 @@ class SysconSyncPrisonReligionPutAPIControllerIntTest : WebTestBase() {
   private lateinit var prisonReligionRepository: PrisonReligionRepository
 
   @Nested
-  inner class Successful {
+  inner class SuccessfulProcessing {
 
     @Test
     fun `prison religion exists - updates prison religion - returns correct response body`() {
