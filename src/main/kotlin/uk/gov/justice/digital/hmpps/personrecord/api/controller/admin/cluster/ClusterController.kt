@@ -53,7 +53,7 @@ class ClusterController(
   ): AdminClusterDetail = getClusterDetail(prisonNumber) { personRepository.findByPrisonNumber(prisonNumber)?.personKey }
 
   private fun getRecordComparison(matchIds: List<String>): CompareRecordsDetail {
-    val persons = matchIds.map { personRepository.findByMatchId(UUID.fromString(it))!! }
+    val persons = matchIds.map { personRepository.findByMatchId(UUID.fromString(it)) ?: throw ResourceNotFoundException("Person not found for matchId") }
     val clusterVisualisationSpec = personMatchService.retrieveClusterVisualisationSpec(matchIds).spec
     return CompareRecordsDetail.from(persons, clusterVisualisationSpec)
   }

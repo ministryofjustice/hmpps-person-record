@@ -4,8 +4,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.test.web.reactive.server.expectBody
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_ADMIN_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminClusterDetail
+import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.CompareRecordsDetail
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
@@ -13,6 +14,67 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.util.UUID.randomUUID
 
 class ClusterApiIntTest : WebTestBase() {
+
+  @Nested
+  inner class CompareRecords {
+
+    @Test
+    fun `should return record comparison across 2 clusters`() {
+      val personOne = createPersonWithNewKey(createRandomProbationPersonDetails())
+      val personTwo = createPersonWithNewKey(createRandomProbationPersonDetails())
+
+      stubVisualiseCluster()
+
+      val response = webTestClient.post()
+        .uri("/admin/compare-records")
+        .bodyValue(listOf(personOne.matchId, personTwo.matchId))
+        .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody<CompareRecordsDetail>()
+        .returnResult()
+        .responseBody!!
+
+      assertThat(response.records.size).isEqualTo(2)
+    }
+
+    @Test
+    fun `should return not found if records do not exist`() {
+      webTestClient.post()
+        .uri("/admin/compare-records")
+        .bodyValue(listOf("${randomUUID()}", "${randomUUID()}"))
+        .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
+        .exchange()
+        .expectStatus()
+        .isNotFound
+    }
+
+    @Test
+    fun `should return Access Denied 403 when role is wrong`() {
+      val expectedErrorMessage = "Forbidden: Access Denied"
+      webTestClient.post()
+        .uri("/admin/compare-records")
+        .bodyValue(listOf("${randomUUID()}", "${randomUUID()}"))
+        .authorised(listOf("UNSUPPORTED-ROLE"))
+        .exchange()
+        .expectStatus()
+        .isForbidden
+        .expectBody()
+        .jsonPath("userMessage")
+        .isEqualTo(expectedErrorMessage)
+    }
+
+    @Test
+    fun `should return UNAUTHORIZED 401 when role is not set`() {
+      webTestClient.post()
+        .uri("/admin/compare-records")
+        .bodyValue(listOf("${randomUUID()}", "${randomUUID()}"))
+        .exchange()
+        .expectStatus()
+        .isUnauthorized
+    }
+  }
 
   @Nested
   inner class UUIDClusterDetail {
@@ -25,7 +87,7 @@ class ClusterApiIntTest : WebTestBase() {
 
       val response = webTestClient.get()
         .uri(uuidClusterUrl(person.personKey?.personUUID.toString()))
-        .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
+        .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
@@ -55,7 +117,7 @@ class ClusterApiIntTest : WebTestBase() {
 
       val response = webTestClient.get()
         .uri(uuidClusterUrl(personKey.personUUID.toString()))
-        .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
+        .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
@@ -72,7 +134,7 @@ class ClusterApiIntTest : WebTestBase() {
     fun `should return not found if cluster does not exist`() {
       webTestClient.get()
         .uri(uuidClusterUrl(randomUUID().toString()))
-        .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
+        .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
         .exchange()
         .expectStatus()
         .isNotFound
@@ -115,7 +177,7 @@ class ClusterApiIntTest : WebTestBase() {
 
       val response = webTestClient.get()
         .uri(crnClusterUrl(person.crn!!))
-        .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
+        .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
@@ -137,7 +199,7 @@ class ClusterApiIntTest : WebTestBase() {
     fun `should return not found if cluster does not exist`() {
       webTestClient.get()
         .uri(crnClusterUrl(randomCrn()))
-        .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
+        .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
         .exchange()
         .expectStatus()
         .isNotFound
@@ -180,7 +242,7 @@ class ClusterApiIntTest : WebTestBase() {
 
       val response = webTestClient.get()
         .uri(prisonNumberClusterUrl(person.prisonNumber!!))
-        .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
+        .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
@@ -206,7 +268,7 @@ class ClusterApiIntTest : WebTestBase() {
 
       val response = webTestClient.get()
         .uri(prisonNumberClusterUrl(person.prisonNumber!!))
-        .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
+        .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
@@ -221,7 +283,7 @@ class ClusterApiIntTest : WebTestBase() {
     fun `should return not found if cluster does not exist`() {
       webTestClient.get()
         .uri(prisonNumberClusterUrl(randomPrisonNumber()))
-        .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
+        .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
         .exchange()
         .expectStatus()
         .isNotFound
@@ -235,7 +297,7 @@ class ClusterApiIntTest : WebTestBase() {
 
       val response = webTestClient.get()
         .uri(prisonNumberClusterUrl(person.prisonNumber!!))
-        .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
+        .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
         .exchange()
         .expectStatus()
         .isOk
