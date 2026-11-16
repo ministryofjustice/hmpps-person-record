@@ -7,18 +7,18 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.util.UUID
 
-class SysconSyncPrisonBookingChangedAPIControllerIntTest : WebTestBase() {
+class SysconSyncPrisonPrimaryNameAPIControllerIntTest : WebTestBase() {
 
   @Nested
-  inner class ProcessWorkingName {
+  inner class ProcessPrimaryName {
 
     @Nested
-    inner class HappyPath {
+    inner class SuccessfulProcessing {
 
       @Test
       fun `should respond with 501 as not currently implemented`() {
         webTestClient.post()
-          .uri(workingNameUrl(randomPrisonNumber(), randomCprPseudonymId()))
+          .uri(primaryNameUrl(randomPrisonNumber(), randomCprPseudonymId()))
           .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
           .exchange()
           .expectStatus()
@@ -27,12 +27,12 @@ class SysconSyncPrisonBookingChangedAPIControllerIntTest : WebTestBase() {
     }
 
     @Nested
-    inner class Security {
+    inner class Auth {
 
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         webTestClient.post()
-          .uri(workingNameUrl(randomPrisonNumber(), randomCprPseudonymId()))
+          .uri(primaryNameUrl(randomPrisonNumber(), randomCprPseudonymId()))
           .authorised(listOf("UNSUPPORTED-ROLE"))
           .exchange()
           .expectStatus()
@@ -45,7 +45,7 @@ class SysconSyncPrisonBookingChangedAPIControllerIntTest : WebTestBase() {
       @Test
       fun `should return UNAUTHORIZED 401 when role is not set`() {
         webTestClient.post()
-          .uri(workingNameUrl(randomPrisonNumber(), randomCprPseudonymId()))
+          .uri(primaryNameUrl(randomPrisonNumber(), randomCprPseudonymId()))
           .exchange()
           .expectStatus()
           .isUnauthorized
@@ -55,5 +55,5 @@ class SysconSyncPrisonBookingChangedAPIControllerIntTest : WebTestBase() {
 
   private fun randomCprPseudonymId() = UUID.randomUUID().toString()
 
-  private fun workingNameUrl(prisonNumber: String, cprPseudonymId: String) = "/syscon-sync/person/$prisonNumber/working-name/$cprPseudonymId"
+  private fun primaryNameUrl(prisonNumber: String, cprPseudonymId: String) = "/syscon-sync/person/$prisonNumber/primary-name/$cprPseudonymId"
 }
