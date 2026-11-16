@@ -1,15 +1,22 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReferenceDataDomain.CPR
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReferenceDataDomain.PRISON
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReferenceDataDomain.PROBATION
 
-enum class SexualOrientation(override val description: String) : ReferenceData {
-  BIS("Bisexual"),
-  HOM("Gay or Lesbian"),
-  HET("Heterosexual or Straight"),
-  ND("Not Answered"),
-  OTH("Other"),
-  REF("Refused"),
-  UNKNOWN("Unknown"),
+enum class SexualOrientation(
+  override val description: String,
+  override val current: Boolean,
+  override val applicableTo: Set<ReferenceDataDomain>,
+) : ReferenceData {
+  BIS("Bisexual", true, setOf(PROBATION, PRISON)),
+  HOM("Gay or Lesbian", true, setOf(PROBATION, PRISON)),
+  HET("Heterosexual or Straight", true, setOf(PROBATION, PRISON)),
+  ND("Not Answered", true, setOf(PROBATION, PRISON)),
+  OTH("Other", true, setOf(PROBATION, PRISON)),
+  REF("Refused", true, setOf(PROBATION, PRISON)),
+  UNKNOWN("Unknown", true, setOf(CPR)),
   ;
 
   companion object {

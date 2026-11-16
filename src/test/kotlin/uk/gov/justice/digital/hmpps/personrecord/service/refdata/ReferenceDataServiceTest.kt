@@ -11,6 +11,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReferenceDataDomain
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReferenceDataDomain.PRISON
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReferenceDataDomain.PROBATION
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
@@ -54,9 +57,43 @@ class ReferenceDataServiceTest {
   @Test
   fun `should include current flag for reference data with a current flag`() {
     assertThat(referenceDataService.getReferenceData("religion"))
-      .isEqualTo(mapOf("religion" to ReligionCode.entries.map { ReferenceDataValue(it.name, it.description, it.current) }))
+      .isEqualTo(mapOf("religion" to ReligionCode.entries.map { ReferenceDataValue(it.name, it.description, it.current, it.applicableTo) }))
     assertThat(referenceDataService.getReferenceData("addressUsage"))
-      .isEqualTo(mapOf("addressUsage" to AddressUsageCode.entries.map { ReferenceDataValue(it.name, it.description, it.current) }))
+      .isEqualTo(mapOf("addressUsage" to AddressUsageCode.entries.map { ReferenceDataValue(it.name, it.description, it.current, it.applicableTo) }))
+  }
+
+  @Test
+  fun `should return only prison address usages`() {
+    val values = referenceDataService.getReferenceData("addressUsage", PRISON).getValue("addressUsage")
+
+    assertThat(values.map { it.code }).containsExactly(
+      "CARE", "CURFEW", "DAP", "DBA", "DBH", "DNF", "DOH", "DPH", "DSH", "DST", "DUT",
+      "HDC", "HDC2", "HOME", "HOSP", "HOST", "OTHER", "RECEP", "RELEASE", "RES", "ROTL",
+    )
+    values.forEach { assertThat(it.applicableTo).containsExactly(PRISON) }
+  }
+
+  @Test
+  fun `should filter all types for probation including shared and historical values`() {
+    val all = referenceDataService.getAllReferenceData(PROBATION)
+    assertThat(all.keys).containsExactlyElementsOf(referenceDataService.getAllReferenceData().keys)
+    assertThat(all.getValue("contactType")).hasSize(ContactType.entries.size)
+    assertThat(all.getValue("sex")).isEqualTo(SexCode.entries.map(ReferenceDataValue::from))
+    assertThat(all.getValue("addressUsage").map { it.code }).contains("A02", "A01").doesNotContain("HOME", "UNKNOWN")
+    assertThat(all.getValue("addressUsage").first { it.code == "A01" }.current).isFalse()
+    all.values.flatten().forEach { assertThat(it.applicableTo).contains(PROBATION) }
+  }
+
+  @Test
+  fun `should consistently filter single and all types for each domain`() {
+    ReferenceDataDomain.entries.forEach { domain ->
+      referenceDataService.getAllReferenceData(domain).forEach { (type, values) ->
+        assertThat(referenceDataService.getReferenceData(type, domain)).isEqualTo(mapOf(type to values))
+        values.forEach { assertThat(it.applicableTo).contains(domain) }
+      }
+    }
+    assertThat(referenceDataService.getReferenceData("contactType", PRISON))
+      .isEqualTo(mapOf("contactType" to emptyList<ReferenceDataValue>()))
   }
 
   @Test

@@ -7,12 +7,18 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAlias
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReferenceDataDomain.PRISON
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReferenceDataDomain.PROBATION
 
-enum class SexCode(override val description: String) : ReferenceData {
-  M("Male"),
-  F("Female"),
-  N("Not Known / Not Recorded"),
-  NS("Not Specified"),
+enum class SexCode(
+  override val description: String,
+  override val current: Boolean,
+  override val applicableTo: Set<ReferenceDataDomain>,
+) : ReferenceData {
+  M("Male", true, setOf(PROBATION, PRISON)),
+  F("Female", true, setOf(PROBATION, PRISON)),
+  N("Not Known / Not Recorded", true, setOf(PROBATION, PRISON)),
+  NS("Not Specified", true, setOf(PROBATION, PRISON)),
   ;
 
   companion object {

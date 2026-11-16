@@ -1,17 +1,26 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
-enum class AddressStatusCode(override val description: String) : ReferenceData {
-  B("Bail"),
-  M("Main"),
-  MA("Postal"),
-  P("Previous"),
-  PR("Proposed"),
-  PR1("Proposed for Resettlement"),
-  RJ("Rejected"),
-  RT("ROTL"),
-  S("Secondary"),
-  PM("Primary and Mail"),
-  UNKNOWN("Unknown"),
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReferenceDataDomain.CPR
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReferenceDataDomain.PRISON
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ReferenceDataDomain.PROBATION
+
+enum class AddressStatusCode(
+  override val description: String,
+  override val current: Boolean,
+  override val applicableTo: Set<ReferenceDataDomain>,
+) : ReferenceData {
+
+  B("Bail", true, setOf(PROBATION)),
+  M("Main", true, setOf(PROBATION, PRISON)),
+  MA("Postal", true, setOf(PROBATION, PRISON)),
+  P("Previous", true, setOf(PROBATION)),
+  PR("Proposed", true, setOf(PROBATION)),
+  PR1("Proposed for Resettlement", true, setOf(PROBATION)),
+  RJ("Rejected", true, setOf(PROBATION)),
+  RT("ROTL", true, setOf(PROBATION)),
+  S("Secondary", true, setOf(PROBATION)),
+  PM("Primary and Mail", true, setOf(CPR)),
+  UNKNOWN("Unknown", true, setOf(CPR)),
   ;
 
   companion object {
