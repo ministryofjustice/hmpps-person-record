@@ -31,11 +31,11 @@ class PersonMatchService(
   private val jsonMapper: JsonMapper,
 ) {
 
-  fun findClustersToJoin(personEntity: PersonEntity): List<PersonKeyEntity> = findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity)
+  fun findClustersToJoin(personEntity: PersonEntity): List<PersonKeyEntity> = findPersonsThatMatch(personEntity)
     .getClustersThatItCanJoin()
     .collectDistinctClusters()
 
-  fun findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity: PersonEntity): List<PersonMatchResult> {
+  fun findPersonsThatMatch(personEntity: PersonEntity): List<PersonMatchResult> {
     val personScores = collectPersonScores(personEntity)
     val aboveFractureThresholdPersonRecords = getPersonRecords(personScores.getClustersAboveFractureThreshold())
       .allowMatchesWithUUID()

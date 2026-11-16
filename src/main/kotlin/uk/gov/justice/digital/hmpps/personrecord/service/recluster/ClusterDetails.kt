@@ -3,33 +3,32 @@ package uk.gov.justice.digital.hmpps.personrecord.service.recluster
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
+import kotlin.collections.map
 
 class ClusterDetails(
-  val cluster: PersonKeyEntity,
+  val existingCluster: PersonKeyEntity,
   val changedPerson: PersonEntity,
-  matchesToChangeRecord: List<PersonMatchResult>,
+  personsThatMatchChangeRecord: List<PersonMatchResult>,
 ) {
 
-  val matchedRecords: List<PersonEntity> = matchesToChangeRecord.map { it.personEntity }
-  val shouldJoinRecords: List<PersonEntity> = matchesToChangeRecord.filter { it.shouldJoin }.map { it.personEntity }
+  private val personsThatMatchChangedPerson: List<PersonEntity> = personsThatMatchChangeRecord.map { it.personEntity }
+  val shouldJoinRecords: List<PersonEntity> = personsThatMatchChangeRecord.filter { it.shouldJoin }.map { it.personEntity }
 
-  private val existingRecordsInCluster: List<PersonEntity> = cluster.personEntities.filterNot { it.id == changedPerson.id }
+  private val existingPersonsInCluster: List<PersonEntity> = existingCluster.personEntities.filterNot { it.id == changedPerson.id }
 
-  val relationship = ClusterRelationship(matchedRecords, existingRecordsInCluster)
+  val relationship = ClusterRelationship(personsThatMatchChangedPerson, existingPersonsInCluster)
 
   inner class ClusterRelationship(
-    matchedRecords: List<PersonEntity>,
-    existingRecordsInCluster: List<PersonEntity>,
+    personsThatMatchChangedPerson: List<PersonEntity>,
+    existingPersonsInCluster: List<PersonEntity>,
   ) {
-    private val matchedRecordsSet = matchedRecords.asIdSet()
-    private val existingRecordsSet = existingRecordsInCluster.asIdSet()
+    private val personIdsThatMatchChangedPerson = personsThatMatchChangedPerson.map { it.id }.toSet()
+    private val existingPersonIdsInCluster = existingPersonsInCluster.map { it.id }.toSet()
 
-    private val recordsInTheClusterThatDoNotMatch = existingRecordsSet.subtract(matchedRecordsSet)
+    private val recordsInTheClusterThatDoNotMatch = existingPersonIdsInCluster.subtract(personIdsThatMatchChangedPerson)
 
-    fun isDifferent(): Boolean = matchedRecordsSet != existingRecordsSet
+    fun doesExistingCompositionDifferFromProposed(): Boolean = personIdsThatMatchChangedPerson != existingPersonIdsInCluster
     fun isSmaller(): Boolean = recordsInTheClusterThatDoNotMatch.isNotEmpty()
-    fun notMatchedToAnyRecord(): Boolean = recordsInTheClusterThatDoNotMatch.size == existingRecordsInCluster.size
-
-    private fun List<PersonEntity>.asIdSet(): Set<Long?> = this.map { it.id }.toSet()
+    fun notMatchedToAnyRecord(): Boolean = recordsInTheClusterThatDoNotMatch.size == this@ClusterDetails.existingPersonsInCluster.size
   }
 }

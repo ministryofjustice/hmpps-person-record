@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyDeletionService
-import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
@@ -33,21 +32,20 @@ class ReclusterService(
 ) {
 
   fun recluster(changedRecord: PersonEntity) {
-    val cluster = changedRecord.personKey!!
+    val existingCluster = changedRecord.personKey!!
     when {
-      cluster.clusterIsBrokenAndCanBecomeActive() -> cluster.selfHeal()
+      existingCluster.clusterIsBrokenAndCanBecomeActive() -> existingCluster.selfHeal()
     }
     when {
-      cluster.isActive() -> processRecluster(cluster, changedRecord)
+      existingCluster.isActive() -> processRecluster(existingCluster, changedRecord)
     }
   }
 
-  private fun processRecluster(cluster: PersonKeyEntity, changedPerson: PersonEntity) {
-    val matchesToChangedRecord: List<PersonMatchResult> =
-      personMatchService.findPersonRecordsAboveFractureThresholdByMatchWeightDesc(changedPerson)
-    val clusterDetails = ClusterDetails(cluster, changedPerson, matchesToChangedRecord)
+  private fun processRecluster(existingCluster: PersonKeyEntity, changedPerson: PersonEntity) {
+    val personsThatMatchChangedRecord = personMatchService.findPersonsThatMatch(changedPerson)
+    val clusterDetails = ClusterDetails(existingCluster, changedPerson, personsThatMatchChangedRecord)
     when {
-      clusterDetails.relationship.isDifferent() -> handleClusterChange(clusterDetails)
+      clusterDetails.relationship.doesExistingCompositionDifferFromProposed() -> handleClusterChange(clusterDetails)
     }
   }
 
@@ -61,7 +59,7 @@ class ReclusterService(
   private fun handleUnmatchedPersons(clusterDetails: ClusterDetails) {
     when {
       clusterDetails.relationship.notMatchedToAnyRecord() -> handleInvalidClusterComposition(clusterDetails)
-      else -> personMatchService.examineIsClusterValid(clusterDetails.cluster).result(
+      else -> personMatchService.examineIsClusterValid(clusterDetails.existingCluster).result(
         isValid = { migratePersonsToMatchingCluster(clusterDetails) },
         isNotValid = { handleInvalidClusterComposition(clusterDetails) },
       )
@@ -72,7 +70,7 @@ class ReclusterService(
     val matchedRecordsClusters: List<PersonKeyEntity> =
       clusterDetails.shouldJoinRecords
         .collectDistinctClusters()
-        .removeUpdatedCluster(clusterDetails.cluster)
+        .removeUpdatedCluster(clusterDetails.existingCluster)
         .getActiveClusters()
     when {
       matchedRecordsClusters.isNotEmpty() -> checkCombinedClustersIsAValidClusterAndMigrate(matchedRecordsClusters, clusterDetails)
@@ -80,20 +78,20 @@ class ReclusterService(
   }
 
   private fun checkCombinedClustersIsAValidClusterAndMigrate(matchedRecordsClusters: List<PersonKeyEntity>, clusterDetails: ClusterDetails) {
-    personMatchService.examineIsClusterMergeValid(clusterDetails.cluster, matchedRecordsClusters).result(
+    personMatchService.examineIsClusterMergeValid(clusterDetails.existingCluster, matchedRecordsClusters).result(
       isValid = {
         matchedRecordsClusters.forEach {
-          migratePersonRecordsToMatchingCluster(it, clusterDetails.cluster)
+          migratePersonRecordsToMatchingCluster(it, clusterDetails.existingCluster)
           deleteOriginalCluster(it)
         }
       },
-      isNotValid = { handleExclusionsBetweenMatchedClusters(clusterDetails.cluster, matchedRecordsClusters) },
+      isNotValid = { handleExclusionsBetweenMatchedClusters(clusterDetails.existingCluster, matchedRecordsClusters) },
     )
   }
 
   private fun handleInvalidClusterComposition(clusterDetails: ClusterDetails) {
-    clusterDetails.cluster.setToNeedsAttention(BROKEN_CLUSTER)
-    publisher.publishEvent(BrokenCluster(clusterDetails.cluster))
+    clusterDetails.existingCluster.setToNeedsAttention(BROKEN_CLUSTER)
+    publisher.publishEvent(BrokenCluster(clusterDetails.existingCluster))
   }
 
   private fun handleExclusionsBetweenMatchedClusters(cluster: PersonKeyEntity, matchedRecords: List<PersonKeyEntity>) {
