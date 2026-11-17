@@ -175,6 +175,13 @@ class PersonEntity(
     LIBRA to this.cId,
   )[this.sourceSystem]
 
+  fun extractSourceSystemIdByType() = when (this.sourceSystem) {
+    NOMIS -> "prisonNumber" to this.prisonNumber!!
+    DELIUS -> "CRN" to this.crn!!
+    COMMON_PLATFORM -> "defendantId" to this.defendantId!!
+    LIBRA -> "cid" to this.cId!!
+  }
+
   fun addOverrideMarker(scope: OverrideScopeEntity, marker: UUID = OverrideScopeEntity.newMarker()) {
     this.overrideMarker = this.overrideMarker ?: marker
     this.overrideScopes.add(scope)

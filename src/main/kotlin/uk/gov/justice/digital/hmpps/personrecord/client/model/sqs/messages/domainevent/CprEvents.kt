@@ -29,7 +29,6 @@ data class CprClusterChanged(
   val version: Int = 1,
   val occurredAt: String = Instant.now().asStringWithUkZone(),
   val description: String,
-  val detailUrl: String,
   val personReference: PersonReference,
 ) : DomainEvent
 

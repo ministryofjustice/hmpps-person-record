@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonTyp
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.BrokenCluster
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.ClusterChanged
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.OverrideConflict
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.SelfHealed
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
@@ -86,6 +87,7 @@ class ReclusterService(
           migratePersonRecordsToMatchingCluster(it, clusterDetails.cluster)
           deleteOriginalCluster(it)
         }
+        publisher.publishEvent(ClusterChanged(clusterDetails.changedPerson))
       },
       isNotValid = { handleExclusionsBetweenMatchedClusters(clusterDetails.cluster, matchedRecordsClusters) },
     )

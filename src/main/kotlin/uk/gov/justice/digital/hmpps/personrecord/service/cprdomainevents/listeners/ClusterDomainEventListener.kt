@@ -14,7 +14,6 @@ class ClusterDomainEventListener(
 
   @TransactionalEventListener
   fun onClusterChange(clusterChanged: ClusterChanged) {
-    val cluster = clusterChanged.personEntity.personKey!!
     clusterChangedEventPublisher.onClusterChange(clusterChanged)
   }
 }
