@@ -11,18 +11,17 @@ class ClusterDetails(
   personsThatMatchChangeRecord: List<PersonMatchResult>,
 ) {
 
-  private val personsThatMatchChangedPerson: List<PersonEntity> = personsThatMatchChangeRecord.map { it.personEntity }
   val shouldJoinRecords: List<PersonEntity> = personsThatMatchChangeRecord.filter { it.shouldJoin }.map { it.personEntity }
 
   private val existingPersonsInCluster: List<PersonEntity> = existingCluster.personEntities.filterNot { it.id == changedPerson.id }
 
-  val relationship = ClusterRelationship(personsThatMatchChangedPerson, existingPersonsInCluster)
+  val relationship = ClusterRelationship(personsThatMatchChangeRecord, existingPersonsInCluster)
 
   inner class ClusterRelationship(
-    personsThatMatchChangedRecord: List<PersonEntity>,
+    personsThatMatchChangedRecord: List<PersonMatchResult>,
     existingPersonsInCluster: List<PersonEntity>,
   ) {
-    private val personIdsThatMatchChangedRecord = personsThatMatchChangedRecord.map { it.id }.toSet()
+    private val personIdsThatMatchChangedRecord = personsThatMatchChangedRecord.map { it.personEntity }.map { it.id }.toSet()
     private val existingPersonIdsInCluster = existingPersonsInCluster.map { it.id }.toSet()
 
     private val recordsInTheClusterThatDoNotMatch = existingPersonIdsInCluster.subtract(personIdsThatMatchChangedRecord)
