@@ -28,6 +28,6 @@ class ClusterDetails(
 
     fun doesExistingCompositionDifferFromProposed(): Boolean = personIdsThatMatchChangedRecord != existingPersonIdsInCluster
     fun isSmaller(): Boolean = recordsInTheClusterThatDoNotMatch.isNotEmpty()
-    fun notMatchedToAnyRecord(): Boolean = recordsInTheClusterThatDoNotMatch.size == this@ClusterDetails.existingPersonsInCluster.size
+    fun notMatchedToAnyRecord(): Boolean = recordsInTheClusterThatDoNotMatch.size == existingPersonsInCluster.size
   }
 }
