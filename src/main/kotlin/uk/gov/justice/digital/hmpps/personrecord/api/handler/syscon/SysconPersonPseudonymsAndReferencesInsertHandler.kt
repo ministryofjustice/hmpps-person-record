@@ -63,15 +63,15 @@ class SysconPersonPseudonymsAndReferencesInsertHandler(
       throw IllegalArgumentException("There must be exactly one primary pseudonym for $prisonNumber: ${primaryPseudonymsIds.joinToString()}")
     }
     pseudonyms.forEach { pseudonym ->
-      val referencesWithIncorrectIds = pseudonym.identifiers
-        .filter { it.nomisIdentifierId.nomisOffenderId != pseudonym.nomisOffenderId }
-        .map { it.nomisIdentifierId.toDisplayString() }
-      if (referencesWithIncorrectIds.isNotEmpty()) {
-        throw IllegalArgumentException("Incorrect nomis reference ids were detected for $prisonNumber, ${pseudonym.nomisOffenderId}: ${referencesWithIncorrectIds.joinToString()}")
+      val incorrectReferenceIds = pseudonym.identifiers
+        .map { it.nomisIdentifierId.nomisOffenderId }
+        .filter { it != pseudonym.nomisOffenderId }
+      if (incorrectReferenceIds.isNotEmpty()) {
+        throw IllegalArgumentException("Incorrect nomis reference ids were detected for $prisonNumber, ${pseudonym.nomisOffenderId}: ${incorrectReferenceIds.joinToString()}")
       }
       val referenceDuplicateIds = pseudonym.identifiers.groupingBy { it.nomisIdentifierId }.eachCount().filter { it.value > 1 }
       if (referenceDuplicateIds.isNotEmpty()) {
-        throw IllegalArgumentException("Duplicate nomis reference ids were detected for $prisonNumber, ${pseudonym.nomisOffenderId}: ${referenceDuplicateIds.keys.joinToString { it.toDisplayString() }}")
+        throw IllegalArgumentException("Duplicate nomis reference ids were detected for $prisonNumber, ${pseudonym.nomisOffenderId}: ${referenceDuplicateIds.keys.joinToString { "$it.nomisOffenderId-$it.nomisSequence" }}")
       }
     }
   }
@@ -182,6 +182,4 @@ class SysconPersonPseudonymsAndReferencesInsertHandler(
     ),
     cprIdentifierId = second.updateId.toString(),
   )
-
-  private fun uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.NomisIdentifierId.toDisplayString() = "$nomisOffenderId-$nomisSequence"
 }
