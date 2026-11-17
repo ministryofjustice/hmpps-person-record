@@ -19,15 +19,15 @@ class ClusterDetails(
   val relationship = ClusterRelationship(personsThatMatchChangedPerson, existingPersonsInCluster)
 
   inner class ClusterRelationship(
-    personsThatMatchChangedPerson: List<PersonEntity>,
+    personsThatMatchChangedRecord: List<PersonEntity>,
     existingPersonsInCluster: List<PersonEntity>,
   ) {
-    private val personIdsThatMatchChangedPerson = personsThatMatchChangedPerson.map { it.id }.toSet()
+    private val personIdsThatMatchChangedRecord = personsThatMatchChangedRecord.map { it.id }.toSet()
     private val existingPersonIdsInCluster = existingPersonsInCluster.map { it.id }.toSet()
 
-    private val recordsInTheClusterThatDoNotMatch = existingPersonIdsInCluster.subtract(personIdsThatMatchChangedPerson)
+    private val recordsInTheClusterThatDoNotMatch = existingPersonIdsInCluster.subtract(personIdsThatMatchChangedRecord)
 
-    fun doesExistingCompositionDifferFromProposed(): Boolean = personIdsThatMatchChangedPerson != existingPersonIdsInCluster
+    fun doesExistingCompositionDifferFromProposed(): Boolean = personIdsThatMatchChangedRecord != existingPersonIdsInCluster
     fun isSmaller(): Boolean = recordsInTheClusterThatDoNotMatch.isNotEmpty()
     fun notMatchedToAnyRecord(): Boolean = recordsInTheClusterThatDoNotMatch.size == this@ClusterDetails.existingPersonsInCluster.size
   }
