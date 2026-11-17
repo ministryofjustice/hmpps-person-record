@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.Resou
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAliasesAndIdentifiersRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.NomisIdentifierId
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasesAndIdentifiersResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconIdentifierMapping
@@ -21,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReferenceReposit
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import java.util.UUID
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.NomisIdentifierId as NomisIdentifierIdResponse
 
 @Component
 class SysconPersonPseudonymsAndReferencesInsertHandler(
@@ -87,8 +87,6 @@ class SysconPersonPseudonymsAndReferencesInsertHandler(
       prisonPseudonymRepository.save(pseudonym.findExistingElseNewPrisonPseudonymAndUpdateFields(pseudonymEntity))
 
       if (pseudonym.isPrimary) {
-        personEntity.birthplace = pseudonym.birthPlace
-        personEntity.birthCountryCode = pseudonym.birthCountry
         personEntity.ethnicityCode = pseudonym.ethnicity
       }
 
@@ -176,7 +174,7 @@ class SysconPersonPseudonymsAndReferencesInsertHandler(
   }
 
   private fun Pair<PrisonIdentifier, ReferenceEntity>.toMapping() = SysconIdentifierMapping(
-    nomisIdentifierId = NomisIdentifierIdResponse(
+    nomisIdentifierId = NomisIdentifierId(
       nomisOffenderId = first.nomisIdentifierId.nomisOffenderId,
       nomisSequence = first.nomisIdentifierId.nomisSequence,
     ),
