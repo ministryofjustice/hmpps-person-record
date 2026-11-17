@@ -21,7 +21,7 @@ class ClusterDetails(
     personsThatMatchChangedRecord: List<PersonMatchResult>,
     existingPersonsInCluster: List<PersonEntity>,
   ) {
-    private val personIdsThatMatchChangedRecord = personsThatMatchChangedRecord.map { it.personEntity }.map { it.id }.toSet()
+    private val personIdsThatMatchChangedRecord = personsThatMatchChangedRecord.map { it.personEntity.id }.toSet()
     private val existingPersonIdsInCluster = existingPersonsInCluster.map { it.id }.toSet()
 
     private val recordsInTheClusterThatDoNotMatch = existingPersonIdsInCluster.subtract(personIdsThatMatchChangedRecord)
