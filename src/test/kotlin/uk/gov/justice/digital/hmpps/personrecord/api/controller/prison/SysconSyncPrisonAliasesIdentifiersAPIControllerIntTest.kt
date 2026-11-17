@@ -25,7 +25,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PseudonymReposit
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReferenceRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode.UKR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.A1
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
@@ -35,8 +34,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonPseudonymSuff
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.M
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode.MR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode.SIR
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
-import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -145,8 +142,8 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
             identifiers = listOf(
               PrisonIdentifier(
                 nomisIdentifierId = NomisIdentifierId(nomisOffenderId = 10000L, nomisSequence = 1),
-                type = IdentifierType.PNC,
-                value = randomLongPnc(),
+                type = PNC,
+                value = "2001/2186242P",
                 verified = true,
                 createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
                 createUserId = "createUserId",
@@ -170,16 +167,16 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
             identifiers = listOf(
               PrisonIdentifier(
                 nomisIdentifierId = NomisIdentifierId(nomisOffenderId = 99999L, nomisSequence = 1),
-                type = IdentifierType.PNC,
-                value = randomLongPnc(),
+                type = PNC,
+                value = "2002/2648976B",
                 verified = true,
                 createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
                 createUserId = "createUserId",
               ),
               PrisonIdentifier(
                 nomisIdentifierId = NomisIdentifierId(nomisOffenderId = 99999L, nomisSequence = 1),
-                type = IdentifierType.CRO,
-                value = randomCro(),
+                type = CRO,
+                value = "543685/62Q",
                 verified = true,
                 createDateTime = LocalDateTime.of(2021, 1, 1, 12, 0),
                 createUserId = "createUserId",
