@@ -53,7 +53,7 @@ class PersonKeyService(
       if (matches.size > 1) {
         reclusterService.recluster(this)
       } else {
-        publisher.publishEvent(ClusterChanged(this))
+        publisher.publishEvent(ClusterChanged(this.personKey!!))
       }
     }
   }

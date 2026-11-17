@@ -87,7 +87,7 @@ class ReclusterService(
           migratePersonRecordsToMatchingCluster(it, clusterDetails.cluster)
           deleteOriginalCluster(it)
         }
-        publisher.publishEvent(ClusterChanged(clusterDetails.changedPerson))
+        publisher.publishEvent(ClusterChanged(clusterDetails.changedPerson.personKey!!))
       },
       isNotValid = { handleExclusionsBetweenMatchedClusters(clusterDetails.cluster, matchedRecordsClusters) },
     )

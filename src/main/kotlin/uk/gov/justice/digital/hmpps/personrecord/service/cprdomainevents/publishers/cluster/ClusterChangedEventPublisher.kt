@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublis
 class ClusterChangedEventPublisher(private val domainEventPublisher: DomainEventPublisher) {
 
   fun onClusterChange(clusterChanged: ClusterChanged) {
-    val cluster = clusterChanged.personEntity.personKey!!
+    val cluster = clusterChanged.cluster
     domainEventPublisher.publish(
       CprClusterChanged(
         eventType = CPR_CLUSTER_CHANGED,
