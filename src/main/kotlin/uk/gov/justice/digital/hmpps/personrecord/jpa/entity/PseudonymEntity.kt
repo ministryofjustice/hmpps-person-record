@@ -50,7 +50,8 @@ class PseudonymEntity(
   )
   var person: PersonEntity? = null,
 
-  @OneToMany(mappedBy = "pseudonym", cascade = [ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @Column
+  @OneToMany(mappedBy = "pseudonym", cascade = [ALL], fetch = FetchType.LAZY, orphanRemoval = true)
   var references: MutableList<ReferenceEntity> = mutableListOf(),
 
   @Column(name = "title_code")
