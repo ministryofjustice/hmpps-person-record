@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.search.VettingSearchS
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -49,7 +50,7 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
       assertThat(vettingSearchResponse.data).hasSize(1)
       assertThat(vettingSearchResponse.data.first().results).hasSize(2)
 
-      val searchResult1 = vettingSearchResponse.data.first().results.first()
+      val searchResult1 = vettingSearchResponse.data.first().results.first { it.sourceSystem == NOMIS }
       assertThat(searchResult1.name.firstName).isEqualTo(prisonPersonEntity.getPrimaryName().firstName!!)
       assertThat(searchResult1.name.lastName).isEqualTo(prisonPersonEntity.getPrimaryName().lastName!!)
       assertThat(searchResult1.name.dateOfBirth).isEqualTo(prisonPersonEntity.getPrimaryName().dateOfBirth!!)
@@ -59,7 +60,7 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
       assertThat(searchResult1.identifiers).usingRecursiveComparison().isEqualTo(VettingSearchIdentifiers.from(prisonPersonEntity))
       assertThat(searchResult1.addresses).hasSize(prisonPersonEntity.addresses.size)
 
-      val searchResult2 = vettingSearchResponse.data.first().results.last()
+      val searchResult2 = vettingSearchResponse.data.first().results.first { it.sourceSystem == DELIUS }
       assertThat(searchResult2.name.firstName).isEqualTo(probationPersonEntity.getPrimaryName().firstName!!)
       assertThat(searchResult2.name.lastName).isEqualTo(probationPersonEntity.getPrimaryName().lastName!!)
       assertThat(searchResult2.name.dateOfBirth).isEqualTo(probationPersonEntity.getPrimaryName().dateOfBirth!!)
@@ -174,7 +175,7 @@ class VettingPersonSearchControllerE2ETest : E2ETestBase() {
       ).returnResult().responseBody!!
       assertThat(personSearchResponse.data).hasSize(1)
       assertThat(personSearchResponse.data.first().results).hasSize(1)
-      assertThat(personSearchResponse.data.first().results.first().sourceSystem).isEqualTo(SourceSystemType.NOMIS)
+      assertThat(personSearchResponse.data.first().results.first().sourceSystem).isEqualTo(NOMIS)
     }
 
     @Test
