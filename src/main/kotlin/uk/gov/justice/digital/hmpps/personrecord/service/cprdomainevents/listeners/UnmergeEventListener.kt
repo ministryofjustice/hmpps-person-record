@@ -25,8 +25,8 @@ class UnmergeEventListener(
         mapOf(
           EventKeys.REACTIVATED_UUID to personUnmerged.reactivatedRecord.personKey?.personUUID.toString(),
           EventKeys.UNMERGED_UUID to personUnmerged.unmergedRecord.personKey?.personUUID.toString(),
-          EventKeys.FROM_SOURCE_SYSTEM_ID to personUnmerged.unmergedRecord.extractSourceSystemId(),
-          EventKeys.TO_SOURCE_SYSTEM_ID to personUnmerged.reactivatedRecord.extractSourceSystemId(),
+          EventKeys.FROM_SOURCE_SYSTEM_ID to personUnmerged.reactivatedRecord.extractSourceSystemId(),
+          EventKeys.TO_SOURCE_SYSTEM_ID to personUnmerged.unmergedRecord.extractSourceSystemId(),
           EventKeys.SOURCE_SYSTEM to personUnmerged.reactivatedRecord.sourceSystem.name,
         ),
       ),
