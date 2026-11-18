@@ -9,34 +9,34 @@ import org.springframework.http.HttpStatus.NOT_IMPLEMENTED
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PRISON_API_READ_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReferenceCreateRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReferenceUpdateRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonIdentifierCreateRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonIdentifierUpdateRequest
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.util.UUID
 
-class PrisonAPIReferencesControllerIntTest : WebTestBase() {
+class PrisonAPIIdentifiersControllerIntTest : WebTestBase() {
 
   @Nested
-  @DisplayName("GET /person/prison/{prisonNumber}/references")
-  inner class GetReferencesByPrisonNumber {
+  @DisplayName("GET /person/prison/{prisonNumber}/identifiers")
+  inner class GetIdentifiersByPrisonNumber {
 
     @Nested
     inner class SuccessfulProcessing {
       @Test
       fun `should return not implemented`() {
         sendGetRequestAsserted<Unit>(
-          url = referencesUrl(randomPrisonNumber()),
+          url = identifiersUrl(randomPrisonNumber()),
           roles = listOf(API_READ_ONLY),
           expectedStatus = NOT_IMPLEMENTED,
         )
       }
 
       @Test
-      fun `should return not implemented when including pseudonyms`() {
+      fun `should return not implemented when including aliases`() {
         sendGetRequestAsserted<Unit>(
-          url = "${referencesUrl(randomPrisonNumber())}?includePseudonyms=true",
+          url = "${identifiersUrl(randomPrisonNumber())}?includeAliases=true",
           roles = listOf(API_READ_ONLY),
           expectedStatus = NOT_IMPLEMENTED,
         )
@@ -46,9 +46,9 @@ class PrisonAPIReferencesControllerIntTest : WebTestBase() {
     @Nested
     inner class Validation {
       @Test
-      fun `should return bad request when includePseudonyms is not a boolean`() {
+      fun `should return bad request when includeAliases is not a boolean`() {
         sendGetRequestAsserted<String>(
-          url = "${referencesUrl(randomPrisonNumber())}?includePseudonyms=notABoolean",
+          url = "${identifiersUrl(randomPrisonNumber())}?includeAliases=notABoolean",
           roles = listOf(API_READ_ONLY),
           expectedStatus = BAD_REQUEST,
         )
@@ -60,7 +60,7 @@ class PrisonAPIReferencesControllerIntTest : WebTestBase() {
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         sendGetRequestAsserted<String>(
-          url = referencesUrl(randomPrisonNumber()),
+          url = identifiersUrl(randomPrisonNumber()),
           roles = listOf("UNSUPPORTED-ROLE"),
           expectedStatus = FORBIDDEN,
         )
@@ -69,7 +69,7 @@ class PrisonAPIReferencesControllerIntTest : WebTestBase() {
       @Test
       fun `should return UNAUTHORIZED 401 when role is not set`() {
         sendGetRequestAsserted<Unit>(
-          url = referencesUrl(randomPrisonNumber()),
+          url = identifiersUrl(randomPrisonNumber()),
           roles = emptyList(),
           expectedStatus = UNAUTHORIZED,
           sendAuthorised = false,
@@ -79,15 +79,15 @@ class PrisonAPIReferencesControllerIntTest : WebTestBase() {
   }
 
   @Nested
-  @DisplayName("GET /person/prison/{prisonNumber}/pseudonyms/{cprPseudonymId}/references/{cprReferenceId}")
-  inner class GetPseudonymReferenceByPrisonNumber {
+  @DisplayName("GET /person/prison/{prisonNumber}/aliases/{cprAliasId}/identifiers/{cprIdentifierId}")
+  inner class GetAliasIdentifierByPrisonNumber {
 
     @Nested
     inner class SuccessfulProcessing {
       @Test
       fun `should return not implemented`() {
         sendGetRequestAsserted<Unit>(
-          url = pseudonymReferenceUrl(randomPrisonNumber()),
+          url = aliasIdentifierUrl(randomPrisonNumber()),
           roles = listOf(API_READ_ONLY),
           expectedStatus = NOT_IMPLEMENTED,
         )
@@ -99,7 +99,7 @@ class PrisonAPIReferencesControllerIntTest : WebTestBase() {
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         sendGetRequestAsserted<String>(
-          url = pseudonymReferenceUrl(randomPrisonNumber()),
+          url = aliasIdentifierUrl(randomPrisonNumber()),
           roles = listOf("UNSUPPORTED-ROLE"),
           expectedStatus = FORBIDDEN,
         )
@@ -108,7 +108,7 @@ class PrisonAPIReferencesControllerIntTest : WebTestBase() {
       @Test
       fun `should return UNAUTHORIZED 401 when role is not set`() {
         sendGetRequestAsserted<Unit>(
-          url = pseudonymReferenceUrl(randomPrisonNumber()),
+          url = aliasIdentifierUrl(randomPrisonNumber()),
           roles = emptyList(),
           expectedStatus = UNAUTHORIZED,
           sendAuthorised = false,
@@ -118,15 +118,15 @@ class PrisonAPIReferencesControllerIntTest : WebTestBase() {
   }
 
   @Nested
-  @DisplayName("PUT /person/prison/{prisonNumber}/pseudonyms/{cprPseudonymId}/references/{cprReferenceId}")
-  inner class UpdatePseudonymReferenceByPrisonNumber {
+  @DisplayName("PUT /person/prison/{prisonNumber}/aliases/{cprAliasId}/identifiers/{cprIdentifierId}")
+  inner class UpdateAliasIdentifierByPrisonNumber {
 
     @Nested
     inner class SuccessfulProcessing {
       @Test
       fun `should return not implemented`() {
         sendPutRequestAsserted<Unit>(
-          url = pseudonymReferenceUrl(randomPrisonNumber()),
+          url = aliasIdentifierUrl(randomPrisonNumber()),
           body = validUpdateRequest(),
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = NOT_IMPLEMENTED,
@@ -137,10 +137,10 @@ class PrisonAPIReferencesControllerIntTest : WebTestBase() {
     @Nested
     inner class Validation {
       @Test
-      fun `should return bad request when reference is blank`() {
+      fun `should return bad request when identifier is blank`() {
         sendPutRequestAsserted<String>(
-          url = pseudonymReferenceUrl(randomPrisonNumber()),
-          body = validUpdateRequest().copy(reference = ""),
+          url = aliasIdentifierUrl(randomPrisonNumber()),
+          body = validUpdateRequest().copy(identifier = ""),
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = BAD_REQUEST,
         )
@@ -149,8 +149,8 @@ class PrisonAPIReferencesControllerIntTest : WebTestBase() {
       @Test
       fun `should return bad request when userId is missing`() {
         sendPutRequestAsserted<String>(
-          url = pseudonymReferenceUrl(randomPrisonNumber()),
-          body = mapOf("reference" to "1231/XX/121"),
+          url = aliasIdentifierUrl(randomPrisonNumber()),
+          body = mapOf("identifier" to "1231/XX/121"),
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = BAD_REQUEST,
         )
@@ -162,7 +162,7 @@ class PrisonAPIReferencesControllerIntTest : WebTestBase() {
       @Test
       fun `should return Access Denied 403 when role is read only`() {
         sendPutRequestAsserted<String>(
-          url = pseudonymReferenceUrl(randomPrisonNumber()),
+          url = aliasIdentifierUrl(randomPrisonNumber()),
           body = validUpdateRequest(),
           roles = listOf(API_READ_ONLY),
           expectedStatus = FORBIDDEN,
@@ -172,7 +172,7 @@ class PrisonAPIReferencesControllerIntTest : WebTestBase() {
       @Test
       fun `should return UNAUTHORIZED 401 when role is not set`() {
         sendPutRequestAsserted<Unit>(
-          url = pseudonymReferenceUrl(randomPrisonNumber()),
+          url = aliasIdentifierUrl(randomPrisonNumber()),
           body = validUpdateRequest(),
           roles = emptyList(),
           expectedStatus = UNAUTHORIZED,
@@ -183,15 +183,15 @@ class PrisonAPIReferencesControllerIntTest : WebTestBase() {
   }
 
   @Nested
-  @DisplayName("POST /person/prison/{prisonNumber}/references")
-  inner class CreateReferencesByPrisonNumber {
+  @DisplayName("POST /person/prison/{prisonNumber}/identifiers")
+  inner class CreateIdentifiersByPrisonNumber {
 
     @Nested
     inner class SuccessfulProcessing {
       @Test
       fun `should return not implemented`() {
         sendPostRequestAsserted<Unit>(
-          url = referencesUrl(randomPrisonNumber()),
+          url = identifiersUrl(randomPrisonNumber()),
           body = listOf(validCreateRequest()),
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = NOT_IMPLEMENTED,
@@ -202,10 +202,10 @@ class PrisonAPIReferencesControllerIntTest : WebTestBase() {
     @Nested
     inner class Validation {
       @Test
-      fun `should return bad request when reference type is invalid`() {
+      fun `should return bad request when identifier type is invalid`() {
         sendPostRequestAsserted<String>(
-          url = referencesUrl(randomPrisonNumber()),
-          body = listOf(mapOf("referenceType" to "NOT_A_TYPE", "reference" to "1231/XX/121", "userId" to "TEST")),
+          url = identifiersUrl(randomPrisonNumber()),
+          body = listOf(mapOf("identifierType" to "NOT_A_TYPE", "identifier" to "1231/XX/121", "userId" to "TEST")),
           roles = listOf(PRISON_API_READ_WRITE),
           expectedStatus = BAD_REQUEST,
         )
@@ -217,7 +217,7 @@ class PrisonAPIReferencesControllerIntTest : WebTestBase() {
       @Test
       fun `should return Access Denied 403 when role is read only`() {
         sendPostRequestAsserted<String>(
-          url = referencesUrl(randomPrisonNumber()),
+          url = identifiersUrl(randomPrisonNumber()),
           body = listOf(validCreateRequest()),
           roles = listOf(API_READ_ONLY),
           expectedStatus = FORBIDDEN,
@@ -227,7 +227,7 @@ class PrisonAPIReferencesControllerIntTest : WebTestBase() {
       @Test
       fun `should return UNAUTHORIZED 401 when role is not set`() {
         sendPostRequestAsserted<Unit>(
-          url = referencesUrl(randomPrisonNumber()),
+          url = identifiersUrl(randomPrisonNumber()),
           body = listOf(validCreateRequest()),
           roles = emptyList(),
           expectedStatus = UNAUTHORIZED,
@@ -237,19 +237,19 @@ class PrisonAPIReferencesControllerIntTest : WebTestBase() {
     }
   }
 
-  private fun referencesUrl(prisonNumber: String) = "/person/prison/$prisonNumber/references"
+  private fun identifiersUrl(prisonNumber: String) = "/person/prison/$prisonNumber/identifiers"
 
-  private fun pseudonymReferenceUrl(prisonNumber: String) = "/person/prison/$prisonNumber/pseudonyms/${UUID.randomUUID()}/references/${UUID.randomUUID()}"
+  private fun aliasIdentifierUrl(prisonNumber: String) = "/person/prison/$prisonNumber/aliases/${UUID.randomUUID()}/identifiers/${UUID.randomUUID()}"
 
-  private fun validCreateRequest() = PrisonReferenceCreateRequest(
-    referenceType = PNC,
-    reference = "1231/XX/121",
+  private fun validCreateRequest() = PrisonIdentifierCreateRequest(
+    identifierType = PNC,
+    identifier = "1231/XX/121",
     comment = "Important info",
     userId = "TEST",
   )
 
-  private fun validUpdateRequest() = PrisonReferenceUpdateRequest(
-    reference = "1231/XX/121",
+  private fun validUpdateRequest() = PrisonIdentifierUpdateRequest(
+    identifier = "1231/XX/121",
     comment = "Important info",
     userId = "TEST",
   )

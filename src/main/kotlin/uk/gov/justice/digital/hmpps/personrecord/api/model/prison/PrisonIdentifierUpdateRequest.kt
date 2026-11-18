@@ -5,13 +5,13 @@ import io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED
 import jakarta.validation.constraints.NotBlank
 
-@Schema(description = "Update a prisoner reference")
-data class PrisonReferenceUpdateRequest(
-  @Schema(description = "The value of the reference", example = "1231/XX/121", requiredMode = REQUIRED)
+@Schema(description = "Update a prisoner identifier")
+data class PrisonIdentifierUpdateRequest(
+  @Schema(description = "The value of the identifier", example = "1231/XX/121", requiredMode = REQUIRED)
   @field:NotBlank
-  val reference: String,
+  val identifier: String,
 
-  @Schema(description = "Reference comment", example = "Important info", requiredMode = NOT_REQUIRED, nullable = true)
+  @Schema(description = "Identifier comment", example = "Important info", requiredMode = NOT_REQUIRED, nullable = true)
   val comment: String? = null,
 
   @Schema(description = "The user who made the change", requiredMode = REQUIRED)
