@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_A
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.M
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
@@ -91,7 +92,7 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
 
     createPersonKey()
       .addPerson(createRandomCommonPlatformPersonDetails(defendantId))
-      .addPerson(createRandomPrisonPersonDetails(prisonNumber))
+      .addPerson(createRandomPrisonPersonDetails(prisonNumber).copy(middleNames = randomName(), sexCode = M))
 
     return mapOf(
       "defendantId" to defendantId,

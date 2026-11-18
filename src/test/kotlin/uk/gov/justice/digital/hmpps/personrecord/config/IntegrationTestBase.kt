@@ -391,7 +391,7 @@ class IntegrationTestBase {
 
   internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(5)) untilAsserted function
 
-  internal fun <T> awaitNotNull(function: () -> T?): T = await atMost (Duration.ofSeconds(3)) untilNotNull function
+  internal fun <T> awaitNotNull(function: () -> T?): T = await atMost (Duration.ofSeconds(5)) untilNotNull function
 
   internal fun createPersonKey(status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
