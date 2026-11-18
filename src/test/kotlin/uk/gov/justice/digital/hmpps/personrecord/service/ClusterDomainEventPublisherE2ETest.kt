@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
@@ -127,8 +128,10 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
     fun `should publish domain event when performing an unmerge which results in a multi person cluster`() {
       val fromCrn = randomCrn()
       val toCrn = randomCrn()
-      val fromPerson = createRandomProbationCase(fromCrn)
-      val toPerson = createRandomProbationCase(toCrn)
+      val basePerson = createRandomProbationCase()
+
+      val fromPerson = basePerson.copy(identifiers = basePerson.identifiers.copy(crn = fromCrn))
+      val toPerson = basePerson.copy(identifiers = basePerson.identifiers.copy(crn = toCrn))
       val cluster = createPersonKey()
         .addPerson(Person.from(fromPerson))
         .addPerson(Person.from(toPerson))
@@ -138,7 +141,6 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
         targetCrn = toCrn,
         apiResponseSetup = ApiResponseSetup.from(createRandomProbationCase(toCrn)),
       )
-      cluster.assertClusterIsOfSize(1)
 
       checkTelemetry(
         event = CPR_RECORD_MERGED,
@@ -151,32 +153,38 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
       receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
       receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
 
-//      probationUnmergeEventAndResponseSetup(
-//        fromCrn,
-//        toCrn,
-//        reactivatedSetup = ApiResponseSetup.from(fromPerson),
-//        unmergedSetup = ApiResponseSetup.from(toPerson),
-//      )
+      val personThree = randomCrn()
+      val personOnSingleCluster = basePerson.copy(identifiers = basePerson.identifiers.copy(crn = personThree))
+      createPersonKey()
+        .addPerson(Person.from(personOnSingleCluster))
 
-//      checkTelemetry(
-//        event = CPR_RECORD_UNMERGED,
-//        expected = mapOf(
-//          "REACTIVATED_UUID" to cluster.personUUID.toString(),
-//          "UNMERGED_UUID" to cluster.personUUID.toString(),
-//          "FROM_SOURCE_SYSTEM_ID" to fromPerson.identifiers.crn!!,
-//          "TO_SOURCE_SYSTEM_ID" to toPerson.identifiers.crn!!,
-//          "SOURCE_SYSTEM" to "DELIUS",
-//        ),
-//      )
+      probationUnmergeEventAndResponseSetup(
+        fromCrn,
+        toCrn,
+        reactivatedSetup = ApiResponseSetup.from(fromPerson),
+        unmergedSetup = ApiResponseSetup.from(toPerson),
+      )
 
-//      EventKeys.REACTIVATED_UUID to personUnmerged.reactivatedRecord.personKey?.personUUID.toString(),
-//      EventKeys.UNMERGED_UUID to personUnmerged.unmergedRecord.personKey?.personUUID.toString(),
-//      EventKeys.FROM_SOURCE_SYSTEM_ID to personUnmerged.unmergedRecord.extractSourceSystemId(),
-//      EventKeys.TO_SOURCE_SYSTEM_ID to personUnmerged.reactivatedRecord.extractSourceSystemId(),
-//      EventKeys.SOURCE_SYSTEM to personUnmerged.reactivatedRecord.sourceSystem.name,
+      checkTelemetry(
+        event = CPR_RECORD_UNMERGED,
+        expected = mapOf(
+          "FROM_SOURCE_SYSTEM_ID" to toCrn,
+          "TO_SOURCE_SYSTEM_ID" to fromCrn,
+          "SOURCE_SYSTEM" to "DELIUS",
+        ),
+      )
 
 //      receiveDomainEventMessage(CPR_PROBATION_PERSON_UNMERGED) as CprPersonUnmerged
 //      val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
+//      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
+//      assertThat(actualDomainEvent.version).isEqualTo(1)
+//      assertThat(actualDomainEvent.occurredAt).isNotBlank
+//      assertThat(actualDomainEvent.description).isEqualTo("A person record match has changed")
+//      val expectedIdentifiers = listOf(
+//        PersonIdentifier(type = "CRN", value = personOnSingleCluster.identifiers.crn!!),
+//        PersonIdentifier(type = "CRN", value = fromCrn),
+//      )
+//      assertThat(actualDomainEvent.personReference.identifiers).hasSameElementsAs(expectedIdentifiers)
     }
   }
 
