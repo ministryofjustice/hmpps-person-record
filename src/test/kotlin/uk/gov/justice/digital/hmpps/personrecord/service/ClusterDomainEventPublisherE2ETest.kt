@@ -8,11 +8,13 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprClusterChanged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonMerged
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonUnmerged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
@@ -125,7 +127,7 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should publish domain event when performing an unmerge which results in a multi person cluster`() {
+    fun `should publish domain event when performing an unmerge which results in reactivated person joining an existing cluster`() {
       val fromCrn = randomCrn()
       val toCrn = randomCrn()
       val basePerson = createRandomProbationCase()
@@ -184,6 +186,56 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
         PersonIdentifier(type = "CRN", value = fromCrn),
       )
       assertThat(actualDomainEvent.personReference.identifiers).hasSameElementsAs(expectedIdentifiers)
+    }
+
+    @Test
+    fun `should not publish domain event when performing an unmerge which results in reactivated person joining it's own new cluster`() {
+      val fromCrn = randomCrn()
+      val toCrn = randomCrn()
+      val basePerson = createRandomProbationCase()
+
+      val fromPerson = basePerson.copy(identifiers = basePerson.identifiers.copy(crn = fromCrn))
+      val toPerson = basePerson.copy(identifiers = basePerson.identifiers.copy(crn = toCrn))
+      createPersonKey()
+        .addPerson(Person.from(fromPerson))
+        .addPerson(Person.from(toPerson))
+
+      probationMergeEventAndResponseSetup(
+        sourceCrn = fromCrn,
+        targetCrn = toCrn,
+        apiResponseSetup = ApiResponseSetup.from(createRandomProbationCase(toCrn)),
+      )
+
+      checkTelemetry(
+        event = CPR_RECORD_MERGED,
+        expected = mapOf(
+          "FROM_SOURCE_SYSTEM_ID" to fromCrn,
+          "TO_SOURCE_SYSTEM_ID" to toCrn,
+        ),
+      )
+
+      receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
+      receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
+
+      probationUnmergeEventAndResponseSetup(
+        fromCrn,
+        toCrn,
+        reactivatedSetup = ApiResponseSetup.from(fromPerson),
+        unmergedSetup = ApiResponseSetup.from(toPerson),
+      )
+
+      checkTelemetry(
+        event = CPR_RECORD_UNMERGED,
+        expected = mapOf(
+          "FROM_SOURCE_SYSTEM_ID" to toCrn,
+          "TO_SOURCE_SYSTEM_ID" to fromCrn,
+          "SOURCE_SYSTEM" to "DELIUS",
+        ),
+      )
+
+      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+      val actualDomainEvent = receiveDomainEventMessage(CPR_PROBATION_PERSON_UNMERGED) as CprPersonUnmerged
+      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_UNMERGED)
     }
   }
 
