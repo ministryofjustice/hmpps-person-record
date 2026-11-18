@@ -16,6 +16,7 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.AddressBuilder.buildAddresses
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ContactBuilder.buildContacts
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBuilder.buildReferences
@@ -175,11 +176,11 @@ class PersonEntity(
     LIBRA to this.cId,
   )[this.sourceSystem]
 
-  fun extractSourceSystemIdByType() = when (this.sourceSystem) {
-    NOMIS -> "prisonNumber" to this.prisonNumber!!
-    DELIUS -> "CRN" to this.crn!!
-    COMMON_PLATFORM -> "defendantId" to this.defendantId!!
-    LIBRA -> "cid" to this.cId!!
+  fun extractPersonIdentifier() = when (this.sourceSystem) {
+    NOMIS -> PersonIdentifier("prisonNumber", this.prisonNumber!!)
+    DELIUS -> PersonIdentifier("CRN", this.crn!!)
+    COMMON_PLATFORM -> PersonIdentifier("defendantId", this.defendantId!!)
+    LIBRA -> PersonIdentifier("cid", this.cId!!)
   }
 
   fun addOverrideMarker(scope: OverrideScopeEntity, marker: UUID = OverrideScopeEntity.newMarker()) {
