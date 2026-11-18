@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
@@ -79,22 +79,14 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       probationUnmergeEventAndResponseSetup(reactivatedCrn, unmergedCrn, reactivatedSetup = reactivatedSetup)
 
       checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_UUID_CREATED)
-      checkEventLog(reactivatedCrn, CPRLogEvents.CPR_RECORD_UNMERGED) { eventLogs ->
+      checkEventLog(reactivatedCrn, CPR_RECORD_UNMERGED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
         assertThat(eventLog.personUUID).isNotEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }
 
-      checkTelemetry(
-        CPR_RECORD_UNMERGED,
-        mapOf(
-          "TO_SOURCE_SYSTEM_ID" to reactivatedCrn,
-          "FROM_SOURCE_SYSTEM_ID" to unmergedCrn,
-          "UNMERGED_UUID" to cluster.personUUID.toString(),
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
+      checkEventLogExist(reactivatedCrn, CPR_RECORD_UNMERGED)
 
       unmergedPerson.assertHasLinkToCluster()
       unmergedPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
@@ -146,14 +138,7 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
         unmergedSetup = unmergedSetup,
       )
 
-      checkTelemetry(
-        CPR_RECORD_UNMERGED,
-        mapOf(
-          "TO_SOURCE_SYSTEM_ID" to reactivatedCrn,
-          "FROM_SOURCE_SYSTEM_ID" to unmergedCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
+      checkEventLogExist(reactivatedCrn, CPR_RECORD_UNMERGED)
 
       cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION, reason = UUIDStatusReasonType.OVERRIDE_CONFLICT)
       cluster.assertClusterIsOfSize(2)
