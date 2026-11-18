@@ -18,7 +18,7 @@ class SysconSyncPrisonPrimaryNameAPIControllerIntTest : WebTestBase() {
       @Test
       fun `should respond with 501 as not currently implemented`() {
         webTestClient.post()
-          .uri(primaryNameUrl(randomPrisonNumber(), randomCprPseudonymId()))
+          .uri(primaryNameUrl(randomPrisonNumber(), randomCprAliasId()))
           .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
           .exchange()
           .expectStatus()
@@ -32,7 +32,7 @@ class SysconSyncPrisonPrimaryNameAPIControllerIntTest : WebTestBase() {
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         webTestClient.post()
-          .uri(primaryNameUrl(randomPrisonNumber(), randomCprPseudonymId()))
+          .uri(primaryNameUrl(randomPrisonNumber(), randomCprAliasId()))
           .authorised(listOf("UNSUPPORTED-ROLE"))
           .exchange()
           .expectStatus()
@@ -45,7 +45,7 @@ class SysconSyncPrisonPrimaryNameAPIControllerIntTest : WebTestBase() {
       @Test
       fun `should return UNAUTHORIZED 401 when role is not set`() {
         webTestClient.post()
-          .uri(primaryNameUrl(randomPrisonNumber(), randomCprPseudonymId()))
+          .uri(primaryNameUrl(randomPrisonNumber(), randomCprAliasId()))
           .exchange()
           .expectStatus()
           .isUnauthorized
@@ -53,7 +53,7 @@ class SysconSyncPrisonPrimaryNameAPIControllerIntTest : WebTestBase() {
     }
   }
 
-  private fun randomCprPseudonymId() = UUID.randomUUID().toString()
+  private fun randomCprAliasId() = UUID.randomUUID().toString()
 
-  private fun primaryNameUrl(prisonNumber: String, cprPseudonymId: String) = "/syscon-sync/person/$prisonNumber/primary-name/$cprPseudonymId"
+  private fun primaryNameUrl(prisonNumber: String, cprAliasId: String) = "/syscon-sync/person/$prisonNumber/primary-name/$cprAliasId"
 }

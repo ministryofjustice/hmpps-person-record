@@ -20,13 +20,13 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECO
 @RequestMapping(produces = [APPLICATION_JSON_VALUE])
 class SysconSyncPrisonPrimaryNameAPIController {
   @Operation(
-    description = """Sets the given pseudonym as the PRIMARY (working) name for the prisoner, marking all other pseudonyms as ALIAS. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
+    description = """Sets the given alias as the PRIMARY (working) name for the prisoner, marking all other aliases as ALIAS. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
     security = [SecurityRequirement(name = "api-role")],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @PostMapping("/syscon-sync/person/{prisonNumber}/primary-name/{cprPseudonymId}")
+  @PostMapping("/syscon-sync/person/{prisonNumber}/primary-name/{cprAliasId}")
   fun processPrisonPrimaryName(
     @PathVariable prisonNumber: String,
-    @PathVariable cprPseudonymId: String,
+    @PathVariable cprAliasId: String,
   ): ResponseEntity<Unit> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
 }
