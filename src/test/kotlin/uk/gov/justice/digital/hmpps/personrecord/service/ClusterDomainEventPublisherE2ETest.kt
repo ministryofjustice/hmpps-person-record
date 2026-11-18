@@ -132,7 +132,7 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
 
       val fromPerson = basePerson.copy(identifiers = basePerson.identifiers.copy(crn = fromCrn))
       val toPerson = basePerson.copy(identifiers = basePerson.identifiers.copy(crn = toCrn))
-      val cluster = createPersonKey()
+      createPersonKey()
         .addPerson(Person.from(fromPerson))
         .addPerson(Person.from(toPerson))
 
@@ -153,15 +153,15 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
       receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
       receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
 
-      val personThree = randomCrn()
-      val personOnSingleCluster = basePerson.copy(identifiers = basePerson.identifiers.copy(crn = personThree))
-      createPersonKey()
-        .addPerson(Person.from(personOnSingleCluster))
+      val personThreeCrn = randomCrn()
+      val basePersonTwo = createRandomProbationCase()
+      createPersonKey() // <- cluster 'fromPerson' will join once unmerged
+        .addPerson(Person.from(basePersonTwo.copy(identifiers = basePersonTwo.identifiers.copy(crn = personThreeCrn))))
 
       probationUnmergeEventAndResponseSetup(
         fromCrn,
         toCrn,
-        reactivatedSetup = ApiResponseSetup.from(fromPerson),
+        reactivatedSetup = ApiResponseSetup.from(basePersonTwo.copy(identifiers = basePersonTwo.identifiers.copy(crn = fromCrn), name = ProbationCaseName(firstName = randomName()))),
         unmergedSetup = ApiResponseSetup.from(toPerson),
       )
 
@@ -174,17 +174,16 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
         ),
       )
 
-//      receiveDomainEventMessage(CPR_PROBATION_PERSON_UNMERGED) as CprPersonUnmerged
-//      val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
-//      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
-//      assertThat(actualDomainEvent.version).isEqualTo(1)
-//      assertThat(actualDomainEvent.occurredAt).isNotBlank
-//      assertThat(actualDomainEvent.description).isEqualTo("A person record match has changed")
-//      val expectedIdentifiers = listOf(
-//        PersonIdentifier(type = "CRN", value = personOnSingleCluster.identifiers.crn!!),
-//        PersonIdentifier(type = "CRN", value = fromCrn),
-//      )
-//      assertThat(actualDomainEvent.personReference.identifiers).hasSameElementsAs(expectedIdentifiers)
+      val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
+      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
+      assertThat(actualDomainEvent.version).isEqualTo(1)
+      assertThat(actualDomainEvent.occurredAt).isNotBlank
+      assertThat(actualDomainEvent.description).isEqualTo("A person record match has changed")
+      val expectedIdentifiers = listOf(
+        PersonIdentifier(type = "CRN", value = personThreeCrn),
+        PersonIdentifier(type = "CRN", value = fromCrn),
+      )
+      assertThat(actualDomainEvent.personReference.identifiers).hasSameElementsAs(expectedIdentifiers)
     }
   }
 

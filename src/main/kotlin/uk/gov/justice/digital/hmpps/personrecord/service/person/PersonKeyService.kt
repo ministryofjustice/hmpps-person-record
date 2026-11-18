@@ -49,7 +49,6 @@ class PersonKeyService(
         this,
         matches.first(),
       )
-      // TODO: should we simply just call recluster everytime so we don't have do add conditional logic?
       if (matches.size > 1) {
         reclusterService.recluster(this)
       } else {
