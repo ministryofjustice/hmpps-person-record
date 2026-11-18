@@ -91,6 +91,7 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
         ),
       )
 
+      receiveDomainEventMessage(CPR_PROBATION_PERSON_UPDATED) as CprPersonUpdated
       val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
       assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
       assertThat(actualDomainEvent.version).isEqualTo(1)
@@ -115,7 +116,7 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
         .addPerson(Person.from(personOne))
         .addPerson(Person.from(personTwo))
 
-      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(personTwo))
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(personTwo.copy(name = ProbationCaseName(firstName = randomName()))))
 
       expectOneMessageOn(testOnlyCPRDomainEventsQueue)
       val actualDomainEvent = receiveDomainEventMessage(CPR_PROBATION_PERSON_UPDATED) as CprPersonUpdated
@@ -123,7 +124,59 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should publish domain event when performing an unmerge`() {
+    fun `should publish domain event when performing an unmerge which results in a multi person cluster`() {
+      val fromCrn = randomCrn()
+      val toCrn = randomCrn()
+      val fromPerson = createRandomProbationCase(fromCrn)
+      val toPerson = createRandomProbationCase(toCrn)
+      val cluster = createPersonKey()
+        .addPerson(Person.from(fromPerson))
+        .addPerson(Person.from(toPerson))
+
+      probationMergeEventAndResponseSetup(
+        sourceCrn = fromCrn,
+        targetCrn = toCrn,
+        apiResponseSetup = ApiResponseSetup.from(createRandomProbationCase(toCrn)),
+      )
+      cluster.assertClusterIsOfSize(1)
+
+      checkTelemetry(
+        event = CPR_RECORD_MERGED,
+        expected = mapOf(
+          "FROM_SOURCE_SYSTEM_ID" to fromCrn,
+          "TO_SOURCE_SYSTEM_ID" to toCrn,
+        ),
+      )
+
+      receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
+      receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
+
+//      probationUnmergeEventAndResponseSetup(
+//        fromCrn,
+//        toCrn,
+//        reactivatedSetup = ApiResponseSetup.from(fromPerson),
+//        unmergedSetup = ApiResponseSetup.from(toPerson),
+//      )
+
+//      checkTelemetry(
+//        event = CPR_RECORD_UNMERGED,
+//        expected = mapOf(
+//          "REACTIVATED_UUID" to cluster.personUUID.toString(),
+//          "UNMERGED_UUID" to cluster.personUUID.toString(),
+//          "FROM_SOURCE_SYSTEM_ID" to fromPerson.identifiers.crn!!,
+//          "TO_SOURCE_SYSTEM_ID" to toPerson.identifiers.crn!!,
+//          "SOURCE_SYSTEM" to "DELIUS",
+//        ),
+//      )
+
+//      EventKeys.REACTIVATED_UUID to personUnmerged.reactivatedRecord.personKey?.personUUID.toString(),
+//      EventKeys.UNMERGED_UUID to personUnmerged.unmergedRecord.personKey?.personUUID.toString(),
+//      EventKeys.FROM_SOURCE_SYSTEM_ID to personUnmerged.unmergedRecord.extractSourceSystemId(),
+//      EventKeys.TO_SOURCE_SYSTEM_ID to personUnmerged.reactivatedRecord.extractSourceSystemId(),
+//      EventKeys.SOURCE_SYSTEM to personUnmerged.reactivatedRecord.sourceSystem.name,
+
+//      receiveDomainEventMessage(CPR_PROBATION_PERSON_UNMERGED) as CprPersonUnmerged
+//      val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
     }
   }
 
@@ -148,6 +201,7 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
         ),
       )
 
+      receiveDomainEventMessage(CPR_PROBATION_PERSON_DELETED) as CprPersonDeleted
       val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
       assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
       assertThat(actualDomainEvent.version).isEqualTo(1)
@@ -204,6 +258,7 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
         ),
       )
 
+      receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
       val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
       assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
       assertThat(actualDomainEvent.version).isEqualTo(1)

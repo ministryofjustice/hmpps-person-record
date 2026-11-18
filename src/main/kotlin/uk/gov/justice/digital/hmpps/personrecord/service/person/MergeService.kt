@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.ClusterChanged
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.PersonMerged
 import uk.gov.justice.digital.hmpps.personrecord.service.recluster.ReclusterService
@@ -29,6 +30,7 @@ class MergeService(
     personChangeChecker: PersonChangeChecker = PersonChangeChecker(to),
     childrenToIgnore: Set<KClass<*>> = emptySet(),
   ) {
+    val fromPersonCluster = from.personKey!!
     updateToPerson(to, person, personChangeChecker, childrenToIgnore)
     val fromClusterDetail = EventLogClusterDetail.from(from.personKey)
     when {
@@ -36,6 +38,11 @@ class MergeService(
     }
     merge(from, to, fromClusterDetail, personChangeChecker)
     reclusterService.recluster(to)
+
+    val remainingPersonsOnFromPersonCluster = fromPersonCluster.personEntities.filter { it.id != from.id }
+    if (remainingPersonsOnFromPersonCluster.isNotEmpty()) {
+      publisher.publishEvent(ClusterChanged(fromPersonCluster))
+    }
   }
 
   private fun updateToPerson(to: PersonEntity, person: Person, personChangeChecker: PersonChangeChecker, childrenToIgnore: Set<KClass<*>> = emptySet()) {
