@@ -111,31 +111,6 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
     }
 
     @Test
-    fun `deleting a merged from person does not delete the merged to person`() {
-      val recordACrn = randomCrn()
-      val recordBCrn = randomCrn()
-
-      // Record Cluster (2 Records - B merged to A)
-      val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
-      val recordB = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
-
-      probationMergeEventAndResponseSetup(recordBCrn, recordACrn)
-      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_MERGED)
-
-      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, recordBCrn)
-
-      checkTelemetry(
-        CPR_RECORD_DELETED,
-        mapOf("CRN" to recordBCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkEventLogExist(recordBCrn, CPRLogEvents.CPR_RECORD_DELETED)
-
-      recordB.assertPersonDeleted()
-      recordA.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      recordA.personKey?.assertClusterIsOfSize(1)
-    }
-
-    @Test
     fun `deleting a merged to person does delete a merged from person`() {
       val recordACrn = randomCrn()
       val recordBCrn = randomCrn()

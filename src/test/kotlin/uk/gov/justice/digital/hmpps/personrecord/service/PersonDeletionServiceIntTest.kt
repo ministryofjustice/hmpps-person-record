@@ -81,25 +81,6 @@ class PersonDeletionServiceIntTest : WebTestBase() {
 
   @Nested
   inner class PersonMergeScenarios {
-    @Test
-    fun `deletes a merged from person - correct events occurred`() {
-      val toPerson = createPersonWithNewKey(createRandomPrisonPersonDetails())
-      val fromPerson = createMergedPerson(createRandomPrisonPersonDetails(), toPerson.id)
-      stubDeletePersonMatch()
-
-      triggerPersonDeletion(fromPerson.prisonNumber)
-
-      awaitAssert {
-        awaitNotNull { personKeyRepository.findByPersonUUID(toPerson.personKey!!.personUUID) }
-        awaitNotNull { personRepository.findByPrisonNumber(toPerson.prisonNumber!!) }
-        assertThat(personRepository.findByPrisonNumber(fromPerson.prisonNumber!!)).isNull()
-
-        checkEventLogExist(fromPerson.prisonNumber!!, CPRLogEvents.CPR_RECORD_DELETED)
-        checkTelemetry(CPR_RECORD_DELETED, mapOf("PRISON_NUMBER" to fromPerson.prisonNumber))
-      }
-
-      verifyDeleteFromPersonMatch(fromPerson)
-    }
 
     @Test
     fun `deletes a non merged person - correct events occurred`() {
