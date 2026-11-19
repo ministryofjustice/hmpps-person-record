@@ -31,7 +31,7 @@ class SysconSyncPrisonReligionPostAPIControllerIntTest(
   private lateinit var prisonReligionRepository: PrisonReligionRepository
 
   @Nested
-  inner class Successful {
+  inner class SuccessfulProcessing {
 
     @Test
     fun `person has no prison religions - saves prison religion - updates current religion`() {

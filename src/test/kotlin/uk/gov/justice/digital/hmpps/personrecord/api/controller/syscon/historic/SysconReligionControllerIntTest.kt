@@ -26,7 +26,7 @@ class SysconReligionControllerIntTest : WebTestBase() {
   private lateinit var prisonReligionRepository: PrisonReligionRepository
 
   @Nested
-  inner class Creation {
+  inner class SuccessfulProcessing {
 
     @Test
     fun `when no existing religions exist by prison number - should save religions`() {

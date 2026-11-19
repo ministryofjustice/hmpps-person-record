@@ -628,7 +628,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
   }
 
   @Nested
-  inner class ErrorHandling {
+  inner class Validation {
 
     @Test
     fun `should fail with a 500 error when message processing fails`() {
@@ -719,7 +719,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
   }
 
   @Nested
-  inner class Authorisation {
+  inner class Auth {
 
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {

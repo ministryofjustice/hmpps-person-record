@@ -264,7 +264,7 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
     }
 
     @Nested
-    inner class Creation {
+    inner class SuccessfulProcessing {
 
       fun postCodesAreSame(addressEntities: List<AddressEntity>, addressRequest: List<PrisonAddress>) = addressEntities.map { it.postcode }.toSet() == addressRequest.map { it.postcode }.toSet()
 

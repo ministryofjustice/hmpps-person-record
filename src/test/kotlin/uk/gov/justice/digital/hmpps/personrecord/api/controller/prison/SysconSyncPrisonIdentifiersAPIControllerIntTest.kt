@@ -16,7 +16,7 @@ import java.util.UUID
 class SysconSyncPrisonIdentifiersAPIControllerIntTest : WebTestBase() {
 
   @Nested
-  inner class HappyPath {
+  inner class SuccessfulProcessing {
 
     @Test
     fun `should respond with 501 as not currently implemented`() {

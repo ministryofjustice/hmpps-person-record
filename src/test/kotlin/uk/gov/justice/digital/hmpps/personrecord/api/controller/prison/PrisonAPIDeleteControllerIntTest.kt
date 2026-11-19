@@ -62,7 +62,7 @@ class PrisonAPIDeleteControllerIntTest : WebTestBase() {
   }
 
   @Nested
-  inner class Authorisation {
+  inner class Auth {
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       sendDeleteRequestAsserted<Unit>(
