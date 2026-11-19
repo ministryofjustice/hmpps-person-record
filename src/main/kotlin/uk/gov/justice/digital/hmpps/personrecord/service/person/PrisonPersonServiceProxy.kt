@@ -21,7 +21,7 @@ interface PrisonPersonServiceProxy {
   )
 }
 
-@Profile("!prod && !preprod")
+@Profile("!prod && !preprod && !dev")
 @Component
 @Transactional(isolation = Isolation.REPEATABLE_READ)
 class PrisonPersonServiceProxyImpl(
@@ -32,13 +32,8 @@ class PrisonPersonServiceProxyImpl(
     person: Person,
     findPerson: () -> PersonEntity?,
   ) {
-    // TODO turn this into a no-op when we no longer want to process search create events.
-    personService.processPerson(
-      person = person,
-      childrenToIgnore = setOf(AddressEntity::class, ContactEntity::class),
-    ) {
-      findPerson()
-    }
+    // TODO turn this into a no-op.
+    processPersonUpdate(person, findPerson)
   }
 
   override fun processPersonUpdate(
@@ -52,7 +47,7 @@ class PrisonPersonServiceProxyImpl(
   }
 }
 
-@Profile("prod || preprod")
+@Profile("prod || preprod || dev")
 @Component
 @Transactional(isolation = Isolation.REPEATABLE_READ)
 class PrisonPersonServiceProxyProd(
