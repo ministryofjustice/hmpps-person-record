@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 
 @Component
 @Transactional(readOnly = true)
-class TransactionalPersonLookup(private val personRepository: PersonRepository) {
+class TransactionalLookup(private val personRepository: PersonRepository) {
 
   fun findByPrisonNumber(prisonNumber: String, initialise: (PersonEntity) -> Unit): PersonEntity = personRepository.findByPrisonNumber(prisonNumber)!!.also(initialise)
 
