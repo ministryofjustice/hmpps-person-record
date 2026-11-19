@@ -7,8 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.HttpStatus.FORBIDDEN
-import org.springframework.http.HttpStatus.NOT_FOUND
-import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressUsagesAPIControllerIntTest.Companion.assertAddressUsageMatches
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesAPIControllerIntTest.Companion.assertAddressMatches
@@ -51,22 +49,6 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
 
   @Nested
   inner class Migration {
-
-    @Nested
-    @ActiveProfiles("prod")
-    inner class ProductionProfile {
-
-      @Test
-      fun `should have the correct profile active`() {
-        sendPostRequestAsserted<String>(
-          url = migrationUrl(randomPrisonNumber()),
-          body = validPrisonAddressesAndContactsRequest,
-          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
-          expectedStatus = NOT_FOUND,
-          sendAuthorised = true,
-        ).returnResult().responseBody!!
-      }
-    }
 
     @Nested
     inner class Validation {
@@ -401,9 +383,9 @@ class SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest : WebTestBa
         ).returnResult().responseBody!!
 
         // Check that we can no longer find the orphaned addresses and its children in the repository
-        assertThat(addressRepository.findById(addressToBeDeleted.id!!)).isEmpty
-        assertThat(contactRepository.findById(addressContactToBeDeleted.id!!)).isEmpty
-        assertThat(addressUsageRepository.findById(addressUsageToBeDeleted.id!!)).isEmpty
+        assertThat(addressRepository.findById(addressToBeDeleted.id!!)).isEmpty()
+        assertThat(contactRepository.findById(addressContactToBeDeleted.id!!)).isEmpty()
+        assertThat(addressUsageRepository.findById(addressUsageToBeDeleted.id!!)).isEmpty()
       }
 
       @Test

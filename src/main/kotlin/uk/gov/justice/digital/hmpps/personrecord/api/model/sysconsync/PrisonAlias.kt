@@ -30,17 +30,17 @@ data class PrisonAlias(
   @Schema(description = "Indicates if this is a primary alias", example = "true")
   val isPrimary: Boolean,
   @Schema(description = "Birth place of this offender record")
-  val birthPlace: String?,
+  val birthPlace: String? = null,
   @Schema(description = "Birth country of this offender record")
-  val birthCountry: CountryCode?,
+  val birthCountry: CountryCode? = null,
   @Schema(description = "Ethnicity of this offender record")
-  val ethnicity: EthnicityCode?,
+  val ethnicity: EthnicityCode? = null,
   @Schema(description = "List of identifiers associated with this alias")
   val identifiers: List<PrisonIdentifier>,
   @Schema(description = "Suffix")
-  val suffix: PrisonPseudonymSuffix?,
+  val suffix: PrisonPseudonymSuffix? = null,
   @Schema(description = "Name type")
-  val nameType: PrisonAliasNameType?,
+  val nameType: PrisonAliasNameType? = null,
   @Schema(description = "The alias create date and time", example = "2000-01-01T12:00:00", required = true)
   val createDateTime: LocalDateTime,
   @Schema(description = "The alias create user id", example = "12345", required = true)
