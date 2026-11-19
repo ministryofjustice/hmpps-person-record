@@ -17,6 +17,7 @@ import jakarta.persistence.Version
 import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
@@ -77,6 +78,13 @@ class PseudonymEntity(
   @Column(name = "ethnicity_code")
   @Enumerated(STRING)
   var ethnicityCode: EthnicityCode? = null,
+
+  @Column(name = "birth_place")
+  var birthplace: String? = null,
+
+  @Column(name = "birth_country_code")
+  @Enumerated(STRING)
+  var birthCountryCode: CountryCode? = null,
 
   @Column(name = "name_type")
   @Enumerated(STRING)
