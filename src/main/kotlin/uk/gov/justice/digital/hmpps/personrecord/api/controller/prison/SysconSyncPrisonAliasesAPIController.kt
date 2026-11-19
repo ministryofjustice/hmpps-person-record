@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncPseudonymHandlerProxy
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncPseudonymHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
 
 @Tag(name = "Syscon Sync")
@@ -26,7 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlia
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
 class SysconSyncPrisonAliasesAPIController(
-  private val sysconSyncPseudonymHandler: SysconSyncPseudonymHandlerProxy,
+  private val sysconSyncPseudonymHandler: SysconSyncPseudonymHandler,
 ) {
 
   @Operation(

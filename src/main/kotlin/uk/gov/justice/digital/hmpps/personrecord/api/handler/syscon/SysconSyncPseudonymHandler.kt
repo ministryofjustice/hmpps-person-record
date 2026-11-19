@@ -5,18 +5,18 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasMapping
 
-interface SysconSyncPseudonymHandlerProxy {
+interface SysconSyncPseudonymHandler {
   fun handleInsert(prisonNumber: String, prisonAlias: PrisonAlias): SysconAliasMapping
 }
 
-@Profile("prod || preprod")
+@Profile("dev || prod || preprod")
 @Component
-class SysconSyncPseudonymHandlerProd : SysconSyncPseudonymHandlerProxy {
+class SysconSyncPseudonymHandlerProd : SysconSyncPseudonymHandler {
   override fun handleInsert(prisonNumber: String, prisonAlias: PrisonAlias) = SysconAliasMapping()
 }
 
-@Profile("!prod && !preprod")
+@Profile("test")
 @Component
-class SysconSyncPseudonymHandlerImpl : SysconSyncPseudonymHandlerProxy {
+class SysconSyncPseudonymHandlerImpl : SysconSyncPseudonymHandler {
   override fun handleInsert(prisonNumber: String, prisonAlias: PrisonAlias) = SysconAliasMapping()
 }

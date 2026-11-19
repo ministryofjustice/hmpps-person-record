@@ -1,11 +1,14 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.NomisIdentifierId
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasMapping
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
@@ -70,16 +73,20 @@ class SysconSyncPrisonAliasesAPIControllerIntTest : WebTestBase() {
 
     @Nested
     inner class SuccessfulProcessing {
-
       @Test
-      fun `should respond with 501 as not currently implemented`() {
-        webTestClient.post()
-          .uri(aliasesUrl(randomPrisonNumber()))
-          .bodyValue(prisonAlias())
-          .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
-          .exchange()
-          .expectStatus()
-          .isEqualTo(501)
+      fun `should respond with an empty response`() {
+        val responseBody = sendPostRequestAsserted<SysconAliasMapping>(
+          url = aliasesUrl(randomPrisonNumber()),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = HttpStatus.CREATED,
+          body = PrisonAlias(
+            nomisOffenderId = 10000L,
+            isPrimary = true,
+            createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+            createUserId = "createUserId",
+          ),
+        ).returnResult().responseBody!!
+        assertThat(responseBody).isEqualTo(SysconAliasMapping())
       }
     }
 
