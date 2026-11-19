@@ -52,13 +52,13 @@ class ReferenceEntity(
 
   @Column(name = "identifier_type")
   @Enumerated(STRING)
-  var identifierType: IdentifierType,
+  val identifierType: IdentifierType,
 
   @Column(name = "identifier_value")
-  var identifierValue: String? = null,
+  val identifierValue: String? = null,
 
   @Column(name = "identifier_comment")
-  var comment: String? = null,
+  val comment: String? = null,
 
   @Column(name = "is_verified")
   var isVerified: Boolean? = null,

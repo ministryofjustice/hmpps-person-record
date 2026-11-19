@@ -60,16 +60,16 @@ class PseudonymEntity(
   var titleCode: TitleCode? = null,
 
   @Column(name = "first_name")
-  var firstName: String? = null,
+  val firstName: String? = null,
 
   @Column(name = "middle_names")
-  var middleNames: String? = null,
+  val middleNames: String? = null,
 
   @Column(name = "last_name")
-  var lastName: String? = null,
+  val lastName: String? = null,
 
   @Column(name = "date_of_birth")
-  var dateOfBirth: LocalDate? = null,
+  val dateOfBirth: LocalDate? = null,
 
   @Column(name = "sex_code")
   @Enumerated(STRING)
@@ -88,7 +88,7 @@ class PseudonymEntity(
 
   @Column(name = "name_type")
   @Enumerated(STRING)
-  var nameType: NameType,
+  val nameType: NameType,
 
   @Column(name = "create_date_time")
   var createDateTime: LocalDateTime? = null,
