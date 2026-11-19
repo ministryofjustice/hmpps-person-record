@@ -4,12 +4,12 @@ data class SysconAliasesAndIdentifiersResponseBody(
 
   val prisonNumber: String,
   val aliasesMappings: List<SysconAliasMapping>,
-  val identifiersMappings: List<SysconIdentifierMapping>,
 )
 
 data class SysconAliasMapping(
   val nomisOffenderId: Long,
   val cprAliasId: String,
+  val identifierMappings: List<SysconIdentifierMapping>,
 )
 
 data class SysconIdentifierMapping(

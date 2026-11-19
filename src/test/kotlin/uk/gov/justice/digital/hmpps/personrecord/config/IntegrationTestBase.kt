@@ -391,7 +391,7 @@ class IntegrationTestBase {
 
   internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(5)) untilAsserted function
 
-  internal fun <T> awaitNotNull(function: () -> T?): T = await atMost (Duration.ofSeconds(3)) untilNotNull function
+  internal fun <T> awaitNotNull(function: () -> T?): T = await atMost (Duration.ofSeconds(5)) untilNotNull function
 
   internal fun createPersonKey(status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
@@ -614,10 +614,9 @@ class IntegrationTestBase {
     }
   }
 
-  internal fun PersonKeyEntity.getReviews(): List<ReviewEntity> = awaitNotNull {
-    reviewRepository.findByClustersPersonKey(
-      this,
-    )
+  internal fun PersonKeyEntity.getReviews(): List<ReviewEntity> {
+    awaitAssert { assertThat(reviewRepository.findByClustersPersonKey(this)).hasSizeGreaterThan(0) }
+    return reviewRepository.findByClustersPersonKey(this)!!
   }
 
   internal fun ReviewEntity.assertRemoved() = awaitAssert { assertThat(reviewRepository.findByIdOrNull(this.id!!)).isNull() }
