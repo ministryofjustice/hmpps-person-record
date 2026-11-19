@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasWithIdentifiersMapping
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasMapping
 
 @Tag(name = "Syscon Sync")
 @RestController
@@ -46,7 +46,7 @@ class SysconSyncPrisonAliasesAPIController {
   fun createPrisonerAlias(
     @PathVariable prisonNumber: String,
     @Valid @RequestBody requestBody: PrisonAlias,
-  ): ResponseEntity<SysconAliasWithIdentifiersMapping> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+  ): ResponseEntity<SysconAliasMapping> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
 
   @Operation(
     description = """Update prisoner alias record by Prison Number and alias uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
