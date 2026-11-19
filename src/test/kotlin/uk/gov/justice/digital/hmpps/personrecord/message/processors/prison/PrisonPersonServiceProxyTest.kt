@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
@@ -42,7 +44,7 @@ class PrisonPersonServiceProxyTest {
 
       verify(personService).processPerson(
         person = eq(person),
-        childrenToIgnore = any(),
+        childrenToIgnore = eq(setOf(AddressEntity::class, ContactEntity::class)),
         findPerson = any(),
       )
     }
@@ -53,7 +55,7 @@ class PrisonPersonServiceProxyTest {
 
       verify(personService).processPerson(
         person = eq(person),
-        childrenToIgnore = any(),
+        childrenToIgnore = eq(setOf(AddressEntity::class, ContactEntity::class)),
         findPerson = any(),
       )
     }
@@ -74,7 +76,7 @@ class PrisonPersonServiceProxyTest {
 
       verify(personService).processPerson(
         person = eq(person),
-        childrenToIgnore = any(),
+        childrenToIgnore = eq(setOf(AddressEntity::class, ContactEntity::class)),
         findPerson = any(),
       )
     }
@@ -85,7 +87,7 @@ class PrisonPersonServiceProxyTest {
 
       verify(personService).processPerson(
         person = eq(person),
-        childrenToIgnore = any(),
+        childrenToIgnore = eq(setOf(AddressEntity::class, ContactEntity::class)),
         findPerson = any(),
       )
     }
@@ -106,7 +108,7 @@ class PrisonPersonServiceProxyTest {
 
       verify(personService).processPerson(
         person = eq(person),
-        childrenToIgnore = any(),
+        childrenToIgnore = eq(setOf(AddressEntity::class, ContactEntity::class)),
         findPerson = any(),
       )
     }
@@ -118,7 +120,7 @@ class PrisonPersonServiceProxyTest {
 
       verify(personService).processPerson(
         person = eq(person),
-        childrenToIgnore = any(),
+        childrenToIgnore = eq(setOf(AddressEntity::class, ContactEntity::class)),
         findPerson = any(),
       )
     }
