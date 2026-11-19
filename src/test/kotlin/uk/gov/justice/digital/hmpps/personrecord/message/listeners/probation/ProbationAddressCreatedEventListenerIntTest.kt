@@ -14,17 +14,16 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
   @Test
   fun `consuming address created event - saves address`() {
     val probationAddress = randomProbationAddress()
-    val cprPerson = createRandomProbationPersonDetails().copy(addresses = emptyList())
-    createPersonKey().addPerson(cprPerson)
+    val cprPerson = createPersonWithNewKey(createRandomProbationPersonDetails().copy(addresses = emptyList()))
 
     stubPersonMatchUpsert()
     stubPersonMatchScores()
-    stubGetRequestToProbation(probationAddress)
+    stubGetProbationAddress(probationAddress)
 
     publishProbationAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
 
     val actualAddress = assertAddress(cprPerson.crn!!, probationAddress)
-    assertCprAddressCreatedEventPublished(cprPerson.crn, actualAddress.updateId!!)
+    assertCprAddressCreatedEventPublished(cprPerson.crn!!, actualAddress.updateId!!)
   }
 
   @Test
@@ -39,7 +38,7 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
     stubPersonMatchUpsert()
     stubPersonMatchScores()
     val updatedProbationAddress = randomProbationAddress(originalProbationAddress.deliusAddressId)
-    stubGetRequestToProbation(updatedProbationAddress)
+    stubGetProbationAddress(updatedProbationAddress)
 
     publishProbationAddressCreatedEvent(personEntity.crn, null, originalProbationAddress.deliusAddressId, DELIUS)
 
@@ -56,10 +55,9 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
   @Test
   fun `consuming address created event - address not retrieved from probation - does not save address`(output: CapturedOutput) {
     val probationAddress = randomProbationAddress()
-    val cprPerson = createRandomProbationPersonDetails()
-    createPersonKey().addPerson(cprPerson)
+    val cprPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
 
-    stubGetRequestToProbation(probationAddress, status = 404)
+    stubGetProbationAddress(probationAddress, status = 404)
     publishProbationAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
 
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
@@ -71,29 +69,27 @@ class ProbationAddressCreatedEventListenerIntTest : ProbationEventListenerTestBa
   @Test
   fun `consuming address created event - initial 404 from probation but retry succeeds - saves the address`() {
     val probationAddress = randomProbationAddress()
-    val cprPerson = createRandomProbationPersonDetails()
-    createPersonKey().addPerson(cprPerson)
+    val cprPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
 
     stubPersonMatchUpsert()
     stubPersonMatchScores()
-    stubGetRequestToProbation(probationAddress, status = 404, scenarioName = "retry-address", nextScenarioState = "retry-success")
-    stubGetRequestToProbation(probationAddress, status = 200, scenarioName = "retry-address", currentScenarioState = "retry-success")
+    stubGetProbationAddress(probationAddress, status = 404, scenarioName = "retry-address", nextScenarioState = "retry-success")
+    stubGetProbationAddress(probationAddress, status = 200, scenarioName = "retry-address", currentScenarioState = "retry-success")
     publishProbationAddressCreatedEvent(cprPerson.crn, null, probationAddress.deliusAddressId, DELIUS)
 
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
     val personEntity = personRepository.findByCrn(cprPerson.crn!!)!!
     assertThat(personEntity.addresses.size).isEqualTo(1)
-    assertCprAddressCreatedEventPublished(cprPerson.crn, personEntity.addresses.first().updateId!!)
+    assertCprAddressCreatedEventPublished(cprPerson.crn!!, personEntity.addresses.first().updateId!!)
   }
 
   @Test
   fun `consuming address created event - cpr person does not exist - does not save address`() {
     val probationAddress = randomProbationAddress()
-    val cprPerson = createRandomProbationPersonDetails().copy(addresses = emptyList())
-    createPersonKey().addPerson(cprPerson)
+    val cprPerson = createPersonWithNewKey(createRandomProbationPersonDetails().copy(addresses = emptyList()))
 
-    stubGetRequestToProbation(probationAddress)
+    stubGetProbationAddress(probationAddress)
     publishProbationAddressCreatedEvent(randomCrn(), null, probationAddress.deliusAddressId, DELIUS)
 
     expectNoMessagesOn(probationEventsQueue)

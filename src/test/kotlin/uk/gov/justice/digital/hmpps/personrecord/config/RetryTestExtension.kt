@@ -9,6 +9,10 @@ class RetryTestExtension : TestExecutionExceptionHandler {
     context: ExtensionContext,
     throwable: Throwable,
   ) {
+    if (context.requiredTestClass.simpleName.contains("PactTest")) {
+      throw throwable
+    }
+
     println("retrying once: ${throwable.message}")
     context.requiredTestMethod.invoke(context.requiredTestInstance)
   }

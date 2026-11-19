@@ -80,6 +80,7 @@ data class ApiResponseSetup(
   val contacts: List<ApiResponseSetupContact> = listOf(),
 ) {
   companion object {
+    fun ApiResponseSetup.phoneNumbers() = contacts.filter { it.type != ContactType.EMAIL }
     fun from(probationCase: ProbationCase, crn: String? = probationCase.identifiers.crn): ApiResponseSetup = ApiResponseSetup(
       crn = crn,
       pnc = probationCase.identifiers.pnc,

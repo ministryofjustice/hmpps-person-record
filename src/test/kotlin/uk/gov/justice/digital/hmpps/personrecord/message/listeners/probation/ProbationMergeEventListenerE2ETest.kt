@@ -2,11 +2,11 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
@@ -31,8 +31,8 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     sourcePerson.assertMergedTo(targetPerson)
 
     // 2. unmerge the records
-    val targetUnmergeSetup = ApiResponseSetup.from(targetPersonDetails).copy(crn = sourceCrn)
-    probationUnmergeEventAndResponseSetup(sourceCrn, targetCrn, reactivatedSetup = targetUnmergeSetup, unmergedSetup = targetUnmergeSetup.copy(crn = sourceCrn))
+    val targetUnmergeSetup = ApiResponseSetup.from(targetPersonDetails)
+    probationUnmergeEventAndResponseSetup(sourceCrn, targetCrn, reactivatedSetup = targetUnmergeSetup.copy(crn = sourceCrn), unmergedSetup = targetUnmergeSetup)
     sourcePerson.assertNotMerged()
 
     // 3. create new person with same target details - should match both
@@ -184,14 +184,14 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     val sourcePersonDetails = createRandomProbationPersonDetails()
     val targetPersonDetails = createRandomProbationPersonDetails()
 
-    val sourcePerson = createPerson(sourcePersonDetails)
-    val targetPerson = createPerson(targetPersonDetails)
-    val sourceCrn = sourcePerson.crn!!
-    val targetCrn = targetPerson.crn!!
-    val cluster = createPersonKey()
-      .addPerson(sourcePerson)
-      .addPerson(targetPerson)
+    val sourceCrn = sourcePersonDetails.crn!!
+    val targetCrn = targetPersonDetails.crn!!
 
+    val cluster = createPersonKey()
+      .addPerson(sourcePersonDetails)
+      .addPerson(targetPersonDetails)
+    val sourcePerson = personRepository.findByCrn(sourceCrn)!!
+    val targetPerson = personRepository.findByCrn(targetCrn)!!
     probationMergeEventAndResponseSetup(
       sourceCrn = sourceCrn,
       targetCrn = targetCrn,
@@ -209,6 +209,7 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
         "FROM_SOURCE_SYSTEM_ID" to sourceCrn,
         "TO_SOURCE_SYSTEM_ID" to targetCrn,
         "SOURCE_SYSTEM" to "DELIUS",
+        "INCLUDE_OVERRIDE_LOST" to "false",
       ),
     )
     checkEventLog(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED) { eventLogs ->
@@ -224,17 +225,12 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
 
   @Test
   fun `processes offender merge event with records on different cluster`() {
-    val sourcePersonDetails = createRandomProbationPersonDetails()
-    val targetPersonDetails = createRandomProbationPersonDetails()
-
-    val sourcePerson = createPerson(sourcePersonDetails)
-    val targetPerson = createPerson(targetPersonDetails)
+    val sourcePerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val sourceCluster = sourcePerson.personKey!!
+    val targetCluster = targetPerson.personKey!!
     val sourceCrn = sourcePerson.crn!!
     val targetCrn = targetPerson.crn!!
-    val sourceCluster = createPersonKey()
-      .addPerson(sourcePerson)
-    val targetCluster = createPersonKey()
-      .addPerson(targetPerson)
 
     probationMergeEventAndResponseSetup(
       sourceCrn = sourceCrn,

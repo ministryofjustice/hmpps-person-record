@@ -33,6 +33,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.OverrideType.EXCLUDE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.OverrideType.INCLUDE
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -163,9 +165,8 @@ class PersonEntity(
 
   fun getPrimaryName(): PseudonymEntity = this.pseudonyms.firstOrNull { it.nameType == PRIMARY } ?: PseudonymEntity(nameType = PRIMARY)
 
-  fun getScopes(): Set<UUID> = this.overrideScopes
-    .map { scopeEntity -> scopeEntity.scope }
-    .toSet()
+  fun getExcludeScopes(): Set<OverrideScopeEntity> = this.overrideScopes.filter { it.overrideType == EXCLUDE }.toSet()
+  fun getIncludeScopes(): Set<OverrideScopeEntity> = this.overrideScopes.filter { it.overrideType == INCLUDE }.toSet()
 
   fun extractSourceSystemId(): String? = mapOf(
     DELIUS to this.crn,
@@ -213,7 +214,9 @@ class PersonEntity(
     if (!childrenToIgnore.contains<Any>(AddressEntity::class)) {
       updatePersonAddresses(buildAddresses(person, this))
     }
-    updatePersonContacts(buildContacts(person, this))
+    if (!childrenToIgnore.contains<Any>(ContactEntity::class)) {
+      updatePersonContacts(buildContacts(person, this))
+    }
     updatePersonReferences(buildReferences(person, this))
     updatePersonSentences(buildSentenceInfo(person, this))
     updateNationalities(person.nationalities.map { NationalityEntity.from(it) })

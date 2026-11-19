@@ -10,4 +10,5 @@ class PersonChangeChecker(originalPersonEntity: PersonEntity) {
   fun anyFieldsHaveChanged(newPerson: PersonEntity): Boolean = originalPerson != Person.from(newPerson)
 
   fun matchingFieldsHaveChanged(newPerson: PersonEntity): Boolean = originalMatchRecord.matchingFieldsAreDifferent(newPerson)
+  fun shouldSaveToPersonMatch(newPerson: PersonEntity): Boolean = matchingFieldsHaveChanged(newPerson) && newPerson.isNotPassive()
 }

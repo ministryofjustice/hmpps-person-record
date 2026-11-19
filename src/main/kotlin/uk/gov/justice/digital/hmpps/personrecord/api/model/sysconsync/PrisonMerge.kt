@@ -5,4 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 data class PrisonMerge(
   @Schema(description = "The prison number of the person being merged from", example = "A1234BC")
   val fromPrisonNumber: String,
+  @Schema(description = "The merged addresses and contacts to overwrite on the person being merged to")
+  val toPrisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest,
 )

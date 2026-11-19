@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
+import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
@@ -13,8 +14,10 @@ import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonCreated
@@ -27,7 +30,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -124,15 +126,17 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   }
 
   fun expectOneMessageOn(queue: HmppsQueue?) {
-    await untilCallTo {
-      queue?.sqsClient?.countMessagesOnQueue(queue.queueUrl)?.get()
-    } matches { it == 1 }
+    expectMessageCountMessagesOn(queue, 1)
   }
 
   fun expectNoMessagesOn(queue: HmppsQueue?) {
+    expectMessageCountMessagesOn(queue, 0)
+  }
+
+  fun expectMessageCountMessagesOn(queue: HmppsQueue?, count: Int) {
     await untilCallTo {
       queue?.sqsClient?.countMessagesOnQueue(queue.queueUrl)?.get()
-    } matches { it == 0 }
+    } matches { it == count }
   }
 
   fun expectNoMessagesOnQueueOrDlq(queue: HmppsQueue?) {
@@ -276,10 +280,17 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     ).get()
   }
 
-  fun receiveNextMessageOnQueue(queue: HmppsQueue?): SQSMessage {
-    val rawDomainEventMessage = queue?.sqsClient?.receiveMessage(
-      ReceiveMessageRequest.builder().queueUrl(queue.queueUrl).maxNumberOfMessages(1).build(),
+  fun receiveDomainEventMessage(eventType: String, eventSource: DomainEventSource? = null): DomainEvent {
+    val rawDomainEventMessage = testOnlyCPRDomainEventsQueue!!.sqsClient.receiveMessage(
+      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue!!.queueUrl).maxNumberOfMessages(1).build(),
     )
-    return rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
+    val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
+    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(eventType))
+    eventSource?.let {
+      assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(eventSource.identifier))
+    }
+    val domainEvent = jsonMapper.readValue<DomainEvent>(sqsMessage.message)
+    assertThat(domainEvent.eventType).isEqualTo(eventType)
+    return domainEvent
   }
 }

@@ -72,6 +72,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
@@ -89,7 +90,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.updatePersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
@@ -106,6 +106,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationGenderIdentity
@@ -125,7 +126,6 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Address as CommonPlatformAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name as LibraName
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -148,7 +148,7 @@ class IntegrationTestBase {
   lateinit var eventLogRepository: EventLogRepository
 
   @Autowired
-  private lateinit var overrideService: OverrideService
+  lateinit var overrideService: OverrideService
 
   @Autowired
   lateinit var reviewRepository: ReviewRepository
@@ -233,24 +233,16 @@ class IntegrationTestBase {
     dateOfBirth = randomDate(),
   )
 
-  internal fun addAddressToRecord(address: Address): PersonEntity.() -> Unit = {
-    val addressEntity = AddressEntity.from(address).also { addressEntity -> addressEntity.person = this }
-    this.addresses.add(addressEntity)
+  internal fun addAddressToRecord(address: Address): PersonEntity.() -> Unit = addAddressesToRecord(listOf(address))
+
+  internal fun addAddressesToRecord(addresses: List<Address>): PersonEntity.() -> Unit = {
+    val addressEntities = addresses.map { AddressEntity.from(it).also { addressEntity -> addressEntity.person = this } }.toMutableList()
+    this.addresses.addAll(addressEntities)
   }
 
-  internal fun createRandomCommonPlatformAddress(): CommonPlatformAddress = CommonPlatformAddress(
-    address1 = randomName(),
-    address2 = randomName(),
-    address3 = randomName(),
-    address4 = randomName(),
-    address5 = randomName(),
-    postcode = randomPostcode(),
-  )
-
-  internal fun createRandomProbationAddress(): ProbationCreateAddress = ProbationCreateAddress(
+  internal fun probationCreateAddress(statusCode: AddressStatusCode = listOf(AddressStatusCode.M, AddressStatusCode.PR).random()): ProbationCreateAddress = ProbationCreateAddress(
     noFixedAbode = false,
     startDate = randomZonedDateTime(),
-    endDate = randomZonedDateTime(),
     postcode = randomPostcode(),
     uprn = randomUprn(),
     subBuildingName = randomName(),
@@ -261,9 +253,9 @@ class IntegrationTestBase {
     postTown = randomName(),
     county = randomName(),
     comment = randomName(),
-    statusCode = randomAddressStatusCode(),
+    statusCode = statusCode,
     typeVerified = true,
-    usages = listOf(ProbationCreateAddressUsage(randomAddressUsageCode(), randomBoolean())),
+    usage = ProbationCreateAddressUsage(randomAddressUsageCode(), randomBoolean()),
     contacts = listOf(ProbationCreateAddressContact(randomContactType(), randomPhoneNumber(), "44")),
   )
 
@@ -302,6 +294,7 @@ class IntegrationTestBase {
           primarySentence = true,
         ),
       ),
+      nationality = randomPrisonNationalityCode(),
     ),
   )
 
@@ -351,6 +344,7 @@ class IntegrationTestBase {
     code = code,
     changeReasonKnown = false,
     startDate = startDate,
+    endDate = endDate,
     createDateTime = createDateTime,
     createUserId = createdUserId,
   )
@@ -397,7 +391,7 @@ class IntegrationTestBase {
 
   internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(5)) untilAsserted function
 
-  internal fun <T> awaitNotNull(function: () -> T?): T = await atMost (Duration.ofSeconds(3)) untilNotNull function
+  internal fun <T> awaitNotNull(function: () -> T?): T = await atMost (Duration.ofSeconds(5)) untilNotNull function
 
   internal fun createPersonKey(status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
@@ -408,37 +402,31 @@ class IntegrationTestBase {
     return personKeyRepository.save(personKeyEntity)
   }
 
-  internal fun PersonKeyEntity.addPerson(personEntity: PersonEntity): PersonKeyEntity {
-    this.personEntities.add(personEntity)
-    personEntity.personKey = this
-    return personKeyRepository.save(this)
-  }
+  internal fun PersonKeyEntity.addPerson(person: Person): PersonKeyEntity = createPerson(person, this).personKey!!
 
-  internal fun PersonKeyEntity.addPerson(person: Person): PersonKeyEntity = this.addPerson(createPerson(person))
+  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null, configure: PersonEntity.() -> Unit = {}): PersonEntity = createPerson(person, createPersonKey(status, reason), configure)
 
-  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null, configure: PersonEntity.() -> Unit = {}): PersonEntity {
-    val personEntity = createPerson(person, configure)
-    createPersonKey(status, reason).addPerson(personEntity)
-    return personRepository.findByMatchId(personEntity.matchId)!!
-  }
+  internal fun createMergedPerson(person: Person, mergedToId: Long?): PersonEntity = PersonEntity.new(
+    person.sourceSystem,
+  ).updatePersonEntity(person)
+    .apply { mergedTo = mergedToId!! }
+    .let(personRepository::saveAndFlush)
 
-  internal fun createPerson(person: Person, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
+  internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity, configure: PersonEntity.() -> Unit = {}): PersonEntity = PersonEntity.new(
     person.sourceSystem,
   ).updatePersonEntity(person)
     .apply(configure)
-    .let(personRepository::saveAndFlush)
+    .let {
+      it.personKey = personKeyEntity
+      personKeyEntity.personEntities.add(it)
+      personRepository.save(it)
+    }
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
     val source = personRepository.findByMatchId(sourceRecord.matchId)
     val target = personRepository.findByMatchId(excludingRecord.matchId)
     overrideService.systemExclude(source!!, target!!)
     personRepository.saveAll(listOf(source, target))
-  }
-
-  internal fun includeRecords(vararg records: PersonEntity) {
-    val updatedRecords = records.mapNotNull { personRepository.findByMatchId(it.matchId) }.toTypedArray()
-    overrideService.systemInclude(*updatedRecords)
-    personRepository.saveAll(updatedRecords.asList())
   }
 
   internal fun stubNoMatchesPersonMatch(matchId: UUID? = null) = stubPersonMatchScores(matchId = matchId, personMatchResponse = emptyList())
@@ -626,10 +614,9 @@ class IntegrationTestBase {
     }
   }
 
-  internal fun PersonKeyEntity.getReviews(): List<ReviewEntity> = awaitNotNull {
-    reviewRepository.findByClustersPersonKey(
-      this,
-    )
+  internal fun PersonKeyEntity.getReviews(): List<ReviewEntity> {
+    awaitAssert { assertThat(reviewRepository.findByClustersPersonKey(this)).hasSizeGreaterThan(0) }
+    return reviewRepository.findByClustersPersonKey(this)!!
   }
 
   internal fun ReviewEntity.assertRemoved() = awaitAssert { assertThat(reviewRepository.findByIdOrNull(this.id!!)).isNull() }
@@ -739,7 +726,35 @@ class IntegrationTestBase {
     return thisPersonScopes.intersect(evalPersonScopes)
   }
 
-  fun List<Reference>.getType(type: IdentifierType): List<Reference> = this.filter { it.identifierType == type }
+  internal fun stubPrisonerImage(
+    offenderNo: String,
+    status: Int = 200,
+    fullSizeImage: Boolean = false,
+    imageBytes: ByteArray = byteArrayOf(
+      0xFF.toByte(),
+      0xD8.toByte(),
+      0xFF.toByte(),
+      0xD9.toByte(),
+    ),
+    responseContentType: String = "image/jpeg",
+  ) {
+    authSetup()
+    wiremock.stubFor(
+      WireMock.get(
+        urlEqualTo(
+          "/api/bookings/offenderNo/$offenderNo/image/data?fullSizeImage=$fullSizeImage",
+        ),
+      )
+        .willReturn(
+          aResponse()
+            .withStatus(status)
+            .withHeader("Content-Type", responseContentType)
+            .withBody(imageBytes),
+        ),
+    )
+  }
+
+  private fun List<Reference>.getType(type: IdentifierType): List<Reference> = this.filter { it.identifierType == type }
 
   companion object {
 
@@ -752,7 +767,7 @@ class IntegrationTestBase {
       .failOnUnmatchedRequests(true)
       .build()
 
-    internal const val JOIN_THRESHOLD = 24F
-    internal const val FRACTURE_THRESHOLD = 18F
+    internal const val JOIN_THRESHOLD = 20F
+    internal const val FRACTURE_THRESHOLD = 14F
   }
 }

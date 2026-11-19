@@ -15,14 +15,50 @@ generic-service:
     CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: https://core-person-record-and-delius-preprod.hmpps.service.justice.gov.uk
     SERVICE_NOW_BASE_URL: https://mojuat.service-now.com
     SAS_BASE_URL: https://single-accommodation-service-api-preprod.hmpps.service.justice.gov.uk
+    PRISON_API_BASE_URL: 'https://prison-api-preprod.prison.service.justice.gov.uk'
     SPRINGDOC_API_DOCS_ENABLED: false
     SPRINGDOC_SWAGGER_UI_ENABLED: false
+    RECLUSTER_DATABASE_BATCH_SIZE: 50
+    RECLUSTER_DATABASE_START_PAGE: 0
 
   scheduledDowntime:
     enabled: true
     # Start at 6:45am Monday-Friday - 10 minutes after hmpps-person-match
     startupOverride: '45 6 * * 1-5'
     timeZone: Europe/London
+
+  batchjobs:
+    - name: split-clusters
+      type: SPLIT_CLUSTERS
+      schedule: "0 0 1 1 *"
+      suspend: true
+    - name: record-count-report
+      type: RECORD_COUNT_REPORT
+      schedule: "0 8-17 * * 1-5"
+    - name: delius-reconciliation-report
+      type: DELIUS_RECONCILIATION_REPORT
+      schedule: "0 8-17 * * 1-5"
+    - name: recluster-needs-attention
+      type: RECLUSTER_NEEDS_ATTENTION
+      schedule: "30 13 * * 1-5"
+    - name: generate-delius-merge-requests
+      type: GENERATE_DELIUS_MERGE_REQUESTS
+      schedule: "0 19 * * 1-5"
+      resources:
+        requests:
+          cpu: 2
+          memory: 4Gi
+        limits:
+          cpu: 2
+          memory: 4Gi
+    - name: recluster-records
+      type: RECLUSTER_RECORDS
+      schedule: "0 0 1 1 *"
+      suspend: true
+    - name: recluster-database
+      type: RECLUSTER_DATABASE
+      schedule: "0 0 1 1 *"
+      suspend: true
 
 generic-prometheus-alerts:
   businessHoursOnly: true
@@ -46,8 +82,3 @@ generic-prometheus-alerts:
     - "hmpps-person-record-preprod-cpr_delius_address_events_from_cpr_dlq"
   rdsAlertsDatabases:
     cloud-platform-288cab966b34da54: "hmpps-person-record-database"
-
-cron:
-  recordCountReportJob: "0 8-17 * * 1-5"
-  deliusReconciliationReportJob: "0 8-17 * * 1-5"
-  reclusterNeedsAttentionJob: "0 13 * * 1-5"

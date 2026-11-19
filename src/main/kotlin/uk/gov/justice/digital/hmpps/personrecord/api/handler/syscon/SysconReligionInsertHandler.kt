@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
@@ -23,11 +22,11 @@ class SysconReligionInsertHandler(
   fun handleInsert(prisonNumber: String, prisonReligionRequest: PrisonReligionRequest): Map<String, String> {
     val (personEntity, currentPrisonReligion) = validateRequest(prisonNumber, prisonReligionRequest)
     prisonReligionRepository.deleteAllByPrisonNumber(prisonNumber).also { prisonReligionRepository.flush() }
-    val cprReligionIdByNomisId = saveReligionsMapped(prisonNumber, prisonReligionRequest).also {
-      personEntity.religion = currentPrisonReligion.religionCode
-      personService.processPerson(Person.from(personEntity)) { personEntity }
+    return personService.processUpdateAndPublish(personEntity) { personEntity ->
+      saveReligionsMapped(prisonNumber, prisonReligionRequest).also {
+        personEntity.religion = currentPrisonReligion.religionCode
+      }
     }
-    return cprReligionIdByNomisId
   }
 
   private fun validateRequest(prisonNumber: String, prisonReligionRequest: PrisonReligionRequest): Pair<PersonEntity, PrisonReligionHistory> {

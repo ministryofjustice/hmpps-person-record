@@ -32,34 +32,34 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
 
     @Test
     fun `should merge religion history`() {
-      val fromPrisonerNumber = randomPrisonNumber()
-      val toPrisonerNumber = randomPrisonNumber()
+      val fromPrisonNumber = randomPrisonNumber()
+      val toPrisonNumber = randomPrisonNumber()
       val personKey = createPersonKey()
-        .addPerson(createRandomPrisonPersonDetails(fromPrisonerNumber))
-        .addPerson(createRandomPrisonPersonDetails(toPrisonerNumber))
+        .addPerson(createRandomPrisonPersonDetails(fromPrisonNumber))
+        .addPerson(createRandomPrisonPersonDetails(toPrisonNumber))
 
       val prisonerFromReligionHistory = listOf(
         prisonReligionEntity(
-          prisonNumber = fromPrisonerNumber,
+          prisonNumber = fromPrisonNumber,
           startDate = LocalDate.of(2021, 1, 25),
           endDate = LocalDate.of(2021, 4, 12),
           code = ADV,
         ),
         prisonReligionEntity(
-          prisonNumber = fromPrisonerNumber,
+          prisonNumber = fromPrisonNumber,
           startDate = LocalDate.of(2021, 4, 12),
           code = BAHA,
         ),
       )
       val prisonerToReligionHistory = listOf(
         prisonReligionEntity(
-          toPrisonerNumber,
+          toPrisonNumber,
           startDate = LocalDate.of(2021, 1, 1),
           endDate = LocalDate.of(2021, 4, 24),
           CALV,
         ),
         prisonReligionEntity(
-          toPrisonerNumber,
+          toPrisonNumber,
           startDate = LocalDate.of(2021, 4, 10),
           code = DRU,
         ),
@@ -67,11 +67,11 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
       prisonReligionRepository.saveAll(prisonerFromReligionHistory + prisonerToReligionHistory)
 
       // Method under test
-      prisonReligionMergeHandler.handleMerge(personKey.getPrisoner(fromPrisonerNumber), personKey.getPrisoner(toPrisonerNumber))
+      prisonReligionMergeHandler.handleMerge(personKey.getPrisoner(fromPrisonNumber), personKey.getPrisoner(toPrisonNumber))
 
-      assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(fromPrisonerNumber)).isEmpty()
+      assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(fromPrisonNumber)).isEmpty()
       val prisonerFromReligionHistoryMerged =
-        prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonerNumber)
+        prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonNumber)
       assertThat(prisonerFromReligionHistoryMerged).hasSize((prisonerFromReligionHistory + prisonerToReligionHistory).size)
       // Only one current religion and it was the one that had the latest start date
       val currentReligions = prisonerFromReligionHistoryMerged.filter { it.prisonRecordType == CURRENT }
@@ -81,64 +81,64 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
       // The religion that is no longer current should have an end date set to now
       assertThat(prisonerFromReligionHistoryMerged.first { it.code == DRU }.endDate).isEqualTo(LocalDate.now())
       // Check that the to person has the correct religion
-      assertThat(personRepository.findByPrisonNumber(toPrisonerNumber)?.religion).isEqualTo(currentReligion.code)
+      assertThat(personRepository.findByPrisonNumber(toPrisonNumber)?.religion).isEqualTo(currentReligion.code)
     }
 
     @Test
     fun `should use create date time when current religions have the same start date`() {
-      val fromPrisonerNumber = randomPrisonNumber()
-      val toPrisonerNumber = randomPrisonNumber()
+      val fromPrisonNumber = randomPrisonNumber()
+      val toPrisonNumber = randomPrisonNumber()
       val personKey = createPersonKey()
-        .addPerson(createRandomPrisonPersonDetails(fromPrisonerNumber))
-        .addPerson(createRandomPrisonPersonDetails(toPrisonerNumber))
+        .addPerson(createRandomPrisonPersonDetails(fromPrisonNumber))
+        .addPerson(createRandomPrisonPersonDetails(toPrisonNumber))
 
       val olderReligion = prisonReligionEntity(
-        prisonNumber = fromPrisonerNumber,
+        prisonNumber = fromPrisonNumber,
         startDate = LocalDate.of(2021, 4, 12),
         code = ADV,
         createDateTime = LocalDateTime.of(2021, 4, 12, 10, 0),
       )
       val newerReligion = prisonReligionEntity(
-        prisonNumber = toPrisonerNumber,
+        prisonNumber = toPrisonNumber,
         startDate = LocalDate.of(2021, 4, 12),
         code = BAHA,
         createDateTime = LocalDateTime.of(2021, 4, 12, 11, 0),
       )
       prisonReligionRepository.saveAll(listOf(olderReligion, newerReligion))
 
-      prisonReligionMergeHandler.handleMerge(personKey.getPrisoner(fromPrisonerNumber), personKey.getPrisoner(toPrisonerNumber))
+      prisonReligionMergeHandler.handleMerge(personKey.getPrisoner(fromPrisonNumber), personKey.getPrisoner(toPrisonNumber))
 
       val currentReligion =
-        prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonerNumber)
+        prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonNumber)
           .single { it.prisonRecordType == CURRENT }
       assertThat(currentReligion.code).isEqualTo(BAHA)
-      assertThat(personRepository.findByPrisonNumber(toPrisonerNumber)?.religion).isEqualTo(BAHA)
+      assertThat(personRepository.findByPrisonNumber(toPrisonNumber)?.religion).isEqualTo(BAHA)
     }
 
     @Test
     fun `should leave only one null end date when multiple religions are current before merge`() {
-      val fromPrisonerNumber = randomPrisonNumber()
-      val toPrisonerNumber = randomPrisonNumber()
+      val fromPrisonNumber = randomPrisonNumber()
+      val toPrisonNumber = randomPrisonNumber()
       val personKey = createPersonKey()
-        .addPerson(createRandomPrisonPersonDetails(fromPrisonerNumber))
-        .addPerson(createRandomPrisonPersonDetails(toPrisonerNumber))
+        .addPerson(createRandomPrisonPersonDetails(fromPrisonNumber))
+        .addPerson(createRandomPrisonPersonDetails(toPrisonNumber))
 
       val fromPrisonerReligionHistory = listOf(
         prisonReligionEntity(
-          prisonNumber = fromPrisonerNumber,
+          prisonNumber = fromPrisonNumber,
           startDate = LocalDate.of(2021, 4, 12),
           code = BAHA,
           prisonRecordType = PrisonRecordType.HISTORIC,
         ),
         prisonReligionEntity(
-          prisonNumber = fromPrisonerNumber,
+          prisonNumber = fromPrisonNumber,
           startDate = LocalDate.of(2021, 4, 11),
           code = DRU,
         ),
       )
       val toPrisonerReligionHistory = listOf(
         prisonReligionEntity(
-          prisonNumber = toPrisonerNumber,
+          prisonNumber = toPrisonNumber,
           startDate = LocalDate.of(2021, 4, 10),
           code = ADV,
         ),
@@ -146,37 +146,37 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
 
       prisonReligionRepository.saveAll(fromPrisonerReligionHistory + toPrisonerReligionHistory)
 
-      prisonReligionMergeHandler.handleMerge(personKey.getPrisoner(fromPrisonerNumber), personKey.getPrisoner(toPrisonerNumber))
+      prisonReligionMergeHandler.handleMerge(personKey.getPrisoner(fromPrisonNumber), personKey.getPrisoner(toPrisonNumber))
 
-      val mergedHistory = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonerNumber)
+      val mergedHistory = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonNumber)
       assertThat(mergedHistory.filter { it.endDate == null && it.prisonRecordType == CURRENT }).hasSize(1)
       assertThat(mergedHistory.filter { it.endDate == LocalDate.now() }).hasSize(2)
     }
 
     @Test
     fun `should set modify date time when merge updates an existing religion`() {
-      val fromPrisonerNumber = randomPrisonNumber()
-      val toPrisonerNumber = randomPrisonNumber()
+      val fromPrisonNumber = randomPrisonNumber()
+      val toPrisonNumber = randomPrisonNumber()
       val personKey = createPersonKey()
-        .addPerson(createRandomPrisonPersonDetails(fromPrisonerNumber))
-        .addPerson(createRandomPrisonPersonDetails(toPrisonerNumber))
+        .addPerson(createRandomPrisonPersonDetails(fromPrisonNumber))
+        .addPerson(createRandomPrisonPersonDetails(toPrisonNumber))
 
       val fromReligion = prisonReligionEntity(
-        prisonNumber = fromPrisonerNumber,
+        prisonNumber = fromPrisonNumber,
         startDate = LocalDate.of(2021, 4, 12),
         code = BAHA,
       )
       val toReligion = prisonReligionEntity(
-        prisonNumber = toPrisonerNumber,
+        prisonNumber = toPrisonNumber,
         startDate = LocalDate.of(2021, 4, 10),
         code = DRU,
       )
       prisonReligionRepository.saveAll(listOf(fromReligion, toReligion))
 
-      prisonReligionMergeHandler.handleMerge(personKey.getPrisoner(fromPrisonerNumber), personKey.getPrisoner(toPrisonerNumber))
+      prisonReligionMergeHandler.handleMerge(personKey.getPrisoner(fromPrisonNumber), personKey.getPrisoner(toPrisonNumber))
 
       val updatedReligion =
-        prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonerNumber)
+        prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonNumber)
           .single { it.code == DRU }
 
       assertThat(updatedReligion.endDate).isEqualTo(LocalDate.now())
@@ -186,30 +186,30 @@ class PrisonReligionMergeHandlerIntTest : IntegrationTestBase() {
 
     @Test
     fun `should merge religion history when only one prisoner has a history`() {
-      val fromPrisonerNumber = randomPrisonNumber()
-      val toPrisonerNumber = randomPrisonNumber()
+      val fromPrisonNumber = randomPrisonNumber()
+      val toPrisonNumber = randomPrisonNumber()
       val personKey = createPersonKey()
-        .addPerson(createRandomPrisonPersonDetails(fromPrisonerNumber))
-        .addPerson(createRandomPrisonPersonDetails(toPrisonerNumber))
+        .addPerson(createRandomPrisonPersonDetails(fromPrisonNumber))
+        .addPerson(createRandomPrisonPersonDetails(toPrisonNumber))
       val prisonerFromReligionHistory =
         prisonReligionEntity(
-          prisonNumber = fromPrisonerNumber,
+          prisonNumber = fromPrisonNumber,
           startDate = LocalDate.of(2021, 1, 25),
           code = EODX,
         )
       prisonReligionRepository.save(prisonerFromReligionHistory)
 
       // Method under test
-      prisonReligionMergeHandler.handleMerge(personKey.getPrisoner(fromPrisonerNumber), personKey.getPrisoner(toPrisonerNumber))
+      prisonReligionMergeHandler.handleMerge(personKey.getPrisoner(fromPrisonNumber), personKey.getPrisoner(toPrisonNumber))
 
       // The religion should have been moved to the to person
-      assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(fromPrisonerNumber)).isEmpty()
+      assertThat(prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(fromPrisonNumber)).isEmpty()
       val prisonerFromReligionHistoryMerged =
-        prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonerNumber)
+        prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(toPrisonNumber)
       assertThat(prisonerFromReligionHistoryMerged).hasSize(1)
       assertThat(prisonerFromReligionHistoryMerged.single().code).isEqualTo(EODX)
       assertThat(prisonerFromReligionHistoryMerged.single().prisonRecordType).isEqualTo(CURRENT)
-      assertThat(personRepository.findByPrisonNumber(toPrisonerNumber)?.religion).isEqualTo(EODX)
+      assertThat(personRepository.findByPrisonNumber(toPrisonNumber)?.religion).isEqualTo(EODX)
     }
   }
 

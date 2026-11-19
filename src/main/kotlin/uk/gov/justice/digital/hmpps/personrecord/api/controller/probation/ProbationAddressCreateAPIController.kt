@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -19,7 +20,9 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCr
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.sas.SasAddressArrivedHandler
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.CPR
 import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 
@@ -28,6 +31,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 class ProbationAddressCreateAPIController(
   private val addressService: AddressService,
   private val personRepository: PersonRepository,
+  private val sasAddressArrivedHandler: SasAddressArrivedHandler,
 ) {
   @Operation(
     description = """Create an address for the given CRN person record. Role required is **$PROBATION_API_READ_WRITE**.""",
@@ -47,19 +51,18 @@ class ProbationAddressCreateAPIController(
   )
   @PreAuthorize("hasRole('$PROBATION_API_READ_WRITE')")
   @PostMapping("/person/probation/{crn}/address")
+  @Transactional
   fun createProbationAddress(
     @PathVariable crn: String,
     @RequestBody probationCreateAddress: ProbationCreateAddress,
   ): ResponseEntity<ProbationCreateAddressResponse> {
     val address = Address.from(probationCreateAddress)
+    val person = personRepository.findByCrn(crn)!!
 
-    val createdAddress: AddressEntity = addressService.processAddress(
-      address,
-      findPerson = { personRepository.findByCrn(crn) },
-      findAddress = { null },
-      CPR,
-    )
-
+    if (probationCreateAddress.statusCode == AddressStatusCode.M) {
+      sasAddressArrivedHandler.setMainAddressToPrevious(person, address.startDate!!)
+    }
+    val createdAddress: AddressEntity = addressService.create(address, CPR) { person }
     val responseBody = ProbationCreateAddressResponse(crn, createdAddress.updateId!!.toString())
     return ResponseEntity.status(HttpStatus.CREATED).body(responseBody)
   }

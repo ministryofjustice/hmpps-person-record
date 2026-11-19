@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.service.message.PersonDeletionService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonDeletionService
 
 @Tag(name = "Prison")
 @RestController
@@ -28,7 +29,7 @@ class PrisonAPIDeleteController(
     ),
   )
   @DeleteMapping("/person/prison/{prisonNumber}")
-  fun deleteByPrisonNumber(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<Unit> {
+  fun deleteByPrisonNumber(@PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String): ResponseEntity<Unit> {
     personDeletionService.processDelete {
       personRepository.findByPrisonNumber(prisonNumber)
         ?: throw ResourceNotFoundException("Person '$prisonNumber' does not exist")

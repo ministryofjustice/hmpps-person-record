@@ -18,7 +18,7 @@ class SysconSyncPrisonReligionGetAPIControllerIntTest : WebTestBase() {
   private lateinit var prisonReligionRepository: PrisonReligionRepository
 
   @Nested
-  inner class PrisonReligionExists {
+  inner class SuccessfulProcessing {
 
     @Test
     fun `should return prison religion by cpr religion id`() {
@@ -38,7 +38,7 @@ class SysconSyncPrisonReligionGetAPIControllerIntTest : WebTestBase() {
   }
 
   @Nested
-  inner class PrisonReligionDoesNotExists {
+  inner class Validation {
 
     @Test
     fun `should 404 not found`() {

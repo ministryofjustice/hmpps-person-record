@@ -31,13 +31,12 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val crn = randomCrn()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
-      val addressToCreate = Address.from(createRandomProbationAddress())
+      val addressToCreate = Address.from(probationCreateAddress())
 
-      addressService.processAddress(
+      addressService.create(
         addressToCreate,
-        findPerson = { personRepository.findByCrn(crn) },
-        findAddress = { null },
         DomainEventSource.DELIUS,
+        findPerson = { personRepository.findByCrn(crn)!! },
       )
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
@@ -63,13 +62,12 @@ class AddressServiceIntTest : IntegrationTestBase() {
       val crn = randomCrn()
       createPersonWithNewKey(createRandomProbationPersonDetails(crn).copy(addresses = emptyList()))
 
-      val addressToCreate = Address.from(createRandomProbationAddress().copy(postcode = null))
+      val addressToCreate = Address.from(probationCreateAddress().copy(postcode = null))
 
-      addressService.processAddress(
+      addressService.create(
         addressToCreate,
-        findPerson = { personRepository.findByCrn(crn) },
-        findAddress = { null },
         DomainEventSource.DELIUS,
+        findPerson = { personRepository.findByCrn(crn)!! },
       )
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
@@ -97,15 +95,14 @@ class AddressServiceIntTest : IntegrationTestBase() {
       stubPersonMatchScores()
 
       val crn = randomCrn()
-      val initialAddress = Address.from(createRandomProbationAddress())
+      val initialAddress = Address.from(probationCreateAddress())
       val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn), configure = addAddressToRecord(initialAddress))
       val addressToCreate = initialAddress.copy(postcode = randomPostcode())
 
-      addressService.processAddress(
+      addressService.update(
         addressToCreate,
-        findPerson = { personRepository.findByCrn(crn) },
-        findAddress = { addressRepository.findByUpdateId(person.addresses[0].updateId!!) },
         DomainEventSource.DELIUS,
+        findAddress = { addressRepository.findByUpdateId(person.addresses[0].updateId!!)!! },
       )
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
@@ -129,7 +126,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
     @Test
     fun `should update address and not recluster when no matching fields have changed`() {
       val crn = randomCrn()
-      val initialAddress = Address.from(createRandomProbationAddress())
+      val initialAddress = Address.from(probationCreateAddress())
       val person = createPersonWithNewKey(
         createRandomProbationPersonDetails(crn),
         configure = addAddressToRecord(
@@ -138,11 +135,10 @@ class AddressServiceIntTest : IntegrationTestBase() {
       )
       val addressToCreate = initialAddress.copy(buildingNumber = randomBuildingNumber())
 
-      addressService.processAddress(
+      addressService.update(
         addressToCreate,
-        findPerson = { personRepository.findByCrn(crn) },
-        findAddress = { addressRepository.findByUpdateId(person.addresses[0].updateId!!) },
         DomainEventSource.DELIUS,
+        findAddress = { addressRepository.findByUpdateId(person.addresses[0].updateId!!)!! },
       )
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
@@ -178,7 +174,7 @@ class AddressServiceIntTest : IntegrationTestBase() {
 
       addressService.deleteAddress(
         eventSource = DomainEventSource.DELIUS,
-        findAddress = { addressToDelete },
+        findAddress = { addressRepository.findByUpdateId(addressToDelete.updateId!!) },
       )
 
       awaitAssert {
@@ -207,16 +203,28 @@ class AddressServiceIntTest : IntegrationTestBase() {
     assertThat(actualAddress.countryCode).isEqualTo(expectedAddress.countryCode)
     assertThat(actualAddress.comment).isEqualTo(expectedAddress.comment)
     assertThat(actualAddress.statusCode).isEqualTo(expectedAddress.statusCode)
+    assertThat(actualAddress.createDateTime).isEqualTo(expectedAddress.createDateTime)
+    assertThat(actualAddress.createUserId).isEqualTo(expectedAddress.createUserId)
+    assertThat(actualAddress.modifyDateTime).isEqualTo(expectedAddress.modifyDateTime)
+    assertThat(actualAddress.modifyUserId).isEqualTo(expectedAddress.modifyUserId)
     assertThat(actualAddress.usages.size).isEqualTo(expectedAddress.usages.size)
     expectedAddress.usages.zip(actualAddress.usages).forEach { (expected, actual) ->
       assertThat(actual.usageCode).isEqualTo(expected.addressUsageCode)
       assertThat(actual.active).isEqualTo(expected.isActive)
+      assertThat(actual.createDateTime).isEqualTo(expected.createDateTime)
+      assertThat(actual.createUserId).isEqualTo(expected.createUserId)
+      assertThat(actual.modifyDateTime).isEqualTo(expected.modifyDateTime)
+      assertThat(actual.modifyUserId).isEqualTo(expected.modifyUserId)
     }
     assertThat(actualAddress.contacts.size).isEqualTo(expectedAddress.contacts.size)
     expectedAddress.contacts.zip(actualAddress.contacts).forEach { (expected, actual) ->
       assertThat(actual.contactType).isEqualTo(expected.contactType)
       assertThat(actual.contactValue).isEqualTo(expected.contactValue)
       assertThat(actual.extension).isEqualTo(expected.extension)
+      assertThat(actual.createDateTime).isEqualTo(expected.createDateTime)
+      assertThat(actual.createUserId).isEqualTo(expected.createUserId)
+      assertThat(actual.modifyDateTime).isEqualTo(expected.modifyDateTime)
+      assertThat(actual.modifyUserId).isEqualTo(expected.modifyUserId)
     }
   }
 }

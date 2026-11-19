@@ -14,6 +14,7 @@ import jakarta.persistence.Version
 import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Entity
@@ -51,13 +52,25 @@ class ContactEntity(
 
   @Column(name = "contact_type")
   @Enumerated(EnumType.STRING)
-  val contactType: ContactType,
+  var contactType: ContactType,
 
   @Column(name = "contact_value")
-  val contactValue: String? = null,
+  var contactValue: String? = null,
 
   @Column(name = "extension")
-  val extension: String? = null,
+  var extension: String? = null,
+
+  @Column(name = "create_date_time")
+  var createDateTime: LocalDateTime? = null,
+
+  @Column(name = "create_user_id")
+  var createUserId: String? = null,
+
+  @Column(name = "modify_date_time")
+  var modifyDateTime: LocalDateTime? = null,
+
+  @Column(name = "modify_user_id")
+  var modifyUserId: String? = null,
 
   @Version
   var version: Int = 0,
@@ -65,6 +78,14 @@ class ContactEntity(
 ) {
   companion object {
 
-    fun from(contact: Contact): ContactEntity = ContactEntity(contactType = contact.contactType, contactValue = contact.contactValue, extension = contact.extension)
+    fun from(contact: Contact): ContactEntity = ContactEntity(
+      contactType = contact.contactType,
+      contactValue = contact.contactValue,
+      extension = contact.extension,
+      createDateTime = contact.createDateTime,
+      createUserId = contact.createUserId,
+      modifyDateTime = contact.modifyDateTime,
+      modifyUserId = contact.modifyUserId,
+    )
   }
 }

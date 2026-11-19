@@ -23,13 +23,13 @@ class SysconSyncPrisonReligionPutAPIControllerIntTest : WebTestBase() {
   private lateinit var prisonReligionRepository: PrisonReligionRepository
 
   @Nested
-  inner class Successful {
+  inner class SuccessfulProcessing {
 
     @Test
     fun `prison religion exists - updates prison religion - returns correct response body`() {
       val prisonNumber = randomPrisonNumber()
       val existingReligionEntity = prisonReligionRepository.save(PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory(code = ReligionCode.AGNO)))
-      val existingPersonEntity = personRepository.saveAndFlush(createPerson(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligionEntity.code }))
+      val existingPersonEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligionEntity.code })
       val requestBody = createRandomReligionUpdateRequest()
       sendPutRequestAsserted<Void>(
         url = prisonReligionPutEndpoint(prisonNumber, existingReligionEntity.updateId.toString()),

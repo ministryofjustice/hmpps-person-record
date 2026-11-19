@@ -11,6 +11,9 @@ import org.springframework.boot.test.system.OutputCaptureExtension
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.service.DomainEventSource.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
+import java.time.chrono.ChronoZonedDateTime
 
 @ExtendWith(OutputCaptureExtension::class)
 class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBase() {
@@ -29,7 +32,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     stubPersonMatchUpsert()
     stubPersonMatchScores()
     val updatedProbationAddress = randomProbationAddress().copy(deliusAddressId = cprAddressBeforeUpdate.deliusAddressId)
-    stubGetRequestToProbation(updatedProbationAddress)
+    stubGetProbationAddress(updatedProbationAddress)
 
     publishProbationAddressUpdatedEvent(
       personEntity.crn,
@@ -55,7 +58,7 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
     )
 
     val updatedProbationAddress = originalProbationAddress.copy(notes = randomLowerCaseString())
-    stubGetRequestToProbation(updatedProbationAddress)
+    stubGetProbationAddress(updatedProbationAddress)
 
     publishProbationAddressUpdatedEvent(personEntity.crn, updatedProbationAddress.deliusAddressId)
 
@@ -65,24 +68,35 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
 
   @Test
   fun `consuming address updated event - address not retrieved from probation - does not update address`(output: CapturedOutput) {
+    val startDateAtMidnight = ZonedDateTime.of(2026, 10, 9, 0, 0, 0, 0, ZoneOffset.ofOffset("GMT", ZoneOffset.of("+1")))
     val probationAddress = randomProbationAddress()
+    val addressOld = Address.from(probationAddress)?.copy(startDate = startDateAtMidnight)
     val personEntity = createPersonWithNewKey(
       createRandomProbationPersonDetails(),
-      configure = addAddressToRecord(Address.from(probationAddress)!!),
+      configure = addAddressToRecord(addressOld!!),
     )
-    val cprAddressBeforeUpdate = personEntity.addresses.first()
 
-    stubGetRequestToProbation(probationAddress, status = 404)
+    val cprAddressBeforeUpdate = personEntity.addresses.first()
+    assertThat(Address.from(cprAddressBeforeUpdate)).usingRecursiveComparison().isEqualTo(addressOld)
+
+    stubGetProbationAddress(probationAddress, status = 404)
 
     publishProbationAddressUpdatedEvent(personEntity.crn, probationAddress.deliusAddressId)
 
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
 
-    val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
-    assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
-    val cprAddressAfterUpdate = actualPersonEntity.addresses.first()
-    assertThat(cprAddressAfterUpdate).usingRecursiveComparison().isEqualTo(cprAddressBeforeUpdate)
     awaitAssert { assertThat(output.all).contains("Discarding message of type probation-case.address.updated due to discardable not found exception") }
+
+    val actualPersonEntity = personRepository.findByCrn(personEntity.crn!!)
+    val cprAddressAfterUpdate = actualPersonEntity?.addresses?.first()
+    assertThat(Address.from(cprAddressAfterUpdate!!)).usingRecursiveComparison().withComparatorForType(
+      ChronoZonedDateTime.timeLineOrder(),
+      ZonedDateTime::class.java,
+    ).isEqualTo(Address.from(cprAddressBeforeUpdate))
+    assertThat(Address.from(cprAddressAfterUpdate)).usingRecursiveComparison().withComparatorForType(
+      ChronoZonedDateTime.timeLineOrder(),
+      ZonedDateTime::class.java,
+    ).isEqualTo(addressOld)
   }
 
   @Test
@@ -92,12 +106,13 @@ class ProbationAddressUpdatedEventListenerIntTest : ProbationEventListenerTestBa
 
     stubPersonMatchUpsert()
     stubPersonMatchScores()
-    stubGetRequestToProbation(probationAddress)
+    stubGetProbationAddress(probationAddress)
 
     publishProbationAddressUpdatedEvent(personEntity.crn, probationAddress.deliusAddressId)
 
-    val actualPersonEntity = awaitNotNull { personRepository.findByCrn(personEntity.crn!!) }
-    assertThat(actualPersonEntity.addresses.size).isEqualTo(1)
+    awaitAssert {
+      assertThat(personRepository.findByCrn(personEntity.crn!!)!!.addresses.size).isEqualTo(1)
+    }
 
     val actualAddress = assertAddress(personEntity.crn!!, probationAddress)
     assertCprAddressCreatedEventPublished(personEntity.crn!!, actualAddress.updateId!!)

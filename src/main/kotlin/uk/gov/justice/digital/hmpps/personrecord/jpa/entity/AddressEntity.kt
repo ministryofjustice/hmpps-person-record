@@ -18,8 +18,10 @@ import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
+import kotlin.reflect.KClass
 
 @Entity
 @Table(name = "address")
@@ -110,11 +112,23 @@ class AddressEntity(
   @Column(name = "is_verified")
   var isVerified: Boolean? = null,
 
+  @Column(name = "create_date_time")
+  var createDateTime: LocalDateTime? = null,
+
+  @Column(name = "create_user_id")
+  var createUserId: String? = null,
+
+  @Column(name = "modify_date_time")
+  var modifyDateTime: LocalDateTime? = null,
+
+  @Column(name = "modify_user_id")
+  var modifyUserId: String? = null,
+
   @Version
   var version: Int = 0,
 ) {
 
-  fun update(address: Address) {
+  fun update(address: Address, childrenToIgnore: Set<KClass<*>> = emptySet()) {
     this.noFixedAbode = address.noFixedAbode
     this.startDate = address.startDate
     this.endDate = address.endDate
@@ -133,15 +147,23 @@ class AddressEntity(
     this.statusCode = address.statusCode
     this.deliusAddressId = this.deliusAddressId ?: address.deliusAddressId
     this.isVerified = address.isVerified
-    updateChildEntities(address)
+    this.createDateTime = address.createDateTime
+    this.createUserId = address.createUserId
+    this.modifyDateTime = address.modifyDateTime
+    this.modifyUserId = address.modifyUserId
+    updateChildEntities(address, childrenToIgnore)
   }
 
-  private fun updateChildEntities(address: Address) {
-    updateUsages(address.usages.map { AddressUsageEntity.from(it) }.toMutableList())
-    updateContacts(address.contacts.map { ContactEntity.from(it) }.toMutableList())
+  private fun updateChildEntities(address: Address, childrenToIgnore: Set<KClass<*>>) {
+    if (!childrenToIgnore.contains<Any>(AddressUsageEntity::class)) {
+      updateUsages(address.usages.map { AddressUsageEntity.from(it) })
+    }
+    if (!childrenToIgnore.contains<Any>(ContactEntity::class)) {
+      updateContacts(address.contacts.map { ContactEntity.from(it) })
+    }
   }
 
-  fun updateContacts(contacts: MutableList<ContactEntity>) {
+  fun updateContacts(contacts: List<ContactEntity>) {
     this.contacts.clear()
     contacts.forEach { contact ->
       contact.address = this
@@ -149,7 +171,7 @@ class AddressEntity(
     this.contacts.addAll(contacts)
   }
 
-  fun updateUsages(usages: MutableList<AddressUsageEntity>) {
+  fun updateUsages(usages: List<AddressUsageEntity>) {
     this.usages.clear()
     usages.forEach { usage ->
       usage.address = this

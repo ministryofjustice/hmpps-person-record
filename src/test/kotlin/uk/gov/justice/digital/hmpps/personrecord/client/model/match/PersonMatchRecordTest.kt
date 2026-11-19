@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ActorType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ConfidenceType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.OverrideType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import java.time.LocalDate
 import java.util.UUID
@@ -36,6 +37,8 @@ class PersonMatchRecordTest {
     assertThat(personMatchRecord.sentenceDates).isEqualTo(listOf("1970-01-01"))
   }
 
+  // TODO remove this test when RemandOverrideMarkersE2ETest.kt:54 is enabled
+  /** See [RemandOverrideMarkersE2ETest] */
   @Test
   fun `should build override marker and override scopes`() {
     val overrideMarker = UUID.randomUUID()
@@ -50,8 +53,8 @@ class PersonMatchRecordTest {
       sourceSystem = DELIUS,
       overrideMarker = overrideMarker,
       overrideScopes = mutableListOf(
-        OverrideScopeEntity(scope = overrideScope1, actor = ActorType.HUMAN, confidence = ConfidenceType.VERIFIED),
-        OverrideScopeEntity(scope = overrideScope2, actor = ActorType.SYSTEM, confidence = ConfidenceType.VERIFIED),
+        OverrideScopeEntity(scope = overrideScope1, actor = ActorType.HUMAN, confidence = ConfidenceType.VERIFIED, overrideType = OverrideType.EXCLUDE),
+        OverrideScopeEntity(scope = overrideScope2, actor = ActorType.SYSTEM, confidence = ConfidenceType.VERIFIED, overrideType = OverrideType.EXCLUDE),
       ),
 
     )

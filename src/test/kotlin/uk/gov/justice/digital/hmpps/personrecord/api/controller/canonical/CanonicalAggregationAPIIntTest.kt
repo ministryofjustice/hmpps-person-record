@@ -20,12 +20,12 @@ class CanonicalAggregationAPIIntTest : WebTestBase() {
       val prisonDetails = createRandomPrisonPersonDetails()
       val probationDetails = createRandomProbationPersonDetails()
 
-      val prisonPerson = createPerson(prisonDetails)
-      val probationPerson = createPerson(probationDetails)
-
       val personKey = createPersonKey()
-        .addPerson(prisonPerson)
-        .addPerson(probationPerson)
+        .addPerson(prisonDetails)
+        .addPerson(probationDetails)
+
+      val prisonPerson = personRepository.findByPrisonNumber(prisonDetails.prisonNumber!!)!!
+      val probationPerson = personRepository.findByCrn(probationDetails.crn!!)!!
 
       val responseBody = webTestClient.get()
         .uri(canonicalAPIUrlAggregate(personKey.personUUID.toString()))
@@ -48,13 +48,11 @@ class CanonicalAggregationAPIIntTest : WebTestBase() {
       val prisonDetails = createRandomPrisonPersonDetails()
       val probationDetails = createRandomProbationPersonDetails()
 
-      val prisonPerson = createPerson(prisonDetails)
-      val latestPerson = createPerson(probationDetails.copy(aliases = prisonDetails.aliases))
-
       val personKey = createPersonKey()
-        .addPerson(prisonPerson)
-        .addPerson(latestPerson)
+        .addPerson(prisonDetails)
+        .addPerson(probationDetails.copy(aliases = prisonDetails.aliases))
 
+      val latestPerson = personRepository.findByCrn(probationDetails.crn!!)!!
       val responseBody = webTestClient.get()
         .uri(canonicalAPIUrlAggregate(personKey.personUUID.toString()))
         .authorised(listOf(PERSON_RECORD_ADMIN_READ_ONLY))
@@ -79,12 +77,9 @@ class CanonicalAggregationAPIIntTest : WebTestBase() {
       val prisonDetails = createRandomPrisonPersonDetails()
       val probationDetails = createRandomProbationPersonDetails()
 
-      val prisonPerson = createPerson(prisonDetails)
-      val latestPerson = createPerson(probationDetails)
-
       val personKey = createPersonKey()
-        .addPerson(prisonPerson)
-        .addPerson(latestPerson)
+        .addPerson(prisonDetails)
+        .addPerson(probationDetails)
 
       val responseBody = webTestClient.get()
         .uri(canonicalAPIUrlAggregate(personKey.personUUID.toString()))
@@ -95,8 +90,9 @@ class CanonicalAggregationAPIIntTest : WebTestBase() {
         .expectBody<CanonicalRecordView>()
         .returnResult()
         .responseBody!!
-
-      val canonicalAddress = prisonPerson.addresses.map { CanonicalAddress.from(it) } + latestPerson.addresses.map { CanonicalAddress.from(it) }
+      val prisonPerson = personRepository.findByPrisonNumber(prisonDetails.prisonNumber!!)!!
+      val latestPerson = personRepository.findByCrn(probationDetails.crn!!)
+      val canonicalAddress = prisonPerson.addresses.map { CanonicalAddress.from(it) } + latestPerson!!.addresses.map { CanonicalAddress.from(it) }
 
       assertThat(responseBody.canonicalRecord.firstName).isEqualTo(probationDetails.firstName)
 
@@ -113,12 +109,9 @@ class CanonicalAggregationAPIIntTest : WebTestBase() {
       val prisonDetails = createRandomPrisonPersonDetails()
       val probationDetails = createRandomProbationPersonDetails()
 
-      val prisonPerson = createPerson(prisonDetails)
-      val latestPerson = createPerson(probationDetails)
-
       val personKey = createPersonKey()
-        .addPerson(prisonPerson)
-        .addPerson(latestPerson)
+        .addPerson(prisonDetails)
+        .addPerson(probationDetails)
 
       val responseBody = webTestClient.get()
         .uri(canonicalAPIUrlAggregate(personKey.personUUID.toString()))
@@ -130,6 +123,8 @@ class CanonicalAggregationAPIIntTest : WebTestBase() {
         .returnResult()
         .responseBody!!
 
+      val prisonPerson = personRepository.findByPrisonNumber(prisonDetails.prisonNumber!!)!!
+      val latestPerson = personRepository.findByCrn(probationDetails.crn!!)!!
       val canonicalAddress = prisonPerson.addresses.map { CanonicalAddress.from(it) } + latestPerson.addresses.map { CanonicalAddress.from(it) }
 
       assertThat(responseBody.canonicalRecord.firstName).isEqualTo(probationDetails.firstName)

@@ -407,6 +407,7 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
       )
 
       stubPersonMatchUpsert()
+      stubClusterIsValid()
       stubOnePersonMatchAboveJoinThreshold(matchedRecord = defendant.matchId)
 
       webTestClient.put()
@@ -439,8 +440,9 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
     @Test
     fun `should only return main address in response`() {
       val defendantId = randomDefendantId()
-      val mainAddress = Address.from(createRandomCommonPlatformAddress())!!.copy(statusCode = AddressStatusCode.M)
-      val previousAddress = Address.from(createRandomCommonPlatformAddress())!!.copy(statusCode = AddressStatusCode.P)
+      val mainPostcode = randomPostcode()
+      val mainAddress = Address(postcode = mainPostcode, statusCode = AddressStatusCode.M)
+      val previousAddress = Address(postcode = randomPostcode(), statusCode = AddressStatusCode.P)
       createPersonWithNewKey(createRandomCommonPlatformPersonDetails(defendantId).copy(addresses = listOf(mainAddress, previousAddress)))
 
       val responseBody = webTestClient.get()
@@ -455,6 +457,7 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
 
       assertThat(responseBody.addresses.size).isEqualTo(1)
       assertThat(responseBody.addresses.first().status.code).isEqualTo(AddressStatusCode.M.name)
+      assertThat(responseBody.addresses.first().postcode).isEqualTo(mainPostcode)
     }
 
     @Test

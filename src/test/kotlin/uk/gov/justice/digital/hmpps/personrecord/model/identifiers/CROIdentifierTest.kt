@@ -47,4 +47,10 @@ class CROIdentifierTest {
     val identifier = CROIdentifier.from("65656/91H")
     assertThat("065656/91H").isEqualTo(identifier.croId)
   }
+
+  @Test
+  fun `should process lower case letters in CRO and store as upper case`() {
+    assertThat(CROIdentifier.from("sf05/482703j").croId).isEqualTo("SF05/482703J")
+    assertThat(CROIdentifier.from("65656/91h").croId).isEqualTo("065656/91H")
+  }
 }

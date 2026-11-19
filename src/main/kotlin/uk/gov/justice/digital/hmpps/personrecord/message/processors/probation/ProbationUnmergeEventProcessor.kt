@@ -5,31 +5,20 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonUnmerged
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.message.UnmergeService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.UnmergeService
 
 @Component
 class ProbationUnmergeEventProcessor(
   private val unmergeService: UnmergeService,
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
-  private val probationEventProcessor: ProbationEventProcessor,
 ) {
 
   @Transactional
   fun processEvent(domainEvent: ProbationPersonUnmerged) {
     val unmergedCrn = domainEvent.additionalInformation.unmergedCrn
-    val existingPerson = corePersonRecordAndDeliusClient
-      .getProbationCase(unmergedCrn)
-      .let {
-        probationEventProcessor.processPerson(Person.from(it))
-      }
-
     val reactivatedCrn = domainEvent.additionalInformation.reactivatedCrn
-    val reactivatedPerson = corePersonRecordAndDeliusClient
-      .getProbationCase(reactivatedCrn)
-      .let {
-        val person = Person.from(it)
-        probationEventProcessor.processPerson(person.doNotLinkOnCreate())
-      }
+    val existingPerson = Person.from(corePersonRecordAndDeliusClient.getProbationCase(unmergedCrn))
+    val reactivatedPerson = Person.from(corePersonRecordAndDeliusClient.getProbationCase(reactivatedCrn))
 
     unmergeService.processUnmerge(reactivatedPerson, existingPerson)
   }

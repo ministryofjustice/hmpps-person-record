@@ -1,23 +1,29 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
+import jakarta.persistence.CascadeType.ALL
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType.STRING
 import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Entity
@@ -45,6 +51,10 @@ class PseudonymEntity(
   )
   var person: PersonEntity? = null,
 
+  @Column
+  @OneToMany(mappedBy = "pseudonym", cascade = [ALL], fetch = FetchType.LAZY, orphanRemoval = true)
+  var references: MutableList<ReferenceEntity> = mutableListOf(),
+
   @Column(name = "title_code")
   @Enumerated(STRING)
   var titleCode: TitleCode? = null,
@@ -65,9 +75,32 @@ class PseudonymEntity(
   @Enumerated(STRING)
   var sexCode: SexCode? = null,
 
+  @Column(name = "ethnicity_code")
+  @Enumerated(STRING)
+  var ethnicityCode: EthnicityCode? = null,
+
+  @Column(name = "birth_place")
+  var birthplace: String? = null,
+
+  @Column(name = "birth_country_code")
+  @Enumerated(STRING)
+  var birthCountryCode: CountryCode? = null,
+
   @Column(name = "name_type")
   @Enumerated(STRING)
   val nameType: NameType,
+
+  @Column(name = "create_date_time")
+  var createDateTime: LocalDateTime? = null,
+
+  @Column(name = "create_user_id")
+  var createUserId: String? = null,
+
+  @Column(name = "modify_date_time")
+  var modifyDateTime: LocalDateTime? = null,
+
+  @Column(name = "modify_user_id")
+  var modifyUserId: String? = null,
 
   @Version
   var version: Int = 0,
@@ -81,6 +114,7 @@ class PseudonymEntity(
       titleCode = person.titleCode,
       dateOfBirth = person.dateOfBirth,
       sexCode = person.sexCode,
+      ethnicityCode = person.ethnicityCode,
     )
 
     fun aliasFrom(alias: Alias): PseudonymEntity? = when {

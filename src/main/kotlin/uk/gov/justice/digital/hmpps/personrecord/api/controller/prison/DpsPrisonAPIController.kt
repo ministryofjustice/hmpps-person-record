@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.prison.DpsPrisonGetHandler
@@ -19,7 +21,10 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.DpsPrisonRecor
 @Tag(name = "Prison")
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
-class DpsPrisonAPIController(private val dpsPrisonGetHandler: DpsPrisonGetHandler) {
+@RequestMapping("/person/prison/dps")
+class DpsPrisonAPIController(
+  private val dpsPrisonGetHandler: DpsPrisonGetHandler,
+) {
 
   @Operation(
     description = "**NOTE: Use this only if you want to retrieve Prison Religion history & Alias References.**\n\n" +
@@ -31,7 +36,7 @@ class DpsPrisonAPIController(private val dpsPrisonGetHandler: DpsPrisonGetHandle
       "and a prison specific representation of alias & identifiers.",
     security = [SecurityRequirement(name = "api-role")],
   )
-  @GetMapping("/person/prison/dps/{prisonNumber}")
+  @GetMapping("/{prisonNumber}")
   @ApiResponses(
     ApiResponse(
       responseCode = "200",
@@ -45,5 +50,5 @@ class DpsPrisonAPIController(private val dpsPrisonGetHandler: DpsPrisonGetHandle
       ],
     ),
   )
-  fun getByPrisonNumberDps(@PathVariable(name = "prisonNumber") prisonNumber: String): ResponseEntity<DpsPrisonRecord> = dpsPrisonGetHandler.get(prisonNumber)
+  fun getByPrisonNumberDps(@PathVariable(name = "prisonNumber") @Parameter(example = "A1234AA") prisonNumber: String): ResponseEntity<DpsPrisonRecord> = dpsPrisonGetHandler.get(prisonNumber)
 }

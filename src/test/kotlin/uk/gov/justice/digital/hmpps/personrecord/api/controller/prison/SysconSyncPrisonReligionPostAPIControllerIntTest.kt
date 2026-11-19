@@ -11,24 +11,32 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionSaveResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressUsageEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressUsageRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonRecordType
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
+import java.time.LocalDateTime
 
-class SysconSyncPrisonReligionPostAPIControllerIntTest : WebTestBase() {
+class SysconSyncPrisonReligionPostAPIControllerIntTest(
+  @Autowired private val addressUsageRepository: AddressUsageRepository,
+) : WebTestBase() {
 
   @Autowired
   private lateinit var prisonReligionRepository: PrisonReligionRepository
 
   @Nested
-  inner class Successful {
+  inner class SuccessfulProcessing {
 
     @Test
     fun `person has no prison religions - saves prison religion - updates current religion`() {
       val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createPrisonReligionHistory()
       sendPostRequestAsserted<PrisonReligionSaveResponse>(
@@ -52,7 +60,7 @@ class SysconSyncPrisonReligionPostAPIControllerIntTest : WebTestBase() {
     fun `person has existing current prison religion - saves new prison religion - updates current religion`() {
       val prisonNumber = randomPrisonNumber()
       val existingReligionEntity = PrisonReligionEntity.from(prisonNumber, createPrisonReligionHistory())
-      val personEntityWithCurrentReligion = createPerson(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligionEntity.code })
+      val personEntityWithCurrentReligion = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = existingReligionEntity.code })
       prisonReligionRepository.save(existingReligionEntity)
       personRepository.saveAndFlush(personEntityWithCurrentReligion)
 
@@ -81,9 +89,38 @@ class SysconSyncPrisonReligionPostAPIControllerIntTest : WebTestBase() {
     }
 
     @Test
+    fun `person has an address with a usage - saves prison religion - address and usage keep their ids`() {
+      val prisonNumber = randomPrisonNumber()
+      val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+      val addressEntity = addressRepository.saveAndFlush(AddressEntity(person = personEntity, postcode = randomPostcode()))
+      val addressUsageEntity = addressUsageRepository.saveAndFlush(
+        AddressUsageEntity(
+          address = addressEntity,
+          usageCode = AddressUsageCode.CURFEW,
+          active = true,
+          createDateTime = LocalDateTime.parse("2020-01-01T12:00:00"),
+          createUserId = "createUserId",
+        ),
+      )
+
+      sendPostRequestAsserted<PrisonReligionSaveResponse>(
+        url = prisonReligionPostEndpoint(prisonNumber),
+        body = createPrisonReligionHistory(),
+        roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+        expectedStatus = HttpStatus.CREATED,
+      )
+
+      awaitAssert {
+        val addressEntityAfterReligionInsert = addressRepository.findByUpdateId(addressEntity.updateId!!) ?: fail("Address ${addressEntity.updateId} no longer exists")
+        assertThat(addressEntityAfterReligionInsert.usages.map { it.updateId }).containsExactly(addressUsageEntity.updateId)
+        assertThat(addressUsageRepository.findByUpdateId(addressUsageEntity.updateId!!)).isNotNull
+      }
+    }
+
+    @Test
     fun `saves prison religion - returns correct response body`() {
       val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createPrisonReligionHistory()
       val responseBody = sendPostRequestAsserted<PrisonReligionSaveResponse>(
@@ -107,7 +144,7 @@ class SysconSyncPrisonReligionPostAPIControllerIntTest : WebTestBase() {
     @Test
     fun `person does not exist - returns 404 not found`() {
       val prisonNumber = randomPrisonNumber()
-      createPerson(createRandomPrisonPersonDetails(prisonNumber))
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val requestBody = createPrisonReligionHistory()
       sendPostRequestAsserted<Unit>(
