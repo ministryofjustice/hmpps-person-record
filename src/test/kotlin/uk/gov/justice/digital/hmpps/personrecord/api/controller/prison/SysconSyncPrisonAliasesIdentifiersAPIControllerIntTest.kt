@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.HttpStatus.FORBIDDEN
@@ -41,7 +40,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID.randomUUID
 
-@Import(TransactionalPersonLookup::class)
 class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
   @Autowired
