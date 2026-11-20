@@ -7,31 +7,43 @@ import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonUpdated
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PrisonPersonServiceProxy
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 
 @Component
 class PrisonEventListener(
   private val domainEventProcessor: DomainEventProcessor,
-  private val prisonEventProcessor: PrisonEventProcessor,
+  private val personRepository: PersonRepository,
+  private val personService: PrisonPersonServiceProxy,
   private val prisonerSearchClient: PrisonerSearchClient,
 ) {
 
   @SqsListener(Queues.PRISON_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
   fun onDomainEvent(rawMessage: String) = domainEventProcessor.process<DomainEvent>(rawMessage) { event ->
     when (event) {
-      is PrisonPersonCreated -> processPrisonEvent(event.prisonNumber, logExtraInformation = true)
-      is PrisonPersonUpdated -> processPrisonEvent(event.prisonNumber)
+      is PrisonPersonCreated -> processPrisonEventCreated(event.prisonNumber)
+      is PrisonPersonUpdated -> processPrisonEventUpdated(event.prisonNumber)
       else -> log.info("Discarding message, unexpected event: $event")
     }
   }
 
-  private fun processPrisonEvent(prisonNumber: String, logExtraInformation: Boolean = false) {
+  private fun processPrisonEventCreated(prisonNumber: String) {
     prisonerSearchClient.getPrisoner(prisonNumber)?.let { person ->
-      if (logExtraInformation) logFieldsNotCoveredBySingleAlias(prisonNumber, person)
-      prisonEventProcessor.processEvent(person)
+      logFieldsNotCoveredBySingleAlias(prisonNumber, person)
+      personService.processPersonCreate(person) {
+        personRepository.findByPrisonNumber(person.prisonNumber!!)
+      }
+    }
+  }
+
+  private fun processPrisonEventUpdated(prisonNumber: String) {
+    prisonerSearchClient.getPrisoner(prisonNumber)?.let { person ->
+      personService.processPersonUpdate(person) {
+        personRepository.findByPrisonNumber(person.prisonNumber!!)
+      }
     }
   }
 
