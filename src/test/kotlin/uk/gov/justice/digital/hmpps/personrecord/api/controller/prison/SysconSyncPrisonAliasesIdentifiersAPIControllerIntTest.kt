@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonIden
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasesAndIdentifiersResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconIdentifierMapping
+import uk.gov.justice.digital.hmpps.personrecord.config.TransactionalLookup
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
@@ -49,6 +50,9 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
   @Autowired
   lateinit var referenceRepository: ReferenceRepository
+
+  @Autowired
+  lateinit var transactionalLookup: TransactionalLookup
 
   @Nested
   @ActiveProfiles("prod")
@@ -223,7 +227,7 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
       val response = postPseudonymsAndReferences(prisonNumber, validPrisonPseudoymnAndReferencesRequest)
 
-      val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+      val personEntity = transactionalLookup.findByPrisonNumberWithReferences(prisonNumber)
 
       for (pseudonymRequest in validPrisonPseudoymnAndReferencesRequest.aliases) {
         // Because ordering is not guaranteed, we need to find the matching entity for each request
@@ -255,7 +259,7 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       // Best way to check is to migrate twice and check that the first migration does not persist.
       // First request.
       postPseudonymsAndReferences(prisonNumber, validPrisonPseudoymnAndReferencesRequest)
-      val person = personRepository.findByPrisonNumber(prisonNumber)!!
+      val person = transactionalLookup.findByPrisonNumberWithReferences(prisonNumber)
       val pseudonymsToBeDeleted = person.pseudonyms
       val referencesToBeDeleted = person.pseudonyms.flatMap { it.references }
       assertThat(pseudonymsToBeDeleted).isNotEmpty()
