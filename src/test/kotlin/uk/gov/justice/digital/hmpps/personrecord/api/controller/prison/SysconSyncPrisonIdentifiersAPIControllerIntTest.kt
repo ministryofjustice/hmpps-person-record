@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonIden
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -78,7 +77,6 @@ class SysconSyncPrisonIdentifiersAPIControllerIntTest : WebTestBase() {
         type = IdentifierType.PNC,
         value = "2000/1234567A",
         comment = "comment",
-        issuedDate = LocalDate.of(2020, 1, 1),
         verified = true,
         createDateTime = LocalDateTime.of(2021, 1, 1, 12, 0),
         createUserId = "createUserId",

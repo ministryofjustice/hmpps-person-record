@@ -137,6 +137,8 @@ class SysconPersonPseudonymsAndReferencesInsertHandler(
     pseudonymEntity.dateOfBirth = dateOfBirth
     pseudonymEntity.sexCode = sexCode
     pseudonymEntity.ethnicityCode = ethnicity
+    pseudonymEntity.birthplace = birthPlace
+    pseudonymEntity.birthCountryCode = birthCountry
     pseudonymEntity.modifyDateTime = modifyDateTime
     pseudonymEntity.modifyUserId = modifyUserId
     pseudonymEntity.createDateTime = createDateTime
