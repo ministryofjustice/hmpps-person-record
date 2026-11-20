@@ -9,13 +9,13 @@ interface SysconSyncPseudonymHandler {
   fun handleInsert(prisonNumber: String, prisonAlias: PrisonAlias): SysconAliasMapping
 }
 
-@Profile("dev || prod || preprod")
+@Profile("dev | prod | preprod")
 @Component
 class SysconSyncPseudonymHandlerProd : SysconSyncPseudonymHandler {
   override fun handleInsert(prisonNumber: String, prisonAlias: PrisonAlias) = SysconAliasMapping()
 }
 
-@Profile("!dev && !prod && !preprod")
+@Profile("!dev & !prod & !preprod")
 @Component
 class SysconSyncPseudonymHandlerImpl : SysconSyncPseudonymHandler {
   override fun handleInsert(prisonNumber: String, prisonAlias: PrisonAlias) = SysconAliasMapping()
