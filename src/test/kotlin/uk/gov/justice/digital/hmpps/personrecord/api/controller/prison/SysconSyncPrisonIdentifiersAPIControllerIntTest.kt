@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonIden
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
