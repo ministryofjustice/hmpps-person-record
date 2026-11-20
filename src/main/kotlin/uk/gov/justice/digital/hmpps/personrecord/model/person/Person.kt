@@ -177,13 +177,6 @@ data class Person(
     }
 
     fun from(prisoner: Prisoner): Person {
-      val emails: List<Contact> = prisoner.emailAddresses.mapNotNull { Contact.from(ContactType.EMAIL, it.email) }
-      val phoneNumbers: List<Contact> = listOfNotNull(
-        Contact.from(ContactType.HOME, prisoner.getHomePhone()),
-        Contact.from(ContactType.MOBILE, prisoner.getMobilePhone()),
-      )
-      val contacts: List<Contact> = emails + phoneNumbers
-      val addresses: List<Address> = Address.fromPrisonerAddressList(prisoner.addresses)
       val references = listOfNotNull(
         Reference.from(identifierType = CRO, identifierValue = prisoner.cro?.toString()),
         Reference.from(identifierType = PNC, identifierValue = prisoner.pnc?.toString()),
