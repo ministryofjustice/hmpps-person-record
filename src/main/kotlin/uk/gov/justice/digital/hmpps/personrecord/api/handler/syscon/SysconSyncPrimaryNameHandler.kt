@@ -25,9 +25,7 @@ class SysconSyncPrimaryNameHandler(
     if (newPrimaryName.nameType == PRIMARY) return
 
     personService.processUpdateAndPublish(newPrimaryName.person!!) { personEntity ->
-      personEntity.pseudonyms
-        .filter { it.nameType == PRIMARY }
-        .forEach { it.nameType = ALIAS }
+      personEntity.getPrimaryName().nameType = ALIAS
       newPrimaryName.nameType = PRIMARY
     }
   }
