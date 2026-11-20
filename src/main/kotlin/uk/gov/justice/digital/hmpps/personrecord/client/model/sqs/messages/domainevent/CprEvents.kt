@@ -4,6 +4,8 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.asStringWithUkZone
 import java.time.Instant
 import java.util.UUID
 
+const val CPR_CLUSTER_CHANGED = "core-person-record.match.updated"
+
 const val CPR_PRISON_PERSON_CREATED = "core-person-record.prison.record.created"
 const val CPR_PRISON_PERSON_MERGED = "core-person-record.prison.record.merged"
 const val CPR_PRISON_RELIGION_CREATED = "core-person-record.prison.religion.created"
@@ -21,6 +23,14 @@ const val CPR_PROBATION_PERSON_UNMERGED = "core-person-record.probation.record.u
 const val CPR_PROBATION_ADDRESS_CREATED = "core-person-record.probation.address.created"
 const val CPR_PROBATION_ADDRESS_UPDATED = "core-person-record.probation.address.updated"
 const val CPR_PROBATION_ADDRESS_DELETED = "core-person-record.probation.address.deleted"
+
+data class CprClusterChanged(
+  override val eventType: String,
+  val version: Int = 1,
+  val occurredAt: String = Instant.now().asStringWithUkZone(),
+  val description: String,
+  val personReference: PersonReference,
+) : DomainEvent
 
 data class CprPersonCreated(
   override val eventType: String,
