@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonIden
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasesAndIdentifiersResponseBody
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconIdentifierMapping
+import uk.gov.justice.digital.hmpps.personrecord.config.TransactionalLookup
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
@@ -49,6 +50,9 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
   @Autowired
   lateinit var referenceRepository: ReferenceRepository
+
+  @Autowired
+  lateinit var transactionalLookup: TransactionalLookup
 
   @Nested
   @ActiveProfiles("prod")
@@ -223,7 +227,7 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
       val response = postPseudonymsAndReferences(prisonNumber, validPrisonPseudoymnAndReferencesRequest)
 
-      val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+      val personEntity = transactionalLookup.findByPrisonNumberWithReferences(prisonNumber)
 
       for (pseudonymRequest in validPrisonPseudoymnAndReferencesRequest.aliases) {
         // Because ordering is not guaranteed, we need to find the matching entity for each request
@@ -255,7 +259,7 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       // Best way to check is to migrate twice and check that the first migration does not persist.
       // First request.
       postPseudonymsAndReferences(prisonNumber, validPrisonPseudoymnAndReferencesRequest)
-      val person = personRepository.findByPrisonNumber(prisonNumber)!!
+      val person = transactionalLookup.findByPrisonNumberWithReferences(prisonNumber)
       val pseudonymsToBeDeleted = person.pseudonyms
       val referencesToBeDeleted = person.pseudonyms.flatMap { it.references }
       assertThat(pseudonymsToBeDeleted).isNotEmpty()
@@ -353,6 +357,8 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
     assertThat(entity.dateOfBirth).isEqualTo(request.dateOfBirth)
     assertThat(entity.sexCode).isEqualTo(request.sexCode)
     assertThat(entity.ethnicityCode).isEqualTo(request.ethnicity)
+    assertThat(entity.birthplace).isEqualTo(request.birthPlace)
+    assertThat(entity.birthCountryCode).isEqualTo(request.birthCountry)
     assertThat(entity.createDateTime).isEqualTo(request.createDateTime)
     assertThat(entity.createUserId).isEqualTo(request.createUserId)
     assertThat(entity.modifyDateTime).isEqualTo(request.modifyDateTime)
@@ -398,7 +404,6 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
               type = PNC,
               value = "1988/3461238",
               comment = "comment1",
-              issuedDate = LocalDate.of(2020, 1, 1),
               verified = true,
               createDateTime = LocalDateTime.of(2021, 1, 1, 12, 0),
               createUserId = "createUserIdIdentifier1",
@@ -410,7 +415,6 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
               type = CRO,
               value = "959442/89B",
               comment = "comment2",
-              issuedDate = null,
               verified = false,
               createDateTime = LocalDateTime.of(2021, 2, 1, 12, 0),
               createUserId = "createUserIdIdentifier2",
@@ -438,7 +442,6 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
               nomisIdentifierId = NomisIdentifierId(nomisOffenderId = 10001L, nomisSequence = 1),
               type = PNC,
               value = "1959/7517495M",
-              issuedDate = null,
               verified = true,
               createDateTime = LocalDateTime.of(2022, 2, 1, 12, 0),
               createUserId = "createUserIdIdentifier3",
