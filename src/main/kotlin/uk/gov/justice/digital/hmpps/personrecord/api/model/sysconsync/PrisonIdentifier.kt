@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class PrisonIdentifier(
