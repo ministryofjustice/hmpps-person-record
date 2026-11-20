@@ -357,6 +357,8 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
     assertThat(entity.dateOfBirth).isEqualTo(request.dateOfBirth)
     assertThat(entity.sexCode).isEqualTo(request.sexCode)
     assertThat(entity.ethnicityCode).isEqualTo(request.ethnicity)
+    assertThat(entity.birthplace).isEqualTo(request.birthPlace)
+    assertThat(entity.birthCountryCode).isEqualTo(request.birthCountry)
     assertThat(entity.createDateTime).isEqualTo(request.createDateTime)
     assertThat(entity.createUserId).isEqualTo(request.createUserId)
     assertThat(entity.modifyDateTime).isEqualTo(request.modifyDateTime)
