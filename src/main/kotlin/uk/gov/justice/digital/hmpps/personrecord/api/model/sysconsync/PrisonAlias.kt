@@ -36,7 +36,7 @@ data class PrisonAlias(
   @Schema(description = "Ethnicity of this offender record")
   val ethnicity: EthnicityCode? = null,
   @Schema(description = "List of identifiers associated with this alias")
-  val identifiers: List<PrisonIdentifier>,
+  val identifiers: List<PrisonIdentifier> = emptyList(),
   @Schema(description = "Suffix")
   val suffix: PrisonPseudonymSuffix? = null,
   @Schema(description = "Name type")

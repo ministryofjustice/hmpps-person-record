@@ -18,14 +18,16 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncPseudonymHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasMapping
 
 @Tag(name = "Syscon Sync")
 @RestController
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
-class SysconSyncPrisonAliasesAPIController {
+class SysconSyncPrisonAliasesAPIController(
+  private val sysconSyncPseudonymHandler: SysconSyncPseudonymHandler,
+) {
 
   @Operation(
     description = """Get a prisoner alias record by Prison Number and alias uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
@@ -38,7 +40,7 @@ class SysconSyncPrisonAliasesAPIController {
   ): ResponseEntity<PrisonAlias> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
 
   @Operation(
-    description = """Create prisoner alias record, including its identifiers, by Prison Number. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
+    description = """Create prisoner alias record, by Prison Number. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
     security = [SecurityRequirement(name = "api-role")],
   )
   @PostMapping("/syscon-sync/person/{prisonNumber}/alias")
@@ -46,7 +48,7 @@ class SysconSyncPrisonAliasesAPIController {
   fun createPrisonerAlias(
     @PathVariable prisonNumber: String,
     @Valid @RequestBody requestBody: PrisonAlias,
-  ): ResponseEntity<SysconAliasMapping> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+  ) = sysconSyncPseudonymHandler.handleInsert(prisonNumber, requestBody)
 
   @Operation(
     description = """Update prisoner alias record by Prison Number and alias uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
