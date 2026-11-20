@@ -104,7 +104,7 @@ class SysconPersonPseudonymsAndReferencesInsertHandler(
       )
     }
     // Hibernate cascade deletes. Therefore, we can only remove entities at the end
-    personEntity.removeAllPseudonymsBut(mappings.map { it.cprAliasId })
+    personEntity.removeAllPseudonymsBut(mappings.map { it.cprAliasId!! })
     personEntity.removeAllReferencesBut(mappings.flatMap { it.identifierMappings }.map { it.cprIdentifierId })
     return mappings
   }
