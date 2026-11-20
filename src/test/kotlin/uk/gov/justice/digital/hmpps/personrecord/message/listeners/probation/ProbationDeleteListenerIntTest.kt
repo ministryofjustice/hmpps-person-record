@@ -382,7 +382,7 @@ class ProbationDeleteListenerIntTest : ProbationEventListenerTestBase() {
   }
 
   fun assertCprPersonDeletedEventPublished(crn: String) {
-    val domainEvent = receiveNextMessageOnQueue(testOnlyCPRDomainEventsQueue, CPR_PROBATION_PERSON_DELETED) as CprPersonDeleted
+    val domainEvent = receiveDomainEventMessage(CPR_PROBATION_PERSON_DELETED) as CprPersonDeleted
     assertThat(domainEvent.description).isEqualTo("A probation person record has been deleted")
     assertThat(domainEvent.occurredAt).isNotNull()
     assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)

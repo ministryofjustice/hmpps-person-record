@@ -70,7 +70,7 @@ class PrisonAPIAddressesControllerIntTest(
     }
 
     @Nested
-    inner class HappyPath {
+    inner class SuccessfulProcessing {
       @Test
       fun `should return all addresses for the prisoner, most recent first`() {
         val addresses = sendGetRequestAsserted<List<CanonicalAddress>>(
@@ -114,7 +114,7 @@ class PrisonAPIAddressesControllerIntTest(
     }
 
     @Nested
-    inner class Security {
+    inner class Auth {
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         sendGetRequestAsserted<String>(
@@ -141,7 +141,7 @@ class PrisonAPIAddressesControllerIntTest(
   inner class CreateAddressByPrisonNumber {
 
     @Nested
-    inner class HappyPath {
+    inner class SuccessfulProcessing {
 
       @BeforeEach
       fun beforeEach() {
@@ -321,7 +321,7 @@ class PrisonAPIAddressesControllerIntTest(
     }
 
     @Nested
-    inner class Security {
+    inner class Auth {
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         sendPostRequestAsserted<String>(
@@ -366,7 +366,7 @@ class PrisonAPIAddressesControllerIntTest(
   inner class CreateAddressContactsByPrisonNumber {
 
     @Nested
-    inner class HappyPath {
+    inner class SuccessfulProcessing {
       @Test
       fun `should add the contacts to the address and return them`() {
         val prisonNumber = randomPrisonNumber()
@@ -438,7 +438,7 @@ class PrisonAPIAddressesControllerIntTest(
     }
 
     @Nested
-    inner class Security {
+    inner class Auth {
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         sendPostRequestAsserted<String>(
@@ -500,7 +500,7 @@ class PrisonAPIAddressesControllerIntTest(
     }
 
     @Nested
-    inner class HappyPath {
+    inner class SuccessfulProcessing {
       @Test
       fun `should update the contact and return it`() {
         val contactId = personRepository.findByPrisonNumber(prisonNumber)!!.addresses.single().contacts.single().updateId.toString()
@@ -581,7 +581,7 @@ class PrisonAPIAddressesControllerIntTest(
     }
 
     @Nested
-    inner class Security {
+    inner class Auth {
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         sendPutRequestAsserted<String>(

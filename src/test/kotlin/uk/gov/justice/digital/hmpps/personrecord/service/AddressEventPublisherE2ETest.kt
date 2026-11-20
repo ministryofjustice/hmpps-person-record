@@ -4,12 +4,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.reactive.server.expectBody
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
-import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.probation.ProbationCreateAddressResponse
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_ADDRESS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprAddressCreated
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
@@ -43,16 +39,7 @@ class AddressEventPublisherE2ETest : E2ETestBase() {
     val createdAddress = addressRepository.findByUpdateId(UUID.fromString(responseBody.cprAddressId))
 
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-    val rawDomainEventMessage = testOnlyCPRDomainEventsQueue?.sqsClient?.receiveMessage(
-      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue?.queueUrl).build(),
-    )
-    assertThat(rawDomainEventMessage?.get()?.messages()?.first()?.body()?.contains("cprAddressId")).isTrue()
-    val sqsMessage = rawDomainEventMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body()) }!!
-    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute(CPR_PROBATION_ADDRESS_CREATED))
-    assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(CPR.identifier))
-
-    val domainEvent: CprAddressCreated = jsonMapper.readValue<CprAddressCreated>(sqsMessage.message)
-    assertThat(domainEvent.eventType).isEqualTo(CPR_PROBATION_ADDRESS_CREATED)
+    val domainEvent = receiveDomainEventMessage(CPR_PROBATION_ADDRESS_CREATED, CPR) as CprAddressCreated
     assertThat(domainEvent.detailUrl).isEqualTo("http://localhost:8080/person/probation/$crn/address/${createdAddress?.updateId}")
     assertThat(domainEvent.description).isEqualTo("A probation address has been created for a person")
     assertThat(domainEvent.occurredAt).isNotNull()

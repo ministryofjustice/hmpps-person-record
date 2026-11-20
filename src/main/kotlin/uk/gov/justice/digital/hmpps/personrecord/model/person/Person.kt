@@ -234,7 +234,7 @@ data class Person(
       ethnicityCode = existingPersonEntity.ethnicityCode,
       contacts = existingPersonEntity.contacts.map { Contact.from(it) },
       addresses = existingPersonEntity.addresses.map { Address.from(it) },
-      references = existingPersonEntity.references.map { Reference.from(it) },
+      references = existingPersonEntity.references.map { Reference.from(it) }.sortedBy { it.identifierValue },
       sourceSystem = existingPersonEntity.sourceSystem,
       sentences = existingPersonEntity.sentenceInfo.map { SentenceInfo.from(it) },
       cId = existingPersonEntity.cId,

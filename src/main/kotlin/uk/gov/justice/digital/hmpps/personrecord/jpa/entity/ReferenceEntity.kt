@@ -42,15 +42,23 @@ class ReferenceEntity(
   )
   var person: PersonEntity? = null,
 
+  @ManyToOne(optional = true)
+  @JoinColumn(
+    name = "fk_pseudonym_id",
+    referencedColumnName = "id",
+    nullable = true,
+  )
+  var pseudonym: PseudonymEntity? = null,
+
   @Column(name = "identifier_type")
   @Enumerated(STRING)
-  val identifierType: IdentifierType,
+  var identifierType: IdentifierType,
 
   @Column(name = "identifier_value")
-  val identifierValue: String? = null,
+  var identifierValue: String? = null,
 
   @Column(name = "identifier_comment")
-  val comment: String? = null,
+  var comment: String? = null,
 
   @Column(name = "is_verified")
   var isVerified: Boolean? = null,
