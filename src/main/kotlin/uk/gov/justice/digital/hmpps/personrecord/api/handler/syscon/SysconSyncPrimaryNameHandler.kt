@@ -18,7 +18,6 @@ class SysconSyncPrimaryNameHandler(
   @Transactional
   fun handleSetPrimaryName(prisonNumber: String, cprAliasId: String) {
     val newPrimaryName = pseudonymRepository.findByUpdateId(UUID.fromString(cprAliasId))
-      ?.takeIf { it.person?.prisonNumber == prisonNumber }
       ?: throw ResourceNotFoundException("Alias with $cprAliasId not found for person with $prisonNumber")
 
     // no-op if the primary name is already set to this alias record

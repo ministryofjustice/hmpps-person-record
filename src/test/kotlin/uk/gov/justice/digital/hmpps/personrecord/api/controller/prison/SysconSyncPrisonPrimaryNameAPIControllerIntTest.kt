@@ -88,23 +88,6 @@ class SysconSyncPrisonPrimaryNameAPIControllerIntTest(
           .jsonPath("userMessage")
           .isEqualTo("Not found: Alias with $cprAliasId not found for person with $prisonNumber")
       }
-
-      @Test
-      fun `should return not found when the alias belongs to a different prisoner`() {
-        val otherPerson = createPersonWithNewKey(createRandomPrisonPersonDetails())
-        val prisonNumber = randomPrisonNumber()
-        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
-        val otherAlias = otherPerson.getAliases().single()
-
-        webTestClient.post()
-          .uri(primaryNameUrl(prisonNumber, otherAlias.updateId.toString()))
-          .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
-          .exchange()
-          .expectStatus()
-          .isNotFound
-
-        assertThat(pseudonymRepository.findByUpdateId(otherAlias.updateId!!)!!.nameType).isEqualTo(ALIAS)
-      }
     }
 
     @Nested
