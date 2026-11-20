@@ -25,7 +25,7 @@ class SysconSyncPrisonAliasesAPIControllerIntTest : WebTestBase() {
   inner class GetAlias {
 
     @Nested
-    inner class HappyPath {
+    inner class SuccessfulProcessing {
 
       @Test
       fun `should respond with 501 as not currently implemented`() {
@@ -39,7 +39,7 @@ class SysconSyncPrisonAliasesAPIControllerIntTest : WebTestBase() {
     }
 
     @Nested
-    inner class Security {
+    inner class Auth {
 
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
@@ -69,7 +69,7 @@ class SysconSyncPrisonAliasesAPIControllerIntTest : WebTestBase() {
   inner class CreateAlias {
 
     @Nested
-    inner class HappyPath {
+    inner class SuccessfulProcessing {
 
       @Test
       fun `should respond with 501 as not currently implemented`() {
@@ -98,7 +98,7 @@ class SysconSyncPrisonAliasesAPIControllerIntTest : WebTestBase() {
     }
 
     @Nested
-    inner class Security {
+    inner class Auth {
 
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
@@ -129,7 +129,7 @@ class SysconSyncPrisonAliasesAPIControllerIntTest : WebTestBase() {
   inner class UpdateAlias {
 
     @Nested
-    inner class HappyPath {
+    inner class SuccessfulProcessing {
 
       @Test
       fun `should respond with 501 as not currently implemented`() {
@@ -158,7 +158,7 @@ class SysconSyncPrisonAliasesAPIControllerIntTest : WebTestBase() {
     }
 
     @Nested
-    inner class Security {
+    inner class Auth {
 
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
@@ -189,7 +189,7 @@ class SysconSyncPrisonAliasesAPIControllerIntTest : WebTestBase() {
   inner class DeleteAlias {
 
     @Nested
-    inner class HappyPath {
+    inner class SuccessfulProcessing {
 
       @Test
       fun `should respond with 501 as not currently implemented`() {
@@ -203,7 +203,7 @@ class SysconSyncPrisonAliasesAPIControllerIntTest : WebTestBase() {
     }
 
     @Nested
-    inner class Security {
+    inner class Auth {
 
       @Test
       fun `should return Access Denied 403 when role is wrong`() {

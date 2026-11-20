@@ -17,6 +17,7 @@ import jakarta.persistence.Version
 import org.hibernate.annotations.Generated
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
@@ -59,16 +60,16 @@ class PseudonymEntity(
   var titleCode: TitleCode? = null,
 
   @Column(name = "first_name")
-  val firstName: String? = null,
+  var firstName: String? = null,
 
   @Column(name = "middle_names")
-  val middleNames: String? = null,
+  var middleNames: String? = null,
 
   @Column(name = "last_name")
-  val lastName: String? = null,
+  var lastName: String? = null,
 
   @Column(name = "date_of_birth")
-  val dateOfBirth: LocalDate? = null,
+  var dateOfBirth: LocalDate? = null,
 
   @Column(name = "sex_code")
   @Enumerated(STRING)
@@ -78,9 +79,16 @@ class PseudonymEntity(
   @Enumerated(STRING)
   var ethnicityCode: EthnicityCode? = null,
 
+  @Column(name = "birth_place")
+  var birthplace: String? = null,
+
+  @Column(name = "birth_country_code")
+  @Enumerated(STRING)
+  var birthCountryCode: CountryCode? = null,
+
   @Column(name = "name_type")
   @Enumerated(STRING)
-  val nameType: NameType,
+  var nameType: NameType,
 
   @Column(name = "create_date_time")
   var createDateTime: LocalDateTime? = null,

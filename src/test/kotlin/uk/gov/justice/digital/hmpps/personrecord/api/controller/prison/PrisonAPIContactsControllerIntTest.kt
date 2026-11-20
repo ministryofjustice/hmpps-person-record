@@ -54,7 +54,7 @@ class PrisonAPIContactsControllerIntTest(
     }
 
     @Nested
-    inner class HappyPath {
+    inner class SuccessfulProcessing {
       @Test
       fun `should return all contacts when no filters supplied`() {
         val contacts = getContacts(contactsUrl(prisonNumber))
@@ -127,7 +127,7 @@ class PrisonAPIContactsControllerIntTest(
     }
 
     @Nested
-    inner class Security {
+    inner class Auth {
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         sendGetRequestAsserted<String>(
@@ -154,7 +154,7 @@ class PrisonAPIContactsControllerIntTest(
   inner class CreateContactByPrisonNumber {
 
     @Nested
-    inner class HappyPath {
+    inner class SuccessfulProcessing {
       @Test
       fun `should create the contact and return it`() {
         val prisonNumber = randomPrisonNumber()
@@ -221,7 +221,7 @@ class PrisonAPIContactsControllerIntTest(
     }
 
     @Nested
-    inner class Security {
+    inner class Auth {
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         sendPostRequestAsserted<String>(
@@ -250,7 +250,7 @@ class PrisonAPIContactsControllerIntTest(
   inner class UpdateContactByPrisonNumber {
 
     @Nested
-    inner class HappyPath {
+    inner class SuccessfulProcessing {
       @Test
       fun `should update the contact and return it`() {
         val prisonNumber = randomPrisonNumber()
@@ -326,7 +326,7 @@ class PrisonAPIContactsControllerIntTest(
     }
 
     @Nested
-    inner class Security {
+    inner class Auth {
       @Test
       fun `should return Access Denied 403 when role is wrong`() {
         sendPutRequestAsserted<String>(
