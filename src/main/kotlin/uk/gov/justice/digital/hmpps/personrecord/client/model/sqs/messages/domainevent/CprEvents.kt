@@ -25,7 +25,7 @@ const val CPR_PROBATION_ADDRESS_UPDATED = "core-person-record.probation.address.
 const val CPR_PROBATION_ADDRESS_DELETED = "core-person-record.probation.address.deleted"
 
 data class CprClusterChanged(
-  override val eventType: String,
+  override val eventType: String = CPR_CLUSTER_CHANGED,
   val version: Int = 1,
   val occurredAt: String = Instant.now().asStringWithUkZone(),
   val description: String,

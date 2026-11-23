@@ -180,7 +180,7 @@ class PersonEntity(
     NOMIS -> PersonIdentifier("prisonNumber", this.prisonNumber!!)
     DELIUS -> PersonIdentifier("CRN", this.crn!!)
     COMMON_PLATFORM -> PersonIdentifier("defendantId", this.defendantId!!)
-    LIBRA -> PersonIdentifier("cid", this.cId!!)
+    LIBRA -> PersonIdentifier("cId", this.cId!!)
   }
 
   fun addOverrideMarker(scope: OverrideScopeEntity, marker: UUID = OverrideScopeEntity.newMarker()) {
