@@ -4,12 +4,13 @@ data class SysconAliasesAndIdentifiersResponseBody(
 
   val prisonNumber: String,
   val aliasesMappings: List<SysconAliasMapping>,
-  val identifiersMappings: List<SysconIdentifierMapping>,
 )
 
+// TODO once sync is on in all environments should make nomisOffenderId and cprAliasId non-nullable
 data class SysconAliasMapping(
-  val nomisOffenderId: Long,
-  val cprAliasId: String,
+  val nomisOffenderId: Long? = null,
+  val cprAliasId: String? = null,
+  val identifierMappings: List<SysconIdentifierMapping> = emptyList(),
 )
 
 data class SysconIdentifierMapping(

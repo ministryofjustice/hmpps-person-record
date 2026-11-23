@@ -84,7 +84,7 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
     }
 
     @Nested
-    inner class Retrieval {
+    inner class SuccessfulProcessing {
 
       @Test
       fun `successful get returns the correct response body`() {
@@ -262,7 +262,7 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
     }
 
     @Nested
-    inner class Creation {
+    inner class SuccessfulProcessing {
 
       @Test
       fun `successful save returns the correct response body`() {
@@ -355,7 +355,7 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
     }
 
     @Nested
-    inner class Updating {
+    inner class SuccessfulProcessing {
 
       @Test
       fun `successful update of an address`() {
@@ -448,7 +448,7 @@ class SysconSyncPrisonAddressesAPIControllerIntTest : WebTestBase() {
     }
 
     @Nested
-    inner class Deleting {
+    inner class SuccessfulProcessing {
 
       @Test
       fun `successful delete of an address`() {

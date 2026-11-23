@@ -52,6 +52,20 @@ class ClusterController(
     @PathVariable(name = "prisonNumber") prisonNumber: String,
   ): AdminClusterDetail = getClusterDetail(prisonNumber) { personRepository.findByPrisonNumber(prisonNumber)?.personKey }
 
+  @Hidden
+  @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
+  @GetMapping("/admin/cluster/commonplatform/{defendantId}")
+  suspend fun getClusterFromDefendantId(
+    @PathVariable(name = "defendantId") defendantId: String,
+  ): AdminClusterDetail = getClusterDetail(defendantId) { personRepository.findByDefendantId(defendantId)?.personKey }
+
+  @Hidden
+  @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
+  @GetMapping("/admin/cluster/libra/{cId}")
+  suspend fun getClusterFromCId(
+    @PathVariable(name = "cId") cId: String,
+  ): AdminClusterDetail = getClusterDetail(cId) { personRepository.findByCId(cId)?.personKey }
+
   private fun getRecordComparison(matchIds: List<String>): CompareRecordsDetail {
     val persons = matchIds.map { personRepository.findByMatchId(UUID.fromString(it)) ?: throw ResourceNotFoundException("Person not found for matchId") }
     val clusterVisualisationSpec = personMatchService.retrieveClusterVisualisationSpec(matchIds).spec

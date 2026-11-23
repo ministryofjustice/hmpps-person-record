@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class PrisonIdentifier(
@@ -16,8 +15,6 @@ data class PrisonIdentifier(
   val value: String,
   @Schema(description = "The identifier comment", example = "Some comment")
   val comment: String? = null,
-  @Schema(description = "The issued date")
-  val issuedDate: LocalDate?,
   @Schema(description = "Verified")
   val verified: Boolean,
   @Schema(description = "The identifier create date and time", example = "2000-01-01T12:00:00", required = true)
