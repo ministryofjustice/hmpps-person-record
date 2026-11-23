@@ -28,7 +28,7 @@ class PersonDeletionService(
     personEntity.deleteFromPersonMatch()
     personEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively()
     reclusterRemainingPeopleInCluster(personsOnCluster)
-    if (personsOnCluster.isNotEmpty()) {
+    if (cluster.containsRecords()) {
       publisher.publishEvent(ClusterChanged(cluster))
     }
   }

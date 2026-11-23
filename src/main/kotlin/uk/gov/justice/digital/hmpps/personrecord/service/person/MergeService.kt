@@ -39,8 +39,7 @@ class MergeService(
     merge(from, to, fromClusterDetail, personChangeChecker)
     reclusterService.recluster(to)
 
-    val remainingPersonsOnFromPersonCluster = fromPersonCluster.personEntities.filter { it.id != from.id }
-    if (remainingPersonsOnFromPersonCluster.isNotEmpty()) {
+    if (fromPersonCluster.containsRecords()) {
       publisher.publishEvent(ClusterChanged(fromPersonCluster))
     }
   }

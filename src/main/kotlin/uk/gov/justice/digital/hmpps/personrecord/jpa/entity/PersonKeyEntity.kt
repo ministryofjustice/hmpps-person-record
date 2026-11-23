@@ -66,6 +66,8 @@ class PersonKeyEntity(
 
   fun hasOneRecord() = this.personEntities.size == 1
 
+  fun containsRecords() = this.personEntities.isNotEmpty()
+
   fun getExcludeScopes(): List<OverrideScopeEntity> = this.personEntities.flatMap { person -> person.getExcludeScopes() }
 
   fun getIncludeScopes(): List<OverrideScopeEntity> = this.personEntities.flatMap { person -> person.getIncludeScopes() }
