@@ -21,14 +21,15 @@ class PersonDeletionService(
 
   @Transactional
   fun processDelete(personCallback: () -> PersonEntity?) = personCallback()?.let { personEntity ->
-    val cluster = personEntity.personKey!!
-    val personsOnCluster = personEntity.personKey?.personEntities?.filter { it.matchId != personEntity.matchId } ?: emptyList()
+    val cluster = personEntity.personKey
+    val otherPersonsOnCluster = cluster?.personEntities?.filter { it.matchId != personEntity.matchId } ?: emptyList()
     personEntity.deleteClusterIfNoRecordsLeft()
     personEntity.delete()
     personEntity.deleteFromPersonMatch()
     personEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively()
-    reclusterRemainingPeopleInCluster(personsOnCluster)
-    if (cluster.containsRecords()) {
+
+    reclusterRemainingPeopleInCluster(otherPersonsOnCluster)
+    if (cluster?.containsRecords() == true) {
       publisher.publishEvent(ClusterChanged(cluster))
     }
   }
