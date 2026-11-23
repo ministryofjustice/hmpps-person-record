@@ -4,6 +4,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncInsertHandlerHelper.addIfAbsent
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAliasesAndIdentifiersRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonIdentifier
@@ -109,9 +110,6 @@ class SysconPersonPseudonymsAndReferencesInsertHandler(
     return mappings
   }
 
-  fun <T> MutableList<T>.addIfAbsent(item: T) = item !in this && add(item)
-
-  fun <T> MutableList<T>.addIfAbsent(items: MutableList<T>) = items.forEach { addIfAbsent(it) }
 
   private fun PersonEntity.removeAllPseudonymsBut(toRetain: List<String>) = pseudonyms.removeIf { it.updateId.toString() !in toRetain }
 

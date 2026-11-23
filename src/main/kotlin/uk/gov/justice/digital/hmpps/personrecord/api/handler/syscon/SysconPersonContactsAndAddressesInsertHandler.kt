@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncInsertHandlerHelper.addIfAbsent
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressUsagesHandler.Companion.toMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
@@ -24,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import java.util.UUID
@@ -36,6 +38,7 @@ class SysconPersonContactsAndAddressesInsertHandler(
   private val addressRepository: AddressRepository,
   private val personMatchService: PersonMatchService,
   private val reclusterService: ReclusterService,
+  private val personService: PersonService,
 ) {
 
   @Transactional
@@ -44,11 +47,9 @@ class SysconPersonContactsAndAddressesInsertHandler(
     prisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest,
   ): SysconAddressesAndContactsResponseBody {
     val personEntity = personRepository.findByPrisonNumber(prisonNumber) ?: throw ResourceNotFoundException("Person with $prisonNumber not found")
-    val personChangeChecker = PersonChangeChecker(personEntity)
-    val mappings = insertAddressesAndContacts(personEntity, prisonAddressesAndContactsRequest)
-    tryRecluster(personEntity, personChangeChecker)
-
-    return mappings
+    return personService.processUpdate(personEntity) { personEntity, _ ->
+      insertAddressesAndContacts(personEntity, prisonAddressesAndContactsRequest)
+    }
   }
 
   @Transactional
@@ -150,10 +151,6 @@ class SysconPersonContactsAndAddressesInsertHandler(
     return mappings
   }
 
-  fun <T> MutableList<T>.addIfAbsent(item: T) = item !in this && add(item)
-
-  fun <T> MutableList<T>.addIfAbsent(items: MutableList<T>) = items.forEach { addIfAbsent(it) }
-
   private fun PersonEntity.removeAllAddressesBut(toRetain: List<String>) = addresses.removeIf { it.updateId.toString() !in toRetain }
 
   private fun AddressEntity.removeAllContactsBut(toRetain: List<String>) = contacts.removeIf { it.updateId.toString() !in toRetain }
@@ -161,16 +158,6 @@ class SysconPersonContactsAndAddressesInsertHandler(
   private fun PersonEntity.removeAllContactsBut(toRetain: List<String>) = contacts.removeIf { it.updateId.toString() !in toRetain }
 
   private fun AddressEntity.removeAllAddressUsagesBut(toRetain: List<String>) = usages.removeIf { it.updateId.toString() !in toRetain }
-
-  private fun tryRecluster(
-    personEntity: PersonEntity,
-    personChangeChecker: PersonChangeChecker,
-  ) {
-    if (personChangeChecker.shouldSaveToPersonMatch(personEntity)) {
-      personMatchService.saveToPersonMatch(personEntity)
-      reclusterService.recluster(personEntity)
-    }
-  }
 
   private fun PrisonAddress.findExistingElseNewAddressAndUpdateFields(personEntity: PersonEntity): AddressEntity {
     // if no id is passed in, or if the id no longer exists then we create a new one
