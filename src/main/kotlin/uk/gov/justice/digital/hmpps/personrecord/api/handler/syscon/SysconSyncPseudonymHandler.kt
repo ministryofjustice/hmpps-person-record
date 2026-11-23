@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncPseudonymHandler.Companion.update
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasMapping
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -17,6 +18,33 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 interface SysconSyncPseudonymHandler {
   fun handleInsert(prisonNumber: String, prisonAlias: PrisonAlias): SysconAliasMapping
+
+  companion object {
+    fun PseudonymEntity.update(prisonAlias: PrisonAlias, personEntity: PersonEntity): PseudonymEntity {
+      nameType = if (prisonAlias.isPrimary) NameType.PRIMARY else NameType.ALIAS
+      titleCode = prisonAlias.titleCode
+      firstName = prisonAlias.firstName
+      middleNames = prisonAlias.middleNames
+      lastName = prisonAlias.lastName
+      dateOfBirth = prisonAlias.dateOfBirth
+      sexCode = prisonAlias.sexCode
+      ethnicityCode = prisonAlias.ethnicity
+      birthplace = prisonAlias.birthPlace
+      birthCountryCode = prisonAlias.birthCountry
+      createDateTime = prisonAlias.createDateTime
+      createUserId = prisonAlias.createUserId
+      modifyDateTime = prisonAlias.modifyDateTime
+      modifyUserId = prisonAlias.modifyUserId
+      person = personEntity
+      return this
+    }
+
+    fun PrisonPseudonymEntity.update(prisonAlias: PrisonAlias): PrisonPseudonymEntity {
+      suffix = prisonAlias.suffix
+      nameType = prisonAlias.nameType
+      return this
+    }
+  }
 }
 
 @Profile("dev | prod | preprod")
@@ -62,16 +90,10 @@ class SysconSyncPseudonymHandlerImpl(
       personEntity.prisonNumber = prisonNumber
       personEntity.ethnicityCode = prisonAlias.ethnicity
 
-      val pseudonymEntity = pseudonymRepository.saveAndFlush(prisonAlias.toPseudonymEntity(personEntity))
+      val pseudonymEntity = pseudonymRepository.saveAndFlush(PseudonymEntity(nameType = NameType.PRIMARY).update(prisonAlias, personEntity))
       personEntity.pseudonyms.add(pseudonymEntity)
 
-      prisonPseudonymRepository.save(
-        PrisonPseudonymEntity(
-          pseudonym = pseudonymEntity,
-          suffix = prisonAlias.suffix,
-          nameType = prisonAlias.nameType,
-        ),
-      )
+      prisonPseudonymRepository.save(PrisonPseudonymEntity(pseudonym = pseudonymEntity).update(prisonAlias))
       personEntity
     }
 
@@ -80,22 +102,4 @@ class SysconSyncPseudonymHandlerImpl(
       cprAliasId = personEntity.getPrimaryName().updateId.toString(),
     )
   }
-
-  private fun PrisonAlias.toPseudonymEntity(personEntity: PersonEntity) = PseudonymEntity(
-    person = personEntity,
-    nameType = if (isPrimary) NameType.PRIMARY else NameType.ALIAS,
-    titleCode = titleCode,
-    firstName = firstName,
-    middleNames = middleNames,
-    lastName = lastName,
-    dateOfBirth = dateOfBirth,
-    sexCode = sexCode,
-    ethnicityCode = ethnicity,
-    birthplace = birthPlace,
-    birthCountryCode = birthCountry,
-    createDateTime = createDateTime,
-    createUserId = createUserId,
-    modifyDateTime = modifyDateTime,
-    modifyUserId = modifyUserId,
-  )
 }

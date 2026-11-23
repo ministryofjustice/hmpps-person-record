@@ -4,6 +4,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncPseudonymHandler.Companion.update
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAliasesAndIdentifiersRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonIdentifier
@@ -128,31 +129,13 @@ class SysconPersonPseudonymsAndReferencesInsertHandler(
     val pseudonymEntity = cprAliasId.takeUnless { it.isNullOrBlank() }?.let {
       pseudonymRepository.findByUpdateId(UUID.fromString(it))
     } ?: PseudonymEntity(nameType = nameType)
-    pseudonymEntity.nameType = nameType
-    pseudonymEntity.titleCode = titleCode
-    pseudonymEntity.firstName = firstName
-    pseudonymEntity.middleNames = middleNames
-    pseudonymEntity.lastName = lastName
-    pseudonymEntity.dateOfBirth = dateOfBirth
-    pseudonymEntity.sexCode = sexCode
-    pseudonymEntity.ethnicityCode = ethnicity
-    pseudonymEntity.birthplace = birthPlace
-    pseudonymEntity.birthCountryCode = birthCountry
-    pseudonymEntity.modifyDateTime = modifyDateTime
-    pseudonymEntity.modifyUserId = modifyUserId
-    pseudonymEntity.createDateTime = createDateTime
-    pseudonymEntity.createUserId = createUserId
-    pseudonymEntity.person = personEntity
-    return pseudonymEntity
+    return pseudonymEntity.update(this, personEntity)
   }
 
   private fun PrisonAlias.findExistingElseNewPrisonPseudonymAndUpdateFields(pseudonymEntity: PseudonymEntity): PrisonPseudonymEntity {
     val prisonPseudonymEntity = prisonPseudonymRepository.findByIdOrNull(pseudonymEntity.id!!)
       ?: PrisonPseudonymEntity(pseudonym = pseudonymEntity)
-
-    prisonPseudonymEntity.suffix = suffix
-    prisonPseudonymEntity.nameType = nameType
-    return prisonPseudonymEntity
+    return prisonPseudonymEntity.update(this)
   }
 
   private fun PrisonIdentifier.findExistingElseNewReferenceAndUpdateFields(personEntity: PersonEntity, pseudonymEntity: PseudonymEntity): ReferenceEntity {
