@@ -128,7 +128,6 @@ class SysconPersonPseudonymsAndReferencesInsertHandler(
     val pseudonymEntity = cprAliasId.takeUnless { it.isNullOrBlank() }?.let {
       pseudonymRepository.findByUpdateId(UUID.fromString(it))
     } ?: PseudonymEntity(nameType = nameType)
-
     pseudonymEntity.nameType = nameType
     pseudonymEntity.titleCode = titleCode
     pseudonymEntity.firstName = firstName
