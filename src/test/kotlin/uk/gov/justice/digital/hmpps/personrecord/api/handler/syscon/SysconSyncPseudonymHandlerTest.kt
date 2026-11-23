@@ -15,8 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlia
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasMapping
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PrisonPseudonymRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PseudonymRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -35,12 +33,6 @@ class SysconSyncPseudonymHandlerTest {
 
   @MockitoBean
   private lateinit var personRepository: PersonRepository
-
-  @MockitoBean
-  private lateinit var pseudonymRepository: PseudonymRepository
-
-  @MockitoBean
-  private lateinit var prisonPseudonymRepository: PrisonPseudonymRepository
 
   @MockitoBean
   private lateinit var personService: PersonService
