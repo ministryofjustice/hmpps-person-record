@@ -3,9 +3,9 @@ package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncInsertHandlerHelper.addIfAbsent
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressUsagesHandler.Companion.toMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toMapping
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncInsertHandlerHelper.addIfAbsent
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressRepositor
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressUsageRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ContactRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService

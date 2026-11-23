@@ -110,7 +110,6 @@ class SysconPersonPseudonymsAndReferencesInsertHandler(
     return mappings
   }
 
-
   private fun PersonEntity.removeAllPseudonymsBut(toRetain: List<String>) = pseudonyms.removeIf { it.updateId.toString() !in toRetain }
 
   private fun PersonEntity.removeAllReferencesBut(toRetain: List<String>) {

@@ -6,4 +6,3 @@ object SysconSyncInsertHandlerHelper {
 
   fun <T> MutableList<T>.addIfAbsent(items: Iterable<T>) = items.forEach { addIfAbsent(it) }
 }
-
