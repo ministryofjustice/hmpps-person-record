@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAliasUpdateHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncPseudonymHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
 
@@ -27,6 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlia
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
 class SysconSyncPrisonAliasesAPIController(
   private val sysconSyncPseudonymHandler: SysconSyncPseudonymHandler,
+  private val sysconSyncAliasUpdateHandler: SysconSyncAliasUpdateHandler,
 ) {
 
   @Operation(
@@ -60,7 +62,7 @@ class SysconSyncPrisonAliasesAPIController(
     @PathVariable prisonNumber: String,
     @PathVariable cprAliasId: String,
     @Valid @RequestBody requestBody: PrisonAlias,
-  ): ResponseEntity<Unit> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+  ) = sysconSyncAliasUpdateHandler.handleUpdate(prisonNumber, cprAliasId, requestBody)
 
   @Operation(
     description = """Delete prisoner alias record by Prison Number and alias uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
