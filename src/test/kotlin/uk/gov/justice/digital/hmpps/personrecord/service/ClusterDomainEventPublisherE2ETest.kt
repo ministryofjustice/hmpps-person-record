@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_CLUSTER_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_CREATED
@@ -21,12 +22,19 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
@@ -36,8 +44,17 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
 
     @Test
     fun `should publish domain event when creating a person which joins an existing cluster`() {
-      val basePerson = createRandomProbationCase()
-      val existingPerson = createPersonWithNewKey(Person.from(basePerson))
+      val basePerson = createRandomProbationCase().copy(identifiers = Identifiers())
+      val probationPerson = Person.from(basePerson).copy(crn = randomCrn(), sourceSystem = DELIUS)
+      val prisonPerson = Person.from(basePerson).copy(prisonNumber = randomPrisonNumber(), sourceSystem = NOMIS)
+      val commonPlatformPerson = Person.from(basePerson).copy(defendantId = randomDefendantId(), sourceSystem = COMMON_PLATFORM)
+      val libraPerson = Person.from(basePerson).copy(cId = randomCId(), sourceSystem = LIBRA)
+
+      createPersonKey()
+        .addPerson(commonPlatformPerson)
+        .addPerson(libraPerson)
+        .addPerson(prisonPerson)
+        .addPerson(probationPerson)
 
       val newPerson = basePerson.copy(identifiers = basePerson.identifiers.copy(crn = randomCrn()))
       probationCreateEventAndResponseSetup(ApiResponseSetup.from(newPerson))
@@ -48,13 +65,16 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
       assertThat(actualDomainEvent.version).isEqualTo(1)
       assertThat(actualDomainEvent.occurredAt).isNotBlank
       assertThat(actualDomainEvent.description).isEqualTo("A person record match has changed")
-      val expectedPersonReference = PersonReference(
+      val expectedPersonIdentifiers = PersonReference(
         identifiers = listOf(
-          PersonIdentifier(type = "CRN", value = existingPerson.crn!!),
+          PersonIdentifier(type = "CRN", value = probationPerson.crn!!),
+          PersonIdentifier(type = "prisonNumber", value = prisonPerson.prisonNumber!!),
+          PersonIdentifier(type = "defendantId", value = commonPlatformPerson.defendantId!!),
+          PersonIdentifier(type = "cId", value = libraPerson.cId!!),
           PersonIdentifier(type = "CRN", value = newPerson.identifiers.crn!!),
         ),
       )
-      assertThat(actualDomainEvent.personReference).isEqualTo(expectedPersonReference)
+      assertThat(actualDomainEvent.personReference.identifiers).hasSameElementsAs(expectedPersonIdentifiers.identifiers)
     }
 
     @Test
