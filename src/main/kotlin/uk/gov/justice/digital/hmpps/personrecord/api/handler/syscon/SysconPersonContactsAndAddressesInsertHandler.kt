@@ -25,8 +25,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
-import uk.gov.justice.digital.hmpps.personrecord.service.recluster.ReclusterService
-import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import java.util.UUID
 
 @Component
@@ -35,8 +33,6 @@ class SysconPersonContactsAndAddressesInsertHandler(
   private val contactRepository: ContactRepository,
   private val addressUsageRepository: AddressUsageRepository,
   private val addressRepository: AddressRepository,
-  private val personMatchService: PersonMatchService,
-  private val reclusterService: ReclusterService,
   private val personService: PersonService,
 ) {
 
