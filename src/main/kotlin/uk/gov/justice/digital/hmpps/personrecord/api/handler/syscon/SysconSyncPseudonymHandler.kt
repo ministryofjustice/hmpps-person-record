@@ -88,7 +88,6 @@ class SysconSyncPseudonymHandlerImpl(
     validateCreateRequest(prisonNumber, prisonAlias)
     val personEntity = personService.processCreate(NOMIS) { personEntity ->
       personEntity.prisonNumber = prisonNumber
-      personEntity.ethnicityCode = prisonAlias.ethnicity
 
       val pseudonymEntity = pseudonymRepository.saveAndFlush(PseudonymEntity(nameType = NameType.PRIMARY).update(prisonAlias, personEntity))
       personEntity.pseudonyms.add(pseudonymEntity)

@@ -107,7 +107,6 @@ class SysconSyncPrisonAliasesAPIControllerIntTest(
         assertThat(responseBody.identifierMappings).isEmpty()
         assertThat(personEntity.pseudonyms).hasSize(1)
         assertThat(personEntity.references).isEmpty()
-        assertThat(personEntity.ethnicityCode).isEqualTo(request.ethnicity)
         assertPseudonymMatches(request, primaryPseudonym)
       }
 
