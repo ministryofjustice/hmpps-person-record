@@ -177,10 +177,10 @@ class PersonEntity(
   )[this.sourceSystem]
 
   fun extractPersonIdentifier() = when (this.sourceSystem) {
-    NOMIS -> PersonIdentifier("prisonNumber", this.prisonNumber!!)
-    DELIUS -> PersonIdentifier("CRN", this.crn!!)
-    COMMON_PLATFORM -> PersonIdentifier("defendantId", this.defendantId!!)
-    LIBRA -> PersonIdentifier("cId", this.cId!!)
+    NOMIS -> PersonIdentifier("prisonNumber", extractSourceSystemId()!!)
+    DELIUS -> PersonIdentifier("CRN", extractSourceSystemId()!!)
+    COMMON_PLATFORM -> PersonIdentifier("defendantId", extractSourceSystemId()!!)
+    LIBRA -> PersonIdentifier("cId", extractSourceSystemId()!!)
   }
 
   fun addOverrideMarker(scope: OverrideScopeEntity, marker: UUID = OverrideScopeEntity.newMarker()) {
