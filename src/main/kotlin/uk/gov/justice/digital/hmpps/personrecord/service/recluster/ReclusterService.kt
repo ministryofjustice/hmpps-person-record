@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.recluster
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse.Companion.result
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -32,85 +33,69 @@ class ReclusterService(
   private val personKeyDeletionService: PersonKeyDeletionService,
 ) {
 
-  fun recluster(changedRecord: PersonEntity): Boolean {
+  fun recluster(changedRecord: PersonEntity) {
     val cluster = changedRecord.personKey!!
     when {
       cluster.clusterIsBrokenAndCanBecomeActive() -> cluster.selfHeal()
     }
-    return when {
+    when {
       cluster.isActive() -> processRecluster(cluster, changedRecord)
-      else -> false
     }
   }
 
-  private fun processRecluster(cluster: PersonKeyEntity, changedPerson: PersonEntity): Boolean {
+  private fun processRecluster(cluster: PersonKeyEntity, changedPerson: PersonEntity) {
     val matchesToChangedRecord: List<PersonMatchResult> =
       personMatchService.findPersonRecordsAboveFractureThresholdByMatchWeightDesc(changedPerson)
     val clusterDetails = ClusterDetails(cluster, changedPerson, matchesToChangedRecord)
-    return when {
+    when {
       clusterDetails.relationship.isDifferent() -> handleClusterChange(clusterDetails)
-      else -> false
     }
   }
 
-  private fun handleClusterChange(clusterDetails: ClusterDetails): Boolean = when {
-    clusterDetails.relationship.isSmaller() -> handleUnmatchedPersons(clusterDetails)
-    else -> migratePersonsToMatchingCluster(clusterDetails)
-  }
-
-  private fun handleUnmatchedPersons(clusterDetails: ClusterDetails): Boolean = when {
-    clusterDetails.relationship.notMatchedToAnyRecord() -> {
-      handleInvalidClusterComposition(clusterDetails)
-      false
-    }
-    else -> {
-      val examineIsClusterValid = personMatchService.examineIsClusterValid(clusterDetails.cluster)
-      when (examineIsClusterValid.isClusterValid) {
-        true -> {
-          migratePersonsToMatchingCluster(clusterDetails)
-        }
-        false -> {
-          handleInvalidClusterComposition(clusterDetails)
-          false
-        }
-      }
+  private fun handleClusterChange(clusterDetails: ClusterDetails) {
+    when {
+      clusterDetails.relationship.isSmaller() -> handleUnmatchedPersons(clusterDetails)
+      else -> migratePersonsToMatchingCluster(clusterDetails)
     }
   }
 
-  private fun migratePersonsToMatchingCluster(clusterDetails: ClusterDetails): Boolean {
+  private fun handleUnmatchedPersons(clusterDetails: ClusterDetails) {
+    when {
+      clusterDetails.relationship.notMatchedToAnyRecord() -> handleInvalidClusterComposition(clusterDetails)
+      else -> personMatchService.examineIsClusterValid(clusterDetails.cluster).result(
+        isValid = { migratePersonsToMatchingCluster(clusterDetails) },
+        isNotValid = { handleInvalidClusterComposition(clusterDetails) },
+      )
+    }
+  }
+
+  private fun migratePersonsToMatchingCluster(clusterDetails: ClusterDetails) {
     val matchedRecordsClusters: List<PersonKeyEntity> =
       clusterDetails.shouldJoinRecords
         .collectDistinctClusters()
         .removeUpdatedCluster(clusterDetails.cluster)
         .getActiveClusters()
-    return when {
+    when {
       matchedRecordsClusters.isNotEmpty() -> checkCombinedClustersIsAValidClusterAndMigrate(matchedRecordsClusters, clusterDetails)
-      else -> false
     }
   }
 
-  private fun checkCombinedClustersIsAValidClusterAndMigrate(matchedRecordsClusters: List<PersonKeyEntity>, clusterDetails: ClusterDetails): Boolean {
-    val examineIsClusterMergeValid = personMatchService.examineIsClusterMergeValid(clusterDetails.cluster, matchedRecordsClusters)
-    return when (examineIsClusterMergeValid.isClusterValid) {
-      true -> {
+  private fun checkCombinedClustersIsAValidClusterAndMigrate(matchedRecordsClusters: List<PersonKeyEntity>, clusterDetails: ClusterDetails) {
+    personMatchService.examineIsClusterMergeValid(clusterDetails.cluster, matchedRecordsClusters).result(
+      isValid = {
         matchedRecordsClusters.forEach {
           migratePersonRecordsToMatchingCluster(it, clusterDetails.cluster)
           deleteOriginalCluster(it)
         }
         publisher.publishEvent(ClusterChanged(clusterDetails.changedPerson.personKey!!))
-        true
-      }
-      false -> {
-        handleExclusionsBetweenMatchedClusters(clusterDetails.cluster, matchedRecordsClusters)
-        false
-      }
-    }
+      },
+      isNotValid = { handleExclusionsBetweenMatchedClusters(clusterDetails.cluster, matchedRecordsClusters) },
+    )
   }
 
-  private fun handleInvalidClusterComposition(clusterDetails: ClusterDetails): Boolean {
+  private fun handleInvalidClusterComposition(clusterDetails: ClusterDetails) {
     clusterDetails.cluster.setToNeedsAttention(BROKEN_CLUSTER)
     publisher.publishEvent(BrokenCluster(clusterDetails.cluster))
-    return false
   }
 
   private fun handleExclusionsBetweenMatchedClusters(cluster: PersonKeyEntity, matchedRecords: List<PersonKeyEntity>) {

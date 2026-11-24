@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.PersonChangeChecker
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.ClusterChanged
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.PersonMerged
 import uk.gov.justice.digital.hmpps.personrecord.service.recluster.ReclusterService
@@ -30,22 +29,13 @@ class MergeService(
     personChangeChecker: PersonChangeChecker = PersonChangeChecker(to),
     childrenToIgnore: Set<KClass<*>> = emptySet(),
   ) {
-    val fromPersonCluster = from.personKey!!
     updateToPerson(to, person, personChangeChecker, childrenToIgnore)
     val fromClusterDetail = EventLogClusterDetail.from(from.personKey)
     when {
       fromClusterHasOneRecord(from) -> deleteSingleRecordCluster(from)
     }
     merge(from, to, fromClusterDetail, personChangeChecker)
-    val reclusterOccurred = reclusterService.recluster(to)
-
-    when {
-      !reclusterOccurred -> {
-        if (fromPersonCluster.containsRecords()) {
-          publisher.publishEvent(ClusterChanged(fromPersonCluster))
-        }
-      }
-    }
+    reclusterService.recluster(to)
   }
 
   private fun updateToPerson(to: PersonEntity, person: Person, personChangeChecker: PersonChangeChecker, childrenToIgnore: Set<KClass<*>> = emptySet()) {

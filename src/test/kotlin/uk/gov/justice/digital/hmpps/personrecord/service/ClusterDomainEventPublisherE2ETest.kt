@@ -7,17 +7,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifie
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_CLUSTER_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PROBATION_PERSON_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprClusterChanged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonCreated
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonMerged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonUnmerged
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonUpdated
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
@@ -27,7 +24,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -173,8 +169,7 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
       )
 
       receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
-      receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
-
+//      receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged // un-comment when merges publish cluster change events
       val personThreeCrn = randomCrn()
       val basePersonTwo = createRandomProbationCase()
       createPersonKey() // <- cluster 'fromPerson' will join once unmerged
@@ -235,7 +230,7 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
       )
 
       receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
-      receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
+//      receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged // un-comment when merges publish cluster change events
 
       probationUnmergeEventAndResponseSetup(
         fromCrn,
@@ -259,168 +254,168 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
     }
   }
 
-  @Nested
-  inner class PersonLeftCluster {
-
-    @Test
-    fun `should publish domain event when deleting a person from a multi person cluster`() {
-      val personOne = createRandomProbationCase()
-      val personTwo = createRandomProbationCase()
-      val cluster = createPersonKey()
-        .addPerson(Person.from(personOne))
-        .addPerson(Person.from(personTwo))
-
-      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, personTwo.identifiers.crn!!)
-
-      checkTelemetry(
-        event = CPR_RECORD_DELETED,
-        expected = mapOf(
-          "UUID" to cluster.personUUID.toString(),
-          "IS_OVERRIDE_MARKER_DELETE" to "false",
-        ),
-      )
-
-      receiveDomainEventMessage(CPR_PROBATION_PERSON_DELETED) as CprPersonDeleted
-      val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
-      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
-      assertThat(actualDomainEvent.version).isEqualTo(1)
-      assertThat(actualDomainEvent.occurredAt).isNotBlank
-      assertThat(actualDomainEvent.description).isEqualTo("A person record match has changed")
-      val expectedPersonReference = PersonReference(
-        identifiers = listOf(
-          PersonIdentifier(type = "CRN", value = personOne.identifiers.crn!!),
-        ),
-      )
-      assertThat(actualDomainEvent.personReference).isEqualTo(expectedPersonReference)
-    }
-
-    @Test
-    fun `should not publish domain event when deleting a person from a single person cluster`() {
-      val personOne = createRandomProbationCase()
-      val cluster = createPersonKey()
-        .addPerson(Person.from(personOne))
-
-      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, personOne.identifiers.crn!!)
-
-      checkTelemetry(
-        event = CPR_RECORD_DELETED,
-        expected = mapOf(
-          "UUID" to cluster.personUUID.toString(),
-          "IS_OVERRIDE_MARKER_DELETE" to "false",
-        ),
-      )
-
-      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-      val actualDomainEvent = receiveDomainEventMessage(CPR_PROBATION_PERSON_DELETED) as CprPersonDeleted
-      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_DELETED)
-    }
-
-    @Test
-    fun `should publish a domain event when merging a person in a multi person cluster`() {
-      val fromCrn = randomCrn()
-      val toCrn = randomCrn()
-      createPersonKey()
-        .addPerson(Person.from(createRandomProbationCase(fromCrn)))
-        .addPerson(Person.from(createRandomProbationCase(toCrn)))
-
-      probationMergeEventAndResponseSetup(
-        sourceCrn = fromCrn,
-        targetCrn = toCrn,
-        apiResponseSetup = ApiResponseSetup.from(createRandomProbationCase(toCrn)),
-      )
-
-      checkTelemetry(
-        event = CPR_RECORD_MERGED,
-        expected = mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to fromCrn,
-          "TO_SOURCE_SYSTEM_ID" to toCrn,
-        ),
-      )
-
-      receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
-      val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
-      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
-      assertThat(actualDomainEvent.version).isEqualTo(1)
-      assertThat(actualDomainEvent.occurredAt).isNotBlank
-      assertThat(actualDomainEvent.description).isEqualTo("A person record match has changed")
-      val expectedPersonReference = PersonReference(
-        identifiers = listOf(
-          PersonIdentifier(type = "CRN", value = toCrn),
-        ),
-      )
-      assertThat(actualDomainEvent.personReference).isEqualTo(expectedPersonReference)
-    }
-
-    @Test
-    fun `should not publish a domain event when merging a person in a single person cluster`() {
-      val fromCrn = randomCrn()
-      val toCrn = randomCrn()
-      createPersonKey().addPerson(Person.from(createRandomProbationCase(fromCrn)))
-      createPersonKey().addPerson(Person.from(createRandomProbationCase(toCrn)))
-
-      probationMergeEventAndResponseSetup(
-        sourceCrn = fromCrn,
-        targetCrn = toCrn,
-        apiResponseSetup = ApiResponseSetup.from(createRandomProbationCase(toCrn)),
-      )
-
-      checkTelemetry(
-        event = CPR_RECORD_MERGED,
-        expected = mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to fromCrn,
-          "TO_SOURCE_SYSTEM_ID" to toCrn,
-        ),
-      )
-
-      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-      val actualDomainEvent = receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
-      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_MERGED)
-    }
-
-    @Test
-    fun `should publish a domain event when merging a person which results in a recluster-merge`() {
-      val fromCrn = randomCrn()
-      val toCrn = randomCrn()
-      val crnThree = randomCrn()
-
-      val toRemainCluster = createPersonKey()
-        .addPerson(Person.from(createRandomProbationCase(fromCrn)))
-        .addPerson(Person.from(createRandomProbationCase(toCrn)))
-
-      val personThree = createRandomProbationCase(crnThree)
-      val toBeMergedCluster = createPersonKey()
-        .addPerson(Person.from(personThree))
-
-      val updatedToPerson = personThree.copy(identifiers = personThree.identifiers.copy(crn = toCrn))
-      probationMergeEventAndResponseSetup(
-        sourceCrn = fromCrn,
-        targetCrn = toCrn,
-        apiResponseSetup = ApiResponseSetup.from(updatedToPerson),
-      )
-
-      checkTelemetry(
-        CPR_RECLUSTER_MERGE,
-        mapOf(
-          "FROM_UUID" to toBeMergedCluster.personUUID.toString(),
-          "TO_UUID" to toRemainCluster.personUUID.toString(),
-        ),
-      )
-
-      expectMessageCountMessagesOn(testOnlyCPRDomainEventsQueue, 2)
-      receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
-      val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
-      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
-      assertThat(actualDomainEvent.version).isEqualTo(1)
-      assertThat(actualDomainEvent.occurredAt).isNotBlank
-      assertThat(actualDomainEvent.description).isEqualTo("A person record match has changed")
-      assertThat(actualDomainEvent.personReference).isEqualTo(
-        PersonReference(
-          identifiers = listOf(
-            PersonIdentifier(type = "CRN", value = toCrn),
-            PersonIdentifier(type = "CRN", value = crnThree),
-          ),
-        ),
-      )
-    }
-  }
+//  @Nested
+//  inner class PersonLeftCluster {
+//
+//    @Test
+//    fun `should publish domain event when deleting a person from a multi person cluster`() {
+//      val personOne = createRandomProbationCase()
+//      val personTwo = createRandomProbationCase()
+//      val cluster = createPersonKey()
+//        .addPerson(Person.from(personOne))
+//        .addPerson(Person.from(personTwo))
+//
+//      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, personTwo.identifiers.crn!!)
+//
+//      checkTelemetry(
+//        event = CPR_RECORD_DELETED,
+//        expected = mapOf(
+//          "UUID" to cluster.personUUID.toString(),
+//          "IS_OVERRIDE_MARKER_DELETE" to "false",
+//        ),
+//      )
+//
+//      receiveDomainEventMessage(CPR_PROBATION_PERSON_DELETED) as CprPersonDeleted
+//      val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
+//      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
+//      assertThat(actualDomainEvent.version).isEqualTo(1)
+//      assertThat(actualDomainEvent.occurredAt).isNotBlank
+//      assertThat(actualDomainEvent.description).isEqualTo("A person record match has changed")
+//      val expectedPersonReference = PersonReference(
+//        identifiers = listOf(
+//          PersonIdentifier(type = "CRN", value = personOne.identifiers.crn!!),
+//        ),
+//      )
+//      assertThat(actualDomainEvent.personReference).isEqualTo(expectedPersonReference)
+//    }
+//
+//    @Test
+//    fun `should not publish domain event when deleting a person from a single person cluster`() {
+//      val personOne = createRandomProbationCase()
+//      val cluster = createPersonKey()
+//        .addPerson(Person.from(personOne))
+//
+//      publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, personOne.identifiers.crn!!)
+//
+//      checkTelemetry(
+//        event = CPR_RECORD_DELETED,
+//        expected = mapOf(
+//          "UUID" to cluster.personUUID.toString(),
+//          "IS_OVERRIDE_MARKER_DELETE" to "false",
+//        ),
+//      )
+//
+//      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+//      val actualDomainEvent = receiveDomainEventMessage(CPR_PROBATION_PERSON_DELETED) as CprPersonDeleted
+//      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_DELETED)
+//    }
+//
+//    @Test
+//    fun `should publish a domain event when merging a person in a multi person cluster`() {
+//      val fromCrn = randomCrn()
+//      val toCrn = randomCrn()
+//      createPersonKey()
+//        .addPerson(Person.from(createRandomProbationCase(fromCrn)))
+//        .addPerson(Person.from(createRandomProbationCase(toCrn)))
+//
+//      probationMergeEventAndResponseSetup(
+//        sourceCrn = fromCrn,
+//        targetCrn = toCrn,
+//        apiResponseSetup = ApiResponseSetup.from(createRandomProbationCase(toCrn)),
+//      )
+//
+//      checkTelemetry(
+//        event = CPR_RECORD_MERGED,
+//        expected = mapOf(
+//          "FROM_SOURCE_SYSTEM_ID" to fromCrn,
+//          "TO_SOURCE_SYSTEM_ID" to toCrn,
+//        ),
+//      )
+//
+//      receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
+//      val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
+//      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
+//      assertThat(actualDomainEvent.version).isEqualTo(1)
+//      assertThat(actualDomainEvent.occurredAt).isNotBlank
+//      assertThat(actualDomainEvent.description).isEqualTo("A person record match has changed")
+//      val expectedPersonReference = PersonReference(
+//        identifiers = listOf(
+//          PersonIdentifier(type = "CRN", value = toCrn),
+//        ),
+//      )
+//      assertThat(actualDomainEvent.personReference).isEqualTo(expectedPersonReference)
+//    }
+//
+//    @Test
+//    fun `should not publish a domain event when merging a person in a single person cluster`() {
+//      val fromCrn = randomCrn()
+//      val toCrn = randomCrn()
+//      createPersonKey().addPerson(Person.from(createRandomProbationCase(fromCrn)))
+//      createPersonKey().addPerson(Person.from(createRandomProbationCase(toCrn)))
+//
+//      probationMergeEventAndResponseSetup(
+//        sourceCrn = fromCrn,
+//        targetCrn = toCrn,
+//        apiResponseSetup = ApiResponseSetup.from(createRandomProbationCase(toCrn)),
+//      )
+//
+//      checkTelemetry(
+//        event = CPR_RECORD_MERGED,
+//        expected = mapOf(
+//          "FROM_SOURCE_SYSTEM_ID" to fromCrn,
+//          "TO_SOURCE_SYSTEM_ID" to toCrn,
+//        ),
+//      )
+//
+//      expectOneMessageOn(testOnlyCPRDomainEventsQueue)
+//      val actualDomainEvent = receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
+//      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_MERGED)
+//    }
+//
+//    @Test
+//    fun `should publish a domain event when merging a person which results in a recluster-merge`() {
+//      val fromCrn = randomCrn()
+//      val toCrn = randomCrn()
+//      val crnThree = randomCrn()
+//
+//      val toRemainCluster = createPersonKey()
+//        .addPerson(Person.from(createRandomProbationCase(fromCrn)))
+//        .addPerson(Person.from(createRandomProbationCase(toCrn)))
+//
+//      val personThree = createRandomProbationCase(crnThree)
+//      val toBeMergedCluster = createPersonKey()
+//        .addPerson(Person.from(personThree))
+//
+//      val updatedToPerson = personThree.copy(identifiers = personThree.identifiers.copy(crn = toCrn))
+//      probationMergeEventAndResponseSetup(
+//        sourceCrn = fromCrn,
+//        targetCrn = toCrn,
+//        apiResponseSetup = ApiResponseSetup.from(updatedToPerson),
+//      )
+//
+//      checkTelemetry(
+//        CPR_RECLUSTER_MERGE,
+//        mapOf(
+//          "FROM_UUID" to toBeMergedCluster.personUUID.toString(),
+//          "TO_UUID" to toRemainCluster.personUUID.toString(),
+//        ),
+//      )
+//
+//      expectMessageCountMessagesOn(testOnlyCPRDomainEventsQueue, 2)
+//      receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
+//      val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
+//      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
+//      assertThat(actualDomainEvent.version).isEqualTo(1)
+//      assertThat(actualDomainEvent.occurredAt).isNotBlank
+//      assertThat(actualDomainEvent.description).isEqualTo("A person record match has changed")
+//      assertThat(actualDomainEvent.personReference).isEqualTo(
+//        PersonReference(
+//          identifiers = listOf(
+//            PersonIdentifier(type = "CRN", value = toCrn),
+//            PersonIdentifier(type = "CRN", value = crnThree),
+//          ),
+//        ),
+//      )
+//    }
+//  }
 }

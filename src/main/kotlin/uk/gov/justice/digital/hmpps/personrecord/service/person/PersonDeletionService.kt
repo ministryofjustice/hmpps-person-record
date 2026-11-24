@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.ClusterChanged
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
@@ -21,17 +20,12 @@ class PersonDeletionService(
 
   @Transactional
   fun processDelete(personCallback: () -> PersonEntity?) = personCallback()?.let { personEntity ->
-    val cluster = personEntity.personKey
-    val otherPersonsOnCluster = cluster?.personEntities?.filter { it.matchId != personEntity.matchId } ?: emptyList()
+    val personsOnCluster = personEntity.personKey?.personEntities?.filter { it.matchId != personEntity.matchId }
     personEntity.deleteClusterIfNoRecordsLeft()
     personEntity.delete()
     personEntity.deleteFromPersonMatch()
     personEntity.deletePersonEntityThatWasMergedIntoThisOneRecursively()
-
-    reclusterRemainingPeopleInCluster(otherPersonsOnCluster)
-    if (cluster?.containsRecords() == true) {
-      publisher.publishEvent(ClusterChanged(cluster))
-    }
+    reclusterRemainingPeopleInCluster(personsOnCluster)
   }
 
   private fun PersonEntity.deleteClusterIfNoRecordsLeft() {
@@ -56,7 +50,7 @@ class PersonDeletionService(
     }
   }
 
-  private fun reclusterRemainingPeopleInCluster(personsOnCluster: List<PersonEntity>) {
-    personsOnCluster.forEach { reclusterService.recluster(it) }
+  private fun reclusterRemainingPeopleInCluster(personsOnCluster: List<PersonEntity>?) {
+    personsOnCluster?.forEach { reclusterService.recluster(it) }
   }
 }
