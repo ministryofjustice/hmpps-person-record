@@ -1,7 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import java.time.LocalDateTime
 
 data class PrisonIdentifier(
@@ -25,7 +29,14 @@ data class PrisonIdentifier(
   val modifyDateTime: LocalDateTime? = null,
   @Schema(description = "The identifier modify user id", example = "12345")
   val modifyUserId: String? = null,
-)
+) {
+  // invalid PNC/CRO values are stored as received, rest are converted into canonical form
+  fun formattedValue(): String = when (type) {
+    PNC -> PNCIdentifier.from(value).pncId
+    CRO -> CROIdentifier.from(value).croId
+    else -> value
+  }.ifEmpty { value }
+}
 
 data class NomisIdentifierId(
   @Schema(description = "The nomis offender id for this identifier", example = "10000")
