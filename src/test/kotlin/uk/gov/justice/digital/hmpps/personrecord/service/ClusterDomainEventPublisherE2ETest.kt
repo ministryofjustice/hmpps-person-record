@@ -23,9 +23,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
@@ -180,13 +180,9 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
         unmergedSetup = ApiResponseSetup.from(toPerson),
       )
 
-      checkTelemetry(
+      checkEventLogExist(
         event = CPR_RECORD_UNMERGED,
-        expected = mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to toCrn,
-          "TO_SOURCE_SYSTEM_ID" to fromCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
+        sourceSystemId = fromCrn,
       )
 
       val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
@@ -236,13 +232,9 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
         unmergedSetup = ApiResponseSetup.from(toPerson),
       )
 
-      checkTelemetry(
+      checkEventLogExist(
         event = CPR_RECORD_UNMERGED,
-        expected = mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to toCrn,
-          "TO_SOURCE_SYSTEM_ID" to fromCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
+        sourceSystemId = fromCrn,
       )
 
       expectOneMessageOn(testOnlyCPRDomainEventsQueue)
