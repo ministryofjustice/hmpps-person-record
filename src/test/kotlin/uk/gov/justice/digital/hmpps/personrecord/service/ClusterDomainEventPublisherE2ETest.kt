@@ -57,7 +57,6 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
 
       expectMessageCountMessagesOn(testOnlyCPRDomainEventsQueue, 2)
       val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
-      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
       assertThat(actualDomainEvent.version).isEqualTo(1)
       assertThat(actualDomainEvent.occurredAt).isNotBlank
       assertThat(actualDomainEvent.description).isEqualTo("A person record match has changed")
@@ -112,7 +111,6 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
 
       receiveDomainEventMessage(CPR_PROBATION_PERSON_UPDATED) as CprPersonUpdated
       val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
-      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
       assertThat(actualDomainEvent.version).isEqualTo(1)
       assertThat(actualDomainEvent.occurredAt).isNotBlank
       assertThat(actualDomainEvent.description).isEqualTo("A person record match has changed")
@@ -192,7 +190,6 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
       )
 
       val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
-      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
       assertThat(actualDomainEvent.version).isEqualTo(1)
       assertThat(actualDomainEvent.occurredAt).isNotBlank
       assertThat(actualDomainEvent.description).isEqualTo("A person record match has changed")
@@ -249,8 +246,7 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
       )
 
       expectOneMessageOn(testOnlyCPRDomainEventsQueue)
-      val actualDomainEvent = receiveDomainEventMessage(CPR_PROBATION_PERSON_UNMERGED) as CprPersonUnmerged
-      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_UNMERGED)
+      receiveDomainEventMessage(CPR_PROBATION_PERSON_UNMERGED) as CprPersonUnmerged
     }
   }
 
