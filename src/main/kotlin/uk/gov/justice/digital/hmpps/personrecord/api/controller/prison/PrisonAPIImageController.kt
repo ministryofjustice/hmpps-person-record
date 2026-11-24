@@ -55,11 +55,10 @@ class PrisonAPIImageController(
   ): ResponseEntity<StreamingResponseBody> = ResponseEntity.ok()
     .contentType(MediaType.IMAGE_JPEG).body(prisonImageClient.getPrisonerImage(prisonNumber, fullSizeImage).toStreamingResponseBody())
 
-  fun Flux<DataBuffer>.toStreamingResponseBody(): StreamingResponseBody =
-    StreamingResponseBody { outputStream ->
-      DataBufferUtils.write(this, outputStream)
-        .doOnNext { DataBufferUtils.release(it) }
-        .then()
-        .block()
-    }
+  fun Flux<DataBuffer>.toStreamingResponseBody(): StreamingResponseBody = StreamingResponseBody { outputStream ->
+    DataBufferUtils.write(this, outputStream)
+      .doOnNext { DataBufferUtils.release(it) }
+      .then()
+      .block()
+  }
 }
