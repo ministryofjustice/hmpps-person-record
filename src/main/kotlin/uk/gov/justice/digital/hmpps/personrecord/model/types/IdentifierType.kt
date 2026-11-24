@@ -37,7 +37,7 @@ enum class IdentifierType(val description: String, val current: Boolean) {
   PCRN("Other Previous CRN", true),
   PARK("Park Run Number", true),
   PARN("Parole Number", false),
-  PST("Passport Number", true), // TODO: PST in the spreadsheet - 129 records in production
+  PST("Passport Number", true), // TODO: PASS in the spreadsheet - 129 records in production
   PNC("PNC Number", true),
   PORT_REF("Port Reference (Immigration)", true),
   AI02("Previous NOMS Number", false), // TODO: NOMS in the spreadsheet - 26041 records in production
