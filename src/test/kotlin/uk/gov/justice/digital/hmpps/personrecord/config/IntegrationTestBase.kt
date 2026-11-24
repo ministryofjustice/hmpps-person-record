@@ -52,7 +52,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.AllConvictedOffences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAlias
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
@@ -101,7 +100,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
@@ -274,20 +272,6 @@ class IntegrationTestBase {
           lastName = randomName(),
         ),
       ),
-      addresses = listOf(
-        PrisonerAddress(
-          postcode = randomPostcode(),
-          fullAddress = randomFullAddress(),
-          noFixedAbode = randomBoolean(),
-          startDate = randomDate(),
-        ),
-        PrisonerAddress(
-          postcode = randomPostcode(),
-          fullAddress = randomFullAddress(),
-          noFixedAbode = randomBoolean(),
-          startDate = randomDate(),
-        ),
-      ),
       allConvictedOffences = listOf(
         AllConvictedOffences(
           sentenceStartDate = randomDate(),
@@ -296,7 +280,7 @@ class IntegrationTestBase {
       ),
       nationality = randomPrisonNationalityCode(),
     ),
-  )
+  ).copy(addresses = mutableListOf(Address(postcode = randomPostcode()), Address(postcode = randomPostcode())))
 
   internal fun createRandomLibraPersonDetails(cId: String = randomCId()): Person = Person.from(LibraHearingEvent(name = LibraName(firstName = randomName(), lastName = randomName()), cId = cId, defendantAddress = uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Address(postcode = randomPostcode())))
 
