@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
   JsonSubTypes.Type(value = SasAddressArrived::class, name = SAS_ADDRESS_ARRIVED),
   JsonSubTypes.Type(value = PrisonPersonCreated::class, name = PRISON_PERSON_CREATED),
   JsonSubTypes.Type(value = PrisonPersonUpdated::class, name = PRISON_PERSON_UPDATED),
+  JsonSubTypes.Type(value = CprClusterChanged::class, name = CPR_CLUSTER_CHANGED),
   JsonSubTypes.Type(value = CprPersonCreated::class, names = [CPR_PRISON_PERSON_CREATED, CPR_PROBATION_PERSON_CREATED]),
   JsonSubTypes.Type(value = CprPersonUpdated::class, name = CPR_PROBATION_PERSON_UPDATED),
   JsonSubTypes.Type(value = CprPersonDeleted::class, name = CPR_PROBATION_PERSON_DELETED),
