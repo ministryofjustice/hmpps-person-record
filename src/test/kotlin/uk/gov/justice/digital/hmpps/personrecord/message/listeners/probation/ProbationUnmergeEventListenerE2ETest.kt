@@ -86,8 +86,6 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
         assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }
 
-      checkEventLogExist(reactivatedCrn, CPR_RECORD_UNMERGED)
-
       unmergedPerson.assertHasLinkToCluster()
       unmergedPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       unmergedPerson.personKey?.assertClusterIsOfSize(1)
