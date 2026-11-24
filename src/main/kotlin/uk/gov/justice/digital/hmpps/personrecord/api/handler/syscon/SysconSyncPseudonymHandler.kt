@@ -76,7 +76,7 @@ class SysconSyncPseudonymHandlerImpl(
 
   private fun validateCreateRequest(prisonNumber: String, prisonAlias: PrisonAlias) {
     if (!prisonAlias.isPrimary) {
-      throw IllegalArgumentException("Cannot a person record with an non-primary alias for $prisonNumber, ${prisonAlias.nomisOffenderId}")
+      throw IllegalArgumentException("Cannot create a person record with a non-primary alias for $prisonNumber, ${prisonAlias.nomisOffenderId}")
     }
     if (prisonAlias.identifiers.isNotEmpty()) {
       val identifierIds = prisonAlias.identifiers.map { it.nomisIdentifierId }
