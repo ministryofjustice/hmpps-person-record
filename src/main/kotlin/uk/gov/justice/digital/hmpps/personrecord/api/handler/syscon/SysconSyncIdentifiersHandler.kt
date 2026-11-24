@@ -50,7 +50,7 @@ class SysconSyncIdentifiersHandler(
       ?: ReferenceEntity(identifierType = type, createDateTime = createDateTime, createUserId = createUserId)
 
     referenceEntity.identifierType = type
-    referenceEntity.identifierValue = value
+    referenceEntity.identifierValue = formattedValue()
     referenceEntity.comment = comment
     referenceEntity.isVerified = verified
     referenceEntity.person = pseudonymEntity.person

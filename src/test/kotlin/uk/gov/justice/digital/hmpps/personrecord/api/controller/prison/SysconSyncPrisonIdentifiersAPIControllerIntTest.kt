@@ -14,6 +14,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReferenceRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.OTHR
@@ -21,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomShortPnc
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -85,6 +88,34 @@ class SysconSyncPrisonIdentifiersAPIControllerIntTest(
       assertThat(response.identifiersMappings).isEmpty()
       assertThat(aliasReferences(prisonNumber)).isEmpty()
       assertThat(primaryNameReferences(prisonNumber)).isNotEmpty()
+    }
+
+    @Test
+    fun `should format valid PNC and CRO values and store invalid values as received`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+      val prisonNumber = randomPrisonNumber()
+      val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+      val shortPnc = randomShortPnc()
+      val cro = randomCro()
+
+      replaceIdentifiers(
+        prisonNumber,
+        personEntity.getAliases().single().updateId.toString(),
+        listOf(
+          prisonIdentifier(sequence = 1, type = PNC, value = shortPnc),
+          prisonIdentifier(sequence = 2, type = CRO, value = cro.lowercase()),
+          prisonIdentifier(sequence = 3, type = PNC, value = "invalidPnc"),
+          prisonIdentifier(sequence = 4, type = CRO, value = "invalidCro"),
+        ),
+      )
+
+      assertThat(aliasReferences(prisonNumber).map { it.identifierType to it.identifierValue }).containsExactlyInAnyOrder(
+        PNC to PNCIdentifier.from(shortPnc).pncId,
+        CRO to CROIdentifier.from(cro).croId,
+        PNC to "invalidPnc",
+        CRO to "invalidCro",
+      )
     }
 
     @Test
