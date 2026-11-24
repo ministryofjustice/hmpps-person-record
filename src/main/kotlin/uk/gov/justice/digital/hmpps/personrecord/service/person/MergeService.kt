@@ -37,10 +37,14 @@ class MergeService(
       fromClusterHasOneRecord(from) -> deleteSingleRecordCluster(from)
     }
     merge(from, to, fromClusterDetail, personChangeChecker)
-    reclusterService.recluster(to)
+    val reclusterOccurred = reclusterService.recluster(to)
 
-    if (fromPersonCluster.containsRecords()) {
-      publisher.publishEvent(ClusterChanged(fromPersonCluster))
+    when {
+      !reclusterOccurred -> {
+        if (fromPersonCluster.containsRecords()) {
+          publisher.publishEvent(ClusterChanged(fromPersonCluster))
+        }
+      }
     }
   }
 

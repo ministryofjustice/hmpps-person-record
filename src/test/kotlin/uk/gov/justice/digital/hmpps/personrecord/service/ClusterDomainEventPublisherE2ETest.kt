@@ -376,51 +376,51 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
       val actualDomainEvent = receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
       assertThat(actualDomainEvent.eventType).isEqualTo(CPR_PROBATION_PERSON_MERGED)
     }
-  }
 
-  @Test
-  fun `should publish a domain event when merging a person which results in a recluster-merge`() {
-    val fromCrn = randomCrn()
-    val toCrn = randomCrn()
-    val crnThree = randomCrn()
+    @Test
+    fun `should publish a domain event when merging a person which results in a recluster-merge`() {
+      val fromCrn = randomCrn()
+      val toCrn = randomCrn()
+      val crnThree = randomCrn()
 
-    val toRemainCluster = createPersonKey()
-      .addPerson(Person.from(createRandomProbationCase(fromCrn)))
-      .addPerson(Person.from(createRandomProbationCase(toCrn)))
+      val toRemainCluster = createPersonKey()
+        .addPerson(Person.from(createRandomProbationCase(fromCrn)))
+        .addPerson(Person.from(createRandomProbationCase(toCrn)))
 
-    val personThree = createRandomProbationCase(crnThree)
-    val toBeMergedCluster = createPersonKey()
-      .addPerson(Person.from(personThree))
+      val personThree = createRandomProbationCase(crnThree)
+      val toBeMergedCluster = createPersonKey()
+        .addPerson(Person.from(personThree))
 
-    val updatedToPerson = personThree.copy(identifiers = personThree.identifiers.copy(crn = toCrn))
-    probationMergeEventAndResponseSetup(
-      sourceCrn = fromCrn,
-      targetCrn = toCrn,
-      apiResponseSetup = ApiResponseSetup.from(updatedToPerson),
-    )
+      val updatedToPerson = personThree.copy(identifiers = personThree.identifiers.copy(crn = toCrn))
+      probationMergeEventAndResponseSetup(
+        sourceCrn = fromCrn,
+        targetCrn = toCrn,
+        apiResponseSetup = ApiResponseSetup.from(updatedToPerson),
+      )
 
-    checkTelemetry(
-      CPR_RECLUSTER_MERGE,
-      mapOf(
-        "FROM_UUID" to toBeMergedCluster.personUUID.toString(),
-        "TO_UUID" to toRemainCluster.personUUID.toString(),
-      ),
-    )
-
-    expectMessageCountMessagesOn(testOnlyCPRDomainEventsQueue, 2) // actually returning 3 events (2 CprClusterChanged events)
-    receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
-    val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
-    assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
-    assertThat(actualDomainEvent.version).isEqualTo(1)
-    assertThat(actualDomainEvent.occurredAt).isNotBlank
-    assertThat(actualDomainEvent.description).isEqualTo("A person record match has changed")
-    assertThat(actualDomainEvent.personReference).isEqualTo(
-      PersonReference(
-        identifiers = listOf(
-          PersonIdentifier(type = "CRN", value = toCrn),
-          PersonIdentifier(type = "CRN", value = crnThree),
+      checkTelemetry(
+        CPR_RECLUSTER_MERGE,
+        mapOf(
+          "FROM_UUID" to toBeMergedCluster.personUUID.toString(),
+          "TO_UUID" to toRemainCluster.personUUID.toString(),
         ),
-      ),
-    )
+      )
+
+      expectMessageCountMessagesOn(testOnlyCPRDomainEventsQueue, 2)
+      receiveDomainEventMessage(CPR_PROBATION_PERSON_MERGED) as CprPersonMerged
+      val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
+      assertThat(actualDomainEvent.eventType).isEqualTo(CPR_CLUSTER_CHANGED)
+      assertThat(actualDomainEvent.version).isEqualTo(1)
+      assertThat(actualDomainEvent.occurredAt).isNotBlank
+      assertThat(actualDomainEvent.description).isEqualTo("A person record match has changed")
+      assertThat(actualDomainEvent.personReference).isEqualTo(
+        PersonReference(
+          identifiers = listOf(
+            PersonIdentifier(type = "CRN", value = toCrn),
+            PersonIdentifier(type = "CRN", value = crnThree),
+          ),
+        ),
+      )
+    }
   }
 }
