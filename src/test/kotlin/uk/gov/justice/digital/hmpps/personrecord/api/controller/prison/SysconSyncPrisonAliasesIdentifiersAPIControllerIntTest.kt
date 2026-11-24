@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconIdentifierMapping
 import uk.gov.justice.digital.hmpps.personrecord.config.TransactionalLookup
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PrisonPseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PrisonPseudonymRepository
@@ -234,6 +235,8 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
         val pseudonymEntity = personEntity.pseudonyms.single { pseudonymMatcher(pseudonymRequest, it) }
         assertPseudonymMatches(pseudonymRequest, pseudonymEntity)
 
+        assertPrisonPseudonymMatches(pseudonymRequest, prisonPseudonymRepository.findById(pseudonymEntity.id!!).get())
+
         val pseudonymMapping = response.aliasesMappings.single { pseudonymMatcher(pseudonymRequest, it) }
         assertThat(pseudonymMapping.cprAliasId).isEqualTo(pseudonymEntity.updateId.toString())
         assertThat(pseudonymMapping.identifierMappings).hasSize(pseudonymRequest.identifiers.size)
@@ -264,12 +267,16 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       val referencesToBeDeleted = person.pseudonyms.flatMap { it.references }
       assertThat(pseudonymsToBeDeleted).isNotEmpty()
       assertThat(referencesToBeDeleted).isNotEmpty()
+      for (pseudonym in pseudonymsToBeDeleted) {
+        assertThat(prisonPseudonymRepository.findById(pseudonym.id!!)).isPresent()
+      }
       // Second request. We use the same request, this should still result in the old pseudonyms and references being deleted
       postPseudonymsAndReferences(prisonNumber, validPrisonPseudoymnAndReferencesRequest)
 
-      // Check we cannot find the old pseudonyms and references
+      // Check we cannot find the old pseudonyms, prison pseudonyms and references
       for (pseudonym in pseudonymsToBeDeleted) {
         assertThat(pseudonymRepository.findById(pseudonym.id!!)).isEmpty()
+        assertThat(prisonPseudonymRepository.findById(pseudonym.id!!)).isEmpty()
       }
       for (reference in referencesToBeDeleted) {
         assertThat(referenceRepository.findById(reference.id!!)).isEmpty()
@@ -363,6 +370,11 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
     assertThat(entity.createUserId).isEqualTo(request.createUserId)
     assertThat(entity.modifyDateTime).isEqualTo(request.modifyDateTime)
     assertThat(entity.modifyUserId).isEqualTo(request.modifyUserId)
+  }
+
+  private fun assertPrisonPseudonymMatches(request: PrisonAlias, entity: PrisonPseudonymEntity) {
+    assertThat(entity.suffix).isEqualTo(request.suffix)
+    assertThat(entity.nameType).isEqualTo(request.nameType)
   }
 
   private fun assertReferenceMatches(request: PrisonIdentifier, entity: ReferenceEntity) {
