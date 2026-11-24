@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.core.io.buffer.DataBuffer
+import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody
+import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonImageClient
 
@@ -48,6 +52,14 @@ class PrisonAPIImageController(
   fun getMainBookingImageDataByNo(
     @PathVariable @Parameter(example = "A1234AA") prisonNumber: String,
     @RequestParam(name = "fullSizeImage", required = false, defaultValue = "false") fullSizeImage: Boolean,
-  ): ResponseEntity<ByteArray> = ResponseEntity.ok()
-    .contentType(MediaType.IMAGE_JPEG).body(prisonImageClient.getPrisonerImage(prisonNumber, fullSizeImage))
+  ): ResponseEntity<StreamingResponseBody> = ResponseEntity.ok()
+    .contentType(MediaType.IMAGE_JPEG).body(prisonImageClient.getPrisonerImage(prisonNumber, fullSizeImage).toStreamingResponseBody())
+
+  fun Flux<DataBuffer>.toStreamingResponseBody(): StreamingResponseBody =
+    StreamingResponseBody { outputStream ->
+      DataBufferUtils.write(this, outputStream)
+        .doOnNext { DataBufferUtils.release(it) }
+        .then()
+        .block()
+    }
 }
