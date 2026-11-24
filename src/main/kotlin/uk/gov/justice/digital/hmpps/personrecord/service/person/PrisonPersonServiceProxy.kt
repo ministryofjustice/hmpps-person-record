@@ -33,6 +33,7 @@ class PrisonPersonServiceProxyImpl(
     person: Person,
     findPerson: () -> PersonEntity?,
   ) {
+    // TODO once these changes have made it to production remove this method completely and stop listening to the search created event.
     // No op
   }
 
