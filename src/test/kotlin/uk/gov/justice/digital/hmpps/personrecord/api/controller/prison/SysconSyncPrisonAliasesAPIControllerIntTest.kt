@@ -13,17 +13,20 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PrisonPseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PrisonPseudonymRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PseudonymRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PrisonPseudonymRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PseudonymRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonAliasNameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonPseudonymSuffix
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -106,6 +109,27 @@ class SysconSyncPrisonAliasesAPIControllerIntTest(
         assertThat(personEntity.references).isEmpty()
         assertThat(personEntity.ethnicityCode).isEqualTo(request.ethnicity)
         assertPseudonymMatches(request, primaryPseudonym)
+      }
+
+      @Test
+      fun `should raise record created and uuid created telemetry when the person is created`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+
+        sendPostRequestAsserted<SysconAliasMapping>(
+          url = aliasesUrl(prisonNumber),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = HttpStatus.CREATED,
+          body = prisonAlias().copy(identifiers = emptyList()),
+        )
+
+        val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+        checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
+        checkTelemetry(
+          CPR_UUID_CREATED,
+          mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber, "UUID" to personEntity.personKey?.personUUID.toString()),
+        )
       }
     }
 

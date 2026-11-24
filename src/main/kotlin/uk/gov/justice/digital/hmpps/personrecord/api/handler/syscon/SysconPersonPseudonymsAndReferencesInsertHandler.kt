@@ -4,8 +4,8 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncPseudonymHandler.Companion.update
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncInsertHandlerHelper.addIfAbsent
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncPseudonymHandler.Companion.update
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAliasesAndIdentifiersRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonIdentifier
