@@ -87,10 +87,6 @@ class SysconPersonPseudonymsAndReferencesInsertHandler(
 
       prisonPseudonymRepository.save(pseudonym.findExistingElseNewPrisonPseudonymAndUpdateFields(pseudonymEntity))
 
-      if (pseudonym.isPrimary) {
-        personEntity.ethnicityCode = pseudonym.ethnicity
-      }
-
       val referenceEntities = referenceRepository.saveAllAndFlush(
         pseudonym.identifiers.map { it.findExistingElseNewReferenceAndUpdateFields(personEntity, pseudonymEntity) },
       )
