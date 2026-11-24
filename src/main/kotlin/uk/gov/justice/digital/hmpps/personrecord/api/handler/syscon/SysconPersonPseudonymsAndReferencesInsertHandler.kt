@@ -160,7 +160,7 @@ class SysconPersonPseudonymsAndReferencesInsertHandler(
     } ?: ReferenceEntity(identifierType = type)
 
     referenceEntity.identifierType = type
-    referenceEntity.identifierValue = value
+    referenceEntity.identifierValue = formattedValue()
     referenceEntity.comment = comment
     referenceEntity.isVerified = verified
     referenceEntity.person = personEntity

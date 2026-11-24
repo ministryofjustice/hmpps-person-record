@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.PrisonMergeEventHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
@@ -104,5 +105,6 @@ class SysconSyncPrisonMergeEventHandlerIntTest(
   private fun validPrisonMerge(fromPrisonNumber: String) = PrisonMerge(
     fromPrisonNumber = fromPrisonNumber,
     toPrisonAddressesAndContactsRequest = SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest.validPrisonAddressesAndContactsRequest,
+    toPrisonAliasesAndIdentifiersRequest = SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest.validPrisonPseudoymnAndReferencesRequest,
   )
 }

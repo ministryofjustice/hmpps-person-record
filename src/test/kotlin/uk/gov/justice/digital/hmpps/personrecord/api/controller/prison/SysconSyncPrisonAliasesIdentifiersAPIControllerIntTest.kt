@@ -25,6 +25,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PrisonPseudonymRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PseudonymRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReferenceRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode.UKR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.A1
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
@@ -36,7 +38,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonPseudonymSuff
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.M
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode.MR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode.SIR
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomShortPnc
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID.randomUUID
@@ -336,6 +340,32 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       assertThat(response.aliasesMappings.flatMap { it.identifierMappings }).hasSize(requestWithCprUpdateIdsThatDoNotExist.aliases.flatMap { it.identifiers }.size)
     }
 
+    @Test
+    fun `successful save formats valid PNC and CRO values and stores invalid values as received`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+      val prisonNumber = randomPrisonNumber()
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+      val shortPnc = randomShortPnc()
+      val cro = randomCro()
+      val primaryAlias = validPrisonPseudoymnAndReferencesRequest.aliases.single { it.isPrimary }
+      val template = primaryAlias.identifiers.first()
+      val identifiers = listOf(PNC to shortPnc, CRO to cro.lowercase(), PNC to "invalidPnc", CRO to "invalidCro")
+        .mapIndexed { index, (type, value) ->
+          template.copy(nomisIdentifierId = NomisIdentifierId(primaryAlias.nomisOffenderId, index + 1), type = type, value = value)
+        }
+
+      postPseudonymsAndReferences(prisonNumber, PrisonAliasesAndIdentifiersRequest(listOf(primaryAlias.copy(identifiers = identifiers))))
+
+      val references = transactionalLookup.findByPrisonNumberWithReferences(prisonNumber).pseudonyms.flatMap { it.references }
+      assertThat(references.map { it.identifierType to it.identifierValue }).containsExactlyInAnyOrder(
+        PNC to PNCIdentifier.from(shortPnc).pncId,
+        CRO to CROIdentifier.from(cro).croId,
+        PNC to "invalidPnc",
+        CRO to "invalidCro",
+      )
+    }
+
     private fun postPseudonymsAndReferences(prisonNumber: String, request: PrisonAliasesAndIdentifiersRequest) = sendPostRequestAsserted<SysconAliasesAndIdentifiersResponseBody>(
       url = pseudonymReferenceUrl(prisonNumber),
       body = request,
@@ -350,7 +380,7 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
   private fun pseudonymMatcher(request: PrisonAlias, mapping: SysconAliasMapping) = mapping.nomisOffenderId == request.nomisOffenderId
 
-  private fun referenceMatcher(request: PrisonIdentifier, entity: ReferenceEntity) = entity.identifierValue == request.value
+  private fun referenceMatcher(request: PrisonIdentifier, entity: ReferenceEntity) = entity.identifierValue == request.formattedValue()
 
   private fun referenceMatcher(request: PrisonIdentifier, mapping: SysconIdentifierMapping) = mapping.nomisIdentifierId.nomisOffenderId == request.nomisIdentifierId.nomisOffenderId &&
     mapping.nomisIdentifierId.nomisSequence == request.nomisIdentifierId.nomisSequence
@@ -379,7 +409,7 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
   private fun assertReferenceMatches(request: PrisonIdentifier, entity: ReferenceEntity) {
     assertThat(entity.identifierType).isEqualTo(request.type)
-    assertThat(entity.identifierValue).isEqualTo(request.value)
+    assertThat(entity.identifierValue).isEqualTo(request.formattedValue())
     assertThat(entity.comment).isEqualTo(request.comment)
     assertThat(entity.isVerified).isEqualTo(request.verified)
     assertThat(entity.createDateTime).isEqualTo(request.createDateTime)
