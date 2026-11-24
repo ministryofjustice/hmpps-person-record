@@ -176,12 +176,12 @@ class PersonEntity(
     LIBRA to this.cId,
   )[this.sourceSystem]
 
-  fun extractPersonIdentifier() = when (this.sourceSystem) {
-    NOMIS -> PersonIdentifier("prisonNumber", extractSourceSystemId()!!)
-    DELIUS -> PersonIdentifier("CRN", extractSourceSystemId()!!)
-    COMMON_PLATFORM -> PersonIdentifier("defendantId", extractSourceSystemId()!!)
-    LIBRA -> PersonIdentifier("cId", extractSourceSystemId()!!)
-  }
+  fun extractPersonIdentifier() = mapOf(
+    NOMIS to PersonIdentifier("prisonNumber", extractSourceSystemId()!!),
+    DELIUS to PersonIdentifier("CRN", extractSourceSystemId()!!),
+    COMMON_PLATFORM to PersonIdentifier("defendantId", extractSourceSystemId()!!),
+    LIBRA to PersonIdentifier("cId", extractSourceSystemId()!!),
+  )[this.sourceSystem]!!
 
   fun addOverrideMarker(scope: OverrideScopeEntity, marker: UUID = OverrideScopeEntity.newMarker()) {
     this.overrideMarker = this.overrideMarker ?: marker

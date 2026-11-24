@@ -9,15 +9,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventPublis
 @Component
 class ClusterChangedEventPublisher(private val domainEventPublisher: DomainEventPublisher) {
 
-  fun onClusterChange(clusterChanged: ClusterChanged) {
-    val cluster = clusterChanged.cluster
-    domainEventPublisher.publish(
-      CprClusterChanged(
-        description = "A person record match has changed",
-        personReference = PersonReference(
-          cluster.personEntities.map { it.extractPersonIdentifier() },
-        ),
+  fun onClusterChange(clusterChanged: ClusterChanged) = domainEventPublisher.publish(
+    CprClusterChanged(
+      description = "A person record match has changed",
+      personReference = PersonReference(
+        clusterChanged.cluster.personEntities.map { it.extractPersonIdentifier() },
       ),
-    )
-  }
+    ),
+  )
 }
