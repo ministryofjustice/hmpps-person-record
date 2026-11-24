@@ -5,43 +5,60 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 
-enum class IdentifierType {
-  PNC,
-  CRO,
-  NATIONAL_INSURANCE_NUMBER,
-  DRIVER_LICENSE_NUMBER,
-  ARREST_SUMMONS_NUMBER,
-  AAMR,
-  ACC,
-  APNC,
-  AMRL,
-  ASN,
-  URN,
-  DRL,
-  DNOMS,
-  XIMMN,
-  XNOMS,
-  IMMN,
-  DOFF,
-  LCRN,
-  LBCN,
-  LIFN,
-  MFCRN,
-  MTCRN,
-  MSVN,
-  NHS,
-  NOMS,
-  OTHR,
-  PCRN,
-  PARN,
-  PST,
-  AI02,
-  PRNOMS,
-  SPNC,
-  NPNC,
-  VISO,
-  YCRN,
-  UNKNOWN,
+enum class IdentifierType(val description: String, val current: Boolean) {
+  AAMR("Alcohol Abstinence Monitoring Requirement", false),
+  ACC("Acquisitive Crime", true),
+  APNC("Additional PNC", true),
+  AMRL("Alcohol Monitoring (SCRAMnet ID)", true),
+  ARREST_SUMMONS_NUMBER("Arrest Summons Number", true), // TODO: ASN in the spreadsheet - there are 0 records in production
+  CID("Case Information Database (Immigration)", true),
+  URN("CPS Unique Reference Number", true),
+  CRO("Criminal Records Office Number", true),
+  TBRI("Did Not Enter Prison Tagged Bail Rel", true),
+  DRIVER_LICENSE_NUMBER("Driving Licence", true), // TODO: DL in the spreadsheet - 75170 records in production
+  DNOMS("Duplicate NOMIS Number", true),
+  XIMMN("Former Immigration Number", false),
+  XNOMS("Former NOMS Number", false),
+  HOREF("Home Office Reference No", true),
+  IMMN("Immigration Number", true),
+  DOFF("Known Duplicate CRN", true),
+  LCRN("Legacy CRN at Migration", false),
+  LBCN("Libra Breach Case Number", true),
+  LIFN("Lifer Number", true),
+  MFCRN("Merged From CRN", false),
+  MERGE_HMPS("Merged FROM Legacy LIDS Number", false),
+  MERGED("Merged FROM NOMS Number", false),
+  MTCRN("Merged To Case Reference Number", false),
+  MSVN("Military Service Number", false),
+  NATIONAL_INSURANCE_NUMBER("National Insurance Number", true), // TODO: NINO in the spreadsheet - 248603 records in production
+  NHS("NHS Number", true),
+  BOOK("NOMIS Book Number", true), // TODO: red in the spreadsheet - do we need this new one???
+  OTHR("Other Personal Identifier", true),
+  PCRN("Other Previous CRN", true),
+  PARK("Park Run Number", true),
+  PARN("Parole Number", false),
+  PST("Passport Number", true), // TODO: PST in the spreadsheet - 129 records in production
+  PNC("PNC Number", true),
+  PORT_REF("Port Reference (Immigration)", true),
+  AI02("Previous NOMS Number", false), // TODO: NOMS in the spreadsheet - 26041 records in production
+  PRNOMS("Previously recorded as NOMS Number", false),
+  HMPS("Prison Legacy System Number", true),
+  NPD("Probation Legacy System Number", true),
+  SPNC("Scottish PNC Number", true),
+  SHARED_ALIAS("SHARED ALIAS WARNING", true),
+  STAFF("Staff Pass/ Identity Card", true),
+  SYSIDENT("System Identifier", false),
+  ULN("Unique Learner Number", true),
+  NPNC("Verified No PNC Date", true),
+  VISO("Violent and Sex Offender Register Number", true),
+  YJAF("Young Justice Application Framework Identifier", true),
+  YCRN("Youth Offending Team Identifier/CRN", true),
+
+  // CPR existing types that either are not mapped or have duplicate mappings
+  ASN("Arrest Summons Number", true), // TODO: DELIUS USE - 22858 records in production - maps to our existing ARREST_SUMMONS_NUMBER and ASN in the spreadsheet
+  DRL("Driving Licence", true), // TODO: DELIUS USE - 1621 records in production - maps to our existing DRIVER_LICENSE_NUMBER and DL in the spreadsheet
+  NOMS("Previous NOMS Number", false), // TODO: NOMIS USE - 19 records in production - maps to our existing AI02 and NOMS in the spreadsheet
+  UNKNOWN("Unknown", false), // internal use - 0 records in production
   ;
 
   companion object {
