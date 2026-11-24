@@ -7,4 +7,6 @@ data class PrisonMerge(
   val fromPrisonNumber: String,
   @Schema(description = "The merged addresses and contacts to overwrite on the person being merged to")
   val toPrisonAddressesAndContactsRequest: PrisonAddressesAndContactsRequest,
+  @Schema(description = "The merged aliases and identifiers to overwrite on the person being merged to")
+  val toPrisonAliasesAndIdentifiersRequest: PrisonAliasesAndIdentifiersRequest,
 )

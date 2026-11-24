@@ -15,6 +15,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressUsagesAPIControllerIntTest.Companion.assertAddressUsageMatches
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest.Companion.validPrisonAddressesAndContactsRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest.Companion.validPrisonPseudoymnAndReferencesRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressesHandler.Companion.toPrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressesHandler.Companion.toPrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toDto
@@ -122,6 +123,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       val mergeAddressReqBodyDonated = fromAddressBeforeMergeToDonate.toPrisonAddress().copy(nomisAddressId = 2L)
       val requestBody = PrisonMerge(
         fromPrisonNumber = fromPrisonNumber,
+        toPrisonAliasesAndIdentifiersRequest = validPrisonPseudoymnAndReferencesRequest,
         toPrisonAddressesAndContactsRequest = PrisonAddressesAndContactsRequest(
           addresses = listOf(mergeAddressReqBodyRetained, mergeAddressReqBodyDonated),
           contacts = emptyList(),
@@ -232,6 +234,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
         )
       val requestBody = PrisonMerge(
         fromPrisonNumber = fromPrisonNumber,
+        toPrisonAliasesAndIdentifiersRequest = validPrisonPseudoymnAndReferencesRequest,
         toPrisonAddressesAndContactsRequest = PrisonAddressesAndContactsRequest(
           addresses = listOf(mergeAddressReqBody),
           contacts = emptyList(),
@@ -307,6 +310,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       )
       val requestBody = PrisonMerge(
         fromPrisonNumber = fromPrisonNumber,
+        toPrisonAliasesAndIdentifiersRequest = validPrisonPseudoymnAndReferencesRequest,
         toPrisonAddressesAndContactsRequest = PrisonAddressesAndContactsRequest(
           addresses = listOf(mergeAddressReqBody),
           contacts = emptyList(),
@@ -404,6 +408,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       val mergeAddressReqBodyDonated = fromAddressBeforeMergeToDonate.toPrisonAddress().copy(nomisAddressId = 2L, isPrimary = true, isMail = true)
       val requestBody = PrisonMerge(
         fromPrisonNumber = fromPrisonNumber,
+        toPrisonAliasesAndIdentifiersRequest = validPrisonPseudoymnAndReferencesRequest,
         toPrisonAddressesAndContactsRequest = PrisonAddressesAndContactsRequest(
           addresses = listOf(mergeAddressReqBodyRetained, mergeAddressReqBodyDonated),
           contacts = emptyList(),
@@ -460,6 +465,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
       val mergeContactReqBodyDonated = fromContactBeforeMergeToDonate.toDto().copy(nomisContactId = 2L)
       val requestBody = PrisonMerge(
         fromPrisonNumber = fromPrisonNumber,
+        toPrisonAliasesAndIdentifiersRequest = validPrisonPseudoymnAndReferencesRequest,
         toPrisonAddressesAndContactsRequest = PrisonAddressesAndContactsRequest(
           contacts = listOf(mergeContactReqBodyRetained, mergeContactReqBodyDonated),
           addresses = emptyList(),
@@ -775,6 +781,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
 
   private fun validPrisonMerge(fromPrisonNumber: String) = PrisonMerge(
     fromPrisonNumber = fromPrisonNumber,
+    toPrisonAliasesAndIdentifiersRequest = validPrisonPseudoymnAndReferencesRequest,
     toPrisonAddressesAndContactsRequest = validPrisonAddressesAndContactsRequest,
   )
 
