@@ -141,7 +141,7 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
     }
 
     @Test
-    fun `should update all fields when prisoner updated event published`() {
+    fun `should receive the message successfully when prisoner updated event published`() {
       val prisonNumber = randomPrisonNumber()
       createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
       val title = randomTitleCode()
@@ -257,51 +257,6 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
         assertThat(personEntity.sentenceInfo.size).isEqualTo(0)
-      }
-    }
-
-    @Test
-    fun `should receive the message successfully when prisoner updated event published`() {
-      val prisonNumber = randomPrisonNumber()
-      val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = randomReligionCode() })
-
-      val updatedFirstName = randomName()
-      val ethnicity = randomPrisonEthnicity()
-      val updatedNationality = randomPrisonNationalityCode()
-      val title = randomTitleCode()
-      val updatedSexCode = randomPrisonSexCode()
-
-      val updatedAliasGender = randomPrisonSexCode()
-      val updatedAlias = ApiResponseSetupAlias(title = title.key, firstName = randomName(), lastName = randomName(), gender = updatedAliasGender.key)
-
-      stubNoMatchesPersonMatch(matchId = prisoner.matchId)
-      prisonUpdateEventAndResponseSetup(ApiResponseSetup(gender = updatedSexCode.key, title = title.key, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity, aliases = listOf(updatedAlias)))
-
-      checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
-      )
-      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
-
-      awaitAssert {
-        val personEntity = personRepository.findByPrisonNumber(prisonNumber = prisonNumber)!!
-        assertThat(personEntity.matchId).isEqualTo(prisoner.matchId)
-        assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(title.value)
-        assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
-        assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(updatedSexCode.value)
-        assertThat(personEntity.getPrimaryName().ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))
-
-        assertThat(personEntity.getAliases()).hasSize(1)
-        assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(updatedAliasGender.value)
-        assertThat(personEntity.getAliases()[0].ethnicityCode).isNull()
-
-        assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))
-
-        assertThat(personEntity.nationalities.size).isEqualTo(1)
-        assertThat(personEntity.religion).isEqualTo(prisoner.religion)
-        assertThat(personEntity.religion).isNotNull()
-        assertThat(personEntity.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.name)
-        assertThat(personEntity.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.description)
       }
     }
 
