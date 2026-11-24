@@ -29,17 +29,11 @@ data class Prisoner(
   val cro: CROIdentifier? = null,
   val dateOfBirth: LocalDate,
   val aliases: List<PrisonerAlias> = emptyList(),
-  val emailAddresses: List<EmailAddress> = emptyList(),
-  val phoneNumbers: List<PhoneNumber> = emptyList(),
   val addresses: List<PrisonerAddress> = emptyList(),
   val identifiers: List<Identifier> = emptyList(),
   val allConvictedOffences: List<AllConvictedOffences>? = emptyList(),
   val gender: String? = null,
 ) {
-
-  fun getHomePhone(): String? = phoneNumbers.firstOrNull { it.type?.contains("HOME") == true }?.number
-
-  fun getMobilePhone(): String? = phoneNumbers.firstOrNull { it.type?.contains("MOB") == true }?.number
 
   companion object {
     fun List<Identifier>.getType(type: String): Identifier? = this.find { it.type == type }

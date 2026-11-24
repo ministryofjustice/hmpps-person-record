@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.prison
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.NomisIdentifierId
@@ -10,11 +11,15 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlia
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasMapping
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PrisonPseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PrisonPseudonymRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PseudonymRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonAliasNameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonPseudonymSuffix
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
@@ -24,7 +29,10 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class SysconSyncPrisonAliasesAPIControllerIntTest : WebTestBase() {
+class SysconSyncPrisonAliasesAPIControllerIntTest(
+  @Autowired private val pseudonymRepository: PseudonymRepository,
+  @Autowired private val prisonPseudonymRepository: PrisonPseudonymRepository,
+) : WebTestBase() {
 
   @Nested
   inner class GetAlias {
@@ -207,14 +215,76 @@ class SysconSyncPrisonAliasesAPIControllerIntTest : WebTestBase() {
     inner class SuccessfulProcessing {
 
       @Test
-      fun `should respond with 501 as not currently implemented`() {
+      fun `should update the alias fields only, leaving name type, create fields and identifiers untouched`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        val alias = personEntity.getAliases().single()
+        val primaryName = personEntity.getPrimaryName()
+        val request = prisonAlias().copy(
+          isPrimary = true,
+          createDateTime = LocalDateTime.of(2001, 1, 1, 1, 0),
+          createUserId = "newCreateUserId",
+          modifyDateTime = LocalDateTime.of(2024, 2, 2, 2, 0),
+          modifyUserId = "modifyUserId",
+        )
+
         webTestClient.put()
-          .uri(aliasUrl(randomPrisonNumber(), randomCprAliasId()))
-          .bodyValue(prisonAlias())
+          .uri(aliasUrl(prisonNumber, alias.updateId.toString()))
+          .bodyValue(request)
           .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
           .exchange()
           .expectStatus()
-          .isEqualTo(501)
+          .isNoContent
+
+        val updated = pseudonymRepository.findByUpdateId(alias.updateId!!)!!
+        assertThat(updated.nameType).isEqualTo(ALIAS)
+        assertThat(updated.titleCode).isEqualTo(request.titleCode)
+        assertThat(updated.firstName).isEqualTo(request.firstName)
+        assertThat(updated.middleNames).isEqualTo(request.middleNames)
+        assertThat(updated.lastName).isEqualTo(request.lastName)
+        assertThat(updated.dateOfBirth).isEqualTo(request.dateOfBirth)
+        assertThat(updated.sexCode).isEqualTo(request.sexCode)
+        assertThat(updated.ethnicityCode).isEqualTo(request.ethnicity)
+        assertThat(updated.birthplace).isEqualTo(request.birthPlace)
+        assertThat(updated.birthCountryCode).isEqualTo(request.birthCountry)
+        assertThat(updated.modifyDateTime).isEqualTo(request.modifyDateTime)
+        assertThat(updated.modifyUserId).isEqualTo(request.modifyUserId)
+        assertThat(updated.createDateTime).isEqualTo(alias.createDateTime)
+        assertThat(updated.createUserId).isEqualTo(alias.createUserId)
+
+        val prisonPseudonym = prisonPseudonymRepository.findByPseudonym(updated)
+        assertThat(prisonPseudonym.suffix).isEqualTo(request.suffix)
+        assertThat(prisonPseudonym.nameType).isEqualTo(request.nameType)
+
+        val updatedPerson = personRepository.findByPrisonNumber(prisonNumber)!!
+        assertThat(updatedPerson.getPrimaryName().updateId).isEqualTo(primaryName.updateId)
+        assertThat(updatedPerson.ethnicityCode).isEqualTo(personEntity.ethnicityCode)
+        assertThat(updatedPerson.references.filter { it.pseudonym?.id == alias.id }).isEmpty()
+      }
+
+      @Test
+      fun `should update the person ethnicity when updating the primary name`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        val personEntity = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        val primaryName = personEntity.getPrimaryName()
+        val request = prisonAlias().copy(isPrimary = false, ethnicity = EthnicityCode.W9)
+
+        webTestClient.put()
+          .uri(aliasUrl(prisonNumber, primaryName.updateId.toString()))
+          .bodyValue(request)
+          .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+          .exchange()
+          .expectStatus()
+          .isNoContent
+
+        val updatedPerson = personRepository.findByPrisonNumber(prisonNumber)!!
+        assertThat(updatedPerson.getPrimaryName().updateId).isEqualTo(primaryName.updateId)
+        assertThat(updatedPerson.getPrimaryName().lastName).isEqualTo(request.lastName)
+        assertThat(updatedPerson.ethnicityCode).isEqualTo(EthnicityCode.W9)
       }
     }
 
@@ -229,6 +299,23 @@ class SysconSyncPrisonAliasesAPIControllerIntTest : WebTestBase() {
           .exchange()
           .expectStatus()
           .isBadRequest
+      }
+
+      @Test
+      fun `should return not found when the alias does not exist`() {
+        val prisonNumber = randomPrisonNumber()
+        val cprAliasId = randomCprAliasId()
+
+        webTestClient.put()
+          .uri(aliasUrl(prisonNumber, cprAliasId))
+          .bodyValue(prisonAlias())
+          .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+          .exchange()
+          .expectStatus()
+          .isNotFound
+          .expectBody()
+          .jsonPath("userMessage")
+          .isEqualTo("Not found: Alias with $cprAliasId not found for person with $prisonNumber")
       }
     }
 
@@ -340,6 +427,11 @@ class SysconSyncPrisonAliasesAPIControllerIntTest : WebTestBase() {
   private fun aliasUrl(prisonNumber: String, cprAliasId: String) = "/syscon-sync/person/$prisonNumber/alias/$cprAliasId"
 
   companion object {
+
+    fun assertPrisonPseudonymMatches(request: PrisonAlias, entity: PrisonPseudonymEntity) {
+      assertThat(entity.suffix).isEqualTo(request.suffix)
+      assertThat(entity.nameType).isEqualTo(request.nameType)
+    }
 
     fun assertPseudonymMatches(request: PrisonAlias, entity: PseudonymEntity) {
       assertThat(entity.nameType).isEqualTo(if (request.isPrimary) NameType.PRIMARY else NameType.ALIAS)

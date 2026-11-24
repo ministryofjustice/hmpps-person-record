@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.personrecord.client.model.match
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 
 data class PersonMatchRecord(
   val matchId: String,
@@ -38,8 +40,8 @@ data class PersonMatchRecord(
       lastNameAliases = personEntity.getAliases().mapNotNull { it.lastName }.distinct().sorted(),
       dateOfBirthAliases = personEntity.getAliases().mapNotNull { it.dateOfBirth }.map { it.toString() }.distinct().sorted(),
       postcodes = personEntity.addresses.mapNotNull { it.postcode }.distinct().sorted(),
-      cros = personEntity.references.getCROs().distinct().sorted(),
-      pncs = personEntity.references.getPNCs().distinct().sorted(),
+      cros = personEntity.references.getCROs().map { CROIdentifier.from(it).croId }.filter { it.isNotEmpty() }.distinct().sorted(),
+      pncs = personEntity.references.getPNCs().map { PNCIdentifier.from(it).pncId }.filter { it.isNotEmpty() }.distinct().sorted(),
       sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.map { it.toString() }.distinct().sorted(),
       sourceSystemId = personEntity.extractSourceSystemId(),
       masterDefendantId = personEntity.masterDefendantId,

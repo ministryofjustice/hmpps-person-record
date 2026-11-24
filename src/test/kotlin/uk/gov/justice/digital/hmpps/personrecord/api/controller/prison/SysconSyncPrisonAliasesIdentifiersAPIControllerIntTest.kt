@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAliasesAPIControllerIntTest.Companion.assertPseudonymMatches
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAliasesAPIControllerIntTest.Companion.assertPrisonPseudonymMatches
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.NomisIdentifierId
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAliasesAndIdentifiersRequest
@@ -25,6 +26,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PrisonPseudonymRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PseudonymRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReferenceRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode.UKR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.A1
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
@@ -35,7 +38,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonPseudonymSuff
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.M
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode.MR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode.SIR
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomShortPnc
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID.randomUUID
@@ -234,6 +239,8 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
         val pseudonymEntity = personEntity.pseudonyms.single { pseudonymMatcher(pseudonymRequest, it) }
         assertPseudonymMatches(pseudonymRequest, pseudonymEntity)
 
+        assertPrisonPseudonymMatches(pseudonymRequest, prisonPseudonymRepository.findById(pseudonymEntity.id!!).get())
+
         val pseudonymMapping = response.aliasesMappings.single { pseudonymMatcher(pseudonymRequest, it) }
         assertThat(pseudonymMapping.cprAliasId).isEqualTo(pseudonymEntity.updateId.toString())
         assertThat(pseudonymMapping.identifierMappings).hasSize(pseudonymRequest.identifiers.size)
@@ -264,12 +271,16 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       val referencesToBeDeleted = person.pseudonyms.flatMap { it.references }
       assertThat(pseudonymsToBeDeleted).isNotEmpty()
       assertThat(referencesToBeDeleted).isNotEmpty()
+      for (pseudonym in pseudonymsToBeDeleted) {
+        assertThat(prisonPseudonymRepository.findById(pseudonym.id!!)).isPresent()
+      }
       // Second request. We use the same request, this should still result in the old pseudonyms and references being deleted
       postPseudonymsAndReferences(prisonNumber, validPrisonPseudoymnAndReferencesRequest)
 
-      // Check we cannot find the old pseudonyms and references
+      // Check we cannot find the old pseudonyms, prison pseudonyms and references
       for (pseudonym in pseudonymsToBeDeleted) {
         assertThat(pseudonymRepository.findById(pseudonym.id!!)).isEmpty()
+        assertThat(prisonPseudonymRepository.findById(pseudonym.id!!)).isEmpty()
       }
       for (reference in referencesToBeDeleted) {
         assertThat(referenceRepository.findById(reference.id!!)).isEmpty()
@@ -329,6 +340,32 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       assertThat(response.aliasesMappings.flatMap { it.identifierMappings }).hasSize(requestWithCprUpdateIdsThatDoNotExist.aliases.flatMap { it.identifiers }.size)
     }
 
+    @Test
+    fun `successful save formats valid PNC and CRO values and stores invalid values as received`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+      val prisonNumber = randomPrisonNumber()
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+      val shortPnc = randomShortPnc()
+      val cro = randomCro()
+      val primaryAlias = validPrisonPseudoymnAndReferencesRequest.aliases.single { it.isPrimary }
+      val template = primaryAlias.identifiers.first()
+      val identifiers = listOf(PNC to shortPnc, CRO to cro.lowercase(), PNC to "invalidPnc", CRO to "invalidCro")
+        .mapIndexed { index, (type, value) ->
+          template.copy(nomisIdentifierId = NomisIdentifierId(primaryAlias.nomisOffenderId, index + 1), type = type, value = value)
+        }
+
+      postPseudonymsAndReferences(prisonNumber, PrisonAliasesAndIdentifiersRequest(listOf(primaryAlias.copy(identifiers = identifiers))))
+
+      val references = transactionalLookup.findByPrisonNumberWithReferences(prisonNumber).pseudonyms.flatMap { it.references }
+      assertThat(references.map { it.identifierType to it.identifierValue }).containsExactlyInAnyOrder(
+        PNC to PNCIdentifier.from(shortPnc).pncId,
+        CRO to CROIdentifier.from(cro).croId,
+        PNC to "invalidPnc",
+        CRO to "invalidCro",
+      )
+    }
+
     private fun postPseudonymsAndReferences(prisonNumber: String, request: PrisonAliasesAndIdentifiersRequest) = sendPostRequestAsserted<SysconAliasesAndIdentifiersResponseBody>(
       url = pseudonymReferenceUrl(prisonNumber),
       body = request,
@@ -343,14 +380,14 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
   private fun pseudonymMatcher(request: PrisonAlias, mapping: SysconAliasMapping) = mapping.nomisOffenderId == request.nomisOffenderId
 
-  private fun referenceMatcher(request: PrisonIdentifier, entity: ReferenceEntity) = entity.identifierValue == request.value
+  private fun referenceMatcher(request: PrisonIdentifier, entity: ReferenceEntity) = entity.identifierValue == request.formattedValue()
 
   private fun referenceMatcher(request: PrisonIdentifier, mapping: SysconIdentifierMapping) = mapping.nomisIdentifierId.nomisOffenderId == request.nomisIdentifierId.nomisOffenderId &&
     mapping.nomisIdentifierId.nomisSequence == request.nomisIdentifierId.nomisSequence
 
   private fun assertReferenceMatches(request: PrisonIdentifier, entity: ReferenceEntity) {
     assertThat(entity.identifierType).isEqualTo(request.type)
-    assertThat(entity.identifierValue).isEqualTo(request.value)
+    assertThat(entity.identifierValue).isEqualTo(request.formattedValue())
     assertThat(entity.comment).isEqualTo(request.comment)
     assertThat(entity.isVerified).isEqualTo(request.verified)
     assertThat(entity.createDateTime).isEqualTo(request.createDateTime)

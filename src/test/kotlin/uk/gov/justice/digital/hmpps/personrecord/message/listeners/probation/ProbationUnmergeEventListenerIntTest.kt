@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
 @ExtendWith(OutputCaptureExtension::class)
@@ -53,14 +53,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingTestBase() {
 
       expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
 
-      checkTelemetry(
-        CPR_RECORD_UNMERGED,
-        mapOf(
-          "TO_SOURCE_SYSTEM_ID" to reactivatedCrn,
-          "FROM_SOURCE_SYSTEM_ID" to unmergedCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
+      checkEventLogExist(reactivatedCrn, CPR_RECORD_UNMERGED)
 
       reactivatedPerson.assertHasLinkToCluster()
       reactivatedPerson.assertNotLinkedToCluster(unmergedPerson.personKey!!)
@@ -94,7 +87,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingTestBase() {
       stubOnePersonMatchAboveJoinThreshold(matchId = recordA.matchId, matchedRecord = matchedRecord.matchId)
       probationUnmergeEventAndResponseSetup(recordACrn, recordBCrn)
 
-      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to recordBCrn, "TO_SOURCE_SYSTEM_ID" to recordACrn))
+      checkEventLogExist(recordACrn, CPR_RECORD_UNMERGED)
       recordB.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       recordA.assertNotMerged()
 
@@ -127,11 +120,11 @@ class ProbationUnmergeEventListenerIntTest : MessagingTestBase() {
 
       probationUnmergeEventAndResponseSetup(firstReactivatedRecord.crn!!, unmergedRecord.crn!!)
 
-      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to firstReactivatedRecord.crn!!))
+      checkEventLogExist(firstReactivatedRecord.crn!!, CPR_RECORD_UNMERGED)
 
       probationUnmergeEventAndResponseSetup(secondReactivatedRecord.crn!!, unmergedRecord.crn!!)
 
-      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to secondReactivatedRecord.crn!!))
+      checkEventLogExist(secondReactivatedRecord.crn!!, CPR_RECORD_UNMERGED)
 
       firstReactivatedRecord.assertNotMerged()
       secondReactivatedRecord.assertNotMerged()
@@ -172,13 +165,13 @@ class ProbationUnmergeEventListenerIntTest : MessagingTestBase() {
       val secondReactivatedRecord = createMergedPerson(createRandomProbationPersonDetails(), unmergedRecord.id)
 
       probationUnmergeEventAndResponseSetup(firstReactivatedRecord.crn!!, unmergedRecord.crn!!)
-      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to firstReactivatedRecord.crn!!))
+      checkEventLogExist(firstReactivatedRecord.crn!!, CPR_RECORD_UNMERGED)
 
       val initialOverrideMarker = awaitNotNull { personRepository.findByCrn(unmergedRecord.crn!!) }.overrideMarker
       assertThat(initialOverrideMarker).isNotNull()
 
       probationUnmergeEventAndResponseSetup(secondReactivatedRecord.crn!!, unmergedRecord.crn!!)
-      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to secondReactivatedRecord.crn!!))
+      checkEventLogExist(secondReactivatedRecord.crn!!, CPR_RECORD_UNMERGED)
 
       val finalOverrideMarker = awaitNotNull { personRepository.findByCrn(unmergedRecord.crn!!) }.overrideMarker
       assertThat(initialOverrideMarker).isEqualTo(finalOverrideMarker)

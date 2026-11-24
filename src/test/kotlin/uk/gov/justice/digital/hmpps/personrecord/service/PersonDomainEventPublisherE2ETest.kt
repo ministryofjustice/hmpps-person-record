@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest.Companion.validPrisonAddressesAndContactsRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest.Companion.validPrisonPseudoymnAndReferencesRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PRISON_PERSON_CREATED
@@ -324,6 +325,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
 
   private fun validPrisonMerge(fromPrisonNumber: String) = PrisonMerge(
     fromPrisonNumber = fromPrisonNumber,
+    toPrisonAliasesAndIdentifiersRequest = validPrisonPseudoymnAndReferencesRequest,
     toPrisonAddressesAndContactsRequest = validPrisonAddressesAndContactsRequest,
   )
 }
