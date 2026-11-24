@@ -61,48 +61,46 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should unmerge 2 records that have been merged`() {
-      val reactivatedCrn = randomCrn()
-      val unmergedCrn = randomCrn()
+    fun `should unmerge 2 merged records that exist on same cluster and then link to another cluster`() {
+      val recordACrn = randomCrn()
+      val recordBCrn = randomCrn()
+      val recordADetails = createRandomProbationCase(recordACrn)
+      val cluster = createPersonKey()
+        .addPerson(Person.from(recordADetails))
+        .addPerson(createRandomProbationPersonDetails(recordBCrn))
 
-      val unmergedPerson = createPersonWithNewKey(createRandomProbationPersonDetails(unmergedCrn))
-      val cluster = unmergedPerson.personKey!!
-      val reactivatedPersonData = createRandomProbationCase(reactivatedCrn)
-      val reactivatedPersonEntity = createPersonWithNewKey(Person.from(reactivatedPersonData))
+      probationMergeEventAndResponseSetup(recordACrn, recordBCrn)
 
-      probationMergeEventAndResponseSetup(reactivatedCrn, unmergedCrn)
+      val recordA = personRepository.findByCrn(recordACrn)!!
+      val recordB = personRepository.findByCrn(recordBCrn)!!
+      recordA.assertMergedTo(recordB)
 
-      checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_RECORD_MERGED)
-      reactivatedPersonEntity.assertMergedTo(unmergedPerson)
+      val matchedRecord = createPersonWithNewKey(Person.from(recordADetails).copy(crn = randomCrn()))
 
-      val reactivatedSetup = ApiResponseSetup.from(reactivatedPersonData)
-      probationUnmergeEventAndResponseSetup(reactivatedCrn, unmergedCrn, reactivatedSetup = reactivatedSetup)
+      probationUnmergeEventAndResponseSetup(recordACrn, recordBCrn, reactivatedSetup = ApiResponseSetup.from(recordADetails))
 
-      checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_UUID_CREATED)
-      checkEventLog(reactivatedCrn, CPR_RECORD_UNMERGED) { eventLogs ->
-        assertThat(eventLogs).hasSize(1)
-        val eventLog = eventLogs.first()
-        assertThat(eventLog.personUUID).isNotEqualTo(cluster.personUUID)
-        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
-      }
+      checkEventLogExist(recordACrn, CPR_RECORD_UNMERGED)
+      recordB.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      recordA.assertNotMerged()
 
-      unmergedPerson.assertHasLinkToCluster()
-      unmergedPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      unmergedPerson.personKey?.assertClusterIsOfSize(1)
-      unmergedPerson.assertExcluded(reactivatedPersonEntity)
-      val reactivatedPerson = personRepository.findByCrn(reactivatedCrn)!!
-      reactivatedPerson.assertHasLinkToCluster()
-      reactivatedPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      reactivatedPerson.personKey?.assertClusterIsOfSize(1)
-      reactivatedPerson.assertNotLinkedToCluster(unmergedPerson.personKey!!)
-      reactivatedPerson.assertExcluded(unmergedPerson)
-      reactivatedPerson.assertNotMerged()
-      unmergedPerson.assertHasOverrideMarker()
-      reactivatedPerson.assertHasOverrideMarker()
-      unmergedPerson.assertOverrideScopeSize(1)
-      reactivatedPerson.assertOverrideScopeSize(1)
-      unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
-      unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
+      recordA.assertExcluded(recordB)
+      recordB.assertExcluded(recordA)
+
+      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster.assertClusterIsOfSize(1)
+
+      recordB.assertLinkedToCluster(cluster)
+      recordA.assertLinkedToCluster(matchedRecord.personKey!!)
+
+      matchedRecord.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      matchedRecord.personKey?.assertClusterIsOfSize(2)
+
+      matchedRecord.assertDoesNotHaveOverrideMarker()
+      recordB.assertHasOverrideMarker()
+      recordA.assertHasOverrideMarker()
+
+      recordB.assertHasDifferentOverrideMarker(recordA)
+      recordB.assertHasSameOverrideScope(recordA)
     }
   }
 

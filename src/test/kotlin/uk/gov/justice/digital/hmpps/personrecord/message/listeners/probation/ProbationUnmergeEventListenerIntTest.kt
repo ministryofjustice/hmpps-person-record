@@ -69,49 +69,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingTestBase() {
     }
 
     @Test
-    fun `should unmerge 2 merged records that exist on same cluster and then link to another cluster`() {
-      val recordACrn = randomCrn()
-      val recordBCrn = randomCrn()
-      val cluster = createPersonKey()
-        .addPerson(createRandomProbationPersonDetails(recordACrn))
-        .addPerson(createRandomProbationPersonDetails(recordBCrn))
-      stubDeletePersonMatch()
-      probationMergeEventAndResponseSetup(recordACrn, recordBCrn)
-
-      val recordA = personRepository.findByCrn(recordACrn)!!
-      val recordB = personRepository.findByCrn(recordBCrn)!!
-      recordA.assertMergedTo(recordB)
-
-      val matchedRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
-
-      stubOnePersonMatchAboveJoinThreshold(matchId = recordA.matchId, matchedRecord = matchedRecord.matchId)
-      probationUnmergeEventAndResponseSetup(recordACrn, recordBCrn)
-
-      checkEventLogExist(recordACrn, CPR_RECORD_UNMERGED)
-      recordB.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      recordA.assertNotMerged()
-
-      recordA.assertExcluded(recordB)
-      recordB.assertExcluded(recordA)
-
-      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster.assertClusterIsOfSize(1)
-
-      recordB.assertLinkedToCluster(cluster)
-      recordA.assertLinkedToCluster(matchedRecord.personKey!!)
-
-      matchedRecord.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      matchedRecord.personKey?.assertClusterIsOfSize(2)
-
-      matchedRecord.assertDoesNotHaveOverrideMarker()
-      recordB.assertHasOverrideMarker()
-      recordA.assertHasOverrideMarker()
-
-      recordB.assertHasDifferentOverrideMarker(recordA)
-      recordB.assertHasSameOverrideScope(recordA)
-    }
-
-    @Test
     fun `should unmerge 2 records from existing one record`() {
       val unmergedRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
 
