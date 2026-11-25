@@ -10,7 +10,7 @@ enum class IdentifierType(val description: String) {
   ACC("Acquisitive Crime"),
   APNC("Additional PNC"),
   AMRL("Alcohol Monitoring (SCRAMnet ID)"),
-  ASN("Arrest Summons Number"), // DELIUS USE - 22858 records in production - maps to our existing ARREST_SUMMONS_NUMBER and ASN in the spreadsheet
+  ASN("Arrest Summons Number"),
   CID("Case Information Database (Immigration)"),
   URN("CPS Unique Reference Number"),
   CRO("Criminal Records Office Number"),
