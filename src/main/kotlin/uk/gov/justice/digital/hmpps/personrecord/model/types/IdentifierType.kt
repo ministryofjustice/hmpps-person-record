@@ -54,11 +54,18 @@ enum class IdentifierType(val description: String, val current: Boolean) {
   YJAF("Young Justice Application Framework Identifier", true),
   YCRN("Youth Offending Team Identifier/CRN", true),
 
-  // CPR existing types that either are not mapped or have duplicate mappings
+  // existing CPR types have duplicate mappings - require migration
   ASN("Arrest Summons Number", true), // TODO: DELIUS USE - 22858 records in production - maps to our existing ARREST_SUMMONS_NUMBER and ASN in the spreadsheet
   DRL("Driving Licence", true), // TODO: DELIUS USE - 1621 records in production - maps to our existing DRIVER_LICENSE_NUMBER and DL in the spreadsheet
   NOMS("Previous NOMS Number", false), // TODO: NOMIS USE - 19 records in production - maps to our existing AI02 and NOMS in the spreadsheet
-  UNKNOWN("Unknown", false), // internal use - 0 records in production
+
+  // new types that replace existing ones - require migration
+  DL("Driving Licence", true), // TODO: replaces existing DRIVER_LICENSE_NUMBER and DRL
+  NINO("National Insurance Number", true), // TODO: replaces existing NATIONAL_INSURANCE_NUMBER
+  PASS("Passport Number", true), // TODO: replaces existing PST
+
+  // internal use
+  UNKNOWN("Unknown", false),
   ;
 
   companion object {
