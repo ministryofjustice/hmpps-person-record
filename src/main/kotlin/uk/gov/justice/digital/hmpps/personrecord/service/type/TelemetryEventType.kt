@@ -4,7 +4,6 @@ enum class TelemetryEventType(val eventName: String) {
   CPR_RECORD_CREATED("CprRecordCreated"),
   CPR_RECORD_UPDATED("CprRecordUpdated"),
   CPR_CANDIDATE_RECORD_SEARCH("CprCandidateRecordSearch"),
-  CPR_CANDIDATE_RECORD_FOUND_UUID("CprSplinkCandidateRecordsFoundGetUUID"),
   CPR_UUID_CREATED("CprUuidCreated"),
   CPR_RECORD_MERGED("CprRecordMerged"),
   CPR_RECORD_DELETED("CprRecordHardDeleted"),

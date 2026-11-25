@@ -20,7 +20,7 @@ class PersonKeyService(
 ) {
 
   fun linkRecordToPersonKey(personEntity: PersonEntity) {
-    val clusters = personMatchService.findClustersToJoin(personEntity) // delete this as well
+    val clusters = personMatchService.findClustersToJoin(personEntity)
     when {
       clusters.containsExcludeOverrides() -> personEntity.setAsOverrideConflict(clusters)
       else -> {
