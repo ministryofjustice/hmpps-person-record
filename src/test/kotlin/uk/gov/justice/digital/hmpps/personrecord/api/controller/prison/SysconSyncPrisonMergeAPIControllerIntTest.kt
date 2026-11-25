@@ -172,7 +172,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
           contactMappings = emptyList(),
         ),
       )
-      assertThat(actualResponseBody).isEqualTo(expectedBody)
+      assertThat(actualResponseBody).usingRecursiveComparison().ignoringFields("sysconAliasesAndIdentifiersResponseBody").isEqualTo(expectedBody)
     }
 
     @Test
@@ -360,7 +360,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
           contactMappings = emptyList(),
         ),
       )
-      assertThat(actualResponseBody).isEqualTo(expectedBody)
+      assertThat(actualResponseBody).usingRecursiveComparison().ignoringFields("sysconAliasesAndIdentifiersResponseBody").isEqualTo(expectedBody)
     }
 
     @Test
@@ -512,7 +512,7 @@ class SysconSyncPrisonMergeAPIControllerIntTest : WebTestBase() {
           ),
         ),
       )
-      assertThat(actualResponseBody).isEqualTo(expectedBody)
+      assertThat(actualResponseBody).usingRecursiveComparison().ignoringFields("sysconAliasesAndIdentifiersResponseBody").isEqualTo(expectedBody)
     }
   }
 

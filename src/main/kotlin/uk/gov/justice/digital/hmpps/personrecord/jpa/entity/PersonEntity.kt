@@ -16,6 +16,7 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.AddressBuilder.buildAddresses
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ContactBuilder.buildContacts
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBuilder.buildReferences
@@ -175,6 +176,13 @@ class PersonEntity(
     LIBRA to this.cId,
   )[this.sourceSystem]
 
+  fun extractPersonIdentifier() = mapOf(
+    NOMIS to PersonIdentifier("prisonNumber", extractSourceSystemId()!!),
+    DELIUS to PersonIdentifier("CRN", extractSourceSystemId()!!),
+    COMMON_PLATFORM to PersonIdentifier("defendantId", extractSourceSystemId()!!),
+    LIBRA to PersonIdentifier("cId", extractSourceSystemId()!!),
+  )[this.sourceSystem]!!
+
   fun addOverrideMarker(scope: OverrideScopeEntity, marker: UUID = OverrideScopeEntity.newMarker()) {
     this.overrideMarker = this.overrideMarker ?: marker
     this.overrideScopes.add(scope)
@@ -217,10 +225,14 @@ class PersonEntity(
     if (!childrenToIgnore.contains<Any>(ContactEntity::class)) {
       updatePersonContacts(buildContacts(person, this))
     }
-    updatePersonReferences(buildReferences(person, this))
+    if (!childrenToIgnore.contains<Any>(ReferenceEntity::class)) {
+      updatePersonReferences(buildReferences(person, this))
+    }
     updatePersonSentences(buildSentenceInfo(person, this))
     updateNationalities(person.nationalities.map { NationalityEntity.from(it) })
-    updatePseudonyms(listOf(PseudonymEntity.primaryNameFrom(person)) + person.aliases.mapNotNull { PseudonymEntity.aliasFrom(it) })
+    if (!childrenToIgnore.contains<Any>(PseudonymEntity::class)) {
+      updatePseudonyms(listOf(PseudonymEntity.primaryNameFrom(person)) + person.aliases.mapNotNull { PseudonymEntity.aliasFrom(it) })
+    }
   }
 
   private fun updatePersonSentences(sentences: List<SentenceInfoEntity>) {

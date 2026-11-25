@@ -3,11 +3,22 @@ package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasMapping
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PrisonPseudonymRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PseudonymRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDateTime
 
@@ -21,6 +32,18 @@ class SysconSyncPseudonymHandlerTest {
     createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
     createUserId = "createUserId",
   )
+
+  @MockitoBean
+  private lateinit var personRepository: PersonRepository
+
+  @MockitoBean
+  private lateinit var pseudonymRepository: PseudonymRepository
+
+  @MockitoBean
+  private lateinit var prisonPseudonymRepository: PrisonPseudonymRepository
+
+  @MockitoBean
+  private lateinit var personService: PersonService
 
   @Nested
   @ActiveProfiles("prod")
@@ -83,10 +106,13 @@ class SysconSyncPseudonymHandlerTest {
     }
 
     @Test
-    fun `insert returns an empty alias mapping`() {
-      val result = sysconSyncPseudonymHandler.handleInsert(prisonNumber, prisonAlias)
+    fun `insert creates a person when the person does not exist`() {
+      whenever(personRepository.findByPrisonNumber(prisonNumber)).thenReturn(null)
+      whenever(personService.processCreate(eq(NOMIS), any())).thenReturn(PersonEntity.new(NOMIS))
 
-      assertThat(result).isEqualTo(SysconAliasMapping())
+      sysconSyncPseudonymHandler.handleInsert(prisonNumber, prisonAlias)
+
+      verify(personService).processCreate(eq(NOMIS), any())
     }
   }
 }
