@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus.FORBIDDEN
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAliasesAPIControllerIntTest.Companion.assertPrisonPseudonymMatches
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAliasesAPIControllerIntTest.Companion.assertPseudonymMatches
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.NomisIdentifierId
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAliasesAndIdentifiersRequest
@@ -19,7 +21,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconIdentifierMapping
 import uk.gov.justice.digital.hmpps.personrecord.config.TransactionalLookup
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PrisonPseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PrisonPseudonymRepository
@@ -31,7 +32,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode.UKR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.A1
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
-import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonAliasNameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonAliasNameType.CN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonPseudonymSuffix.I
@@ -384,28 +384,6 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
   private fun referenceMatcher(request: PrisonIdentifier, mapping: SysconIdentifierMapping) = mapping.nomisIdentifierId.nomisOffenderId == request.nomisIdentifierId.nomisOffenderId &&
     mapping.nomisIdentifierId.nomisSequence == request.nomisIdentifierId.nomisSequence
-
-  private fun assertPseudonymMatches(request: PrisonAlias, entity: PseudonymEntity) {
-    assertThat(entity.nameType).isEqualTo(if (request.isPrimary) NameType.PRIMARY else NameType.ALIAS)
-    assertThat(entity.titleCode).isEqualTo(request.titleCode)
-    assertThat(entity.firstName).isEqualTo(request.firstName)
-    assertThat(entity.middleNames).isEqualTo(request.middleNames)
-    assertThat(entity.lastName).isEqualTo(request.lastName)
-    assertThat(entity.dateOfBirth).isEqualTo(request.dateOfBirth)
-    assertThat(entity.sexCode).isEqualTo(request.sexCode)
-    assertThat(entity.ethnicityCode).isEqualTo(request.ethnicity)
-    assertThat(entity.birthplace).isEqualTo(request.birthPlace)
-    assertThat(entity.birthCountryCode).isEqualTo(request.birthCountry)
-    assertThat(entity.createDateTime).isEqualTo(request.createDateTime)
-    assertThat(entity.createUserId).isEqualTo(request.createUserId)
-    assertThat(entity.modifyDateTime).isEqualTo(request.modifyDateTime)
-    assertThat(entity.modifyUserId).isEqualTo(request.modifyUserId)
-  }
-
-  private fun assertPrisonPseudonymMatches(request: PrisonAlias, entity: PrisonPseudonymEntity) {
-    assertThat(entity.suffix).isEqualTo(request.suffix)
-    assertThat(entity.nameType).isEqualTo(request.nameType)
-  }
 
   private fun assertReferenceMatches(request: PrisonIdentifier, entity: ReferenceEntity) {
     assertThat(entity.identifierType).isEqualTo(request.type)
