@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
@@ -95,7 +95,7 @@ data class CanonicalIdentifiers(
         cros = referenceEntities.findByIdentifierType(CRO),
         pncs = referenceEntities.findByIdentifierType(PNC),
         nationalInsuranceNumbers = referenceEntities.findByIdentifierType(NATIONAL_INSURANCE_NUMBER),
-        arrestSummonsNumbers = referenceEntities.findByIdentifierType(ARREST_SUMMONS_NUMBER),
+        arrestSummonsNumbers = referenceEntities.findByIdentifierType(ASN),
         driverLicenseNumbers = referenceEntities.findByIdentifierType(DRIVER_LICENSE_NUMBER),
         otherIdentifiers = referenceEntities.findByIdentifierType(OTHR),
       )
@@ -113,7 +113,7 @@ data class CanonicalIdentifiers(
         cros = referenceEntities.findByIdentifierType(CRO),
         pncs = referenceEntities.findByIdentifierType(PNC),
         nationalInsuranceNumbers = referenceEntities.findByIdentifierType(NATIONAL_INSURANCE_NUMBER),
-        arrestSummonsNumbers = referenceEntities.findByIdentifierType(ARREST_SUMMONS_NUMBER),
+        arrestSummonsNumbers = referenceEntities.findByIdentifierType(ASN),
         driverLicenseNumbers = referenceEntities.findByIdentifierType(DRIVER_LICENSE_NUMBER),
         otherIdentifiers = referenceEntities.findByIdentifierType(OTHR),
       )

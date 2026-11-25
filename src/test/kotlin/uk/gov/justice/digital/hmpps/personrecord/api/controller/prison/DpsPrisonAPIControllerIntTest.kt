@@ -35,7 +35,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
@@ -320,7 +320,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
               identifierValue = personOneNationalInsuranceNumber,
             ),
             Reference(
-              identifierType = ARREST_SUMMONS_NUMBER,
+              identifierType = ASN,
               identifierValue = personOneArrestSummonNumber,
             ),
             Reference(
@@ -350,7 +350,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
               identifierValue = personTwoNationalInsuranceNumber,
             ),
             Reference(
-              identifierType = ARREST_SUMMONS_NUMBER,
+              identifierType = ASN,
               identifierValue = personTwoArrestSummonNumber,
             ),
             Reference(

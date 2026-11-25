@@ -29,7 +29,11 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
@@ -129,8 +133,8 @@ class CanonicalAPIIntTest : WebTestBase() {
           ),
         ),
         references = listOf(
-          Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
-          Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
+          Reference(identifierType = PNC, identifierValue = pnc),
+          Reference(identifierType = CRO, identifierValue = cro),
         ),
         contacts = listOf(
           Contact(
@@ -438,11 +442,11 @@ class CanonicalAPIIntTest : WebTestBase() {
       defendantId = randomDefendantId(),
       masterDefendantId = randomDefendantId(),
       references = listOf(
-        Reference(identifierType = IdentifierType.CRO, identifierValue = personOneCro),
-        Reference(identifierType = IdentifierType.PNC, identifierValue = personOnePnc),
-        Reference(identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER, identifierValue = personOneNationalInsuranceNumber),
-        Reference(identifierType = IdentifierType.ARREST_SUMMONS_NUMBER, identifierValue = personOneArrestSummonNumber),
-        Reference(identifierType = IdentifierType.DRIVER_LICENSE_NUMBER, identifierValue = personOneDriversLicenseNumber),
+        Reference(identifierType = CRO, identifierValue = personOneCro),
+        Reference(identifierType = PNC, identifierValue = personOnePnc),
+        Reference(identifierType = NATIONAL_INSURANCE_NUMBER, identifierValue = personOneNationalInsuranceNumber),
+        Reference(identifierType = ASN, identifierValue = personOneArrestSummonNumber),
+        Reference(identifierType = DRIVER_LICENSE_NUMBER, identifierValue = personOneDriversLicenseNumber),
       ),
     )
 
@@ -459,11 +463,11 @@ class CanonicalAPIIntTest : WebTestBase() {
       defendantId = randomDefendantId(),
       masterDefendantId = randomDefendantId(),
       references = listOf(
-        Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
-        Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
-        Reference(identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER, identifierValue = personTwoNationalInsuranceNumber),
-        Reference(identifierType = IdentifierType.ARREST_SUMMONS_NUMBER, identifierValue = personTwoArrestSummonNumber),
-        Reference(identifierType = IdentifierType.DRIVER_LICENSE_NUMBER, identifierValue = personTwoDriversLicenseNumber),
+        Reference(identifierType = CRO, identifierValue = personTwoCro),
+        Reference(identifierType = PNC, identifierValue = personTwoPnc),
+        Reference(identifierType = NATIONAL_INSURANCE_NUMBER, identifierValue = personTwoNationalInsuranceNumber),
+        Reference(identifierType = ASN, identifierValue = personTwoArrestSummonNumber),
+        Reference(identifierType = DRIVER_LICENSE_NUMBER, identifierValue = personTwoDriversLicenseNumber),
       ),
     )
     val personKey = createPersonKey().addPerson(personOne).addPerson(personTwo)
