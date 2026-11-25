@@ -163,6 +163,8 @@ fun randomDigit(length: Int = 7): String = (1..length).map {
 
 fun randomDeliusAddressId(): Long = (1..1000000).random().toLong()
 
+fun randomNomisId(): Long = (1..1000000).random().toLong()
+
 private fun randomYear() = (1950..LocalDate.now().year).random()
 
 fun randomNonOrganisationDefendantTypeOrNull(): DefendantType? = listOf(null, DefendantType.PERSON).random()

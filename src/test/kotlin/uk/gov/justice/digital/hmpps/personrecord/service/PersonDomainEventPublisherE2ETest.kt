@@ -32,6 +32,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNomisId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.time.LocalDateTime
@@ -280,7 +281,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
     sendPostRequestAsserted<SysconAliasMapping>(
       url = "/syscon-sync/person/$prisonNumber/alias",
       body = PrisonAlias(
-        nomisOffenderId = (1L..999_999L).random(),
+        nomisOffenderId = randomNomisId(),
         firstName = randomName(),
         lastName = randomName(),
         dateOfBirth = randomDate(),
