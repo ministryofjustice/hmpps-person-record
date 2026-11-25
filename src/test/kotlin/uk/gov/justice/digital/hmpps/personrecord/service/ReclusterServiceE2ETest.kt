@@ -111,7 +111,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should not merge clusters when record is updated to match other records when cluster is in needs attention and can not self heal`() {
+    fun `should not merge clusters upon an update when a cluster-merge is available and cluster is in needs attention and can not self heal`() {
       val basePersonData = createRandomProbationCase()
 
       val recordA = createProbationPerson(basePersonData)
