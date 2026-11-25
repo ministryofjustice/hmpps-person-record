@@ -30,7 +30,7 @@ class PersonKeyEventListener(
   }
 
   @EventListener
-  fun onPersonKeyFound(personKeyFound: PersonKeyFound) {
+  fun onPersonKeyFound(personKeyFound: PersonKeyFound) { // delete all
     publisher.publishEvent(
       RecordPersonTelemetry(
         CPR_CANDIDATE_RECORD_FOUND_UUID,

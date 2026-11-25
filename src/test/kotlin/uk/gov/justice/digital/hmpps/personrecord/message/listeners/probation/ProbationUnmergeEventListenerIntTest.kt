@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_UNMERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
 @ExtendWith(OutputCaptureExtension::class)
@@ -84,6 +85,9 @@ class ProbationUnmergeEventListenerIntTest : MessagingTestBase() {
 
       val matchedRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
 
+      stubPersonMatchScores()
+      stubPersonMatchUpsert()
+      stubClusterIsValid()
       stubOnePersonMatchAboveJoinThreshold(matchId = recordA.matchId, matchedRecord = matchedRecord.matchId)
       probationUnmergeEventAndResponseSetup(recordACrn, recordBCrn)
 
@@ -98,10 +102,12 @@ class ProbationUnmergeEventListenerIntTest : MessagingTestBase() {
       cluster.assertClusterIsOfSize(1)
 
       recordB.assertLinkedToCluster(cluster)
-      recordA.assertLinkedToCluster(matchedRecord.personKey!!)
 
-      matchedRecord.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      matchedRecord.personKey?.assertClusterIsOfSize(2)
+      checkEventLogExist(recordACrn, CPR_UUID_CREATED)
+      val newlyCreatedCluster = personRepository.findByCrn(recordACrn)!!.personKey!!
+      newlyCreatedCluster.assertClusterIsOfSize(2)
+      newlyCreatedCluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+      matchedRecord.assertLinkedToCluster(newlyCreatedCluster)
 
       matchedRecord.assertDoesNotHaveOverrideMarker()
       recordB.assertHasOverrideMarker()
