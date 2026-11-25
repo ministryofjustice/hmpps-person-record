@@ -111,6 +111,34 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     }
 
     @Test
+    fun `should not merge clusters when record is updated to match other records when cluster is in needs attention and can not self heal`() {
+      val basePersonData = createRandomProbationCase()
+
+      val recordA = createProbationPerson(basePersonData)
+      val matchesA = createMatchingRecord(basePersonData)
+
+      val clusterOne = createPersonKey(status = NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
+        .addPerson(recordA)
+        .addPerson(matchesA)
+
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), recordA.crn))
+
+      clusterOne.assertClusterIsOfSize(2)
+      clusterOne.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
+
+      val recordB = createMatchingRecord(basePersonData)
+      val clusterTwo = createPersonKey(status = NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
+        .addPerson(recordB)
+
+      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), recordB.crn))
+
+      clusterOne.assertClusterIsOfSize(2)
+      clusterOne.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
+      clusterTwo.assertClusterIsOfSize(1)
+      clusterTwo.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
+    }
+
+    @Test
     fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster plus another one which is added to the cluster`() {
       val basePersonData = createRandomProbationCase()
       val recordA = createProbationPerson(basePersonData)
