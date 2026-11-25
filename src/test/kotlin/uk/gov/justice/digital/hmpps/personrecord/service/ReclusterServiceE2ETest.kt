@@ -145,7 +145,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val personCCrn = randomCrn()
       probationCreateEventAndResponseSetup(ApiResponseSetup.from(basePersonData, personCCrn))
 
-      cluster.assertClusterIsOfSize(3)
+      cluster.assertClusterIsOfSize(3) // breaks because we no longer assign person to cluster then trigger recluster!
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
     }
 

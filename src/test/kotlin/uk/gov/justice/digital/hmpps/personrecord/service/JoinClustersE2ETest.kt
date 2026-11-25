@@ -226,6 +226,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     assertThat(secondPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
     assertThat(secondPersonRecord.getCro()).isEqualTo(cro)
     secondPersonRecord.personKey?.assertClusterIsOfSize(2)
-    assertThat(secondPersonRecord.personKey!!.personUUID).isEqualTo(firstPersonRecord.personKey!!.personUUID)
+    val firstPerson = awaitNotNull { personRepository.findByCrn(firstCrnWithPnc) }
+    assertThat(secondPersonRecord.personKey!!.personUUID).isEqualTo(firstPerson.personKey!!.personUUID)
   }
 }

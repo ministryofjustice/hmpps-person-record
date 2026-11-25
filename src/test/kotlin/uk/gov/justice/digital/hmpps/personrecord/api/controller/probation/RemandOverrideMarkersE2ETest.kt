@@ -41,7 +41,7 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
     val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
     val updatedDefendant = personRepository.findByMatchId(defendantRecord.matchId)!!
 
-    offender.assertLinkedToCluster(updatedDefendant.personKey!!)
+    updatedDefendant.assertLinkedToCluster(offender.personKey!!)
 
     val matchingDefendantId = randomDefendantId()
     publishCommonPlatformMessage(
@@ -49,7 +49,8 @@ class RemandOverrideMarkersE2ETest : E2ETestBase() {
     )
 
     val matchingPerson = awaitNotNull { personRepository.findByDefendantId(matchingDefendantId) }
-    matchingPerson.assertLinkedToCluster(updatedDefendant.personKey!!)
+    updatedDefendant.assertLinkedToCluster(matchingPerson.personKey!!)
+    offender.assertLinkedToCluster(matchingPerson.personKey!!)
   }
 
   @Test

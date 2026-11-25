@@ -318,7 +318,7 @@ class ServiceNowMergeRequestJobE2ETest(
 
     probationCreateEventAndResponseSetup(ApiResponseSetup.from(matchingOffenderDetails))
     val matchingOffender = awaitNotNull { personRepository.findByCrn(matchingOffenderCrn) }
-    matchingOffender.assertLinkedToCluster(updatedDefendant.personKey!!)
+    updatedDefendant.assertLinkedToCluster(matchingOffender.personKey!!)
 
     serviceNowMergeRequestJob.run()
 
