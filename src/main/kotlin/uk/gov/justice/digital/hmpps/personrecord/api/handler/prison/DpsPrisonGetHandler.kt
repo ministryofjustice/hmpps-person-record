@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.handler.prison
 
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.DpsPrisonRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
@@ -13,6 +14,7 @@ class DpsPrisonGetHandler(
   private val prisonReligionRepository: PrisonReligionRepository,
 ) {
 
+  @Transactional(readOnly = true)
   fun get(prisonNumber: String): ResponseEntity<DpsPrisonRecord> = prisonGetHelper.get(prisonNumber) { personEntity ->
     val prisonReligionEntities =
       prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
