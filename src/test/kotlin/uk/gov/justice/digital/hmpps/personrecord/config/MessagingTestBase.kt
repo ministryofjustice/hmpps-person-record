@@ -293,4 +293,20 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     assertThat(domainEvent.eventType).isEqualTo(eventType)
     return domainEvent
   }
+
+  fun receiveDomainEventMessages(eventTypes: List<String>, eventSource: DomainEventSource? = null): List<DomainEvent> {
+    val rawDomainEventMessages = testOnlyCPRDomainEventsQueue!!.sqsClient.receiveMessage(
+      ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue!!.queueUrl).maxNumberOfMessages(eventTypes.size).build(),
+    )
+    return rawDomainEventMessages!!.get()!!.messages()!!.map {
+      val sqsMessage = jsonMapper.readValue<SQSMessage>(it.body())
+      assertThat(sqsMessage.messageAttributes?.eventType?.value).isIn(eventTypes)
+      eventSource?.let {
+        assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(eventSource.identifier))
+      }
+      val domainEvent = jsonMapper.readValue<DomainEvent>(sqsMessage.message)
+      assertThat(domainEvent.eventType).isIn(eventTypes)
+      domainEvent
+    }
+  }
 }

@@ -133,21 +133,21 @@ class SplitClustersJobE2ETest(
       assertThat(second.personKey!!.personUUID).isNotEqualTo(third.personKey!!.personUUID)
       assertThat(third.personKey!!.personUUID).isEqualTo(fourth.personKey!!.personUUID)
 
-      val eventLogClustersToCheck = listOf(first, second, third, fourth).filter { it.personKey!!.personUUID != cluster.personUUID }
-      val eventLogClustersToCheckWithoutUUIDCreated = listOf(first, second, third, fourth).filter { it.personKey!!.personUUID == cluster.personUUID }
+      val recordsWhichLeftTheCluster = listOf(first, second, third, fourth).filter { it.personKey!!.personUUID != cluster.personUUID }
+      val recordsWhichStayedOnTheCluster = listOf(first, second, third, fourth).filter { it !in recordsWhichLeftTheCluster }
 
-      val eventLogs = eventLogClustersToCheck.map { recordToCheck ->
+      val eventLogs = recordsWhichLeftTheCluster.map { recordToCheck ->
         eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(
           CPRLogEvents.CPR_UUID_CREATED,
           recordToCheck.crn!!,
         )
       }.filter { it?.size == 1 }
       assertThat(eventLogs.size).isEqualTo(1)
-      eventLogClustersToCheck.forEach { recordToCheck ->
+      recordsWhichLeftTheCluster.forEach { recordToCheck ->
         checkEventLogExist(recordToCheck.crn!!, CPRLogEvents.CPR_UUID_SPLIT)
       }
 
-      val noEventLogs = eventLogClustersToCheckWithoutUUIDCreated.map { recordToCheck ->
+      val noEventLogs = recordsWhichStayedOnTheCluster.map { recordToCheck ->
         eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(
           CPRLogEvents.CPR_UUID_CREATED,
           recordToCheck.crn!!,
