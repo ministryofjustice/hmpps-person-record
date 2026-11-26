@@ -219,33 +219,32 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       probationCreateEventAndResponseSetup(ApiResponseSetup.from(personAData))
       probationCreateEventAndResponseSetup(ApiResponseSetup.from(personBData))
       probationCreateEventAndResponseSetup(ApiResponseSetup.from(personAData, personCCrn))
-
+      awaitNotNull { personRepository.findByCrn(personCCrn) }
       probationMergeEventAndResponseSetup(personACrn, personCCrn)
       probationMergeEventAndResponseSetup(personBCrn, personCCrn)
 
       probationUnmergeEventAndResponseSetup(personACrn, personCCrn, reactivatedSetup = ApiResponseSetup.from(personAData))
       probationUnmergeEventAndResponseSetup(personBCrn, personCCrn, reactivatedSetup = ApiResponseSetup.from(personBData))
 
-      val clusterA = awaitNotNull { personRepository.findByCrn(personACrn) }.personKey
-      clusterA?.assertClusterIsOfSize(1)
+      val clusterA = awaitNotNull { personRepository.findByCrn(personACrn)?.personKey }
+      val clusterB = awaitNotNull { personRepository.findByCrn(personBCrn)?.personKey }
+      val clusterC = awaitNotNull { personRepository.findByCrn(personCCrn)?.personKey }
 
-      val clusterB = awaitNotNull { personRepository.findByCrn(personBCrn) }.personKey
-      clusterB?.assertClusterIsOfSize(1)
-
-      val clusterC = awaitNotNull { personRepository.findByCrn(personCCrn) }.personKey
-      clusterC?.assertClusterIsOfSize(1)
+      clusterA.assertClusterIsOfSize(1)
+      clusterB.assertClusterIsOfSize(1)
+      clusterC.assertClusterIsOfSize(1)
 
       probationUpdateEventAndResponseSetup(ApiResponseSetup.from(personAData, personBCrn))
 
-      clusterA?.assertPersonKeyDeleted()
+      clusterA.assertPersonKeyDeleted()
 
-      val updatedClusterWithPersonB = awaitNotNull { personRepository.findByCrn(personBCrn) }.personKey
-      updatedClusterWithPersonB?.assertClusterIsOfSize(2)
-      updatedClusterWithPersonB?.assertClusterStatus(ACTIVE)
+      val updatedClusterWithPersonB = awaitNotNull { personRepository.findByCrn(personBCrn)?.personKey }
+      updatedClusterWithPersonB.assertClusterIsOfSize(2)
+      updatedClusterWithPersonB.assertClusterStatus(ACTIVE)
 
-      val updatedClusterWithPersonC = awaitNotNull { personRepository.findByCrn(personCCrn) }.personKey
-      updatedClusterWithPersonC?.assertClusterIsOfSize(1)
-      updatedClusterWithPersonC?.assertClusterStatus(ACTIVE)
+      val updatedClusterWithPersonC = awaitNotNull { personRepository.findByCrn(personCCrn)?.personKey }
+      updatedClusterWithPersonC.assertClusterIsOfSize(1)
+      updatedClusterWithPersonC.assertClusterStatus(ACTIVE)
     }
 
     @Test
