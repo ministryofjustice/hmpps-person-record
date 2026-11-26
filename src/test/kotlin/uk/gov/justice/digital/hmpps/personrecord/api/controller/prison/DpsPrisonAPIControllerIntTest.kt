@@ -38,7 +38,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NINO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.AGNO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.BAHA
@@ -316,7 +316,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
             Reference(identifierType = CRO, identifierValue = personOneCro),
             Reference(identifierType = PNC, identifierValue = personOnePnc),
             Reference(
-              identifierType = NATIONAL_INSURANCE_NUMBER,
+              identifierType = NINO,
               identifierValue = personOneNationalInsuranceNumber,
             ),
             Reference(
@@ -346,7 +346,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
             Reference(identifierType = CRO, identifierValue = personTwoCro),
             Reference(identifierType = PNC, identifierValue = personTwoPnc),
             Reference(
-              identifierType = NATIONAL_INSURANCE_NUMBER,
+              identifierType = NINO,
               identifierValue = personTwoNationalInsuranceNumber,
             ),
             Reference(

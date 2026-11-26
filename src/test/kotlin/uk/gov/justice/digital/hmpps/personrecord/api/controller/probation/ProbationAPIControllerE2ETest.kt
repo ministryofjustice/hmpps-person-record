@@ -35,6 +35,10 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NINO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
@@ -155,8 +159,8 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
               ),
             ),
             references = listOf(
-              Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
-              Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
+              Reference(identifierType = PNC, identifierValue = pnc),
+              Reference(identifierType = CRO, identifierValue = cro),
             ),
           ),
           configure = addAddressToRecord(
@@ -305,10 +309,10 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
           crn = personOneCrn,
           nationalities = listOf(randomNationalityCode()),
           references = listOf(
-            Reference(identifierType = IdentifierType.CRO, identifierValue = personOneCro),
-            Reference(identifierType = IdentifierType.PNC, identifierValue = personOnePnc),
+            Reference(identifierType = CRO, identifierValue = personOneCro),
+            Reference(identifierType = PNC, identifierValue = personOnePnc),
             Reference(
-              identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+              identifierType = NINO,
               identifierValue = personOneNationalInsuranceNumber,
             ),
             Reference(
@@ -335,10 +339,10 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
           nationalities = listOf(randomNationalityCode()),
           crn = personTwoCrn,
           references = listOf(
-            Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
-            Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
+            Reference(identifierType = CRO, identifierValue = personTwoCro),
+            Reference(identifierType = PNC, identifierValue = personTwoPnc),
             Reference(
-              identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+              identifierType = NINO,
               identifierValue = personTwoNationalInsuranceNumber,
             ),
             Reference(
@@ -379,6 +383,39 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
           ),
 
         )
+      }
+
+      @Test
+      fun `should return the deprecated identifier types pre-migration as well as the new ones`() {
+        val expectedCro = randomCro()
+        val expectedPnc = randomLongPnc()
+        val expectedDeprecatedNino = randomNationalInsuranceNumber()
+        val expectedNewNino = randomNationalInsuranceNumber()
+
+        val personDetails = createRandomProbationPersonDetails()
+          .copy(
+            references = listOf(
+              Reference(identifierType = CRO, identifierValue = expectedCro),
+              Reference(identifierType = PNC, identifierValue = expectedPnc),
+              Reference(identifierType = NATIONAL_INSURANCE_NUMBER, identifierValue = expectedDeprecatedNino),
+              Reference(identifierType = NINO, identifierValue = expectedNewNino),
+            ),
+          )
+        createPersonWithNewKey(personDetails)
+
+        val responseBody = webTestClient.get()
+          .uri(probationApiUrl(personDetails.crn!!))
+          .authorised(listOf(API_READ_ONLY))
+          .exchange()
+          .expectStatus()
+          .isOk
+          .expectBody<CanonicalRecord>()
+          .returnResult()
+          .responseBody!!
+
+        assertThat(responseBody.identifiers.cros).containsExactly(expectedCro)
+        assertThat(responseBody.identifiers.pncs).containsExactly(expectedPnc)
+        assertThat(responseBody.identifiers.nationalInsuranceNumbers).containsExactlyInAnyOrder(expectedDeprecatedNino, expectedNewNino)
       }
 
       @Test

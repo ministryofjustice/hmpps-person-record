@@ -30,7 +30,7 @@ enum class IdentifierType(val description: String) {
   MERGED("Merged FROM NOMS Number"),
   MTCRN("Merged To Case Reference Number"),
   MSVN("Military Service Number"),
-  NATIONAL_INSURANCE_NUMBER("National Insurance Number"), // NINO in the spreadsheet - 248603 records in production
+  NINO("National Insurance Number"),
   NHS("NHS Number"),
   OTHR("Other Personal Identifier"),
   PCRN("Other Previous CRN"),
@@ -60,69 +60,37 @@ enum class IdentifierType(val description: String) {
 
   // new types that replace existing ones - require migration
   DL("Driving Licence"), // replaces existing DRIVER_LICENSE_NUMBER and DRL
-  NINO("National Insurance Number"), // replaces existing NATIONAL_INSURANCE_NUMBER
   PASS("Passport Number"), // replaces existing PST
+
+  // deprecated - to be migrated
+  @Deprecated("Use NINO instead")
+  NATIONAL_INSURANCE_NUMBER("National Insurance Number"), // NINO in the spreadsheet - 248603 records in production
 
   // internal use
   UNKNOWN("Unknown"),
   ;
 
   companion object {
-    val probationAdditionalIdentifiersWithoutNino = listOf(
-      AAMR,
-      ACC,
-      APNC,
-      AMRL,
-      ASN,
-      URN,
-      DRL,
-      DNOMS,
-      XIMMN,
-      XNOMS,
-      IMMN,
-      DOFF,
-      LCRN,
-      LBCN,
-      LIFN,
-      MFCRN,
-      MTCRN,
-      MSVN,
-      NHS,
-      NOMS,
-      OTHR,
-      PCRN,
-      PARN,
-      PST,
-      AI02,
-      PRNOMS,
-      SPNC,
-      NPNC,
-      VISO,
-      YCRN,
-    ).associateBy { it.name }
-
-    val probationAdditionalIdentifiers: Map<String, IdentifierType> = mutableMapOf(
-      "NINO" to NATIONAL_INSURANCE_NUMBER,
-    ).plus(probationAdditionalIdentifiersWithoutNino)
-
-    private fun createBaseIdentifierReferences(probationCase: ProbationCase): List<Reference> = listOf(
-      Reference(CRO, CROIdentifier.from(probationCase.identifiers.cro).croId),
-      Reference(PNC, PNCIdentifier.from(probationCase.identifiers.pnc).pncId),
-      Reference(NATIONAL_INSURANCE_NUMBER, probationCase.identifiers.nationalInsuranceNumber),
-    )
-
     fun createProbationIdentifierReferences(probationCase: ProbationCase): List<Reference> {
       val identifiers = createBaseIdentifierReferences(probationCase)
 
       val additionalIdentifiers: List<Reference> = removeDuplicateNationalInsuranceNumber(probationCase)?.map {
         Reference(
-          probationAdditionalIdentifiers.getOrDefault(it.type?.value!!, UNKNOWN),
+          fromProbation(it.type?.value!!),
           it.value,
         )
       } ?: emptyList()
 
       return identifiers + additionalIdentifiers
     }
+
+    fun fromProbation(code: String): IdentifierType = PROBATION_IDENTIFIER_TYPE_MAPPING.getOrDefault(code, UNKNOWN)
+
+    private fun createBaseIdentifierReferences(probationCase: ProbationCase): List<Reference> = listOf(
+      Reference(CRO, CROIdentifier.from(probationCase.identifiers.cro).croId),
+      Reference(PNC, PNCIdentifier.from(probationCase.identifiers.pnc).pncId),
+      Reference(NINO, probationCase.identifiers.nationalInsuranceNumber),
+    )
 
     private fun removeDuplicateNationalInsuranceNumber(probationCase: ProbationCase) = probationCase
       .identifiers

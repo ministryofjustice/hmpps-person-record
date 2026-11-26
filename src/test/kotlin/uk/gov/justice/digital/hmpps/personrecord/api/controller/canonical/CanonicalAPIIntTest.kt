@@ -440,7 +440,7 @@ class CanonicalAPIIntTest : WebTestBase() {
       references = listOf(
         Reference(identifierType = IdentifierType.CRO, identifierValue = personOneCro),
         Reference(identifierType = IdentifierType.PNC, identifierValue = personOnePnc),
-        Reference(identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER, identifierValue = personOneNationalInsuranceNumber),
+        Reference(identifierType = IdentifierType.NINO, identifierValue = personOneNationalInsuranceNumber),
         Reference(identifierType = IdentifierType.ARREST_SUMMONS_NUMBER, identifierValue = personOneArrestSummonNumber),
         Reference(identifierType = IdentifierType.DRIVER_LICENSE_NUMBER, identifierValue = personOneDriversLicenseNumber),
       ),
@@ -461,7 +461,7 @@ class CanonicalAPIIntTest : WebTestBase() {
       references = listOf(
         Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
         Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
-        Reference(identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER, identifierValue = personTwoNationalInsuranceNumber),
+        Reference(identifierType = IdentifierType.NINO, identifierValue = personTwoNationalInsuranceNumber),
         Reference(identifierType = IdentifierType.ARREST_SUMMONS_NUMBER, identifierValue = personTwoArrestSummonNumber),
         Reference(identifierType = IdentifierType.DRIVER_LICENSE_NUMBER, identifierValue = personTwoDriversLicenseNumber),
       ),
