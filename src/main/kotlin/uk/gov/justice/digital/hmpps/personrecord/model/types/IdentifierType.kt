@@ -10,7 +10,7 @@ enum class IdentifierType(val description: String) {
   ACC("Acquisitive Crime"),
   APNC("Additional PNC"),
   AMRL("Alcohol Monitoring (SCRAMnet ID)"),
-  ARREST_SUMMONS_NUMBER("Arrest Summons Number"), // ASN in the spreadsheet - there are 0 records in production
+  ASN("Arrest Summons Number"),
   CID("Case Information Database (Immigration)"),
   URN("CPS Unique Reference Number"),
   CRO("Criminal Records Office Number"),
@@ -54,7 +54,6 @@ enum class IdentifierType(val description: String) {
   YCRN("Youth Offending Team Identifier/CRN"),
 
   // existing CPR types have duplicate mappings - require migration
-  ASN("Arrest Summons Number"), // DELIUS USE - 22858 records in production - maps to our existing ARREST_SUMMONS_NUMBER and ASN in the spreadsheet
   DRL("Driving Licence"), // DELIUS USE - 1621 records in production - maps to our existing DRIVER_LICENSE_NUMBER and DL in the spreadsheet
   NOMS("Previous NOMS Number"), // NOMIS USE - 19 records in production - maps to our existing AI02 and NOMS in the spreadsheet
 
