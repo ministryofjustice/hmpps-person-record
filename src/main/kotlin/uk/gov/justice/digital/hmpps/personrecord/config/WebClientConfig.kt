@@ -82,14 +82,12 @@ class WebClientConfig(
   fun prisonWebClient(
     authorizedClientManager: OAuth2AuthorizedClientManager,
     builder: WebClient.Builder,
-    @Value("\${prison-api.pool.max-connections:500}") maxConnections: Int,
-    @Value("\${prison-api.pool.max-idle-time:20s}") maxIdleTime: Duration,
   ): WebClient {
     val provider = ConnectionProvider.builder("prison-api-pool")
-      .maxConnections(maxConnections)
-      .pendingAcquireMaxCount(maxConnections * 2)
+      .maxConnections(500)
+      .pendingAcquireMaxCount(500 * 2)
       .pendingAcquireTimeout(Duration.ofSeconds(5))
-      .maxIdleTime(maxIdleTime)
+      .maxIdleTime(Duration.ofSeconds(20))
       .maxLifeTime(Duration.ofMinutes(5))
       .evictInBackground(Duration.ofSeconds(30))
       .build()
