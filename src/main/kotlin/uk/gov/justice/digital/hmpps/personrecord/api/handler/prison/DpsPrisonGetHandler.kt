@@ -4,12 +4,14 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.DpsPrisonRecord
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PrisonPseudonymRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 
 @Component
 class DpsPrisonGetHandler(
   private val prisonGetHelper: PrisonGetHelper,
   private val prisonReligionRepository: PrisonReligionRepository,
+  private val prisonPseudonymRepository: PrisonPseudonymRepository,
 ) {
 
   @Transactional(readOnly = true)
@@ -17,6 +19,8 @@ class DpsPrisonGetHandler(
     val prisonReligionEntities =
       prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
 
-    DpsPrisonRecord.from(personEntity, prisonReligionEntities)
+    val prisonPseudonymEntities = prisonPseudonymRepository.findAllById(personEntity.pseudonyms.mapNotNull { it.id })
+
+    DpsPrisonRecord.from(personEntity, prisonReligionEntities, prisonPseudonymEntities)
   }
 }

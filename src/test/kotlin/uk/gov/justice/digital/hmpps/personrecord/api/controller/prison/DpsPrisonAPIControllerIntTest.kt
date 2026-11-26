@@ -31,9 +31,11 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDateTime
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PrisonPseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PrisonPseudonymRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PseudonymRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReferenceRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
@@ -51,6 +53,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIV
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonAliasNameType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonPseudonymSuffix
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.AGNO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.BAHA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.HUM
@@ -86,6 +90,9 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
 
   @Autowired
   private lateinit var pseudonymRepository: PseudonymRepository
+
+  @Autowired
+  private lateinit var prisonPseudonymRepository: PrisonPseudonymRepository
 
   @Autowired
   private lateinit var referenceRepository: ReferenceRepository
@@ -412,6 +419,7 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         val person = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
         val aliasPseudonym = savePseudonym(person, NameType.ALIAS)
+        val aliasPrisonPseudonym = savePrisonPseudonym(aliasPseudonym, PrisonPseudonymSuffix.I, PrisonAliasNameType.CN)
         val primaryPseudonym = person.getPrimaryName()
 
         val primaryPnc = saveReference(person, primaryPseudonym, PNC, randomLongPnc())
@@ -429,6 +437,8 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         assertThat(primaryPseudonymResponse.firstName).isEqualTo(primaryPseudonym.firstName)
         assertThat(primaryPseudonymResponse.lastName).isEqualTo(primaryPseudonym.lastName)
         assertThat(primaryPseudonymResponse.dateOfBirth).isEqualTo(primaryPseudonym.dateOfBirth)
+        assertThat(primaryPseudonymResponse.suffix).isNull()
+        assertThat(primaryPseudonymResponse.nameType).isNull()
         assertThat(primaryPseudonymResponse.identifiers).hasSize(1)
         assertIdentifierMatches(primaryPseudonymResponse.identifiers.single(), primaryPnc)
 
@@ -444,6 +454,8 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         assertThat(aliasPseudonymResponse.ethnicity).isEqualTo(aliasPseudonym.ethnicityCode)
         assertThat(aliasPseudonymResponse.birthPlace).isEqualTo(aliasPseudonym.birthplace)
         assertThat(aliasPseudonymResponse.birthCountry).isEqualTo(aliasPseudonym.birthCountryCode)
+        assertThat(aliasPseudonymResponse.suffix).isEqualTo(aliasPrisonPseudonym.suffix)
+        assertThat(aliasPseudonymResponse.nameType).isEqualTo(aliasPrisonPseudonym.nameType)
         assertThat(aliasPseudonymResponse.createDateTime).isEqualTo(aliasPseudonym.createDateTime)
         assertThat(aliasPseudonymResponse.createUserId).isEqualTo(aliasPseudonym.createUserId)
         assertThat(aliasPseudonymResponse.modifyDateTime).isEqualTo(aliasPseudonym.modifyDateTime)
@@ -544,6 +556,18 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         createUserId = "aliasCreateUser",
         modifyDateTime = LocalDateTime.of(2021, 2, 2, 13, 0),
         modifyUserId = "aliasModifyUser",
+      ),
+    )
+
+    private fun savePrisonPseudonym(
+      pseudonym: PseudonymEntity,
+      suffix: PrisonPseudonymSuffix? = null,
+      nameType: PrisonAliasNameType? = null,
+    ): PrisonPseudonymEntity = prisonPseudonymRepository.saveAndFlush(
+      PrisonPseudonymEntity(
+        pseudonym = pseudonym,
+        suffix = suffix,
+        nameType = nameType,
       ),
     )
 

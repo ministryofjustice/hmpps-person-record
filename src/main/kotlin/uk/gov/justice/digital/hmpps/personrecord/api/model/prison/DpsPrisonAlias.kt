@@ -1,10 +1,13 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.prison
 
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PrisonPseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonAliasNameType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonPseudonymSuffix
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import java.time.LocalDate
@@ -33,6 +36,10 @@ data class DpsPrisonAlias(
   val birthCountry: CountryCode? = null,
   @Schema(description = "Ethnicity of this offender record")
   val ethnicity: EthnicityCode? = null,
+  @Schema(description = "Suffix")
+  val suffix: PrisonPseudonymSuffix? = null,
+  @Schema(description = "Name type")
+  val nameType: PrisonAliasNameType? = null,
   @Schema(description = "List of identifiers associated with this alias")
   val identifiers: List<DpsPrisonIdentifier> = emptyList(),
   @Schema(description = "The alias create date and time", example = "2000-01-01T12:00:00")
@@ -45,7 +52,7 @@ data class DpsPrisonAlias(
   val modifyUserId: String? = null,
 ) {
   companion object {
-    fun from(pseudonymEntity: PseudonymEntity): DpsPrisonAlias = DpsPrisonAlias(
+    fun from(pseudonymEntity: PseudonymEntity, prisonPseudonymEntity: PrisonPseudonymEntity?): DpsPrisonAlias = DpsPrisonAlias(
       cprAliasId = pseudonymEntity.updateId?.toString(),
       titleCode = pseudonymEntity.titleCode,
       firstName = pseudonymEntity.firstName,
@@ -57,6 +64,8 @@ data class DpsPrisonAlias(
       birthPlace = pseudonymEntity.birthplace,
       birthCountry = pseudonymEntity.birthCountryCode,
       ethnicity = pseudonymEntity.ethnicityCode,
+      suffix = prisonPseudonymEntity?.suffix,
+      nameType = prisonPseudonymEntity?.nameType,
       identifiers = pseudonymEntity.references.map { DpsPrisonIdentifier.from(it) },
       createDateTime = pseudonymEntity.createDateTime,
       createUserId = pseudonymEntity.createUserId,
