@@ -25,7 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
 class SysconSyncPrisonContactsAPIController(
-    private val sysconSyncContactsHandler: SyncContactsHandler,
+  private val sysconSyncContactsHandler: SyncContactsHandler,
 ) {
   @Operation(
     description = """Get a prisoner contact record by Prison Number and contact uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",

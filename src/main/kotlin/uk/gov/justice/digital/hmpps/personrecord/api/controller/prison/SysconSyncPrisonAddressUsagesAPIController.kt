@@ -23,7 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddr
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
 class SysconSyncPrisonAddressUsagesAPIController(
-    private val sysconSyncAddressUsagesHandler: SyncAddressUsagesHandler,
+  private val sysconSyncAddressUsagesHandler: SyncAddressUsagesHandler,
 ) {
 
   @Operation(
