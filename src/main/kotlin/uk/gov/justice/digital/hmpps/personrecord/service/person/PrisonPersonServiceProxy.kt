@@ -10,15 +10,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 
 interface PrisonPersonServiceProxy {
-  fun processPersonUpdate(
-    person: Person,
-    findPerson: () -> PersonEntity?,
-  ): PersonEntity
+  fun processPersonUpdate(person: Person): PersonEntity
 
-  fun processPersonCreate(
-    person: Person,
-    findPerson: () -> PersonEntity?,
-  )
+  fun processPersonCreate(person: Person)
 }
 
 @Profile("!prod & !preprod & !dev")
@@ -28,23 +22,15 @@ class PrisonPersonServiceProxyImpl(
   private val personService: PersonService,
 ) : PrisonPersonServiceProxy {
 
-  override fun processPersonCreate(
-    person: Person,
-    findPerson: () -> PersonEntity?,
-  ) {
+  override fun processPersonCreate(person: Person) {
     // TODO turn this into a no-op.
-    processPersonUpdate(person, findPerson)
+    processPersonUpdate(person)
   }
 
-  override fun processPersonUpdate(
-    person: Person,
-    findPerson: () -> PersonEntity?,
-  ): PersonEntity = personService.processPerson(
+  override fun processPersonUpdate(person: Person): PersonEntity = personService.processPerson(
     person = person,
     childrenToIgnore = setOf(AddressEntity::class, ContactEntity::class),
-  ) {
-    findPerson()
-  }
+  )
 }
 
 @Profile("prod | preprod | dev")
@@ -54,20 +40,12 @@ class PrisonPersonServiceProxyProd(
   private val personService: PersonService,
 ) : PrisonPersonServiceProxy {
 
-  override fun processPersonCreate(
-    person: Person,
-    findPerson: () -> PersonEntity?,
-  ) {
-    processPersonUpdate(person, findPerson)
+  override fun processPersonCreate(person: Person) {
+    processPersonUpdate(person)
   }
 
-  override fun processPersonUpdate(
-    person: Person,
-    findPerson: () -> PersonEntity?,
-  ): PersonEntity = personService.processPerson(
+  override fun processPersonUpdate(person: Person): PersonEntity = personService.processPerson(
     person = person,
     childrenToIgnore = setOf(AddressEntity::class, ContactEntity::class),
-  ) {
-    findPerson()
-  }
+  )
 }

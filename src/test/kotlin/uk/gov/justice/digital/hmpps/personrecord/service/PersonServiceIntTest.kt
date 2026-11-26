@@ -55,7 +55,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       stubPersonMatchScores()
       val personToCreate = createRandomPrisonPersonDetails(randomPrisonNumber()).copy(contacts = listOf(Contact(MOBILE, randomPhoneNumber(), "+44")))
       assertThat(personToCreate.contacts).isNotEmpty()
-      val created = personService.processPerson(personToCreate, setOf(ContactEntity::class)) { null }
+      val created = personService.processPerson(personToCreate, setOf(ContactEntity::class))
       assertThat(created.contacts).isEmpty()
     }
 
@@ -65,7 +65,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       val created = createPersonWithNewKey(personWithNoContact)
       assertThat(created.contacts).isEmpty()
       val personWithContact = personWithNoContact.copy(contacts = listOf(Contact(MOBILE, randomPhoneNumber(), "+44")))
-      val updated = personService.processPerson(personWithContact, setOf(ContactEntity::class)) { created }
+      val updated = personService.processPerson(personWithContact, setOf(ContactEntity::class))
       assertThat(updated.contacts).isEmpty()
     }
 
@@ -75,7 +75,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       stubPersonMatchScores()
       val personToCreate = createRandomPrisonPersonDetails()
       assertThat(personToCreate.addresses).isNotEmpty()
-      val created = personService.processPerson(personToCreate, setOf(AddressEntity::class)) { null }
+      val created = personService.processPerson(personToCreate, setOf(AddressEntity::class))
       assertThat(created.addresses).isEmpty()
     }
 
@@ -89,7 +89,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
           Address(postcode = randomPostcode(), fullAddress = randomFullAddress(), noFixedAbode = randomBoolean()),
         ),
       )
-      val updated = personService.processPerson(personWithAddress, setOf(AddressEntity::class)) { created }
+      val updated = personService.processPerson(personWithAddress, setOf(AddressEntity::class))
       assertThat(updated.addresses).isEmpty()
     }
   }
@@ -105,7 +105,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     val updatedPerson = Person.from(LibraHearingEvent(name = Name(firstName = randomName(), lastName = lastName), cId = cId))
     stubPersonMatchUpsert()
     stubPersonMatchScores()
-    personService.processPerson(updatedPerson) { existingPerson }
+    personService.processPerson(updatedPerson)
 
     checkEventLogExist(existingPerson.cId!!, CPRLogEvents.CPR_RECORD_UPDATED)
   }
@@ -117,7 +117,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
     val updatedPerson = person.copy(references = person.references.reversed())
 
-    personService.processPerson(updatedPerson) { existingPersonEntity }
+    personService.processPerson(updatedPerson)
     checkEventLog(existingPersonEntity.crn!!, CPRLogEvents.CPR_RECORD_UPDATED) { logEvents ->
       assertThat(logEvents).isEmpty()
     }
@@ -195,7 +195,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
     val updatedPerson = Person.from(originalEntity).copy(firstName = randomName())
 
-    personService.processPerson(updatedPerson) { originalEntity }
+    personService.processPerson(updatedPerson)
 
     awaitAssert {
       val updatedPerson = personRepository.findByPrisonNumber(prisonNumber)

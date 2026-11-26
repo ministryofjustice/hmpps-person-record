@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.prison
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,23 +39,21 @@ class PrisonPersonServiceProxyTest {
 
     @Test
     fun `delegates update to the personService`() {
-      prisonPersonServiceProxy.processPersonUpdate(person) { personEntity }
+      prisonPersonServiceProxy.processPersonUpdate(person)
 
       verify(personService).processPerson(
         person = eq(person),
         childrenToIgnore = eq(setOf(AddressEntity::class, ContactEntity::class)),
-        findPerson = any(),
       )
     }
 
     @Test
     fun `delegates create to the personService`() {
-      prisonPersonServiceProxy.processPersonCreate(person) { personEntity }
+      prisonPersonServiceProxy.processPersonCreate(person)
 
       verify(personService).processPerson(
         person = eq(person),
         childrenToIgnore = eq(setOf(AddressEntity::class, ContactEntity::class)),
-        findPerson = any(),
       )
     }
   }
@@ -72,23 +69,21 @@ class PrisonPersonServiceProxyTest {
 
     @Test
     fun `delegates update to the personService`() {
-      prisonPersonServiceProxy.processPersonUpdate(person) { personEntity }
+      prisonPersonServiceProxy.processPersonUpdate(person)
 
       verify(personService).processPerson(
         person = eq(person),
         childrenToIgnore = eq(setOf(AddressEntity::class, ContactEntity::class)),
-        findPerson = any(),
       )
     }
 
     @Test
     fun `delegates create to the personService`() {
-      prisonPersonServiceProxy.processPersonCreate(person) { personEntity }
+      prisonPersonServiceProxy.processPersonCreate(person)
 
       verify(personService).processPerson(
         person = eq(person),
         childrenToIgnore = eq(setOf(AddressEntity::class, ContactEntity::class)),
-        findPerson = any(),
       )
     }
   }
@@ -104,24 +99,22 @@ class PrisonPersonServiceProxyTest {
 
     @Test
     fun `delegates update to the personService`() {
-      prisonPersonServiceProxy.processPersonUpdate(person) { personEntity }
+      prisonPersonServiceProxy.processPersonUpdate(person)
 
       verify(personService).processPerson(
         person = eq(person),
         childrenToIgnore = eq(setOf(AddressEntity::class, ContactEntity::class)),
-        findPerson = any(),
       )
     }
 
     // TODO remove when we turn off create via search event
     @Test
     fun `delegates create to the personService`() {
-      prisonPersonServiceProxy.processPersonCreate(person) { personEntity }
+      prisonPersonServiceProxy.processPersonCreate(person)
 
       verify(personService).processPerson(
         person = eq(person),
         childrenToIgnore = eq(setOf(AddressEntity::class, ContactEntity::class)),
-        findPerson = any(),
       )
     }
 

@@ -27,8 +27,7 @@ class PersonService(
   fun processPerson(
     person: Person,
     childrenToIgnore: Set<KClass<*>> = emptySet(),
-    findPerson: () -> PersonEntity?,
-  ): PersonEntity = findPerson().exists(
+  ): PersonEntity = findPerson(person).exists(
     no = {
       processCreate(person.sourceSystem) { personEntity ->
         personEntity.updatePersonEntity(person, childrenToIgnore)
@@ -75,5 +74,12 @@ class PersonService(
   private fun PersonEntity?.exists(no: () -> PersonEntity, yes: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
     this == null -> no()
     else -> yes(this)
+  }
+
+  private fun findPerson(person: Person): PersonEntity? = when (person.sourceSystem) {
+    SourceSystemType.NOMIS -> person.prisonNumber?.let { personRepository.findByPrisonNumber(it) }
+    SourceSystemType.DELIUS -> person.crn?.let { personRepository.findByCrn(it) }
+    SourceSystemType.COMMON_PLATFORM -> person.defendantId?.let { personRepository.findByDefendantId(it) }
+    SourceSystemType.LIBRA -> person.cId?.let { personRepository.findByCId(it) }
   }
 }

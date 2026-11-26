@@ -19,9 +19,7 @@ class ProbationOverrideHandler(
 ) {
   fun assignIncludeOverrideAndRecluster(defendantId: String, offender: Person) {
     val defendant = retrieveDefendant(defendantId)
-    val offender = personService.processPerson(offender) {
-      personRepository.findByCrn(offender.crn!!)
-    }
+    val offender = personService.processPerson(offender)
 
     overrideService.systemInclude(defendant, offender)
   }
