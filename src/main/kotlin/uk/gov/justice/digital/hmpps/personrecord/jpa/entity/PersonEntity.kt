@@ -226,7 +226,7 @@ class PersonEntity(
       updatePersonContacts(buildContacts(person, this))
     }
     if (!childrenToIgnore.contains<Any>(ReferenceEntity::class)) {
-      updatePersonReferences(buildReferences(person, this))
+      updatePersonReferences(buildReferences(person))
     }
     updatePersonSentences(buildSentenceInfo(person, this))
     updateNationalities(person.nationalities.map { NationalityEntity.from(it) })
