@@ -185,15 +185,16 @@ class ClusterDomainEventPublisherE2ETest : E2ETestBase() {
         sourceSystemId = fromCrn,
       )
 
-      val actualDomainEvent = receiveDomainEventMessage(CPR_CLUSTER_CHANGED) as CprClusterChanged
-      assertThat(actualDomainEvent.version).isEqualTo(1)
-      assertThat(actualDomainEvent.occurredAt).isNotBlank
-      assertThat(actualDomainEvent.description).isEqualTo("A person record match has changed")
+      val actualDomainEvents = receiveDomainEventMessages(listOf(CPR_CLUSTER_CHANGED, CPR_PROBATION_PERSON_UNMERGED)) // order of publishing is uncertain, usually CPR_CLUSTER_CHANGED first but not always
+      val clusterChangedEvent = actualDomainEvents.first { it.eventType == CPR_CLUSTER_CHANGED } as CprClusterChanged
+      assertThat(clusterChangedEvent.version).isEqualTo(1)
+      assertThat(clusterChangedEvent.occurredAt).isNotBlank
+      assertThat(clusterChangedEvent.description).isEqualTo("A person record match has changed")
       val expectedIdentifiers = listOf(
         PersonIdentifier(type = "CRN", value = personThreeCrn),
         PersonIdentifier(type = "CRN", value = fromCrn),
       )
-      assertThat(actualDomainEvent.personReference.identifiers).hasSameElementsAs(expectedIdentifiers)
+      assertThat(clusterChangedEvent.personReference.identifiers).hasSameElementsAs(expectedIdentifiers)
     }
 
     @Test
