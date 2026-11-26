@@ -134,7 +134,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should not set a cluster to active if it is set to needs attention and a new record joins the cluster`() {
+    fun `should not have new record join and existing cluster if its in needs attention`() {
       val basePersonData = createRandomProbationCase()
 
       val doesNotMatch = createProbationPerson()
@@ -144,9 +144,12 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       val personCCrn = randomCrn()
       probationCreateEventAndResponseSetup(ApiResponseSetup.from(basePersonData, personCCrn))
+      val clusterTwo = awaitNotNull { personRepository.findByCrn(personCCrn) }.personKey!!
 
-      cluster.assertClusterIsOfSize(3) // breaks because we no longer assign person to cluster then trigger recluster!
+      cluster.assertClusterIsOfSize(2)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+      clusterTwo.assertClusterIsOfSize(1)
+      clusterTwo.assertClusterStatus(ACTIVE)
     }
 
     @Test
