@@ -146,15 +146,15 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     )
     sourcePerson.assertMergedTo(targetPerson)
 
-    // 2. create person 3 to match target and join its cluster
+    // 2. create person 3 to match target and make target cluster be consumed by person 3 cluster
     val person3Crn = randomCrn()
     probationCreateEventAndResponseSetup(ApiResponseSetup.from(targetPersonDetails).copy(crn = person3Crn))
-    val targetCluster = targetPerson.personKey
-    targetCluster?.assertClusterIsOfSize(2)
+    val personThreeCluster = awaitNotNull { personRepository.findByCrn(person3Crn) }.personKey!!
+    personThreeCluster.assertClusterIsOfSize(2)
 
-    // 3. change person 3 to not match target so cluster goes into review
+    // 3. change person 3 to not match target person so cluster goes into review
     probationUpdateEventAndResponseSetup(ApiResponseSetup.from(createRandomProbationCase(crn = person3Crn)))
-    val review = targetCluster!!.getReviews().first()
+    val review = personThreeCluster.getReviews().first()
     review.assertReviewSize(1)
 
     // 4. unmerge the target and source records
@@ -170,13 +170,13 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
     //  5. create a person who matches both, it creates a 2nd review
     val person5Crn = randomCrn()
     probationCreateEventAndResponseSetup(ApiResponseSetup.from(targetPersonDetails).copy(crn = person5Crn))
-    assertThat(targetCluster.getReviews()).hasSize(2)
+    assertThat(personThreeCluster.getReviews()).hasSize(2)
 
     // 6. delete the cluster with the target person by deleting both records on it
     publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, targetCrn)
     targetPerson.assertPersonDeleted()
     publishProbationPersonDeletedEvent(PROBATION_PERSON_DELETED, person3Crn)
-    targetCluster.assertPersonKeyDeleted()
+    personThreeCluster.assertPersonKeyDeleted()
   }
 
   @Test

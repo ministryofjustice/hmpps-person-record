@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_UNMERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
 @ExtendWith(OutputCaptureExtension::class)
@@ -66,6 +67,54 @@ class ProbationUnmergeEventListenerIntTest : MessagingTestBase() {
       reactivatedPerson.assertHasOverrideMarker()
       unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
       unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
+    }
+
+    @Test
+    fun `should unmerge 2 merged records that exist on same cluster and then link to another cluster`() {
+      val recordACrn = randomCrn()
+      val recordBCrn = randomCrn()
+      val cluster = createPersonKey()
+        .addPerson(createRandomProbationPersonDetails(recordACrn))
+        .addPerson(createRandomProbationPersonDetails(recordBCrn))
+      stubDeletePersonMatch()
+      probationMergeEventAndResponseSetup(recordACrn, recordBCrn)
+
+      val recordA = personRepository.findByCrn(recordACrn)!!
+      val recordB = personRepository.findByCrn(recordBCrn)!!
+      recordA.assertMergedTo(recordB)
+
+      val matchedRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
+
+      stubPersonMatchScores()
+      stubPersonMatchUpsert()
+      stubClusterIsValid()
+      stubOnePersonMatchAboveJoinThreshold(matchId = recordA.matchId, matchedRecord = matchedRecord.matchId)
+      probationUnmergeEventAndResponseSetup(recordACrn, recordBCrn)
+
+      checkEventLogExist(recordACrn, CPR_RECORD_UNMERGED)
+      recordB.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      recordA.assertNotMerged()
+
+      recordA.assertExcluded(recordB)
+      recordB.assertExcluded(recordA)
+
+      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster.assertClusterIsOfSize(1)
+
+      recordB.assertLinkedToCluster(cluster)
+
+      checkEventLogExist(recordACrn, CPR_UUID_CREATED)
+      val newlyCreatedCluster = personRepository.findByCrn(recordACrn)!!.personKey!!
+      newlyCreatedCluster.assertClusterIsOfSize(2)
+      newlyCreatedCluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+      matchedRecord.assertLinkedToCluster(newlyCreatedCluster)
+
+      matchedRecord.assertDoesNotHaveOverrideMarker()
+      recordB.assertHasOverrideMarker()
+      recordA.assertHasOverrideMarker()
+
+      recordB.assertHasDifferentOverrideMarker(recordA)
+      recordB.assertHasSameOverrideScope(recordA)
     }
 
     @Test

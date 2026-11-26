@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -167,6 +166,7 @@ class LibraCourtEventListenerIntTest : MessagingTestBase() {
     val personToCreateLibraHearing = libraHearing(firstName = randomName(), lastName = randomName(), cId = cId, dateOfBirth = randomDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
 
     publishLibraMessage(personToCreateLibraHearing)
+    val libraPerson = awaitNotNull { personRepository.findByCId(cId) }
 
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
@@ -180,17 +180,10 @@ class LibraCourtEventListenerIntTest : MessagingTestBase() {
       ),
       2,
     )
-    checkTelemetry(
-      CPR_CANDIDATE_RECORD_FOUND_UUID,
-      mapOf(
-        "SOURCE_SYSTEM" to LIBRA.name,
-        "CLUSTER_SIZE" to "1",
-        "UUID" to firstPersonFromProbation.personKey?.personUUID.toString(),
-      ),
-    )
 
     secondPersonFromNomis.personKey?.assertPersonKeyDeleted()
-    firstPersonFromProbation.personKey?.assertClusterIsOfSize(3)
+    firstPersonFromProbation.personKey?.assertPersonKeyDeleted()
+    libraPerson.personKey?.assertClusterIsOfSize(3)
   }
 
   @Test

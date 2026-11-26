@@ -90,10 +90,7 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       cluster.assertClusterIsOfSize(1)
 
       recordB.assertLinkedToCluster(cluster)
-      recordA.assertLinkedToCluster(matchedRecord.personKey!!)
-
-      matchedRecord.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      matchedRecord.personKey?.assertClusterIsOfSize(2)
+      matchedRecord.assertLinkedToCluster(personRepository.findByCrn(recordACrn)!!.personKey!!)
 
       matchedRecord.assertDoesNotHaveOverrideMarker()
       recordB.assertHasOverrideMarker()

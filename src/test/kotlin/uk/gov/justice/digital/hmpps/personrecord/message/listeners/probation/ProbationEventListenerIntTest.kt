@@ -47,8 +47,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
@@ -457,6 +455,9 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
 
       val existingPerson = createPersonWithNewKey(existingPrisoner)
 
+      stubPersonMatchScores()
+      stubPersonMatchUpsert()
+      stubClusterIsValid()
       stubOnePersonMatchAboveJoinThreshold(matchedRecord = existingPerson.matchId)
 
       val apiResponse = ApiResponseSetup(
@@ -471,31 +472,13 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
         ),
       )
       probationCreateEventAndResponseSetup(apiResponse)
+      val newPerson = awaitNotNull { personRepository.findByCrn(crn) }
 
-      checkTelemetry(
-        CPR_CANDIDATE_RECORD_SEARCH,
-        mapOf(
-          "SOURCE_SYSTEM" to DELIUS.name,
-          "RECORD_COUNT" to "1",
-          "UUID_COUNT" to "1",
-          "CRN" to crn,
-          "ABOVE_JOIN_THRESHOLD_COUNT" to "1",
-          "ABOVE_FRACTURE_THRESHOLD_COUNT" to "0",
-          "BELOW_FRACTURE_THRESHOLD_COUNT" to "0",
-        ),
-      )
-      checkTelemetry(
-        CPR_CANDIDATE_RECORD_FOUND_UUID,
-        mapOf(
-          "SOURCE_SYSTEM" to DELIUS.name,
-          "CLUSTER_SIZE" to "1",
-          "UUID" to existingPerson.personKey!!.personUUID.toString(),
-        ),
-      )
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
 
-      existingPerson.personKey!!.assertClusterIsOfSize(2)
+      existingPerson.personKey!!.assertPersonKeyDeleted()
+      newPerson.personKey!!.assertClusterIsOfSize(2)
     }
 
     @Test
