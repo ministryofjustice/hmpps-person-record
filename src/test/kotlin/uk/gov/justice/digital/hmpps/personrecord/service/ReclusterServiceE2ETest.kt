@@ -127,6 +127,8 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       probationUpdateEventAndResponseSetup(ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), recordB.crn))
 
+      checkEventLogExist(recordB.crn!!, CPRLogEvents.CPR_RECORD_UPDATED)
+
       clusterOne.assertClusterIsOfSize(2)
       clusterOne.assertClusterStatus(ACTIVE)
       clusterTwo.assertClusterIsOfSize(1)
