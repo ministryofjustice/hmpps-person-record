@@ -58,7 +58,7 @@ class SplitClustersJobE2ETest(
     @Test
     fun `should register and run job when batch is enabled`(output: CapturedOutput) {
       assertThat(context.getBeansOfType(SplitClustersJob::class.java)).size().isEqualTo(1)
-      assertThat(output.out).contains("Running batch job 'SPLIT_CLUSTERS' ")
+      awaitAssert { (output.out).contains("Running batch job 'SPLIT_CLUSTERS' ") }
     }
   }
 
