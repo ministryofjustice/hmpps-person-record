@@ -25,28 +25,41 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.DpsPrisonAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.DpsPrisonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligion
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDate
 import uk.gov.justice.digital.hmpps.personrecord.extensions.toUkLocalDateTime
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PseudonymRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReferenceRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonReligionRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.AGNO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.BAHA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode.HUM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonsNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -58,7 +71,10 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomTitleCode
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -67,6 +83,12 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
 
   @Autowired
   private lateinit var prisonReligionRepository: PrisonReligionRepository
+
+  @Autowired
+  private lateinit var pseudonymRepository: PseudonymRepository
+
+  @Autowired
+  private lateinit var referenceRepository: ReferenceRepository
 
   @Nested
   @DisplayName("GET /person/prison/dps/{prisonNumber}")
@@ -393,6 +415,52 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
       }
 
       @Test
+      fun `should return prison aliases with their identifiers for primary and non primary names`() {
+        val prisonNumber = randomPrisonNumber()
+        val person = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+
+        val aliasPseudonym = savePseudonym(person, NameType.ALIAS)
+        val primaryPseudonym = person.getPrimaryName()
+
+        val primaryPnc = saveReference(person, primaryPseudonym, PNC, randomLongPnc())
+        val aliasCro = saveReference(person, aliasPseudonym, CRO, randomCro(), comment = "alias cro", verified = true)
+        val aliasNino = saveReference(person, aliasPseudonym, NATIONAL_INSURANCE_NUMBER, randomNationalInsuranceNumber(), verified = false)
+
+        val responseBody = sendGetRequestAsserted<DpsPrisonRecordTest>(
+          url = prisonApiUrl(prisonNumber),
+          roles = listOf(API_READ_ONLY),
+          expectedStatus = OK,
+        ).returnResult().responseBody!!
+
+        val primaryPseudonymResponse = responseBody.prisonAliases.single { it.isPrimary }
+        assertThat(primaryPseudonymResponse.cprAliasId).isEqualTo(primaryPseudonym.updateId.toString())
+        assertThat(primaryPseudonymResponse.firstName).isEqualTo(primaryPseudonym.firstName)
+        assertThat(primaryPseudonymResponse.lastName).isEqualTo(primaryPseudonym.lastName)
+        assertThat(primaryPseudonymResponse.dateOfBirth).isEqualTo(primaryPseudonym.dateOfBirth)
+        assertThat(primaryPseudonymResponse.identifiers).hasSize(1)
+        assertIdentifierMatches(primaryPseudonymResponse.identifiers.single(), primaryPnc)
+
+        val aliasPseudonymResponse = responseBody.prisonAliases.single { it.cprAliasId == aliasPseudonym.updateId.toString() }
+        assertThat(aliasPseudonymResponse.isPrimary).isFalse()
+        assertThat(aliasPseudonymResponse.cprAliasId).isEqualTo(aliasPseudonym.updateId.toString())
+        assertThat(aliasPseudonymResponse.titleCode).isEqualTo(aliasPseudonym.titleCode)
+        assertThat(aliasPseudonymResponse.firstName).isEqualTo(aliasPseudonym.firstName)
+        assertThat(aliasPseudonymResponse.middleNames).isEqualTo(aliasPseudonym.middleNames)
+        assertThat(aliasPseudonymResponse.lastName).isEqualTo(aliasPseudonym.lastName)
+        assertThat(aliasPseudonymResponse.dateOfBirth).isEqualTo(aliasPseudonym.dateOfBirth)
+        assertThat(aliasPseudonymResponse.sexCode).isEqualTo(aliasPseudonym.sexCode)
+        assertThat(aliasPseudonymResponse.ethnicity).isEqualTo(aliasPseudonym.ethnicityCode)
+        assertThat(aliasPseudonymResponse.birthPlace).isEqualTo(aliasPseudonym.birthplace)
+        assertThat(aliasPseudonymResponse.birthCountry).isEqualTo(aliasPseudonym.birthCountryCode)
+        assertThat(aliasPseudonymResponse.createDateTime).isEqualTo(aliasPseudonym.createDateTime)
+        assertThat(aliasPseudonymResponse.createUserId).isEqualTo(aliasPseudonym.createUserId)
+        assertThat(aliasPseudonymResponse.modifyDateTime).isEqualTo(aliasPseudonym.modifyDateTime)
+        assertThat(aliasPseudonymResponse.modifyUserId).isEqualTo(aliasPseudonym.modifyUserId)
+        assertIdentifierMatches(aliasPseudonymResponse.identifiers.single { it.type == CRO }, aliasCro)
+        assertIdentifierMatches(aliasPseudonymResponse.identifiers.single { it.type == NATIONAL_INSURANCE_NUMBER }, aliasNino)
+      }
+
+      @Test
       fun `should return redirect when the requested prison record has been merged`() {
         val sourcePrisonNumber = randomPrisonNumber()
         val targetPrisonNumber = randomPrisonNumber()
@@ -454,6 +522,72 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
     }
 
     private fun prisonApiUrl(prisonNumber: String?) = "/person/prison/dps/$prisonNumber"
+
+    private fun savePseudonym(
+      person: PersonEntity,
+      nameType: NameType,
+      titleCode: TitleCode? = randomTitleCode().value,
+      firstName: String? = randomName(),
+      middleNames: String? = randomName(),
+      lastName: String? = randomName(),
+      dateOfBirth: LocalDate? = randomDate(),
+      sexCode: SexCode? = randomPrisonSexCode().value,
+      ethnicityCode: EthnicityCode? = randomPrisonEthnicityCode(),
+      birthplace: String? = "Leeds",
+      birthCountryCode: CountryCode? = randomCountryCode(),
+    ): PseudonymEntity = pseudonymRepository.saveAndFlush(
+      PseudonymEntity(
+        person = person,
+        nameType = nameType,
+        titleCode = titleCode,
+        firstName = firstName,
+        middleNames = middleNames,
+        lastName = lastName,
+        dateOfBirth = dateOfBirth,
+        sexCode = sexCode,
+        ethnicityCode = ethnicityCode,
+        birthplace = birthplace,
+        birthCountryCode = birthCountryCode,
+        createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0),
+        createUserId = "aliasCreateUser",
+        modifyDateTime = LocalDateTime.of(2021, 2, 2, 13, 0),
+        modifyUserId = "aliasModifyUser",
+      ),
+    )
+
+    private fun saveReference(
+      person: PersonEntity,
+      pseudonym: PseudonymEntity,
+      type: IdentifierType,
+      value: String,
+      comment: String? = null,
+      verified: Boolean? = null,
+    ): ReferenceEntity = referenceRepository.saveAndFlush(
+      ReferenceEntity(
+        person = person,
+        pseudonym = pseudonym,
+        identifierType = type,
+        identifierValue = value,
+        comment = comment,
+        isVerified = verified,
+        createDateTime = LocalDateTime.of(2022, 3, 3, 14, 0),
+        createUserId = "identifierCreateUser",
+        modifyDateTime = LocalDateTime.of(2023, 4, 4, 15, 0),
+        modifyUserId = "identifierModifyUser",
+      ),
+    )
+
+    private fun assertIdentifierMatches(actual: DpsPrisonIdentifier, expected: ReferenceEntity) {
+      assertThat(actual.cprIdentifierId).isEqualTo(expected.updateId.toString())
+      assertThat(actual.type).isEqualTo(expected.identifierType)
+      assertThat(actual.value).isEqualTo(expected.identifierValue)
+      assertThat(actual.comment).isEqualTo(expected.comment)
+      assertThat(actual.verified).isEqualTo(expected.isVerified)
+      assertThat(actual.createDateTime).isEqualTo(expected.createDateTime)
+      assertThat(actual.createUserId).isEqualTo(expected.createUserId)
+      assertThat(actual.modifyDateTime).isEqualTo(expected.modifyDateTime)
+      assertThat(actual.modifyUserId).isEqualTo(expected.modifyUserId)
+    }
   }
 }
 
