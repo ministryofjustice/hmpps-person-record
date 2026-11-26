@@ -53,12 +53,13 @@ class PrisonAPIImageController(
     @PathVariable @Parameter(example = "A1234AA") prisonNumber: String,
     @RequestParam(name = "fullSizeImage", required = false, defaultValue = "false") fullSizeImage: Boolean,
   ): ResponseEntity<StreamingResponseBody> = ResponseEntity.ok()
-    .contentType(MediaType.IMAGE_JPEG).body(prisonImageClient.getPrisonerImage(prisonNumber, fullSizeImage).toStreamingResponseBody())
+    .contentType(MediaType.IMAGE_JPEG)
+    .body(prisonImageClient.getPrisonerImage(prisonNumber, fullSizeImage).toStreamingResponseBody())
 
   fun Flux<DataBuffer>.toStreamingResponseBody(): StreamingResponseBody = StreamingResponseBody { outputStream ->
     DataBufferUtils.write(this, outputStream)
-      .doOnNext { DataBufferUtils.release(it) }
-      .then()
-      .block()
+      .doOnNext(DataBufferUtils.releaseConsumer())
+      .doOnDiscard(DataBuffer::class.java, DataBufferUtils.releaseConsumer())
+      .blockLast()
   }
 }
