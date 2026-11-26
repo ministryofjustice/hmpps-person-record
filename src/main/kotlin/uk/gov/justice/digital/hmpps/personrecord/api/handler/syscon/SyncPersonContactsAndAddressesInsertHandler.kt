@@ -3,9 +3,9 @@ package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressUsagesHandler.Companion.toMapping
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toMapping
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncInsertHandlerHelper.addIfAbsent
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SyncAddressUsagesHandler.Companion.toMapping
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SyncContactsHandler.Companion.toMapping
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SyncInsertHandlerHelper.addIfAbsent
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
@@ -28,7 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import java.util.UUID
 
 @Component
-class SysconPersonContactsAndAddressesInsertHandler(
+class SyncPersonContactsAndAddressesInsertHandler(
   private val personRepository: PersonRepository,
   private val contactRepository: ContactRepository,
   private val addressUsageRepository: AddressUsageRepository,

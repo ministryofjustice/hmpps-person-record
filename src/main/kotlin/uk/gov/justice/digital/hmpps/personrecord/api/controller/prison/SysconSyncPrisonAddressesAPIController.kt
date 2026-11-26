@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressesHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SyncAddressesHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 
 @Tag(name = "Syscon Sync")
 @RestController
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
-class SysconSyncPrisonAddressesAPIController(private val sysconSyncAddressesHandler: SysconSyncAddressesHandler) {
+class SysconSyncPrisonAddressesAPIController(private val sysconSyncAddressesHandler: SyncAddressesHandler) {
 
   @Operation(
     description = """Get a prisoner address record by Prison Number and address uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",

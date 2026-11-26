@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncIdentifiersHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SyncIdentifiersHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonIdentifiersRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconIdentifiersResponseBody
 
@@ -22,7 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
 class SysconSyncPrisonIdentifiersAPIController(
-  private val sysconSyncIdentifiersHandler: SysconSyncIdentifiersHandler,
+  private val sysconSyncIdentifiersHandler: SyncIdentifiersHandler,
 ) {
 
   @Operation(description = "Replace the prison identifiers for the given prison number and alias. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.")

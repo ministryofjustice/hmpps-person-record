@@ -16,9 +16,9 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECO
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressUsagesAPIControllerIntTest.Companion.assertAddressUsageMatches
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest.Companion.validPrisonAddressesAndContactsRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest.Companion.validPrisonPseudoymnAndReferencesRequest
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressesHandler.Companion.toPrisonAddress
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressesHandler.Companion.toPrisonAddressUsage
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler.Companion.toDto
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SyncAddressesHandler.Companion.toPrisonAddress
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SyncAddressesHandler.Companion.toPrisonAddressUsage
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SyncContactsHandler.Companion.toDto
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest

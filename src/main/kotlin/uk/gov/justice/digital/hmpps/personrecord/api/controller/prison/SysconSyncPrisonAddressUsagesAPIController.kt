@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncAddressUsagesHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SyncAddressUsagesHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 
 @Tag(name = "Syscon Sync")
@@ -23,7 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddr
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
 class SysconSyncPrisonAddressUsagesAPIController(
-  private val sysconSyncAddressUsagesHandler: SysconSyncAddressUsagesHandler,
+    private val sysconSyncAddressUsagesHandler: SyncAddressUsagesHandler,
 ) {
 
   @Operation(

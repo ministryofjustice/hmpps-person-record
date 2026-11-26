@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import java.util.UUID
 
 @Component
-class SysconSyncPrimaryNameHandler(
+class SyncPrimaryNameHandler(
   private val pseudonymRepository: PseudonymRepository,
   private val personService: PersonService,
 ) {

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncContactsHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SyncContactsHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonContact
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconContactMapping
 
@@ -25,7 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
 class SysconSyncPrisonContactsAPIController(
-  private val sysconSyncContactsHandler: SysconSyncContactsHandler,
+    private val sysconSyncContactsHandler: SyncContactsHandler,
 ) {
   @Operation(
     description = """Get a prisoner contact record by Prison Number and contact uuid. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
