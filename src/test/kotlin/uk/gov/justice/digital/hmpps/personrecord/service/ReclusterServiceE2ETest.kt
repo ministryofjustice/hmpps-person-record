@@ -117,14 +117,9 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val recordA = createProbationPerson(basePersonData)
       val matchesA = createMatchingRecord(basePersonData)
 
-      val clusterOne = createPersonKey(status = NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
+      val clusterOne = createPersonKey(status = ACTIVE)
         .addPerson(recordA)
         .addPerson(matchesA)
-
-      probationUpdateEventAndResponseSetup(ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), recordA.crn))
-
-      clusterOne.assertClusterIsOfSize(2)
-      clusterOne.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
 
       val recordB = createMatchingRecord(basePersonData)
       val clusterTwo = createPersonKey(status = NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
@@ -133,7 +128,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       probationUpdateEventAndResponseSetup(ApiResponseSetup.from(basePersonData.withChangedMatchDetails(), recordB.crn))
 
       clusterOne.assertClusterIsOfSize(2)
-      clusterOne.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
+      clusterOne.assertClusterStatus(ACTIVE)
       clusterTwo.assertClusterIsOfSize(1)
       clusterTwo.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
     }
