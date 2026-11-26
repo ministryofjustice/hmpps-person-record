@@ -192,12 +192,12 @@ class DpsPrisonAPIControllerIntTest : WebTestBase() {
         assertThat(responseBody.religionHistory.first().endDate).isEqualTo(existingPrisonReligionEntity.endDate)
 
         val expectedPseudonyms = listOf(person.getPrimaryName()) + person.getAliases()
-        assertThat(responseBody.prisonAlias)
+        assertThat(responseBody.prisonAliases)
           .usingRecursiveComparison()
+          .ignoringCollectionOrder()
           .withEqualsForType({ a, b -> a.truncatedTo(ChronoUnit.MILLIS) == b.truncatedTo(ChronoUnit.MILLIS) }, LocalDateTime::class.java)
           .isEqualTo(expectedPseudonyms.map { DpsPrisonAlias.from(it) })
-        assertThat(responseBody.prisonAlias.first().isPrimary).isTrue()
-        assertThat(responseBody.prisonAlias.drop(1)).allMatch { !it.isPrimary }
+        assertThat(responseBody.prisonAliases.filter { it.isPrimary }).hasSize(1)
         assertThat(responseBody.religionHistory.first().religionCode).isEqualTo(existingPrisonReligionEntity.code)
         assertThat(responseBody.religionHistory.first().religionDescription).isEqualTo(existingPrisonReligionEntity.code.description)
         assertThat(responseBody.religionHistory.first().changeReasonKnown).isEqualTo(existingPrisonReligionEntity.changeReasonKnown)
@@ -478,5 +478,5 @@ data class DpsPrisonRecordTest(
   val identifiers: CanonicalIdentifiers,
   val contacts: List<CanonicalContact> = emptyList(),
   val religionHistory: List<PrisonReligion>,
-  val prisonAlias: List<DpsPrisonAlias> = emptyList(),
+  val prisonAliases: List<DpsPrisonAlias> = emptyList(),
 )
