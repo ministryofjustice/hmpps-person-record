@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
@@ -16,11 +15,11 @@ class SyncReconciliationGetHandler(
   private val prisonPseudonymRepository: PrisonPseudonymRepository,
 ) {
   @Transactional(readOnly = true)
-  fun get(prisonNumber: String): ResponseEntity<SyncReconciliation> {
+  fun get(prisonNumber: String): SyncReconciliation {
     val personEntity = personRepository.findByPrisonNumber(prisonNumber)
       ?: throw ResourceNotFoundException(prisonNumber)
     val prisonReligionEntities = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber)
     val prisonPseudonymEntities = prisonPseudonymRepository.findAllById(personEntity.pseudonyms.mapNotNull { it.id })
-    return ResponseEntity.ok(SyncReconciliation.from(personEntity, prisonReligionEntities, prisonPseudonymEntities))
+    return SyncReconciliation.from(personEntity, prisonReligionEntities, prisonPseudonymEntities)
   }
 }
