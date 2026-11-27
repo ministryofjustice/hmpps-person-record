@@ -100,7 +100,7 @@ class PrisonPersonServiceProxyTest {
 
     @Test
     fun `uses the correct prison person service proxy for the active profile`() {
-      assertThat(prisonPersonServiceProxy).isInstanceOf(PrisonPersonServiceProxyProd::class.java)
+      assertThat(prisonPersonServiceProxy).isInstanceOf(PrisonPersonServiceProxyImpl::class.java)
     }
 
     @Test
