@@ -203,7 +203,7 @@ class LibraCourtEventListenerIntTest : MessagingTestBase() {
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
     assertThat(personRepository.findByCId(cId)).isNull()
 
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body(), SQSMessage::class.java) }
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue(it.body(), SQSMessage::class.java) }
 
     val libraMessage: String = sqsMessage?.message!!
 
@@ -222,7 +222,7 @@ class LibraCourtEventListenerIntTest : MessagingTestBase() {
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
     assertThat(personRepository.findByCId(cId)).isNull()
 
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body(), SQSMessage::class.java) }
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue(it.body(), SQSMessage::class.java) }
 
     val libraMessage: String = sqsMessage?.message!!
 
@@ -251,7 +251,7 @@ class LibraCourtEventListenerIntTest : MessagingTestBase() {
     val cprUUID = awaitNotNull { personRepository.findByCId(cId) }.personKey?.personUUID.toString()
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue<SQSMessage>(it.body(), SQSMessage::class.java) }
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { jsonMapper.readValue(it.body(), SQSMessage::class.java) }
 
     val libraMessage: String = sqsMessage?.message!!
 

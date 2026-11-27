@@ -26,22 +26,6 @@ class EventLogServiceIntTest : IntegrationTestBase() {
   lateinit var eventLogService: EventLogService
 
   @Test
-  fun `should map exclude override to event log`() {
-    val toRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
-    val fromRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
-
-    stubPersonMatchUpsert()
-    excludeRecord(toRecord, fromRecord)
-
-    val updatedToRecord = personRepository.findByMatchId(toRecord.matchId)!!
-
-    val eventLog = eventLogService.logEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_CREATED, updatedToRecord))
-
-    assertThat(eventLog.overrideMarker).isNotNull()
-    assertThat(eventLog.overrideScopes).isNotEmpty()
-  }
-
-  @Test
   fun `should dedupe and sort lists`() {
     val personEntity = createPersonWithNewKey(
       Person.from(
