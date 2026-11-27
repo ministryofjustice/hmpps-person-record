@@ -177,8 +177,8 @@ class SyncPersonContactsAndAddressesInsertHandler(
     addressEntity.statusCode = AddressStatusCode.fromPrison(isPrimary, isMail ?: false)
     addressEntity.modifyDateTime = modifyDateTime
     addressEntity.modifyUserId = modifyUserId
-    addressEntity.createDateTime = createDateTime
-    addressEntity.createUserId = createUserId
+    addressEntity.createDateTime = createDateTime!!
+    addressEntity.createUserId = createUserId!!
     addressEntity.person = personEntity
     return addressEntity
   }
@@ -192,8 +192,8 @@ class SyncPersonContactsAndAddressesInsertHandler(
     contactEntity.address = addressEntity
     contactEntity.modifyDateTime = modifyDateTime
     contactEntity.modifyUserId = modifyUserId
-    contactEntity.createDateTime = createDateTime
-    contactEntity.createUserId = createUserId
+    contactEntity.createDateTime = createDateTime!!
+    contactEntity.createUserId = createUserId!!
     return contactEntity
   }
 
@@ -206,8 +206,8 @@ class SyncPersonContactsAndAddressesInsertHandler(
     contactEntity.person = personEntity
     contactEntity.modifyDateTime = modifyDateTime
     contactEntity.modifyUserId = modifyUserId
-    contactEntity.createDateTime = createDateTime
-    contactEntity.createUserId = createUserId
+    contactEntity.createDateTime = createDateTime!!
+    contactEntity.createUserId = createUserId!!
     return contactEntity
   }
 
@@ -227,8 +227,8 @@ class SyncPersonContactsAndAddressesInsertHandler(
     addressUsageEntity.address = addressEntity
     addressUsageEntity.modifyDateTime = modifyDateTime
     addressUsageEntity.modifyUserId = modifyUserId
-    addressUsageEntity.createDateTime = createDateTime
-    addressUsageEntity.createUserId = createUserId
+    addressUsageEntity.createDateTime = createDateTime!!
+    addressUsageEntity.createUserId = createUserId!!
     return addressUsageEntity
   }
 }

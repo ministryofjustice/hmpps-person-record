@@ -75,8 +75,8 @@ class SyncContactsHandler(
       extension = prisonContact.extension
       modifyDateTime = prisonContact.modifyDateTime
       modifyUserId = prisonContact.modifyUserId
-      createDateTime = prisonContact.createDateTime
-      createUserId = prisonContact.createUserId
+      createDateTime = prisonContact.createDateTime!!
+      createUserId = prisonContact.createUserId!!
     }
 
     fun ContactEntity.toDto() = PrisonContact(
@@ -87,8 +87,8 @@ class SyncContactsHandler(
       cprAddressId = address?.updateId?.toString(),
       modifyDateTime = modifyDateTime,
       modifyUserId = modifyUserId,
-      createDateTime = createDateTime!!,
-      createUserId = createUserId!!,
+      createDateTime = createDateTime,
+      createUserId = createUserId,
       cprContactId = updateId.toString(),
     )
 
@@ -99,8 +99,8 @@ class SyncContactsHandler(
       person = personEntity,
       modifyDateTime = modifyDateTime,
       modifyUserId = modifyUserId,
-      createDateTime = createDateTime,
-      createUserId = createUserId,
+      createDateTime = createDateTime!!,
+      createUserId = createUserId!!,
     )
 
     fun PrisonContact.toEntity(addressEntity: AddressEntity) = ContactEntity(
@@ -110,8 +110,8 @@ class SyncContactsHandler(
       address = addressEntity,
       modifyDateTime = modifyDateTime,
       modifyUserId = modifyUserId,
-      createDateTime = createDateTime,
-      createUserId = createUserId,
+      createDateTime = createDateTime!!,
+      createUserId = createUserId!!,
     )
   }
 }

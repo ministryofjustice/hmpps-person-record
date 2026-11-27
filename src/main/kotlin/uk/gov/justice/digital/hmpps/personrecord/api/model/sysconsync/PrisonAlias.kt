@@ -11,8 +11,8 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class PrisonAlias(
-  @Schema(description = "The nomis offender id for this alias", example = "10000")
-  val nomisOffenderId: Long,
+  @Schema(description = "The nomis offender id for this alias. Required on requests, always null in responses", example = "10000")
+  val nomisOffenderId: Long? = null,
   @Schema(description = "The cpr alias id", example = "4f2b1d8a-9f3c-4a1f-8b2d-112233445566")
   val cprAliasId: String? = null,
   @Schema(description = "The alias title code", example = "MR")
@@ -41,10 +41,10 @@ data class PrisonAlias(
   val suffix: PrisonPseudonymSuffix? = null,
   @Schema(description = "Name type")
   val nameType: PrisonAliasNameType? = null,
-  @Schema(description = "The alias create date and time", example = "2000-01-01T12:00:00", required = true)
-  val createDateTime: LocalDateTime,
-  @Schema(description = "The alias create user id", example = "12345", required = true)
-  val createUserId: String,
+  @Schema(description = "The alias create date and time", example = "2000-01-01T12:00:00")
+  val createDateTime: LocalDateTime? = null,
+  @Schema(description = "The alias create user id", example = "12345")
+  val createUserId: String? = null,
   @Schema(description = "The alias modify date and time", example = "2000-01-01T12:00:00")
   val modifyDateTime: LocalDateTime? = null,
   @Schema(description = "The alias modify user id", example = "12345")

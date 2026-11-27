@@ -13,10 +13,10 @@ data class PrisonAddressUsage(
   val addressUsageCode: AddressUsageCode,
   @Schema(description = "Is the address active", example = "true")
   val isActive: Boolean,
-  @Schema(description = "The address usage create date and time", example = "2000-01-01T12:00:00", required = true)
-  val createDateTime: LocalDateTime,
-  @Schema(description = "The address usage create user id", example = "12345", required = true)
-  val createUserId: String,
+  @Schema(description = "The address usage create date and time", example = "2000-01-01T12:00:00")
+  val createDateTime: LocalDateTime? = null,
+  @Schema(description = "The address usage create user id", example = "12345")
+  val createUserId: String? = null,
   @Schema(description = "The address usage modify date and time", example = "2000-01-01T12:00:00")
   val modifyDateTime: LocalDateTime? = null,
   @Schema(description = "The address usage modify user id", example = "12345")

@@ -47,7 +47,7 @@ class SyncIdentifiersHandler(
     // only reuse an identifier already on this alias, otherwise create a new one
     val referenceEntity = cprIdentifierId.takeUnless { it.isNullOrBlank() }
       ?.let { id -> pseudonymEntity.references.firstOrNull { it.updateId.toString() == id } }
-      ?: ReferenceEntity(identifierType = type, createDateTime = createDateTime, createUserId = createUserId)
+      ?: ReferenceEntity(identifierType = type, createDateTime = createDateTime!!, createUserId = createUserId!!)
 
     referenceEntity.identifierType = type
     referenceEntity.identifierValue = formattedValue()
@@ -62,8 +62,8 @@ class SyncIdentifiersHandler(
 
   private fun PrisonIdentifier.toMapping(referenceEntity: ReferenceEntity) = SysconIdentifierMapping(
     nomisIdentifierId = NomisIdentifierId(
-      nomisOffenderId = nomisIdentifierId.nomisOffenderId,
-      nomisSequence = nomisIdentifierId.nomisSequence,
+      nomisOffenderId = nomisIdentifierId!!.nomisOffenderId,
+      nomisSequence = nomisIdentifierId!!.nomisSequence,
     ),
     cprIdentifierId = referenceEntity.updateId.toString(),
   )

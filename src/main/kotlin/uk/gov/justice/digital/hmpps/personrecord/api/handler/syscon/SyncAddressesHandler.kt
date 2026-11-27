@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SyncContactsHandler.Companion.toDto
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAddressMapping
@@ -85,10 +86,11 @@ class SyncAddressesHandler(
       isPrimary = PRIMARY_TYPES.contains(statusCode),
       isMail = MAIL_TYPES.contains(statusCode),
       addressUsage = usages.map { it.toPrisonAddressUsage() },
+      contacts = contacts.map { it.toDto() },
       modifyDateTime = modifyDateTime,
       modifyUserId = modifyUserId,
-      createDateTime = createDateTime!!,
-      createUserId = createUserId!!,
+      createDateTime = createDateTime,
+      createUserId = createUserId,
       cprAddressId = updateId.toString(),
     )
 
@@ -98,8 +100,8 @@ class SyncAddressesHandler(
       isActive = active,
       modifyDateTime = modifyDateTime,
       modifyUserId = modifyUserId,
-      createDateTime = createDateTime!!,
-      createUserId = createUserId!!,
+      createDateTime = createDateTime,
+      createUserId = createUserId,
     )
 
     fun PrisonAddress.toAddress() = Address(
@@ -120,8 +122,8 @@ class SyncAddressesHandler(
       statusCode = AddressStatusCode.fromPrison(isPrimary, isMail ?: false),
       modifyDateTime = modifyDateTime,
       modifyUserId = modifyUserId,
-      createDateTime = createDateTime,
-      createUserId = createUserId,
+      createDateTime = createDateTime!!,
+      createUserId = createUserId!!,
     )
   }
 }

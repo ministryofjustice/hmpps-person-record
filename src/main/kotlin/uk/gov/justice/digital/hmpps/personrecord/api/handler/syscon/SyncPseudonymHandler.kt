@@ -31,8 +31,8 @@ interface SysconSyncPseudonymHandler {
       ethnicityCode = prisonAlias.ethnicity
       birthplace = prisonAlias.birthPlace
       birthCountryCode = prisonAlias.birthCountry
-      createDateTime = prisonAlias.createDateTime
-      createUserId = prisonAlias.createUserId
+      createDateTime = prisonAlias.createDateTime!!
+      createUserId = prisonAlias.createUserId!!
       modifyDateTime = prisonAlias.modifyDateTime
       modifyUserId = prisonAlias.modifyUserId
       person = personEntity
@@ -80,7 +80,7 @@ class SysconSyncPseudonymHandlerImpl(
     }
     if (prisonAlias.identifiers.isNotEmpty()) {
       val identifierIds = prisonAlias.identifiers.map { it.nomisIdentifierId }
-      throw IllegalArgumentException("Identifiers must not be provided when creating a person record for $prisonNumber, ${prisonAlias.nomisOffenderId}: ${identifierIds.joinToString { "${it.nomisOffenderId}-${it.nomisSequence}" }}")
+      throw IllegalArgumentException("Identifiers must not be provided when creating a person record for $prisonNumber, ${prisonAlias.nomisOffenderId}: ${identifierIds.joinToString { "${it?.nomisOffenderId}-${it?.nomisSequence}" }}")
     }
   }
 

@@ -9,8 +9,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import java.time.LocalDateTime
 
 data class PrisonIdentifier(
-  @Schema(description = "The nomis identifier id")
-  val nomisIdentifierId: NomisIdentifierId,
+  @Schema(description = "The nomis identifier id. Required on requests, always null in responses")
+  val nomisIdentifierId: NomisIdentifierId? = null,
   @Schema(description = "The cpr identifier id", example = "4f2c1d8a-9e3c-4a1f-8b2d-112233445566")
   val cprIdentifierId: String? = null,
   @Schema(description = "The identifier type", example = "PNC")
@@ -21,10 +21,10 @@ data class PrisonIdentifier(
   val comment: String? = null,
   @Schema(description = "Verified")
   val verified: Boolean,
-  @Schema(description = "The identifier create date and time", example = "2000-01-01T12:00:00", required = true)
-  val createDateTime: LocalDateTime,
-  @Schema(description = "The identifier create user id", example = "12345", required = true)
-  val createUserId: String,
+  @Schema(description = "The identifier create date and time", example = "2000-01-01T12:00:00")
+  val createDateTime: LocalDateTime? = null,
+  @Schema(description = "The identifier create user id", example = "12345")
+  val createUserId: String? = null,
   @Schema(description = "The identifier modify date and time", example = "2000-01-01T12:00:00")
   val modifyDateTime: LocalDateTime? = null,
   @Schema(description = "The identifier modify user id", example = "12345")

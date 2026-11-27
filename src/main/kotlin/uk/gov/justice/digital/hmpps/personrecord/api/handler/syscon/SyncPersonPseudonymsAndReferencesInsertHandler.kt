@@ -66,7 +66,7 @@ class SyncPersonPseudonymsAndReferencesInsertHandler(
     }
     pseudonyms.forEach { pseudonym ->
       val incorrectReferenceIds = pseudonym.identifiers
-        .map { it.nomisIdentifierId.nomisOffenderId }
+        .map { it.nomisIdentifierId!!.nomisOffenderId }
         .filter { it != pseudonym.nomisOffenderId }
       if (incorrectReferenceIds.isNotEmpty()) {
         throw IllegalArgumentException("Incorrect nomis reference ids were detected for $prisonNumber, ${pseudonym.nomisOffenderId}: ${incorrectReferenceIds.joinToString()}")
@@ -145,15 +145,15 @@ class SyncPersonPseudonymsAndReferencesInsertHandler(
     referenceEntity.pseudonym = pseudonymEntity
     referenceEntity.modifyDateTime = modifyDateTime
     referenceEntity.modifyUserId = modifyUserId
-    referenceEntity.createDateTime = createDateTime
-    referenceEntity.createUserId = createUserId
+    referenceEntity.createDateTime = createDateTime!!
+    referenceEntity.createUserId = createUserId!!
     return referenceEntity
   }
 
   private fun Pair<PrisonIdentifier, ReferenceEntity>.toMapping() = SysconIdentifierMapping(
     nomisIdentifierId = NomisIdentifierId(
-      nomisOffenderId = first.nomisIdentifierId.nomisOffenderId,
-      nomisSequence = first.nomisIdentifierId.nomisSequence,
+      nomisOffenderId = first.nomisIdentifierId!!.nomisOffenderId,
+      nomisSequence = first.nomisIdentifierId!!.nomisSequence,
     ),
     cprIdentifierId = second.updateId.toString(),
   )
