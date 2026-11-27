@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
@@ -445,6 +446,7 @@ class CanonicalAPIIntTest : WebTestBase() {
         Reference(identifierType = CRO, identifierValue = personOneCro),
         Reference(identifierType = PNC, identifierValue = personOnePnc),
         Reference(identifierType = NINO, identifierValue = personOneNationalInsuranceNumber),
+        Reference(identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER, identifierValue = personOneNationalInsuranceNumber), // I think this will happen for any records which already have a NATIONAL_INSURANCE_NUMBER. When we get an update event, I think the NINO will be populated as well
         Reference(identifierType = ASN, identifierValue = personOneArrestSummonNumber),
         Reference(identifierType = DRIVER_LICENSE_NUMBER, identifierValue = personOneDriversLicenseNumber),
       ),
