@@ -48,7 +48,7 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
   }
 
   @State("A person exists for the requested common platform Id")
-  fun aPersonExistsForTheRequestedCommonPlatformId(): Map<String, String> = createCourtDataIngestionPerson()
+  fun aPersonExistsForTheRequestedCommonPlatformId(): Map<String, String> = createCourtDataIngestionPersonWithLinkedPrisoner()
 
   @State("A person exists for the requested prisoner number")
   fun aPersonExistsForTheRequestedPrisonerNumber(): Map<String, String> = createPrisonPerson()
@@ -82,8 +82,9 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
     )
   }
 
-  private fun createCourtDataIngestionPerson(): Map<String, String> {
+  private fun createCourtDataIngestionPersonWithLinkedPrisoner(): Map<String, String> {
     val commonPlatformPerson = createPersonWithNewKey(createRandomCommonPlatformPersonDetails())
+    commonPlatformPerson.personKey!!.addPerson(createRandomPrisonPersonDetails())
     return mapOf(
       "defendantId" to commonPlatformPerson.defendantId!!,
     )
