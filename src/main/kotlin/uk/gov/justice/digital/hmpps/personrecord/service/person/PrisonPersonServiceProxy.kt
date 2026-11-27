@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -32,18 +33,23 @@ class PrisonPersonServiceProxyImpl(
     person: Person,
     findPerson: () -> PersonEntity?,
   ) {
-    // TODO turn this into a no-op.
-    processPersonUpdate(person, findPerson)
+    // TODO once these changes have made it to production remove this method completely and stop listening to the search created event.
+    // No op
   }
 
   override fun processPersonUpdate(
     person: Person,
     findPerson: () -> PersonEntity?,
-  ): PersonEntity = personService.processPerson(
-    person = person,
-    childrenToIgnore = setOf(AddressEntity::class, ContactEntity::class),
-  ) {
-    findPerson()
+  ): PersonEntity {
+    if (findPerson() == null) {
+      throw ResourceNotFoundException("Person with ${person.prisonNumber} not found")
+    }
+    return personService.processPerson(
+      person = person,
+      childrenToIgnore = setOf(AddressEntity::class, ContactEntity::class),
+    ) {
+      findPerson()
+    }
   }
 }
 

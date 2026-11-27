@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonPseudonymSuff
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -129,6 +130,7 @@ class SysconSyncPrisonAliasesAPIControllerIntTest(
           CPR_UUID_CREATED,
           mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber, "UUID" to personEntity.personKey?.personUUID.toString()),
         )
+        checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
       }
     }
 
