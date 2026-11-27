@@ -321,8 +321,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingTestBase() {
     }
     assertThat(personWithEmptyPnc.references.getPNCs()).isEmpty()
 
-    val personWithNullPnc = personRepository.findByDefendantId(secondDefendantId)
-    assertThat(personWithNullPnc?.references?.getPNCs()).isEmpty()
+    val personWithNullPnc = awaitNotNull { personRepository.findByDefendantId(secondDefendantId) }
+    assertThat(personWithNullPnc.references.getPNCs()).isEmpty()
   }
 
   @Test
