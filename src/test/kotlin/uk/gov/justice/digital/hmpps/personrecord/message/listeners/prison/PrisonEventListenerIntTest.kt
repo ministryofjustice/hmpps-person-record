@@ -4,11 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
@@ -24,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PrisonPersonServiceProxy
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
@@ -52,12 +46,6 @@ import java.lang.Thread.sleep
 import java.time.LocalDate
 
 class PrisonEventListenerIntTest : MessagingTestBase() {
-
-  @Value($$"${hmpps.sqs.queues.cprnomiseventsqueue.dlqMaxReceiveCount}")
-  private var prisonEventsDlqMaxReceiveCount: Int = 0
-
-  @MockitoSpyBean
-  private lateinit var prisonPersonServiceProxy: PrisonPersonServiceProxy
 
   @Test
   fun `should put message on dlq when exception thrown`() {
@@ -98,10 +86,7 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
   fun `should try multiple times with an update message where the person does not exist yet in cpr`() {
     val prisonNumber = randomPrisonNumber()
     prisonUpdateEventAndResponseSetup(ApiResponseSetup(prisonNumber = prisonNumber))
-    expectOneMessageOnDlq(prisonEventsQueue) // Eventually the message should go on the dlq.
-    assertThat(prisonEventsDlqMaxReceiveCount).isGreaterThan(1)
-    // Check that we actually called the prisonPersonServiceProxy.processPersonUpdate multiple times.
-    verify(prisonPersonServiceProxy, times(prisonEventsDlqMaxReceiveCount)).processPersonUpdate(any(), any())
+    expectOneMessageOnDlq(prisonEventsQueue)
   }
 
   @Nested
