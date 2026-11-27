@@ -21,7 +21,7 @@ class WebTestSetup : IntegrationTestBase() {
 
   fun WebTestClient.RequestHeadersSpec<*>.authorised(roles: List<String> = listOf(QUEUE_ADMIN)): WebTestClient.RequestBodySpec = headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = roles)) as WebTestClient.RequestBodySpec
 
-  protected final inline fun <reified T : Any> sendPostRequestAsserted(
+  final inline fun <reified T : Any> sendPostRequestAsserted(
     url: String,
     body: Any,
     roles: List<String>,
@@ -29,7 +29,7 @@ class WebTestSetup : IntegrationTestBase() {
     sendAuthorised: Boolean = true,
   ): WebTestClient.BodySpec<T, *> = sendRequestAsserted(url, body, roles, expectedStatus, sendAuthorised, HttpMethod.POST)
 
-  protected final inline fun <reified T : Any> sendPutRequestAsserted(
+  final inline fun <reified T : Any> sendPutRequestAsserted(
     url: String,
     body: Any,
     roles: List<String>,
@@ -37,21 +37,21 @@ class WebTestSetup : IntegrationTestBase() {
     sendAuthorised: Boolean = true,
   ): WebTestClient.BodySpec<T, *> = sendRequestAsserted(url, body, roles, expectedStatus, sendAuthorised, HttpMethod.PUT)
 
-  protected final inline fun <reified T : Any> sendGetRequestAsserted(
+  final inline fun <reified T : Any> sendGetRequestAsserted(
     url: String,
     roles: List<String>,
     expectedStatus: HttpStatus,
     sendAuthorised: Boolean = true,
   ): WebTestClient.BodySpec<T, *> = sendRequestAsserted(url, null, roles, expectedStatus, sendAuthorised, HttpMethod.GET)
 
-  protected final inline fun <reified T : Any> sendDeleteRequestAsserted(
+  final inline fun <reified T : Any> sendDeleteRequestAsserted(
     url: String,
     roles: List<String>,
     expectedStatus: HttpStatus,
     sendAuthorised: Boolean = true,
   ): WebTestClient.BodySpec<T, *> = sendRequestAsserted(url, null, roles, expectedStatus, sendAuthorised, HttpMethod.DELETE)
 
-  protected final inline fun <reified T : Any> sendRequestAsserted(
+  final inline fun <reified T : Any> sendRequestAsserted(
     url: String,
     body: Any?,
     roles: List<String>,
