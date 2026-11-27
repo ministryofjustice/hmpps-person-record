@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AddressUsageRepo
 import java.util.UUID
 
 @Component
-class SysconSyncAddressUsagesHandler(
+class SyncAddressUsagesHandler(
   private val addressUsageRepository: AddressUsageRepository,
   private val addressRepository: AddressRepository,
 ) {

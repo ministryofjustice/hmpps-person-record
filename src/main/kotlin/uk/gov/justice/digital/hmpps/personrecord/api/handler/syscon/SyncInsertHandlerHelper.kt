@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon
 
-object SysconSyncInsertHandlerHelper {
+object SyncInsertHandlerHelper {
 
   fun <T> MutableList<T>.addIfAbsent(item: T): Boolean = item !in this && add(item)
 

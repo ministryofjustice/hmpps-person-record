@@ -22,7 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.address.AddressService
 import java.util.UUID
 
 @Component
-class SysconSyncAddressesHandler(
+class SyncAddressesHandler(
   private val addressService: AddressService,
   private val addressRepository: AddressRepository,
   private val personRepository: PersonRepository,

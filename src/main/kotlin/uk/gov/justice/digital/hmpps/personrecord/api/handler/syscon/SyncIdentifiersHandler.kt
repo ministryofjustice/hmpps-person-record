@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import java.util.UUID
 
 @Component
-class SysconSyncIdentifiersHandler(
+class SyncIdentifiersHandler(
   private val pseudonymRepository: PseudonymRepository,
   private val referenceRepository: ReferenceRepository,
   private val personService: PersonService,

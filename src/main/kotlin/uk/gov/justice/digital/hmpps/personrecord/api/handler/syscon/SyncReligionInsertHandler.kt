@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.prison.PrisonRel
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
-class SysconReligionInsertHandler(
+class SyncReligionInsertHandler(
   private val prisonReligionRepository: PrisonReligionRepository,
   private val personService: PersonService,
   private val personRepository: PersonRepository,

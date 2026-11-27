@@ -26,7 +26,7 @@ class PrisonMergeEventHandlerProd(
   private val mergeService: MergeService,
   private val prisonerSearchClient: PrisonerSearchClient,
   private val prisonReligionMergeHandler: PrisonReligionMergeHandler,
-  private val sysconPersonContactsAndAddressesInsertHandler: SysconPersonContactsAndAddressesInsertHandler,
+  private val syncPersonContactsAndAddressesInsertHandler: SyncPersonContactsAndAddressesInsertHandler,
 ) : PrisonMergeEventHandler {
 
   @Transactional
@@ -36,7 +36,7 @@ class PrisonMergeEventHandlerProd(
     val personChangeChecker = PersonChangeChecker(toPersonEntity)
 
     prisonReligionMergeHandler.handleMerge(fromPersonEntity, toPersonEntity)
-    val sysconAddressesAndContactsResponseBody = sysconPersonContactsAndAddressesInsertHandler.insertAddressesAndContacts(toPersonEntity, prisonMerge.toPrisonAddressesAndContactsRequest)
+    val sysconAddressesAndContactsResponseBody = syncPersonContactsAndAddressesInsertHandler.insertAddressesAndContacts(toPersonEntity, prisonMerge.toPrisonAddressesAndContactsRequest)
     mergeService.processMerge(
       from = fromPersonEntity,
       to = toPersonEntity,
@@ -55,8 +55,8 @@ class PrisonMergeEventHandlerNonProd(
   private val mergeService: MergeService,
   private val prisonerSearchClient: PrisonerSearchClient,
   private val prisonReligionMergeHandler: PrisonReligionMergeHandler,
-  private val sysconPersonContactsAndAddressesInsertHandler: SysconPersonContactsAndAddressesInsertHandler,
-  private val sysconPersonPseudonymsAndReferencesInsertHandler: SysconPersonPseudonymsAndReferencesInsertHandler,
+  private val syncPersonContactsAndAddressesInsertHandler: SyncPersonContactsAndAddressesInsertHandler,
+  private val syncPersonPseudonymsAndReferencesInsertHandler: SyncPersonPseudonymsAndReferencesInsertHandler,
 ) : PrisonMergeEventHandler {
 
   @Transactional
@@ -66,8 +66,8 @@ class PrisonMergeEventHandlerNonProd(
     val personChangeChecker = PersonChangeChecker(toPersonEntity)
 
     prisonReligionMergeHandler.handleMerge(fromPersonEntity, toPersonEntity)
-    val sysconAddressesAndContactsResponseBody = sysconPersonContactsAndAddressesInsertHandler.insertAddressesAndContacts(toPersonEntity, prisonMerge.toPrisonAddressesAndContactsRequest)
-    val sysconAliasesAndIdentifiersResponseBody = sysconPersonPseudonymsAndReferencesInsertHandler.insertPseudonymsAndReferences(toPersonEntity, prisonMerge.toPrisonAliasesAndIdentifiersRequest)
+    val sysconAddressesAndContactsResponseBody = syncPersonContactsAndAddressesInsertHandler.insertAddressesAndContacts(toPersonEntity, prisonMerge.toPrisonAddressesAndContactsRequest)
+    val sysconAliasesAndIdentifiersResponseBody = syncPersonPseudonymsAndReferencesInsertHandler.insertPseudonymsAndReferences(toPersonEntity, prisonMerge.toPrisonAliasesAndIdentifiersRequest)
     mergeService.processMerge(
       from = fromPersonEntity,
       to = toPersonEntity,

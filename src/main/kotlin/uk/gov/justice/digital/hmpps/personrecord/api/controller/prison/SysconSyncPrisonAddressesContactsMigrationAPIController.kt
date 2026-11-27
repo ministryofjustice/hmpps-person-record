@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconPersonContactsAndAddressesInsertHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SyncPersonContactsAndAddressesInsertHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddressesAndContactsRequest
 
 @Tag(name = "Syscon Sync")
@@ -22,7 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAddr
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
 class SysconSyncPrisonAddressesContactsMigrationAPIController(
-  private val sysconPersonContactsAndAddressesInsertHandler: SysconPersonContactsAndAddressesInsertHandler,
+  private val syncPersonContactsAndAddressesInsertHandler: SyncPersonContactsAndAddressesInsertHandler,
 ) {
   @Operation(
     description = "Save the prisoner addresses and contacts for the given prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.",
@@ -33,5 +33,5 @@ class SysconSyncPrisonAddressesContactsMigrationAPIController(
   fun saveAddressesAndContacts(
     @PathVariable prisonNumber: String,
     @Valid @RequestBody addressesAndContactsRequest: PrisonAddressesAndContactsRequest,
-  ) = sysconPersonContactsAndAddressesInsertHandler.handleInsertForMigration(prisonNumber, addressesAndContactsRequest)
+  ) = syncPersonContactsAndAddressesInsertHandler.handleInsertForMigration(prisonNumber, addressesAndContactsRequest)
 }

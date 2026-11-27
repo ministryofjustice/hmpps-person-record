@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import java.util.UUID
 
 @Component
-class SysconSyncAliasUpdateHandler(
+class SyncAliasUpdateHandler(
   private val pseudonymRepository: PseudonymRepository,
   private val prisonPseudonymRepository: PrisonPseudonymRepository,
   private val personService: PersonService,

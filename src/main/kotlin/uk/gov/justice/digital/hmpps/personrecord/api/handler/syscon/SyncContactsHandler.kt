@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import java.util.UUID
 
 @Component
-class SysconSyncContactsHandler(
+class SyncContactsHandler(
   private val personRepository: PersonRepository,
   private val contactRepository: ContactRepository,
   private val addressRepository: AddressRepository,
