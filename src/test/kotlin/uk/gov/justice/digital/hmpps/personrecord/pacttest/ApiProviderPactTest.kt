@@ -33,13 +33,11 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
     else -> listOf(API_READ_ONLY)
   }
 
-  @State("An address exists for the requested CRN and address ID")
+  @State("An address exists for the requested CRN and address ID", "A probation person exists for the requested CRN")
   fun anAddressExistsForCrnAndAddressId(): Map<String, String> {
-    val crn = randomCrn()
-    val person = createProbationPersonWithAddress(crn)
-
+    val person = createProbationPersonWithAddress()
     return mapOf(
-      "crn" to crn,
+      "crn" to person.crn!!,
       "cprAddressId" to person.addresses.first().updateId!!.toString(),
     )
   }
@@ -54,7 +52,7 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
 
   @State("A probation person exists for the requested CRN")
   fun aProbationPersonExistsForCrn(): Map<String, String> {
-    val person = createProbationPersonWithAddress(randomCrn())
+    val person = createProbationPersonWithAddress()
     return mapOf("crn" to person.crn!!)
   }
 
@@ -81,8 +79,8 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
     )
   }
 
-  private fun createProbationPersonWithAddress(crn: String) = createPersonWithNewKey(
-    createRandomProbationPersonDetails(crn),
+  private fun createProbationPersonWithAddress() = createPersonWithNewKey(
+    createRandomProbationPersonDetails(),
     configure = addAddressToRecord(buildPactAddress()),
   )
 
