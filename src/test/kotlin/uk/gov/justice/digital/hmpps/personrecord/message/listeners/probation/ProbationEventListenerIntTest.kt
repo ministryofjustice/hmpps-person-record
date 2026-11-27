@@ -12,10 +12,15 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_ALIAS_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_ALIAS_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_ALIAS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_EQUALITY_MONITORING_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_PERSON_RECOVERED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_REFERENCE_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_REFERENCE_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_REFERENCE_RECOVERED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_SENTENCE_AMENDED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_SENTENCE_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_SENTENCE_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_SENTENCE_MOVED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.ProbationPersonUpdated
@@ -692,6 +697,11 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
         PROBATION_REFERENCE_CREATED,
         PROBATION_REFERENCE_DELETED,
         PROBATION_REFERENCE_RECOVERED,
+        PROBATION_SENTENCE_AMENDED,
+        PROBATION_SENTENCE_CREATED,
+        PROBATION_SENTENCE_DELETED,
+        PROBATION_SENTENCE_MOVED,
+        PROBATION_EQUALITY_MONITORING_UPDATED,
       ).forEach { eventType ->
         val entity = createPersonWithNewKey(createRandomProbationPersonDetails())
         val case = createRandomProbationCase(entity.crn)
