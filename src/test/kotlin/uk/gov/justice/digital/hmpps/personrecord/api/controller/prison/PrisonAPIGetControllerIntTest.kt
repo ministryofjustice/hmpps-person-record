@@ -25,7 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonsNumber
@@ -168,7 +168,7 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
             identifierValue = personOneArrestSummonNumber,
           ),
           Reference(
-            identifierType = DRIVER_LICENSE_NUMBER,
+            identifierType = DL,
             identifierValue = personOneDriversLicenseNumber,
           ),
         ),
@@ -245,7 +245,7 @@ class PrisonAPIGetControllerIntTest : WebTestBase() {
         identifierValue = randomArrestSummonsNumber(),
       ),
       Reference(
-        identifierType = DRIVER_LICENSE_NUMBER,
+        identifierType = DL,
         identifierValue = randomDriverLicenseNumber(),
       ),
     )

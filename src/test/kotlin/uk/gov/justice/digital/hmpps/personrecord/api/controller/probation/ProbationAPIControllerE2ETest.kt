@@ -36,7 +36,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.OTHR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
@@ -321,7 +321,7 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
               identifierValue = personOneArrestSummonNumber,
             ),
             Reference(
-              identifierType = DRIVER_LICENSE_NUMBER,
+              identifierType = DL,
               identifierValue = personOneDriversLicenseNumber,
             ),
             Reference(
@@ -351,7 +351,7 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
               identifierValue = personTwoArrestSummonNumber,
             ),
             Reference(
-              identifierType = DRIVER_LICENSE_NUMBER,
+              identifierType = DL,
               identifierValue = personTwoDriversLicenseNumber,
             ),
             Reference(

@@ -96,7 +96,7 @@ data class CanonicalIdentifiers(
         pncs = referenceEntities.findByIdentifierType(PNC),
         nationalInsuranceNumbers = referenceEntities.findByIdentifierType(NATIONAL_INSURANCE_NUMBER),
         arrestSummonsNumbers = referenceEntities.findByIdentifierType(ASN),
-        driverLicenseNumbers = referenceEntities.findByIdentifierType(DRIVER_LICENSE_NUMBER),
+        driverLicenseNumbers = referenceEntities.findByIdentifierType(DRIVER_LICENSE_NUMBER) + referenceEntities.findByIdentifierType(IdentifierType.DL),
         otherIdentifiers = referenceEntities.findByIdentifierType(OTHR),
       )
     }
@@ -114,7 +114,7 @@ data class CanonicalIdentifiers(
         pncs = referenceEntities.findByIdentifierType(PNC),
         nationalInsuranceNumbers = referenceEntities.findByIdentifierType(NATIONAL_INSURANCE_NUMBER),
         arrestSummonsNumbers = referenceEntities.findByIdentifierType(ASN),
-        driverLicenseNumbers = referenceEntities.findByIdentifierType(DRIVER_LICENSE_NUMBER),
+        driverLicenseNumbers = referenceEntities.findByIdentifierType(DRIVER_LICENSE_NUMBER) + referenceEntities.findByIdentifierType(IdentifierType.DL),
         otherIdentifiers = referenceEntities.findByIdentifierType(OTHR),
       )
     }

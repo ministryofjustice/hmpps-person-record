@@ -15,7 +15,7 @@ enum class IdentifierType(val description: String) {
   URN("CPS Unique Reference Number"),
   CRO("Criminal Records Office Number"),
   TBRI("Did Not Enter Prison Tagged Bail Rel"),
-  DRIVER_LICENSE_NUMBER("Driving Licence"), // DL in the spreadsheet - 75170 records in production
+  DL("Driving Licence"),
   DNOMS("Duplicate NOMIS Number"),
   XIMMN("Former Immigration Number"),
   XNOMS("Former NOMS Number"),
@@ -54,13 +54,18 @@ enum class IdentifierType(val description: String) {
   YCRN("Youth Offending Team Identifier/CRN"),
 
   // existing CPR types have duplicate mappings - require migration
-  DRL("Driving Licence"), // DELIUS USE - 1621 records in production - maps to our existing DRIVER_LICENSE_NUMBER and DL in the spreadsheet
   NOMS("Previous NOMS Number"), // NOMIS USE - 19 records in production - maps to our existing AI02 and NOMS in the spreadsheet
 
   // new types that replace existing ones - require migration
-  DL("Driving Licence"), // replaces existing DRIVER_LICENSE_NUMBER and DRL
   NINO("National Insurance Number"), // replaces existing NATIONAL_INSURANCE_NUMBER
   PASS("Passport Number"), // replaces existing PST
+
+  // deprecated - to be migrated
+  @Deprecated("Use DL instead")
+  DRIVER_LICENSE_NUMBER("Driving Licence"), // DL in the spreadsheet - 75170 records in production
+
+  @Deprecated("Use DL instead")
+  DRL("Driving Licence"), // DELIUS USE - 1621 records in production - maps to our existing DRIVER_LICENSE_NUMBER and DL in the spreadsheet
 
   // internal use
   UNKNOWN("Unknown"),

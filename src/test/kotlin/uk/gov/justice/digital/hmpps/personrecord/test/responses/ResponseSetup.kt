@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DL
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
@@ -118,7 +118,7 @@ data class ApiResponseSetup(
       },
       nationalInsuranceNumber = probationCase.identifiers.nationalInsuranceNumber,
       email = probationCase.contactDetails?.email,
-      driverLicenseNumber = probationCase.identifiers.additionalIdentifiers?.firstOrNull { it.type?.value == DRIVER_LICENSE_NUMBER.name }?.value,
+      driverLicenseNumber = probationCase.identifiers.additionalIdentifiers?.firstOrNull { it.type?.value == DL.name }?.value,
       additionalIdentifiers = probationCase.identifiers.additionalIdentifiers?.mapNotNull { ref -> ref.value?.let { ApiResponseSetupAdditionalIdentifier(ref.type?.value!!, ref.value) } } ?: emptyList(),
       sentences = probationCase.sentences?.map { ApiResponseSetupSentences(it.sentenceDate) },
       gender = probationCase.gender?.value,
