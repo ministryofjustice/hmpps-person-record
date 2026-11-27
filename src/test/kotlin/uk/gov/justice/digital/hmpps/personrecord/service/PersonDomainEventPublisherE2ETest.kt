@@ -7,7 +7,9 @@ import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAddressesContactsMigrationAPIControllerIntTest.Companion.validPrisonAddressesAndContactsRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.prison.SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest.Companion.validPrisonPseudoymnAndReferencesRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonMerge
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasMapping
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PRISON_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CPR_PRISON_PERSON_MERGED
@@ -23,15 +25,17 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.CprPersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PROBATION_PERSON_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNomisId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
+import java.time.LocalDateTime
 
 class PersonDomainEventPublisherE2ETest : E2ETestBase() {
 
@@ -42,19 +46,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
     fun `should publish a CPR person created domain event when a person is created in nomis`() {
       val prisonNumber = randomPrisonNumber()
 
-      stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
-      publishDomainEvent(
-        PrisonPersonCreated(
-          personReference = PersonReference(
-            listOf(
-              PersonIdentifier(
-                "NOMS",
-                prisonNumber,
-              ),
-            ),
-          ),
-        ),
-      )
+      createPrisonPerson(prisonNumber)
 
       awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
 
@@ -133,33 +125,8 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
       val fromPrisonNumber = randomPrisonNumber()
       val toPrisonNumber = randomPrisonNumber()
 
-      stubPrisonResponse(ApiResponseSetup(prisonNumber = fromPrisonNumber))
-      publishDomainEvent(
-        PrisonPersonCreated(
-          personReference = PersonReference(
-            listOf(
-              PersonIdentifier(
-                "NOMS",
-                fromPrisonNumber,
-              ),
-            ),
-          ),
-        ),
-      )
-
-      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
-      publishDomainEvent(
-        PrisonPersonCreated(
-          personReference = PersonReference(
-            listOf(
-              PersonIdentifier(
-                "NOMS",
-                toPrisonNumber,
-              ),
-            ),
-          ),
-        ),
-      )
+      createPrisonPerson(fromPrisonNumber)
+      createPrisonPerson(toPrisonNumber)
 
       awaitNotNull { personRepository.findByPrisonNumber(fromPrisonNumber) }
       awaitNotNull { personRepository.findByPrisonNumber(toPrisonNumber) }
@@ -210,19 +177,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
     @Test
     fun `should not publish a CPR person merged domain event when a nomis person is merged without a from person`() {
       val toPrisonNumber = randomPrisonNumber()
-      stubPrisonResponse(ApiResponseSetup(prisonNumber = toPrisonNumber))
-      publishDomainEvent(
-        PrisonPersonCreated(
-          personReference = PersonReference(
-            listOf(
-              PersonIdentifier(
-                "NOMS",
-                toPrisonNumber,
-              ),
-            ),
-          ),
-        ),
-      )
+      createPrisonPerson(toPrisonNumber)
 
       awaitNotNull { personRepository.findByPrisonNumber(toPrisonNumber) }
       purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
@@ -275,8 +230,7 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
   @Test
   fun `should not publish a CPR person deleted domain event when a person is deleted in nomis`() {
     val prisonNumber = randomPrisonNumber()
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
-    publishDomainEvent(PrisonPersonCreated(personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber)))))
+    createPrisonPerson(prisonNumber)
     val personCreated = awaitNotNull { personRepository.findByPrisonNumber(prisonNumber) }
     expectOneMessageOn(testOnlyCPRDomainEventsQueue)
     purgeQueueAndDlq(testOnlyCPRDomainEventsQueue)
@@ -321,6 +275,23 @@ class PersonDomainEventPublisherE2ETest : E2ETestBase() {
     assertThat(domainEvent.personReference.identifiers?.size).isEqualTo(1)
     assertThat(domainEvent.personReference.identifiers?.get(0)?.type).isEqualTo("CRN")
     assertThat(domainEvent.personReference.identifiers?.get(0)?.value).isEqualTo(crn)
+  }
+
+  private fun createPrisonPerson(prisonNumber: String) {
+    sendPostRequestAsserted<SysconAliasMapping>(
+      url = "/syscon-sync/person/$prisonNumber/alias",
+      body = PrisonAlias(
+        nomisOffenderId = randomNomisId(),
+        firstName = randomName(),
+        lastName = randomName(),
+        dateOfBirth = randomDate(),
+        isPrimary = true,
+        createDateTime = LocalDateTime.now(),
+        createUserId = "createUserId",
+      ),
+      roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+      expectedStatus = HttpStatus.CREATED,
+    )
   }
 
   private fun validPrisonMerge(fromPrisonNumber: String) = PrisonMerge(

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconPersonPseudonymsAndReferencesInsertHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SyncPersonPseudonymsAndReferencesInsertHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PrisonAliasesAndIdentifiersRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconAliasesAndIdentifiersResponseBody
 
@@ -25,7 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.S
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
 class SysconSyncPrisonAliasesIdentifiersAPIController(
-  private val sysconPersonPseudonymsAndReferencesInsertHandler: SysconPersonPseudonymsAndReferencesInsertHandler,
+  private val syncPersonPseudonymsAndReferencesInsertHandler: SyncPersonPseudonymsAndReferencesInsertHandler,
 ) {
 
   @Operation(
@@ -37,5 +37,5 @@ class SysconSyncPrisonAliasesIdentifiersAPIController(
   fun saveAliasesAndIdentifiers(
     @PathVariable prisonNumber: String,
     @Valid @RequestBody aliasAndIdentifiersRequest: PrisonAliasesAndIdentifiersRequest,
-  ): SysconAliasesAndIdentifiersResponseBody = sysconPersonPseudonymsAndReferencesInsertHandler.handleInsertForMigration(prisonNumber, aliasAndIdentifiersRequest)
+  ): SysconAliasesAndIdentifiersResponseBody = syncPersonPseudonymsAndReferencesInsertHandler.handleInsertForMigration(prisonNumber, aliasAndIdentifiersRequest)
 }

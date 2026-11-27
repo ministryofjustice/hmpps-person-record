@@ -21,7 +21,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.Nationa
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
@@ -54,7 +53,7 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
     stub5xxResponse("/prisoner/$prisonNumber", currentScenarioState = "next request will fail", nextScenarioState = "next request will fail", scenarioName = "processing fail")
     stub5xxResponse("/prisoner/$prisonNumber", "next request will fail", scenarioName = "processing fail")
     stub5xxResponse("/prisoner/$prisonNumber", "next request will fail", scenarioName = "processing fail")
-    publishPrisonPersonCreatedEvent(prisonNumber)
+    publishPrisonPersonUpdatedEvent(prisonNumber)
     expectOneMessageOnDlq(prisonEventsQueue)
   }
 
@@ -62,9 +61,32 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
   fun `should discard message if prisoner search returns 404`() {
     val prisonNumber = randomPrisonNumber()
     stub404Response("/prisoner/$prisonNumber")
-    publishPrisonPersonCreatedEvent(prisonNumber)
+    publishPrisonPersonUpdatedEvent(prisonNumber)
     waitForMessageToBeProcessedAndDiscarded()
     expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
+  }
+
+  // TODO this test can be removed when we stop listening for create events completely.
+  @Test
+  fun `should not create a person when prisoner created event published`() {
+    val prisonNumber = randomPrisonNumber()
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
+    publishDomainEvent(
+      PrisonPersonCreated(
+        personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))),
+      ),
+    )
+    waitForMessageToBeProcessedAndDiscarded()
+    expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
+    assertThat(personRepository.findByPrisonNumber(prisonNumber)).isNull()
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber), times = 0)
+  }
+
+  @Test
+  fun `should try multiple times with an update message where the person does not exist yet in cpr`() {
+    val prisonNumber = randomPrisonNumber()
+    prisonUpdateEventAndResponseSetup(ApiResponseSetup(prisonNumber = prisonNumber))
+    expectOneMessageOnDlq(prisonEventsQueue)
   }
 
   @Nested
@@ -72,6 +94,7 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
     @Test
     fun `should not save address and contact when saving person level data`() {
       val prisonNumber = randomPrisonNumber()
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber).copy(addresses = mutableListOf()))
 
       val addressResponse = ApiResponseSetupAddress(postcode = randomPostcode())
       val contactResponse = ApiResponseSetupContact(value = randomPhoneNumber(), type = ContactType.HOME)
@@ -87,7 +110,7 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
         ),
       )
 
-      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
+      checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
       val actualPersonEntity = personRepository.findByPrisonNumber(prisonNumber)!!
       assertThat(actualPersonEntity.addresses).isEmpty()
       assertThat(actualPersonEntity.contacts).isEmpty()
@@ -103,8 +126,9 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
     }
 
     @Test
-    fun `should receive the message successfully when prisoner created event published`() {
+    fun `should receive the message successfully when prisoner updated event published`() {
       val prisonNumber = randomPrisonNumber()
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
       val title = randomTitleCode()
       val firstName = randomName()
       val middleName = randomName()
@@ -130,7 +154,7 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
       val gender = randomPrisonSexCode()
 
       stubNoMatchesPersonMatch()
-      prisonCreateEventAndResponseSetup(
+      prisonUpdateEventAndResponseSetup(
         ApiResponseSetup(
           title = title.key,
           gender = gender.key,
@@ -155,7 +179,7 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
       )
 
       checkTelemetry(
-        CPR_RECORD_CREATED,
+        CPR_RECORD_UPDATED,
         mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
       awaitAssert {
@@ -198,21 +222,20 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
         assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))
       }
 
-      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
-
-      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
+      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
     }
 
     @Test
     fun `should check sentence start date is not populated when primary sentence is false`() {
       val prisonNumber = randomPrisonNumber()
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
       val sentenceStartDate = randomDate()
 
       stubNoMatchesPersonMatch()
-      prisonCreateEventAndResponseSetup(ApiResponseSetup(prisonNumber = prisonNumber, sentenceStartDate = sentenceStartDate, primarySentence = false))
+      prisonUpdateEventAndResponseSetup(ApiResponseSetup(prisonNumber = prisonNumber, sentenceStartDate = sentenceStartDate, primarySentence = false))
 
       checkTelemetry(
-        CPR_RECORD_CREATED,
+        CPR_RECORD_UPDATED,
         mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
 
@@ -220,70 +243,20 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
         assertThat(personEntity.sentenceInfo.size).isEqualTo(0)
       }
-
-      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
-    }
-
-    @Test
-    fun `should receive the message successfully when prisoner updated event published`() {
-      val prisonNumber = randomPrisonNumber()
-      val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber), configure = { religion = randomReligionCode() })
-
-      val updatedFirstName = randomName()
-      val ethnicity = randomPrisonEthnicity()
-      val updatedNationality = randomPrisonNationalityCode()
-      val title = randomTitleCode()
-      val updatedSexCode = randomPrisonSexCode()
-
-      val updatedAliasGender = randomPrisonSexCode()
-      val updatedAlias = ApiResponseSetupAlias(title = title.key, firstName = randomName(), lastName = randomName(), gender = updatedAliasGender.key)
-
-      stubNoMatchesPersonMatch(matchId = prisoner.matchId)
-      prisonUpdateEventAndResponseSetup(ApiResponseSetup(gender = updatedSexCode.key, title = title.key, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity, aliases = listOf(updatedAlias)))
-
-      checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
-      )
-      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
-
-      awaitAssert {
-        val personEntity = personRepository.findByPrisonNumber(prisonNumber = prisonNumber)!!
-        assertThat(personEntity.matchId).isEqualTo(prisoner.matchId)
-        assertThat(personEntity.getPrimaryName().titleCode).isEqualTo(title.value)
-        assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
-        assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(updatedSexCode.value)
-        assertThat(personEntity.getPrimaryName().ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))
-
-        assertThat(personEntity.getAliases()).hasSize(1)
-        assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(updatedAliasGender.value)
-        assertThat(personEntity.getAliases()[0].ethnicityCode).isNull()
-
-        assertThat(personEntity.ethnicityCode).isEqualTo(EthnicityCode.fromPrison(ethnicity))
-
-        assertThat(personEntity.nationalities.size).isEqualTo(1)
-        assertThat(personEntity.religion).isEqualTo(prisoner.religion)
-        assertThat(personEntity.religion).isNotNull()
-        assertThat(personEntity.nationalities.first().nationalityCode.name).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.name)
-        assertThat(personEntity.nationalities.first().nationalityCode.description).isEqualTo(NationalityCode.fromPrisonMapping(updatedNationality)?.description)
-      }
     }
 
     @Test
     fun `should retry on retryable 500 error from prisoner search`() {
       val prisonNumber = randomPrisonNumber()
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
       stubNoMatchesPersonMatch()
       stub5xxResponse("/prisoner/$prisonNumber", nextScenarioState = "next request will succeed", scenarioName = "retry")
       stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber), scenarioName = "retry", currentScenarioState = "next request will succeed")
 
-      publishPrisonPersonCreatedEvent(prisonNumber)
+      publishPrisonPersonUpdatedEvent(prisonNumber)
 
       checkTelemetry(
-        CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
-      )
-      checkTelemetry(
-        CPR_UUID_CREATED,
+        CPR_RECORD_UPDATED,
         mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
     }
@@ -291,17 +264,17 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
     @Test
     fun `should retry message if person-match returns 404`() {
       val prisonNumber = randomPrisonNumber()
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
       stubPrisonResponse(ApiResponseSetup(gender = "Male", prisonNumber = prisonNumber))
       stubPersonMatchScores(status = 404, nextScenarioState = "will succeed")
 
       stubPrisonResponse(ApiResponseSetup(gender = "Male", prisonNumber = prisonNumber), currentScenarioState = "will succeed")
       stubPersonMatchUpsert(currentScenarioState = "will succeed")
       stubPersonMatchScores(currentScenarioState = "will succeed")
-      publishPrisonPersonCreatedEvent(prisonNumber)
+      publishPrisonPersonUpdatedEvent(prisonNumber)
 
-      awaitNotNull { personRepository.findByPrisonNumber(prisonNumber = prisonNumber) }
       checkTelemetry(
-        CPR_RECORD_CREATED,
+        CPR_RECORD_UPDATED,
         mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
       expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
@@ -312,8 +285,9 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
   inner class EventLog {
 
     @Test
-    fun `should save record details in event log on create`() {
+    fun `should save record details in event log on update`() {
       val prisonNumber = randomPrisonNumber()
+      createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
       val firstName = randomName()
       val middleName = randomName()
       val lastName = randomName()
@@ -333,7 +307,7 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
 
       stubPersonMatchUpsert()
       stubNoMatchesPersonMatch()
-      prisonCreateEventAndResponseSetup(
+      prisonUpdateEventAndResponseSetup(
         ApiResponseSetup(
           aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = aliasMiddleName, lastName = aliasLastName, dateOfBirth = aliasDateOfBirth), ApiResponseSetupAlias(firstName = secondAliasFirstName, middleName = secondAliasMiddleName, lastName = secondAliasLastName, dateOfBirth = secondAliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, sentenceStartDate = sentenceStartDate, primarySentence = true, cro = cro,
           addresses = listOf(
@@ -348,7 +322,7 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
         ),
       )
 
-      checkEventLog(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
+      checkEventLog(prisonNumber, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
         assertThat(eventLogs.size).isEqualTo(1)
         val createdLog = eventLogs.first()
         assertThat(createdLog.pncs).isEqualTo(listOf(PNCIdentifier.from(pnc).pncId))
@@ -365,7 +339,6 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
         assertThat(createdLog.personUUID).isNotNull()
         assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }
-      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_UUID_CREATED)
     }
   }
 
@@ -373,27 +346,17 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
     sleep(500)
   }
 
-  private fun publishPrisonPersonCreatedEvent(prisonNumber: String) {
+  private fun publishPrisonPersonUpdatedEvent(prisonNumber: String) {
     publishDomainEvent(
-      PrisonPersonCreated(
+      PrisonPersonUpdated(
         personReference = PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))),
       ),
     )
   }
 
-  private fun prisonCreateEventAndResponseSetup(apiResponseSetup: ApiResponseSetup) {
-    stubPrisonResponse(apiResponseSetup)
-
-    publishPrisonPersonCreatedEvent(apiResponseSetup.prisonNumber!!)
-  }
-
   private fun prisonUpdateEventAndResponseSetup(apiResponseSetup: ApiResponseSetup) {
     stubPrisonResponse(apiResponseSetup)
 
-    publishDomainEvent(
-      PrisonPersonUpdated(
-        personReference = PersonReference(listOf(PersonIdentifier("NOMS", apiResponseSetup.prisonNumber!!))),
-      ),
-    )
+    publishPrisonPersonUpdatedEvent(apiResponseSetup.prisonNumber!!)
   }
 }

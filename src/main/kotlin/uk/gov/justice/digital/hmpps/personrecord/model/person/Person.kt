@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
@@ -122,7 +122,7 @@ data class Person(
           identifierValue = defendant.personDefendant?.driverNumber,
         ),
         Reference.from(
-          identifierType = ARREST_SUMMONS_NUMBER,
+          identifierType = ASN,
           identifierValue = defendant.personDefendant?.arrestSummonsNumber,
         ),
         Reference.from(identifierType = PNC, identifierValue = defendant.pncId?.pncId),

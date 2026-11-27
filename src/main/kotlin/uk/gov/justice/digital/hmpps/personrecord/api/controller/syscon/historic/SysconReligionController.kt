@@ -13,14 +13,14 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconReligionInsertHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SyncReligionInsertHandler
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.response.SysconReligionResponseBody
 
 @Tag(name = "Syscon Sync")
 @RestController
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
-class SysconReligionController(private val sysconReligionInsertHandler: SysconReligionInsertHandler) {
+class SysconReligionController(private val sysconReligionInsertHandler: SyncReligionInsertHandler) {
 
   @Operation(description = "Save the prison religion records for the given prison number. Role required is **$PERSON_RECORD_SYSCON_SYNC_WRITE**.")
   @PostMapping("/syscon-sync/religion/{prisonNumber}")

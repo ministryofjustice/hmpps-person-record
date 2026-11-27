@@ -12,14 +12,14 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_SYSCON_SYNC_WRITE
-import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SysconSyncPrimaryNameHandler
+import uk.gov.justice.digital.hmpps.personrecord.api.handler.syscon.SyncPrimaryNameHandler
 
 @Tag(name = "Syscon Sync")
 @RestController
 @PreAuthorize("hasRole('${PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 @RequestMapping(produces = [APPLICATION_JSON_VALUE])
 class SysconSyncPrisonPrimaryNameAPIController(
-  private val sysconSyncPrimaryNameHandler: SysconSyncPrimaryNameHandler,
+  private val sysconSyncPrimaryNameHandler: SyncPrimaryNameHandler,
 ) {
   @Operation(
     description = """Sets the given alias as the PRIMARY (working) name for the prisoner, marking all other aliases as ALIAS. Does nothing if the alias is already the PRIMARY name. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",

@@ -8,6 +8,7 @@ import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
+import software.amazon.awssdk.services.sqs.model.Message
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import tools.jackson.module.kotlin.readValue
@@ -293,4 +294,26 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     assertThat(domainEvent.eventType).isEqualTo(eventType)
     return domainEvent
   }
+
+  fun receiveDomainEventMessages(eventTypes: List<String>, eventSource: DomainEventSource? = null): List<DomainEvent> {
+    val rawDomainEventMessages = consumeMessages(eventTypes)
+    if (rawDomainEventMessages.size < eventTypes.size) {
+      rawDomainEventMessages.addAll(consumeMessages(eventTypes))
+    }
+    return rawDomainEventMessages.map {
+      val sqsMessage = jsonMapper.readValue<SQSMessage>(it.body())
+      assertThat(sqsMessage.messageAttributes?.eventType?.value).isIn(eventTypes)
+      eventSource?.let {
+        assertThat(sqsMessage.messageAttributes?.eventSource).isEqualTo(MessageAttribute(eventSource.identifier))
+      }
+      val domainEvent = jsonMapper.readValue<DomainEvent>(sqsMessage.message)
+      assertThat(domainEvent.eventType).isIn(eventTypes)
+      domainEvent
+    }
+  }
+
+  private fun consumeMessages(eventTypes: List<String>): MutableList<Message> = testOnlyCPRDomainEventsQueue!!.sqsClient.receiveMessage(
+    ReceiveMessageRequest.builder().queueUrl(testOnlyCPRDomainEventsQueue!!.queueUrl)
+      .maxNumberOfMessages(eventTypes.size).build(),
+  )!!.get()!!.messages()
 }
