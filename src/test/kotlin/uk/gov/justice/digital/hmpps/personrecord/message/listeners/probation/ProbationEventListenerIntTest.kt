@@ -41,7 +41,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NINO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.UNKNOWN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
@@ -57,7 +59,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.test.randomAdditionalIdentifierCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomAddressUsageCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
@@ -73,6 +74,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNum
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationAdditionalIdentifierCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationGenderIdentity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
@@ -129,8 +131,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       val selfDescribedGenderIdentity = randomName()
 
       val additionalIdentifierValueOne = randomName()
-
-      val additionalIdentifierCodeOne = randomAdditionalIdentifierCode()
+      val additionalIdentifierCodeOne = randomProbationAdditionalIdentifierCode()
 
       val identifierNinoValue = randomNationalInsuranceNumber()
       val additionalIdentifierNinoValue = randomNationalInsuranceNumber()
@@ -153,7 +154,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
         selfDescribedGenderIdentity = selfDescribedGenderIdentity,
         additionalIdentifiers = listOf(
           ApiResponseSetupAdditionalIdentifier(
-            additionalIdentifierCodeOne.name,
+            additionalIdentifierCodeOne,
             additionalIdentifierValueOne,
           ),
           ApiResponseSetupAdditionalIdentifier(
@@ -203,12 +204,9 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
       assertThat(populatedReferencesUpdateIdCount).isEqualTo(6)
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.getCro()).isEqualTo(cro)
-      assertThat(personEntity.references.getType(additionalIdentifierCodeOne).first()).isEqualTo(additionalIdentifierValueOne)
-      assertThat(personEntity.references.getType(IdentifierType.UNKNOWN).first()).isEqualTo("2222")
-      assertThat(
-        personEntity.references
-          .getType(IdentifierType.NATIONAL_INSURANCE_NUMBER),
-      ).containsExactlyInAnyOrder(identifierNinoValue, additionalIdentifierNinoValue)
+      assertThat(personEntity.references.getType(IdentifierType.fromProbation(additionalIdentifierCodeOne)).first()).isEqualTo(additionalIdentifierValueOne)
+      assertThat(personEntity.references.getType(UNKNOWN).first()).isEqualTo("2222")
+      assertThat(personEntity.references.getType(NINO)).containsExactlyInAnyOrder(identifierNinoValue, additionalIdentifierNinoValue)
 
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getAliases().size).isEqualTo(1)
@@ -309,7 +307,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
 
       val personEntity = awaitNotNull { personRepository.findByCrn(crn) }
 
-      assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(nino)
+      assertThat(personEntity.references.getType(NINO).first()).isEqualTo(nino)
       assertThat(personEntity.references.size).isEqualTo(1)
     }
 

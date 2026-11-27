@@ -23,7 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NINO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
@@ -367,7 +367,7 @@ class LibraAPIControllerIntTest : WebTestBase() {
             identifierValue = personTwoPnc,
           ),
           Reference(
-            identifierType = NATIONAL_INSURANCE_NUMBER,
+            identifierType = NINO,
             identifierValue = personTwoNationalInsuranceNumber,
           ),
           Reference(

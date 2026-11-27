@@ -29,10 +29,11 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NINO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
@@ -444,7 +445,8 @@ class CanonicalAPIIntTest : WebTestBase() {
       references = listOf(
         Reference(identifierType = CRO, identifierValue = personOneCro),
         Reference(identifierType = PNC, identifierValue = personOnePnc),
-        Reference(identifierType = NATIONAL_INSURANCE_NUMBER, identifierValue = personOneNationalInsuranceNumber),
+        Reference(identifierType = NINO, identifierValue = personOneNationalInsuranceNumber),
+        Reference(identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER, identifierValue = personOneNationalInsuranceNumber), // I think this will happen for any records which already have a NATIONAL_INSURANCE_NUMBER. When we get an update event, I think the NINO will be populated as well
         Reference(identifierType = ASN, identifierValue = personOneArrestSummonNumber),
         Reference(identifierType = DRIVER_LICENSE_NUMBER, identifierValue = personOneDriversLicenseNumber),
       ),
@@ -465,7 +467,7 @@ class CanonicalAPIIntTest : WebTestBase() {
       references = listOf(
         Reference(identifierType = CRO, identifierValue = personTwoCro),
         Reference(identifierType = PNC, identifierValue = personTwoPnc),
-        Reference(identifierType = NATIONAL_INSURANCE_NUMBER, identifierValue = personTwoNationalInsuranceNumber),
+        Reference(identifierType = NINO, identifierValue = personTwoNationalInsuranceNumber),
         Reference(identifierType = ASN, identifierValue = personTwoArrestSummonNumber),
         Reference(identifierType = DRIVER_LICENSE_NUMBER, identifierValue = personTwoDriversLicenseNumber),
       ),

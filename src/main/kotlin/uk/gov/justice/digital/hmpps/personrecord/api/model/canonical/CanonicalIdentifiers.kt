@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NINO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.OTHR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 
@@ -94,7 +95,7 @@ data class CanonicalIdentifiers(
         cids = personEntities.mapNotNull { it.cId },
         cros = referenceEntities.findByIdentifierType(CRO),
         pncs = referenceEntities.findByIdentifierType(PNC),
-        nationalInsuranceNumbers = referenceEntities.findByIdentifierType(NATIONAL_INSURANCE_NUMBER),
+        nationalInsuranceNumbers = referenceEntities.findByIdentifierType(NATIONAL_INSURANCE_NUMBER) + referenceEntities.findByIdentifierType(NINO),
         arrestSummonsNumbers = referenceEntities.findByIdentifierType(ASN),
         driverLicenseNumbers = referenceEntities.findByIdentifierType(DRIVER_LICENSE_NUMBER),
         otherIdentifiers = referenceEntities.findByIdentifierType(OTHR),
@@ -112,7 +113,7 @@ data class CanonicalIdentifiers(
         cids = personEntities.mapNotNull { it.cId },
         cros = referenceEntities.findByIdentifierType(CRO),
         pncs = referenceEntities.findByIdentifierType(PNC),
-        nationalInsuranceNumbers = referenceEntities.findByIdentifierType(NATIONAL_INSURANCE_NUMBER),
+        nationalInsuranceNumbers = referenceEntities.findByIdentifierType(NATIONAL_INSURANCE_NUMBER) + referenceEntities.findByIdentifierType(NINO),
         arrestSummonsNumbers = referenceEntities.findByIdentifierType(ASN),
         driverLicenseNumbers = referenceEntities.findByIdentifierType(DRIVER_LICENSE_NUMBER),
         otherIdentifiers = referenceEntities.findByIdentifierType(OTHR),

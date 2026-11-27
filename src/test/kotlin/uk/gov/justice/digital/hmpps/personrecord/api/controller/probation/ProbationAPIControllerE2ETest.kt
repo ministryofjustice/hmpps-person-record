@@ -38,6 +38,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NINO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.OTHR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
@@ -313,7 +314,7 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
             Reference(identifierType = CRO, identifierValue = personOneCro),
             Reference(identifierType = PNC, identifierValue = personOnePnc),
             Reference(
-              identifierType = NATIONAL_INSURANCE_NUMBER,
+              identifierType = NINO,
               identifierValue = personOneNationalInsuranceNumber,
             ),
             Reference(
@@ -343,7 +344,7 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
             Reference(identifierType = CRO, identifierValue = personTwoCro),
             Reference(identifierType = PNC, identifierValue = personTwoPnc),
             Reference(
-              identifierType = NATIONAL_INSURANCE_NUMBER,
+              identifierType = NINO,
               identifierValue = personTwoNationalInsuranceNumber,
             ),
             Reference(
@@ -384,6 +385,39 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
           ),
 
         )
+      }
+
+      @Test
+      fun `should return the deprecated identifier types pre-migration as well as the new ones`() {
+        val expectedCro = randomCro()
+        val expectedPnc = randomLongPnc()
+        val expectedDeprecatedNino = randomNationalInsuranceNumber()
+        val expectedNewNino = randomNationalInsuranceNumber()
+
+        val personDetails = createRandomProbationPersonDetails()
+          .copy(
+            references = listOf(
+              Reference(identifierType = CRO, identifierValue = expectedCro),
+              Reference(identifierType = PNC, identifierValue = expectedPnc),
+              Reference(identifierType = NATIONAL_INSURANCE_NUMBER, identifierValue = expectedDeprecatedNino),
+              Reference(identifierType = NINO, identifierValue = expectedNewNino),
+            ),
+          )
+        createPersonWithNewKey(personDetails)
+
+        val responseBody = webTestClient.get()
+          .uri(probationApiUrl(personDetails.crn!!))
+          .authorised(listOf(API_READ_ONLY))
+          .exchange()
+          .expectStatus()
+          .isOk
+          .expectBody<CanonicalRecord>()
+          .returnResult()
+          .responseBody!!
+
+        assertThat(responseBody.identifiers.cros).containsExactly(expectedCro)
+        assertThat(responseBody.identifiers.pncs).containsExactly(expectedPnc)
+        assertThat(responseBody.identifiers.nationalInsuranceNumbers).containsExactlyInAnyOrder(expectedDeprecatedNino, expectedNewNino)
       }
 
       @Test

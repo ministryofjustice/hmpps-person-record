@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NINO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
@@ -114,7 +114,7 @@ data class Person(
 
       val references: List<Reference> = listOfNotNull(
         Reference.from(
-          identifierType = NATIONAL_INSURANCE_NUMBER,
+          identifierType = NINO,
           identifierValue = defendant.personDefendant?.personDetails?.nationalInsuranceNumber,
         ),
         Reference.from(
@@ -181,7 +181,7 @@ data class Person(
         Reference.from(identifierType = CRO, identifierValue = prisoner.cro?.toString()),
         Reference.from(identifierType = PNC, identifierValue = prisoner.pnc?.toString()),
         Reference.from(
-          identifierType = NATIONAL_INSURANCE_NUMBER,
+          identifierType = NINO,
           identifierValue = prisoner.identifiers.getType("NINO")?.value,
         ),
         Reference.from(

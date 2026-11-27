@@ -30,7 +30,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NINO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
@@ -269,7 +269,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingTestBase() {
 
     assertThat(firstPerson.ethnicityCode).isEqualTo(EthnicityCode.fromCommonPlatform(ethnicity))
 
-    assertThat(firstPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(firstDefendantNINumber)
+    assertThat(firstPerson.references.getType(NINO).first()).isEqualTo(firstDefendantNINumber)
 
     assertThat(secondPerson.getAliases()).isEmpty()
     assertThat(secondPerson.addresses).isNotEmpty()
