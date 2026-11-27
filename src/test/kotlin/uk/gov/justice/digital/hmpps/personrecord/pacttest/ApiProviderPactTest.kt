@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -73,7 +72,7 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
 
   private fun createProbationPersonWithAddress() = createPersonWithNewKey(
     createRandomProbationPersonDetails(),
-    configure = addAddressToRecord(buildPactAddress()),
+    configure = addAddressToRecord(buildProbationAddress()),
   )
 
   private fun createPrisonPerson(): Map<String, String> {
@@ -90,7 +89,7 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
     )
   }
 
-  private fun buildPactAddress(): Address = Address(
+  private fun buildProbationAddress(): Address = Address(
     noFixedAbode = randomBoolean(),
     startDate = randomZonedDateTime(),
     endDate = randomZonedDateTime(),
@@ -102,12 +101,11 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
     dependentLocality = randomName(),
     postTown = randomName(),
     county = randomName(),
-    countryCode = randomCountryCode(),
     uprn = randomUprn(),
-    statusCode = randomAddressStatusCode(),
     comment = randomName(),
-    isVerified = randomBoolean(),
-    usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
     contacts = listOf(Contact(randomContactType(), randomPhoneNumber(), "+44")),
+    isVerified = randomBoolean(),
+    statusCode = randomAddressStatusCode(),
+    usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
   )
 }
