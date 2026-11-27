@@ -11,7 +11,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class PrisonAlias(
-  @Schema(description = "The nomis offender id for this alias. Required on requests, always null in responses", example = "10000")
+  @Schema(description = "The nomis offender id for this alias.", example = "10000")
   val nomisOffenderId: Long? = null,
   @Schema(description = "The cpr alias id", example = "4f2b1d8a-9f3c-4a1f-8b2d-112233445566")
   val cprAliasId: String? = null,
