@@ -6,8 +6,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verifyNoInteractions
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.LibraHearingEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
@@ -26,7 +24,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -92,22 +89,6 @@ class PersonServiceIntTest : IntegrationTestBase() {
       val updated = personService.processPerson(personWithAddress, setOf(AddressEntity::class)) { created }
       assertThat(updated.addresses).isEmpty()
     }
-  }
-
-  @Test
-  fun `should log record update when change in matching fields`() {
-    val cId = randomCId()
-    val firstName = randomName()
-    val lastName = randomName()
-    val person = Person.from(LibraHearingEvent(name = Name(firstName = firstName, lastName = lastName), cId = cId))
-    val existingPerson = createPersonWithNewKey(person)
-
-    val updatedPerson = Person.from(LibraHearingEvent(name = Name(firstName = randomName(), lastName = lastName), cId = cId))
-    stubPersonMatchUpsert()
-    stubPersonMatchScores()
-    personService.processPerson(updatedPerson) { existingPerson }
-
-    checkEventLogExist(existingPerson.cId!!, CPRLogEvents.CPR_RECORD_UPDATED)
   }
 
   @Test

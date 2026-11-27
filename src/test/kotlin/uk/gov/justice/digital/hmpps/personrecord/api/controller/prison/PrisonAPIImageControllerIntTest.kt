@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.config.WebTestSetup
+import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 
-class PrisonAPIImageControllerIntTest : WebTestSetup() {
+class PrisonAPIImageControllerIntTest : WebTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {

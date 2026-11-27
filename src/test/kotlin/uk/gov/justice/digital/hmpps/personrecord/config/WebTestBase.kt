@@ -16,11 +16,11 @@ import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
 @TestPropertySource(properties = ["spring.autoconfigure.exclude=uk.gov.justice.hmpps.sqs.HmppsSqsConfiguration"])
-@Import(WebTestBase.WebTestConfig::class)
+@Import(WebTestBase.WebTestConfigWithNoQueues::class)
 abstract class WebTestBase : WebTestSetup() {
 
   @TestConfiguration
-  class WebTestConfig {
+  class WebTestConfigWithNoQueues {
     @Bean
     fun hmppsQueueService(): HmppsQueueService {
       val hmppsQueueService = Mockito.mock(HmppsQueueService::class.java)

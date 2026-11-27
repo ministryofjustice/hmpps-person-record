@@ -24,7 +24,10 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
   inner class SuccessfulProcessing {
 
     @Test
-    fun `check the status of the override marker and scope after a record is unmerged`() {
+    fun `check the status of the override marker and scope after a record is unmerged and then deleted`() {
+      // this test just describes what the code does
+      // I do not think there is a requirement for the scope linking a record to a deleted record to continue to exist
+      // maybe we should delete this
       val remainingCrn = randomCrn()
       val deletedCrn = randomCrn()
 
