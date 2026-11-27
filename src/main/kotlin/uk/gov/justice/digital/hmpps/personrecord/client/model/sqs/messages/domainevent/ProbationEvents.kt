@@ -18,6 +18,11 @@ const val PROBATION_REFERENCE_RECOVERED = "probation-case.additional-identifier.
 const val PROBATION_ADDRESS_CREATED = "probation-case.address.created"
 const val PROBATION_ADDRESS_UPDATED = "probation-case.address.updated"
 const val PROBATION_ADDRESS_DELETED = "probation-case.address.deleted"
+const val PROBATION_SENTENCE_AMENDED = "probation-case.sentence.amended"
+const val PROBATION_SENTENCE_CREATED = "probation-case.sentence.created"
+const val PROBATION_SENTENCE_DELETED = "probation-case.sentence.deleted"
+const val PROBATION_SENTENCE_MOVED = "probation-case.sentence.moved"
+const val PROBATION_EQUALITY_MONITORING_UPDATED = "probation-case.equality-monitoring.updated"
 
 data class ProbationPersonCreated(
   override val eventType: String = PROBATION_PERSON_CREATED,
