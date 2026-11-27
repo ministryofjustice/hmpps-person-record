@@ -1,10 +1,14 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
+import io.netty.channel.ChannelOption
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.web.reactive.function.client.WebClient
+import reactor.netty.http.client.HttpClient
+import reactor.netty.resources.ConnectionProvider
 import uk.gov.justice.hmpps.kotlin.auth.authorisedWebClient
 import java.time.Duration
 
@@ -78,10 +82,28 @@ class WebClientConfig(
   fun prisonWebClient(
     authorizedClientManager: OAuth2AuthorizedClientManager,
     builder: WebClient.Builder,
-  ): WebClient = builder.authorisedWebClient(
-    authorizedClientManager = authorizedClientManager,
-    registrationId = "prison-api",
-    url = prisonApiUrl,
-    timeout = Duration.ofMillis(timeout),
-  )
+  ): WebClient {
+    val provider = ConnectionProvider.builder("prison-api-pool")
+      .maxConnections(500)
+      .pendingAcquireMaxCount(500 * 2)
+      .pendingAcquireTimeout(Duration.ofSeconds(5))
+      .maxIdleTime(Duration.ofSeconds(20))
+      .maxLifeTime(Duration.ofMinutes(5))
+      .evictInBackground(Duration.ofSeconds(30))
+      .build()
+
+    val httpClient = HttpClient.create(provider)
+      .proxyWithSystemProperties()
+      .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10_000)
+      .responseTimeout(Duration.ofMillis(timeout))
+
+    return builder.authorisedWebClient(
+      authorizedClientManager = authorizedClientManager,
+      registrationId = "prison-api",
+      url = prisonApiUrl,
+      timeout = Duration.ofMillis(timeout),
+    ).mutate()
+      .clientConnector(ReactorClientHttpConnector(httpClient))
+      .build()
+  }
 }

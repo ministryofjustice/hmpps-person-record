@@ -23,7 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.AddressStatusCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NINO
@@ -329,7 +329,7 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
             identifierValue = personOneNationalInsuranceNumber,
           ),
           Reference(
-            identifierType = ARREST_SUMMONS_NUMBER,
+            identifierType = ASN,
             identifierValue = personOneArrestSummonNumber,
           ),
           Reference(
@@ -355,7 +355,7 @@ class CommonPlatformAPIControllerIntTest : WebTestBase() {
             identifierValue = personTwoNationalInsuranceNumber,
           ),
           Reference(
-            identifierType = ARREST_SUMMONS_NUMBER,
+            identifierType = ASN,
             identifierValue = personTwoArrestSummonNumber,
           ),
           Reference(

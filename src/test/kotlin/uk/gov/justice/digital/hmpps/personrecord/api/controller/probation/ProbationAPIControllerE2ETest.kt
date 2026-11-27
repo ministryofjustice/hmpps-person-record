@@ -34,10 +34,12 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NINO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.OTHR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
@@ -316,15 +318,15 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
               identifierValue = personOneNationalInsuranceNumber,
             ),
             Reference(
-              identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
+              identifierType = ASN,
               identifierValue = personOneArrestSummonNumber,
             ),
             Reference(
-              identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
+              identifierType = DRIVER_LICENSE_NUMBER,
               identifierValue = personOneDriversLicenseNumber,
             ),
             Reference(
-              identifierType = IdentifierType.OTHR,
+              identifierType = OTHR,
               identifierValue = otherIdentifierOne,
             ),
           ),
@@ -346,15 +348,15 @@ class ProbationAPIControllerE2ETest : E2ETestBase() {
               identifierValue = personTwoNationalInsuranceNumber,
             ),
             Reference(
-              identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
+              identifierType = ASN,
               identifierValue = personTwoArrestSummonNumber,
             ),
             Reference(
-              identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
+              identifierType = DRIVER_LICENSE_NUMBER,
               identifierValue = personTwoDriversLicenseNumber,
             ),
             Reference(
-              identifierType = IdentifierType.OTHR,
+              identifierType = OTHR,
               identifierValue = otherIdentifierTwo,
             ),
           ),
