@@ -101,6 +101,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDateTime
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDigit
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLowerCaseString
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -263,6 +264,7 @@ class IntegrationTestBase {
       pnc = PNCIdentifier.from(randomLongPnc()),
       cro = CROIdentifier.from(randomCro()),
       firstName = randomName(),
+      middleNames = randomName(),
       lastName = randomName(),
       dateOfBirth = randomDate(),
       aliases = listOf(
@@ -279,6 +281,7 @@ class IntegrationTestBase {
         ),
       ),
       nationality = randomPrisonNationalityCode(),
+      gender = randomLowerCaseString(),
     ),
   ).copy(addresses = mutableListOf(Address(postcode = randomPostcode()), Address(postcode = randomPostcode())))
 
