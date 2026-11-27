@@ -7,7 +7,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.OTHR
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
@@ -96,7 +98,7 @@ data class CanonicalIdentifiers(
         pncs = referenceEntities.findByIdentifierType(PNC),
         nationalInsuranceNumbers = referenceEntities.findByIdentifierType(NATIONAL_INSURANCE_NUMBER),
         arrestSummonsNumbers = referenceEntities.findByIdentifierType(ASN),
-        driverLicenseNumbers = referenceEntities.findByIdentifierType(DRIVER_LICENSE_NUMBER),
+        driverLicenseNumbers = referenceEntities.findByIdentifierTypes(DRIVER_LICENSE_NUMBER, DRL, DL),
         otherIdentifiers = referenceEntities.findByIdentifierType(OTHR),
       )
     }
@@ -114,11 +116,12 @@ data class CanonicalIdentifiers(
         pncs = referenceEntities.findByIdentifierType(PNC),
         nationalInsuranceNumbers = referenceEntities.findByIdentifierType(NATIONAL_INSURANCE_NUMBER),
         arrestSummonsNumbers = referenceEntities.findByIdentifierType(ASN),
-        driverLicenseNumbers = referenceEntities.findByIdentifierType(DRIVER_LICENSE_NUMBER),
+        driverLicenseNumbers = referenceEntities.findByIdentifierTypes(DRIVER_LICENSE_NUMBER, DRL, DL),
         otherIdentifiers = referenceEntities.findByIdentifierType(OTHR),
       )
     }
 
     private fun List<ReferenceEntity>.findByIdentifierType(identifierType: IdentifierType): List<String> = this.filter { it.identifierType == identifierType }.mapNotNull { it.identifierValue }
+    private fun List<ReferenceEntity>.findByIdentifierTypes(vararg identifierTypes: IdentifierType): List<String> = identifierTypes.flatMap { findByIdentifierType(it) }
   }
 }

@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.GenderIdentityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
@@ -118,7 +118,7 @@ data class Person(
           identifierValue = defendant.personDefendant?.personDetails?.nationalInsuranceNumber,
         ),
         Reference.from(
-          identifierType = DRIVER_LICENSE_NUMBER,
+          identifierType = DL,
           identifierValue = defendant.personDefendant?.driverNumber,
         ),
         Reference.from(
@@ -185,7 +185,7 @@ data class Person(
           identifierValue = prisoner.identifiers.getType("NINO")?.value,
         ),
         Reference.from(
-          identifierType = DRIVER_LICENSE_NUMBER,
+          identifierType = DL,
           identifierValue = prisoner.identifiers.getType("DL")?.value,
         ),
       )

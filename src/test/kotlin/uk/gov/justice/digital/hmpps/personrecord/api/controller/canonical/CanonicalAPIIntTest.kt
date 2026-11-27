@@ -31,7 +31,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ASN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ReligionCode
@@ -446,7 +446,7 @@ class CanonicalAPIIntTest : WebTestBase() {
         Reference(identifierType = PNC, identifierValue = personOnePnc),
         Reference(identifierType = NATIONAL_INSURANCE_NUMBER, identifierValue = personOneNationalInsuranceNumber),
         Reference(identifierType = ASN, identifierValue = personOneArrestSummonNumber),
-        Reference(identifierType = DRIVER_LICENSE_NUMBER, identifierValue = personOneDriversLicenseNumber),
+        Reference(identifierType = DL, identifierValue = personOneDriversLicenseNumber),
       ),
     )
 
@@ -467,7 +467,7 @@ class CanonicalAPIIntTest : WebTestBase() {
         Reference(identifierType = PNC, identifierValue = personTwoPnc),
         Reference(identifierType = NATIONAL_INSURANCE_NUMBER, identifierValue = personTwoNationalInsuranceNumber),
         Reference(identifierType = ASN, identifierValue = personTwoArrestSummonNumber),
-        Reference(identifierType = DRIVER_LICENSE_NUMBER, identifierValue = personTwoDriversLicenseNumber),
+        Reference(identifierType = DL, identifierValue = personTwoDriversLicenseNumber),
       ),
     )
     val personKey = createPersonKey().addPerson(personOne).addPerson(personTwo)
