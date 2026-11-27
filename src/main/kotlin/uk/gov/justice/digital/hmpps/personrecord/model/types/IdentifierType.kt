@@ -73,7 +73,7 @@ enum class IdentifierType(val description: String) {
     fun createProbationIdentifierReferences(probationCase: ProbationCase): List<Reference> {
       val identifiers = createBaseIdentifierReferences(probationCase)
 
-      val additionalIdentifiers: List<Reference> = removeDuplicateNationalInsuranceNumber(probationCase)?.map {
+      val additionalIdentifiers: List<Reference> = removeDuplicateNationalInsuranceNumbers(probationCase)?.map {
         Reference(
           fromProbation(it.type?.value!!),
           it.value,
@@ -91,7 +91,7 @@ enum class IdentifierType(val description: String) {
       Reference(NINO, probationCase.identifiers.nationalInsuranceNumber),
     )
 
-    private fun removeDuplicateNationalInsuranceNumber(probationCase: ProbationCase) = probationCase
+    private fun removeDuplicateNationalInsuranceNumbers(probationCase: ProbationCase) = probationCase
       .identifiers
       .additionalIdentifiers?.filterNot {
         it.type?.value == "NINO" && it.value == probationCase.identifiers.nationalInsuranceNumber
