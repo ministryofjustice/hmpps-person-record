@@ -85,23 +85,6 @@ class SysconSyncPseudonymHandlerTest {
 
     @Test
     fun `uses the correct pseudonym handler for the active profile`() {
-      assertThat(sysconSyncPseudonymHandler).isInstanceOf(SysconSyncPseudonymHandlerProd::class.java)
-    }
-
-    @Test
-    fun `insert returns an empty alias mapping`() {
-      val result = sysconSyncPseudonymHandler.handleInsert(prisonNumber, prisonAlias)
-
-      assertThat(result).isEqualTo(SysconAliasMapping())
-    }
-  }
-
-  @Nested
-  @ActiveProfiles("test")
-  inner class TestProfileTest(@Autowired private val sysconSyncPseudonymHandler: SysconSyncPseudonymHandler) {
-
-    @Test
-    fun `uses the correct pseudonym handler for the active profile`() {
       assertThat(sysconSyncPseudonymHandler).isInstanceOf(SysconSyncPseudonymHandlerImpl::class.java)
     }
 

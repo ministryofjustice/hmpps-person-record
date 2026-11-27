@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ActiveProfiles
@@ -113,28 +114,15 @@ class PrisonPersonServiceProxyTest {
       )
     }
 
-    // TODO remove when we turn off create via search event
     @Test
-    fun `delegates create to the personService`() {
+    fun `create is a no-op`() {
       prisonPersonServiceProxy.processPersonCreate(person) { personEntity }
 
-      verify(personService).processPerson(
-        person = eq(person),
-        childrenToIgnore = eq(setOf(AddressEntity::class, ContactEntity::class)),
+      verify(personService, never()).processPerson(
+        person = any(),
+        childrenToIgnore = any(),
         findPerson = any(),
       )
     }
-
-    // TODO uncomment out when we turn off create via search event
-//    @Test
-//    fun `create is a no-op`() {
-//      prisonPersonServiceProxy.processPersonCreate(person) { personEntity }
-//
-//      verify(personService, never()).processPerson(
-//        person = any(),
-//        childrenToIgnore = any(),
-//        findPerson = any(),
-//      )
-//    }
   }
 }
