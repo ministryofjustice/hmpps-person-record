@@ -4,6 +4,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.NullSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.CREATED
@@ -232,6 +235,27 @@ class PrisonAPIReligionControllerIntTest : WebTestBase() {
         assertThat(actualReligion.prisonRecordType.value).isTrue()
         assertThat(actualReligion.createUserId).isEqualTo(request.userId)
         assertThat(personRepository.findByPrisonNumber(prisonNumber)?.religion).isEqualTo(request.religionCode)
+      }
+
+      @ParameterizedTest
+      @NullSource
+      @ValueSource(strings = ["", " ", "   "])
+      fun `should store a null comment and change reason not known when the comment is null or blank`(comment: String?) {
+        val prisonNumber = randomPrisonNumber()
+        createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
+        val request = PrisonReligionInsertRequest(religionCode = BAHA, comment = comment, userId = "TEST")
+
+        sendPutRequestAsserted<Unit>(
+          url = religionApiUrl(prisonNumber),
+          body = request,
+          roles = listOf(PRISON_API_READ_WRITE),
+          expectedStatus = NO_CONTENT,
+        )
+
+        val actualReligion = prisonReligionRepository.findByPrisonNumberOrderByStartDateDescCreateDateTimeDesc(prisonNumber).single()
+        assertThat(actualReligion.code).isEqualTo(request.religionCode)
+        assertThat(actualReligion.comments).isNull()
+        assertThat(actualReligion.changeReasonKnown).isFalse()
       }
 
       @Test
