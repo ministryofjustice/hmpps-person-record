@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import java.time.LocalDateTime
 
 data class PrisonIdentifier(
-  @Schema(description = "The nomis identifier id.")
+  @Schema(description = "The nomis identifier id")
   val nomisIdentifierId: NomisIdentifierId? = null,
   @Schema(description = "The cpr identifier id", example = "4f2c1d8a-9e3c-4a1f-8b2d-112233445566")
   val cprIdentifierId: String? = null,
