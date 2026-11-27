@@ -47,14 +47,14 @@ interface SysconSyncPseudonymHandler {
   }
 }
 
-@Profile("dev | prod | preprod")
+@Profile("prod | preprod")
 @Component
 @Transactional
 class SysconSyncPseudonymHandlerProd : SysconSyncPseudonymHandler {
   override fun handleInsert(prisonNumber: String, prisonAlias: PrisonAlias) = SysconAliasMapping()
 }
 
-@Profile("!dev & !prod & !preprod")
+@Profile("!prod & !preprod")
 @Component
 @Transactional
 class SysconSyncPseudonymHandlerImpl(

@@ -22,7 +22,7 @@ interface PrisonPersonServiceProxy {
   )
 }
 
-@Profile("!prod & !preprod & !dev")
+@Profile("!prod & !preprod")
 @Component
 @Transactional(isolation = Isolation.REPEATABLE_READ)
 class PrisonPersonServiceProxyImpl(
@@ -53,7 +53,7 @@ class PrisonPersonServiceProxyImpl(
   }
 }
 
-@Profile("prod | preprod | dev")
+@Profile("prod | preprod")
 @Component
 @Transactional(isolation = Isolation.REPEATABLE_READ)
 class PrisonPersonServiceProxyProd(
