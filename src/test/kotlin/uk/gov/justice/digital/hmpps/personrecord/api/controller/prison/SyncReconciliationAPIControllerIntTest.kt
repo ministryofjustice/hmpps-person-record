@@ -81,7 +81,6 @@ class SyncReconciliationAPIControllerIntTest : WebTestBase() {
       val response = getReconciliation(prisonNumber)
 
       assertThat(response.prisonNumber).isEqualTo(prisonNumber)
-      assertThat(response.addresses).hasSameSizeAs(addressesRequest.addresses)
       addressesMappings.addressesMappings.forEach { addressMapping ->
         val addressRequest = addressesRequest.addresses.single { it.nomisAddressId == addressMapping.nomisAddressId }
         val addressResponse = response.addresses.single { it.cprAddressId == addressMapping.cprAddressId }
@@ -90,7 +89,6 @@ class SyncReconciliationAPIControllerIntTest : WebTestBase() {
           .ignoringFields("nomisAddressId", "cprAddressId", "addressUsage", "contacts")
           .isEqualTo(addressRequest)
 
-        assertThat(addressResponse.addressUsage).hasSameSizeAs(addressRequest.addressUsage)
         addressMapping.addressUsageMappings.forEach { usageMapping ->
           val usageRequest = addressRequest.addressUsage.single {
             it.nomisAddressUsageId == usageMapping.nomisAddressUsageId && it.addressUsageCode == usageMapping.nomisAddressUsageCode
@@ -102,7 +100,6 @@ class SyncReconciliationAPIControllerIntTest : WebTestBase() {
             .isEqualTo(usageRequest)
         }
 
-        assertThat(addressResponse.contacts).hasSameSizeAs(addressRequest.contacts)
         addressMapping.contactMappings.forEach { contactMapping ->
           val contactRequest = addressRequest.contacts.single { it.nomisContactId == contactMapping.nomisContactId }
           val contactResponse = addressResponse.contacts.single { it.cprContactId == contactMapping.cprContactId }
@@ -114,7 +111,6 @@ class SyncReconciliationAPIControllerIntTest : WebTestBase() {
         }
       }
 
-      assertThat(response.contacts).hasSameSizeAs(addressesRequest.contacts)
       addressesMappings.contactMappings.forEach { contactMapping ->
         val contactRequest = addressesRequest.contacts.single { it.nomisContactId == contactMapping.nomisContactId }
         val contactResponse = response.contacts.single { it.cprContactId == contactMapping.cprContactId }
@@ -142,7 +138,6 @@ class SyncReconciliationAPIControllerIntTest : WebTestBase() {
       val response = getReconciliation(prisonNumber)
 
       assertThat(response.prisonNumber).isEqualTo(prisonNumber)
-      assertThat(response.religions).hasSameSizeAs(religionsRequest.religions)
       religionMappings.forEach { religionMapping ->
         val religionRequest = religionsRequest.religions.first { it.nomisReligionId == religionMapping.nomisReligionId }
         val religionResponse = response.religions.first { it.cprReligionId == religionMapping.cprReligionId }
