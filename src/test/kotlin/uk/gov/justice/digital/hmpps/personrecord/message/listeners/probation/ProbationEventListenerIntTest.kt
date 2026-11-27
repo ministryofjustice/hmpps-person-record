@@ -580,7 +580,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
     }
 
     @Test
-    fun `should update + persist + delete reference entities when updating`() {
+    fun `should replace reference entities when updating`() {
       val crn = randomCrn()
       val pnc = randomLongPnc()
       val cro = randomCro()
@@ -605,8 +605,7 @@ class ProbationEventListenerIntTest : ProbationEventListenerTestBase() {
 
       val updatedPncEntity = updatedPerson.references.getPncsFromReferences().first()
       assertThat(updatedPncEntity.identifierValue).isEqualTo(pnc)
-      assertThat(updatedPncEntity.id).isEqualTo(pncEntity?.id)
-      assertThat(updatedPncEntity.version).isEqualTo(pncEntity?.version)
+      assertThat(updatedPncEntity.id).isNotEqualTo(pncEntity?.id)
 
       val updatedCroEntity = updatedPerson.references.getCrosFromReferences().first()
       assertThat(updatedCroEntity.identifierValue).isEqualTo(updatedCro)
