@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_A
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.M
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
@@ -23,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 
@@ -54,7 +52,7 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
   fun aPersonExistsForTheRequestedCommonPlatformId(): Map<String, String> = createCourtDataIngestionPerson()
 
   @State("A person exists for the requested prisoner number")
-  fun aPersonExistsForTheRequestedPrisonerNumber(): Map<String, String> = createCourtDataIngestionPerson()
+  fun aPersonExistsForTheRequestedPrisonerNumber(): Map<String, String> = createPrisonPerson()
 
   @State("A person exists as an exact match for the requested first name, last name, date of birth and PNC")
   fun aPersonExistsForExactMatch(): Map<String, String> {
@@ -78,17 +76,17 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
     configure = addAddressToRecord(buildPactAddress()),
   )
 
-  private fun createCourtDataIngestionPerson(): Map<String, String> {
-    val defendantId = randomDefendantId()
-    val prisonNumber = randomPrisonNumber()
-
-    createPersonKey()
-      .addPerson(createRandomCommonPlatformPersonDetails(defendantId))
-      .addPerson(createRandomPrisonPersonDetails(prisonNumber).copy(middleNames = randomName(), sexCode = M))
-
+  private fun createPrisonPerson(): Map<String, String> {
+    val prisonPerson = createPersonWithNewKey(createRandomPrisonPersonDetails())
     return mapOf(
-      "defendantId" to defendantId,
-      "prisonerNumber" to prisonNumber,
+      "prisonerNumber" to prisonPerson.prisonNumber!!,
+    )
+  }
+
+  private fun createCourtDataIngestionPerson(): Map<String, String> {
+    val commonPlatformPerson = createPersonWithNewKey(createRandomCommonPlatformPersonDetails())
+    return mapOf(
+      "defendantId" to commonPlatformPerson.defendantId!!,
     )
   }
 
