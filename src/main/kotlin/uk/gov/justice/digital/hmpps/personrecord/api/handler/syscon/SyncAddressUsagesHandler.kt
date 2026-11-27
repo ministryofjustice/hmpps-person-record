@@ -53,8 +53,8 @@ class SyncAddressUsagesHandler(
       active = prisonAddressUsage.isActive
       modifyDateTime = prisonAddressUsage.modifyDateTime
       modifyUserId = prisonAddressUsage.modifyUserId
-      createDateTime = prisonAddressUsage.createDateTime
-      createUserId = prisonAddressUsage.createUserId
+      createDateTime = prisonAddressUsage.createDateTime!!
+      createUserId = prisonAddressUsage.createUserId!!
     }
 
     fun PrisonAddressUsage.toEntity(addressEntity: AddressEntity) = AddressUsageEntity(
@@ -63,8 +63,8 @@ class SyncAddressUsagesHandler(
       address = addressEntity,
       modifyDateTime = modifyDateTime,
       modifyUserId = modifyUserId,
-      createDateTime = createDateTime,
-      createUserId = createUserId,
+      createDateTime = createDateTime!!,
+      createUserId = createUserId!!,
     )
   }
 }

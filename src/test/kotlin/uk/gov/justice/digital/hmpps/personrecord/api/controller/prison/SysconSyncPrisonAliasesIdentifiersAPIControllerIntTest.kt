@@ -352,7 +352,7 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
       val template = primaryAlias.identifiers.first()
       val identifiers = listOf(PNC to shortPnc, CRO to cro.lowercase(), PNC to "invalidPnc", CRO to "invalidCro")
         .mapIndexed { index, (type, value) ->
-          template.copy(nomisIdentifierId = NomisIdentifierId(primaryAlias.nomisOffenderId, index + 1), type = type, value = value)
+          template.copy(nomisIdentifierId = NomisIdentifierId(primaryAlias.nomisOffenderId!!, index + 1), type = type, value = value)
         }
 
       postPseudonymsAndReferences(prisonNumber, PrisonAliasesAndIdentifiersRequest(listOf(primaryAlias.copy(identifiers = identifiers))))
@@ -382,8 +382,8 @@ class SysconSyncPrisonAliasesIdentifiersAPIControllerIntTest : WebTestBase() {
 
   private fun referenceMatcher(request: PrisonIdentifier, entity: ReferenceEntity) = entity.identifierValue == request.formattedValue()
 
-  private fun referenceMatcher(request: PrisonIdentifier, mapping: SysconIdentifierMapping) = mapping.nomisIdentifierId.nomisOffenderId == request.nomisIdentifierId.nomisOffenderId &&
-    mapping.nomisIdentifierId.nomisSequence == request.nomisIdentifierId.nomisSequence
+  private fun referenceMatcher(request: PrisonIdentifier, mapping: SysconIdentifierMapping) = mapping.nomisIdentifierId.nomisOffenderId == request.nomisIdentifierId?.nomisOffenderId &&
+    mapping.nomisIdentifierId.nomisSequence == request.nomisIdentifierId?.nomisSequence
 
   private fun assertReferenceMatches(request: PrisonIdentifier, entity: ReferenceEntity) {
     assertThat(entity.identifierType).isEqualTo(request.type)
