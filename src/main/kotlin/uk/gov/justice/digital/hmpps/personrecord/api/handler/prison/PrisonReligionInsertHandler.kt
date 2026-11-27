@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.Resou
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionInsertRequest
 import uk.gov.justice.digital.hmpps.personrecord.api.model.prison.PrisonReligionMapping
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.historic.PrisonReligionHistory
+import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.prison.PrisonReligionEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -34,7 +35,7 @@ class PrisonReligionInsertHandler(
       nomisReligionId = UUID.randomUUID().toString(),
       religionCode = insertRequest.religionCode,
       changeReasonKnown = !insertRequest.comment.isNullOrBlank(),
-      comments = insertRequest.comment,
+      comments = insertRequest.comment.nullIfBlank(),
       startDate = LocalDate.now(),
       current = true,
       createDateTime = LocalDateTime.now(),
