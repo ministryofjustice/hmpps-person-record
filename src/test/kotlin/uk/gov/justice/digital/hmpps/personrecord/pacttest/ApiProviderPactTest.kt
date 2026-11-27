@@ -50,12 +50,6 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
     return mapOf("crn" to person.crn!!)
   }
 
-  @State("A probation person exists for the requested CRN")
-  fun aProbationPersonExistsForCrn(): Map<String, String> {
-    val person = createProbationPersonWithAddress()
-    return mapOf("crn" to person.crn!!)
-  }
-
   @State("A person exists for the requested common platform Id")
   fun aPersonExistsForTheRequestedCommonPlatformId(): Map<String, String> = createCourtDataIngestionPerson()
 
