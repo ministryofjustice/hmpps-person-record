@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_A
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.AddressUsage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.M
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
@@ -17,13 +16,11 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomBoolean
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomContactType
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCountryCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomUprn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomZonedDateTime
 
@@ -33,13 +30,11 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
     else -> listOf(API_READ_ONLY)
   }
 
-  @State("An address exists for the requested CRN and address ID")
+  @State("An address exists for the requested CRN and address ID", "A probation person exists for the requested CRN")
   fun anAddressExistsForCrnAndAddressId(): Map<String, String> {
-    val crn = randomCrn()
-    val person = createProbationPersonWithAddress(crn)
-
+    val person = createProbationPersonWithAddress()
     return mapOf(
-      "crn" to crn,
+      "crn" to person.crn!!,
       "cprAddressId" to person.addresses.first().updateId!!.toString(),
     )
   }
@@ -52,17 +47,11 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
     return mapOf("crn" to person.crn!!)
   }
 
-  @State("A probation person exists for the requested CRN")
-  fun aProbationPersonExistsForCrn(): Map<String, String> {
-    val person = createProbationPersonWithAddress(randomCrn())
-    return mapOf("crn" to person.crn!!)
-  }
-
   @State("A person exists for the requested common platform Id")
-  fun aPersonExistsForTheRequestedCommonPlatformId(): Map<String, String> = createCourtDataIngestionPerson()
+  fun aPersonExistsForTheRequestedCommonPlatformId(): Map<String, String> = createCourtDataIngestionPersonWithLinkedPrisoner()
 
   @State("A person exists for the requested prisoner number")
-  fun aPersonExistsForTheRequestedPrisonerNumber(): Map<String, String> = createCourtDataIngestionPerson()
+  fun aPersonExistsForTheRequestedPrisonerNumber(): Map<String, String> = createPrisonPersonWithLinkedCommonPlatformPerson()
 
   @State("A person exists as an exact match for the requested first name, last name, date of birth and PNC")
   fun aPersonExistsForExactMatch(): Map<String, String> {
@@ -81,26 +70,28 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
     )
   }
 
-  private fun createProbationPersonWithAddress(crn: String) = createPersonWithNewKey(
-    createRandomProbationPersonDetails(crn),
-    configure = addAddressToRecord(buildPactAddress()),
+  private fun createProbationPersonWithAddress() = createPersonWithNewKey(
+    createRandomProbationPersonDetails(),
+    configure = addAddressToRecord(buildProbationAddress()),
   )
 
-  private fun createCourtDataIngestionPerson(): Map<String, String> {
-    val defendantId = randomDefendantId()
-    val prisonNumber = randomPrisonNumber()
-
-    createPersonKey()
-      .addPerson(createRandomCommonPlatformPersonDetails(defendantId))
-      .addPerson(createRandomPrisonPersonDetails(prisonNumber).copy(middleNames = randomName(), sexCode = M))
-
+  private fun createPrisonPersonWithLinkedCommonPlatformPerson(): Map<String, String> {
+    val prisonPerson = createPersonWithNewKey(createRandomPrisonPersonDetails())
+    prisonPerson.personKey!!.addPerson(createRandomCommonPlatformPersonDetails())
     return mapOf(
-      "defendantId" to defendantId,
-      "prisonerNumber" to prisonNumber,
+      "prisonerNumber" to prisonPerson.prisonNumber!!,
     )
   }
 
-  private fun buildPactAddress(): Address = Address(
+  private fun createCourtDataIngestionPersonWithLinkedPrisoner(): Map<String, String> {
+    val commonPlatformPerson = createPersonWithNewKey(createRandomCommonPlatformPersonDetails())
+    commonPlatformPerson.personKey!!.addPerson(createRandomPrisonPersonDetails())
+    return mapOf(
+      "defendantId" to commonPlatformPerson.defendantId!!,
+    )
+  }
+
+  private fun buildProbationAddress(): Address = Address(
     noFixedAbode = randomBoolean(),
     startDate = randomZonedDateTime(),
     endDate = randomZonedDateTime(),
@@ -112,12 +103,11 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
     dependentLocality = randomName(),
     postTown = randomName(),
     county = randomName(),
-    countryCode = randomCountryCode(),
     uprn = randomUprn(),
-    statusCode = randomAddressStatusCode(),
     comment = randomName(),
-    isVerified = randomBoolean(),
-    usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
     contacts = listOf(Contact(randomContactType(), randomPhoneNumber(), "+44")),
+    isVerified = randomBoolean(),
+    statusCode = randomAddressStatusCode(),
+    usages = listOf(AddressUsage(randomAddressUsageCode(), randomBoolean())),
   )
 }
