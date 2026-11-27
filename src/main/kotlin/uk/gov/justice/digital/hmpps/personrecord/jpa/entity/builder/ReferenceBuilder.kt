@@ -14,7 +14,7 @@ object ReferenceBuilder {
       reference.existsIn(
         childEntities = personEntity.references,
         match = { ref, entity -> ref.matches(entity) },
-        yes = { it },
+        yes = { it.apply { pseudonym = null } },
         no = { ReferenceEntity.from(reference) },
       )
     }

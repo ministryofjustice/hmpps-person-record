@@ -4,13 +4,18 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PrisonPersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.TransactionalLookup
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PseudonymRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
@@ -45,7 +50,10 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.lang.Thread.sleep
 import java.time.LocalDate
 
-class PrisonEventListenerIntTest : MessagingTestBase() {
+class PrisonEventListenerIntTest(
+  @Autowired private val transactionalLookup: TransactionalLookup,
+  @Autowired private val pseudonymRepository: PseudonymRepository,
+) : MessagingTestBase() {
 
   @Test
   fun `should put message on dlq when exception thrown`() {
@@ -242,6 +250,58 @@ class PrisonEventListenerIntTest : MessagingTestBase() {
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
         assertThat(personEntity.sentenceInfo.size).isEqualTo(0)
+      }
+    }
+
+    @Test
+    fun `should update prisoner when an existing reference is linked to a pseudonym`() {
+      val prisonNumber = randomPrisonNumber()
+      val nationalInsuranceNumber = randomNationalInsuranceNumber()
+
+      // Create a person with a reference that will be reused.
+      // It is attached to a pseudonym.
+      // The pseudonym will be removed in the update.
+      val person = createPersonWithNewKey(
+        createRandomPrisonPersonDetails(prisonNumber)
+          .copy(
+            references = listOf(
+              Reference(NATIONAL_INSURANCE_NUMBER, nationalInsuranceNumber),
+            ),
+          ),
+        configure = {
+          val primaryName = getPrimaryName()
+          references.forEach { reference ->
+            reference.pseudonym = primaryName
+            primaryName.references.add(reference)
+          }
+        },
+      )
+
+      val savedPerson = transactionalLookup.findByPrisonNumberWithReferences(person.prisonNumber!!)
+      val referenceToBeReused = savedPerson.references.single { it.identifierType == NATIONAL_INSURANCE_NUMBER }
+      val pseudonymLinkedToReferenceToBeRemoved = referenceToBeReused.pseudonym
+      assertThat(referenceToBeReused.pseudonym).isNotNull()
+      assertThat(pseudonymLinkedToReferenceToBeRemoved).isNotNull()
+
+      stubNoMatchesPersonMatch()
+      prisonUpdateEventAndResponseSetup(
+        ApiResponseSetup(
+          prisonNumber = prisonNumber,
+          firstName = randomName(),
+          identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber)),
+        ),
+      )
+
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+      )
+      expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
+
+      awaitAssert {
+        val personUpdated = transactionalLookup.findByPrisonNumberWithReferences(person.prisonNumber!!)
+        assertThat(personUpdated.references.single { it.identifierType == NATIONAL_INSURANCE_NUMBER }.id).isEqualTo(referenceToBeReused.id)
+        assertThat(pseudonymRepository.findByIdOrNull(pseudonymLinkedToReferenceToBeRemoved!!.id!!)).isNull()
       }
     }
 
