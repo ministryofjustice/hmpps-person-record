@@ -51,7 +51,7 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
   fun aPersonExistsForTheRequestedCommonPlatformId(): Map<String, String> = createCourtDataIngestionPersonWithLinkedPrisoner()
 
   @State("A person exists for the requested prisoner number")
-  fun aPersonExistsForTheRequestedPrisonerNumber(): Map<String, String> = createPrisonPerson()
+  fun aPersonExistsForTheRequestedPrisonerNumber(): Map<String, String> = createPrisonPersonWithLinkedCommonPlatformPerson()
 
   @State("A person exists as an exact match for the requested first name, last name, date of birth and PNC")
   fun aPersonExistsForExactMatch(): Map<String, String> {
@@ -75,8 +75,9 @@ class ApiProviderPactTest : AbstractApiProviderPactTests() {
     configure = addAddressToRecord(buildProbationAddress()),
   )
 
-  private fun createPrisonPerson(): Map<String, String> {
+  private fun createPrisonPersonWithLinkedCommonPlatformPerson(): Map<String, String> {
     val prisonPerson = createPersonWithNewKey(createRandomPrisonPersonDetails())
+    prisonPerson.personKey!!.addPerson(createRandomCommonPlatformPersonDetails())
     return mapOf(
       "prisonerNumber" to prisonPerson.prisonNumber!!,
     )
