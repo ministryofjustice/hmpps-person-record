@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.validation.constraints.NotNull
 import uk.gov.justice.digital.hmpps.personrecord.model.types.CountryCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonAliasNameType
@@ -11,8 +12,9 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class PrisonAlias(
-  @Schema(description = "The nomis offender id for this alias", example = "10000")
-  val nomisOffenderId: Long,
+  @Schema(description = "The nomis offender id for this alias. Required on requests; not stored by CPR so null on GET responses", example = "10000")
+  @field:NotNull
+  val nomisOffenderId: Long?,
   @Schema(description = "The cpr alias id", example = "4f2b1d8a-9f3c-4a1f-8b2d-112233445566")
   val cprAliasId: String? = null,
   @Schema(description = "The alias title code", example = "MR")
@@ -35,7 +37,7 @@ data class PrisonAlias(
   val birthCountry: CountryCode? = null,
   @Schema(description = "Ethnicity of this offender record")
   val ethnicity: EthnicityCode? = null,
-  @Schema(description = "List of identifiers associated with this alias")
+  @Schema(description = "List of identifiers associated with this alias. Won't be populated on a GET response.")
   val identifiers: List<PrisonIdentifier> = emptyList(),
   @Schema(description = "Suffix")
   val suffix: PrisonPseudonymSuffix? = null,

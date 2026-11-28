@@ -32,6 +32,35 @@ class SyncAliasUpdateHandler(
     }
   }
 
+  @Transactional(readOnly = true)
+  fun handleGet(prisonNumber: String, cprAliasId: String): PrisonAlias {
+    val pseudonymEntity = pseudonymRepository.findByUpdateId(UUID.fromString(cprAliasId))
+      ?: throw ResourceNotFoundException("Alias with $cprAliasId not found for person with $prisonNumber")
+    val prisonPseudonymEntity = prisonPseudonymRepository.findByIdOrNull(pseudonymEntity.id!!)
+    return pseudonymEntity.toPrisonAlias(prisonPseudonymEntity)
+  }
+
+  private fun PseudonymEntity.toPrisonAlias(prisonPseudonymEntity: PrisonPseudonymEntity?) = PrisonAlias(
+    nomisOffenderId = null,
+    cprAliasId = updateId.toString(),
+    titleCode = titleCode,
+    firstName = firstName,
+    middleNames = middleNames,
+    lastName = lastName,
+    dateOfBirth = dateOfBirth,
+    sexCode = sexCode,
+    isPrimary = nameType == PRIMARY,
+    birthPlace = birthplace,
+    birthCountry = birthCountryCode,
+    ethnicity = ethnicityCode,
+    suffix = prisonPseudonymEntity?.suffix,
+    nameType = prisonPseudonymEntity?.nameType,
+    createDateTime = createDateTime!!,
+    createUserId = createUserId!!,
+    modifyDateTime = modifyDateTime,
+    modifyUserId = modifyUserId,
+  )
+
   private fun PrisonAlias.updateFields(pseudonymEntity: PseudonymEntity) {
     pseudonymEntity.titleCode = titleCode
     pseudonymEntity.firstName = firstName

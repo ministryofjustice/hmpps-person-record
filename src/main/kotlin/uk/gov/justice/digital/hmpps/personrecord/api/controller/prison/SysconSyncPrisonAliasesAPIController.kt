@@ -39,7 +39,7 @@ class SysconSyncPrisonAliasesAPIController(
   fun getPrisonerAlias(
     @PathVariable prisonNumber: String,
     @PathVariable cprAliasId: String,
-  ): ResponseEntity<PrisonAlias> = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build()
+  ): PrisonAlias = sysconSyncAliasUpdateHandler.handleGet(prisonNumber, cprAliasId)
 
   @Operation(
     description = """Create prisoner alias record, by Prison Number. Role required is **${PERSON_RECORD_SYSCON_SYNC_WRITE}**.""",
