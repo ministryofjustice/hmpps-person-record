@@ -45,13 +45,71 @@ class SysconSyncPrisonAliasesAPIControllerIntTest(
     inner class SuccessfulProcessing {
 
       @Test
-      fun `should respond with 501 as not currently implemented`() {
+      fun `should return the alias with null nomis offender id and no identifiers`() {
+        stubPersonMatchUpsert()
+        stubPersonMatchScores()
+        val prisonNumber = randomPrisonNumber()
+        val request = prisonAlias().copy(
+          identifiers = emptyList(),
+          modifyDateTime = LocalDateTime.of(2024, 2, 2, 2, 0),
+          modifyUserId = "modifyUserId",
+        )
+        val cprAliasId = sendPostRequestAsserted<SysconAliasMapping>(
+          url = aliasesUrl(prisonNumber),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = HttpStatus.CREATED,
+          body = request,
+        ).returnResult().responseBody!!.cprAliasId!!
+
+        val responseBody = sendGetRequestAsserted<PrisonAlias>(
+          url = aliasUrl(prisonNumber, cprAliasId),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = HttpStatus.OK,
+        ).returnResult().responseBody!!
+
+        assertThat(responseBody).isEqualTo(request.copy(nomisOffenderId = null, cprAliasId = cprAliasId))
+      }
+
+      @Test
+      fun `should return isPrimary false and null prison fields for a non prison alias`() {
+        val prisonNumber = randomPrisonNumber()
+        val alias = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber)).getAliases().first()
+        alias.createDateTime = LocalDateTime.of(2020, 1, 1, 12, 0)
+        alias.createUserId = "createUserId"
+        pseudonymRepository.saveAndFlush(alias)
+
+        val responseBody = sendGetRequestAsserted<PrisonAlias>(
+          url = aliasUrl(prisonNumber, alias.updateId.toString()),
+          roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE),
+          expectedStatus = HttpStatus.OK,
+        ).returnResult().responseBody!!
+
+        assertThat(responseBody.cprAliasId).isEqualTo(alias.updateId.toString())
+        assertThat(responseBody.isPrimary).isFalse()
+        assertThat(responseBody.firstName).isEqualTo(alias.firstName)
+        assertThat(responseBody.lastName).isEqualTo(alias.lastName)
+        assertThat(responseBody.suffix).isNull()
+        assertThat(responseBody.nameType).isNull()
+      }
+    }
+
+    @Nested
+    inner class Validation {
+
+      @Test
+      fun `should return not found when the alias does not exist`() {
+        val prisonNumber = randomPrisonNumber()
+        val cprAliasId = randomCprAliasId()
+
         webTestClient.get()
-          .uri(aliasUrl(randomPrisonNumber(), randomCprAliasId()))
+          .uri(aliasUrl(prisonNumber, cprAliasId))
           .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
           .exchange()
           .expectStatus()
-          .isEqualTo(501)
+          .isNotFound
+          .expectBody()
+          .jsonPath("userMessage")
+          .isEqualTo("Not found: Alias with $cprAliasId not found for person with $prisonNumber")
       }
     }
 
@@ -198,6 +256,17 @@ class SysconSyncPrisonAliasesAPIControllerIntTest(
       fun `should return bad request when body is missing`() {
         webTestClient.post()
           .uri(aliasesUrl(randomPrisonNumber()))
+          .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
+          .exchange()
+          .expectStatus()
+          .isBadRequest
+      }
+
+      @Test
+      fun `should return bad request when nomis offender id is missing`() {
+        webTestClient.post()
+          .uri(aliasesUrl(randomPrisonNumber()))
+          .bodyValue(prisonAlias().copy(nomisOffenderId = null, identifiers = emptyList()))
           .authorised(roles = listOf(PERSON_RECORD_SYSCON_SYNC_WRITE))
           .exchange()
           .expectStatus()
